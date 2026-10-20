@@ -3,6 +3,7 @@ import { runAnalyze, type AnalyzeCommandOptions } from "./commands/analyze";
 import { runDiff, type DiffCommandOptions, type FailOn } from "./commands/diff";
 import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
+import { runServe, type ServeOptions } from "./commands/serve";
 
 declare const __CODARCH_VERSION__: string | undefined;
 
@@ -17,6 +18,7 @@ Uso:
   codarch inspect <fichero.cc.json[.gz]> [opciones]
   codarch render  <fichero.cc.json[.gz]> [opciones]
   codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
+  codarch serve   [ruta] [opciones]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -50,6 +52,12 @@ Opciones de diff:
   --fail-on <modo>  none | cycles | violations | hotspots | any (por defecto none)
   -h, --help        esta ayuda
 
+Opciones de serve:
+  -p, --port <n>    puerto local (por defecto 4173)
+  --host <host>     interfaz (por defecto 127.0.0.1)
+  --watch           reanaliza al cambiar ficheros y refresca por SSE
+  -h, --help        esta ayuda
+
 Ejemplos:
   codarch analyze .
   codarch analyze . -o .codarch --title "Mi proyecto"
@@ -57,6 +65,7 @@ Ejemplos:
   codarch render samples/codecharta_visualization.cc.json.gz
   codarch render mapa.cc.json -o mapa.html --area rloc --color maxComplexity
   codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
+  codarch serve . --watch
 `;
 
 function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
@@ -347,6 +356,62 @@ function isFailOn(value: string | undefined): value is FailOn {
   );
 }
 
+function parseServe(args: string[]): ServeOptions | number {
+  const options: ServeOptions = {
+    port: 4173,
+    host: "127.0.0.1",
+    watch: false,
+    help: false
+  };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--port" || arg === "-p") {
+      const value = args[++index];
+      const port = Number(value);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        console.error("--port necesita un número entre 1 y 65535");
+        return 1;
+      }
+      options.port = port;
+    } else if (arg.startsWith("--port=")) {
+      const port = Number(arg.slice("--port=".length));
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        console.error("--port necesita un número entre 1 y 65535");
+        return 1;
+      }
+      options.port = port;
+    } else if (arg === "--host") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--host necesita un valor");
+        return 1;
+      }
+      options.host = value;
+    } else if (arg.startsWith("--host=")) {
+      options.host = arg.slice("--host=".length);
+    } else if (arg === "--watch") {
+      options.watch = true;
+    } else if (arg === "--help" || arg === "-h") {
+      options.help = true;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida en serve: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length > 1) {
+    console.error("serve acepta como máximo una ruta");
+    return 1;
+  }
+  options.root = positional[0];
+  return options;
+}
+
 function main(argv: string[]): number {
   const [command, ...rest] = argv;
 
@@ -382,6 +447,16 @@ function main(argv: string[]): number {
     const parsed = parseDiff(rest);
     if (typeof parsed === "number") return parsed;
     return runDiff(parsed);
+  }
+
+  if (command === "serve") {
+    const parsed = parseServe(rest);
+    if (typeof parsed === "number") return parsed;
+    if (parsed.help) {
+      console.log(USAGE);
+      return 0;
+    }
+    return runServe(parsed);
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

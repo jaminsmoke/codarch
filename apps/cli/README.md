@@ -42,6 +42,19 @@ codarch diff base.cc.json head.cc.json -o report.json --config .codarch.yml --fa
 Códigos de salida de `diff`: `0` sin bloqueo, `2` política incumplida, `1` error de lectura o
 configuración.
 
+## Servidor local
+
+```bash
+codarch serve .                 # analiza y sirve la app web en http://127.0.0.1:4173
+codarch serve . --watch         # reanaliza al cambiar ficheros y refresca por SSE
+codarch serve . --port 8080
+```
+
+`serve` usa el mismo analizador que `analyze`, sirve la app web incluida en el paquete y expone el
+snapshot en `/data/snapshot.cc.json`; si existe `.codarch/report.json`, también lo sirve para la vista
+de PR. `--watch` es opt-in y no está pensado para exponerse fuera de loopback. No monitoriza GitHub ni
+sustituye a la acción: es un visor local.
+
 ## Lente de migración
 
 `analyze` mide TS/JS, Rust y artefactos `.wasm`/`.node`. El snapshot incluye la lente `migration` y

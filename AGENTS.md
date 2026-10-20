@@ -37,6 +37,7 @@ npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
 npm run web:dev        # app web en http://127.0.0.1:5173
 npm run web:build      # build estático en apps/web/dist
+npm run serve -- . --watch  # analiza y sirve la web con refresco SSE
 ```
 
 Antes de cada push: lint, typecheck, tests y `check:action`. Si el cambio toca la acción, ejecutar
@@ -59,9 +60,10 @@ también `npm run sync:action` y actualizar el repo público.
 7. **Acción.** La fuente es `apps/github-action`. El repo público
    [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action) se genera con
    `npm run sync:action`; no editar allí. Tras sincronizar, mover el tag mayor `v1`.
-8. **Release del CLI.** Subir `apps/cli/package.json`, `npm run build:cli && npm run pack:cli`,
-   probar el tarball en un proyecto limpio, `npm publish apps/cli/dist --access public` (requiere OTP),
-   actualizar el input `version` de la acción, sincronizar y mover `v1`.
+8. **Release del CLI.** Subir `apps/cli/package.json`, `npm run web:build`, `npm run build:cli`,
+   `npm run pack:cli`, probar el tarball en un proyecto limpio,
+   `npm publish apps/cli/dist --access public` (requiere OTP), actualizar el input `version` de la
+   acción, sincronizar y mover `v1`.
 
 ## Estado y siguiente
 

@@ -121,7 +121,7 @@ de PR.
 - [x] Abrir repositorio por carpeta con File System Access API; fallback `webkitdirectory`.
 - [x] Abrir un `cc.json` suelto y cargar el reporte desde la pestaña PR.
 - [x] Foco por carpeta y breadcrumb.
-- [ ] `codarch serve`: servidor local opcional para el build estático y artefactos.
+- [x] `codarch serve`: analiza al arrancar, sirve el build web y los artefactos; `--watch` + SSE.
 - [ ] Carga por URL y enlaces compartibles con el estado de vista.
 - [ ] Persistencia local del último proyecto y de las preferencias de área/color.
 - [ ] Atajos de teclado y navegación completa del mapa.

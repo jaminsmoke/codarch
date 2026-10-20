@@ -10,10 +10,14 @@ render estático, reutilizando `buildRenderModel`, `layoutMap` y las escalas de 
 npm run web:dev      # http://127.0.0.1:5173
 npm run web:build    # estático en apps/web/dist
 npm run web:preview
+npm run serve        # analiza el repo y sirve la app en http://127.0.0.1:4173
+npm run serve -- . --watch
 ```
 
-La demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de este repo entre el
-commit anterior a la app web y el árbol actual.
+`serve` carga `data/meta.json`, `data/snapshot.cc.json` y, si existe, `data/report.json`. Con
+`--watch`, el servidor reanaliza al guardar y la app se refresca por SSE sin recargar. Si no hay
+servidor, la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de este repo
+entre el commit anterior a la app web y el árbol actual.
 
 **Abrir repositorio o archivo** ofrece dos caminos:
 
@@ -42,7 +46,7 @@ También puedes arrastrar un `cc.json` al mapa.
 - El snapshot y el reporte se cargan en memoria; no hay backend ni persistencia.
 - **Abrir repositorio** no analiza: carga artefactos `.codarch` ya generados. El análisis en navegador
   (WASM) está en el roadmap como M6.
-- No hay carga por URL ni `codarch serve` todavía.
+- No hay carga por URL todavía.
 - El layout se recalcula al redimensionar; el mapa es SVG, no WebGL.
 - Los ficheros sin la métrica de área se dibujan con área mínima para no desaparecer.
 

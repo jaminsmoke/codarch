@@ -96,6 +96,7 @@ export default function App() {
   const [reportError, setReportError] = useState<string | null>(null);
   const [tab, setTab] = useState<"file" | "pr">("file");
   const [focusPath, setFocusPath] = useState<string | null>(null);
+  const [serverMode, setServerMode] = useState<"demo" | "served" | "live">("demo");
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
@@ -104,33 +105,47 @@ export default function App() {
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
 
-  const loadSnapshot = useCallback((raw: unknown, label: string) => {
-    try {
-      const parsed = parseCcJson(raw);
-      const nextStats = getStats(parsed);
-      const coverage = new Set(nextStats.metricCoverage.map((entry) => entry.name));
-      const nextArea = coverage.has("rloc")
-        ? "rloc"
-        : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
+  const loadSnapshot = useCallback(
+    (raw: unknown, label: string, preserveView = false) => {
+      try {
+        const parsed = parseCcJson(raw);
+        const nextStats = getStats(parsed);
+        const coverage = new Set(nextStats.metricCoverage.map((entry) => entry.name));
+        const nextArea = coverage.has("rloc")
+          ? "rloc"
+          : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
 
-      setCc(parsed);
-      setSource(label);
-      setAreaMetric(nextArea);
-      setColorMode(
-        parsed.lenses?.migration && coverage.has("migrationDebt")
-          ? "migrationDebt"
-          : "risk"
-      );
-      setQuery("");
-      setSelectedIndex(null);
-      setFocusPath(null);
-      setError(null);
-    } catch (cause) {
-      setError((cause as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        setCc(parsed);
+        setSource(label);
+        setAreaMetric((current) =>
+          preserveView && current && coverage.has(current) ? current : nextArea
+        );
+        setColorMode((current) => {
+          if (preserveView) {
+            if (current === "risk" || current === "structure" || current === "status") {
+              return current;
+            }
+            return coverage.has(current) ? current : "risk";
+          }
+          return parsed.lenses?.migration && coverage.has("migrationDebt")
+            ? "migrationDebt"
+            : "risk";
+        });
+        if (!preserveView) {
+          setQuery("");
+          setSelectedIndex(null);
+          setFocusPath(null);
+          setServerMode("demo");
+        }
+        setError(null);
+      } catch (cause) {
+        setError((cause as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const loadReport = useCallback((raw: unknown, label: string, focus = true) => {
     const next = readReport(raw);
@@ -146,39 +161,58 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("demo.report.json")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((json) => {
-        if (json && !cancelled) loadReport(json, "demo.report.json");
-      })
-      .catch(() => {
-        // La demo del mapa funciona sin reporte.
-      });
+
+    const boot = async (): Promise<void> => {
+      const meta = await fetchJson("data/meta.json");
+      const servedSnapshot = await fetchJson("data/snapshot.cc.json");
+
+      if (servedSnapshot) {
+        if (cancelled) return;
+        loadSnapshot(servedSnapshot, "servidor local");
+        const watch =
+          typeof meta === "object" &&
+          meta !== null &&
+          (meta as { watch?: unknown }).watch === true;
+        setServerMode(watch ? "live" : "served");
+        const servedReport = await fetchJson("data/report.json");
+        if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
+        return;
+      }
+
+      const demoSnapshot = await fetchJson("demo.cc.json");
+      if (demoSnapshot && !cancelled) loadSnapshot(demoSnapshot, "demo.cc.json");
+      const demoReport = await fetchJson("demo.report.json");
+      if (demoReport && !cancelled) loadReport(demoReport, "demo.report.json");
+      if (!demoSnapshot && !cancelled) {
+        setError("No se pudo cargar la demo. Abre un cc.json para empezar.");
+        setLoading(false);
+      }
+    };
+
+    boot().catch((cause: Error) => {
+      if (!cancelled) {
+        setError(cause.message);
+        setLoading(false);
+      }
+    });
+
     return () => {
       cancelled = true;
     };
-  }, [loadReport]);
+  }, [loadReport, loadSnapshot]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch("demo.cc.json")
-      .then((response) => {
-        if (!response.ok) throw new Error(`no se pudo cargar la demo (${response.status})`);
-        return response.json();
-      })
-      .then((json) => {
-        if (!cancelled) loadSnapshot(json, "demo.cc.json");
-      })
-      .catch((cause: Error) => {
-        if (!cancelled) {
-          setError(cause.message);
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [loadSnapshot]);
+    if (serverMode !== "live" || typeof EventSource === "undefined") return;
+
+    const events = new EventSource("/events");
+    events.addEventListener("update", async () => {
+      const snapshot = await fetchJson("data/snapshot.cc.json");
+      if (snapshot) loadSnapshot(snapshot, "servidor local", true);
+      const report = await fetchJson("data/report.json");
+      if (report) loadReport(report, "servidor local", false);
+    });
+    return () => events.close();
+  }, [serverMode, loadReport, loadSnapshot]);
 
   const view = useMemo<ViewState>(() => {
     if (!cc || !areaMetric) return { model: null, error: null };
@@ -417,6 +451,12 @@ export default function App() {
             {view.model?.meta.checksum ? ` · ${view.model.meta.checksum.slice(0, 8)}` : ""}
             {view.model?.meta.commit ? ` · ${view.model.meta.commit.slice(0, 8)}` : ""}
           </span>
+          {serverMode !== "demo" ? (
+            <span className={`server-mode server-mode-${serverMode}`}>
+              <i />
+              {serverMode === "live" ? "live" : "servido"}
+            </span>
+          ) : null}
         </div>
         <div className="topbar-actions">
           <button className="button ghost" type="button" onClick={reloadDemo}>
@@ -632,6 +672,16 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+async function fetchJson(url: string): Promise<unknown | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return (await response.json()) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {

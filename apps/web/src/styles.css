@@ -140,6 +140,32 @@ button {
   max-width: 100%;
 }
 
+.server-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a9b7bc;
+}
+
+.server-mode i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7f8b90;
+}
+
+.server-mode-live {
+  color: #8fe3c0;
+}
+
+.server-mode-live i {
+  background: #45d6a0;
+  box-shadow: 0 0 0 3px rgba(69, 214, 160, 0.16);
+}
+
 .topbar-actions {
   display: flex;
   justify-content: flex-end;

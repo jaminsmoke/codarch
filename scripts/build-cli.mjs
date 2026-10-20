@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,6 +43,14 @@ await copyFile(path.join(RENDER_SRC, "client.js"), path.join(DIST, "client.js"))
 await copyFile(path.join(ROOT, "LICENSE"), path.join(DIST, "LICENSE"));
 await copyFile(path.join(CLI_DIR, "README.md"), path.join(DIST, "README.md"));
 
+const WEB_DIST = path.join(ROOT, "apps", "web", "dist");
+try {
+  await cp(WEB_DIST, path.join(DIST, "web"), { recursive: true });
+  console.log("ok · app web incluida en el paquete");
+} catch {
+  console.warn("aviso · no hay build web; `codarch serve` no estará disponible");
+}
+
 const published = {
   name: "codarch",
   version: cliPackage.version,
@@ -52,7 +60,7 @@ const published = {
   bin: {
     codarch: "./index.js"
   },
-  files: ["index.js", "styles.css", "client.js", "LICENSE", "README.md"],
+  files: ["index.js", "styles.css", "client.js", "web", "LICENSE", "README.md"],
   engines: {
     node: ">=22"
   },
