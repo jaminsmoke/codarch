@@ -45,8 +45,9 @@ Node.
 - El tarball es pequeño (~48 KB) y el coste de instalación está en las dependencias, sobre todo
   `typescript` y los addons de tree-sitter.
 - Una versión publicada es inmutable; cualquier cambio de comportamiento exige nueva versión.
-- La acción de GitHub todavía es repo-local. Consumir el paquete publicado es el siguiente paso para
-  poder referenciarla desde otros repositorios.
+- La acción de GitHub consume este paquete y vive en un repo público separado
+  (`jaminsmoke/codarch-action`), porque GitHub no resuelve acciones de repos privados desde otros
+  repos. Ver [ADR 0015](0015-accion-publica-separada.md).
 - Las aprobaciones de scripts están fijadas a versiones concretas: actualizar esbuild o tree-sitter
   exige revisar y actualizar `allowScripts`.
 - El MCP sigue arrancando desde el checkout con `tsx`; empaquetarlo en el mismo paquete o en uno

@@ -1,11 +1,14 @@
 # CodArch GitHub Action
 
+Repositorio público: [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action).
+
 Analiza el commit base y el head de un pull request, escribe un `report.json` determinista, publica el
 mapa como artefacto y actualiza un comentario en el PR.
 
 La acción instala el CLI publicado en npm (`codarch@0.1.0` por defecto), así que no necesita el
 código de CodArch en el workspace ni ejecuta `npm ci` sobre el proyecto analizado. La decisión está en
-[ADR 0012](../../docs/adr/0012-github-action.md) y [ADR 0014](../../docs/adr/0014-distribucion-cli-npm.md).
+[ADR 0012](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0012-github-action.md) y
+[ADR 0014](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0014-distribucion-cli-npm.md).
 
 ## Uso
 
@@ -27,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: jaminsmoke/codarch/apps/github-action@v1
+      - uses: jaminsmoke/codarch-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: none # aviso; usa violations, cycles, hotspots o any para bloquear
@@ -90,7 +93,8 @@ de `fail-on`:
 - `hotspots`: falla si hay hotspots nuevos.
 - `any`: cualquiera de los tres.
 
-La severidad se decide en `.codarch.yml`; ver [`docs/rules.md`](../../docs/rules.md). La acción
+La severidad se decide en `.codarch.yml`; ver
+[`docs/rules.md`](https://github.com/jaminsmoke/codarch/blob/main/docs/rules.md). La acción
 distingue el código `2` (gate) del `1` (error de lectura o configuración) para que el workflow pueda
 diagnosticar sin ambigüedad.
 

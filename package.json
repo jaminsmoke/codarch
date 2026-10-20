@@ -22,6 +22,7 @@
     "build:cli": "node scripts/build-cli.mjs",
     "pack:cli": "npm run build:cli && node scripts/pack-cli.mjs",
     "publish:cli": "npm run build:cli && npm publish apps/cli/dist --access public",
+    "sync:action": "node scripts/sync-action.mjs",
     "check:action": "node scripts/check-action.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

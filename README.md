@@ -3,9 +3,9 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 cerrado (MVP repo-local). M3 en curso: el servidor MCP de solo lectura ya funciona y el
-CLI está empaquetado y validado como tarball instalable. La publicación en npm y el uso de la acción
-desde otros repositorios siguen pendientes.
+**Estado:** M3 cerrado. El CLI `codarch@0.1.0` está publicado en npm, la GitHub Action pública
+`jaminsmoke/codarch-action@v1` funciona desde otros repositorios y el servidor MCP de solo lectura
+está operativo. El siguiente milestone es la lente de migración (M4).
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
@@ -50,6 +50,7 @@ npm test
 npm run build:cli
 npm run pack:cli
 npm run publish:cli
+npm run sync:action             # regenera el repo público codarch-action
 ```
 
 `codarch analyze` escribe dos artefactos:
@@ -160,15 +161,16 @@ permissions:
 steps:
   - uses: actions/checkout@v7
     with: { fetch-depth: 0 }
-  - uses: jaminsmoke/codarch/apps/github-action@v1
+  - uses: jaminsmoke/codarch-action@v1
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       fail-on: none
 ```
 
 La acción instala `codarch` desde npm; no necesita el código de CodArch en el workspace ni ejecuta
-`npm ci` sobre el proyecto analizado. La documentación, entradas y límites están en
-[`apps/github-action/README.md`](apps/github-action/README.md). El workflow de ejemplo es
+`npm ci` sobre el proyecto analizado. Vive en el repo público
+[`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action), generado desde
+`apps/github-action` con `npm run sync:action`. El workflow de ejemplo es
 [`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
 
 ### MCP para agentes
@@ -350,7 +352,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 packages/   schema · parsers · metrics · layouts · render
 apps/       cli · mcp · github-action · web (futuro)
 docs/       adr/ · design/ · model.md · rules.md · mcp.md · roadmap.md
-scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · check-action.mjs · fetch-samples.mjs
+scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · sync-action.mjs · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
 

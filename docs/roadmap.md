@@ -67,8 +67,8 @@ en `packages/metrics` y lo comparten render y MCP; renormaliza sus pesos si falt
 
 ## M3 — MCP y distribución
 
-**Estado:** en curso. El servidor MCP local y el build del CLI están cerrados; la publicación en npm
-y el uso de la acción desde otros repositorios siguen pendientes.
+**Estado:** cerrado. El servidor MCP local, el CLI publicado en npm y la acción pública funcionan de
+extremo a extremo, incluida la prueba desde un repositorio externo.
 
 - [x] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.
 - [x] Las herramientas devuelven datos del snapshot, nunca texto inventado.
@@ -77,8 +77,10 @@ y el uso de la acción desde otros repositorios siguen pendientes.
 - [x] 25 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
 - [x] Build reproducible de un paquete `codarch` único con esbuild; assets del mapa copiados junto al bundle.
 - [x] Tarball `codarch@0.1.0` (~48 KB) instalado en un proyecto limpio y validado con `analyze`, `inspect`, `diff` y `render`.
-- [ ] Publicar `codarch@0.1.0` en npm (requiere `npm login`).
-- [ ] Reescribir la acción para consumir el paquete publicado y poder referenciarla desde otros repositorios.
+- [x] Publicar `codarch@0.1.0` en npm; `latest` y `next` apuntan a esa versión.
+- [x] La acción instala `codarch` desde npm y ya no ejecuta `npm ci` sobre el proyecto analizado.
+- [x] Repo público `jaminsmoke/codarch-action@v1`, generado desde `apps/github-action` con `npm run sync:action`.
+- [x] Prueba externa en `jaminsmoke/codarch-action-smoke`: comentario, artefacto, análisis base/head y gate con exit `2`.
 
 ## M4 — Lente de migración
 
