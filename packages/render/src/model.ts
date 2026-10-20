@@ -1,11 +1,11 @@
 import type { CcEdge, CcJson, CcNode } from "@codarch/schema";
-import { defaultMetric, getStats, walkFiles } from "@codarch/schema";
+import { defaultMetric, getStats, walkFiles } from "@codarch/schema/browser";
 import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
   riskScores
-} from "@codarch/metrics";
+} from "@codarch/metrics/browser";
 
 export type Lens = "structure" | "risk" | "metric";
 

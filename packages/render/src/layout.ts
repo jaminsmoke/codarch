@@ -22,12 +22,16 @@ export interface PlacedNode {
  * demasiado pequeño se deja de descender y la carpeta queda como bloque agregado.
  * Así un repo de 2.000 ficheros no produce etiquetas de 2 px.
  */
-export function layoutMap(roots: readonly TreeNode[]): PlacedNode[] {
+export function layoutMap(
+  roots: readonly TreeNode[],
+  width = VIEW_WIDTH,
+  height = VIEW_HEIGHT
+): PlacedNode[] {
   const rect: Rect = {
     x: VIEW_PADDING,
     y: VIEW_PADDING,
-    w: VIEW_WIDTH - VIEW_PADDING * 2,
-    h: VIEW_HEIGHT - VIEW_PADDING * 2
+    w: Math.max(1, width - VIEW_PADDING * 2),
+    h: Math.max(1, height - VIEW_PADDING * 2)
   };
   return layoutChildren(roots, rect, 0);
 }

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
@@ -17,17 +18,22 @@
     "baseUrl": ".",
     "paths": {
       "@codarch/schema": ["packages/schema/src/index.ts"],
+      "@codarch/schema/browser": ["packages/schema/src/browser.ts"],
       "@codarch/parsers": ["packages/parsers/src/index.ts"],
       "@codarch/layouts": ["packages/layouts/src/index.ts"],
       "@codarch/metrics": ["packages/metrics/src/index.ts"],
-      "@codarch/render": ["packages/render/src/index.ts"]
+      "@codarch/metrics/browser": ["packages/metrics/src/browser.ts"],
+      "@codarch/render": ["packages/render/src/index.ts"],
+      "@codarch/render/browser": ["packages/render/src/browser.ts"]
     }
   },
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/test/**/*.ts",
     "apps/*/src/**/*.ts",
+    "apps/*/src/**/*.tsx",
     "apps/*/test/**/*.ts",
+    "apps/*/vite.config.ts",
     "scripts/*.ts",
     "vitest.config.ts"
   ],
