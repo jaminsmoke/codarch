@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "projectName": "fixture",
+    "apiVersion": "2.1",
+    "checksum": "0123456789abcdef0123456789abcdef"
+  },
+  "files": [
+    {
+      "id": "root",
+      "name": "root",
+      "type": "Folder",
+      "children": [
+        {
+          "id": "src",
+          "name": "src",
+          "type": "Folder",
+          "children": [
+            { "id": "a", "name": "a.ts", "type": "File" },
+            { "id": "b", "name": "b.ts", "type": "File" }
+          ]
+        },
+        { "id": "readme", "name": "README.md", "type": "File" }
+      ]
+    }
+  ],
+  "lenses": {
+    "metrics": {
+      "attributes": {
+        "a": { "rloc": 120, "complexity": 8 },
+        "b": { "rloc": 40, "complexity": 2 },
+        "readme": { "rloc": 10 }
+      },
+      "attributeTypes": { "rloc": "absolute", "complexity": "absolute" }
+    },
+    "dependency": {
+      "edges": [
+        { "fromId": "a", "toId": "b", "attributes": { "dependencies": 2 } }
+      ]
+    }
+  }
+}
