@@ -21,7 +21,7 @@ Criterios de aceptación:
 - [x] Treemap 2D: área = `rloc`, color = métrica elegible, altura/borde = jerarquía.
 - [x] Hover con métricas, búsqueda, clic para enfocar una carpeta.
 - [x] HTML único, sin servidor, sin red: 489.663 bytes con la muestra real de 2.003 ficheros.
-- [x] 5k nodos renderizados en < 500 ms (mediana 29 ms, pipeline completo en memoria).
+- [x] 5k nodos renderizados en < 500 ms (mediana ~27 ms con `npm run bench:render`).
 - [x] Salida determinista: mismo input, mismo HTML (salvo hash de build).
 - [ ] Comparación visual lado a lado con el mapa de CodeCharta del mismo commit.
 

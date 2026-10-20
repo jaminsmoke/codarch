@@ -16,6 +16,7 @@ npm install
 npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3 MB)
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
 npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.html
+npm run bench:render            # 5.000 ficheros sintéticos
 npm test
 ```
 

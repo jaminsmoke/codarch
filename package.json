@@ -10,6 +10,7 @@
   "scripts": {
     "inspect": "tsx apps/cli/src/index.ts inspect",
     "render": "tsx apps/cli/src/index.ts render",
+    "bench:render": "tsx scripts/bench-render.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
