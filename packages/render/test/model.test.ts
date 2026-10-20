@@ -71,6 +71,24 @@ describe("buildRenderModel", () => {
     expect(result.metrics.map((metric) => metric.key)).toContain("complexity");
   });
 
+  it("renormaliza el riesgo cuando falta la señal de churn", () => {
+    const copy = structuredClone(fixture) as {
+      lenses?: {
+        metrics?: { attributes?: Record<string, Record<string, number>> };
+      };
+    };
+    for (const values of Object.values(copy.lenses?.metrics?.attributes ?? {})) {
+      delete values.number_of_commits;
+      delete values.number_of_authors;
+      delete values.number_of_renames;
+    }
+
+    const result = buildRenderModel(parseCcJson(copy));
+    expect(Math.max(...result.files.map((file) => file.risk))).toBeGreaterThan(
+      0.9
+    );
+  });
+
   it("es determinista", () => {
     expect(model()).toEqual(model());
   });

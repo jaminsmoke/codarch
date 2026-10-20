@@ -3,9 +3,12 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M0 cerrado. Importador `cc.json` 2.x y 1.x normalizado + CLI de inspección + render 2D sobre datos reales.
-Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del mapa en
-[`docs/design/map.md`](docs/design/map.md).
+**Estado:** M1 cerrado. Analizador propio de TypeScript/JavaScript, grafo de dependencias y snapshot
+`cc.json` determinista. El render 2D sigue siendo el consumidor principal del modelo.
+
+Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
+[`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
+el plan en [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -14,47 +17,104 @@ Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del m
 ```bash
 npm install
 npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3 MB)
+
+# Analizar un proyecto TypeScript/JavaScript
+npm run analyze -- .
+npm run analyze -- . -o .codarch --title "Mi proyecto"
+
+# Inspeccionar y renderizar un cc.json existente
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
 npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.html
+
 npm run bench:render            # 5.000 ficheros sintéticos
+npm run bench:analyze           # 2.000 ficheros sintéticos
 npm test
 ```
 
-El render produce un HTML único, sin servidor ni red, con el treemap, búsqueda, inspector,
-dependencias entrantes/salientes y tres lentes (estructura, riesgo y métrica).
-
-También acepta `cc.json` 1.x, tanto desnudo (`{ apiVersion, nodes, edges, ... }`) como envuelto en
-`{ checksum, data }`. Al leerlo se normaliza a 2.x: los atributos pasan a la lente de métricas, las
-aristas se reindexan por id y se descarta el estado de vista (`blacklist`, `markedPackages`,
-`fixedPosition`).
-
-Salida de `inspect`:
+`codarch analyze` escribe dos artefactos:
 
 ```
-  CodArch · inspección
-
-  fichero      samples/codecharta_visualization.cc.json.gz (727 KB)
-  formato      cc.json 2.1
-  estructura   2003 ficheros · 510 carpetas · profundidad 9
-  lentes       metrics · dependency · domain
-  métricas     105 distintas · rloc en 1924 ficheros
-  aristas      3727 · leafEdges 8677
+.codarch/
+├── snapshot.cc.json   # cc.json 2.0 determinista
+└── map.html           # treemap 2D autocontenido
 ```
 
-Salida de `render` sobre la muestra real:
+El snapshot incluye el árbol de ficheros/carpetas, 15 métricas por fichero, aristas internas con
+peso y type-only, y niveles de dependencia. El checksum es MD5 de una serialización canónica de
+`{ files, lenses }`: no incluye timestamps ni rutas absolutas.
+
+Salida de `analyze` sobre el fixture de test:
 
 ```
-  fichero      samples/codecharta_visualization.cc.json.gz (727 KB)
-  salida       samples/map.html (478 KB)
-  estructura   2003 ficheros · 498 carpetas · 9 métricas
-  área         rloc · 103.577 en total
-  color        riesgo · 94 hotspots
-  dependencias 3727 aristas · 2 cíclicas
+  CodArch · análisis
+
+  raíz         ...\packages\parsers\test\fixtures\repo
+  snapshot     .codarch/fixture/snapshot.cc.json (17 KB)
+  mapa         .codarch/fixture/map.html (49 KB)
+  estructura   15 ficheros · 7 carpetas · 13 aristas · 2 ciclos
+  imports      2 externos · 0 builtins · 1 type-only · 2 sin resolver
+  tiempo       28 ms
 ```
 
-Las 510 carpetas del `cc.json` se convierten en 498 cabeceras: se elimina la raíz sintética y se
-colapsan las cadenas de carpetas con un solo hijo. Los ficheros en carpetas demasiado pequeñas se
-dibujan como bloque agregado; siguen en la búsqueda y el inspector.
+El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
+entrantes/salientes y tres lentes: estructura, riesgo y métrica. La lente de riesgo se deriva en el
+render; no se almacena en el snapshot.
+
+---
+
+## Qué analiza M1
+
+### Ficheros y métricas
+
+Recorre TS/TSX/JS/JSX (`.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`) respetando
+`.gitignore` raíz y anidados, negaciones, `node_modules`, `.git` y `.codarch`.
+
+Métricas de parser:
+
+| Métrica | Significado |
+|---|---|
+| `loc` | Líneas físicas |
+| `rloc` | Líneas con al menos un token de código |
+| `functions` | Funciones, métodos y arrows implementados |
+| `maxComplexity` | Complejidad ciclomática de la función más compleja |
+| `maxFunctionLength` | Líneas de la función más larga |
+
+Métricas de imports y grafo:
+
+| Métrica | Significado |
+|---|---|
+| `imports` | Imports, reexports y requires declarados |
+| `externalImports` | Paquetes fuera del proyecto, sin builtins |
+| `builtinImports` | Módulos nativos de Node |
+| `typeOnlyImports` | Imports que solo existen en tipos |
+| `unresolvedImports` | Specifiers internos que no apuntan a un fichero analizado |
+| `fanIn` / `fanOut` | Ficheros que importan / son importados |
+| `inCycle` | Pertenece a un componente cíclico |
+| `cycleSize` | Tamaño del componente cíclico |
+| `dependencyLevel` | Profundidad en el DAG de componentes |
+
+### Resolución de imports
+
+- Relativos (`./`, `../`) y absolutos desde el root.
+- `.js`/`.jsx`/`.mjs`/`.cjs` → fuente TS equivalente.
+- Directorios con `index.*`.
+- `tsconfig.json`/`jsconfig.json`: `baseUrl`, `paths` y `extends`, usando el config más cercano.
+- Workspaces de npm/pnpm/yarn: `exports`, `types`, `module`, `main` y fallback a `src/index.ts`.
+- Builtins de Node (`node:fs`, `fs`, …) y paquetes externos se clasifican, pero no crean aristas.
+- Imports internos que no resuelven se reportan y se excluyen del grafo. No se inventan aristas.
+
+### Grafo
+
+- Aristas deduplicadas por `(from, to)` con `weight` y `typeOnly`.
+- Fan-in/fan-out sobre destinos únicos.
+- Componentes fuertemente conexos (Kosaraju iterativo): ciclos de tamaño > 1 y self-loops.
+- Niveles en el DAG condensado, de 0 (nadie lo importa) hacia sus dependencias.
+
+### Determinismo
+
+Dos ejecuciones sobre el mismo árbol producen el mismo snapshot y el mismo checksum. Los ficheros,
+carpetas, aristas, componentes y claves de objetos se ordenan de forma estable. El checksum no cubre
+`meta`, y no hay fecha, commit ni ruta absoluta en el payload.
 
 ---
 
@@ -74,10 +134,10 @@ Un **modelo de arquitectura headless** que alimenta tres consumidores:
 ```
 $ codarch analyze . --base origin/main --head HEAD
 
-  ✓ 4.812 ficheros · 1.9s · 38 MB
-  ⚠ 2 ciclos nuevos        src/domain → src/infra → src/domain
-  ⚠ 1 capa violada         ui/Checkout.tsx importa db/queries.ts
-  ▲ 3 hotspots movidos     payments/service.ts  +41 complejidad
+  ✓ 4.812 ficheros · 1.9 s · 38 MB
+  ✗ 2 ciclos nuevos        src/domain → src/infra → src/domain
+  ✗ 1 capa violada         ui/Checkout.tsx importa db/queries.ts
+  ● 3 hotspots movidos     payments/service.ts  +41 complejidad
   → mapa: .codarch/index.html   reporte: .codarch/report.json
 ```
 
@@ -92,7 +152,7 @@ $ codarch analyze . --base origin/main --head HEAD
 2. **Snapshots inmutables y deterministas.** Mismo repo + mismo commit = mismo hash. Sin esto no
    hay diff fiable, ni caché, ni CI.
 3. **Grafo primero.** La jerarquía de ficheros es una proyección, no la verdad.
-4. **Compatible con `cc.json` 2.x.** Entrada garantizada; 1.x se normaliza al leer. Salida si sale gratis.
+4. **Compatible con `cc.json` 2.x.** Entrada garantizada; 1.x se normaliza al leer.
 5. **Cero configuración para empezar.** Reglas y umbrales cuando duelan, no antes.
 6. **Núcleo headless.** Los `packages/` no saben qué es un componente; las `apps/` no tienen
    lógica de dominio.
@@ -107,25 +167,28 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 
 ## Criterios de éxito
 
-| Criterio | Objetivo |
-|---|---|
-| Repo de 5k ficheros | analizado en < 3 s |
-| Salida | determinista (mismo hash) |
-| Configuración | cero para el primer resultado |
-| Comentario de PR | < 10 s de extremo a extremo |
-| Legibilidad | el mapa se entiende en una captura |
+| Criterio | Objetivo | Estado |
+|---|---|---|
+| Repo de 2k ficheros | analizado en < 3 s | 2,6 s (sintético, 2.000 ficheros) |
+| Memoria de analyze | < 500 MB | 311 MB RSS (sintético) |
+| Salida | determinista (mismo hash) | test de dos ejecuciones |
+| Configuración | cero para el primer resultado | `codarch analyze .` |
+| Comentario de PR | < 10 s de extremo a extremo | pendiente (M2) |
+| Legibilidad | el mapa se entiende en una captura | verificado en M0 |
 
-## Estructura propuesta
+## Estructura
 
 ```
-packages/   schema · model · metrics · parsers · render · layouts
-apps/       cli · web · mcp · github-action
+packages/   schema · parsers · layouts · render
+apps/       cli · web (futuro) · mcp (futuro) · github-action (futuro)
 docs/       adr/ · design/ · model.md · roadmap.md
+scripts/    bench-render.ts · bench-analyze.ts · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
 
-Implementado: `schema`, `layouts`, `render` y el comando `codarch render`. El resto es el plan.
-El importador acepta `cc.json` 1.x (desnudo o envuelto) y lo normaliza a 2.x antes de M1.
+Implementado: `schema`, `parsers`, `layouts`, `render` y los comandos `codarch analyze`,
+`codarch inspect` y `codarch render`. `parsers` incluye parser tree-sitter, walker con `.gitignore`,
+resolver de imports, grafo y construcción del snapshot.
 
 ## Inspiración
 

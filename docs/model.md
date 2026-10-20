@@ -1,6 +1,7 @@
-# Modelo de datos — propuesta para debate
+# Modelo de datos
 
-**Estado:** propuesta · importador `cc.json` 2.x y normalizador 1.x implementados en `packages/schema`
+**Estado:** M1 implementado. `packages/schema` valida `cc.json` 2.x, normaliza 1.x y comparte la
+identidad canónica; `packages/parsers` produce snapshots 2.0 con métricas y grafo.
 
 Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir
 código, porque cambiarla después contamina el CLI, el mapa, el bot y el MCP a la vez.
@@ -26,13 +27,17 @@ interoperabilidad gratis y nos obliga a una separación que ya estábamos buscan
 ```ts
 type Snapshot = {
   meta: {
-    schemaVersion: string
-    project: string
-    commit: string          // sha corto
-    checksum: string        // hash canónico de files + lenses
+    projectName: string
+    apiVersion: "2.0"
+    checksum: string          // md5 canónico de files + lenses
+    commitHash?: string
   }
-  files: FileNode           // raíz única, con children
-  lenses: Record<string, Lens>
+  files: FileNode[]           // raíz única (normalmente una carpeta)
+  lenses: {
+    metrics: MetricsLens
+    dependency: DependencyLens
+    [name: string]: unknown   // lentes futuras se preservan
+  }
 }
 ```
 
@@ -43,7 +48,7 @@ entre ambos, nunca un tercer formato.
 
 ```ts
 type FileNode = {
-  id: string        // sha256("File/src/App.ts")[:16]  — igual que cc.json
+  id: string        // sha256("File/src/App.ts")[:16]
   name: string
   type: 'File' | 'Folder'
   contentHash?: string
@@ -53,9 +58,11 @@ type FileNode = {
 
 Reglas:
 
-- El id depende **solo** de la ruta y el tipo. Renombrar cambia la identidad; mover, también.
-- Rutas normalizadas con `/`, sin rutas absolutas ni `..`.
+- El id depende **solo** del tipo y la ruta canónica. Renombrar cambia la identidad; mover, también.
+- Rutas normalizadas con `/`, sin rutas absolutas ni `..`, excluyendo la raíz del proyecto.
+- El id de carpeta usa la misma regla con prefijo `Folder/`.
 - Nada de mtime, usuario ni hora en el payload.
+- `packages/schema/src/identity.ts` es la única implementación de esta regla.
 
 ### Compatibilidad con `cc.json` 1.x
 
@@ -79,42 +86,57 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 |---|---|---|
 | `metrics` | atributos numéricos por nodo + descriptores | sí |
 | `dependency` | aristas, niveles, ciclos, capas | sí |
-| `migration` | LOC por lenguaje, estado, frontera FFI | sí (perro come perro) |
+| `risk` | score compuesto, violaciones | derivada en render, no se almacena |
+| `migration` | LOC por lenguaje, estado, frontera FFI | después |
 | `domain` | palabras, frecuencia, tf-idf | después |
-| `risk` | score compuesto, violaciones | sí |
-| `evolution` | churn, autores, acoplamiento temporal | después |
+| `evolution` | churn, autores, acoplamiento temporal | después (M2) |
 
 ### Métricas
 
 ```ts
-type MetricDescriptor = {
-  unit?: 'lines' | 'ratio' | 'count' | 'ms'
-  direction: 'lower-is-better' | 'higher-is-better' | 'neutral'
-  aggregation: 'sum' | 'max' | 'mean' | 'none'
+type AttributeDescriptor = {
+  title?: string
   description?: string
+  direction?: -1 | 1        // -1: menor es mejor; 1: mayor es mejor; 0/ausente: neutral
+  hintLowValue?: string
+  hintHighValue?: string
 }
 ```
 
-`direction` no es decoración: es lo que permite que el mismo motor pinte "rojo = malo" sin que la UI
-tenga que saber qué es la complejidad ciclomática.
+`direction` no es decoración: permite que el mismo motor pinte "rojo = malo" sin que la UI tenga que
+saber qué es la complejidad ciclomática.
 
-Métricas v1: `loc`, `sloc`, `functions`, `maxComplexity`, `imports`, `fanIn`, `fanOut`, `churn`.
+Métricas actuales del analizador:
+
+| Grupo | Métricas |
+|---|---|
+| Parser | `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength` |
+| Imports | `imports`, `externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports` |
+| Grafo | `fanIn`, `fanOut`, `inCycle`, `cycleSize`, `dependencyLevel` |
+
+Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símbolos quedan para una
+lente posterior.
 
 ### Aristas
 
 ```ts
 type Edge = {
-  from: string
-  to: string
-  kind: 'import' | 'type-import' | 'dynamic-import' | 're-export' | 'ffi'
-  weight: number
-  cyclic?: boolean
-  upwards?: boolean
+  fromId: string
+  toId: string
+  attributes?: {
+    weight: number       // imports entre los dos ficheros
+    typeOnly: number     // cuántos son solo tipos
+  }
+  isCyclic?: boolean
 }
 ```
 
-`cyclic` y `upwards` se **derivan** del grafo, no se almacenan como verdad. Se cachean en el
-snapshot solo como optimización, y siempre se pueden recalcular.
+El snapshot actual no guarda `kind` por arista: agrega peso y type-only. El parser sí distingue
+`static`, `export`, `dynamic`, `require` y `import x = require()`; esa información se usa para
+clasificar y podría añadirse como atributo si el diff la necesita.
+
+`isCyclic` se **deriva** del grafo y se cachea en el snapshot como optimización; siempre se puede
+recalcular. Un componente cíclico es un SCC de tamaño > 1 o un self-loop.
 
 ### La lente de migración
 
@@ -150,7 +172,7 @@ type Violation = {
   rule: string
   severity: 'info' | 'warn' | 'error'
   nodes: string[]
-  edges?: Edge[]
+  edges?: EdgeRef[]
   message: string        // legible por humanos
   hint?: string          // accionable
 }
@@ -173,26 +195,51 @@ delta(base: Snapshot, head: Snapshot): {
 
 Se calcula, no se almacena. Con ids estables y checksums, es una operación de conjuntos.
 
+## Pipeline de M1
+
+```
+walkSourceFiles(root)
+  → .gitignore raíz + anidados, extensiones TS/JS, orden estable
+ImportResolver(root, files)
+  → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins
+TypeScriptParser.parse(source, path)
+  → loc/rloc/functions/complejidad + imports tipados
+buildGraph(files, links)
+  → dedupe, fan-in/out, SCC, ciclos, niveles
+buildSnapshot({ projectName, files, graph })
+  → árbol, lentes metrics/dependency, checksum
+```
+
+Cada fase es pura o casi pura y tiene tests propios. El analizador no guarda árboles de tree-sitter:
+procesa un fichero, extrae agregados y sigue.
+
 ## Determinismo
 
 Para que el checksum signifique algo:
 
 1. Serialización canónica: claves ordenadas, sin espacios, UTF-8.
-2. Nodos ordenados por ruta; aristas por `(from, to, kind)`.
+2. Nodos ordenados por ruta; aristas por `(from, to)`; SCCs y ciclos ordenados.
 3. Sin timestamps, rutas absolutas, nombres de usuario ni locale.
 4. Números con representación estable (nada de `1.0` vs `1`).
 5. Orden de recorrido del filesystem irrelevante por construcción.
 
-Test de conformidad: analizar el mismo commit dos veces en dos máquinas produce el mismo checksum.
+El checksum actual es MD5 de `{ files, lenses }` serializado canónicamente. MD5 es suficiente para
+detectar cambios de payload; si más adelante se usa como identificador de caché entre máquinas,
+se puede migrar a SHA-256 sin cambiar el contrato.
+
+Test de conformidad: analizar el mismo commit dos veces produce el mismo snapshot y el mismo
+checksum. Está en `packages/parsers/test/analyze.test.ts`.
 
 ## Preguntas abiertas
 
-1. **¿Símbolos o solo ficheros?** La v1 puede agregar complejidad por fichero (`maxComplexity`,
-   `functions`) sin modelar clases y funciones como nodos. Modelarlas da hotspots mucho más
-   precisos, pero multiplica el tamaño del grafo y el coste de los parsers.
+1. **¿Símbolos o solo ficheros?** La v1 agrega complejidad por fichero (`maxComplexity`,
+   `functions`) sin modelar clases y funciones como nodos. Modelarlas da hotspots más precisos,
+   pero multiplica el tamaño del grafo y el coste de los parsers.
 2. **¿Aristas a nivel de símbolo?** Igual que arriba: `leafEdges` de cc.json 2.x existe, pero es
    otro orden de magnitud.
-3. **¿Dónde vive la caché?** Un `.codarch/cache` con hashes de contenido permite análisis incremental.
-   ¿Ficheros JSON o SQLite?
+3. **¿Dónde vive la caché?** Un `.codarch/cache` con hashes de contenido permite análisis
+   incremental. ¿Ficheros JSON o SQLite?
 4. **¿El reporte es el snapshot?** Propongo que no: snapshot = datos; reporte = hallazgos derivados,
    con su propia versión.
+5. **¿Churn dentro del snapshot o derivado?** M2 lo necesitará para la lente de riesgo; el snapshot
+   debería llevarlo para que el diff sea autocontenido.

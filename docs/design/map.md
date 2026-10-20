@@ -1,18 +1,20 @@
 # Diseño del mapa 2D
 
-**Estado:** implementado en M0 · **Prototipo:** [`design/map-mockup.html`](../../design/map-mockup.html) ·
-**Render:** `codarch render`
+**Estado:** implementado en M0; desde M1 consume snapshots generados por `codarch analyze`.
+**Prototipo:** [`design/map-mockup.html`](../../design/map-mockup.html).
+**Render:** `codarch render` / `codarch analyze`.
 
 Capturas: [riesgo](../../design/preview-riesgo.png) · [estructura](../../design/preview-estructura.png) ·
 [cambios](../../design/preview-cambios.png) · [migración](../../design/preview-migracion.png)
 
-Implementado hoy: treemap 2D server-side (`viewBox 1400×900`), lentes **Estructura / Riesgo /
-Métrica**, búsqueda, inspector, selección de fichero y carpeta, y aristas salientes/entrantes del
-nodo seleccionado. El HTML es único, no hace red y se genera en ~35 ms para 2.003 ficheros.
+Implementado: treemap 2D server-side (`viewBox 1400×900`), lentes **Estructura / Riesgo / Métrica**,
+búsqueda, inspector, selección de fichero y carpeta, y aristas salientes/entrantes del nodo
+seleccionado. El HTML es único, no hace red y se genera en ~35 ms para 2.003 ficheros.
 
-Las lentes **Cambios** y **Migración** del prototipo no se renderizan todavía: necesitan diff y
-parser. Tampoco se inventan hallazgos de PR; la franja superior solo muestra hotspots, ciclos y
-conteos reales del `cc.json`.
+El render no analiza código: consume un `cc.json` o el `snapshot.cc.json` que produce
+`codarch analyze`. Las lentes **Cambios** y **Migración** del prototipo todavía no se renderizan:
+necesitan diff e historial. Tampoco se inventan hallazgos de PR; la franja superior solo muestra
+hotspots, ciclos y conteos reales del snapshot.
 
 ---
 
@@ -30,7 +32,7 @@ Si hace falta explicar la leyenda, el diseño ha fallado.
 
 ## 1. Treemap como vista principal
 
-- **Área = SLOC.** No LOC: los comentarios no añaden riesgo.
+- **Área = RLOC.** No LOC: los comentarios no añaden riesgo.
 - **Color = una métrica**, la de la lente activa.
 - **Anidación = carpetas.** Cada grupo tiene su cabecera con nombre y total.
 
@@ -49,7 +51,7 @@ deliberado: perdemos densidad visual y ganamos precisión, comparabilidad y velo
 | Estructura | color categórico por carpeta | ¿cómo está organizado? | M0 |
 | Riesgo | secuencial, beige → rojo | ¿qué duele? | M0 |
 | Métrica | secuencial según la métrica elegida | ¿dónde se concentra? | M0 |
-| Cambios | divergente, azul ← neutro → rojo | ¿qué se mueve? | M2 |
+| Cambios | divergente, azul → neutro → rojo | ¿qué se mueve? | M2 |
 | Migración | categórico ts / bridge / rust | ¿cuánto queda? | M4 |
 
 Nunca dos métricas compitiendo por el color. El conmutador de lentes **es** la gramática del
@@ -67,10 +69,16 @@ Dibujar todas las dependencias produce una maraña. Aquí:
 Al seleccionar `store.ts` se ve el ciclo con `http.service.ts` en rojo sin que el resto del mapa
 desaparezca. Eso es lo que un grafo global no consigue.
 
+Los self-loops se excluyen de las aristas dibujadas; la métrica `inCycle` / `cycleSize` sigue
+marcando el fichero.
+
 ## 4. Los hallazgos van arriba
 
 `1 capa violada · 2 ciclos nuevos · 3 hotspots movidos` es una franja fija, no un panel escondido.
 Es la cuña del producto (PR/CI) asomando en la interfaz. Cada chip lleva a la evidencia.
+
+En M0/M1 la franja solo muestra datos reales: hotspots, aristas cíclicas, ficheros y dependencias.
+No hay hallazgos de PR hasta M2.
 
 ## 5. Color con semántica
 
@@ -80,6 +88,10 @@ Es la cuña del producto (PR/CI) asomando en la interfaz. Cada chip lleva a la e
 - **Nunca arcoíris.** El color es un dato, no decoración.
 - **Gamma en el riesgo:** `raw^1.7`. Sin ella, casi todo salía naranja y el mapa dejaba de informar.
   Un mapa donde todo está caliente no dice nada.
+
+Riesgo compuesto: `0.5·complejidad + 0.32·churn + 0.18·tamaño`, normalizado por p95. Si falta una
+señal (por ejemplo, churn antes de M2), los pesos se renormalizan para que el máximo siga siendo
+100/100 y no un 68/100 artificial.
 
 ## 6. Etiquetas
 
@@ -92,7 +104,7 @@ estético de un treemap.
 Métricas, dependencias entrantes y salientes, y la violación si existe. Nada de gráficos decorativos.
 El inspector responde "¿y este fichero qué?", no "¿quieres ver un donut?".
 
-## 8. Notas de implementación (M0)
+## 8. Notas de implementación (M0/M1)
 
 - **Área:** `rloc` por defecto; si falta, cada fichero recibe área 1 para no desaparecer. Es una
   decisión de legibilidad, no una métrica inventada: el inspector sigue mostrando el valor real.
@@ -107,6 +119,8 @@ El inspector responde "¿y este fichero qué?", no "¿quieres ver un donut?".
   texto y la información queda en el hover. La muestra real produce ~100 etiquetas, no 2.000.
 - **Aristas:** máximo 8 salientes + 8 entrantes; las entrantes son discontinuas. El resto se lista
   en el inspector.
+- **Payload:** directorios únicos, filas compactas por fichero, celdas con rects y coordenadas
+  enteras. El HTML de la muestra real queda por debajo de 500 KB.
 
 ## 9. Comparación con CodeCharta (M0)
 
@@ -116,7 +130,7 @@ Se comparó el mismo `samples/codecharta_visualization.cc.json.gz` con CodeChart
 | Señal | CodArch | CodeCharta |
 |---|---|---|
 | Ficheros | 2.003 | 2.003 |
-| `rloc` | 103.577 | 103.577 (Σ) |
+| `rloc` | 103.577 | 103.577 |
 | Aristas | 3.727 | 3.727 |
 | Estructura | `app` 102,4k · `features` 51,2k | `app` 97% de ficheros · `features` visible |
 | Hotspot principal | `dependencyMap.component.spec.ts` | `dependencyMap.component.spec.ts` |
@@ -166,7 +180,7 @@ colocan dentro y las aristas que suben se dibujan en rojo. Es determinista, se l
 ## Preguntas abiertas
 
 1. **¿Riesgo compuesto o complejidad cruda por defecto?** El compuesto (complejidad + churn + tamaño)
-   encuentra Hotspots reales, pero es una fórmula que hay que explicar y en la que hay que confiar.
+   encuentra hotspots reales, pero es una fórmula que hay que explicar y en la que hay que confiar.
    La complejidad cruda es inmediata y honesta, pero ignora el cambio.
 2. **¿Vista inicial treemap o carriles?** El treemap cuenta mejor el proyecto; los carriles cuentan
    mejor el problema.

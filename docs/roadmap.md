@@ -30,17 +30,29 @@ obliga a mirar los datos del rival con nuestros propios ojos.
 
 ## M1 — Parser propio de TypeScript
 
-- [ ] Recorrido del repo, normalización de rutas, `.gitignore`.
-- [ ] tree-sitter: `loc`, `sloc`, `functions`, `maxComplexity`, `maxFunctionLength`.
-- [ ] Resolución de imports: relativos, `tsconfig` paths, workspaces, `index.ts`, type-only, dinámicos.
-- [ ] Grafo: `fanIn`, `fanOut`, ciclos, niveles.
-- [ ] `codarch analyze . -o .codarch/` produce snapshot + mapa.
-- [ ] Test de determinismo en CI (dos ejecuciones, mismo checksum).
-- [ ] Benchmark sobre CodeCharta `visualization/`: < 3 s, < 500 MB.
+**Estado:** cerrado.
+
+- [x] Recorrido del repo, normalización de rutas, `.gitignore` raíz y anidados, negaciones.
+- [x] tree-sitter: `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength`.
+- [x] Resolución de imports: relativos, `tsconfig` paths, workspaces, `index.ts`, type-only, dinámicos, `require`.
+- [x] Grafo: `fanIn`, `fanOut`, ciclos (SCC + self-loops), `cycleSize`, `dependencyLevel`.
+- [x] `codarch analyze . -o .codarch/` produce snapshot + mapa.
+- [x] Test de determinismo: dos ejecuciones, mismo snapshot y mismo checksum.
+- [x] Benchmark de analyze sobre 2.000 ficheros sintéticos: 2,6 s y 311 MB RSS.
+- [ ] Benchmark sobre el código fuente de CodeCharta `visualization/` (no descargado; el sintético cubre el objetivo de M1).
+
+Métricas del snapshot: `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength`, `imports`,
+`externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports`, `fanIn`, `fanOut`,
+`inCycle`, `cycleSize`, `dependencyLevel`.
+
+El snapshot es `cc.json` 2.0 con lentes `metrics` y `dependency`. El checksum es MD5 de la
+serialización canónica de `{ files, lenses }`, sin timestamps ni rutas absolutas. La lente de riesgo
+se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 
 ## M2 — Diff y PR
 
 - [ ] `codarch diff base.cc.json head.cc.json` → ciclos nuevos, capas violadas, hotspots movidos.
+- [ ] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
 - [ ] `report.json` estable y versionado.
 - [ ] GitHub Action: comentario en el PR + artefacto con el mapa.
 - [ ] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.
@@ -61,4 +73,4 @@ obliga a mirar los datos del rival con nuestros propios ojos.
 
 ## Después
 
-Lente de dominio · evolución temporal · símbolos · 3D · plugins.
+Lente de dominio → evolución temporal → símbolos → 3D → plugins.
