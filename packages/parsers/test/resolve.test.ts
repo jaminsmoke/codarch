@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   ImportResolver,
   TypeScriptParser,
+  isAssetSpecifier,
   walkSourceFiles,
   type ResolveResult,
   type WalkedFile
@@ -133,5 +134,16 @@ describe("ImportResolver", () => {
       ["external-package", null, "external"],
       ["./missing", null, "unresolved"]
     ]);
+  });
+});
+
+describe("isAssetSpecifier", () => {
+  it("excluye assets pero no artefactos nativos", () => {
+    expect(isAssetSpecifier("./styles.css")).toBe(true);
+    expect(isAssetSpecifier("../../public/logo.svg?url")).toBe(true);
+    expect(isAssetSpecifier("@fontsource/ibm-plex-sans/files/ibm-plex-sans.woff2")).toBe(true);
+    expect(isAssetSpecifier("./math.wasm")).toBe(false);
+    expect(isAssetSpecifier("./addon.node")).toBe(false);
+    expect(isAssetSpecifier("./module")).toBe(false);
   });
 });

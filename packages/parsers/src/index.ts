@@ -1,5 +1,5 @@
 export { TypeScriptParser } from "./ts/parser";
-export { ImportResolver } from "./resolve";
+export { ImportResolver, isAssetSpecifier } from "./resolve";
 export type { ResolveResult } from "./resolve";
 export { buildGraph } from "./graph";
 export type {

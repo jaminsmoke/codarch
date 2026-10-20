@@ -37,6 +37,37 @@ const BUILTINS = new Set(
   builtinModules.flatMap((name) => [name, `node:${name}`])
 );
 
+const ASSET_EXTENSIONS = [
+  ".css",
+  ".scss",
+  ".sass",
+  ".less",
+  ".svg",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".avif",
+  ".ico",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
+  ".mp4",
+  ".webm",
+  ".mp3",
+  ".wav",
+  ".pdf"
+] as const;
+
+/** Imports de assets (CSS, imágenes, fuentes): no son aristas del grafo. */
+export function isAssetSpecifier(specifier: string): boolean {
+  const clean = specifier.split(/[?#]/, 1)[0]?.toLowerCase() ?? "";
+  return ASSET_EXTENSIONS.some((extension) => clean.endsWith(extension));
+}
+
 export type ResolveResult =
   | { kind: "internal"; file: WalkedFile }
   | { kind: "external"; specifier: string; builtin: boolean }

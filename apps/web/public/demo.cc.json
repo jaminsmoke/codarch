@@ -2,7 +2,7 @@
   "meta": {
     "projectName": "codarch",
     "apiVersion": "2.0",
-    "checksum": "910f3bbca26beea41943797677f84f85"
+    "checksum": "ce2effe670e7b845ed989e2af3ff9d9e"
   },
   "files": [
     {
@@ -177,6 +177,35 @@
                   ]
                 }
               ]
+            },
+            {
+              "id": "dec7c46bd2e37cb5",
+              "name": "web",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "c3a17527abbeea66",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "08d179696a04919f",
+                      "name": "App.tsx",
+                      "type": "File"
+                    },
+                    {
+                      "id": "12edc8da54f99c54",
+                      "name": "main.tsx",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "32e005163718cb30",
+                  "name": "vite.config.ts",
+                  "type": "File"
+                }
+              ]
             }
           ]
         },
@@ -231,6 +260,11 @@
                   "name": "src",
                   "type": "Folder",
                   "children": [
+                    {
+                      "id": "7bcf3b43a704a8a7",
+                      "name": "browser.ts",
+                      "type": "File"
+                    },
                     {
                       "id": "9eb99044509012b1",
                       "name": "config.ts",
@@ -653,6 +687,11 @@
                   "type": "Folder",
                   "children": [
                     {
+                      "id": "be4a6311b99090e4",
+                      "name": "browser.ts",
+                      "type": "File"
+                    },
+                    {
                       "id": "21bcbf2594e09ec6",
                       "name": "client.js",
                       "type": "File"
@@ -724,6 +763,11 @@
                   "type": "Folder",
                   "children": [
                     {
+                      "id": "b435e03a2f26b0ad",
+                      "name": "browser.ts",
+                      "type": "File"
+                    },
+                    {
                       "id": "bb449db437d5d115",
                       "name": "errors.ts",
                       "type": "File"
@@ -746,6 +790,11 @@
                     {
                       "id": "3f9b35ccf62c2de0",
                       "name": "parse.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "d4e9ed661bdf3145",
+                      "name": "parse2.ts",
                       "type": "File"
                     },
                     {
@@ -855,7 +904,7 @@
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 1,
           "fanOut": 4,
@@ -897,7 +946,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
           "fanIn": 1,
           "fanOut": 2,
@@ -1170,7 +1219,7 @@
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 6,
           "fanOut": 2,
@@ -1233,7 +1282,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 4,
@@ -1263,6 +1312,69 @@
           "dependencyLevel": 0,
           "ffiCrossings": 0,
           "migrationDebt": 3
+        },
+        "08d179696a04919f": {
+          "loc": 916,
+          "rloc": 855,
+          "functions": 67,
+          "maxComplexity": 29,
+          "maxFunctionLength": 327,
+          "imports": 3,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 60
+        },
+        "12edc8da54f99c54": {
+          "loc": 13,
+          "rloc": 11,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 4,
+          "externalImports": 2,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "32e005163718cb30": {
+          "loc": 49,
+          "rloc": 47,
+          "functions": 1,
+          "maxComplexity": 1,
+          "maxFunctionLength": 1,
+          "imports": 4,
+          "externalImports": 2,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
         },
         "3770b303a8e53f01": {
           "loc": 2,
@@ -1327,6 +1439,27 @@
           "ffiCrossings": 0,
           "migrationDebt": 5
         },
+        "7bcf3b43a704a8a7": {
+          "loc": 9,
+          "rloc": 9,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
         "9eb99044509012b1": {
           "loc": 263,
           "rloc": 224,
@@ -1344,7 +1477,7 @@
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 10,
+          "dependencyLevel": 7,
           "ffiCrossings": 0,
           "migrationDebt": 56
         },
@@ -1365,7 +1498,7 @@
           "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 8,
+          "dependencyLevel": 5,
           "ffiCrossings": 0,
           "migrationDebt": 46
         },
@@ -1382,13 +1515,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 3,
           "number_of_authors": 1,
-          "fanIn": 9,
+          "fanIn": 8,
           "fanOut": 4,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 7,
+          "dependencyLevel": 4,
           "ffiCrossings": 0,
-          "migrationDebt": 10
+          "migrationDebt": 9
         },
         "cbf3c68ca387a814": {
           "loc": 97,
@@ -1403,13 +1536,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 1,
+          "fanIn": 2,
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 8,
           "ffiCrossings": 0,
-          "migrationDebt": 12
+          "migrationDebt": 18
         },
         "af054fa2218bd0d2": {
           "loc": 295,
@@ -1428,7 +1561,7 @@
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 9,
+          "dependencyLevel": 6,
           "ffiCrossings": 0,
           "migrationDebt": 42
         },
@@ -1457,14 +1590,14 @@
           "loc": 308,
           "rloc": 283,
           "functions": 18,
-          "maxComplexity": 7,
+          "maxComplexity": 6,
           "maxFunctionLength": 219,
           "imports": 3,
           "externalImports": 1,
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 2,
@@ -1472,7 +1605,7 @@
           "cycleSize": 0,
           "dependencyLevel": 0,
           "ffiCrossings": 0,
-          "migrationDebt": 8
+          "migrationDebt": 7
         },
         "33cb21e94a5c7d8d": {
           "loc": 63,
@@ -1517,17 +1650,17 @@
           "migrationDebt": 2
         },
         "95bc40c24f74b056": {
-          "loc": 331,
-          "rloc": 298,
+          "loc": 332,
+          "rloc": 299,
           "functions": 6,
-          "maxComplexity": 33,
-          "maxFunctionLength": 240,
+          "maxComplexity": 34,
+          "maxFunctionLength": 241,
           "imports": 10,
           "externalImports": 0,
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 1,
           "fanOut": 8,
@@ -1535,7 +1668,7 @@
           "cycleSize": 0,
           "dependencyLevel": 3,
           "ffiCrossings": 0,
-          "migrationDebt": 68
+          "migrationDebt": 70
         },
         "42be8e3188aa9ac1": {
           "loc": 218,
@@ -1569,7 +1702,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
           "fanIn": 3,
           "fanOut": 0,
@@ -1590,7 +1723,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 8,
           "unresolvedImports": 0,
-          "number_of_commits": 5,
+          "number_of_commits": 6,
           "number_of_authors": 1,
           "fanIn": 9,
           "fanOut": 9,
@@ -1611,8 +1744,8 @@
           "builtinImports": 0,
           "typeOnlyImports": 1,
           "unresolvedImports": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 4,
           "fanOut": 1,
           "inCycle": 0,
@@ -1622,9 +1755,9 @@
           "migrationDebt": 210
         },
         "2a66e41c4dfda2d5": {
-          "loc": 627,
-          "rloc": 541,
-          "functions": 41,
+          "loc": 658,
+          "rloc": 569,
+          "functions": 43,
           "maxComplexity": 17,
           "maxFunctionLength": 74,
           "imports": 5,
@@ -1653,7 +1786,7 @@
           "builtinImports": 1,
           "typeOnlyImports": 2,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 2,
           "fanOut": 3,
@@ -1737,7 +1870,7 @@
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 2,
@@ -1758,8 +1891,8 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 1,
           "inCycle": 0,
@@ -1779,8 +1912,8 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 1,
           "fanOut": 0,
           "inCycle": 0,
@@ -1792,8 +1925,8 @@
         "0ef2c58b83c27749": {
           "loc": 0,
           "rloc": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 0,
           "inCycle": 0,
@@ -1804,8 +1937,8 @@
         "21babb797e210811": {
           "loc": 6,
           "rloc": 5,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 0,
           "inCycle": 0,
@@ -1816,8 +1949,8 @@
         "a3ca6f99608d67fb": {
           "loc": 0,
           "rloc": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 0,
           "inCycle": 0,
@@ -2298,8 +2431,8 @@
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 2,
           "inCycle": 0,
@@ -2319,8 +2452,8 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 0,
-          "number_of_authors": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 1,
           "inCycle": 0,
@@ -2351,9 +2484,9 @@
           "migrationDebt": 2
         },
         "b73758a489459b7c": {
-          "loc": 137,
-          "rloc": 121,
-          "functions": 15,
+          "loc": 149,
+          "rloc": 132,
+          "functions": 17,
           "maxComplexity": 2,
           "maxFunctionLength": 100,
           "imports": 5,
@@ -2392,6 +2525,27 @@
           "ffiCrossings": 0,
           "migrationDebt": 2
         },
+        "be4a6311b99090e4": {
+          "loc": 24,
+          "rloc": 24,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 6,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 4,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
         "21bcbf2594e09ec6": {
           "loc": 915,
           "rloc": 812,
@@ -2403,7 +2557,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 0,
@@ -2426,13 +2580,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 3,
+          "fanIn": 4,
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 5,
           "ffiCrossings": 0,
-          "migrationDebt": 24
+          "migrationDebt": 30
         },
         "58f0d71631afb98f": {
           "loc": 305,
@@ -2477,8 +2631,8 @@
           "migrationDebt": 9
         },
         "b877860362505819": {
-          "loc": 81,
-          "rloc": 62,
+          "loc": 85,
+          "rloc": 66,
           "functions": 5,
           "maxComplexity": 10,
           "maxFunctionLength": 24,
@@ -2487,15 +2641,15 @@
           "builtinImports": 0,
           "typeOnlyImports": 1,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
-          "fanIn": 2,
+          "fanIn": 3,
           "fanOut": 2,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 5,
           "ffiCrossings": 0,
-          "migrationDebt": 33
+          "migrationDebt": 44
         },
         "84877654a59491cb": {
           "loc": 585,
@@ -2508,15 +2662,15 @@
           "builtinImports": 0,
           "typeOnlyImports": 1,
           "unresolvedImports": 0,
-          "number_of_commits": 3,
+          "number_of_commits": 4,
           "number_of_authors": 1,
-          "fanIn": 5,
-          "fanOut": 2,
+          "fanIn": 6,
+          "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 6,
           "ffiCrossings": 0,
-          "migrationDebt": 312
+          "migrationDebt": 364
         },
         "34a960fe7e283135": {
           "loc": 179,
@@ -2531,13 +2685,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 2,
+          "fanIn": 3,
           "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 4,
           "ffiCrossings": 0,
-          "migrationDebt": 39
+          "migrationDebt": 52
         },
         "51b4ff8ffa3f98d7": {
           "loc": 65,
@@ -2602,6 +2756,27 @@
           "ffiCrossings": 0,
           "migrationDebt": 4
         },
+        "b435e03a2f26b0ad": {
+          "loc": 26,
+          "rloc": 25,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 6,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 5,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
         "bb449db437d5d115": {
           "loc": 38,
           "rloc": 27,
@@ -2615,13 +2790,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 2,
+          "fanIn": 4,
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 12,
+          "dependencyLevel": 10,
           "ffiCrossings": 0,
-          "migrationDebt": 12
+          "migrationDebt": 20
         },
         "d4bed36d12f65516": {
           "loc": 59,
@@ -2640,7 +2815,7 @@
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 12,
+          "dependencyLevel": 10,
           "ffiCrossings": 0,
           "migrationDebt": 18
         },
@@ -2655,13 +2830,13 @@
           "builtinImports": 0,
           "typeOnlyImports": 2,
           "unresolvedImports": 0,
-          "number_of_commits": 3,
+          "number_of_commits": 4,
           "number_of_authors": 1,
           "fanIn": 26,
           "fanOut": 6,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 9,
+          "dependencyLevel": 7,
           "ffiCrossings": 0,
           "migrationDebt": 27
         },
@@ -2682,30 +2857,51 @@
           "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 11,
+          "dependencyLevel": 9,
           "ffiCrossings": 0,
           "migrationDebt": 117
         },
         "3f9b35ccf62c2de0": {
-          "loc": 112,
-          "rloc": 86,
-          "functions": 5,
-          "maxComplexity": 17,
-          "maxFunctionLength": 96,
+          "loc": 18,
+          "rloc": 8,
+          "functions": 1,
+          "maxComplexity": 2,
+          "maxFunctionLength": 4,
           "imports": 4,
           "externalImports": 0,
           "builtinImports": 0,
           "typeOnlyImports": 1,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 1,
-          "fanOut": 3,
+          "fanOut": 4,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 10,
+          "dependencyLevel": 8,
           "ffiCrossings": 0,
-          "migrationDebt": 36
+          "migrationDebt": 6
+        },
+        "d4e9ed661bdf3145": {
+          "loc": 105,
+          "rloc": 83,
+          "functions": 5,
+          "maxComplexity": 16,
+          "maxFunctionLength": 94,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 9,
+          "ffiCrossings": 0,
+          "migrationDebt": 51
         },
         "b05e86b9630171dd": {
           "loc": 87,
@@ -2720,13 +2916,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 1,
+          "fanIn": 2,
           "fanOut": 2,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 10,
+          "dependencyLevel": 8,
           "ffiCrossings": 0,
-          "migrationDebt": 22
+          "migrationDebt": 33
         },
         "e14cbb6f10fb3e07": {
           "loc": 42,
@@ -2741,13 +2937,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 2,
+          "fanIn": 3,
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 11,
+          "dependencyLevel": 9,
           "ffiCrossings": 0,
-          "migrationDebt": 18
+          "migrationDebt": 24
         },
         "6a607a4c97052747": {
           "loc": 130,
@@ -2760,15 +2956,15 @@
           "builtinImports": 0,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 1,
+          "number_of_commits": 2,
           "number_of_authors": 1,
-          "fanIn": 6,
+          "fanIn": 8,
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 13,
+          "dependencyLevel": 11,
           "ffiCrossings": 0,
-          "migrationDebt": 7
+          "migrationDebt": 9
         },
         "bebb2eb3e32353aa": {
           "loc": 38,
@@ -2907,7 +3103,7 @@
           "builtinImports": 5,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 0,
@@ -3502,6 +3698,33 @@
           "isCyclic": false
         },
         {
+          "fromId": "08d179696a04919f",
+          "toId": "be4a6311b99090e4",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "08d179696a04919f",
+          "toId": "b435e03a2f26b0ad",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "12edc8da54f99c54",
+          "toId": "08d179696a04919f",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
           "fromId": "3770b303a8e53f01",
           "toId": "99cf5b9b24bf7346",
           "attributes": {
@@ -3516,6 +3739,15 @@
           "attributes": {
             "weight": 1,
             "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7bcf3b43a704a8a7",
+          "toId": "cbf3c68ca387a814",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
           },
           "isCyclic": false
         },
@@ -4051,6 +4283,42 @@
           "isCyclic": false
         },
         {
+          "fromId": "be4a6311b99090e4",
+          "toId": "802739c7a55e1902",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "be4a6311b99090e4",
+          "toId": "b877860362505819",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "be4a6311b99090e4",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "be4a6311b99090e4",
+          "toId": "34a960fe7e283135",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
           "fromId": "802739c7a55e1902",
           "toId": "84877654a59491cb",
           "attributes": {
@@ -4151,7 +4419,16 @@
         },
         {
           "fromId": "84877654a59491cb",
-          "toId": "ce4e478b41d30b8b",
+          "toId": "7bcf3b43a704a8a7",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "84877654a59491cb",
+          "toId": "b435e03a2f26b0ad",
           "attributes": {
             "weight": 1,
             "typeOnly": 0
@@ -4162,7 +4439,7 @@
           "fromId": "84877654a59491cb",
           "toId": "c9347051246ce0ec",
           "attributes": {
-            "weight": 2,
+            "weight": 1,
             "typeOnly": 1
           },
           "isCyclic": false
@@ -4236,6 +4513,51 @@
           "attributes": {
             "weight": 1,
             "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b435e03a2f26b0ad",
+          "toId": "bb449db437d5d115",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b435e03a2f26b0ad",
+          "toId": "d4e9ed661bdf3145",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b435e03a2f26b0ad",
+          "toId": "b05e86b9630171dd",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b435e03a2f26b0ad",
+          "toId": "e14cbb6f10fb3e07",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b435e03a2f26b0ad",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
           },
           "isCyclic": false
         },
@@ -4333,7 +4655,7 @@
           "fromId": "3f9b35ccf62c2de0",
           "toId": "bb449db437d5d115",
           "attributes": {
-            "weight": 2,
+            "weight": 1,
             "typeOnly": 0
           },
           "isCyclic": false
@@ -4349,6 +4671,33 @@
         },
         {
           "fromId": "3f9b35ccf62c2de0",
+          "toId": "d4e9ed661bdf3145",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "3f9b35ccf62c2de0",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "d4e9ed661bdf3145",
+          "toId": "bb449db437d5d115",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "d4e9ed661bdf3145",
           "toId": "6a607a4c97052747",
           "attributes": {
             "weight": 1,
@@ -4508,6 +4857,15 @@
         "2851ff98929749e1": {
           "level": 0
         },
+        "08d179696a04919f": {
+          "level": 1
+        },
+        "12edc8da54f99c54": {
+          "level": 0
+        },
+        "32e005163718cb30": {
+          "level": 0
+        },
         "3770b303a8e53f01": {
           "level": 6
         },
@@ -4517,20 +4875,23 @@
         "cb92c4c7fdb08a0d": {
           "level": 0
         },
+        "7bcf3b43a704a8a7": {
+          "level": 7
+        },
         "9eb99044509012b1": {
-          "level": 10
+          "level": 7
         },
         "5d009899bcb23f5d": {
-          "level": 8
+          "level": 5
         },
         "ce4e478b41d30b8b": {
-          "level": 7
+          "level": 4
         },
         "cbf3c68ca387a814": {
           "level": 8
         },
         "af054fa2218bd0d2": {
-          "level": 9
+          "level": 6
         },
         "842eb609f52074ed": {
           "level": 0
@@ -4673,6 +5034,9 @@
         "70fd4115a27f665c": {
           "level": 0
         },
+        "be4a6311b99090e4": {
+          "level": 2
+        },
         "21bcbf2594e09ec6": {
           "level": 0
         },
@@ -4703,29 +5067,35 @@
         "0590134d1fa7e79f": {
           "level": 0
         },
+        "b435e03a2f26b0ad": {
+          "level": 7
+        },
         "bb449db437d5d115": {
-          "level": 12
+          "level": 10
         },
         "d4bed36d12f65516": {
-          "level": 12
+          "level": 10
         },
         "c9347051246ce0ec": {
-          "level": 9
+          "level": 7
         },
         "714516814a6051f3": {
-          "level": 11
+          "level": 9
         },
         "3f9b35ccf62c2de0": {
-          "level": 10
+          "level": 8
+        },
+        "d4e9ed661bdf3145": {
+          "level": 9
         },
         "b05e86b9630171dd": {
-          "level": 10
+          "level": 8
         },
         "e14cbb6f10fb3e07": {
-          "level": 11
+          "level": 9
         },
         "6a607a4c97052747": {
-          "level": 13
+          "level": 11
         },
         "bebb2eb3e32353aa": {
           "level": 0
@@ -4940,6 +5310,30 @@
           "debt": 3,
           "crossings": 0
         },
+        "08d179696a04919f": {
+          "language": "ts",
+          "status": "js",
+          "loc": 916,
+          "rloc": 855,
+          "debt": 60,
+          "crossings": 0
+        },
+        "12edc8da54f99c54": {
+          "language": "ts",
+          "status": "js",
+          "loc": 13,
+          "rloc": 11,
+          "debt": 1,
+          "crossings": 0
+        },
+        "32e005163718cb30": {
+          "language": "ts",
+          "status": "js",
+          "loc": 49,
+          "rloc": 47,
+          "debt": 2,
+          "crossings": 0
+        },
         "3770b303a8e53f01": {
           "language": "ts",
           "status": "js",
@@ -4964,6 +5358,14 @@
           "debt": 5,
           "crossings": 0
         },
+        "7bcf3b43a704a8a7": {
+          "language": "ts",
+          "status": "js",
+          "loc": 9,
+          "rloc": 9,
+          "debt": 2,
+          "crossings": 0
+        },
         "9eb99044509012b1": {
           "language": "ts",
           "status": "js",
@@ -4985,7 +5387,7 @@
           "status": "js",
           "loc": 46,
           "rloc": 46,
-          "debt": 10,
+          "debt": 9,
           "crossings": 0
         },
         "cbf3c68ca387a814": {
@@ -4993,7 +5395,7 @@
           "status": "js",
           "loc": 97,
           "rloc": 78,
-          "debt": 12,
+          "debt": 18,
           "crossings": 0
         },
         "af054fa2218bd0d2": {
@@ -5017,7 +5419,7 @@
           "status": "js",
           "loc": 308,
           "rloc": 283,
-          "debt": 8,
+          "debt": 7,
           "crossings": 0
         },
         "33cb21e94a5c7d8d": {
@@ -5039,9 +5441,9 @@
         "95bc40c24f74b056": {
           "language": "ts",
           "status": "js",
-          "loc": 331,
-          "rloc": 298,
-          "debt": 68,
+          "loc": 332,
+          "rloc": 299,
+          "debt": 70,
           "crossings": 0
         },
         "42be8e3188aa9ac1": {
@@ -5079,8 +5481,8 @@
         "2a66e41c4dfda2d5": {
           "language": "ts",
           "status": "js",
-          "loc": 627,
-          "rloc": 541,
+          "loc": 658,
+          "rloc": 569,
           "debt": 54,
           "crossings": 0
         },
@@ -5364,8 +5766,8 @@
         "b73758a489459b7c": {
           "language": "ts",
           "status": "js",
-          "loc": 137,
-          "rloc": 121,
+          "loc": 149,
+          "rloc": 132,
           "debt": 3,
           "crossings": 0
         },
@@ -5374,6 +5776,14 @@
           "status": "js",
           "loc": 55,
           "rloc": 48,
+          "debt": 2,
+          "crossings": 0
+        },
+        "be4a6311b99090e4": {
+          "language": "ts",
+          "status": "js",
+          "loc": 24,
+          "rloc": 24,
           "debt": 2,
           "crossings": 0
         },
@@ -5390,7 +5800,7 @@
           "status": "js",
           "loc": 103,
           "rloc": 87,
-          "debt": 24,
+          "debt": 30,
           "crossings": 0
         },
         "58f0d71631afb98f": {
@@ -5412,9 +5822,9 @@
         "b877860362505819": {
           "language": "ts",
           "status": "js",
-          "loc": 81,
-          "rloc": 62,
-          "debt": 33,
+          "loc": 85,
+          "rloc": 66,
+          "debt": 44,
           "crossings": 0
         },
         "84877654a59491cb": {
@@ -5422,7 +5832,7 @@
           "status": "js",
           "loc": 585,
           "rloc": 512,
-          "debt": 312,
+          "debt": 364,
           "crossings": 0
         },
         "34a960fe7e283135": {
@@ -5430,7 +5840,7 @@
           "status": "js",
           "loc": 179,
           "rloc": 157,
-          "debt": 39,
+          "debt": 52,
           "crossings": 0
         },
         "51b4ff8ffa3f98d7": {
@@ -5457,12 +5867,20 @@
           "debt": 4,
           "crossings": 0
         },
+        "b435e03a2f26b0ad": {
+          "language": "ts",
+          "status": "js",
+          "loc": 26,
+          "rloc": 25,
+          "debt": 3,
+          "crossings": 0
+        },
         "bb449db437d5d115": {
           "language": "ts",
           "status": "js",
           "loc": 38,
           "rloc": 27,
-          "debt": 12,
+          "debt": 20,
           "crossings": 0
         },
         "d4bed36d12f65516": {
@@ -5492,9 +5910,17 @@
         "3f9b35ccf62c2de0": {
           "language": "ts",
           "status": "js",
-          "loc": 112,
-          "rloc": 86,
-          "debt": 36,
+          "loc": 18,
+          "rloc": 8,
+          "debt": 6,
+          "crossings": 0
+        },
+        "d4e9ed661bdf3145": {
+          "language": "ts",
+          "status": "js",
+          "loc": 105,
+          "rloc": 83,
+          "debt": 51,
           "crossings": 0
         },
         "b05e86b9630171dd": {
@@ -5502,7 +5928,7 @@
           "status": "js",
           "loc": 87,
           "rloc": 73,
-          "debt": 22,
+          "debt": 33,
           "crossings": 0
         },
         "e14cbb6f10fb3e07": {
@@ -5510,7 +5936,7 @@
           "status": "js",
           "loc": 42,
           "rloc": 30,
-          "debt": 18,
+          "debt": 24,
           "crossings": 0
         },
         "6a607a4c97052747": {
@@ -5518,7 +5944,7 @@
           "status": "js",
           "loc": 130,
           "rloc": 107,
-          "debt": 7,
+          "debt": 9,
           "crossings": 0
         },
         "bebb2eb3e32353aa": {
@@ -5623,12 +6049,12 @@
         }
       ],
       "summary": {
-        "files": 104,
+        "files": 111,
         "languages": {
           "ts": {
-            "files": 93,
-            "loc": 13438,
-            "rloc": 11911
+            "files": 100,
+            "loc": 14534,
+            "rloc": 12931
           },
           "js": {
             "files": 8,
@@ -5652,7 +6078,7 @@
           }
         },
         "status": {
-          "js": 99,
+          "js": 106,
           "rust": 0,
           "bridge": 3,
           "native": 2
@@ -5660,7 +6086,7 @@
         "bridgeFiles": 3,
         "ffiEdges": 2,
         "ffiCrossings": 4,
-        "migrationDebt": 2330
+        "migrationDebt": 2536
       }
     }
   }

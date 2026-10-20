@@ -14,7 +14,7 @@ import {
   type MigrationFileInput,
   type MigrationLinkInput
 } from "./migration";
-import { ImportResolver } from "./resolve";
+import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
 import { TypeScriptParser } from "./ts/parser";
 import { walkSourceFiles } from "./walk";
@@ -161,6 +161,7 @@ export function analyzeRepository(
 
     for (const imported of parsed.imports) {
       if (imported.typeOnly) fileTypeOnlyImports++;
+      if (isAssetSpecifier(imported.specifier)) continue;
 
       const result = resolver.resolve(file.absolutePath, imported.specifier);
       if (result.kind === "internal") {
