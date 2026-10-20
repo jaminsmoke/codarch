@@ -40,6 +40,14 @@ import {
   readRepositoryFromFiles,
   readRepositoryFromPicker
 } from "./repository";
+import {
+  clearProject,
+  readPreferences,
+  readProject,
+  writePreferences,
+  writeProject,
+  type ViewPreferences
+} from "./storage";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -105,14 +113,19 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const openMenuRef = useRef<HTMLDetailsElement>(null);
   const manualLoadRef = useRef(false);
+  const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
+  if (preferencesRef.current === undefined) {
+    preferencesRef.current = readPreferences();
+  }
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
 
   const loadSnapshot = useCallback(
-    (raw: unknown, label: string, preserveView = false) => {
+    (raw: unknown, label: string, preserveView = false): boolean => {
       try {
         const parsed = parseCcJson(raw);
         const nextStats = getStats(parsed);
@@ -120,11 +133,29 @@ export default function App() {
         const nextArea = coverage.has("rloc")
           ? "rloc"
           : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
+        const wanted = preferencesRef.current;
+        const preferredArea =
+          wanted?.areaMetric && coverage.has(wanted.areaMetric)
+            ? wanted.areaMetric
+            : nextArea;
+        const preferredColor = wanted?.colorMode;
+        const validPreferredColor =
+          preferredColor &&
+          (preferredColor === "risk" ||
+            preferredColor === "structure" ||
+            (preferredColor === "status" && Boolean(parsed.lenses?.migration)) ||
+            coverage.has(preferredColor))
+            ? preferredColor
+            : null;
+        const defaultColor =
+          parsed.lenses?.migration && coverage.has("migrationDebt")
+            ? "migrationDebt"
+            : "risk";
 
         setCc(parsed);
         setSource(label);
         setAreaMetric((current) =>
-          preserveView && current && coverage.has(current) ? current : nextArea
+          preserveView && current && coverage.has(current) ? current : preferredArea
         );
         setColorMode((current) => {
           if (preserveView) {
@@ -133,9 +164,7 @@ export default function App() {
             }
             return coverage.has(current) ? current : "risk";
           }
-          return parsed.lenses?.migration && coverage.has("migrationDebt")
-            ? "migrationDebt"
-            : "risk";
+          return validPreferredColor ?? defaultColor;
         });
         if (!preserveView) {
           setQuery("");
@@ -143,8 +172,10 @@ export default function App() {
           setFocusPath(null);
         }
         setError(null);
+        return true;
       } catch (cause) {
         setError((cause as Error).message);
+        return false;
       } finally {
         setLoading(false);
       }
@@ -152,17 +183,28 @@ export default function App() {
     []
   );
 
-  const loadReport = useCallback((raw: unknown, label: string, focus = true) => {
-    const next = readReport(raw);
-    if (!next) {
-      setReportError(`El fichero ${label} no parece un report.json de CodArch.`);
-      return;
-    }
-    setReport(next);
-    setReportSource(label);
-    setReportError(null);
-    if (focus) setTab("pr");
-  }, []);
+  useEffect(() => {
+    if (!cc || !areaMetric) return;
+    const preferences = { areaMetric, colorMode };
+    preferencesRef.current = preferences;
+    writePreferences(preferences);
+  }, [cc, areaMetric, colorMode]);
+
+  const loadReport = useCallback(
+    (raw: unknown, label: string, focus = true): boolean => {
+      const next = readReport(raw);
+      if (!next) {
+        setReportError(`El fichero ${label} no parece un report.json de CodArch.`);
+        return false;
+      }
+      setReport(next);
+      setReportSource(label);
+      setReportError(null);
+      if (focus) setTab("pr");
+      return true;
+    },
+    []
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -191,6 +233,23 @@ export default function App() {
         const servedReport = await fetchJson("data/report.json");
         if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
         return;
+      }
+
+      const saved = readProject();
+      if (saved && !cancelled && !manualLoadRef.current) {
+        if (loadSnapshot(saved.snapshot, saved.label)) {
+          setServerMode("local");
+          if (saved.report) {
+            loadReport(saved.report, saved.reportLabel ?? "report.json", false);
+          } else {
+            setReport(null);
+            setReportSource(null);
+            setReportError(null);
+            setTab("file");
+          }
+          return;
+        }
+        clearProject();
       }
 
       const demoSnapshot = await fetchJson("demo.cc.json");
@@ -261,9 +320,23 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement;
+
+      if (event.key === "/" && !typing) {
+        event.preventDefault();
+        searchRef.current?.focus();
+        return;
+      }
+
       if (event.key !== "Escape") return;
       setFocusPath(null);
       setSelectedIndex(null);
+      setQuery("");
+      if (typing) target.blur();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -310,12 +383,21 @@ export default function App() {
       if (!file) return;
       manualLoadRef.current = true;
       try {
-        loadSnapshot(JSON.parse(await file.text()), file.name);
-        setServerMode("local");
-        setReport(null);
-        setReportSource(null);
-        setReportError(null);
-        setTab("file");
+        const raw = JSON.parse(await file.text()) as unknown;
+        if (loadSnapshot(raw, file.name)) {
+          setServerMode("local");
+          clearProject();
+          writeProject({
+            snapshot: raw,
+            report: null,
+            label: file.name,
+            reportLabel: null
+          });
+          setReport(null);
+          setReportSource(null);
+          setReportError(null);
+          setTab("file");
+        }
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
@@ -331,12 +413,21 @@ export default function App() {
       if (!file) return;
       manualLoadRef.current = true;
       try {
-        loadSnapshot(JSON.parse(await file.text()), file.name);
-        setServerMode("local");
-        setReport(null);
-        setReportSource(null);
-        setReportError(null);
-        setTab("file");
+        const raw = JSON.parse(await file.text()) as unknown;
+        if (loadSnapshot(raw, file.name)) {
+          setServerMode("local");
+          clearProject();
+          writeProject({
+            snapshot: raw,
+            report: null,
+            label: file.name,
+            reportLabel: null
+          });
+          setReport(null);
+          setReportSource(null);
+          setReportError(null);
+          setTab("file");
+        }
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
@@ -350,7 +441,17 @@ export default function App() {
       event.target.value = "";
       if (!file) return;
       try {
-        loadReport(JSON.parse(await file.text()), file.name);
+        const raw = JSON.parse(await file.text()) as unknown;
+        if (loadReport(raw, file.name)) {
+          const saved = readProject();
+          if (saved) {
+            writeProject({
+              ...saved,
+              report: raw,
+              reportLabel: file.name
+            });
+          }
+        }
       } catch (cause) {
         setReportError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
@@ -457,12 +558,20 @@ export default function App() {
     setLoading(true);
     try {
       const artifacts = await readRepositoryFromPicker();
-      loadSnapshot(artifacts.snapshot, artifacts.label);
-      setServerMode("local");
-      if (artifacts.report !== null) {
-        loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
-      } else {
-        resetReport();
+      if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
+        setServerMode("local");
+        clearProject();
+        writeProject({
+          snapshot: artifacts.snapshot,
+          report: artifacts.report,
+          label: artifacts.label,
+          reportLabel: artifacts.reportLabel
+        });
+        if (artifacts.report !== null) {
+          loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
+        } else {
+          resetReport();
+        }
       }
     } catch (cause) {
       if ((cause as DOMException).name !== "AbortError") {
@@ -483,12 +592,20 @@ export default function App() {
       setError(null);
       try {
         const artifacts = await readRepositoryFromFiles(files);
-        loadSnapshot(artifacts.snapshot, artifacts.label);
-        setServerMode("local");
-        if (artifacts.report !== null) {
-          loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
-        } else {
-          resetReport();
+        if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
+          setServerMode("local");
+          clearProject();
+          writeProject({
+            snapshot: artifacts.snapshot,
+            report: artifacts.report,
+            label: artifacts.label,
+            reportLabel: artifacts.reportLabel
+          });
+          if (artifacts.report !== null) {
+            loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
+          } else {
+            resetReport();
+          }
         }
       } catch (cause) {
         setError((cause as Error).message);
@@ -512,6 +629,7 @@ export default function App() {
 
   const reloadDemo = useCallback(async () => {
     manualLoadRef.current = true;
+    clearProject();
     setLoading(true);
     try {
       const [snapshotResponse, reportResponse] = await Promise.all([
@@ -667,10 +785,24 @@ export default function App() {
             <label className="field search-field">
               <span>Buscar</span>
               <input
+                ref={searchRef}
                 type="search"
                 placeholder="ruta o fichero…"
+                title="Pulsa / para buscar; Enter abre el primer resultado"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" || !view.model) return;
+                  const needle = query.trim().toLowerCase();
+                  if (!needle) return;
+                  const match = view.model.files.find((file) =>
+                    file.path.toLowerCase().includes(needle)
+                  );
+                  if (match) {
+                    setSelectedIndex(match.index);
+                    setTab("file");
+                  }
+                }}
               />
             </label>
             {query ? (

@@ -124,9 +124,10 @@ de PR.
 - [x] `codarch serve`: analiza al arrancar, sirve el build web y los artefactos; live + SSE.
 - [x] Elegir carpeta desde la web, cambiar de repo y alternar live/stop sin reiniciar.
 - [x] `npm run web:dev` arranca y para el servidor automáticamente; `CODARCH_NO_AUTOSERVE=1` lo evita.
+- [x] Persistencia local del último proyecto con artefactos y de las preferencias de área/color.
+- [x] Atajos básicos: `/` busca, `Enter` abre el primer resultado, `Esc` limpia foco/selección.
 - [ ] Carga por URL y enlaces compartibles con el estado de vista.
-- [ ] Persistencia local del último proyecto y de las preferencias de área/color.
-- [ ] Atajos de teclado y navegación completa del mapa.
+- [ ] Navegación por flechas entre celdas y foco inicial del mapa.
 - [ ] Manejo explícito de snapshots grandes (virtualización o WebGL).
 
 ## M6 — Análisis en el navegador

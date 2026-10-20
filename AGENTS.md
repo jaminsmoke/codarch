@@ -68,8 +68,8 @@ también `npm run sync:action` y actualizar el repo público.
 ## Estado y siguiente
 
 - M1–M4 cerrados: parser TS, diff/reglas/acción, publicación npm + acción, lente de migración.
-- M5 en curso: app web con treemap, inspector, foco por carpeta, panel de migración, vista de PR y
-  apertura de repositorio/archivo. Quedan `codarch serve`, carga por URL, persistencia y teclado.
+- M5 en curso: app web con treemap, inspector, foco por carpeta, migración, vista de PR, selector de
+  carpetas servido, live/stop, persistencia y atajos básicos. Quedan URL/flechas/snapshots grandes.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.

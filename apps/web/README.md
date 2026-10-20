@@ -51,11 +51,15 @@ También puedes arrastrar un `cc.json` al mapa.
 - Foco por carpeta: clic en la cabecera de una carpeta; breadcrumb para volver al mapa completo.
 - `Esc` limpia la selección y vuelve al mapa completo.
 - Con `codarch serve`: selector de carpetas del servidor, cambio de repo y toggle live/stop.
+- Preferencias de área/color y último proyecto abierto con artefactos se guardan en `localStorage` y
+  se restauran al recargar.
+- Atajos: `/` enfoca la búsqueda, `Enter` abre el primer resultado y `Esc` limpia foco/selección.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
 ## Límites
 
-- El snapshot y el reporte se cargan en memoria; no hay backend ni persistencia.
+- El snapshot y el reporte se cargan en memoria; el último proyecto con artefactos se persiste hasta
+  ~2,5 MB. Los datos servidos por `codarch serve` no se guardan.
 - **Abrir repositorio** no analiza: carga artefactos `.codarch` ya generados. El análisis en navegador
   (WASM) está en el roadmap como M6.
 - No hay carga por URL todavía.
