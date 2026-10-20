@@ -3,8 +3,8 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 en curso. M1 cerrado: analizador propio de TypeScript/JavaScript, grafo de dependencias y
-snapshot `cc.json` determinista. M2 empieza con churn de git para completar la lente de riesgo.
+**Estado:** M2 en curso. Churn, diff entre snapshots y `report.json` estable ya funcionan. Siguiente:
+GitHub Action y reglas de arquitectura.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
@@ -27,8 +27,13 @@ npm run analyze -- . --no-git      # sin historial de git
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
 npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.html
 
+# Comparar dos snapshots (por ejemplo, base y head de un PR)
+npm run diff -- base.cc.json head.cc.json -o report.json
+npm run diff -- base.cc.json head.cc.json --fail-on cycles
+
 npm run bench:render            # 5.000 ficheros sintéticos
 npm run bench:analyze           # 2.000 ficheros sintéticos
+npm run bench:diff              # diff de 2.000 → 2.010 ficheros
 npm test
 ```
 
@@ -62,6 +67,38 @@ Salida de `analyze` sobre el fixture de test con `--no-git`:
 El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
 entrantes/salientes y tres lentes: estructura, riesgo y métrica. La lente de riesgo se deriva en el
 render; no se almacena en el snapshot.
+
+### Diff entre commits
+
+`codarch diff` compara dos snapshots ya generados, sin volver a analizar el código:
+
+```
+$ codarch diff base.cc.json head.cc.json -o report.json
+
+  CodArch · diff
+
+  base         base.cc.json (a45c1ca5…)
+  head         head.cc.json (39855f12…)
+  ficheros     +4 · -1 · ~3
+  aristas      +6 · -2 · 1 cíclicas nuevas
+  ciclos       +1 nuevos · 0 resueltos
+  hotspots     2 (maxComplexity)
+  reporte      report.json (12 KB)
+
+  Ciclos nuevos:
+    ✗ src/domain/service.ts → src/infra/db.ts → src/domain/service.ts
+
+  Hotspots (maxComplexity):
+    ● src/payments/service.ts  18 → 59 (+41)
+```
+
+El reporte separa `files.added/removed/changed`, `edges.added/removed/cyclicAdded/cyclicRemoved`,
+`cycles.introduced/fixed` y `hotspots`. Es determinista y no guarda timestamps. Los cambios de
+métricas usan `delta: null` cuando una métrica solo existe en un lado; no se inventan ceros. La
+decisión está en [ADR 0010](docs/adr/0010-diff-entre-snapshots.md).
+
+`--fail-on cycles|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay hallazgos, `1`
+si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
 
 ---
 
@@ -186,6 +223,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Repo de 2k ficheros | analizado en < 3 s | 2,6 s (sintético, 2.000 ficheros) |
 | Memoria de analyze | < 500 MB | 311 MB RSS (sintético) |
 | Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
+| Diff | reporte estable, sin reanálisis | 9,8 ms para 2.000 → 2.010 ficheros (sintético) |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
 | Comentario de PR | < 10 s de extremo a extremo | pendiente (M2) |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
@@ -193,16 +231,17 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 ## Estructura
 
 ```
-packages/   schema · parsers · layouts · render
+packages/   schema · parsers · metrics · layouts · render
 apps/       cli · web (futuro) · mcp (futuro) · github-action (futuro)
 docs/       adr/ · design/ · model.md · roadmap.md
-scripts/    bench-render.ts · bench-analyze.ts · fetch-samples.mjs
+scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
 
-Implementado: `schema`, `parsers`, `layouts`, `render` y los comandos `codarch analyze`,
-`codarch inspect` y `codarch render`. `parsers` incluye parser tree-sitter, walker con `.gitignore`,
-resolver de imports, grafo, churn de git y construcción del snapshot.
+Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos `codarch analyze`,
+`codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
+`.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
+el diff determinista entre snapshots.
 
 ## Inspiración
 

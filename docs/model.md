@@ -186,16 +186,51 @@ políticas distintas.
 
 ## Delta
 
+`packages/metrics` implementa `diffSnapshots(base, head)`. No guarda el delta: lo calcula entre dos
+snapshots inmutables.
+
 ```ts
-delta(base: Snapshot, head: Snapshot): {
-  nodes: { added, removed, changed }
-  edges: { added, removed }
-  violations: { introduced, fixed }
-  hotspots: RankedChange[]
+type DiffReport = {
+  schemaVersion: '1.0'
+  base: { projectName, checksum, files, folders, edges }
+  head: { projectName, checksum, files, folders, edges }
+  summary: {
+    addedFiles, removedFiles, changedFiles,
+    addedEdges, removedEdges,
+    cyclicEdgesAdded, cyclicEdgesRemoved,
+    introducedCycles, fixedCycles, hotspots
+  }
+  files: {
+    added: DiffFile[]      // id, path, metrics
+    removed: DiffFile[]
+    changed: Array<{ id, path, changes: MetricChange[] }>
+  }
+  edges: {
+    added: EdgeChange[]
+    removed: EdgeChange[]
+    cyclicAdded: EdgeChange[]
+    cyclicRemoved: EdgeChange[]
+  }
+  cycles: {
+    introduced: CycleComponent[]   // SCCs de tamaño > 1 o self-loops
+    fixed: CycleComponent[]
+  }
+  hotspots: Hotspot[]
+  hotspotMetric: string | null
 }
 ```
 
-Se calcula, no se almacena. Con ids estables y checksums, es una operación de conjuntos.
+Reglas:
+
+- Identidad por `id`; las rutas son solo para mostrar. Un rename es alta + baja.
+- `MetricChange.delta` es `null` si la métrica solo existe en un lado.
+- Aristas por `(fromId, toId)`, con peso y type-only agregados.
+- Ciclos por SCC, comparando el conjunto de ids del componente. Un cambio de tamaño cuenta como un
+  ciclo resuelto y otro introducido.
+- Hotspots por `maxComplexity` (o `rloc` si falta), solo con delta positivo; un fichero nuevo parte
+  de 0. Sin fórmula compuesta opaca.
+- `report.json` es determinista y no tiene timestamps. Ver
+  [ADR 0010](adr/0010-diff-entre-snapshots.md).
 
 ## Pipeline de M1/M2
 

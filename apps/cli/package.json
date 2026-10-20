@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@codarch/metrics": "*",
     "@codarch/parsers": "*",
     "@codarch/render": "*",
     "@codarch/schema": "*"

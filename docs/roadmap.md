@@ -55,8 +55,10 @@ se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 
 - [x] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
 - [x] Test de churn con repositorio temporal y test de determinismo con historial.
-- [ ] `codarch diff base.cc.json head.cc.json` → ciclos nuevos, capas violadas, hotspots movidos.
-- [ ] `report.json` estable y versionado.
+- [x] `codarch diff base.cc.json head.cc.json` → ficheros, métricas, aristas, ciclos y hotspots.
+- [x] `report.json` estable y versionado (`schemaVersion: "1.0"`), sin timestamps.
+- [x] Gate básico `--fail-on cycles|hotspots|any` con salida `2`.\n- [x] Benchmark de diff: 2.000 → 2.010 ficheros en 9,8 ms, reporte de 28 KB.
+- [ ] Capas violadas y reglas de arquitectura.
 - [ ] GitHub Action: comentario en el PR + artefacto con el mapa.
 - [ ] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.
 - [ ] Doble política sobre el mismo commit (aviso vs bloqueo).

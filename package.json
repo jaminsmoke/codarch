@@ -9,10 +9,12 @@
   },
   "scripts": {
     "analyze": "tsx apps/cli/src/index.ts analyze",
+    "diff": "tsx apps/cli/src/index.ts diff",
     "inspect": "tsx apps/cli/src/index.ts inspect",
     "render": "tsx apps/cli/src/index.ts render",
     "bench:render": "tsx scripts/bench-render.ts",
     "bench:analyze": "tsx scripts/bench-analyze.ts",
+    "bench:diff": "tsx scripts/bench-diff.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

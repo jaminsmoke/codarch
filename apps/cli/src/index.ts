@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { runAnalyze, type AnalyzeCommandOptions } from "./commands/analyze";
+import { runDiff, type DiffCommandOptions, type FailOn } from "./commands/diff";
 import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 
@@ -12,6 +13,7 @@ Uso:
   codarch analyze [ruta] [opciones]
   codarch inspect <fichero.cc.json[.gz]> [opciones]
   codarch render  <fichero.cc.json[.gz]> [opciones]
+  codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -36,12 +38,20 @@ Opciones de render:
   --title <texto>   título del proyecto en el mapa
   -h, --help        esta ayuda
 
+Opciones de diff:
+  -o, --out <file>  reporte JSON (por defecto report.json)
+  --top <n>         hotspots en el reporte (por defecto 10)
+  --hotspot-metric <métrica>  por defecto maxComplexity, luego rloc
+  --fail-on <modo>  none | cycles | hotspots | any (por defecto none)
+  -h, --help        esta ayuda
+
 Ejemplos:
   codarch analyze .
   codarch analyze . -o .codarch --title "Mi proyecto"
   codarch inspect samples/codecharta_visualization.cc.json.gz
   codarch render samples/codecharta_visualization.cc.json.gz
   codarch render mapa.cc.json -o mapa.html --area rloc --color maxComplexity
+  codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
 `;
 
 function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
@@ -229,6 +239,93 @@ function parseRender(args: string[]): RenderCommandOptions | number {
   return options;
 }
 
+function parseDiff(args: string[]): DiffCommandOptions | number {
+  const options: DiffCommandOptions = { help: false, top: 10, failOn: "none" };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--out" || arg === "-o") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--out necesita una ruta");
+        return 1;
+      }
+      options.out = value;
+    } else if (arg.startsWith("--out=")) {
+      options.out = arg.slice("--out=".length);
+    } else if (arg === "--top") {
+      const value = args[++index];
+      const parsed = Number(value);
+      if (!value || !Number.isInteger(parsed) || parsed < 1) {
+        console.error("--top necesita un entero positivo");
+        return 1;
+      }
+      options.top = parsed;
+    } else if (arg.startsWith("--top=")) {
+      const parsed = Number(arg.slice("--top=".length));
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        console.error("--top necesita un entero positivo");
+        return 1;
+      }
+      options.top = parsed;
+    } else if (arg === "--hotspot-metric") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--hotspot-metric necesita un nombre");
+        return 1;
+      }
+      options.hotspotMetric = value;
+    } else if (arg.startsWith("--hotspot-metric=")) {
+      options.hotspotMetric = arg.slice("--hotspot-metric=".length);
+    } else if (arg === "--fail-on") {
+      const value = args[++index];
+      if (!isFailOn(value)) {
+        console.error("--fail-on necesita none, cycles, hotspots o any");
+        return 1;
+      }
+      options.failOn = value;
+    } else if (arg.startsWith("--fail-on=")) {
+      const value = arg.slice("--fail-on=".length);
+      if (!isFailOn(value)) {
+        console.error("--fail-on necesita none, cycles, hotspots o any");
+        return 1;
+      }
+      options.failOn = value;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg === "--version" || arg === "-v") {
+      console.log(VERSION);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length !== 2) {
+    console.error("diff necesita exactamente dos snapshots: base y head");
+    return 1;
+  }
+
+  options.base = positional[0];
+  options.head = positional[1];
+  return options;
+}
+
+function isFailOn(value: string | undefined): value is FailOn {
+  return (
+    value === "none" ||
+    value === "cycles" ||
+    value === "hotspots" ||
+    value === "any"
+  );
+}
+
 function main(argv: string[]): number {
   const [command, ...rest] = argv;
 
@@ -258,6 +355,12 @@ function main(argv: string[]): number {
     const parsed = parseRender(rest);
     if (typeof parsed === "number") return parsed;
     return runRender(parsed);
+  }
+
+  if (command === "diff") {
+    const parsed = parseDiff(rest);
+    if (typeof parsed === "number") return parsed;
+    return runDiff(parsed);
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

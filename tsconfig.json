@@ -19,6 +19,7 @@
       "@codarch/schema": ["packages/schema/src/index.ts"],
       "@codarch/parsers": ["packages/parsers/src/index.ts"],
       "@codarch/layouts": ["packages/layouts/src/index.ts"],
+      "@codarch/metrics": ["packages/metrics/src/index.ts"],
       "@codarch/render": ["packages/render/src/index.ts"]
     }
   },
