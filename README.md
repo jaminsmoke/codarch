@@ -49,8 +49,8 @@ npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o
 npm run web:dev
 npm run web:build
 
-# Visor local: analiza el repo y sirve la web; --watch reanaliza y refresca por SSE
-npm run serve -- . --watch
+# Visor local: analiza el repo, sirve la web y reanaliza al guardar
+npm run serve -- .
 
 # Política de arquitectura opcional
 cp .codarch.example.yml .codarch.yml

@@ -96,11 +96,14 @@ export default function App() {
   const [reportError, setReportError] = useState<string | null>(null);
   const [tab, setTab] = useState<"file" | "pr">("file");
   const [focusPath, setFocusPath] = useState<string | null>(null);
-  const [serverMode, setServerMode] = useState<"demo" | "served" | "live">("demo");
+  const [serverMode, setServerMode] = useState<"demo" | "local" | "served" | "live">(
+    "demo"
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
   const openMenuRef = useRef<HTMLDetailsElement>(null);
+  const manualLoadRef = useRef(false);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
@@ -135,7 +138,6 @@ export default function App() {
           setQuery("");
           setSelectedIndex(null);
           setFocusPath(null);
-          setServerMode("demo");
         }
         setError(null);
       } catch (cause) {
@@ -166,6 +168,8 @@ export default function App() {
       const meta = await fetchJson("data/meta.json");
       const servedSnapshot = await fetchJson("data/snapshot.cc.json");
 
+      if (manualLoadRef.current) return;
+
       if (servedSnapshot) {
         if (cancelled) return;
         loadSnapshot(servedSnapshot, "servidor local");
@@ -180,9 +184,13 @@ export default function App() {
       }
 
       const demoSnapshot = await fetchJson("demo.cc.json");
-      if (demoSnapshot && !cancelled) loadSnapshot(demoSnapshot, "demo.cc.json");
+      if (demoSnapshot && !cancelled && !manualLoadRef.current) {
+        loadSnapshot(demoSnapshot, "demo.cc.json");
+      }
       const demoReport = await fetchJson("demo.report.json");
-      if (demoReport && !cancelled) loadReport(demoReport, "demo.report.json");
+      if (demoReport && !cancelled && !manualLoadRef.current) {
+        loadReport(demoReport, "demo.report.json");
+      }
       if (!demoSnapshot && !cancelled) {
         setError("No se pudo cargar la demo. Abre un cc.json para empezar.");
         setLoading(false);
@@ -290,8 +298,10 @@ export default function App() {
       const file = event.target.files?.[0];
       event.target.value = "";
       if (!file) return;
+      manualLoadRef.current = true;
       try {
         loadSnapshot(JSON.parse(await file.text()), file.name);
+        setServerMode("local");
         setReport(null);
         setReportSource(null);
         setReportError(null);
@@ -309,8 +319,10 @@ export default function App() {
       setDragging(false);
       const file = event.dataTransfer.files?.[0];
       if (!file) return;
+      manualLoadRef.current = true;
       try {
         loadSnapshot(JSON.parse(await file.text()), file.name);
+        setServerMode("local");
         setReport(null);
         setReportSource(null);
         setReportError(null);
@@ -349,6 +361,7 @@ export default function App() {
 
   const openRepository = useCallback(async () => {
     closeOpenMenu();
+    manualLoadRef.current = true;
     setError(null);
     if (!("showDirectoryPicker" in window)) {
       repositoryInputRef.current?.click();
@@ -358,6 +371,7 @@ export default function App() {
     try {
       const artifacts = await readRepositoryFromPicker();
       loadSnapshot(artifacts.snapshot, artifacts.label);
+      setServerMode("local");
       if (artifacts.report !== null) {
         loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
       } else {
@@ -377,11 +391,13 @@ export default function App() {
       event.target.value = "";
       closeOpenMenu();
       if (files.length === 0) return;
+      manualLoadRef.current = true;
       setLoading(true);
       setError(null);
       try {
         const artifacts = await readRepositoryFromFiles(files);
         loadSnapshot(artifacts.snapshot, artifacts.label);
+        setServerMode("local");
         if (artifacts.report !== null) {
           loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
         } else {
@@ -408,6 +424,7 @@ export default function App() {
   );
 
   const reloadDemo = useCallback(async () => {
+    manualLoadRef.current = true;
     setLoading(true);
     try {
       const [snapshotResponse, reportResponse] = await Promise.all([
@@ -418,6 +435,7 @@ export default function App() {
         throw new Error(`no se pudo cargar la demo (${snapshotResponse.status})`);
       }
       loadSnapshot(await snapshotResponse.json(), "demo.cc.json");
+      setServerMode("demo");
       if (reportResponse.ok) {
         loadReport(await reportResponse.json(), "demo.report.json");
       } else {
@@ -451,12 +469,25 @@ export default function App() {
             {view.model?.meta.checksum ? ` · ${view.model.meta.checksum.slice(0, 8)}` : ""}
             {view.model?.meta.commit ? ` · ${view.model.meta.commit.slice(0, 8)}` : ""}
           </span>
-          {serverMode !== "demo" ? (
-            <span className={`server-mode server-mode-${serverMode}`}>
-              <i />
-              {serverMode === "live" ? "live" : "servido"}
-            </span>
-          ) : null}
+          <span
+            className={`server-mode server-mode-${serverMode}`}
+            title={
+              serverMode === "demo"
+                ? "Datos de ejemplo. Para tu repo: codarch serve <ruta>"
+                : serverMode === "local"
+                  ? "Archivo o carpeta cargada manualmente"
+                  : serverMode === "live"
+                    ? "Servidor local con watch activo"
+                    : "Servidor local sin watch"
+            }
+          >
+            <i />
+            {serverMode === "live"
+              ? "live"
+              : serverMode === "served"
+                ? "servido"
+                : serverMode}
+          </span>
         </div>
         <div className="topbar-actions">
           <button className="button ghost" type="button" onClick={reloadDemo}>
@@ -469,7 +500,7 @@ export default function App() {
             </summary>
             <div className="open-menu-panel">
               <button type="button" onClick={openRepository}>
-                Repositorio (carpeta)…
+                Carpeta con .codarch…
               </button>
               <button
                 type="button"
@@ -480,7 +511,10 @@ export default function App() {
               >
                 Archivo cc.json…
               </button>
-              <p>Repositorio lee .codarch/snapshot.cc.json y report.json.</p>
+              <p>
+                Carga artefactos ya generados. Para datos en vivo: ejecuta
+                <code>codarch serve .</code> en la raíz del repo.
+              </p>
             </div>
           </details>
           <input
@@ -585,6 +619,16 @@ export default function App() {
               />
             </div>
           </div>
+
+          {serverMode === "demo" ? (
+            <div className="demo-banner">
+              <strong>Demo.</strong>
+              <span>
+                Para monitorizar tu repositorio, ejecuta <code>codarch serve .</code> en su
+                raíz y abre la URL que imprime.
+              </span>
+            </div>
+          ) : null}
 
           <div className="map-frame">
             {loading ? (

@@ -22,10 +22,11 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
 2. **Solo loopback y solo lectura.** Por defecto escucha en `127.0.0.1:4173`. No escribe en el
    repositorio, no habla con GitHub y no tiene autenticación. Se puede cambiar host/puerto de forma
    explícita, pero no está pensado para exponerse.
-3. **`--watch` opcional.** Observa el árbol con `fs.watch` recursivo, ignora `.git`, `node_modules`,
-   `.codarch`, `dist`, `coverage`, `.next`, `out` y `target`, y reanaliza con debounce de 350 ms.
-   Cada actualización se publica por SSE en `/events`; la app se suscribe solo si
-   `/data/meta.json` indica `watch: true`.
+3. **Watch live por defecto, `--no-watch` para desactivarlo.** Observa el árbol con `fs.watch`
+   recursivo, ignora `.git`, `node_modules`, `.codarch`, `dist`, `coverage`, `.next`, `out` y
+   `target`, y reanaliza con debounce de 350 ms. Cada actualización se publica por SSE en `/events`;
+   la app se suscribe solo si `/data/meta.json` indica `watch: true`. El modo sin watch queda para
+   servidores de solo lectura o repos grandes.
 4. **La app entiende dos orígenes.** Si existen `data/snapshot.cc.json` y `data/meta.json`, carga el
    servidor; si no, usa la demo. El snapshot del servidor se actualiza con `preserveView` para no
    perder área, color, búsqueda o foco en cada guardado.
@@ -43,8 +44,9 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
   un checkout.
 - El servidor es mono-usuario y local. No hay cuotas, sesiones ni autorización; exponerlo fuera de
   loopback es responsabilidad del usuario y no está soportado.
-- `--watch` puede perder eventos si el editor escribe de forma no atómica; el debounce y el
-  reanálisis completo lo hacen tolerable.
+- El watch puede perder eventos si el editor escribe de forma no atómica; el debounce y el
+  reanálisis completo lo hacen tolerable. En repos muy grandes, `--no-watch` evita reanálisis
+  constantes.
 - La vista de PR del servidor solo muestra un `report.json` ya generado. No calcula un diff contra
   otra rama; para eso están `codarch diff` y la acción.
 - El análisis por navegador y la carga por URL siguen en M5.1/M6.
@@ -58,4 +60,6 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
   local. La cuña de PR ya está cubierta por la acción.
 - **Escribir el snapshot en `.codarch` en cada cambio.** Ensucia el repo, compite con el CLI y hace
   que el watch se realimente. El snapshot vive en memoria.
-- **Watch siempre activo.** Reanalizar sin pedirlo consume CPU y sorprende; es opt-in.
+- **Watch externo o solo opt-in.** Un watcher externo añade otra pieza; el opt-in hacía que el flujo
+  “abrir carpeta y ver cambios” no fuera el camino por defecto. Se elige live por defecto y
+  `--no-watch` para el caso contrario.

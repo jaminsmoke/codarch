@@ -48,7 +48,7 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
     codarch = await root.getDirectoryHandle(".codarch");
   } catch {
     throw new Error(
-      `No se encontró .codarch en "${root.name}". Ejecuta "codarch analyze ." en ese repositorio o abre el cc.json.`
+      `No se encontró .codarch en "${root.name}". Para artefactos ejecuta "codarch analyze ."; para datos en vivo, "codarch serve ." en la raíz del repo.`
     );
   }
 
@@ -82,7 +82,7 @@ export async function readRepositoryFromFiles(
   );
   if (!snapshotEntry) {
     throw new Error(
-      'No se encontró ".codarch/snapshot.cc.json" en la carpeta. Ejecuta "codarch analyze ." primero.'
+      'No se encontró ".codarch/snapshot.cc.json" en la carpeta. Para artefactos ejecuta "codarch analyze ."; para datos en vivo, "codarch serve ." en la raíz del repo.'
     );
   }
 

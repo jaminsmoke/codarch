@@ -55,7 +55,8 @@ Opciones de diff:
 Opciones de serve:
   -p, --port <n>    puerto local (por defecto 4173)
   --host <host>     interfaz (por defecto 127.0.0.1)
-  --watch           reanaliza al cambiar ficheros y refresca por SSE
+  --watch           reanaliza al cambiar ficheros y refresca por SSE (por defecto)
+  --no-watch        solo analiza al arrancar
   -h, --help        esta ayuda
 
 Ejemplos:
@@ -65,7 +66,8 @@ Ejemplos:
   codarch render samples/codecharta_visualization.cc.json.gz
   codarch render mapa.cc.json -o mapa.html --area rloc --color maxComplexity
   codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
-  codarch serve . --watch
+  codarch serve .
+  codarch serve . --no-watch
 `;
 
 function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
@@ -360,7 +362,7 @@ function parseServe(args: string[]): ServeOptions | number {
   const options: ServeOptions = {
     port: 4173,
     host: "127.0.0.1",
-    watch: false,
+    watch: true,
     help: false
   };
   const positional: string[] = [];
@@ -394,6 +396,8 @@ function parseServe(args: string[]): ServeOptions | number {
       options.host = arg.slice("--host=".length);
     } else if (arg === "--watch") {
       options.watch = true;
+    } else if (arg === "--no-watch") {
+      options.watch = false;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
     } else if (arg.startsWith("-")) {

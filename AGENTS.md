@@ -37,7 +37,7 @@ npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
 npm run web:dev        # app web en http://127.0.0.1:5173
 npm run web:build      # build estático en apps/web/dist
-npm run serve -- . --watch  # analiza y sirve la web con refresco SSE
+npm run serve -- .     # analiza, sirve la web y reanaliza al guardar (SSE)
 ```
 
 Antes de cada push: lint, typecheck, tests y `check:action`. Si el cambio toca la acción, ejecutar

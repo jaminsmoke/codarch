@@ -45,15 +45,15 @@ configuración.
 ## Servidor local
 
 ```bash
-codarch serve .                 # analiza y sirve la app web en http://127.0.0.1:4173
-codarch serve . --watch         # reanaliza al cambiar ficheros y refresca por SSE
+codarch serve .                 # analiza, sirve la web y reanaliza al cambiar ficheros
+codarch serve . --no-watch      # solo análisis inicial; sin SSE
 codarch serve . --port 8080
 ```
 
 `serve` usa el mismo analizador que `analyze`, sirve la app web incluida en el paquete y expone el
 snapshot en `/data/snapshot.cc.json`; si existe `.codarch/report.json`, también lo sirve para la vista
-de PR. `--watch` es opt-in y no está pensado para exponerse fuera de loopback. No monitoriza GitHub ni
-sustituye a la acción: es un visor local.
+de PR. El watch es **live por defecto**: reanaliza al guardar y refresca por SSE. No monitoriza GitHub
+ni sustituye a la acción: es un visor local, y no está pensado para exponerse fuera de loopback.
 
 ## Lente de migración
 
