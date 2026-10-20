@@ -35,6 +35,10 @@ inputs:
     description: Versión de Node.
     required: false
     default: "22"
+  version:
+    description: Versión exacta del paquete codarch que se instala desde npm.
+    required: false
+    default: "0.1.0"
   working-directory:
     description: Directorio del proyecto dentro del workspace.
     required: false
@@ -90,12 +94,23 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Instalar dependencias
+    - name: Instalar CodArch
       shell: bash
+      env:
+        CODARCH_VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
-        cd "$CODARCH_ROOT"
-        npm ci
+        CLI_PREFIX="${RUNNER_TEMP}/codarch-cli"
+        rm -rf "$CLI_PREFIX"
+        mkdir -p "$CLI_PREFIX"
+        npm install --prefix "$CLI_PREFIX" --no-save --no-audit --no-fund \
+          "codarch@${CODARCH_VERSION}"
+        CLI="$CLI_PREFIX/node_modules/codarch/index.js"
+        if [ ! -f "$CLI" ]; then
+          echo "::error::No se encontró codarch@${CODARCH_VERSION} tras instalarlo."
+          exit 1
+        fi
+        echo "CODARCH_CLI=$CLI" >> "$GITHUB_ENV"
 
     - name: Preparar base
       shell: bash
@@ -127,7 +142,7 @@ runs:
       run: |
         set -euo pipefail
         cd "$CODARCH_ROOT"
-        npx tsx apps/cli/src/index.ts analyze "$CODARCH_BASE_DIR" \
+        node "$CODARCH_CLI" analyze "$CODARCH_BASE_DIR" \
           -o "$CODARCH_ARTIFACT_DIR/base" \
           --title "${CODARCH_TITLE_INPUT:-CodArch} · base"
 
@@ -138,7 +153,7 @@ runs:
       run: |
         set -euo pipefail
         cd "$CODARCH_ROOT"
-        npx tsx apps/cli/src/index.ts analyze "$CODARCH_ROOT" \
+        node "$CODARCH_CLI" analyze "$CODARCH_ROOT" \
           -o "$CODARCH_ARTIFACT_DIR/head" \
           --title "${CODARCH_TITLE_INPUT:-CodArch} · head"
         cp "$CODARCH_ARTIFACT_DIR/head/map.html" "$CODARCH_ARTIFACT_DIR/map.html"
@@ -167,7 +182,7 @@ runs:
         fi
 
         set +e
-        npx tsx apps/cli/src/index.ts diff "${DIFF_ARGS[@]}"
+        node "$CODARCH_CLI" diff "${DIFF_ARGS[@]}"
         STATUS=$?
         set -e
         echo "CODARCH_EXIT_CODE=$STATUS" >> "$GITHUB_ENV"

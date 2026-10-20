@@ -3,10 +3,9 @@
 Analiza el commit base y el head de un pull request, escribe un `report.json` determinista, publica el
 mapa como artefacto y actualiza un comentario en el PR.
 
-Esta primera versión es **repo-local**: asume que el workspace contiene el código de CodArch (este
-monorepo) y que `npm ci` puede instalar sus dependencias. Cuando el CLI se publique en npm, la acción
-podrá consumirlo sin clonar el analizador. La decisión está en
-[ADR 0012](../../docs/adr/0012-github-action.md).
+La acción instala el CLI publicado en npm (`codarch@0.1.0` por defecto), así que no necesita el
+código de CodArch en el workspace ni ejecuta `npm ci` sobre el proyecto analizado. La decisión está en
+[ADR 0012](../../docs/adr/0012-github-action.md) y [ADR 0014](../../docs/adr/0014-distribucion-cli-npm.md).
 
 ## Uso
 
@@ -28,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: ./apps/github-action
+      - uses: jaminsmoke/codarch/apps/github-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: none # aviso; usa violations, cycles, hotspots o any para bloquear
@@ -51,6 +50,7 @@ el análisis y el artefacto funcionan, pero el comentario se omite con un warnin
 | `comment` | `true` | Publica o actualiza el comentario del PR. |
 | `artifact-name` | `codarch` | Nombre del artefacto. |
 | `node-version` | `22` | Versión de Node. |
+| `version` | `0.1.0` | Versión exacta de `codarch` que se instala desde npm. |
 | `working-directory` | `.` | Directorio del proyecto. |
 | `title` | `CodArch` | Título del mapa. |
 | `top` | `10` | Hotspots incluidos en el reporte. |
@@ -98,6 +98,6 @@ diagnosticar sin ambigüedad.
 
 - No analiza PRs de forks con permiso de escritura si el token es read-only.
 - El checkout del head es el workspace actual; no hace un checkout separado del head.
-- `npm ci` en cada ejecución añade tiempo; se puede cachear en el workflow cuando el proyecto lo
-  necesite.
+- Instalar `codarch` desde npm añade unos segundos a cada ejecución; se puede cachear el prefijo o usar
+  una imagen con el CLI preinstalado.
 - La acción usa `git worktree`, así que el runner necesita un checkout con historial suficiente.

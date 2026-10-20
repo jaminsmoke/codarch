@@ -160,14 +160,14 @@ permissions:
 steps:
   - uses: actions/checkout@v7
     with: { fetch-depth: 0 }
-  - uses: ./apps/github-action
+  - uses: jaminsmoke/codarch/apps/github-action@v1
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       fail-on: none
 ```
 
-Es **repo-local** en M2: asume que el workspace contiene el código de CodArch y ejecuta `npm ci`.
-La documentación, entradas y límites están en
+La acción instala `codarch` desde npm; no necesita el código de CodArch en el workspace ni ejecuta
+`npm ci` sobre el proyecto analizado. La documentación, entradas y límites están en
 [`apps/github-action/README.md`](apps/github-action/README.md). El workflow de ejemplo es
 [`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
 

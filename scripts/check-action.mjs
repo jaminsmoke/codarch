@@ -12,6 +12,17 @@ const workflowPath = path.join(root, ".github", "workflows", "codarch.yml");
 const action = parse(fs.readFileSync(actionPath, "utf8"));
 assert.equal(action.runs?.using, "composite");
 assert.equal(action.inputs?.["fail-on"]?.default, "none");
+assert.equal(action.inputs?.version?.default, "0.1.0");
+assert.ok(
+  action.runs.steps.some((step) =>
+    String(step.run ?? "").includes("codarch@${CODARCH_VERSION}")
+  ),
+  "la acción no instala el paquete codarch"
+);
+assert.ok(
+  !action.runs.steps.some((step) => String(step.run ?? "").includes("npx tsx")),
+  "la acción sigue dependiendo del checkout local"
+);
 assert.ok(
   action.runs.steps.some((step) => step.id === "paths"),
   "falta el paso paths"
