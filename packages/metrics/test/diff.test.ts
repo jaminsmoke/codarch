@@ -6,7 +6,7 @@ import {
   type CcJson,
   type CcNode
 } from "@codarch/schema";
-import { diffSnapshots } from "../src/index";
+import { diffSnapshots, parseRuleConfig } from "../src/index";
 
 interface FileSpec {
   path: string;
@@ -258,5 +258,51 @@ describe("diffSnapshots", () => {
     expect(first.files.added[0]?.path).toBe("src/b.ts");
     expect(first.files.changed[0]?.path).toBe("src/a.ts");
     expect(JSON.stringify(first)).toBe(JSON.stringify(second));
+  });
+
+  it("evalúa reglas y solo marca las violaciones introducidas", () => {
+    const base = snapshot(
+      "proj",
+      [
+        { path: "src/domain/a.ts", metrics: { maxComplexity: 1 } },
+        { path: "src/infra/b.ts", metrics: { maxComplexity: 1 } }
+      ],
+      []
+    );
+    const head = snapshot(
+      "proj",
+      [
+        { path: "src/domain/a.ts", metrics: { maxComplexity: 1 } },
+        { path: "src/infra/b.ts", metrics: { maxComplexity: 1 } }
+      ],
+      [
+        { from: "src/domain/a.ts", to: "src/infra/b.ts", cyclic: true },
+        { from: "src/infra/b.ts", to: "src/domain/a.ts", cyclic: true }
+      ]
+    );
+    const config = parseRuleConfig({
+      version: 1,
+      layers: [
+        { name: "domain", patterns: ["src/domain/**"] },
+        { name: "infra", patterns: ["src/infra/**"] }
+      ],
+      rules: [
+        {
+          name: "domain-no-infra",
+          type: "forbidden",
+          from: "domain",
+          to: "infra"
+        },
+        { name: "cycles", type: "cycles" }
+      ]
+    });
+
+    const report = diffSnapshots(base, head, { rules: config });
+    expect(report.rules.configured).toBe(true);
+    expect(report.rules.summary.introduced).toBe(2);
+    expect(report.rules.violations.introduced.map((violation) => violation.type)).toEqual([
+      "cycles",
+      "forbidden"
+    ]);
   });
 });

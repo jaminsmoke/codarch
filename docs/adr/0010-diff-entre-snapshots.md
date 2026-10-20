@@ -41,8 +41,9 @@ JSON ni un tercer formato que haya que sincronizar: debe ser una consulta entre 
   content hash, sin cambiar el contrato.
 - El reporte de un cambio grande puede crecer; se puede filtrar en la action o añadir un modo
   `--summary` cuando duela.
-- Las violaciones de capas no están en este reporte todavía: necesitan reglas y una política. El
-  diff actual no inventa hallazgos.
+- Las violaciones de capas no están en el snapshot: llegan como `rules` en el reporte, evaluadas
+  contra `.codarch.yml` en el momento del diff. Ver
+  [ADR 0011](0011-reglas-de-arquitectura.md).
 
 ## Alternativas descartadas
 

@@ -158,4 +158,104 @@ describe("runDiff", () => {
     ).toBe(0);
     expect(runDiff({ help: false })).toBe(1);
   });
+
+  it("carga .codarch.yml y aplica la política de violaciones", () => {
+    const root = tempDir();
+    const basePath = path.join(root, "base.cc.json");
+    const headPath = path.join(root, "head.cc.json");
+    const outPath = path.join(root, "report.json");
+    const errorConfig = path.join(root, "error.yml");
+    const warnConfig = path.join(root, "warn.yml");
+
+    const base = snapshot(
+      "proj",
+      [
+        { path: "src/domain/a.ts", metrics: { rloc: 1 } },
+        { path: "src/infra/b.ts", metrics: { rloc: 1 } }
+      ],
+      []
+    );
+    const head = snapshot(
+      "proj",
+      [
+        { path: "src/domain/a.ts", metrics: { rloc: 1 } },
+        { path: "src/infra/b.ts", metrics: { rloc: 1 } }
+      ],
+      [{ from: "src/domain/a.ts", to: "src/infra/b.ts" }]
+    );
+    fs.writeFileSync(basePath, JSON.stringify(base), "utf8");
+    fs.writeFileSync(headPath, JSON.stringify(head), "utf8");
+
+    const yaml = (severity: "error" | "warn"): string =>
+      [
+        "version: 1",
+        "layers:",
+        "  - name: domain",
+        "    paths: [src/domain/**]",
+        "  - name: infra",
+        "    paths: [src/infra/**]",
+        "rules:",
+        "  - name: domain-no-infra",
+        "    type: forbidden",
+        "    from: domain",
+        "    to: infra",
+        `    severity: ${severity}`
+      ].join("\n");
+    fs.writeFileSync(errorConfig, yaml("error"), "utf8");
+    fs.writeFileSync(warnConfig, yaml("warn"), "utf8");
+
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    expect(
+      runDiff({
+        base: basePath,
+        head: headPath,
+        out: outPath,
+        top: 5,
+        failOn: "violations",
+        config: errorConfig,
+        help: false
+      })
+    ).toBe(2);
+    const failed = JSON.parse(fs.readFileSync(outPath, "utf8")) as {
+      rules: {
+        summary: { introduced: number; introducedErrors: number };
+      };
+    };
+    expect(failed.rules.summary.introduced).toBe(1);
+    expect(failed.rules.summary.introducedErrors).toBe(1);
+
+    expect(
+      runDiff({
+        base: basePath,
+        head: headPath,
+        out: outPath,
+        top: 5,
+        failOn: "violations",
+        config: warnConfig,
+        help: false
+      })
+    ).toBe(0);
+    const warned = JSON.parse(fs.readFileSync(outPath, "utf8")) as {
+      rules: { summary: { introducedWarnings: number } };
+    };
+    expect(warned.rules.summary.introducedWarnings).toBe(1);
+
+    expect(
+      runDiff({
+        base: basePath,
+        head: headPath,
+        out: outPath,
+        top: 5,
+        failOn: "violations",
+        noConfig: true,
+        help: false
+      })
+    ).toBe(0);
+    const disabled = JSON.parse(fs.readFileSync(outPath, "utf8")) as {
+      rules: { configured: boolean };
+    };
+    expect(disabled.rules.configured).toBe(false);
+  });
 });

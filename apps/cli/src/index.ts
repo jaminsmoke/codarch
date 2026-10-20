@@ -42,7 +42,9 @@ Opciones de diff:
   -o, --out <file>  reporte JSON (por defecto report.json)
   --top <n>         hotspots en el reporte (por defecto 10)
   --hotspot-metric <métrica>  por defecto maxComplexity, luego rloc
-  --fail-on <modo>  none | cycles | hotspots | any (por defecto none)
+  --config <file>   reglas YAML (por defecto .codarch.yml si existe)
+  --no-config       no cargar reglas
+  --fail-on <modo>  none | cycles | violations | hotspots | any (por defecto none)
   -h, --help        esta ayuda
 
 Ejemplos:
@@ -279,17 +281,32 @@ function parseDiff(args: string[]): DiffCommandOptions | number {
       options.hotspotMetric = value;
     } else if (arg.startsWith("--hotspot-metric=")) {
       options.hotspotMetric = arg.slice("--hotspot-metric=".length);
+    } else if (arg === "--config") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--config necesita una ruta");
+        return 1;
+      }
+      options.config = value;
+    } else if (arg.startsWith("--config=")) {
+      options.config = arg.slice("--config=".length);
+    } else if (arg === "--no-config") {
+      options.noConfig = true;
     } else if (arg === "--fail-on") {
       const value = args[++index];
       if (!isFailOn(value)) {
-        console.error("--fail-on necesita none, cycles, hotspots o any");
+        console.error(
+          "--fail-on necesita none, cycles, violations, hotspots o any"
+        );
         return 1;
       }
       options.failOn = value;
     } else if (arg.startsWith("--fail-on=")) {
       const value = arg.slice("--fail-on=".length);
       if (!isFailOn(value)) {
-        console.error("--fail-on necesita none, cycles, hotspots o any");
+        console.error(
+          "--fail-on necesita none, cycles, violations, hotspots o any"
+        );
         return 1;
       }
       options.failOn = value;
@@ -321,6 +338,7 @@ function isFailOn(value: string | undefined): value is FailOn {
   return (
     value === "none" ||
     value === "cycles" ||
+    value === "violations" ||
     value === "hotspots" ||
     value === "any"
   );

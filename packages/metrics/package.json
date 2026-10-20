@@ -8,6 +8,8 @@
   },
   "types": "./src/index.ts",
   "dependencies": {
-    "@codarch/schema": "*"
+    "@codarch/schema": "*",
+    "minimatch": "^10.2.6",
+    "yaml": "^2.9.1"
   }
 }

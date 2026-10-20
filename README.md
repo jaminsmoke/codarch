@@ -3,8 +3,8 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 en curso. Churn, diff entre snapshots y `report.json` estable ya funcionan. Siguiente:
-GitHub Action y reglas de arquitectura.
+**Estado:** M2 en curso. Churn, diff entre snapshots, `report.json` estable y reglas de capas ya
+funcionan. Siguiente: GitHub Action y comentario de PR.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
@@ -29,7 +29,10 @@ npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.htm
 
 # Comparar dos snapshots (por ejemplo, base y head de un PR)
 npm run diff -- base.cc.json head.cc.json -o report.json
-npm run diff -- base.cc.json head.cc.json --fail-on cycles
+npm run diff -- base.cc.json head.cc.json --fail-on violations
+
+# Política de arquitectura opcional
+cp .codarch.example.yml .codarch.yml
 
 npm run bench:render            # 5.000 ficheros sintéticos
 npm run bench:analyze           # 2.000 ficheros sintéticos
@@ -97,8 +100,37 @@ El reporte separa `files.added/removed/changed`, `edges.added/removed/cyclicAdde
 métricas usan `delta: null` cuando una métrica solo existe en un lado; no se inventan ceros. La
 decisión está en [ADR 0010](docs/adr/0010-diff-entre-snapshots.md).
 
-`--fail-on cycles|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay hallazgos, `1`
-si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
+`--fail-on cycles|violations|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay
+hallazgos, `1` si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
+
+### Reglas de arquitectura
+
+Si existe `.codarch.yml` en el cwd, el diff evalúa capas prohibidas, umbrales y ciclos. Solo las
+violaciones **introducidas** con severidad `error` bloquean; la deuda previa se reporta pero no
+congela el PR. Ejemplo:
+
+```yaml
+version: 1
+layers:
+  - name: domain
+    paths: [src/domain/**]
+  - name: infra
+    paths: [src/infra/**]
+rules:
+  - name: domain-no-infra
+    type: forbidden
+    from: domain
+    to: infra
+    severity: error
+  - name: complejidad
+    type: threshold
+    metric: maxComplexity
+    max: 40
+    severity: warn
+```
+
+La referencia completa está en [`docs/rules.md`](docs/rules.md) y la decisión en
+[ADR 0011](docs/adr/0011-reglas-de-arquitectura.md). `--no-config` desactiva las reglas.
 
 ---
 
@@ -224,6 +256,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Memoria de analyze | < 500 MB | 311 MB RSS (sintético) |
 | Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
 | Diff | reporte estable, sin reanálisis | 9,8 ms para 2.000 → 2.010 ficheros (sintético) |
+| Reglas | solo bloquea lo introducido | `introduced` / `existing` / `resolved` en el reporte |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
 | Comentario de PR | < 10 s de extremo a extremo | pendiente (M2) |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
@@ -233,7 +266,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 ```
 packages/   schema · parsers · metrics · layouts · render
 apps/       cli · web (futuro) · mcp (futuro) · github-action (futuro)
-docs/       adr/ · design/ · model.md · roadmap.md
+docs/       adr/ · design/ · model.md · rules.md · roadmap.md
 scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```

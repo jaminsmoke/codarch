@@ -163,26 +163,66 @@ Si la herramienta no sirve para gestionar su propia migración, no sirve.
 
 ## Reglas y violaciones
 
-```ts
-type Rule =
-  | { kind: 'layers'; order: string[][]; forbidUpward?: boolean }
-  | { kind: 'forbidden'; from: string; to: string }
-  | { kind: 'no-cycles' }
-  | { kind: 'threshold'; metric: string; max: number }
+Las reglas viven en `.codarch.yml` y se evalúan al hacer diff, no al analizar. El snapshot dice
+**cómo es**; las reglas dicen **cómo debería ser**. Mezclarlos impediría comparar el mismo commit
+contra dos políticas distintas.
 
-type Violation = {
+```yaml
+version: 1
+layers:
+  - name: domain
+    paths: [src/domain/**]
+  - name: infra
+    paths: [src/infra/**]
+rules:
+  - name: domain-no-infra
+    type: forbidden
+    from: domain
+    to: infra
+    severity: error
+  - name: complejidad
+    type: threshold
+    metric: maxComplexity
+    max: 40
+    severity: warn
+  - name: sin-ciclos
+    type: cycles
+    severity: error
+```
+
+El reporte de diff añade:
+
+```ts
+type RuleReport = {
+  configured: boolean
+  summary: {
+    layers, rules,
+    introduced, existing, resolved,
+    introducedErrors, introducedWarnings
+  }
+  violations: {
+    introduced: RuleViolation[]
+    existing: RuleViolation[]
+    resolved: RuleViolation[]
+  }
+}
+
+type RuleViolation = {
+  key: string              // estable entre base y head
   rule: string
+  type: 'forbidden' | 'threshold' | 'cycles'
   severity: 'info' | 'warn' | 'error'
-  nodes: string[]
-  edges?: EdgeRef[]
-  message: string        // legible por humanos
-  hint?: string          // accionable
+  message: string
+  files: string[]          // solo para mostrar
+  edge?: { fromId, toId, from, to }
+  metric?: { name, value, min?, max? }
+  cycle?: { size, nodes }
 }
 ```
 
-Las reglas viven en la configuración del proyecto, no en el snapshot. El snapshot dice **cómo es**;
-las reglas dicen **cómo debería ser**. Mezclarlos impediría comparar el mismo commit contra dos
-políticas distintas.
+Solo las violaciones introducidas con severidad `error` bloquean con `--fail-on violations`. La
+deuda existente se publica, pero no impide mergear. Ver [`rules.md`](rules.md) y
+[ADR 0011](adr/0011-reglas-de-arquitectura.md).
 
 ## Delta
 
@@ -200,6 +240,7 @@ type DiffReport = {
     cyclicEdgesAdded, cyclicEdgesRemoved,
     introducedCycles, fixedCycles, hotspots
   }
+  rules: RuleReport
   files: {
     added: DiffFile[]      // id, path, metrics
     removed: DiffFile[]

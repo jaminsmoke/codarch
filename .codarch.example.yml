@@ -1,0 +1,32 @@
+# Copia este fichero a .codarch.yml y ajusta las capas a tu proyecto.
+# Las reglas se evalúan en `codarch diff`, no en `codarch analyze`.
+version: 1
+
+layers:
+  - name: domain
+    paths:
+      - src/domain/**
+  - name: application
+    paths:
+      - src/application/**
+  - name: infrastructure
+    paths:
+      - src/infra/**
+
+rules:
+  - name: domain-no-infra
+    type: forbidden
+    from: domain
+    to: infrastructure
+    severity: error
+    message: El dominio no puede depender de infraestructura
+
+  - name: complejidad-maxima
+    type: threshold
+    metric: maxComplexity
+    max: 40
+    severity: warn
+
+  - name: sin-ciclos
+    type: cycles
+    severity: error

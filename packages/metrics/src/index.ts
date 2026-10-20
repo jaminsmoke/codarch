@@ -1,3 +1,17 @@
+export {
+  ConfigError,
+  loadRuleConfig,
+  parseRuleConfig
+} from "./config";
+export type {
+  CyclesRuleConfig,
+  ForbiddenRuleConfig,
+  LayerConfig,
+  RuleConfig,
+  RuleConfigEntry,
+  Severity,
+  ThresholdRuleConfig
+} from "./config";
 export { diffSnapshots } from "./diff";
 export type {
   ChangedFile,
@@ -11,3 +25,13 @@ export type {
   MetricChange,
   SnapshotSummary
 } from "./diff";
+export { emptyRuleReport, evaluateRules } from "./rules";
+export type {
+  RuleCycle,
+  RuleEdge,
+  RuleFile,
+  RuleInput,
+  RuleReport,
+  RuleViolation,
+  ViolationType
+} from "./rules";

@@ -57,11 +57,12 @@ se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 - [x] Test de churn con repositorio temporal y test de determinismo con historial.
 - [x] `codarch diff base.cc.json head.cc.json` → ficheros, métricas, aristas, ciclos y hotspots.
 - [x] `report.json` estable y versionado (`schemaVersion: "1.0"`), sin timestamps.
-- [x] Gate básico `--fail-on cycles|hotspots|any` con salida `2`.\n- [x] Benchmark de diff: 2.000 → 2.010 ficheros en 9,8 ms, reporte de 28 KB.
-- [ ] Capas violadas y reglas de arquitectura.
+- [x] Gate básico `--fail-on cycles|violations|hotspots|any` con salida `2`.
+- [x] Benchmark de diff: 2.000 → 2.010 ficheros en 9,8 ms, reporte de 28 KB.
+- [x] Capas violadas y reglas de arquitectura (`forbidden`, `threshold`, `cycles`).
+- [x] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.
+- [x] Doble política sobre el mismo commit (`info`/`warn`/`error`; solo `error` introducido bloquea).
 - [ ] GitHub Action: comentario en el PR + artefacto con el mapa.
-- [ ] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.
-- [ ] Doble política sobre el mismo commit (aviso vs bloqueo).
 
 ## M3 — MCP
 

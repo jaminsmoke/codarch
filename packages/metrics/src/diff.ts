@@ -4,6 +4,13 @@ import {
   type CcJson,
   type CcNode
 } from "@codarch/schema";
+import type { RuleConfig } from "./config";
+import {
+  emptyRuleReport,
+  evaluateRules,
+  type RuleInput,
+  type RuleReport
+} from "./rules";
 
 export interface SnapshotSummary {
   projectName: string;
@@ -78,6 +85,7 @@ export interface DiffReport {
   head: SnapshotSummary;
   summary: DiffSummary;
   hotspotMetric: string | null;
+  rules: RuleReport;
   files: {
     added: DiffFile[];
     removed: DiffFile[];
@@ -101,6 +109,8 @@ export interface DiffOptions {
   top?: number;
   /** Métrica usada para ordenar hotspots; por defecto `maxComplexity`, luego `rloc`. */
   hotspotMetric?: string;
+  /** Reglas de arquitectura; si falta, el reporte no evalúa violaciones. */
+  rules?: RuleConfig;
 }
 
 interface IndexedEdge {
@@ -158,6 +168,13 @@ export function diffSnapshots(
   const hotspots = hotspotMetric
     ? buildHotspots(baseIndex, headIndex, added, changed, hotspotMetric, top)
     : [];
+  const rules = options.rules
+    ? evaluateRules(
+        ruleInput(baseIndex, [...baseCycles.values()].map((group) => group.component)),
+        ruleInput(headIndex, [...headCycles.values()].map((group) => group.component)),
+        options.rules
+      )
+    : emptyRuleReport();
 
   return {
     schemaVersion: "1.0",
@@ -176,6 +193,7 @@ export function diffSnapshots(
       hotspots: hotspots.length
     },
     hotspotMetric,
+    rules,
     files: { added, removed, changed },
     edges: edgeDiff,
     cycles: { introduced: introducedCycles, fixed: fixedCycles },
@@ -441,6 +459,32 @@ function cycleDifference(
     if (!absent.has(key)) cycles.push(group.component);
   }
   return cycles.sort(compareCycles);
+}
+
+function ruleInput(
+  index: IndexedSnapshot,
+  cycles: CycleComponent[]
+): RuleInput {
+  const files = index.nodes.map((id) => ({
+    id,
+    path: index.paths.get(id) ?? id,
+    metrics: sortedMetrics(index.metrics[id])
+  }));
+
+  const edges: RuleInput["edges"] = [];
+  for (const edge of index.edges.values()) {
+    if (!index.paths.has(edge.fromId) || !index.paths.has(edge.toId)) {
+      continue;
+    }
+    edges.push({
+      fromId: edge.fromId,
+      toId: edge.toId,
+      from: index.paths.get(edge.fromId) ?? edge.fromId,
+      to: index.paths.get(edge.toId) ?? edge.toId
+    });
+  }
+
+  return { files, edges, cycles };
 }
 
 function chooseHotspotMetric(

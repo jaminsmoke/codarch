@@ -1,10 +1,21 @@
 import fs from "node:fs";
 import path from "node:path";
-import { diffSnapshots, type DiffReport } from "@codarch/metrics";
+import {
+  ConfigError,
+  diffSnapshots,
+  loadRuleConfig,
+  type DiffReport,
+  type RuleConfig
+} from "@codarch/metrics";
 import { CcJsonError, parseCcJson, type CcJson } from "@codarch/schema";
 import { formatBytes, readJsonFile } from "../io";
 
-export type FailOn = "none" | "cycles" | "hotspots" | "any";
+export type FailOn =
+  | "none"
+  | "cycles"
+  | "violations"
+  | "hotspots"
+  | "any";
 
 export interface DiffCommandOptions {
   base?: string;
@@ -13,6 +24,9 @@ export interface DiffCommandOptions {
   top?: number;
   hotspotMetric?: string;
   failOn?: FailOn;
+  /** Fichero YAML; si falta, se busca `.codarch.yml` en el cwd. */
+  config?: string;
+  noConfig?: boolean;
   help: boolean;
 }
 
@@ -44,11 +58,27 @@ export function runDiff(options: DiffCommandOptions): number {
   const head = loadSnapshot(options.head);
   if (!head) return 1;
 
+  let rules: RuleConfig | undefined;
+  let configPath: string | undefined;
+  try {
+    if (!options.noConfig) {
+      configPath = options.config ?? defaultConfigPath();
+      if (configPath) rules = loadRuleConfig(configPath);
+    }
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      console.error(`configuración inválida: ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
+
   let report: DiffReport;
   try {
     report = diffSnapshots(base, head, {
       top: options.top,
-      hotspotMetric: options.hotspotMetric
+      hotspotMetric: options.hotspotMetric,
+      rules
     });
   } catch (error) {
     console.error(`no se pudo comparar: ${(error as Error).message}`);
@@ -107,6 +137,18 @@ export function runDiff(options: DiffCommandOptions): number {
         : "sin métrica de complejidad ni tamaño"
     )
   );
+  lines.push(
+    field(
+      "reglas",
+      report.rules.configured
+        ? `${num(report.rules.summary.layers)} capas · ${num(
+            report.rules.summary.rules
+          )} reglas · ${num(report.rules.summary.introduced)} nuevas · ${num(
+            report.rules.summary.existing
+          )} existentes${configPath ? ` (${configPath})` : ""}`
+        : "sin configuración"
+    )
+  );
   lines.push(field("reporte", `${outPath} (${formatBytes(reportBytes)})`));
 
   lines.push("");
@@ -143,6 +185,25 @@ export function runDiff(options: DiffCommandOptions): number {
     }
   }
 
+  if (report.rules.violations.introduced.length > 0) {
+    lines.push("");
+    lines.push("  Violaciones nuevas:");
+    for (const violation of report.rules.violations.introduced.slice(0, 5)) {
+      const icon =
+        violation.severity === "error"
+          ? "✗"
+          : violation.severity === "warn"
+            ? "!"
+            : "·";
+      lines.push(`    ${icon} [${violation.rule}] ${violation.message}`);
+    }
+    if (report.rules.violations.introduced.length > 5) {
+      lines.push(
+        `    … y ${num(report.rules.violations.introduced.length - 5)} más`
+      );
+    }
+  }
+
   lines.push("");
   console.log(lines.join("\n"));
 
@@ -153,12 +214,16 @@ export function runDiff(options: DiffCommandOptions): number {
   const hotspotsFailed =
     (failOn === "hotspots" || failOn === "any") &&
     report.summary.hotspots > 0;
+  const violationsFailed =
+    (failOn === "violations" || failOn === "any") &&
+    report.rules.summary.introducedErrors > 0;
 
-  if (cyclesFailed || hotspotsFailed) {
+  if (cyclesFailed || hotspotsFailed || violationsFailed) {
     console.error(
       `  gate fallido: ${[
         cyclesFailed ? "ciclos nuevos" : "",
-        hotspotsFailed ? "hotspots" : ""
+        hotspotsFailed ? "hotspots" : "",
+        violationsFailed ? "violaciones nuevas" : ""
       ]
         .filter(Boolean)
         .join(" + ")}`
@@ -187,4 +252,11 @@ function loadSnapshot(file: string): CcJson | null {
     }
     throw error;
   }
+}
+
+function defaultConfigPath(): string | undefined {
+  for (const file of [".codarch.yml", ".codarch.yaml"]) {
+    if (fs.existsSync(file)) return file;
+  }
+  return undefined;
 }
