@@ -12,8 +12,8 @@ const fixture = path.join(
 
 describe("analyzeRepository", () => {
   it("produce un snapshot cc.json válido y determinista", () => {
-    const first = analyzeRepository(fixture);
-    const second = analyzeRepository(fixture);
+    const first = analyzeRepository(fixture, { git: false });
+    const second = analyzeRepository(fixture, { git: false });
 
     expect(first.snapshot.meta.projectName).toBe("fixture-repo");
     expect(first.snapshot.meta.apiVersion).toBe("2.0");
@@ -30,7 +30,7 @@ describe("analyzeRepository", () => {
   });
 
   it("cuenta ficheros, carpetas, aristas y ciclos", () => {
-    const result = analyzeRepository(fixture);
+    const result = analyzeRepository(fixture, { git: false });
     expect(result.files).toBe(15);
     expect(result.folders).toBe(7);
     expect(result.edges).toBe(13);
@@ -45,7 +45,7 @@ describe("analyzeRepository", () => {
   });
 
   it("incluye métricas de parser y de grafo en todos los ficheros", () => {
-    const result = analyzeRepository(fixture);
+    const result = analyzeRepository(fixture, { git: false });
     const attributes = result.snapshot.lenses?.metrics?.attributes ?? {};
     const values = Object.values(attributes);
 
@@ -69,7 +69,7 @@ describe("analyzeRepository", () => {
   });
 
   it("marca el self-loop y las aristas type-only", () => {
-    const result = analyzeRepository(fixture);
+    const result = analyzeRepository(fixture, { git: false });
     const edges = result.snapshot.lenses?.dependency?.edges ?? [];
     const selfLoop = edges.find(
       (edge) => edge.fromId === edge.toId && edge.isCyclic
@@ -81,7 +81,7 @@ describe("analyzeRepository", () => {
   });
 
   it("clasifica externos y no resueltos sin crear aristas", () => {
-    const result = analyzeRepository(fixture);
+    const result = analyzeRepository(fixture, { git: false });
     expect(result.unresolved).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ file: "src/index.ts", specifier: "./missing" }),

@@ -12,8 +12,11 @@ export { analyzeRepository } from "./analyze";
 export type {
   AnalyzeOptions,
   AnalyzeResult,
+  GitSummary,
   UnresolvedImportIssue
 } from "./analyze";
+export { collectGitChurn } from "./git";
+export type { GitChurnFile, GitChurnOptions, GitChurnResult } from "./git";
 export { buildSnapshot } from "./snapshot";
 export type { SnapshotFile, SnapshotInput } from "./snapshot";
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";

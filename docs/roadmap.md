@@ -51,8 +51,11 @@ se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 
 ## M2 — Diff y PR
 
+**Estado:** en curso.
+
+- [x] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
+- [x] Test de churn con repositorio temporal y test de determinismo con historial.
 - [ ] `codarch diff base.cc.json head.cc.json` → ciclos nuevos, capas violadas, hotspots movidos.
-- [ ] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
 - [ ] `report.json` estable y versionado.
 - [ ] GitHub Action: comentario en el PR + artefacto con el mapa.
 - [ ] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.

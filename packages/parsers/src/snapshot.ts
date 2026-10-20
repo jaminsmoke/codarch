@@ -47,6 +47,16 @@ const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
     description: "Líneas de la función más larga",
     direction: -1
   },
+  number_of_commits: {
+    title: "Commits",
+    description: "Commits que tocaron el fichero",
+    direction: -1
+  },
+  number_of_authors: {
+    title: "Autores",
+    description: "Autores únicos que tocaron el fichero",
+    direction: 0
+  },
   imports: {
     title: "Imports",
     description: "Imports y reexports declarados",

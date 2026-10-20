@@ -90,8 +90,8 @@ No hay hallazgos de PR hasta M2.
   Un mapa donde todo está caliente no dice nada.
 
 Riesgo compuesto: `0.5·complejidad + 0.32·churn + 0.18·tamaño`, normalizado por p95. Si falta una
-señal (por ejemplo, churn antes de M2), los pesos se renormalizan para que el máximo siga siendo
-100/100 y no un 68/100 artificial.
+señal (por ejemplo, git no está disponible o se analiza con `--no-git`), los pesos se renormalizan
+para que el máximo siga siendo 100/100 y no un 68/100 artificial.
 
 ## 6. Etiquetas
 

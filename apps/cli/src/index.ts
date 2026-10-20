@@ -18,6 +18,7 @@ Opciones de analyze:
   --ignore <patrón>  excluir rutas (repetible)
   --project <nombre> nombre del proyecto en el snapshot
   --title <texto>    título del mapa
+  --no-git           no leer churn del historial git
   -h, --help         esta ayuda
   -v, --version      versión
 
@@ -86,6 +87,8 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
       options.title = value;
     } else if (arg.startsWith("--title=")) {
       options.title = arg.slice("--title=".length);
+    } else if (arg === "--no-git") {
+      options.git = false;
     } else if (arg === "--help" || arg === "-h") {
       console.log(USAGE);
       return 0;

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { walkTree, type CcJson } from "@codarch/schema";
+import { collectGitChurn } from "./git";
 import { buildGraph, type DependencyLink } from "./graph";
 import { ImportResolver } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
@@ -14,6 +15,15 @@ export interface AnalyzeOptions {
   extensions?: readonly string[];
   /** Nombre visible; por defecto, `name` del package.json o el directorio. */
   projectName?: string;
+  /** Lee churn de git. Por defecto, `true`; `false` para tests sin historial. */
+  git?: boolean;
+}
+
+export interface GitSummary {
+  enabled: boolean;
+  commits: number;
+  authors: number;
+  shallow: boolean;
 }
 
 export interface UnresolvedImportIssue {
@@ -38,6 +48,7 @@ export interface AnalyzeResult {
   builtinImports: number;
   typeOnlyImports: number;
   unresolvedImports: number;
+  git: GitSummary;
   durationMs: number;
 }
 
@@ -137,6 +148,21 @@ export function analyzeRepository(
     });
   }
 
+  const git = collectGitChurn(
+    root,
+    parsedFiles.map((file) => file.relativePath),
+    { enabled: options.git !== false }
+  );
+  warnings.push(...git.warnings);
+  if (git.enabled) {
+    for (const file of parsedFiles) {
+      const churn = git.metrics.get(file.relativePath);
+      if (!churn) continue;
+      file.metrics.number_of_commits = churn.commits;
+      file.metrics.number_of_authors = churn.authors;
+    }
+  }
+
   const graph = buildGraph(
     parsedFiles.map((file) => file.relativePath),
     links
@@ -189,6 +215,12 @@ export function analyzeRepository(
     builtinImports,
     typeOnlyImports,
     unresolvedImports: unresolved.length,
+    git: {
+      enabled: git.enabled,
+      commits: git.commits,
+      authors: git.authors,
+      shallow: git.shallow
+    },
     durationMs: Date.now() - started
   };
 }

@@ -95,13 +95,13 @@ try {
   // que el GC actúa y la memoria deja de representar el caso de uso.
   let last: ReturnType<typeof analyzeRepository> | undefined;
   if (WARMUP) {
-    last = analyzeRepository(root, { projectName: "bench" });
+    last = analyzeRepository(root, { projectName: "bench", git: false });
   }
   const times: number[] = [];
 
   for (let iteration = 0; iteration < ITERATIONS; iteration++) {
     const started = performance.now();
-    last = analyzeRepository(root, { projectName: "bench" });
+    last = analyzeRepository(root, { projectName: "bench", git: false });
     times.push(performance.now() - started);
   }
 

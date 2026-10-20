@@ -11,6 +11,8 @@ export interface AnalyzeCommandOptions {
   ignore?: string[];
   projectName?: string;
   title?: string;
+  /** `false` desactiva churn de git. */
+  git?: boolean;
   help: boolean;
 }
 
@@ -31,7 +33,8 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   try {
     result = analyzeRepository(root, {
       ignore: options.ignore,
-      projectName: options.projectName
+      projectName: options.projectName,
+      git: options.git
     });
   } catch (error) {
     console.error(`no se pudo analizar ${root}: ${(error as Error).message}`);
@@ -127,6 +130,16 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     )
   );
   lines.push(field("tiempo", `${num(result.durationMs)} ms`));
+  lines.push(
+    field(
+      "historial",
+      result.git.enabled
+        ? `${num(result.git.commits)} commits · ${num(
+            result.git.authors
+          )} autores${result.git.shallow ? " · shallow" : ""}`
+        : "sin git; se omite churn"
+    )
+  );
 
   for (const warning of result.warnings.slice(0, 10)) {
     lines.push(field("aviso", warning));

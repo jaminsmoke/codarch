@@ -3,8 +3,8 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M1 cerrado. Analizador propio de TypeScript/JavaScript, grafo de dependencias y snapshot
-`cc.json` determinista. El render 2D sigue siendo el consumidor principal del modelo.
+**Estado:** M2 en curso. M1 cerrado: analizador propio de TypeScript/JavaScript, grafo de dependencias y
+snapshot `cc.json` determinista. M2 empieza con churn de git para completar la lente de riesgo.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
@@ -21,6 +21,7 @@ npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3
 # Analizar un proyecto TypeScript/JavaScript
 npm run analyze -- .
 npm run analyze -- . -o .codarch --title "Mi proyecto"
+npm run analyze -- . --no-git      # sin historial de git
 
 # Inspeccionar y renderizar un cc.json existente
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
@@ -39,11 +40,12 @@ npm test
 └── map.html           # treemap 2D autocontenido
 ```
 
-El snapshot incluye el árbol de ficheros/carpetas, 15 métricas por fichero, aristas internas con
-peso y type-only, y niveles de dependencia. El checksum es MD5 de una serialización canónica de
+El snapshot incluye el árbol de ficheros/carpetas, 15 métricas de código y grafo, 2 métricas de
+historial cuando hay git (`number_of_commits`, `number_of_authors`), aristas internas con peso y
+type-only, y niveles de dependencia. El checksum es MD5 de una serialización canónica de
 `{ files, lenses }`: no incluye timestamps ni rutas absolutas.
 
-Salida de `analyze` sobre el fixture de test:
+Salida de `analyze` sobre el fixture de test con `--no-git`:
 
 ```
   CodArch · análisis
@@ -53,7 +55,8 @@ Salida de `analyze` sobre el fixture de test:
   mapa         .codarch/fixture/map.html (49 KB)
   estructura   15 ficheros · 7 carpetas · 13 aristas · 2 ciclos
   imports      2 externos · 0 builtins · 1 type-only · 2 sin resolver
-  tiempo       28 ms
+  tiempo       30 ms
+  historial    sin git; se omite churn
 ```
 
 El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
@@ -62,7 +65,7 @@ render; no se almacena en el snapshot.
 
 ---
 
-## Qué analiza M1
+## Qué analiza
 
 ### Ficheros y métricas
 
@@ -93,6 +96,13 @@ Métricas de imports y grafo:
 | `cycleSize` | Tamaño del componente cíclico |
 | `dependencyLevel` | Profundidad en el DAG de componentes |
 
+Métricas de historial (si hay git):
+
+| Métrica | Significado |
+|---|---|
+| `number_of_commits` | Commits que tocaron el fichero |
+| `number_of_authors` | Autores únicos de esos commits |
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.
@@ -112,9 +122,13 @@ Métricas de imports y grafo:
 
 ### Determinismo
 
-Dos ejecuciones sobre el mismo árbol producen el mismo snapshot y el mismo checksum. Los ficheros,
+Dos ejecuciones sobre el mismo commit producen el mismo snapshot y el mismo checksum. Los ficheros,
 carpetas, aristas, componentes y claves de objetos se ordenan de forma estable. El checksum no cubre
 `meta`, y no hay fecha, commit ni ruta absoluta en el payload.
+
+El churn se lee de un único `git log --no-merges --numstat`, con todo el historial. No sigue renames
+y no guarda fechas ni autores, solo conteos. Un clon shallow produce un warning porque los conteos
+pueden estar incompletos. Ver [ADR 0009](docs/adr/0009-churn-desde-git.md).
 
 ---
 
@@ -171,7 +185,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 |---|---|---|
 | Repo de 2k ficheros | analizado en < 3 s | 2,6 s (sintético, 2.000 ficheros) |
 | Memoria de analyze | < 500 MB | 311 MB RSS (sintético) |
-| Salida | determinista (mismo hash) | test de dos ejecuciones |
+| Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
 | Comentario de PR | < 10 s de extremo a extremo | pendiente (M2) |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
@@ -188,7 +202,7 @@ design/     prototipo navegable del mapa 2D
 
 Implementado: `schema`, `parsers`, `layouts`, `render` y los comandos `codarch analyze`,
 `codarch inspect` y `codarch render`. `parsers` incluye parser tree-sitter, walker con `.gitignore`,
-resolver de imports, grafo y construcción del snapshot.
+resolver de imports, grafo, churn de git y construcción del snapshot.
 
 ## Inspiración
 

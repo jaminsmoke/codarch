@@ -89,7 +89,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `risk` | score compuesto, violaciones | derivada en render, no se almacena |
 | `migration` | LOC por lenguaje, estado, frontera FFI | después |
 | `domain` | palabras, frecuencia, tf-idf | después |
-| `evolution` | churn, autores, acoplamiento temporal | después (M2) |
+| `evolution` | series temporales, acoplamiento temporal | después |
 
 ### Métricas
 
@@ -113,9 +113,11 @@ Métricas actuales del analizador:
 | Parser | `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength` |
 | Imports | `imports`, `externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports` |
 | Grafo | `fanIn`, `fanOut`, `inCycle`, `cycleSize`, `dependencyLevel` |
+| Historial | `number_of_commits`, `number_of_authors` |
 
 Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símbolos quedan para una
-lente posterior.
+lente posterior. Las dos métricas de historial solo aparecen si `git` está disponible y el análisis
+no se ejecuta con `--no-git`.
 
 ### Aristas
 
@@ -195,7 +197,7 @@ delta(base: Snapshot, head: Snapshot): {
 
 Se calcula, no se almacena. Con ids estables y checksums, es una operación de conjuntos.
 
-## Pipeline de M1
+## Pipeline de M1/M2
 
 ```
 walkSourceFiles(root)
@@ -204,6 +206,8 @@ ImportResolver(root, files)
   → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins
 TypeScriptParser.parse(source, path)
   → loc/rloc/functions/complejidad + imports tipados
+collectGitChurn(root, files)
+  → number_of_commits, number_of_authors (un solo git log)
 buildGraph(files, links)
   → dedupe, fan-in/out, SCC, ciclos, niveles
 buildSnapshot({ projectName, files, graph })
@@ -222,6 +226,8 @@ Para que el checksum signifique algo:
 3. Sin timestamps, rutas absolutas, nombres de usuario ni locale.
 4. Números con representación estable (nada de `1.0` vs `1`).
 5. Orden de recorrido del filesystem irrelevante por construcción.
+6. Churn derivado del historial del commit, no de la hora de ejecución; sin fechas ni autores en el
+   payload.
 
 El checksum actual es MD5 de `{ files, lenses }` serializado canónicamente. MD5 es suficiente para
 detectar cambios de payload; si más adelante se usa como identificador de caché entre máquinas,
@@ -241,5 +247,6 @@ checksum. Está en `packages/parsers/test/analyze.test.ts`.
    incremental. ¿Ficheros JSON o SQLite?
 4. **¿El reporte es el snapshot?** Propongo que no: snapshot = datos; reporte = hallazgos derivados,
    con su propia versión.
-5. **¿Churn dentro del snapshot o derivado?** M2 lo necesitará para la lente de riesgo; el snapshot
-   debería llevarlo para que el diff sea autocontenido.
+5. **¿Churn dentro del snapshot o derivado?** Decidido en M2: dentro del snapshot como
+   `number_of_commits` y `number_of_authors`, para que el diff sea autocontenido. Un shallow clone
+   produce un warning; no hay ventana temporal relativa.
