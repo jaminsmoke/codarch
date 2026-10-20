@@ -52,7 +52,11 @@ export class TypeScriptParser implements SourceParser {
 
   parse(source: string, filePath: string): FileParseResult {
     const parser = usesTsxGrammar(filePath) ? this.tsxParser : this.tsParser;
-    const root = parser.parse(source).rootNode;
+    // tree-sitter 0.21 usa un buffer de 32 KB por defecto y falla con
+    // "Invalid argument" en ficheros mayores. Se dimensiona por contenido.
+    const root = parser.parse(source, undefined, {
+      bufferSize: Math.max(64 * 1024, Buffer.byteLength(source, "utf8") + 1)
+    }).rootNode;
     return {
       metrics: measureSource(source, root),
       imports: collectImports(root)
