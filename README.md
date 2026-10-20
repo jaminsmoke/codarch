@@ -3,7 +3,7 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M0 en marcha. Esquema `cc.json` + CLI de inspección funcionando sobre datos reales.
+**Estado:** M0 en marcha. Importador `cc.json` 2.x + CLI de inspección + render 2D sobre datos reales.
 Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md).
 
@@ -15,10 +15,14 @@ Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del m
 npm install
 npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3 MB)
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
+npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.html
 npm test
 ```
 
-Salida:
+El render produce un HTML único, sin servidor ni red, con el treemap, búsqueda, inspector,
+dependencias entrantes/salientes y tres lentes (estructura, riesgo y métrica).
+
+Salida de `inspect`:
 
 ```
   CodArch · inspección
@@ -30,6 +34,21 @@ Salida:
   métricas     105 distintas · rloc en 1924 ficheros
   aristas      3727 · leafEdges 8677
 ```
+
+Salida de `render` sobre la muestra real:
+
+```
+  fichero      samples/codecharta_visualization.cc.json.gz (727 KB)
+  salida       samples/map.html (478 KB)
+  estructura   2003 ficheros · 498 carpetas · 9 métricas
+  área         rloc · 103.577 en total
+  color        riesgo · 94 hotspots
+  dependencias 3727 aristas · 2 cíclicas
+```
+
+Las 510 carpetas del `cc.json` se convierten en 498 cabeceras: se elimina la raíz sintética y se
+colapsan las cadenas de carpetas con un solo hijo. Los ficheros en carpetas demasiado pequeñas se
+dibujan como bloque agregado; siguen en la búsqueda y el inspector.
 
 ---
 
@@ -98,6 +117,9 @@ apps/       cli · web · mcp · github-action
 docs/       adr/ · design/ · model.md · roadmap.md
 design/     prototipo navegable del mapa 2D
 ```
+
+Implementado: `schema`, `layouts`, `render` y el comando `codarch render`. El resto es el plan.
+`cc.json` 1.x se normalizará a 2.x antes de M1; hoy el importador pide convertir con `ccsh`.
 
 ## Inspiración
 

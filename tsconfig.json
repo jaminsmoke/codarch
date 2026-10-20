@@ -15,7 +15,9 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@codarch/schema": ["packages/schema/src/index.ts"]
+      "@codarch/schema": ["packages/schema/src/index.ts"],
+      "@codarch/layouts": ["packages/layouts/src/index.ts"],
+      "@codarch/render": ["packages/render/src/index.ts"]
     }
   },
   "include": [

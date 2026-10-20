@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "projectName": "Demo </script><script>alert('x')</script>",
+    "apiVersion": "2.1",
+    "commitHash": "abcdef1234567890",
+    "checksum": "0123456789abcdef0123456789abcdef"
+  },
+  "files": [
+    {
+      "id": "root",
+      "name": "root",
+      "type": "Folder",
+      "children": [
+        {
+          "id": "src",
+          "name": "src",
+          "type": "Folder",
+          "children": [
+            {
+              "id": "only",
+              "name": "only",
+              "type": "Folder",
+              "children": [
+                { "id": "a", "name": "a.ts", "type": "File" },
+                { "id": "b", "name": "b.ts", "type": "File" }
+              ]
+            }
+          ]
+        },
+        { "id": "readme", "name": "README.md", "type": "File" }
+      ]
+    }
+  ],
+  "lenses": {
+    "metrics": {
+      "attributes": {
+        "a": {
+          "rloc": 120,
+          "complexity": 8,
+          "number_of_commits": 10,
+          "number_of_functions": 4,
+          "incoming_dependencies": 1,
+          "outgoing_dependencies": 1
+        },
+        "b": {
+          "rloc": 40,
+          "complexity": 2,
+          "number_of_commits": 1,
+          "number_of_functions": 1
+        },
+        "readme": {
+          "complexity": 1,
+          "number_of_commits": 2
+        }
+      },
+      "attributeDescriptors": {
+        "rloc": { "title": "Líneas de código", "direction": -1 },
+        "complexity": { "title": "Complejidad", "direction": -1 }
+      },
+      "attributeTypes": {
+        "rloc": "absolute",
+        "complexity": "absolute",
+        "number_of_commits": "absolute",
+        "number_of_functions": "absolute",
+        "incoming_dependencies": "absolute",
+        "outgoing_dependencies": "absolute"
+      }
+    },
+    "dependency": {
+      "leafEdges": [
+        { "fromId": "a", "toId": "b" },
+        { "fromId": "a", "toId": "b" },
+        { "fromId": "b", "toId": "a", "isCyclic": true }
+      ]
+    }
+  }
+}

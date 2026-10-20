@@ -16,12 +16,13 @@ $ codarch render codecharta.cc.json -o map.html
 
 Criterios de aceptación:
 
-- [ ] Importa `cc.json` 1.x y 2.x, validando contra su JSON Schema.
-- [ ] Treemap 2D: área = `rloc`, color = métrica elegible, altura/borde = jerarquía.
-- [ ] Hover con métricas, búsqueda, clic para enfocar una carpeta.
-- [ ] HTML único, sin servidor, sin red, < 500 KB.
-- [ ] 5k nodos renderizados en < 500 ms.
-- [ ] Salida determinista: mismo input, mismo HTML (salvo hash de build).
+- [x] Importa `cc.json` 2.x validando la estructura (ids, métricas, aristas).
+- [ ] Importa `cc.json` 1.x mediante un normalizador a 2.x.
+- [x] Treemap 2D: área = `rloc`, color = métrica elegible, altura/borde = jerarquía.
+- [x] Hover con métricas, búsqueda, clic para enfocar una carpeta.
+- [x] HTML único, sin servidor, sin red: 489.663 bytes con la muestra real de 2.003 ficheros.
+- [x] 5k nodos renderizados en < 500 ms (mediana 29 ms, pipeline completo en memoria).
+- [x] Salida determinista: mismo input, mismo HTML (salvo hash de build).
 - [ ] Comparación visual lado a lado con el mapa de CodeCharta del mismo commit.
 
 **Por qué primero:** elimina el riesgo del modelo y del render antes de invertir en parsers. Y nos

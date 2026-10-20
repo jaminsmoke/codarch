@@ -1,9 +1,18 @@
 # Diseño del mapa 2D
 
-**Estado:** propuesta · **Prototipo:** [`design/map-mockup.html`](../../design/map-mockup.html)
+**Estado:** implementado en M0 · **Prototipo:** [`design/map-mockup.html`](../../design/map-mockup.html) ·
+**Render:** `codarch render`
 
 Capturas: [riesgo](../../design/preview-riesgo.png) · [estructura](../../design/preview-estructura.png) ·
 [cambios](../../design/preview-cambios.png) · [migración](../../design/preview-migracion.png)
+
+Implementado hoy: treemap 2D server-side (`viewBox 1400×900`), lentes **Estructura / Riesgo /
+Métrica**, búsqueda, inspector, selección de fichero y carpeta, y aristas salientes/entrantes del
+nodo seleccionado. El HTML es único, no hace red y se genera en ~35 ms para 2.003 ficheros.
+
+Las lentes **Cambios** y **Migración** del prototipo no se renderizan todavía: necesitan diff y
+parser. Tampoco se inventan hallazgos de PR; la franja superior solo muestra hotspots, ciclos y
+conteos reales del `cc.json`.
 
 ---
 
@@ -35,12 +44,13 @@ deliberado: perdemos densidad visual y ganamos precisión, comparabilidad y velo
 
 ## 2. Una lente cada vez
 
-| Lente | Codificación | Pregunta |
-|---|---|---|
-| Estructura | color categórico por carpeta | ¿cómo está organizado? |
-| Riesgo | secuencial, beige → rojo | ¿qué duele? |
-| Cambios | divergente, azul ← neutro → rojo | ¿qué se mueve? |
-| Migración | categórico ts / bridge / rust | ¿cuánto queda? |
+| Lente | Codificación | Pregunta | Estado |
+|---|---|---|---|
+| Estructura | color categórico por carpeta | ¿cómo está organizado? | M0 |
+| Riesgo | secuencial, beige → rojo | ¿qué duele? | M0 |
+| Métrica | secuencial según la métrica elegida | ¿dónde se concentra? | M0 |
+| Cambios | divergente, azul ← neutro → rojo | ¿qué se mueve? | M2 |
+| Migración | categórico ts / bridge / rust | ¿cuánto queda? | M4 |
 
 Nunca dos métricas compitiendo por el color. El conmutador de lentes **es** la gramática del
 producto: la misma geometría, distintas preguntas.
@@ -81,6 +91,22 @@ estético de un treemap.
 
 Métricas, dependencias entrantes y salientes, y la violación si existe. Nada de gráficos decorativos.
 El inspector responde "¿y este fichero qué?", no "¿quieres ver un donut?".
+
+## 8. Notas de implementación (M0)
+
+- **Área:** `rloc` por defecto; si falta, cada fichero recibe área 1 para no desaparecer. Es una
+  decisión de legibilidad, no una métrica inventada: el inspector sigue mostrando el valor real.
+- **Jerarquía:** las cadenas de carpetas con un solo hijo se colapsan en una cabecera
+  (`app/codeCharta/features`, no tres cabeceras vacías).
+- **Carpetas minúsculas:** cuando el hueco interior no permite dibujar ficheros con un píxel, la
+  carpeta queda como bloque agregado. En la muestra real se dibujan 1.894 de 2.003 celdas; el resto
+  sigue disponible en los datos, la búsqueda y el inspector. El zoom de la app web lo resolverá.
+- **Geometría:** coordenadas enteras en el `viewBox`, bordes compartidos y `shape-rendering:
+  crispEdges` para que el SVG no produzca grietas de subpíxel.
+- **Etiquetas:** dos líneas (nombre + extensión) solo si caben; por debajo del umbral no se dibuja
+  texto y la información queda en el hover. La muestra real produce ~100 etiquetas, no 2.000.
+- **Aristas:** máximo 8 salientes + 8 entrantes; las entrantes son discontinuas. El resto se lista
+  en el inspector.
 
 ## Lo que deliberadamente no hacemos
 

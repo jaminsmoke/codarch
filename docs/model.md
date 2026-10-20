@@ -1,6 +1,6 @@
 # Modelo de datos — propuesta para debate
 
-**Estado:** borrador · no implementado
+**Estado:** propuesta · importador `cc.json` 2.x implementado en `packages/schema`
 
 Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir
 código, porque cambiarla después contamina el CLI, el mapa, el bot y el MCP a la vez.
