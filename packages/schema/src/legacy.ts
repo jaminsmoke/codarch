@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
 import { CcJsonError, isRecord, requireRecord, requireString } from "./errors";
+import { nodeId, normalizeName } from "./identity";
 import type {
   CcAttributeDescriptor,
   CcAttributeType,
@@ -7,8 +7,7 @@ import type {
   CcEdge,
   CcJson,
   CcMetricsLens,
-  CcNode,
-  CcNodeType
+  CcNode
 } from "./types";
 
 const MAX_DEPTH = 512;
@@ -338,7 +337,7 @@ function canonicalSegments(value: string): string[] {
 }
 
 function readNodeName(value: unknown, path: string): string {
-  const name = requireString(value, path, "name").normalize("NFC");
+  const name = normalizeName(requireString(value, path, "name"));
   if (name === "." || name === "..") {
     throw new CcJsonError('el nombre no puede ser "." ni ".."', path);
   }
@@ -346,13 +345,6 @@ function readNodeName(value: unknown, path: string): string {
     throw new CcJsonError('el nombre no puede contener "/"', path);
   }
   return name;
-}
-
-function nodeId(type: CcNodeType, segments: string[]): string {
-  return createHash("sha256")
-    .update(type + `/${segments.join("/")}`, "utf8")
-    .digest("hex")
-    .slice(0, 16);
 }
 
 function readOptionalString(value: unknown): string | undefined {

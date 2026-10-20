@@ -14,6 +14,16 @@ export type {
 
 export { CcJsonError, parseCcJson } from "./parse";
 export { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
+export {
+  ID_LENGTH,
+  canonicalPath,
+  fileId,
+  folderId,
+  idFromCanonicalPath,
+  nodeId,
+  normalizeName,
+  pathSegments
+} from "./identity";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export { defaultMetric, getStats, topByMetric } from "./stats";
