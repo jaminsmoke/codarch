@@ -3,10 +3,10 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M4 cerrado. El CLI `codarch@0.1.1` está publicado en npm, la GitHub Action pública
-`jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
-operativo y la lente de migración ya mide lenguajes, puentes FFI y deuda por complejidad. El
-siguiente milestone es la app web (M5).
+**Estado:** M4 cerrado y M5 en curso. El CLI `codarch@0.1.1` está publicado en npm, la GitHub Action
+pública `jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
+operativo, la lente de migración mide lenguajes/puentes/deuda y la primera app web ya carga snapshots
+y dibuja el treemap reutilizando el motor del render.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
@@ -42,6 +42,10 @@ npm run mcp -- --help
 # Lente de migración: deuda y frontera FFI
 npm run inspect -- .codarch/snapshot.cc.json --metric migrationDebt --top 10
 npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o .codarch/migration.html
+
+# App web (M5): treemap, búsqueda, inspector y panel de migración
+npm run web:dev
+npm run web:build
 
 # Política de arquitectura opcional
 cp .codarch.example.yml .codarch.yml
@@ -356,7 +360,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 
 ```
 packages/   schema · parsers · metrics · layouts · render
-apps/       cli · mcp · github-action · web (futuro)
+apps/       cli · mcp · github-action · web (M5)
 docs/       adr/ · design/ · model.md · rules.md · mcp.md · roadmap.md
 scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · sync-action.mjs · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
@@ -366,7 +370,8 @@ Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos
 `codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
 `.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
 el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `parsers` también mide
-Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo a agentes por stdio.
+Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo a agentes por stdio;
+`apps/web` es el visor interactivo que reutiliza `buildRenderModel` y `layoutMap`.
 
 ## Inspiración
 

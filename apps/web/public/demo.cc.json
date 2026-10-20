@@ -1,0 +1,5667 @@
+{
+  "meta": {
+    "projectName": "codarch",
+    "apiVersion": "2.0",
+    "checksum": "910f3bbca26beea41943797677f84f85"
+  },
+  "files": [
+    {
+      "id": "164ddff4bb1345e1",
+      "name": "codarch",
+      "type": "Folder",
+      "children": [
+        {
+          "id": "f922f13863a9a9dc",
+          "name": "apps",
+          "type": "Folder",
+          "children": [
+            {
+              "id": "a358875703285cad",
+              "name": "cli",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "7e6d15b91cbdca03",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "38c607133354b533",
+                      "name": "commands",
+                      "type": "Folder",
+                      "children": [
+                        {
+                          "id": "0d0d1613836d0e99",
+                          "name": "analyze.ts",
+                          "type": "File"
+                        },
+                        {
+                          "id": "7ebe33ce7d290ed6",
+                          "name": "diff.ts",
+                          "type": "File"
+                        },
+                        {
+                          "id": "f496f4363794568b",
+                          "name": "inspect.ts",
+                          "type": "File"
+                        },
+                        {
+                          "id": "e23b5a925c6b9250",
+                          "name": "render.ts",
+                          "type": "File"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "b56e2f92e536a24e",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "0bc43226c0861a45",
+                      "name": "io.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "0f5bfa526ba5e229",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "c1cd4122440717da",
+                      "name": "diff.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "874dbf5e65aa749e",
+                      "name": "real-sample.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "07d29209244455c9",
+                      "name": "render-legacy.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "c45f076fcd0bd060",
+                      "name": "render-options.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "5ebf0e99dfefb0b3",
+                      "name": "render-sample.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "9753f8c6ad130892",
+              "name": "github-action",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "1b34bc8e270bdd56",
+                  "name": "render-comment.mjs",
+                  "type": "File"
+                }
+              ]
+            },
+            {
+              "id": "97b95aea1c02d255",
+              "name": "mcp",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "056776faeaf2f529",
+                  "name": "bin",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "f783420a115d2e75",
+                      "name": "codarch-mcp.mjs",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "8f07769d6cef71a6",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "64d9dc714a29c777",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "44b8a6209d57c630",
+                      "name": "server.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "2f55702c9cc85f75",
+                      "name": "store.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "612670c5610ae044",
+                      "name": "tools.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "2fa558bfe14871bc",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "92e0e38520ed9179",
+                      "name": "fixtures.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "a205ac2836861da4",
+                      "name": "mcp.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "2851ff98929749e1",
+                      "name": "store.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "b1a903853edc2a63",
+          "name": "packages",
+          "type": "Folder",
+          "children": [
+            {
+              "id": "344bb646f6cc087f",
+              "name": "layouts",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "9601ac805e96aca0",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "3770b303a8e53f01",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "99cf5b9b24bf7346",
+                      "name": "squarify.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "44a69796d8f3f88b",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "cb92c4c7fdb08a0d",
+                      "name": "squarify.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "22d16def17e021ba",
+              "name": "metrics",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "4a753b3486e7b904",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "9eb99044509012b1",
+                      "name": "config.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "5d009899bcb23f5d",
+                      "name": "diff.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "ce4e478b41d30b8b",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "cbf3c68ca387a814",
+                      "name": "risk.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "af054fa2218bd0d2",
+                      "name": "rules.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "315c2331d22f095e",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "842eb609f52074ed",
+                      "name": "config.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "237634dec3ca24ee",
+                      "name": "diff.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "33cb21e94a5c7d8d",
+                      "name": "risk.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "a662c2095c315988",
+                      "name": "rules.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "5ab5d87143b99d6a",
+              "name": "parsers",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "38e89c28d121bacf",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "135731cd40ae442c",
+                      "name": "ts",
+                      "type": "Folder",
+                      "children": [
+                        {
+                          "id": "2f93b46125f7a4da",
+                          "name": "parser.ts",
+                          "type": "File"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "95bc40c24f74b056",
+                      "name": "analyze.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "42be8e3188aa9ac1",
+                      "name": "git.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "e269b518f8292053",
+                      "name": "graph.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "6e5233d4751aa079",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "e8e35f3b6ef889d9",
+                      "name": "migration.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "2a66e41c4dfda2d5",
+                      "name": "resolve.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "8a95ec5dd7dd9c75",
+                      "name": "snapshot.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "ed57e76c87aafdda",
+                      "name": "types.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "17d86a083e50e154",
+                      "name": "walk.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "96b261a76d31dca1",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "b4b428b31eb69aa7",
+                      "name": "fixtures",
+                      "type": "Folder",
+                      "children": [
+                        {
+                          "id": "47a99eceaa78d9b7",
+                          "name": "migration",
+                          "type": "Folder",
+                          "children": [
+                            {
+                              "id": "cb1264e9c5a0bdd5",
+                              "name": "src",
+                              "type": "Folder",
+                              "children": [
+                                {
+                                  "id": "a540868b0b75d555",
+                                  "name": "native",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "0ef2c58b83c27749",
+                                      "name": "addon.node",
+                                      "type": "File"
+                                    },
+                                    {
+                                      "id": "21babb797e210811",
+                                      "name": "lib.rs",
+                                      "type": "File"
+                                    },
+                                    {
+                                      "id": "a3ca6f99608d67fb",
+                                      "name": "math.wasm",
+                                      "type": "File"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "6402e7c1b689bfd4",
+                                  "name": "app.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "f4b2037c5118edf4",
+                                  "name": "domain.ts",
+                                  "type": "File"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "fd01034dda420093",
+                          "name": "repo",
+                          "type": "Folder",
+                          "children": [
+                            {
+                              "id": "54c86910535b0d83",
+                              "name": "packages",
+                              "type": "Folder",
+                              "children": [
+                                {
+                                  "id": "528012c9ed5b275f",
+                                  "name": "util",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "c94861b973f8ab33",
+                                      "name": "src",
+                                      "type": "Folder",
+                                      "children": [
+                                        {
+                                          "id": "e8be7880786c11aa",
+                                          "name": "extra.ts",
+                                          "type": "File"
+                                        },
+                                        {
+                                          "id": "261306d1fd1fcac4",
+                                          "name": "index.ts",
+                                          "type": "File"
+                                        },
+                                        {
+                                          "id": "de855d80af7313cb",
+                                          "name": "local.ts",
+                                          "type": "File"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "id": "b129ab29c00aa405",
+                              "name": "src",
+                              "type": "Folder",
+                              "children": [
+                                {
+                                  "id": "ceefefdce97fdef0",
+                                  "name": "cycle",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "83cc88bd35c82f9f",
+                                      "name": "a.ts",
+                                      "type": "File"
+                                    },
+                                    {
+                                      "id": "394fa23e86d5af73",
+                                      "name": "b.ts",
+                                      "type": "File"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "3644f5bca3826f9c",
+                                  "name": "dir",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "0982a304130aece3",
+                                      "name": "index.ts",
+                                      "type": "File"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "5631714ccd16a41a",
+                                  "name": "lib",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "4c88209028c17963",
+                                      "name": "a.ts",
+                                      "type": "File"
+                                    },
+                                    {
+                                      "id": "ce31e2d49a4b8b6d",
+                                      "name": "index.ts",
+                                      "type": "File"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "eb4fa2190ae16176",
+                                  "name": "b.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "8069eeca8bd3d6fd",
+                                  "name": "index.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "7c63bc521fc92b8f",
+                                  "name": "lazy.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "c4939ac4c233face",
+                                  "name": "legacy.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "798bda0e958e5acb",
+                                  "name": "re-export.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "bab69b5fc8e0c7d6",
+                                  "name": "types.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "596c2ea86095dfd7",
+                                  "name": "unresolved.ts",
+                                  "type": "File"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "id": "e0e315f705707f4b",
+                          "name": "walk",
+                          "type": "Folder",
+                          "children": [
+                            {
+                              "id": "7e43f99b2e8f3153",
+                              "name": "src",
+                              "type": "Folder",
+                              "children": [
+                                {
+                                  "id": "3e47b4209a2e1165",
+                                  "name": "nested",
+                                  "type": "Folder",
+                                  "children": [
+                                    {
+                                      "id": "a7c1ca59c62395c5",
+                                      "name": "deeper",
+                                      "type": "Folder",
+                                      "children": [
+                                        {
+                                          "id": "58609eedc373c7ee",
+                                          "name": "x.ts",
+                                          "type": "File"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "id": "56299aaa6ebcb9f8",
+                                      "name": "keep.ts",
+                                      "type": "File"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "id": "719a8d9fd3dc588a",
+                                  "name": "a.ts",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "6b48f58a15076511",
+                                  "name": "b.tsx",
+                                  "type": "File"
+                                },
+                                {
+                                  "id": "f6b3906d6a0a5bb8",
+                                  "name": "keep.skip.ts",
+                                  "type": "File"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "4bef25cd6203a708",
+                      "name": "analyze.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "7ce68849593417ef",
+                      "name": "git.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "cbc5fe66ecdcc9c6",
+                      "name": "graph.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "40a980ccfe774578",
+                      "name": "migration-analyze.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "62c3b0bf0dcde70b",
+                      "name": "migration.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "9b8954fb8edb946a",
+                      "name": "parser.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "b73758a489459b7c",
+                      "name": "resolve.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "70fd4115a27f665c",
+                      "name": "walk.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "55abcab99d771dff",
+              "name": "render",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "10d61d1a09d52c80",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "21bcbf2594e09ec6",
+                      "name": "client.js",
+                      "type": "File"
+                    },
+                    {
+                      "id": "802739c7a55e1902",
+                      "name": "color.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "58f0d71631afb98f",
+                      "name": "html.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "aca08ae75f093832",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "b877860362505819",
+                      "name": "layout.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "84877654a59491cb",
+                      "name": "model.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "34a960fe7e283135",
+                      "name": "svg.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "055f56342a0fabb2",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "51b4ff8ffa3f98d7",
+                      "name": "html.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "b4d0c1ad6d98b5f0",
+                      "name": "layout.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "0590134d1fa7e79f",
+                      "name": "model.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "4ada852d9d5fd4c3",
+              "name": "schema",
+              "type": "Folder",
+              "children": [
+                {
+                  "id": "2ead755d4384deed",
+                  "name": "src",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "bb449db437d5d115",
+                      "name": "errors.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "d4bed36d12f65516",
+                      "name": "identity.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "c9347051246ce0ec",
+                      "name": "index.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "714516814a6051f3",
+                      "name": "legacy.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "3f9b35ccf62c2de0",
+                      "name": "parse.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "b05e86b9630171dd",
+                      "name": "stats.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "e14cbb6f10fb3e07",
+                      "name": "tree.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "6a607a4c97052747",
+                      "name": "types.ts",
+                      "type": "File"
+                    }
+                  ]
+                },
+                {
+                  "id": "ca346072b31707b4",
+                  "name": "test",
+                  "type": "Folder",
+                  "children": [
+                    {
+                      "id": "bebb2eb3e32353aa",
+                      "name": "identity.test.ts",
+                      "type": "File"
+                    },
+                    {
+                      "id": "e2c3228632985ae4",
+                      "name": "parse.test.ts",
+                      "type": "File"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "f04e234f3f59ba54",
+          "name": "scripts",
+          "type": "Folder",
+          "children": [
+            {
+              "id": "fee38969289b8886",
+              "name": "bench-analyze.ts",
+              "type": "File"
+            },
+            {
+              "id": "ee06efd6aa2ef4a8",
+              "name": "bench-diff.ts",
+              "type": "File"
+            },
+            {
+              "id": "df3d92f2dd12d477",
+              "name": "bench-render.ts",
+              "type": "File"
+            },
+            {
+              "id": "903371170de66f3c",
+              "name": "build-cli.mjs",
+              "type": "File"
+            },
+            {
+              "id": "03e3118cc386ff69",
+              "name": "check-action.mjs",
+              "type": "File"
+            },
+            {
+              "id": "915b93a250796d2e",
+              "name": "fetch-samples.mjs",
+              "type": "File"
+            },
+            {
+              "id": "09119cb26e078e6d",
+              "name": "pack-cli.mjs",
+              "type": "File"
+            },
+            {
+              "id": "288845d37b55c460",
+              "name": "sync-action.mjs",
+              "type": "File"
+            }
+          ]
+        },
+        {
+          "id": "790ceaa15055a88c",
+          "name": "vitest.config.ts",
+          "type": "File"
+        }
+      ]
+    }
+  ],
+  "lenses": {
+    "metrics": {
+      "attributes": {
+        "0d0d1613836d0e99": {
+          "loc": 181,
+          "rloc": 165,
+          "functions": 4,
+          "maxComplexity": 18,
+          "maxFunctionLength": 153,
+          "imports": 6,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 4,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 38
+        },
+        "7ebe33ce7d290ed6": {
+          "loc": 262,
+          "rloc": 240,
+          "functions": 7,
+          "maxComplexity": 42,
+          "maxFunctionLength": 188,
+          "imports": 5,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 129
+        },
+        "f496f4363794568b": {
+          "loc": 163,
+          "rloc": 145,
+          "functions": 11,
+          "maxComplexity": 23,
+          "maxFunctionLength": 119,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 48
+        },
+        "e23b5a925c6b9250": {
+          "loc": 151,
+          "rloc": 136,
+          "functions": 5,
+          "maxComplexity": 17,
+          "maxFunctionLength": 103,
+          "imports": 5,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 54
+        },
+        "b56e2f92e536a24e": {
+          "loc": 391,
+          "rloc": 358,
+          "functions": 6,
+          "maxComplexity": 30,
+          "maxFunctionLength": 92,
+          "imports": 4,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 7,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 4,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 31
+        },
+        "0bc43226c0861a45": {
+          "loc": 29,
+          "rloc": 24,
+          "functions": 2,
+          "maxComplexity": 6,
+          "maxFunctionLength": 13,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 4,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 35
+        },
+        "c1cd4122440717da": {
+          "loc": 261,
+          "rloc": 240,
+          "functions": 15,
+          "maxComplexity": 6,
+          "maxFunctionLength": 175,
+          "imports": 6,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 7
+        },
+        "874dbf5e65aa749e": {
+          "loc": 27,
+          "rloc": 24,
+          "functions": 2,
+          "maxComplexity": 1,
+          "maxFunctionLength": 17,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "07d29209244455c9": {
+          "loc": 30,
+          "rloc": 26,
+          "functions": 3,
+          "maxComplexity": 1,
+          "maxFunctionLength": 18,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "c45f076fcd0bd060": {
+          "loc": 18,
+          "rloc": 16,
+          "functions": 3,
+          "maxComplexity": 1,
+          "maxFunctionLength": 15,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "5ebf0e99dfefb0b3": {
+          "loc": 58,
+          "rloc": 53,
+          "functions": 5,
+          "maxComplexity": 2,
+          "maxFunctionLength": 47,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "1b34bc8e270bdd56": {
+          "loc": 154,
+          "rloc": 139,
+          "functions": 4,
+          "maxComplexity": 3,
+          "maxFunctionLength": 6,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "f783420a115d2e75": {
+          "loc": 35,
+          "rloc": 29,
+          "functions": 3,
+          "maxComplexity": 3,
+          "maxFunctionLength": 7,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "64d9dc714a29c777": {
+          "loc": 188,
+          "rloc": 177,
+          "functions": 5,
+          "maxComplexity": 18,
+          "maxFunctionLength": 46,
+          "imports": 11,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 19
+        },
+        "44b8a6209d57c630": {
+          "loc": 214,
+          "rloc": 205,
+          "functions": 12,
+          "maxComplexity": 4,
+          "maxFunctionLength": 171,
+          "imports": 5,
+          "externalImports": 3,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 15
+        },
+        "2f55702c9cc85f75": {
+          "loc": 832,
+          "rloc": 762,
+          "functions": 53,
+          "maxComplexity": 18,
+          "maxFunctionLength": 61,
+          "imports": 4,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 6,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 3,
+          "ffiCrossings": 0,
+          "migrationDebt": 133
+        },
+        "612670c5610ae044": {
+          "loc": 922,
+          "rloc": 869,
+          "functions": 51,
+          "maxComplexity": 15,
+          "maxFunctionLength": 144,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 3,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 64
+        },
+        "92e0e38520ed9179": {
+          "loc": 229,
+          "rloc": 226,
+          "functions": 2,
+          "maxComplexity": 1,
+          "maxFunctionLength": 158,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 6
+        },
+        "a205ac2836861da4": {
+          "loc": 332,
+          "rloc": 299,
+          "functions": 43,
+          "maxComplexity": 3,
+          "maxFunctionLength": 69,
+          "imports": 7,
+          "externalImports": 3,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 4,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "2851ff98929749e1": {
+          "loc": 143,
+          "rloc": 130,
+          "functions": 12,
+          "maxComplexity": 2,
+          "maxFunctionLength": 49,
+          "imports": 7,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "3770b303a8e53f01": {
+          "loc": 2,
+          "rloc": 2,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 6,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "99cf5b9b24bf7346": {
+          "loc": 129,
+          "rloc": 104,
+          "functions": 10,
+          "maxComplexity": 12,
+          "maxFunctionLength": 104,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "ffiCrossings": 0,
+          "migrationDebt": 26
+        },
+        "cb92c4c7fdb08a0d": {
+          "loc": 91,
+          "rloc": 81,
+          "functions": 11,
+          "maxComplexity": 4,
+          "maxFunctionLength": 82,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 5
+        },
+        "9eb99044509012b1": {
+          "loc": 263,
+          "rloc": 224,
+          "functions": 13,
+          "maxComplexity": 13,
+          "maxFunctionLength": 80,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 3,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 10,
+          "ffiCrossings": 0,
+          "migrationDebt": 56
+        },
+        "5d009899bcb23f5d": {
+          "loc": 599,
+          "rloc": 524,
+          "functions": 35,
+          "maxComplexity": 22,
+          "maxFunctionLength": 100,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 8,
+          "ffiCrossings": 0,
+          "migrationDebt": 46
+        },
+        "ce4e478b41d30b8b": {
+          "loc": 46,
+          "rloc": 46,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 8,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 4,
+          "unresolvedImports": 0,
+          "number_of_commits": 3,
+          "number_of_authors": 1,
+          "fanIn": 9,
+          "fanOut": 4,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "ffiCrossings": 0,
+          "migrationDebt": 10
+        },
+        "cbf3c68ca387a814": {
+          "loc": 97,
+          "rloc": 78,
+          "functions": 14,
+          "maxComplexity": 5,
+          "maxFunctionLength": 31,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 8,
+          "ffiCrossings": 0,
+          "migrationDebt": 12
+        },
+        "af054fa2218bd0d2": {
+          "loc": 295,
+          "rloc": 265,
+          "functions": 18,
+          "maxComplexity": 13,
+          "maxFunctionLength": 48,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 9,
+          "ffiCrossings": 0,
+          "migrationDebt": 42
+        },
+        "842eb609f52074ed": {
+          "loc": 155,
+          "rloc": 146,
+          "functions": 14,
+          "maxComplexity": 2,
+          "maxFunctionLength": 96,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "237634dec3ca24ee": {
+          "loc": 308,
+          "rloc": 283,
+          "functions": 18,
+          "maxComplexity": 7,
+          "maxFunctionLength": 219,
+          "imports": 3,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 8
+        },
+        "33cb21e94a5c7d8d": {
+          "loc": 63,
+          "rloc": 55,
+          "functions": 9,
+          "maxComplexity": 3,
+          "maxFunctionLength": 60,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "a662c2095c315988": {
+          "loc": 216,
+          "rloc": 198,
+          "functions": 11,
+          "maxComplexity": 1,
+          "maxFunctionLength": 185,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "95bc40c24f74b056": {
+          "loc": 331,
+          "rloc": 298,
+          "functions": 6,
+          "maxComplexity": 33,
+          "maxFunctionLength": 240,
+          "imports": 10,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 8,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 3,
+          "ffiCrossings": 0,
+          "migrationDebt": 68
+        },
+        "42be8e3188aa9ac1": {
+          "loc": 218,
+          "rloc": 187,
+          "functions": 4,
+          "maxComplexity": 24,
+          "maxFunctionLength": 130,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 4,
+          "ffiCrossings": 0,
+          "migrationDebt": 75
+        },
+        "e269b518f8292053": {
+          "loc": 261,
+          "rloc": 225,
+          "functions": 13,
+          "maxComplexity": 22,
+          "maxFunctionLength": 96,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 3,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 92
+        },
+        "6e5233d4751aa079": {
+          "loc": 47,
+          "rloc": 47,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 16,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 8,
+          "unresolvedImports": 0,
+          "number_of_commits": 5,
+          "number_of_authors": 1,
+          "fanIn": 9,
+          "fanOut": 9,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 10
+        },
+        "e8e35f3b6ef889d9": {
+          "loc": 335,
+          "rloc": 281,
+          "functions": 16,
+          "maxComplexity": 41,
+          "maxFunctionLength": 127,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 4,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 210
+        },
+        "2a66e41c4dfda2d5": {
+          "loc": 627,
+          "rloc": 541,
+          "functions": 41,
+          "maxComplexity": 17,
+          "maxFunctionLength": 74,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 4,
+          "ffiCrossings": 0,
+          "migrationDebt": 54
+        },
+        "8a95ec5dd7dd9c75": {
+          "loc": 327,
+          "rloc": 295,
+          "functions": 15,
+          "maxComplexity": 14,
+          "maxFunctionLength": 109,
+          "imports": 4,
+          "externalImports": 0,
+          "builtinImports": 1,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 4,
+          "ffiCrossings": 0,
+          "migrationDebt": 45
+        },
+        "2f93b46125f7a4da": {
+          "loc": 279,
+          "rloc": 227,
+          "functions": 17,
+          "maxComplexity": 14,
+          "maxFunctionLength": 57,
+          "imports": 3,
+          "externalImports": 2,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 4,
+          "ffiCrossings": 0,
+          "migrationDebt": 45
+        },
+        "ed57e76c87aafdda": {
+          "loc": 36,
+          "rloc": 25,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "17d86a083e50e154": {
+          "loc": 169,
+          "rloc": 134,
+          "functions": 7,
+          "maxComplexity": 18,
+          "maxFunctionLength": 73,
+          "imports": 3,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 3,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 76
+        },
+        "4bef25cd6203a708": {
+          "loc": 98,
+          "rloc": 87,
+          "functions": 9,
+          "maxComplexity": 3,
+          "maxFunctionLength": 86,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "6402e7c1b689bfd4": {
+          "loc": 5,
+          "rloc": 4,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 2,
+          "migrationDebt": 1
+        },
+        "f4b2037c5118edf4": {
+          "loc": 5,
+          "rloc": 5,
+          "functions": 1,
+          "maxComplexity": 3,
+          "maxFunctionLength": 5,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 8
+        },
+        "0ef2c58b83c27749": {
+          "loc": 0,
+          "rloc": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 1
+        },
+        "21babb797e210811": {
+          "loc": 6,
+          "rloc": 5,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0
+        },
+        "a3ca6f99608d67fb": {
+          "loc": 0,
+          "rloc": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 1
+        },
+        "e8be7880786c11aa": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "261306d1fd1fcac4": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "de855d80af7313cb": {
+          "loc": 3,
+          "rloc": 2,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "eb4fa2190ae16176": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "83cc88bd35c82f9f": {
+          "loc": 3,
+          "rloc": 2,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 1,
+          "inCycle": 1,
+          "cycleSize": 2,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "394fa23e86d5af73": {
+          "loc": 3,
+          "rloc": 2,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 1,
+          "inCycle": 1,
+          "cycleSize": 2,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "0982a304130aece3": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "8069eeca8bd3d6fd": {
+          "loc": 16,
+          "rloc": 14,
+          "functions": 1,
+          "maxComplexity": 1,
+          "maxFunctionLength": 1,
+          "imports": 12,
+          "externalImports": 3,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 1,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 8,
+          "inCycle": 1,
+          "cycleSize": 1,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "7c63bc521fc92b8f": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "c4939ac4c233face": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "4c88209028c17963": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "ce31e2d49a4b8b6d": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "798bda0e958e5acb": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "bab69b5fc8e0c7d6": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "596c2ea86095dfd7": {
+          "loc": 4,
+          "rloc": 3,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 1,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "719a8d9fd3dc588a": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "6b48f58a15076511": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 1,
+          "maxComplexity": 1,
+          "maxFunctionLength": 1,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "f6b3906d6a0a5bb8": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "58609eedc373c7ee": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "56299aaa6ebcb9f8": {
+          "loc": 1,
+          "rloc": 1,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "7ce68849593417ef": {
+          "loc": 208,
+          "rloc": 183,
+          "functions": 14,
+          "maxComplexity": 2,
+          "maxFunctionLength": 85,
+          "imports": 7,
+          "externalImports": 1,
+          "builtinImports": 4,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "cbc5fe66ecdcc9c6": {
+          "loc": 110,
+          "rloc": 100,
+          "functions": 8,
+          "maxComplexity": 1,
+          "maxFunctionLength": 107,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "40a980ccfe774578": {
+          "loc": 74,
+          "rloc": 67,
+          "functions": 3,
+          "maxComplexity": 2,
+          "maxFunctionLength": 58,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "62c3b0bf0dcde70b": {
+          "loc": 117,
+          "rloc": 109,
+          "functions": 6,
+          "maxComplexity": 1,
+          "maxFunctionLength": 107,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "9b8954fb8edb946a": {
+          "loc": 111,
+          "rloc": 100,
+          "functions": 8,
+          "maxComplexity": 1,
+          "maxFunctionLength": 73,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "b73758a489459b7c": {
+          "loc": 137,
+          "rloc": 121,
+          "functions": 15,
+          "maxComplexity": 2,
+          "maxFunctionLength": 100,
+          "imports": 5,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "70fd4115a27f665c": {
+          "loc": 55,
+          "rloc": 48,
+          "functions": 10,
+          "maxComplexity": 1,
+          "maxFunctionLength": 40,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "21bcbf2594e09ec6": {
+          "loc": 915,
+          "rloc": 812,
+          "functions": 60,
+          "maxComplexity": 21,
+          "maxFunctionLength": 915,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 22
+        },
+        "802739c7a55e1902": {
+          "loc": 103,
+          "rloc": 87,
+          "functions": 11,
+          "maxComplexity": 5,
+          "maxFunctionLength": 12,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 3,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 24
+        },
+        "58f0d71631afb98f": {
+          "loc": 305,
+          "rloc": 286,
+          "functions": 22,
+          "maxComplexity": 10,
+          "maxFunctionLength": 73,
+          "imports": 4,
+          "externalImports": 0,
+          "builtinImports": 1,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 3,
+          "ffiCrossings": 0,
+          "migrationDebt": 22
+        },
+        "aca08ae75f093832": {
+          "loc": 17,
+          "rloc": 17,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 7,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 8,
+          "fanOut": 5,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 9
+        },
+        "b877860362505819": {
+          "loc": 81,
+          "rloc": 62,
+          "functions": 5,
+          "maxComplexity": 10,
+          "maxFunctionLength": 24,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 5,
+          "ffiCrossings": 0,
+          "migrationDebt": 33
+        },
+        "84877654a59491cb": {
+          "loc": 585,
+          "rloc": 512,
+          "functions": 39,
+          "maxComplexity": 51,
+          "maxFunctionLength": 247,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 3,
+          "number_of_authors": 1,
+          "fanIn": 5,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 6,
+          "ffiCrossings": 0,
+          "migrationDebt": 312
+        },
+        "34a960fe7e283135": {
+          "loc": 179,
+          "rloc": 157,
+          "functions": 11,
+          "maxComplexity": 12,
+          "maxFunctionLength": 69,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 4,
+          "ffiCrossings": 0,
+          "migrationDebt": 39
+        },
+        "51b4ff8ffa3f98d7": {
+          "loc": 65,
+          "rloc": 53,
+          "functions": 7,
+          "maxComplexity": 2,
+          "maxFunctionLength": 52,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "b4d0c1ad6d98b5f0": {
+          "loc": 86,
+          "rloc": 76,
+          "functions": 15,
+          "maxComplexity": 4,
+          "maxFunctionLength": 49,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 5
+        },
+        "0590134d1fa7e79f": {
+          "loc": 99,
+          "rloc": 81,
+          "functions": 22,
+          "maxComplexity": 3,
+          "maxFunctionLength": 86,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 4
+        },
+        "bb449db437d5d115": {
+          "loc": 38,
+          "rloc": 27,
+          "functions": 5,
+          "maxComplexity": 3,
+          "maxFunctionLength": 6,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 12,
+          "ffiCrossings": 0,
+          "migrationDebt": 12
+        },
+        "d4bed36d12f65516": {
+          "loc": 59,
+          "rloc": 38,
+          "functions": 7,
+          "maxComplexity": 5,
+          "maxFunctionLength": 13,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 1,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 12,
+          "ffiCrossings": 0,
+          "migrationDebt": 18
+        },
+        "c9347051246ce0ec": {
+          "loc": 36,
+          "rloc": 35,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 7,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0,
+          "number_of_commits": 3,
+          "number_of_authors": 1,
+          "fanIn": 26,
+          "fanOut": 6,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 9,
+          "ffiCrossings": 0,
+          "migrationDebt": 27
+        },
+        "714516814a6051f3": {
+          "loc": 441,
+          "rloc": 359,
+          "functions": 20,
+          "maxComplexity": 38,
+          "maxFunctionLength": 199,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 11,
+          "ffiCrossings": 0,
+          "migrationDebt": 117
+        },
+        "3f9b35ccf62c2de0": {
+          "loc": 112,
+          "rloc": 86,
+          "functions": 5,
+          "maxComplexity": 17,
+          "maxFunctionLength": 96,
+          "imports": 4,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 3,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 10,
+          "ffiCrossings": 0,
+          "migrationDebt": 36
+        },
+        "b05e86b9630171dd": {
+          "loc": 87,
+          "rloc": 73,
+          "functions": 8,
+          "maxComplexity": 10,
+          "maxFunctionLength": 41,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 1,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 10,
+          "ffiCrossings": 0,
+          "migrationDebt": 22
+        },
+        "e14cbb6f10fb3e07": {
+          "loc": 42,
+          "rloc": 30,
+          "functions": 6,
+          "maxComplexity": 5,
+          "maxFunctionLength": 22,
+          "imports": 1,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 2,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 11,
+          "ffiCrossings": 0,
+          "migrationDebt": 18
+        },
+        "6a607a4c97052747": {
+          "loc": 130,
+          "rloc": 107,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 0,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 6,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 13,
+          "ffiCrossings": 0,
+          "migrationDebt": 7
+        },
+        "bebb2eb3e32353aa": {
+          "loc": 38,
+          "rloc": 34,
+          "functions": 5,
+          "maxComplexity": 1,
+          "maxFunctionLength": 27,
+          "imports": 2,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "e2c3228632985ae4": {
+          "loc": 217,
+          "rloc": 193,
+          "functions": 29,
+          "maxComplexity": 1,
+          "maxFunctionLength": 118,
+          "imports": 3,
+          "externalImports": 1,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 2
+        },
+        "fee38969289b8886": {
+          "loc": 147,
+          "rloc": 123,
+          "functions": 6,
+          "maxComplexity": 7,
+          "maxFunctionLength": 50,
+          "imports": 5,
+          "externalImports": 0,
+          "builtinImports": 4,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 1,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 8
+        },
+        "ee06efd6aa2ef4a8": {
+          "loc": 203,
+          "rloc": 182,
+          "functions": 8,
+          "maxComplexity": 11,
+          "maxFunctionLength": 117,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 1,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 12
+        },
+        "df3d92f2dd12d477": {
+          "loc": 71,
+          "rloc": 63,
+          "functions": 2,
+          "maxComplexity": 5,
+          "maxFunctionLength": 39,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 6
+        },
+        "903371170de66f3c": {
+          "loc": 81,
+          "rloc": 72,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 4,
+          "externalImports": 1,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "03e3118cc386ff69": {
+          "loc": 146,
+          "rloc": 137,
+          "functions": 6,
+          "maxComplexity": 2,
+          "maxFunctionLength": 2,
+          "imports": 6,
+          "externalImports": 1,
+          "builtinImports": 5,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 2,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 3
+        },
+        "915b93a250796d2e": {
+          "loc": 22,
+          "rloc": 19,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "09119cb26e078e6d": {
+          "loc": 13,
+          "rloc": 10,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 2,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "288845d37b55c460": {
+          "loc": 31,
+          "rloc": 25,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 3,
+          "externalImports": 0,
+          "builtinImports": 3,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        },
+        "790ceaa15055a88c": {
+          "loc": 8,
+          "rloc": 7,
+          "functions": 0,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "imports": 1,
+          "externalImports": 1,
+          "builtinImports": 0,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0,
+          "number_of_commits": 1,
+          "number_of_authors": 1,
+          "fanIn": 0,
+          "fanOut": 0,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "ffiCrossings": 0,
+          "migrationDebt": 1
+        }
+      },
+      "attributeDescriptors": {
+        "loc": {
+          "title": "Líneas",
+          "description": "Líneas físicas del fichero",
+          "direction": -1
+        },
+        "rloc": {
+          "title": "Líneas de código",
+          "description": "Líneas con al menos un token de código",
+          "direction": -1
+        },
+        "functions": {
+          "title": "Funciones",
+          "description": "Funciones, métodos y arrows implementados",
+          "direction": 0
+        },
+        "maxComplexity": {
+          "title": "Complejidad máx.",
+          "description": "Complejidad ciclomática de la función más compleja",
+          "direction": -1
+        },
+        "maxFunctionLength": {
+          "title": "Función más larga",
+          "description": "Líneas de la función más larga",
+          "direction": -1
+        },
+        "number_of_commits": {
+          "title": "Commits",
+          "description": "Commits que tocaron el fichero",
+          "direction": -1
+        },
+        "number_of_authors": {
+          "title": "Autores",
+          "description": "Autores únicos que tocaron el fichero",
+          "direction": 0
+        },
+        "imports": {
+          "title": "Imports",
+          "description": "Imports y reexports declarados",
+          "direction": 0
+        },
+        "externalImports": {
+          "title": "Imports externos",
+          "description": "Paquetes fuera del proyecto, sin builtins de Node",
+          "direction": -1
+        },
+        "builtinImports": {
+          "title": "Builtins",
+          "description": "Módulos nativos de Node",
+          "direction": 0
+        },
+        "typeOnlyImports": {
+          "title": "Imports type-only",
+          "description": "Imports que solo existen en tipos",
+          "direction": 0
+        },
+        "unresolvedImports": {
+          "title": "Imports sin resolver",
+          "description": "Specifiers internos que no apuntan a un fichero analizado",
+          "direction": -1
+        },
+        "fanIn": {
+          "title": "Fan-in",
+          "description": "Ficheros que importan a este",
+          "direction": 1
+        },
+        "fanOut": {
+          "title": "Fan-out",
+          "description": "Ficheros importados por este",
+          "direction": -1
+        },
+        "inCycle": {
+          "title": "En ciclo",
+          "description": "Pertenece a un ciclo de dependencias",
+          "direction": -1
+        },
+        "cycleSize": {
+          "title": "Tamaño del ciclo",
+          "description": "Ficheros en su componente cíclico",
+          "direction": -1
+        },
+        "dependencyLevel": {
+          "title": "Nivel de dependencia",
+          "description": "Profundidad en el DAG de dependencias",
+          "direction": 0
+        },
+        "migrationDebt": {
+          "title": "Deuda de migración",
+          "description": "(maxComplexity + 1) × (1 + fan-in); 0 si ya es Rust o nativo",
+          "direction": -1
+        },
+        "ffiCrossings": {
+          "title": "Cruces FFI",
+          "description": "Aristas WASM/native que tocan el fichero",
+          "direction": -1
+        }
+      },
+      "attributeTypes": {
+        "loc": "absolute",
+        "rloc": "absolute",
+        "functions": "absolute",
+        "maxComplexity": "absolute",
+        "maxFunctionLength": "absolute",
+        "number_of_commits": "absolute",
+        "number_of_authors": "absolute",
+        "imports": "absolute",
+        "externalImports": "absolute",
+        "builtinImports": "absolute",
+        "typeOnlyImports": "absolute",
+        "unresolvedImports": "absolute",
+        "fanIn": "absolute",
+        "fanOut": "absolute",
+        "inCycle": "absolute",
+        "cycleSize": "absolute",
+        "dependencyLevel": "absolute",
+        "migrationDebt": "absolute",
+        "ffiCrossings": "absolute"
+      }
+    },
+    "dependency": {
+      "edges": [
+        {
+          "fromId": "0d0d1613836d0e99",
+          "toId": "0bc43226c0861a45",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "0d0d1613836d0e99",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "0d0d1613836d0e99",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "0d0d1613836d0e99",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7ebe33ce7d290ed6",
+          "toId": "0bc43226c0861a45",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7ebe33ce7d290ed6",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7ebe33ce7d290ed6",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "f496f4363794568b",
+          "toId": "0bc43226c0861a45",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "f496f4363794568b",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e23b5a925c6b9250",
+          "toId": "0bc43226c0861a45",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e23b5a925c6b9250",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e23b5a925c6b9250",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b56e2f92e536a24e",
+          "toId": "0d0d1613836d0e99",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b56e2f92e536a24e",
+          "toId": "7ebe33ce7d290ed6",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b56e2f92e536a24e",
+          "toId": "f496f4363794568b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b56e2f92e536a24e",
+          "toId": "e23b5a925c6b9250",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c1cd4122440717da",
+          "toId": "7ebe33ce7d290ed6",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c1cd4122440717da",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "874dbf5e65aa749e",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "07d29209244455c9",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "07d29209244455c9",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c45f076fcd0bd060",
+          "toId": "e23b5a925c6b9250",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "5ebf0e99dfefb0b3",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "5ebf0e99dfefb0b3",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "64d9dc714a29c777",
+          "toId": "44b8a6209d57c630",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "64d9dc714a29c777",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 3,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "64d9dc714a29c777",
+          "toId": "612670c5610ae044",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "44b8a6209d57c630",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "44b8a6209d57c630",
+          "toId": "612670c5610ae044",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2f55702c9cc85f75",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2f55702c9cc85f75",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "612670c5610ae044",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "92e0e38520ed9179",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "92e0e38520ed9179",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "92e0e38520ed9179",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "a205ac2836861da4",
+          "toId": "44b8a6209d57c630",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "a205ac2836861da4",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "a205ac2836861da4",
+          "toId": "612670c5610ae044",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "a205ac2836861da4",
+          "toId": "92e0e38520ed9179",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2851ff98929749e1",
+          "toId": "2f55702c9cc85f75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2851ff98929749e1",
+          "toId": "92e0e38520ed9179",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2851ff98929749e1",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "3770b303a8e53f01",
+          "toId": "99cf5b9b24bf7346",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "cb92c4c7fdb08a0d",
+          "toId": "3770b303a8e53f01",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "5d009899bcb23f5d",
+          "toId": "9eb99044509012b1",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "5d009899bcb23f5d",
+          "toId": "af054fa2218bd0d2",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "5d009899bcb23f5d",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ce4e478b41d30b8b",
+          "toId": "9eb99044509012b1",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ce4e478b41d30b8b",
+          "toId": "5d009899bcb23f5d",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ce4e478b41d30b8b",
+          "toId": "cbf3c68ca387a814",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ce4e478b41d30b8b",
+          "toId": "af054fa2218bd0d2",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "af054fa2218bd0d2",
+          "toId": "9eb99044509012b1",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "842eb609f52074ed",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "237634dec3ca24ee",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "237634dec3ca24ee",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "33cb21e94a5c7d8d",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "a662c2095c315988",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "42be8e3188aa9ac1",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "e269b518f8292053",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "e8e35f3b6ef889d9",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "2a66e41c4dfda2d5",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "8a95ec5dd7dd9c75",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "2f93b46125f7a4da",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "17d86a083e50e154",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "95bc40c24f74b056",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "95bc40c24f74b056",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "42be8e3188aa9ac1",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "e269b518f8292053",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "e8e35f3b6ef889d9",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "2a66e41c4dfda2d5",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "8a95ec5dd7dd9c75",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "2f93b46125f7a4da",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "ed57e76c87aafdda",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6e5233d4751aa079",
+          "toId": "17d86a083e50e154",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e8e35f3b6ef889d9",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2a66e41c4dfda2d5",
+          "toId": "17d86a083e50e154",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8a95ec5dd7dd9c75",
+          "toId": "e269b518f8292053",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8a95ec5dd7dd9c75",
+          "toId": "e8e35f3b6ef889d9",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8a95ec5dd7dd9c75",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "2f93b46125f7a4da",
+          "toId": "ed57e76c87aafdda",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "4bef25cd6203a708",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "4bef25cd6203a708",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "6402e7c1b689bfd4",
+          "toId": "f4b2037c5118edf4",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "de855d80af7313cb",
+          "toId": "e8be7880786c11aa",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "83cc88bd35c82f9f",
+          "toId": "394fa23e86d5af73",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": true
+        },
+        {
+          "fromId": "394fa23e86d5af73",
+          "toId": "83cc88bd35c82f9f",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": true
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "eb4fa2190ae16176",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "0982a304130aece3",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "8069eeca8bd3d6fd",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": true
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "7c63bc521fc92b8f",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "c4939ac4c233face",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "4c88209028c17963",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "798bda0e958e5acb",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "8069eeca8bd3d6fd",
+          "toId": "bab69b5fc8e0c7d6",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7ce68849593417ef",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7ce68849593417ef",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "cbc5fe66ecdcc9c6",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "40a980ccfe774578",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "40a980ccfe774578",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "62c3b0bf0dcde70b",
+          "toId": "e8e35f3b6ef889d9",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "9b8954fb8edb946a",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b73758a489459b7c",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "70fd4115a27f665c",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "802739c7a55e1902",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "58f0d71631afb98f",
+          "toId": "802739c7a55e1902",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "58f0d71631afb98f",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "58f0d71631afb98f",
+          "toId": "34a960fe7e283135",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "aca08ae75f093832",
+          "toId": "802739c7a55e1902",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "aca08ae75f093832",
+          "toId": "58f0d71631afb98f",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "aca08ae75f093832",
+          "toId": "b877860362505819",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "aca08ae75f093832",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "aca08ae75f093832",
+          "toId": "34a960fe7e283135",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b877860362505819",
+          "toId": "3770b303a8e53f01",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b877860362505819",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "84877654a59491cb",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "84877654a59491cb",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "34a960fe7e283135",
+          "toId": "802739c7a55e1902",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "34a960fe7e283135",
+          "toId": "b877860362505819",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "34a960fe7e283135",
+          "toId": "84877654a59491cb",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "51b4ff8ffa3f98d7",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "51b4ff8ffa3f98d7",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b4d0c1ad6d98b5f0",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "0590134d1fa7e79f",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "0590134d1fa7e79f",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "d4bed36d12f65516",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "d4bed36d12f65516",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "714516814a6051f3",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "3f9b35ccf62c2de0",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "b05e86b9630171dd",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "e14cbb6f10fb3e07",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "c9347051246ce0ec",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "714516814a6051f3",
+          "toId": "bb449db437d5d115",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "714516814a6051f3",
+          "toId": "d4bed36d12f65516",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "714516814a6051f3",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "3f9b35ccf62c2de0",
+          "toId": "bb449db437d5d115",
+          "attributes": {
+            "weight": 2,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "3f9b35ccf62c2de0",
+          "toId": "714516814a6051f3",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "3f9b35ccf62c2de0",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b05e86b9630171dd",
+          "toId": "e14cbb6f10fb3e07",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "b05e86b9630171dd",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e14cbb6f10fb3e07",
+          "toId": "6a607a4c97052747",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "bebb2eb3e32353aa",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "e2c3228632985ae4",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "fee38969289b8886",
+          "toId": "6e5233d4751aa079",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ee06efd6aa2ef4a8",
+          "toId": "ce4e478b41d30b8b",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "ee06efd6aa2ef4a8",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "df3d92f2dd12d477",
+          "toId": "aca08ae75f093832",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "df3d92f2dd12d477",
+          "toId": "c9347051246ce0ec",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        }
+      ],
+      "nodes": {
+        "0d0d1613836d0e99": {
+          "level": 1
+        },
+        "7ebe33ce7d290ed6": {
+          "level": 1
+        },
+        "f496f4363794568b": {
+          "level": 1
+        },
+        "e23b5a925c6b9250": {
+          "level": 1
+        },
+        "b56e2f92e536a24e": {
+          "level": 0
+        },
+        "0bc43226c0861a45": {
+          "level": 2
+        },
+        "c1cd4122440717da": {
+          "level": 0
+        },
+        "874dbf5e65aa749e": {
+          "level": 0
+        },
+        "07d29209244455c9": {
+          "level": 0
+        },
+        "c45f076fcd0bd060": {
+          "level": 0
+        },
+        "5ebf0e99dfefb0b3": {
+          "level": 0
+        },
+        "1b34bc8e270bdd56": {
+          "level": 0
+        },
+        "f783420a115d2e75": {
+          "level": 0
+        },
+        "64d9dc714a29c777": {
+          "level": 0
+        },
+        "44b8a6209d57c630": {
+          "level": 1
+        },
+        "2f55702c9cc85f75": {
+          "level": 3
+        },
+        "612670c5610ae044": {
+          "level": 2
+        },
+        "92e0e38520ed9179": {
+          "level": 1
+        },
+        "a205ac2836861da4": {
+          "level": 0
+        },
+        "2851ff98929749e1": {
+          "level": 0
+        },
+        "3770b303a8e53f01": {
+          "level": 6
+        },
+        "99cf5b9b24bf7346": {
+          "level": 7
+        },
+        "cb92c4c7fdb08a0d": {
+          "level": 0
+        },
+        "9eb99044509012b1": {
+          "level": 10
+        },
+        "5d009899bcb23f5d": {
+          "level": 8
+        },
+        "ce4e478b41d30b8b": {
+          "level": 7
+        },
+        "cbf3c68ca387a814": {
+          "level": 8
+        },
+        "af054fa2218bd0d2": {
+          "level": 9
+        },
+        "842eb609f52074ed": {
+          "level": 0
+        },
+        "237634dec3ca24ee": {
+          "level": 0
+        },
+        "33cb21e94a5c7d8d": {
+          "level": 0
+        },
+        "a662c2095c315988": {
+          "level": 0
+        },
+        "95bc40c24f74b056": {
+          "level": 3
+        },
+        "42be8e3188aa9ac1": {
+          "level": 4
+        },
+        "e269b518f8292053": {
+          "level": 5
+        },
+        "6e5233d4751aa079": {
+          "level": 2
+        },
+        "e8e35f3b6ef889d9": {
+          "level": 5
+        },
+        "2a66e41c4dfda2d5": {
+          "level": 4
+        },
+        "8a95ec5dd7dd9c75": {
+          "level": 4
+        },
+        "2f93b46125f7a4da": {
+          "level": 4
+        },
+        "ed57e76c87aafdda": {
+          "level": 5
+        },
+        "17d86a083e50e154": {
+          "level": 5
+        },
+        "4bef25cd6203a708": {
+          "level": 0
+        },
+        "6402e7c1b689bfd4": {
+          "level": 0
+        },
+        "f4b2037c5118edf4": {
+          "level": 1
+        },
+        "0ef2c58b83c27749": {
+          "level": 0
+        },
+        "21babb797e210811": {
+          "level": 0
+        },
+        "a3ca6f99608d67fb": {
+          "level": 0
+        },
+        "e8be7880786c11aa": {
+          "level": 1
+        },
+        "261306d1fd1fcac4": {
+          "level": 0
+        },
+        "de855d80af7313cb": {
+          "level": 0
+        },
+        "eb4fa2190ae16176": {
+          "level": 1
+        },
+        "83cc88bd35c82f9f": {
+          "level": 0
+        },
+        "394fa23e86d5af73": {
+          "level": 0
+        },
+        "0982a304130aece3": {
+          "level": 1
+        },
+        "8069eeca8bd3d6fd": {
+          "level": 0
+        },
+        "7c63bc521fc92b8f": {
+          "level": 1
+        },
+        "c4939ac4c233face": {
+          "level": 1
+        },
+        "4c88209028c17963": {
+          "level": 1
+        },
+        "ce31e2d49a4b8b6d": {
+          "level": 0
+        },
+        "798bda0e958e5acb": {
+          "level": 1
+        },
+        "bab69b5fc8e0c7d6": {
+          "level": 1
+        },
+        "596c2ea86095dfd7": {
+          "level": 0
+        },
+        "719a8d9fd3dc588a": {
+          "level": 0
+        },
+        "6b48f58a15076511": {
+          "level": 0
+        },
+        "f6b3906d6a0a5bb8": {
+          "level": 0
+        },
+        "58609eedc373c7ee": {
+          "level": 0
+        },
+        "56299aaa6ebcb9f8": {
+          "level": 0
+        },
+        "7ce68849593417ef": {
+          "level": 0
+        },
+        "cbc5fe66ecdcc9c6": {
+          "level": 0
+        },
+        "40a980ccfe774578": {
+          "level": 0
+        },
+        "62c3b0bf0dcde70b": {
+          "level": 0
+        },
+        "9b8954fb8edb946a": {
+          "level": 0
+        },
+        "b73758a489459b7c": {
+          "level": 0
+        },
+        "70fd4115a27f665c": {
+          "level": 0
+        },
+        "21bcbf2594e09ec6": {
+          "level": 0
+        },
+        "802739c7a55e1902": {
+          "level": 5
+        },
+        "58f0d71631afb98f": {
+          "level": 3
+        },
+        "aca08ae75f093832": {
+          "level": 2
+        },
+        "b877860362505819": {
+          "level": 5
+        },
+        "84877654a59491cb": {
+          "level": 6
+        },
+        "34a960fe7e283135": {
+          "level": 4
+        },
+        "51b4ff8ffa3f98d7": {
+          "level": 0
+        },
+        "b4d0c1ad6d98b5f0": {
+          "level": 0
+        },
+        "0590134d1fa7e79f": {
+          "level": 0
+        },
+        "bb449db437d5d115": {
+          "level": 12
+        },
+        "d4bed36d12f65516": {
+          "level": 12
+        },
+        "c9347051246ce0ec": {
+          "level": 9
+        },
+        "714516814a6051f3": {
+          "level": 11
+        },
+        "3f9b35ccf62c2de0": {
+          "level": 10
+        },
+        "b05e86b9630171dd": {
+          "level": 10
+        },
+        "e14cbb6f10fb3e07": {
+          "level": 11
+        },
+        "6a607a4c97052747": {
+          "level": 13
+        },
+        "bebb2eb3e32353aa": {
+          "level": 0
+        },
+        "e2c3228632985ae4": {
+          "level": 0
+        },
+        "fee38969289b8886": {
+          "level": 0
+        },
+        "ee06efd6aa2ef4a8": {
+          "level": 0
+        },
+        "df3d92f2dd12d477": {
+          "level": 0
+        },
+        "903371170de66f3c": {
+          "level": 0
+        },
+        "03e3118cc386ff69": {
+          "level": 0
+        },
+        "915b93a250796d2e": {
+          "level": 0
+        },
+        "09119cb26e078e6d": {
+          "level": 0
+        },
+        "288845d37b55c460": {
+          "level": 0
+        },
+        "790ceaa15055a88c": {
+          "level": 0
+        }
+      },
+      "attributeDescriptors": {
+        "weight": {
+          "title": "Peso",
+          "description": "Número de imports entre los dos ficheros",
+          "direction": 0
+        },
+        "typeOnly": {
+          "title": "Type-only",
+          "description": "Imports de solo tipos",
+          "direction": 0
+        }
+      },
+      "attributeTypes": {
+        "weight": "absolute",
+        "typeOnly": "absolute"
+      }
+    },
+    "migration": {
+      "nodes": {
+        "0d0d1613836d0e99": {
+          "language": "ts",
+          "status": "js",
+          "loc": 181,
+          "rloc": 165,
+          "debt": 38,
+          "crossings": 0
+        },
+        "7ebe33ce7d290ed6": {
+          "language": "ts",
+          "status": "js",
+          "loc": 262,
+          "rloc": 240,
+          "debt": 129,
+          "crossings": 0
+        },
+        "f496f4363794568b": {
+          "language": "ts",
+          "status": "js",
+          "loc": 163,
+          "rloc": 145,
+          "debt": 48,
+          "crossings": 0
+        },
+        "e23b5a925c6b9250": {
+          "language": "ts",
+          "status": "js",
+          "loc": 151,
+          "rloc": 136,
+          "debt": 54,
+          "crossings": 0
+        },
+        "b56e2f92e536a24e": {
+          "language": "ts",
+          "status": "js",
+          "loc": 391,
+          "rloc": 358,
+          "debt": 31,
+          "crossings": 0
+        },
+        "0bc43226c0861a45": {
+          "language": "ts",
+          "status": "js",
+          "loc": 29,
+          "rloc": 24,
+          "debt": 35,
+          "crossings": 0
+        },
+        "c1cd4122440717da": {
+          "language": "ts",
+          "status": "js",
+          "loc": 261,
+          "rloc": 240,
+          "debt": 7,
+          "crossings": 0
+        },
+        "874dbf5e65aa749e": {
+          "language": "ts",
+          "status": "js",
+          "loc": 27,
+          "rloc": 24,
+          "debt": 2,
+          "crossings": 0
+        },
+        "07d29209244455c9": {
+          "language": "ts",
+          "status": "js",
+          "loc": 30,
+          "rloc": 26,
+          "debt": 2,
+          "crossings": 0
+        },
+        "c45f076fcd0bd060": {
+          "language": "ts",
+          "status": "js",
+          "loc": 18,
+          "rloc": 16,
+          "debt": 2,
+          "crossings": 0
+        },
+        "5ebf0e99dfefb0b3": {
+          "language": "ts",
+          "status": "js",
+          "loc": 58,
+          "rloc": 53,
+          "debt": 3,
+          "crossings": 0
+        },
+        "1b34bc8e270bdd56": {
+          "language": "js",
+          "status": "js",
+          "loc": 154,
+          "rloc": 139,
+          "debt": 4,
+          "crossings": 0
+        },
+        "f783420a115d2e75": {
+          "language": "js",
+          "status": "js",
+          "loc": 35,
+          "rloc": 29,
+          "debt": 4,
+          "crossings": 0
+        },
+        "64d9dc714a29c777": {
+          "language": "ts",
+          "status": "js",
+          "loc": 188,
+          "rloc": 177,
+          "debt": 19,
+          "crossings": 0
+        },
+        "44b8a6209d57c630": {
+          "language": "ts",
+          "status": "js",
+          "loc": 214,
+          "rloc": 205,
+          "debt": 15,
+          "crossings": 0
+        },
+        "2f55702c9cc85f75": {
+          "language": "ts",
+          "status": "js",
+          "loc": 832,
+          "rloc": 762,
+          "debt": 133,
+          "crossings": 0
+        },
+        "612670c5610ae044": {
+          "language": "ts",
+          "status": "js",
+          "loc": 922,
+          "rloc": 869,
+          "debt": 64,
+          "crossings": 0
+        },
+        "92e0e38520ed9179": {
+          "language": "ts",
+          "status": "js",
+          "loc": 229,
+          "rloc": 226,
+          "debt": 6,
+          "crossings": 0
+        },
+        "a205ac2836861da4": {
+          "language": "ts",
+          "status": "js",
+          "loc": 332,
+          "rloc": 299,
+          "debt": 4,
+          "crossings": 0
+        },
+        "2851ff98929749e1": {
+          "language": "ts",
+          "status": "js",
+          "loc": 143,
+          "rloc": 130,
+          "debt": 3,
+          "crossings": 0
+        },
+        "3770b303a8e53f01": {
+          "language": "ts",
+          "status": "js",
+          "loc": 2,
+          "rloc": 2,
+          "debt": 3,
+          "crossings": 0
+        },
+        "99cf5b9b24bf7346": {
+          "language": "ts",
+          "status": "js",
+          "loc": 129,
+          "rloc": 104,
+          "debt": 26,
+          "crossings": 0
+        },
+        "cb92c4c7fdb08a0d": {
+          "language": "ts",
+          "status": "js",
+          "loc": 91,
+          "rloc": 81,
+          "debt": 5,
+          "crossings": 0
+        },
+        "9eb99044509012b1": {
+          "language": "ts",
+          "status": "js",
+          "loc": 263,
+          "rloc": 224,
+          "debt": 56,
+          "crossings": 0
+        },
+        "5d009899bcb23f5d": {
+          "language": "ts",
+          "status": "js",
+          "loc": 599,
+          "rloc": 524,
+          "debt": 46,
+          "crossings": 0
+        },
+        "ce4e478b41d30b8b": {
+          "language": "ts",
+          "status": "js",
+          "loc": 46,
+          "rloc": 46,
+          "debt": 10,
+          "crossings": 0
+        },
+        "cbf3c68ca387a814": {
+          "language": "ts",
+          "status": "js",
+          "loc": 97,
+          "rloc": 78,
+          "debt": 12,
+          "crossings": 0
+        },
+        "af054fa2218bd0d2": {
+          "language": "ts",
+          "status": "js",
+          "loc": 295,
+          "rloc": 265,
+          "debt": 42,
+          "crossings": 0
+        },
+        "842eb609f52074ed": {
+          "language": "ts",
+          "status": "js",
+          "loc": 155,
+          "rloc": 146,
+          "debt": 3,
+          "crossings": 0
+        },
+        "237634dec3ca24ee": {
+          "language": "ts",
+          "status": "js",
+          "loc": 308,
+          "rloc": 283,
+          "debt": 8,
+          "crossings": 0
+        },
+        "33cb21e94a5c7d8d": {
+          "language": "ts",
+          "status": "js",
+          "loc": 63,
+          "rloc": 55,
+          "debt": 4,
+          "crossings": 0
+        },
+        "a662c2095c315988": {
+          "language": "ts",
+          "status": "js",
+          "loc": 216,
+          "rloc": 198,
+          "debt": 2,
+          "crossings": 0
+        },
+        "95bc40c24f74b056": {
+          "language": "ts",
+          "status": "js",
+          "loc": 331,
+          "rloc": 298,
+          "debt": 68,
+          "crossings": 0
+        },
+        "42be8e3188aa9ac1": {
+          "language": "ts",
+          "status": "js",
+          "loc": 218,
+          "rloc": 187,
+          "debt": 75,
+          "crossings": 0
+        },
+        "e269b518f8292053": {
+          "language": "ts",
+          "status": "js",
+          "loc": 261,
+          "rloc": 225,
+          "debt": 92,
+          "crossings": 0
+        },
+        "6e5233d4751aa079": {
+          "language": "ts",
+          "status": "js",
+          "loc": 47,
+          "rloc": 47,
+          "debt": 10,
+          "crossings": 0
+        },
+        "e8e35f3b6ef889d9": {
+          "language": "ts",
+          "status": "js",
+          "loc": 335,
+          "rloc": 281,
+          "debt": 210,
+          "crossings": 0
+        },
+        "2a66e41c4dfda2d5": {
+          "language": "ts",
+          "status": "js",
+          "loc": 627,
+          "rloc": 541,
+          "debt": 54,
+          "crossings": 0
+        },
+        "8a95ec5dd7dd9c75": {
+          "language": "ts",
+          "status": "js",
+          "loc": 327,
+          "rloc": 295,
+          "debt": 45,
+          "crossings": 0
+        },
+        "2f93b46125f7a4da": {
+          "language": "ts",
+          "status": "js",
+          "loc": 279,
+          "rloc": 227,
+          "debt": 45,
+          "crossings": 0
+        },
+        "ed57e76c87aafdda": {
+          "language": "ts",
+          "status": "js",
+          "loc": 36,
+          "rloc": 25,
+          "debt": 3,
+          "crossings": 0
+        },
+        "17d86a083e50e154": {
+          "language": "ts",
+          "status": "js",
+          "loc": 169,
+          "rloc": 134,
+          "debt": 76,
+          "crossings": 0
+        },
+        "4bef25cd6203a708": {
+          "language": "ts",
+          "status": "js",
+          "loc": 98,
+          "rloc": 87,
+          "debt": 4,
+          "crossings": 0
+        },
+        "6402e7c1b689bfd4": {
+          "language": "ts",
+          "status": "bridge",
+          "loc": 5,
+          "rloc": 4,
+          "debt": 1,
+          "crossings": 2
+        },
+        "f4b2037c5118edf4": {
+          "language": "ts",
+          "status": "js",
+          "loc": 5,
+          "rloc": 5,
+          "debt": 8,
+          "crossings": 0
+        },
+        "0ef2c58b83c27749": {
+          "language": "node",
+          "status": "native",
+          "loc": 0,
+          "rloc": 0,
+          "crossings": 1
+        },
+        "21babb797e210811": {
+          "language": "rust",
+          "status": "bridge",
+          "loc": 6,
+          "rloc": 5,
+          "crossings": 0
+        },
+        "a3ca6f99608d67fb": {
+          "language": "wasm",
+          "status": "native",
+          "loc": 0,
+          "rloc": 0,
+          "crossings": 1
+        },
+        "e8be7880786c11aa": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "261306d1fd1fcac4": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "de855d80af7313cb": {
+          "language": "ts",
+          "status": "js",
+          "loc": 3,
+          "rloc": 2,
+          "debt": 1,
+          "crossings": 0
+        },
+        "eb4fa2190ae16176": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "83cc88bd35c82f9f": {
+          "language": "ts",
+          "status": "js",
+          "loc": 3,
+          "rloc": 2,
+          "debt": 2,
+          "crossings": 0
+        },
+        "394fa23e86d5af73": {
+          "language": "ts",
+          "status": "js",
+          "loc": 3,
+          "rloc": 2,
+          "debt": 2,
+          "crossings": 0
+        },
+        "0982a304130aece3": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "8069eeca8bd3d6fd": {
+          "language": "ts",
+          "status": "js",
+          "loc": 16,
+          "rloc": 14,
+          "debt": 4,
+          "crossings": 0
+        },
+        "7c63bc521fc92b8f": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "c4939ac4c233face": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "4c88209028c17963": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "ce31e2d49a4b8b6d": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "798bda0e958e5acb": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "bab69b5fc8e0c7d6": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "596c2ea86095dfd7": {
+          "language": "ts",
+          "status": "js",
+          "loc": 4,
+          "rloc": 3,
+          "debt": 1,
+          "crossings": 0
+        },
+        "719a8d9fd3dc588a": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "6b48f58a15076511": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 2,
+          "crossings": 0
+        },
+        "f6b3906d6a0a5bb8": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "58609eedc373c7ee": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "56299aaa6ebcb9f8": {
+          "language": "ts",
+          "status": "js",
+          "loc": 1,
+          "rloc": 1,
+          "debt": 1,
+          "crossings": 0
+        },
+        "7ce68849593417ef": {
+          "language": "ts",
+          "status": "js",
+          "loc": 208,
+          "rloc": 183,
+          "debt": 3,
+          "crossings": 0
+        },
+        "cbc5fe66ecdcc9c6": {
+          "language": "ts",
+          "status": "js",
+          "loc": 110,
+          "rloc": 100,
+          "debt": 2,
+          "crossings": 0
+        },
+        "40a980ccfe774578": {
+          "language": "ts",
+          "status": "js",
+          "loc": 74,
+          "rloc": 67,
+          "debt": 3,
+          "crossings": 0
+        },
+        "62c3b0bf0dcde70b": {
+          "language": "ts",
+          "status": "bridge",
+          "loc": 117,
+          "rloc": 109,
+          "debt": 2,
+          "crossings": 0
+        },
+        "9b8954fb8edb946a": {
+          "language": "ts",
+          "status": "js",
+          "loc": 111,
+          "rloc": 100,
+          "debt": 2,
+          "crossings": 0
+        },
+        "b73758a489459b7c": {
+          "language": "ts",
+          "status": "js",
+          "loc": 137,
+          "rloc": 121,
+          "debt": 3,
+          "crossings": 0
+        },
+        "70fd4115a27f665c": {
+          "language": "ts",
+          "status": "js",
+          "loc": 55,
+          "rloc": 48,
+          "debt": 2,
+          "crossings": 0
+        },
+        "21bcbf2594e09ec6": {
+          "language": "js",
+          "status": "js",
+          "loc": 915,
+          "rloc": 812,
+          "debt": 22,
+          "crossings": 0
+        },
+        "802739c7a55e1902": {
+          "language": "ts",
+          "status": "js",
+          "loc": 103,
+          "rloc": 87,
+          "debt": 24,
+          "crossings": 0
+        },
+        "58f0d71631afb98f": {
+          "language": "ts",
+          "status": "js",
+          "loc": 305,
+          "rloc": 286,
+          "debt": 22,
+          "crossings": 0
+        },
+        "aca08ae75f093832": {
+          "language": "ts",
+          "status": "js",
+          "loc": 17,
+          "rloc": 17,
+          "debt": 9,
+          "crossings": 0
+        },
+        "b877860362505819": {
+          "language": "ts",
+          "status": "js",
+          "loc": 81,
+          "rloc": 62,
+          "debt": 33,
+          "crossings": 0
+        },
+        "84877654a59491cb": {
+          "language": "ts",
+          "status": "js",
+          "loc": 585,
+          "rloc": 512,
+          "debt": 312,
+          "crossings": 0
+        },
+        "34a960fe7e283135": {
+          "language": "ts",
+          "status": "js",
+          "loc": 179,
+          "rloc": 157,
+          "debt": 39,
+          "crossings": 0
+        },
+        "51b4ff8ffa3f98d7": {
+          "language": "ts",
+          "status": "js",
+          "loc": 65,
+          "rloc": 53,
+          "debt": 3,
+          "crossings": 0
+        },
+        "b4d0c1ad6d98b5f0": {
+          "language": "ts",
+          "status": "js",
+          "loc": 86,
+          "rloc": 76,
+          "debt": 5,
+          "crossings": 0
+        },
+        "0590134d1fa7e79f": {
+          "language": "ts",
+          "status": "js",
+          "loc": 99,
+          "rloc": 81,
+          "debt": 4,
+          "crossings": 0
+        },
+        "bb449db437d5d115": {
+          "language": "ts",
+          "status": "js",
+          "loc": 38,
+          "rloc": 27,
+          "debt": 12,
+          "crossings": 0
+        },
+        "d4bed36d12f65516": {
+          "language": "ts",
+          "status": "js",
+          "loc": 59,
+          "rloc": 38,
+          "debt": 18,
+          "crossings": 0
+        },
+        "c9347051246ce0ec": {
+          "language": "ts",
+          "status": "js",
+          "loc": 36,
+          "rloc": 35,
+          "debt": 27,
+          "crossings": 0
+        },
+        "714516814a6051f3": {
+          "language": "ts",
+          "status": "js",
+          "loc": 441,
+          "rloc": 359,
+          "debt": 117,
+          "crossings": 0
+        },
+        "3f9b35ccf62c2de0": {
+          "language": "ts",
+          "status": "js",
+          "loc": 112,
+          "rloc": 86,
+          "debt": 36,
+          "crossings": 0
+        },
+        "b05e86b9630171dd": {
+          "language": "ts",
+          "status": "js",
+          "loc": 87,
+          "rloc": 73,
+          "debt": 22,
+          "crossings": 0
+        },
+        "e14cbb6f10fb3e07": {
+          "language": "ts",
+          "status": "js",
+          "loc": 42,
+          "rloc": 30,
+          "debt": 18,
+          "crossings": 0
+        },
+        "6a607a4c97052747": {
+          "language": "ts",
+          "status": "js",
+          "loc": 130,
+          "rloc": 107,
+          "debt": 7,
+          "crossings": 0
+        },
+        "bebb2eb3e32353aa": {
+          "language": "ts",
+          "status": "js",
+          "loc": 38,
+          "rloc": 34,
+          "debt": 2,
+          "crossings": 0
+        },
+        "e2c3228632985ae4": {
+          "language": "ts",
+          "status": "js",
+          "loc": 217,
+          "rloc": 193,
+          "debt": 2,
+          "crossings": 0
+        },
+        "fee38969289b8886": {
+          "language": "ts",
+          "status": "js",
+          "loc": 147,
+          "rloc": 123,
+          "debt": 8,
+          "crossings": 0
+        },
+        "ee06efd6aa2ef4a8": {
+          "language": "ts",
+          "status": "js",
+          "loc": 203,
+          "rloc": 182,
+          "debt": 12,
+          "crossings": 0
+        },
+        "df3d92f2dd12d477": {
+          "language": "ts",
+          "status": "js",
+          "loc": 71,
+          "rloc": 63,
+          "debt": 6,
+          "crossings": 0
+        },
+        "903371170de66f3c": {
+          "language": "js",
+          "status": "js",
+          "loc": 81,
+          "rloc": 72,
+          "debt": 1,
+          "crossings": 0
+        },
+        "03e3118cc386ff69": {
+          "language": "js",
+          "status": "js",
+          "loc": 146,
+          "rloc": 137,
+          "debt": 3,
+          "crossings": 0
+        },
+        "915b93a250796d2e": {
+          "language": "js",
+          "status": "js",
+          "loc": 22,
+          "rloc": 19,
+          "debt": 1,
+          "crossings": 0
+        },
+        "09119cb26e078e6d": {
+          "language": "js",
+          "status": "js",
+          "loc": 13,
+          "rloc": 10,
+          "debt": 1,
+          "crossings": 0
+        },
+        "288845d37b55c460": {
+          "language": "js",
+          "status": "js",
+          "loc": 31,
+          "rloc": 25,
+          "debt": 1,
+          "crossings": 0
+        },
+        "790ceaa15055a88c": {
+          "language": "ts",
+          "status": "js",
+          "loc": 8,
+          "rloc": 7,
+          "debt": 1,
+          "crossings": 0
+        }
+      },
+      "edges": [
+        {
+          "fromId": "6402e7c1b689bfd4",
+          "toId": "0ef2c58b83c27749",
+          "kind": "native"
+        },
+        {
+          "fromId": "6402e7c1b689bfd4",
+          "toId": "a3ca6f99608d67fb",
+          "kind": "wasm"
+        }
+      ],
+      "summary": {
+        "files": 104,
+        "languages": {
+          "ts": {
+            "files": 93,
+            "loc": 13438,
+            "rloc": 11911
+          },
+          "js": {
+            "files": 8,
+            "loc": 1397,
+            "rloc": 1243
+          },
+          "rust": {
+            "files": 1,
+            "loc": 6,
+            "rloc": 5
+          },
+          "wasm": {
+            "files": 1,
+            "loc": 0,
+            "rloc": 0
+          },
+          "node": {
+            "files": 1,
+            "loc": 0,
+            "rloc": 0
+          }
+        },
+        "status": {
+          "js": 99,
+          "rust": 0,
+          "bridge": 3,
+          "native": 2
+        },
+        "bridgeFiles": 3,
+        "ffiEdges": 2,
+        "ffiCrossings": 4,
+        "migrationDebt": 2330
+      }
+    }
+  }
+}

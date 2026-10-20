@@ -100,15 +100,16 @@ Límites: Rust solo se mide con escáner léxico; las aristas napi no se observa
 
 ## M5 — App web
 
-**Objetivo:** explorar snapshots, reportes y la lente de migración en el navegador, sin depender de
-abrir un HTML generado por comando.
+**Estado:** en curso. Primer vertical slice en `apps/web` (React + Vite) sobre `@codarch/render`.
 
-- [ ] Cargar un `snapshot.cc.json` y un `report.json` locales o por URL.
-- [ ] Reutilizar `buildRenderModel` y el layout del treemap; no duplicar la geometría.
-- [ ] Selector de área/color, búsqueda, foco por carpeta y ficha de fichero.
-- [ ] Panel de migración: lenguajes, puentes, cruces FFI y top de deuda.
-- [ ] Vista de PR: diff, violaciones introducidas, hotspots y enlace al artefacto.
-- [ ] Servir con `codarch serve` o como estático; sin backend obligatorio.
+- [x] Cargar un `snapshot.cc.json` local (botón o drag & drop) y una demo incluida.
+- [x] Reutilizar `buildRenderModel` y `layoutMap`; layout dinámico al tamaño del contenedor.
+- [x] Selector de área/color, búsqueda por ruta y ficha de fichero.
+- [x] Panel de migración: estratos por lenguaje, estados, puentes, FFI y top de deuda.
+- [x] Color por estado (`js`, `rust`, `bridge`, `native`) y por cualquier métrica.
+- [ ] Cargar `report.json` y vista de PR: diff, violaciones, hotspots.
+- [ ] Foco por carpeta y navegación por teclado más completa.
+- [ ] Cargar snapshots por URL y servir con `codarch serve`; build estático ya disponible.
 
 ## Después
 
