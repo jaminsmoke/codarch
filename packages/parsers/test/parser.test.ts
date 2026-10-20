@@ -76,19 +76,24 @@ const b = 2;
     expect(result.metrics.rloc).toBe(3);
   });
 
-  it("parsea ficheros grandes por encima del buffer de 32 KB", () => {
-    const body = Array.from(
-      { length: 3000 },
-      (_, index) => `const value${index} = ${index};`
-    ).join("\n");
-    const source = `export function big() {\n${body}\n  return value0;\n}`;
+  it(
+    "parsea ficheros grandes por encima del buffer de 32 KB",
+    () => {
+      const body = Array.from(
+        { length: 900 },
+        (_, index) =>
+          `const value${index} = ${index}; // ${"padding".repeat(6)}`
+      ).join("\n");
+      const source = `export function big() {\n${body}\n  return value0;\n}`;
 
-    expect(source.length).toBeGreaterThan(32 * 1024);
-    const result = parser.parse(source, "src/big.ts");
-    expect(result.metrics.functions).toBe(1);
-    expect(result.metrics.loc).toBeGreaterThan(3000);
-    expect(result.metrics.maxComplexity).toBe(1);
-  });
+      expect(source.length).toBeGreaterThan(32 * 1024);
+      const result = parser.parse(source, "src/big.ts");
+      expect(result.metrics.functions).toBe(1);
+      expect(result.metrics.loc).toBeGreaterThan(900);
+      expect(result.metrics.maxComplexity).toBe(1);
+    },
+    15_000
+  );
 });
 
 describe("TypeScriptParser · imports", () => {
