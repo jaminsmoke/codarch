@@ -3,7 +3,7 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M0 en marcha. Importador `cc.json` 2.x y 1.x normalizado + CLI de inspección + render 2D sobre datos reales.
+**Estado:** M0 cerrado. Importador `cc.json` 2.x y 1.x normalizado + CLI de inspección + render 2D sobre datos reales.
 Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md).
 

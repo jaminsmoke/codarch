@@ -108,6 +108,34 @@ El inspector responde "¿y este fichero qué?", no "¿quieres ver un donut?".
 - **Aristas:** máximo 8 salientes + 8 entrantes; las entrantes son discontinuas. El resto se lista
   en el inspector.
 
+## 9. Comparación con CodeCharta (M0)
+
+Se comparó el mismo `samples/codecharta_visualization.cc.json.gz` con CodeCharta Visualization 2.9.0
+(`area=rloc`, `height=complexity`, `color=complexity`) y con CodArch (`--area rloc --color complexity`).
+
+| Señal | CodArch | CodeCharta |
+|---|---|---|
+| Ficheros | 2.003 | 2.003 |
+| `rloc` | 103.577 | 103.577 (Σ) |
+| Aristas | 3.727 | 3.727 |
+| Estructura | `app` 102,4k · `features` 51,2k | `app` 97% de ficheros · `features` visible |
+| Hotspot principal | `dependencyMap.component.spec.ts` | `dependencyMap.component.spec.ts` |
+
+Conclusiones:
+
+- **Los totales cuadran.** La diferencia de área es solo el mínimo de 1 que damos a los 79 ficheros
+  sin `rloc`; el inspector sigue mostrando el valor real.
+- **Los hotspots coinciden.** Ambos mapas destacan `dependencyMap.component.spec.ts`,
+  `threeSceneService.ts`, `metricColorRangeDiagram.component.ts` y `fileValidator.ts`. Nuestro
+  selector de riesgo elige el mismo fichero que CodeCharta etiqueta (rloc 1.053, complejidad 9,
+  riesgo 100/100).
+- **La jerarquía coincide.** `app` concentra 102,4k rloc y 1.935 ficheros; `features` ~51,2k.
+- **Diferencias deliberadas:** 2D frente a 3D, rampa neutra en la lente Métrica frente al verde-rojo
+  de CodeCharta, y riesgo compuesto por defecto. No se detectaron defectos de datos o render.
+- El porcentaje del explorador de CodeCharta es cuota de ficheros, no de área.
+
+No se copió código ni diseño de CodeCharta; la comparación se hizo sobre el mismo `cc.json`.
+
 ## Lo que deliberadamente no hacemos
 
 - **3D.** Lente posterior, nunca la vista por defecto.

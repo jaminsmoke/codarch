@@ -23,7 +23,7 @@ Criterios de aceptación:
 - [x] HTML único, sin servidor, sin red: 489.663 bytes con la muestra real de 2.003 ficheros.
 - [x] 5k nodos renderizados en < 500 ms (mediana ~27 ms con `npm run bench:render`).
 - [x] Salida determinista: mismo input, mismo HTML (salvo hash de build).
-- [ ] Comparación visual lado a lado con el mapa de CodeCharta del mismo commit.
+- [x] Comparación visual lado a lado con el mapa de CodeCharta del mismo commit.
 
 **Por qué primero:** elimina el riesgo del modelo y del render antes de invertir en parsers. Y nos
 obliga a mirar los datos del rival con nuestros propios ojos.
