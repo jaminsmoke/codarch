@@ -84,10 +84,29 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 
 ## M4 — Lente de migración
 
-- [ ] LOC por lenguaje y estado por fichero.
-- [ ] Aristas `ffi` (napi/WASM) y conteo de cruces.
-- [ ] "Deuda de migración" ponderada por complejidad, no por líneas.
-- [ ] Validación: usarla para planificar la migración de este propio repo a Rust.
+**Estado:** cerrado (v1). Decisión en [ADR 0016](adr/0016-lente-migracion.md); plan en
+[`migration.md`](migration.md).
+
+- [x] LOC por lenguaje (TS, JS, Rust, WASM, Node) y estado `js|rust|bridge|native` por fichero.
+- [x] Aristas FFI para imports `.wasm`/`.node` y conteo de cruces por fichero.
+- [x] Detección de puentes napi/`wasm_bindgen`/`WebAssembly` sin inventar aristas.
+- [x] "Deuda de migración" `(maxComplexity + 1) × (1 + fanIn)`, sin líneas.
+- [x] Métricas `migrationDebt` y `ffiCrossings` visibles en el mapa, `inspect` y `analyze`.
+- [x] Validación sobre este repo: 104 ficheros, 13.159 rloc TS/JS, deuda 2.330 y plan por fases.
+
+Límites: Rust solo se mide con escáner léxico; las aristas napi no se observan sin el glue generado.
+
+## M5 — App web
+
+**Objetivo:** explorar snapshots, reportes y la lente de migración en el navegador, sin depender de
+abrir un HTML generado por comando.
+
+- [ ] Cargar un `snapshot.cc.json` y un `report.json` locales o por URL.
+- [ ] Reutilizar `buildRenderModel` y el layout del treemap; no duplicar la geometría.
+- [ ] Selector de área/color, búsqueda, foco por carpeta y ficha de fichero.
+- [ ] Panel de migración: lenguajes, puentes, cruces FFI y top de deuda.
+- [ ] Vista de PR: diff, violaciones introducidas, hotspots y enlace al artefacto.
+- [ ] Servir con `codarch serve` o como estático; sin backend obligatorio.
 
 ## Después
 

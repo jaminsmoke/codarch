@@ -6,9 +6,11 @@ import {
   type CcAttributeType,
   type CcEdge,
   type CcJson,
+  type CcMigrationLens,
   type CcNode
 } from "@codarch/schema";
 import type { GraphResult } from "./graph";
+import type { MigrationResult } from "./migration";
 
 export interface SnapshotFile {
   relativePath: string;
@@ -19,6 +21,7 @@ export interface SnapshotInput {
   projectName: string;
   files: readonly SnapshotFile[];
   graph: GraphResult;
+  migration?: MigrationResult;
 }
 
 const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
@@ -106,6 +109,16 @@ const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
     title: "Nivel de dependencia",
     description: "Profundidad en el DAG de dependencias",
     direction: 0
+  },
+  migrationDebt: {
+    title: "Deuda de migración",
+    description: "(maxComplexity + 1) × (1 + fan-in); 0 si ya es Rust o nativo",
+    direction: -1
+  },
+  ffiCrossings: {
+    title: "Cruces FFI",
+    description: "Aristas WASM/native que tocan el fichero",
+    direction: -1
   }
 };
 
@@ -207,6 +220,10 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     dependencyNodes[fileId(path)] = { level: metrics.dependencyLevel };
   }
 
+  const migrationLens = input.migration
+    ? migrationLensFrom(input.migration)
+    : undefined;
+
   const lenses = {
     metrics: {
       attributes,
@@ -221,7 +238,8 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
         weight: "absolute" as const,
         typeOnly: "absolute" as const
       }
-    }
+    },
+    ...(migrationLens ? { migration: migrationLens } : {})
   };
 
   return {
@@ -232,6 +250,32 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     },
     files: [root],
     lenses
+  };
+}
+
+function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
+  const nodes: CcMigrationLens["nodes"] = {};
+  for (const [relativePath, node] of migration.nodes) {
+    nodes[fileId(relativePath)] = node;
+  }
+
+  const edges = migration.edges
+    .map((edge) => ({
+      fromId: fileId(edge.from),
+      toId: fileId(edge.to),
+      kind: edge.kind
+    }))
+    .sort(
+      (left, right) =>
+        compareStrings(left.fromId, right.fromId) ||
+        compareStrings(left.toId, right.toId) ||
+        compareStrings(left.kind, right.kind)
+    );
+
+  return {
+    nodes,
+    edges,
+    summary: migration.summary
   };
 }
 

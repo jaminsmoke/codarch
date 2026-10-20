@@ -42,6 +42,19 @@ codarch diff base.cc.json head.cc.json -o report.json --config .codarch.yml --fa
 Códigos de salida de `diff`: `0` sin bloqueo, `2` política incumplida, `1` error de lectura o
 configuración.
 
+## Lente de migración
+
+`analyze` mide TS/JS, Rust y artefactos `.wasm`/`.node`. El snapshot incluye la lente `migration` y
+las métricas `migrationDebt` (complejidad × consumidores) y `ffiCrossings`.
+
+```bash
+codarch inspect .codarch/snapshot.cc.json --metric migrationDebt --top 10
+codarch render .codarch/snapshot.cc.json --area rloc --color migrationDebt -o migration.html
+```
+
+Rust se mide con un escáner léxico; las aristas napi no se inventan si el glue generado no está en el
+fuente. Ver [`docs/migration.md`](https://github.com/jaminsmoke/codarch/blob/main/docs/migration.md).
+
 ## Reglas
 
 `.codarch.yml` define capas, dependencias prohibidas, umbrales y ciclos. Solo bloquean las

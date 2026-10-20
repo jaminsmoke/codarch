@@ -1,8 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
-import { walkTree, type CcJson } from "@codarch/schema";
+import { walkTree, type CcJson, type CcMigrationSummary } from "@codarch/schema";
 import { collectGitChurn } from "./git";
 import { buildGraph, type DependencyLink } from "./graph";
+import {
+  buildMigration,
+  isNativeLanguage,
+  jsIsBridge,
+  languageForPath,
+  measureRustSource,
+  rustIsBridge,
+  MIGRATION_EXTENSIONS,
+  type MigrationFileInput,
+  type MigrationLinkInput
+} from "./migration";
 import { ImportResolver } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
 import { TypeScriptParser } from "./ts/parser";
@@ -49,6 +60,7 @@ export interface AnalyzeResult {
   typeOnlyImports: number;
   unresolvedImports: number;
   git: GitSummary;
+  migration: CcMigrationSummary;
   durationMs: number;
 }
 
@@ -67,7 +79,7 @@ export function analyzeRepository(
   const projectName = options.projectName ?? readProjectName(root);
   const walked = walkSourceFiles(root, {
     ignore: options.ignore,
-    extensions: options.extensions
+    extensions: options.extensions ?? MIGRATION_EXTENSIONS
   });
   const warnings = [...walked.warnings];
   const resolver = new ImportResolver(root, walked.files);
@@ -75,6 +87,8 @@ export function analyzeRepository(
 
   const parser = new TypeScriptParser();
   const parsedFiles: SnapshotFile[] = [];
+  const migrationFiles: MigrationFileInput[] = [];
+  const migrationLinks: MigrationLinkInput[] = [];
   const links: DependencyLink[] = [];
   const unresolved: UnresolvedImportIssue[] = [];
   let externalImports = 0;
@@ -82,6 +96,26 @@ export function analyzeRepository(
   let typeOnlyImports = 0;
 
   for (const file of walked.files) {
+    const language = languageForPath(file.relativePath);
+    if (!language) continue;
+
+    if (isNativeLanguage(language)) {
+      parsedFiles.push({
+        relativePath: file.relativePath,
+        metrics: { loc: 0, rloc: 0 }
+      });
+      migrationFiles.push({
+        relativePath: file.relativePath,
+        language,
+        loc: 0,
+        rloc: 0,
+        maxComplexity: 0,
+        fanIn: 0,
+        bridge: false
+      });
+      continue;
+    }
+
     let source: string;
     try {
       source = fs.readFileSync(file.absolutePath, "utf8");
@@ -89,6 +123,24 @@ export function analyzeRepository(
       warnings.push(
         `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
       );
+      continue;
+    }
+
+    if (language === "rust") {
+      const measured = measureRustSource(source);
+      parsedFiles.push({
+        relativePath: file.relativePath,
+        metrics: { loc: measured.loc, rloc: measured.rloc }
+      });
+      migrationFiles.push({
+        relativePath: file.relativePath,
+        language,
+        loc: measured.loc,
+        rloc: measured.rloc,
+        maxComplexity: 0,
+        fanIn: 0,
+        bridge: rustIsBridge(source)
+      });
       continue;
     }
 
@@ -112,11 +164,20 @@ export function analyzeRepository(
 
       const result = resolver.resolve(file.absolutePath, imported.specifier);
       if (result.kind === "internal") {
-        links.push({
-          from: file.relativePath,
-          to: result.file.relativePath,
-          typeOnly: imported.typeOnly
-        });
+        const targetLanguage = languageForPath(result.file.relativePath);
+        if (targetLanguage === "wasm" || targetLanguage === "node") {
+          migrationLinks.push({
+            from: file.relativePath,
+            to: result.file.relativePath,
+            kind: targetLanguage === "wasm" ? "wasm" : "native"
+          });
+        } else {
+          links.push({
+            from: file.relativePath,
+            to: result.file.relativePath,
+            typeOnly: imported.typeOnly
+          });
+        }
       } else if (result.kind === "external") {
         if (result.builtin) fileBuiltinImports++;
         else fileExternalImports++;
@@ -145,6 +206,18 @@ export function analyzeRepository(
         typeOnlyImports: fileTypeOnlyImports,
         unresolvedImports: fileUnresolvedImports
       }
+    });
+    migrationFiles.push({
+      relativePath: file.relativePath,
+      language,
+      loc: parsed.metrics.loc ?? 0,
+      rloc: parsed.metrics.rloc ?? 0,
+      maxComplexity: parsed.metrics.maxComplexity ?? 0,
+      fanIn: 0,
+      bridge: jsIsBridge(
+        source,
+        parsed.imports.map((imported) => imported.specifier)
+      )
     });
   }
 
@@ -178,6 +251,17 @@ export function analyzeRepository(
     }
   }
 
+  for (const file of migrationFiles) {
+    file.fanIn = graph.metrics.get(file.relativePath)?.fanIn ?? 0;
+  }
+  const migration = buildMigration(migrationFiles, migrationLinks);
+  for (const file of parsedFiles) {
+    const node = migration.nodes.get(file.relativePath);
+    if (!node) continue;
+    file.metrics.ffiCrossings = node.crossings;
+    if (node.debt !== undefined) file.metrics.migrationDebt = node.debt;
+  }
+
   if (unresolved.length > 0) {
     warnings.push(
       `${unresolved.length} imports sin resolver; se excluyen del grafo`
@@ -187,7 +271,8 @@ export function analyzeRepository(
   const snapshot = buildSnapshot({
     projectName,
     files: parsedFiles,
-    graph
+    graph,
+    migration
   });
 
   let folders = 0;
@@ -221,6 +306,7 @@ export function analyzeRepository(
       authors: git.authors,
       shallow: git.shallow
     },
+    migration: migration.summary,
     durationMs: Date.now() - started
   };
 }

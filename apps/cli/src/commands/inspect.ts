@@ -1,4 +1,11 @@
-import { CcJsonError, defaultMetric, getStats, parseCcJson, topByMetric } from "@codarch/schema";
+import {
+  CcJsonError,
+  defaultMetric,
+  getStats,
+  parseCcJson,
+  topByMetric,
+  type CcMigrationLens
+} from "@codarch/schema";
 import { formatBytes, readJsonFile } from "../io";
 
 export interface InspectOptions {
@@ -26,6 +33,13 @@ function truncateLeft(value: string, max = 78): string {
 
 function shortChecksum(value: string | undefined): string {
   return value ? `${value.slice(0, 8)}…` : "—";
+}
+
+function readMigrationLens(value: unknown): CcMigrationLens | null {
+  if (typeof value !== "object" || value === null) return null;
+  const lens = value as Partial<CcMigrationLens>;
+  if (typeof lens.summary !== "object" || lens.summary === null) return null;
+  return lens as CcMigrationLens;
 }
 
 export function runInspect(options: InspectOptions): number {
@@ -114,6 +128,22 @@ export function runInspect(options: InspectOptions): number {
   lines.push(
     field("aristas", `${num(stats.edges)} · leafEdges ${num(stats.leafEdges)}`)
   );
+  const migration = readMigrationLens(cc.lenses?.migration);
+  if (migration) {
+    const languages = Object.entries(migration.summary.languages)
+      .map(([language, entry]) => `${language} ${num(entry?.rloc ?? 0)}`)
+      .join(" · ");
+    lines.push(
+      field(
+        "migración",
+        `${languages || "—"} · ${num(
+          migration.summary.bridgeFiles
+        )} puentes · ${num(migration.summary.ffiEdges)} FFI · deuda ${num(
+          migration.summary.migrationDebt
+        )}`
+      )
+    );
+  }
   if (stats.orphanMetricNodes > 0) {
     lines.push(field("huérfanos", `${num(stats.orphanMetricNodes)} nodos de métricas sin fichero`));
   }

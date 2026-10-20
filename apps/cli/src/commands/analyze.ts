@@ -129,6 +129,19 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
       )} sin resolver`
     )
   );
+  const migrationLanguages = Object.entries(result.migration.languages)
+    .map(([language, stats]) => `${language} ${num(stats?.rloc ?? 0)}`)
+    .join(" · ");
+  lines.push(
+    field(
+      "migración",
+      `${migrationLanguages || "—"} · ${num(
+        result.migration.bridgeFiles
+      )} puentes · ${num(result.migration.ffiEdges)} FFI · deuda ${num(
+        result.migration.migrationDebt
+      )}`
+    )
+  );
   lines.push(field("tiempo", `${num(result.durationMs)} ms`));
   lines.push(
     field(

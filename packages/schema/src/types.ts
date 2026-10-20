@@ -64,9 +64,53 @@ export interface CcDependencyLens {
   attributeDescriptors?: Record<string, CcAttributeDescriptor>;
 }
 
+export type CcMigrationLanguage = "ts" | "js" | "rust" | "wasm" | "node";
+export type CcMigrationStatus = "js" | "rust" | "bridge" | "native";
+
+export interface CcMigrationNode {
+  language: CcMigrationLanguage;
+  status: CcMigrationStatus;
+  loc: number;
+  rloc: number;
+  /** Solo TS/JS: (maxComplexity + 1) × (1 + fanIn). */
+  debt?: number;
+  /** Aristas FFI (wasm/node) que tocan este fichero. */
+  crossings: number;
+}
+
+export interface CcMigrationEdge {
+  fromId: string;
+  toId: string;
+  kind: "wasm" | "native";
+}
+
+export interface CcMigrationLanguageStats {
+  files: number;
+  loc: number;
+  rloc: number;
+}
+
+export interface CcMigrationSummary {
+  files: number;
+  languages: Partial<Record<CcMigrationLanguage, CcMigrationLanguageStats>>;
+  status: Record<CcMigrationStatus, number>;
+  bridgeFiles: number;
+  ffiEdges: number;
+  ffiCrossings: number;
+  /** Suma de la deuda de los ficheros TS/JS que quedan por migrar. */
+  migrationDebt: number;
+}
+
+export interface CcMigrationLens {
+  nodes: Record<string, CcMigrationNode>;
+  edges: CcMigrationEdge[];
+  summary: CcMigrationSummary;
+}
+
 export interface CcLenses {
   metrics?: CcMetricsLens;
   dependency?: CcDependencyLens;
+  migration?: CcMigrationLens;
   /** Lentes desconocidas se preservan: una herramienta nueva no rompe a una vieja. */
   [name: string]: unknown;
 }

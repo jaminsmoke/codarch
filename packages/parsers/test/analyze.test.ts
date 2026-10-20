@@ -61,11 +61,13 @@ describe("analyzeRepository", () => {
         fanOut: expect.any(Number),
         inCycle: expect.any(Number),
         cycleSize: expect.any(Number),
-        dependencyLevel: expect.any(Number)
+        dependencyLevel: expect.any(Number),
+        migrationDebt: expect.any(Number),
+        ffiCrossings: expect.any(Number)
       });
     }
 
-    expect(result.metricNames).toHaveLength(15);
+    expect(result.metricNames).toHaveLength(17);
   });
 
   it("marca el self-loop y las aristas type-only", () => {

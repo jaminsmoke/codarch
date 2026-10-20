@@ -3,13 +3,15 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M3 cerrado. El CLI `codarch@0.1.0` está publicado en npm, la GitHub Action pública
-`jaminsmoke/codarch-action@v1` funciona desde otros repositorios y el servidor MCP de solo lectura
-está operativo. El siguiente milestone es la lente de migración (M4).
+**Estado:** M4 cerrado. El CLI `codarch@0.1.0` está publicado en npm, la GitHub Action pública
+`jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
+operativo y la lente de migración ya mide lenguajes, puentes FFI y deuda por complejidad. El
+siguiente milestone es la app web (M5).
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
-MCP en [`docs/mcp.md`](docs/mcp.md) y el plan en [`docs/roadmap.md`](docs/roadmap.md).
+MCP en [`docs/mcp.md`](docs/mcp.md), la migración en [`docs/migration.md`](docs/migration.md) y el plan
+en [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -36,6 +38,10 @@ npm run diff -- base.cc.json head.cc.json --fail-on violations
 npm run analyze -- .
 npm run mcp -- --help
 # configuración del cliente: docs/mcp.md
+
+# Lente de migración: deuda y frontera FFI
+npm run inspect -- .codarch/snapshot.cc.json --metric migrationDebt --top 10
+npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o .codarch/migration.html
 
 # Política de arquitectura opcional
 cp .codarch.example.yml .codarch.yml
@@ -359,8 +365,8 @@ design/     prototipo navegable del mapa 2D
 Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos `codarch analyze`,
 `codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
 `.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
-el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `apps/mcp` expone el modelo
-a agentes por stdio.
+el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `parsers` también mide
+Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo a agentes por stdio.
 
 ## Inspiración
 

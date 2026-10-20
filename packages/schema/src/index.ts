@@ -7,6 +7,13 @@ export type {
   CcLenses,
   CcMeta,
   CcMetricsLens,
+  CcMigrationEdge,
+  CcMigrationLanguage,
+  CcMigrationLanguageStats,
+  CcMigrationLens,
+  CcMigrationNode,
+  CcMigrationStatus,
+  CcMigrationSummary,
   CcNode,
   CcNodeType,
   FileEntry

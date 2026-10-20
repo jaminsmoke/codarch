@@ -1,7 +1,8 @@
 # Modelo de datos
 
-**Estado:** M1 implementado. `packages/schema` valida `cc.json` 2.x, normaliza 1.x y comparte la
-identidad canónica; `packages/parsers` produce snapshots 2.0 con métricas y grafo.
+**Estado:** M4 implementado. `packages/schema` valida `cc.json` 2.x, normaliza 1.x y comparte la
+identidad canónica; `packages/parsers` produce snapshots 2.0 con métricas, grafo y lente de
+migración.
 
 Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir
 código, porque cambiarla después contamina el CLI, el mapa, el bot y el MCP a la vez.
@@ -87,7 +88,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `metrics` | atributos numéricos por nodo + descriptores | sí |
 | `dependency` | aristas, niveles, ciclos, capas | sí |
 | `risk` | score compuesto, violaciones | derivada en render, no se almacena |
-| `migration` | LOC por lenguaje, estado, frontera FFI | después |
+| `migration` | LOC por lenguaje, estado, deuda y frontera FFI | sí (v1) |
 | `domain` | palabras, frecuencia, tf-idf | después |
 | `evolution` | series temporales, acoplamiento temporal | después |
 
@@ -114,6 +115,7 @@ Métricas actuales del analizador:
 | Imports | `imports`, `externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports` |
 | Grafo | `fanIn`, `fanOut`, `inCycle`, `cycleSize`, `dependencyLevel` |
 | Historial | `number_of_commits`, `number_of_authors` |
+| Migración | `migrationDebt`, `ffiCrossings` |
 
 Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símbolos quedan para una
 lente posterior. Las dos métricas de historial solo aparecen si `git` está disponible y el análisis
@@ -143,21 +145,33 @@ recalcular. Un componente cíclico es un SCC de tamaño > 1 o un self-loop.
 ### La lente de migración
 
 Es nuestra lente propia, y nace de un caso real: este proyecto migrará de TypeScript a Rust.
+La v1 está documentada en [ADR 0016](adr/0016-lente-migracion.md).
 
 ```ts
 type MigrationNode = {
-  languages: Record<string, number>   // { ts: 820, rust: 120 }
+  language: 'ts' | 'js' | 'rust' | 'wasm' | 'node'
   status: 'js' | 'rust' | 'bridge' | 'native'
-  boundary?: number                   // cruces FFI por fichero
+  loc: number
+  rloc: number
+  debt?: number        // solo TS/JS: (maxComplexity + 1) × (1 + fanIn)
+  crossings: number    // aristas FFI wasm/node incidentes
 }
 ```
 
+La lente guarda `nodes`, `edges` (`kind: 'wasm' | 'native'`) y un `summary` con reparto por lenguaje,
+conteo por estado, puentes, aristas FFI y deuda total.
+
 Permite responder preguntas que ninguna herramienta actual responde bien:
 
-- ¿Cuánto queda por migrar, ponderado por complejidad y no por líneas?
+- ¿Cuánto queda por migrar, ponderado por complejidad y acoplamiento, no por líneas?
 - ¿Dónde está la frontera napi/WASM y cuántos cruces hay?
 - ¿La migración está reduciendo el acoplamiento o solo moviéndolo?
 - ¿Qué módulos migrados siguen siendo llamados desde JS y a qué coste?
+
+Límites de v1: Rust solo se mide con un escáner léxico, no se parsean imports ni complejidad; las
+anotaciones `#[napi]`/`#[wasm_bindgen]` marcan el fichero como `bridge`, pero no generan aristas
+porque el glue no está en el fuente. Las aristas FFI solo existen cuando un import TS/JS resuelve a
+un `.wasm` o `.node` incluido en el análisis.
 
 Si la herramienta no sirve para gestionar su propia migración, no sirve.
 
@@ -279,17 +293,21 @@ Reglas:
 
 ```
 walkSourceFiles(root)
-  → .gitignore raíz + anidados, extensiones TS/JS, orden estable
+  → .gitignore raíz + anidados, TS/JS + Rust/WASM/Node, orden estable
 ImportResolver(root, files)
-  → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins
+  → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins, .wasm/.node
 TypeScriptParser.parse(source, path)
   → loc/rloc/functions/complejidad + imports tipados
+measureRustSource(source)
+  → loc/rloc léxico, sin imports ni complejidad
 collectGitChurn(root, files)
   → number_of_commits, number_of_authors (un solo git log)
 buildGraph(files, links)
   → dedupe, fan-in/out, SCC, ciclos, niveles
-buildSnapshot({ projectName, files, graph })
-  → árbol, lentes metrics/dependency, checksum
+buildMigration(files, ffiLinks)
+  → estados, deuda, cruces y resumen por lenguaje
+buildSnapshot({ projectName, files, graph, migration })
+  → árbol, lentes metrics/dependency/migration, checksum
 diffSnapshots(base, head, { rules })
   → ficheros/aristas/ciclos/hotspots + violaciones introducidas/existentes/resueltas
 loadArchitectureStore(snapshot, report)
