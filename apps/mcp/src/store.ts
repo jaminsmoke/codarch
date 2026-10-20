@@ -344,7 +344,7 @@ export class ArchitectureStore {
           entry.node,
           stripRootName
         );
-        const metrics = { ...(attributes[entry.node.id] ?? {}) };
+        const metrics = { ...attributes[entry.node.id] };
         const complexity = metricValue(metrics, this.complexityKey);
         const churn = metricValue(metrics, this.churnKey);
         const size = metricValue(metrics, this.sizeMetric);

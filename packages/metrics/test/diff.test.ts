@@ -63,7 +63,7 @@ function snapshot(
       type: "File"
     };
     parent.children?.push(node);
-    attributes[node.id] = { ...(file.metrics ?? {}) };
+    attributes[node.id] = { ...file.metrics };
   }
 
   return parseCcJson({

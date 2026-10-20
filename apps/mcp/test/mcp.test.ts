@@ -11,7 +11,7 @@ import {
   listViolations,
   type MapNode
 } from "../src/tools";
-import { makeReport, makeStore } from "./fixtures";
+import { makeStore } from "./fixtures";
 
 function flatten(node: MapNode, output: MapNode[] = []): MapNode[] {
   output.push(node);

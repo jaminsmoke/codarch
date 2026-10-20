@@ -219,7 +219,7 @@ function componentLevels(
   componentOf: ReadonlyMap<string, number>
 ): number[] {
   const condensation = new Map<number, Set<number>>();
-  const indegree = new Array<number>(components.length).fill(0);
+  const indegree = Array.from<number>({ length: components.length }).fill(0);
 
   for (const edge of edges) {
     const from = componentOf.get(edge.from);
@@ -234,7 +234,7 @@ function componentLevels(
     }
   }
 
-  const levels = new Array<number>(components.length).fill(0);
+  const levels = Array.from<number>({ length: components.length }).fill(0);
   const queue: number[] = [];
   for (let index = 0; index < components.length; index++) {
     if (indegree[index] === 0) queue.push(index);

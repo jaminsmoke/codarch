@@ -24,6 +24,7 @@
     "publish:cli": "npm run build:cli && npm publish apps/cli/dist --access public",
     "sync:action": "node scripts/sync-action.mjs",
     "check:action": "node scripts/check-action.mjs",
+    "lint": "oxlint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "esbuild": "^0.28.2",
+    "oxlint": "^1.89.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.5",

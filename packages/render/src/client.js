@@ -53,9 +53,9 @@
   var metricPicker = document.getElementById("metric-pick");
   var metricSelect = document.getElementById("metric-select");
 
-  var cellByIndex = new Array(N);
-  var rects = new Array(N);
-  var texts = new Array(N);
+  var cellByIndex = Array.from({ length: N });
+  var rects = Array.from({ length: N });
+  var texts = Array.from({ length: N });
   for (var ti = 0; ti < N; ti++) texts[ti] = [];
   var cells = Array.prototype.slice.call(
     document.querySelectorAll("#map rect[data-i]")
@@ -97,8 +97,8 @@
   /* ------------------------------------------------------------------ *
    *  Dependencias
    * ------------------------------------------------------------------ */
-  var out = new Array(N);
-  var inc = new Array(N);
+  var out = Array.from({ length: N });
+  var inc = Array.from({ length: N });
   for (var ai = 0; ai < N; ai++) {
     out[ai] = [];
     inc[ai] = [];
