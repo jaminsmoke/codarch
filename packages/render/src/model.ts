@@ -122,17 +122,31 @@ const PALETTE = [
 
 const CURATED_METRICS = [
   "rloc",
+  "maxComplexity",
   "max_complexity_per_function",
   "complexity",
+  "functions",
   "number_of_functions",
+  "maxFunctionLength",
+  "loc",
+  "imports",
+  "externalImports",
+  "builtinImports",
+  "typeOnlyImports",
+  "unresolvedImports",
+  "fanIn",
+  "fanOut",
+  "inCycle",
+  "cycleSize",
+  "dependencyLevel",
   "number_of_commits",
   "number_of_authors",
-  "loc",
   "incoming_dependencies",
   "outgoing_dependencies"
 ];
 
 const COMPLEXITY_KEYS = [
+  "maxComplexity",
   "max_complexity_per_function",
   "complexity",
   "logic_complexity",
@@ -321,7 +335,8 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   }
 
   // Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
-  // La normalización usa p95 para que un outlier no apague el resto del mapa.
+  // Si falta una señal, los pesos se renormalizan: un proyecto sin historial
+  // git no debe quedar con un máximo artificial de 68/100.
   const complexityP95 = percentile(
     files.map((file) => file.complexity).filter((value) => value > 0),
     0.95
@@ -335,14 +350,22 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     0.95
   );
 
+  const complexityWeight = complexityP95 > 0 ? 0.5 : 0;
+  const churnWeight = churnP95 > 0 ? 0.32 : 0;
+  const areaWeight = areaP95 > 0 ? 0.18 : 0;
+  const totalWeight = complexityWeight + churnWeight + areaWeight;
+
   const norm = (value: number, p95: number): number =>
     p95 > 0 ? clamp01(value / p95) : 0;
 
   for (const file of files) {
     const raw =
-      0.5 * norm(file.complexity, complexityP95) +
-      0.32 * norm(file.churn, churnP95) +
-      0.18 * norm(file.actualArea, areaP95);
+      totalWeight > 0
+        ? (complexityWeight * norm(file.complexity, complexityP95) +
+            churnWeight * norm(file.churn, churnP95) +
+            areaWeight * norm(file.actualArea, areaP95)) /
+          totalWeight
+        : 0;
     // Gamma: solo los outliers de verdad se encienden. Un mapa todo rojo no informa.
     file.risk = Math.pow(clamp01(raw), 1.7);
   }

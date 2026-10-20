@@ -8,6 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "analyze": "tsx apps/cli/src/index.ts analyze",
     "inspect": "tsx apps/cli/src/index.ts inspect",
     "render": "tsx apps/cli/src/index.ts render",
     "bench:render": "tsx scripts/bench-render.ts",

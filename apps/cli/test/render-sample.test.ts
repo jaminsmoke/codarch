@@ -17,7 +17,7 @@ describe.skipIf(!existsSync(sample))("render sobre la muestra real", () => {
   it("produce un mapa completo y determinista", () => {
     expect(model.fileCount).toBe(2003);
     expect(model.folderCount).toBe(498);
-    expect(model.metrics).toHaveLength(9);
+    expect(model.metrics).toHaveLength(10);
     expect(model.edges).toHaveLength(3727);
     expect(model.cycles).toHaveLength(2);
     expect(html).toBe(renderHtml(buildRenderModel(parseCcJson(json))));
@@ -40,16 +40,17 @@ describe.skipIf(!existsSync(sample))("render sobre la muestra real", () => {
       dirs: string[];
     };
     expect(payload.files).toHaveLength(2003);
-    expect(payload.metrics).toHaveLength(9);
+    expect(payload.metrics).toHaveLength(10);
     expect(payload.dirs.length).toBeLessThan(2003);
     expect(model.metrics.map((metric) => metric.key)).toEqual([
       "rloc",
       "max_complexity_per_function",
       "complexity",
+      "functions",
       "number_of_functions",
+      "loc",
       "number_of_commits",
       "number_of_authors",
-      "loc",
       "incoming_dependencies",
       "outgoing_dependencies"
     ]);

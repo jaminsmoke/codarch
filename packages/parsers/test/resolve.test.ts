@@ -81,15 +81,18 @@ describe("ImportResolver", () => {
   it("clasifica builtins y paquetes externos sin crear aristas", () => {
     expect(resolved("src/index.ts", "node:fs")).toEqual({
       kind: "external",
-      specifier: "node:fs"
+      specifier: "node:fs",
+      builtin: true
     });
     expect(resolved("src/index.ts", "fs")).toEqual({
       kind: "external",
-      specifier: "fs"
+      specifier: "fs",
+      builtin: true
     });
     expect(resolved("src/index.ts", "some-external")).toEqual({
       kind: "external",
-      specifier: "some-external"
+      specifier: "some-external",
+      builtin: false
     });
   });
 

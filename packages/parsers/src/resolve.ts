@@ -39,7 +39,7 @@ const BUILTINS = new Set(
 
 export type ResolveResult =
   | { kind: "internal"; file: WalkedFile }
-  | { kind: "external"; specifier: string }
+  | { kind: "external"; specifier: string; builtin: boolean }
   | { kind: "unresolved"; specifier: string; reason: string };
 
 interface WorkspacePackage {
@@ -85,7 +85,7 @@ export class ImportResolver {
 
   resolve(importerPath: string, specifier: string): ResolveResult {
     if (BUILTINS.has(specifier) || specifier.startsWith("node:")) {
-      return { kind: "external", specifier };
+      return { kind: "external", specifier, builtin: true };
     }
 
     if (specifier.startsWith(".") || specifier.startsWith("/")) {
@@ -126,7 +126,7 @@ export class ImportResolver {
           };
     }
 
-    return { kind: "external", specifier };
+    return { kind: "external", specifier, builtin: false };
   }
 
   private matchWorkspace(specifier: string): WorkspacePackage | null {

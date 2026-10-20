@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { runAnalyze, type AnalyzeCommandOptions } from "./commands/analyze";
 import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 
@@ -8,8 +9,17 @@ const USAGE = `
 CodArch · mapa vivo de la arquitectura de tu software
 
 Uso:
+  codarch analyze [ruta] [opciones]
   codarch inspect <fichero.cc.json[.gz]> [opciones]
   codarch render  <fichero.cc.json[.gz]> [opciones]
+
+Opciones de analyze:
+  -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
+  --ignore <patrón>  excluir rutas (repetible)
+  --project <nombre> nombre del proyecto en el snapshot
+  --title <texto>    título del mapa
+  -h, --help         esta ayuda
+  -v, --version      versión
 
 Opciones de inspect:
   --json            salida machine-readable
@@ -26,10 +36,78 @@ Opciones de render:
   -h, --help        esta ayuda
 
 Ejemplos:
+  codarch analyze .
+  codarch analyze . -o .codarch --title "Mi proyecto"
   codarch inspect samples/codecharta_visualization.cc.json.gz
   codarch render samples/codecharta_visualization.cc.json.gz
-  codarch render mapa.cc.json -o mapa.html --area rloc --color max_complexity_per_function
+  codarch render mapa.cc.json -o mapa.html --area rloc --color maxComplexity
 `;
+
+function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
+  const options: AnalyzeCommandOptions = { help: false, ignore: [] };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--out" || arg === "-o") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--out necesita una ruta");
+        return 1;
+      }
+      options.out = value;
+    } else if (arg.startsWith("--out=")) {
+      options.out = arg.slice("--out=".length);
+    } else if (arg === "--ignore") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--ignore necesita un patrón");
+        return 1;
+      }
+      options.ignore?.push(value);
+    } else if (arg.startsWith("--ignore=")) {
+      options.ignore?.push(arg.slice("--ignore=".length));
+    } else if (arg === "--project") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--project necesita un nombre");
+        return 1;
+      }
+      options.projectName = value;
+    } else if (arg.startsWith("--project=")) {
+      options.projectName = arg.slice("--project=".length);
+    } else if (arg === "--title") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--title necesita un texto");
+        return 1;
+      }
+      options.title = value;
+    } else if (arg.startsWith("--title=")) {
+      options.title = arg.slice("--title=".length);
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg === "--version" || arg === "-v") {
+      console.log(VERSION);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length > 1) {
+    console.error(`sobra un argumento: ${positional[1]}`);
+    return 1;
+  }
+
+  options.root = positional[0] ?? ".";
+  return options;
+}
 
 function parseInspect(args: string[]): InspectOptions | number {
   const options: InspectOptions = { json: false, top: 5, help: false };
@@ -159,6 +237,12 @@ function main(argv: string[]): number {
   if (command === "--version" || command === "-v") {
     console.log(VERSION);
     return 0;
+  }
+
+  if (command === "analyze") {
+    const parsed = parseAnalyze(rest);
+    if (typeof parsed === "number") return parsed;
+    return runAnalyze(parsed);
   }
 
   if (command === "inspect") {

@@ -267,8 +267,8 @@ export function renderHtml(model: RenderModel): string {
   <header>
     <div class="brand">CodArch</div>
     <div class="repo">
-      <b>${project}</b>
-      ${model.meta.rootName ? `<span>${escapeHtml(model.meta.rootName)}</span>` : ""}
+      <b>${title}</b>
+      ${model.meta.rootName && model.meta.rootName !== model.meta.project ? `<span>${escapeHtml(model.meta.rootName)}</span>` : ""}
       <span class="commit">${escapeHtml(badge)}</span>
     </div>
     <div class="spacer"></div>
