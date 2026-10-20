@@ -86,7 +86,7 @@ runs:
           echo "map=$ARTIFACT_DIR/head/map.html"
         } >> "$GITHUB_OUTPUT"
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
 
@@ -216,7 +216,7 @@ runs:
 
     - name: Subir artefacto
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ runner.temp }}/codarch-artifacts

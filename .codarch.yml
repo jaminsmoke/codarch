@@ -9,9 +9,6 @@ layers:
   - name: apps
     paths:
       - apps/**
-  - name: scripts
-    paths:
-      - scripts/**
 
 rules:
   - name: packages-no-apps
