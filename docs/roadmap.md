@@ -17,7 +17,7 @@ $ codarch render codecharta.cc.json -o map.html
 Criterios de aceptación:
 
 - [x] Importa `cc.json` 2.x validando la estructura (ids, métricas, aristas).
-- [ ] Importa `cc.json` 1.x mediante un normalizador a 2.x.
+- [x] Importa `cc.json` 1.x mediante un normalizador a 2.x (desnudo y `{ checksum, data }`).
 - [x] Treemap 2D: área = `rloc`, color = métrica elegible, altura/borde = jerarquía.
 - [x] Hover con métricas, búsqueda, clic para enfocar una carpeta.
 - [x] HTML único, sin servidor, sin red: 489.663 bytes con la muestra real de 2.003 ficheros.

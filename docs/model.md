@@ -1,6 +1,6 @@
 # Modelo de datos — propuesta para debate
 
-**Estado:** propuesta · importador `cc.json` 2.x implementado en `packages/schema`
+**Estado:** propuesta · importador `cc.json` 2.x y normalizador 1.x implementados en `packages/schema`
 
 Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir
 código, porque cambiarla después contamina el CLI, el mapa, el bot y el MCP a la vez.
@@ -56,6 +56,20 @@ Reglas:
 - El id depende **solo** de la ruta y el tipo. Renombrar cambia la identidad; mover, también.
 - Rutas normalizadas con `/`, sin rutas absolutas ni `..`.
 - Nada de mtime, usuario ni hora en el payload.
+
+### Compatibilidad con `cc.json` 1.x
+
+El importador acepta el formato antiguo y lo convierte a este modelo antes de validarlo:
+
+- Nodos y `attributes` → `files` + `lenses.metrics.attributes`, con ids generados por la misma
+  regla (`sha256(type + ruta canónica)[:16]`, raíz excluida).
+- `edges[].fromNodeName` / `toNodeName` → ids de nodo; se aceptan rutas con o sin raíz y con o sin
+  `/` inicial.
+- `attributeTypes` y `attributeDescriptors` se reparten entre métricas y dependencias.
+- `blacklist`, `markedPackages` y `fixedPosition` son estado de vista: se descartan.
+- Varias raíces 1.x se envuelven en una raíz sintética para cumplir el contrato 2.x.
+
+El checksum 1.x no se reutiliza: cubre otro payload y daría una garantía falsa.
 
 ## Lentes
 

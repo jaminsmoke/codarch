@@ -1,48 +1,21 @@
+import { CcJsonError, isRecord, requireRecord, requireString } from "./errors";
+import { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
 import type { CcJson, CcNode } from "./types";
 
 const MAX_DEPTH = 512;
 
-export class CcJsonError extends Error {
-  readonly path: string;
-
-  constructor(message: string, path: string) {
-    super(`${message} (en ${path})`);
-    this.name = "CcJsonError";
-    this.path = path;
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function requireRecord(value: unknown, path: string): Record<string, unknown> {
-  if (!isRecord(value)) throw new CcJsonError("se esperaba un objeto", path);
-  return value;
-}
-
-function requireString(value: unknown, path: string, field: string): string {
-  if (typeof value !== "string" || value.length === 0) {
-    throw new CcJsonError(`"${field}" debe ser una cadena no vacía`, path);
-  }
-  return value;
-}
-
 /**
- * Valida y normaliza un cc.json 2.x.
+ * Valida y normaliza un cc.json.
  *
- * Lanza `CcJsonError` con la ruta exacta del problema. No es un validador de JSON Schema
- * completo: comprueba la estructura que el producto consume y falla pronto y claro.
+ * Acepta 2.x nativo y 1.x (desnudo o envuelto en `{ checksum, data }`), que se
+ * convierte al modelo 2.x antes de validarse. Lanza `CcJsonError` con la ruta
+ * exacta del problema. No es un validador de JSON Schema completo: comprueba la
+ * estructura que el producto consume y falla pronto y claro.
  */
 export function parseCcJson(input: unknown): CcJson {
   if (!isRecord(input)) throw new CcJsonError("se esperaba un objeto", "$");
 
-  if (!("files" in input) && "data" in input) {
-    throw new CcJsonError(
-      "cc.json 1.x no está soportado todavía; conviértelo con `ccsh convert`",
-      "$"
-    );
-  }
+  if (isLegacyCcJson(input)) return normalizeLegacyCcJson(input);
 
   const metaRaw = requireRecord(input.meta, "$.meta");
   const apiVersion = requireString(metaRaw.apiVersion, "$.meta.apiVersion", "apiVersion");
@@ -135,3 +108,5 @@ export function parseCcJson(input: unknown): CcJson {
     ...(lensesRaw !== undefined ? { lenses: lensesRaw as CcJson["lenses"] } : {})
   };
 }
+
+export { CcJsonError } from "./errors";

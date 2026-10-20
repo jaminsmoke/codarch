@@ -3,7 +3,7 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M0 en marcha. Importador `cc.json` 2.x + CLI de inspección + render 2D sobre datos reales.
+**Estado:** M0 en marcha. Importador `cc.json` 2.x y 1.x normalizado + CLI de inspección + render 2D sobre datos reales.
 Las decisiones están registradas en [`docs/adr/`](docs/adr/) y el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md).
 
@@ -22,6 +22,11 @@ npm test
 
 El render produce un HTML único, sin servidor ni red, con el treemap, búsqueda, inspector,
 dependencias entrantes/salientes y tres lentes (estructura, riesgo y métrica).
+
+También acepta `cc.json` 1.x, tanto desnudo (`{ apiVersion, nodes, edges, ... }`) como envuelto en
+`{ checksum, data }`. Al leerlo se normaliza a 2.x: los atributos pasan a la lente de métricas, las
+aristas se reindexan por id y se descarta el estado de vista (`blacklist`, `markedPackages`,
+`fixedPosition`).
 
 Salida de `inspect`:
 
@@ -87,7 +92,7 @@ $ codarch analyze . --base origin/main --head HEAD
 2. **Snapshots inmutables y deterministas.** Mismo repo + mismo commit = mismo hash. Sin esto no
    hay diff fiable, ni caché, ni CI.
 3. **Grafo primero.** La jerarquía de ficheros es una proyección, no la verdad.
-4. **Compatible con `cc.json` 2.x.** Entrada garantizada; salida si sale gratis.
+4. **Compatible con `cc.json` 2.x.** Entrada garantizada; 1.x se normaliza al leer. Salida si sale gratis.
 5. **Cero configuración para empezar.** Reglas y umbrales cuando duelan, no antes.
 6. **Núcleo headless.** Los `packages/` no saben qué es un componente; las `apps/` no tienen
    lógica de dominio.
@@ -120,7 +125,7 @@ design/     prototipo navegable del mapa 2D
 ```
 
 Implementado: `schema`, `layouts`, `render` y el comando `codarch render`. El resto es el plan.
-`cc.json` 1.x se normalizará a 2.x antes de M1; hoy el importador pide convertir con `ccsh`.
+El importador acepta `cc.json` 1.x (desnudo o envuelto) y lo normaliza a 2.x antes de M1.
 
 ## Inspiración
 

@@ -1,0 +1,54 @@
+{
+  "apiVersion": "1.2",
+  "projectName": "legacy demo",
+  "nodes": [
+    {
+      "name": "root",
+      "type": "Folder",
+      "attributes": {},
+      "children": [
+        {
+          "name": "src",
+          "type": "Folder",
+          "attributes": {},
+          "fixedPosition": { "left": 0, "top": 0, "width": 50, "height": 50 },
+          "children": [
+            {
+              "name": "a.ts",
+              "type": "File",
+              "attributes": { "rloc": 60, "complexity": 4 },
+              "link": "https://example.com/a"
+            },
+            {
+              "name": "b.ts",
+              "type": "File",
+              "attributes": { "rloc": 40, "complexity": 2 }
+            }
+          ]
+        },
+        {
+          "name": "README.md",
+          "type": "File",
+          "attributes": { "rloc": 10 }
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "fromNodeName": "/root/src/a.ts",
+      "toNodeName": "/root/src/b.ts",
+      "attributes": { "pairingRate": 42, "avgCommits": 3 }
+    }
+  ],
+  "attributeTypes": {
+    "nodes": { "rloc": "absolute", "complexity": "absolute" },
+    "edges": { "pairingRate": "relative", "avgCommits": "absolute" }
+  },
+  "attributeDescriptors": {
+    "rloc": { "title": "Real Lines of Code", "direction": 1 },
+    "pairingRate": { "title": "Pairing rate", "direction": -1 }
+  },
+  "blacklist": [{ "path": "/root/src/b.ts", "type": "exclude" }],
+  "markedPackages": [{ "path": "/root/src", "color": "#ff0000" }]
+}

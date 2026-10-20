@@ -1,0 +1,26 @@
+{
+  "checksum": "a30746ae9d919c891992ab1dea88471b",
+  "data": {
+    "apiVersion": "1.3",
+    "projectName": "wrapped demo",
+    "nodes": [
+      {
+        "name": "app",
+        "type": "Folder",
+        "attributes": {},
+        "children": [
+          {
+            "name": "main.ts",
+            "type": "File",
+            "attributes": { "rloc": 25 },
+            "checksum": "deadbeef",
+            "children": []
+          }
+        ]
+      }
+    ],
+    "edges": [],
+    "attributeTypes": { "nodes": { "rloc": "absolute" } },
+    "blacklist": []
+  }
+}

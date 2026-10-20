@@ -1,0 +1,41 @@
+{
+  "apiVersion": "1.4",
+  "projectName": "multi root",
+  "nodes": [
+    {
+      "name": "frontend",
+      "type": "Folder",
+      "attributes": {},
+      "children": [
+        {
+          "name": "app.ts",
+          "type": "File",
+          "attributes": { "rloc": 10 }
+        }
+      ]
+    },
+    {
+      "name": "backend",
+      "type": "Folder",
+      "attributes": {},
+      "children": [
+        {
+          "name": "server.ts",
+          "type": "File",
+          "attributes": { "rloc": 20 }
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "fromNodeName": "/frontend/app.ts",
+      "toNodeName": "/backend/server.ts",
+      "attributes": { "dependencies": 1 }
+    }
+  ],
+  "attributeTypes": {
+    "nodes": { "rloc": "absolute" },
+    "edges": { "dependencies": "absolute" }
+  }
+}

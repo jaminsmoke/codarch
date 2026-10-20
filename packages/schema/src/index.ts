@@ -13,6 +13,7 @@ export type {
 } from "./types";
 
 export { CcJsonError, parseCcJson } from "./parse";
+export { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export { defaultMetric, getStats, topByMetric } from "./stats";
