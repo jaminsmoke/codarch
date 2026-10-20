@@ -4,7 +4,10 @@ import { runDiff, type DiffCommandOptions, type FailOn } from "./commands/diff";
 import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 
-const VERSION = "0.0.0";
+declare const __CODARCH_VERSION__: string | undefined;
+
+const VERSION =
+  typeof __CODARCH_VERSION__ === "string" ? __CODARCH_VERSION__ : "0.0.0";
 
 const USAGE = `
 CodArch · mapa vivo de la arquitectura de tu software

@@ -3,9 +3,9 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 cerrado (MVP repo-local). M3 en curso: el servidor MCP de solo lectura ya funciona.
-Churn, diff, reglas, GitHub Action y consultas para agentes están disponibles. La publicación del CLI
-y de la acción sigue pendiente.
+**Estado:** M2 cerrado (MVP repo-local). M3 en curso: el servidor MCP de solo lectura ya funciona y el
+CLI está empaquetado y validado como tarball instalable. La publicación en npm y el uso de la acción
+desde otros repositorios siguen pendientes.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
@@ -45,6 +45,11 @@ npm run bench:analyze           # 2.000 ficheros sintéticos
 npm run bench:diff              # diff de 2.000 → 2.010 ficheros
 npm run check:action            # valida action.yml, workflow y comentario
 npm test
+
+# Distribución del CLI: build y tarball local; publicar requiere npm login
+npm run build:cli
+npm run pack:cli
+npm run publish:cli
 ```
 
 `codarch analyze` escribe dos artefactos:
@@ -345,7 +350,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 packages/   schema · parsers · metrics · layouts · render
 apps/       cli · mcp · github-action · web (futuro)
 docs/       adr/ · design/ · model.md · rules.md · mcp.md · roadmap.md
-scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · check-action.mjs · fetch-samples.mjs
+scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
 

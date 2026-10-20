@@ -65,17 +65,20 @@ en `packages/metrics` y lo comparten render y MCP; renormaliza sus pesos si falt
 - [x] GitHub Action: comentario en el PR + artefacto con el mapa.
 - [x] Workflow de PR con `fetch-depth: 0`, permisos de escritura y política `fail-on` configurable.
 
-## M3 — MCP
+## M3 — MCP y distribución
 
-**Estado:** en curso. El servidor MCP local de solo lectura está cerrado; la publicación del CLI y de
-la acción sigue pendiente.
+**Estado:** en curso. El servidor MCP local y el build del CLI están cerrados; la publicación en npm
+y el uso de la acción desde otros repositorios siguen pendientes.
 
 - [x] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.
 - [x] Las herramientas devuelven datos del snapshot, nunca texto inventado.
 - [x] El agente puede pedir el mapa de un PR concreto si su snapshot/reporte están en disco (artefactos de la acción o generados localmente).
 - [x] Riesgo compartido entre render y MCP; ciclos verificados por SCC sobre las aristas del snapshot.
 - [x] 25 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
-- [ ] Publicar el CLI y la acción (npm/GitHub Marketplace) para dejar de depender de un checkout local.
+- [x] Build reproducible de un paquete `codarch` único con esbuild; assets del mapa copiados junto al bundle.
+- [x] Tarball `codarch@0.1.0` (~48 KB) instalado en un proyecto limpio y validado con `analyze`, `inspect`, `diff` y `render`.
+- [ ] Publicar `codarch@0.1.0` en npm (requiere `npm login`).
+- [ ] Reescribir la acción para consumir el paquete publicado y poder referenciarla desde otros repositorios.
 
 ## M4 — Lente de migración
 

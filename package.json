@@ -19,6 +19,9 @@
     "bench:render": "tsx scripts/bench-render.ts",
     "bench:analyze": "tsx scripts/bench-analyze.ts",
     "bench:diff": "tsx scripts/bench-diff.ts",
+    "build:cli": "node scripts/build-cli.mjs",
+    "pack:cli": "npm run build:cli && node scripts/pack-cli.mjs",
+    "publish:cli": "npm run build:cli && npm publish apps/cli/dist --access public",
     "check:action": "node scripts/check-action.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -27,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "esbuild": "^0.28.2",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",
     "vitest": "^5.0.5",
