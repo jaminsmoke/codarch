@@ -24,7 +24,7 @@ export function defaultOutputPath(input: string): string {
 
 /** Nombre legible cuando el cc.json no trae `projectName`. */
 export function defaultProjectName(input: string): string {
-  let name = path.basename(input);
+  let name = path.basename(input.replace(/\\/g, "/"));
   const lower = name.toLowerCase();
   const suffixes = [".cc.json.gz", ".cc.json", ".json.gz", ".json", ".gz"];
   for (const suffix of suffixes) {
