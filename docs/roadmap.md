@@ -77,7 +77,9 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 - [x] 25 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
 - [x] Build reproducible de un paquete `codarch` único con esbuild; assets del mapa copiados junto al bundle.
 - [x] Tarball `codarch@0.1.0` (~48 KB) instalado en un proyecto limpio y validado con `analyze`, `inspect`, `diff` y `render`.
-- [x] Publicar `codarch@0.1.0` en npm; `latest` y `next` apuntan a esa versión.
+- [x] Publicar `codarch@0.1.0` en npm.
+- [x] Publicar `codarch@0.1.1` con la lente de migración; `latest` apunta a esa versión.
+- [x] La acción instala `codarch@0.1.1` por defecto.
 - [x] La acción instala `codarch` desde npm y ya no ejecuta `npm ci` sobre el proyecto analizado.
 - [x] Repo público `jaminsmoke/codarch-action@v1`, generado desde `apps/github-action` con `npm run sync:action`.
 - [x] Prueba externa en `jaminsmoke/codarch-action-smoke`: comentario, artefacto, análisis base/head y gate con exit `2`.

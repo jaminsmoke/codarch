@@ -4,7 +4,7 @@
 
 ## Contexto
 
-El CLI ya se publica como `codarch@0.1.0` y la acción compuesta vive en `apps/github-action`. La
+El CLI ya se publica como `codarch@0.1.1` y la acción compuesta vive en `apps/github-action`. La
 primera prueba desde un repositorio externo falló al resolver `jaminsmoke/codarch/apps/github-action@v1`:
 GitHub devolvió `repository not found` porque `jaminsmoke/codarch` es privado y el token del workflow
 de destino no puede leerlo.
@@ -25,7 +25,7 @@ El CLI que ejecuta se instala desde npm.
    siendo `apps/github-action`.
 3. **La acción instala el CLI desde npm.** No necesita el código de CodArch en el workspace ni
    ejecuta `npm ci` sobre el proyecto analizado. La versión se fija con el input `version`
-   (`0.1.0` por defecto).
+   (`0.1.1` por defecto).
 4. **Tag mayor `v1`.** Los consumidores usan `jaminsmoke/codarch-action@v1`. El tag se mueve al
    sincronizar cambios compatibles; una ruptura de la interfaz de la acción exige `v2`.
 5. **El workflow interno sigue usando `./apps/github-action`.** Así el monorepo dogfoodea la fuente y
