@@ -51,24 +51,26 @@ se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 
 ## M2 — Diff y PR
 
-**Estado:** en curso.
+**Estado:** cerrado (MVP repo-local). La publicación de la acción y del CLI queda para M3.
 
 - [x] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
 - [x] Test de churn con repositorio temporal y test de determinismo con historial.
 - [x] `codarch diff base.cc.json head.cc.json` → ficheros, métricas, aristas, ciclos y hotspots.
 - [x] `report.json` estable y versionado (`schemaVersion: "1.0"`), sin timestamps.
 - [x] Gate básico `--fail-on cycles|violations|hotspots|any` con salida `2`.
-- [x] Benchmark de diff: 2.000 → 2.010 ficheros en 9,8 ms, reporte de 28 KB.
+- [x] Benchmark de diff: 2.000 → 2.010 ficheros en ~9 ms, reporte de 28 KB.
 - [x] Capas violadas y reglas de arquitectura (`forbidden`, `threshold`, `cycles`).
 - [x] Reglas en `.codarch.yml`: capas, prohibiciones, umbrales.
 - [x] Doble política sobre el mismo commit (`info`/`warn`/`error`; solo `error` introducido bloquea).
-- [ ] GitHub Action: comentario en el PR + artefacto con el mapa.
+- [x] GitHub Action: comentario en el PR + artefacto con el mapa.
+- [x] Workflow de PR con `fetch-depth: 0`, permisos de escritura y política `fail-on` configurable.
 
 ## M3 — MCP
 
 - [ ] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.
 - [ ] Las herramientas devuelven datos del snapshot, nunca texto inventado.
 - [ ] El agente puede pedir el mapa de un PR concreto.
+- [ ] Publicar el CLI y la acción (npm/GitHub Marketplace) para dejar de depender de un checkout local.
 
 ## M4 — Lente de migración
 

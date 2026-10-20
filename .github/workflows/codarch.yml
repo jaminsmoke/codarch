@@ -1,0 +1,30 @@
+name: CodArch
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  codarch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: codarch
+        uses: ./apps/github-action
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fail-on: none
+          config: .codarch.yml
+
+      - name: Resumen
+        if: always()
+        run: |
+          echo "Reporte: ${{ steps.codarch.outputs.report }}"
+          echo "Mapa: ${{ steps.codarch.outputs.map }}"
+          echo "Estado: ${{ steps.codarch.outputs.status }}"

@@ -3,8 +3,8 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 en curso. Churn, diff entre snapshots, `report.json` estable y reglas de capas ya
-funcionan. Siguiente: GitHub Action y comentario de PR.
+**Estado:** M2 cerrado (MVP repo-local). Churn, diff, reglas y GitHub Action ya funcionan.
+Siguiente: MCP.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
@@ -37,6 +37,7 @@ cp .codarch.example.yml .codarch.yml
 npm run bench:render            # 5.000 ficheros sintéticos
 npm run bench:analyze           # 2.000 ficheros sintéticos
 npm run bench:diff              # diff de 2.000 → 2.010 ficheros
+npm run check:action            # valida action.yml, workflow y comentario
 npm test
 ```
 
@@ -98,7 +99,8 @@ $ codarch diff base.cc.json head.cc.json -o report.json
 El reporte separa `files.added/removed/changed`, `edges.added/removed/cyclicAdded/cyclicRemoved`,
 `cycles.introduced/fixed` y `hotspots`. Es determinista y no guarda timestamps. Los cambios de
 métricas usan `delta: null` cuando una métrica solo existe en un lado; no se inventan ceros. La
-decisión está en [ADR 0010](docs/adr/0010-diff-entre-snapshots.md).
+decisión está en [ADR 0010](docs/adr/0010-diff-entre-snapshots.md). El bloque `rules` separa
+violaciones `introduced`, `existing` y `resolved`; ver [ADR 0011](docs/adr/0011-reglas-de-arquitectura.md).
 
 `--fail-on cycles|violations|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay
 hallazgos, `1` si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
@@ -131,6 +133,31 @@ rules:
 
 La referencia completa está en [`docs/rules.md`](docs/rules.md) y la decisión en
 [ADR 0011](docs/adr/0011-reglas-de-arquitectura.md). `--no-config` desactiva las reglas.
+
+### GitHub Action
+
+La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, `map.html` y
+`report.json` como artefacto, y actualiza un comentario con el diff. El mismo commit puede ejecutarse
+en modo aviso (`fail-on: none`) o bloqueo (`fail-on: violations|cycles|hotspots|any`); la severidad
+de cada regla se decide en `.codarch.yml`.
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+steps:
+  - uses: actions/checkout@v4
+    with: { fetch-depth: 0 }
+  - uses: ./apps/github-action
+    with:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      fail-on: none
+```
+
+Es **repo-local** en M2: asume que el workspace contiene el código de CodArch y ejecuta `npm ci`.
+La documentación, entradas y límites están en
+[`apps/github-action/README.md`](apps/github-action/README.md). El workflow de ejemplo es
+[`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
 
 ---
 
@@ -255,26 +282,26 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Repo de 2k ficheros | analizado en < 3 s | 2,6 s (sintético, 2.000 ficheros) |
 | Memoria de analyze | < 500 MB | 311 MB RSS (sintético) |
 | Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
-| Diff | reporte estable, sin reanálisis | 9,8 ms para 2.000 → 2.010 ficheros (sintético) |
+| Diff | reporte estable, sin reanálisis | ~9 ms para 2.000 → 2.010 ficheros (sintético) |
 | Reglas | solo bloquea lo introducido | `introduced` / `existing` / `resolved` en el reporte |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
-| Comentario de PR | < 10 s de extremo a extremo | pendiente (M2) |
+| Comentario de PR | < 10 s de extremo a extremo | acción repo-local validada; falta medir en runner |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
 
 ## Estructura
 
 ```
 packages/   schema · parsers · metrics · layouts · render
-apps/       cli · web (futuro) · mcp (futuro) · github-action (futuro)
+apps/       cli · web (futuro) · mcp (futuro) · github-action
 docs/       adr/ · design/ · model.md · rules.md · roadmap.md
-scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · fetch-samples.mjs
+scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
 
 Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos `codarch analyze`,
 `codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
 `.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
-el diff determinista entre snapshots.
+el diff determinista, las reglas y la GitHub Action.
 
 ## Inspiración
 

@@ -226,8 +226,8 @@ deuda existente se publica, pero no impide mergear. Ver [`rules.md`](rules.md) y
 
 ## Delta
 
-`packages/metrics` implementa `diffSnapshots(base, head)`. No guarda el delta: lo calcula entre dos
-snapshots inmutables.
+`packages/metrics` implementa `diffSnapshots(base, head, { rules })`. No guarda el delta: lo calcula
+entre dos snapshots inmutables. `rules` es opcional; si falta, `rules.configured` es `false`.
 
 ```ts
 type DiffReport = {
@@ -270,8 +270,10 @@ Reglas:
   ciclo resuelto y otro introducido.
 - Hotspots por `maxComplexity` (o `rloc` si falta), solo con delta positivo; un fichero nuevo parte
   de 0. Sin fórmula compuesta opaca.
+- Las violaciones se comparan por clave estable entre base y head; solo las introducidas con
+  severidad `error` bloquean con `--fail-on violations`.
 - `report.json` es determinista y no tiene timestamps. Ver
-  [ADR 0010](adr/0010-diff-entre-snapshots.md).
+  [ADR 0010](adr/0010-diff-entre-snapshots.md) y [ADR 0011](adr/0011-reglas-de-arquitectura.md).
 
 ## Pipeline de M1/M2
 
@@ -288,6 +290,8 @@ buildGraph(files, links)
   → dedupe, fan-in/out, SCC, ciclos, niveles
 buildSnapshot({ projectName, files, graph })
   → árbol, lentes metrics/dependency, checksum
+diffSnapshots(base, head, { rules })
+  → ficheros/aristas/ciclos/hotspots + violaciones introducidas/existentes/resueltas
 ```
 
 Cada fase es pura o casi pura y tiene tests propios. El analizador no guarda árboles de tree-sitter:
