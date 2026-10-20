@@ -80,6 +80,8 @@ servidor local ni a la demo; si la URL falla, el error se muestra en lugar de da
 - El estado de vista (área, color, carpeta, fichero, pestaña) vive en la URL: se puede compartir y
   recargar sin perder el contexto.
 - Atajos: `/` enfoca la búsqueda, `Enter` abre el primer resultado y `Esc` limpia foco/selección.
+- Flechas para moverse entre celdas del mapa; el foco sigue a la selección y solo hay un tab stop por
+  fichero (el seleccionado).
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
 ## Límites
@@ -93,4 +95,4 @@ servidor local ni a la demo; si la URL falla, el error se muestra en lugar de da
 - El layout se recalcula al redimensionar; el mapa es SVG, no WebGL.
 - Los ficheros sin la métrica de área se dibujan con área mínima para no desaparecer.
 
-Lo siguiente: navegación por flechas entre celdas y manejo explícito de snapshots grandes.
+Lo siguiente: manejo explícito de snapshots grandes.

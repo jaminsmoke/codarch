@@ -6,6 +6,7 @@ import {
   useState,
   type ChangeEvent,
   type DragEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode
 } from "react";
 import {
@@ -55,6 +56,7 @@ import {
   type SourceRequest,
   type ViewState as UrlViewState
 } from "./viewState";
+import { nextCell, type CellBox, type Direction } from "./navigation";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -91,6 +93,13 @@ const PREFERRED_METRICS = [
   "number_of_commits",
   "number_of_authors"
 ];
+
+const ARROW_DIRECTIONS: Record<string, Direction> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down"
+};
 
 interface ViewState {
   model: RenderModel | null;
@@ -1556,6 +1565,51 @@ function MapCanvas({
     [roots, size.width, size.height]
   );
 
+  /** Geometría de las celdas de fichero, para mover el foco con las flechas. */
+  const cells = useMemo<CellBox[]>(() => {
+    const boxes: CellBox[] = [];
+    const walk = (nodes: PlacedNode[]): void => {
+      for (const placedNode of nodes) {
+        const { node, rect } = placedNode;
+        if (node.kind === "file" && node.fileIndex !== undefined) {
+          boxes.push({ index: node.fileIndex, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+        }
+        if (placedNode.children) walk(placedNode.children);
+      }
+    };
+    walk(placed);
+    return boxes;
+  }, [placed]);
+
+  /**
+   * El foco solo se mueve si el cambio de selección vino de las flechas.
+   * Con el ratón no se roba el foco: el clic ya lo dejó donde toca.
+   */
+  const pendingFocusRef = useRef(false);
+
+  useEffect(() => {
+    if (selectedIndex === null || !pendingFocusRef.current) return;
+    pendingFocusRef.current = false;
+    const node = containerRef.current?.querySelector(
+      `[data-file-index="${selectedIndex}"]`
+    );
+    // Las celdas son elementos SVG: no son HTMLElement.
+    if (node instanceof SVGElement) node.focus();
+  }, [selectedIndex, cells]);
+
+  const onKeyDown = useCallback(
+    (event: ReactKeyboardEvent<SVGSVGElement>) => {
+      const direction = ARROW_DIRECTIONS[event.key];
+      if (!direction) return;
+      const next = nextCell(cells, selectedIndex, direction);
+      if (next === null || next === selectedIndex) return;
+      event.preventDefault();
+      pendingFocusRef.current = true;
+      onSelect(next);
+    },
+    [cells, onSelect, selectedIndex]
+  );
+
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
@@ -1613,7 +1667,8 @@ function MapCanvas({
           className="cell"
           opacity={matched ? 1 : 0.13}
           role="button"
-          tabIndex={0}
+          data-file-index={file.index}
+          tabIndex={selected ? 0 : -1}
           aria-label={file.path}
           onClick={() => onSelect(file.index)}
           onKeyDown={(event) => {
@@ -1710,12 +1765,21 @@ function MapCanvas({
   };
 
   return (
-    <div className="map-inner" ref={containerRef}>
+    <div
+      className="map-inner"
+      ref={containerRef}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          pendingFocusRef.current = false;
+        }
+      }}
+    >
       <svg
         className="map"
         viewBox={`0 0 ${size.width} ${size.height}`}
         role="group"
         aria-label={`Mapa de arquitectura de ${model.meta.project}`}
+        onKeyDown={onKeyDown}
       >
         <defs>
           <pattern id="map-grid" width="48" height="48" patternUnits="userSpaceOnUse">

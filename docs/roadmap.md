@@ -114,7 +114,7 @@ de PR.
 - [x] Clic en una fila del PR para enfocar el fichero en el mapa.
 - [x] Foco por carpeta: clic en la cabecera de una carpeta y breadcrumb para volver.
 - [x] Menú **Abrir repositorio o archivo**; el repositorio carga `.codarch/snapshot.cc.json` y `.codarch/report.json`.
-- [ ] Navegación por teclado completa: flechas, Escape y foco inicial.
+- [x] Navegación por teclado completa: flechas, Escape y foco inicial.
 - [x] Cargar snapshots/reportes por URL y servir con `codarch serve`; build estático ya disponible.
 - [x] Recordar el último snapshot/reporte y el estado de vista.
 
@@ -129,7 +129,7 @@ de PR.
 - [x] Persistencia local del último proyecto con artefactos y de las preferencias de área/color.
 - [x] Atajos básicos: `/` busca, `Enter` abre el primer resultado, `Esc` limpia foco/selección.
 - [x] Carga por URL y enlaces compartibles con el estado de vista (`area`, `color`, `focus`, `file`, `tab`, `src`, `report`); decisión en [ADR 0018](adr/0018-estado-vista-en-la-url.md).
-- [ ] Navegación por flechas entre celdas y foco inicial del mapa.
+- [x] Navegación por flechas entre celdas y foco inicial del mapa.
 - [ ] Manejo explícito de snapshots grandes (virtualización o WebGL).
 
 ## M6 — Análisis en el navegador
