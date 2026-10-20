@@ -7,8 +7,8 @@
 pública `jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
 operativo, la lente de migración mide lenguajes/puentes/deuda y la app web ya carga snapshots y
 reportes (archivo o carpeta de repo), dibuja el treemap reutilizando el motor del render y añade
-inspector, foco por carpeta, panel de migración y vista de PR. `codarch serve --watch` analiza el repo
-en local y refresca el navegador por SSE.
+inspector, foco por carpeta, panel de migración y vista de PR. `codarch serve` analiza el repo en
+local, permite elegir otra carpeta desde la web, alternar live/stop y refresca por SSE.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el

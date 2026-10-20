@@ -15,9 +15,15 @@ npm run serve -- . --no-watch
 ```
 
 `serve` carga `data/meta.json`, `data/snapshot.cc.json` y, si existe, `data/report.json`. El watch es
-live por defecto: reanaliza al guardar y la app se refresca por SSE sin recargar. Si no hay servidor,
-la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de este repo entre el
-commit anterior a la app web y el árbol actual.
+live por defecto: reanaliza al guardar y la app se refresca por SSE sin recargar.
+
+Con el servidor arrancado, **Abrir repositorio o archivo → Monitorizar carpeta (live)** abre un
+navegador de carpetas del servidor: puedes cambiar de repo sin reiniciar el comando. El panel
+**Servidor local** permite **Detener live** / **Activar live**; el badge del topbar pasa de `live` a
+`servido`.
+
+Si no hay servidor, la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de
+este repo entre el commit anterior a la app web y el árbol actual.
 
 **Abrir repositorio o archivo** ofrece dos caminos:
 
@@ -39,6 +45,7 @@ También puedes arrastrar un `cc.json` al mapa.
 - Clic en una fila del PR para enfocar el fichero correspondiente en el mapa.
 - Foco por carpeta: clic en la cabecera de una carpeta; breadcrumb para volver al mapa completo.
 - `Esc` limpia la selección y vuelve al mapa completo.
+- Con `codarch serve`: selector de carpetas del servidor, cambio de repo y toggle live/stop.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
 ## Límites

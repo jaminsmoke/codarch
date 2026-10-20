@@ -30,10 +30,14 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
 4. **La app entiende dos orígenes.** Si existen `data/snapshot.cc.json` y `data/meta.json`, carga el
    servidor; si no, usa la demo. El snapshot del servidor se actualiza con `preserveView` para no
    perder área, color, búsqueda o foco en cada guardado.
-5. **El build web viaja en el paquete.** `build:cli` copia `apps/web/dist` a `apps/cli/dist/web` y el
+5. **Selección de carpeta y control live desde la web.** Como el navegador no entrega una ruta
+   absoluta al seleccionar una carpeta, el servidor expone `GET /api/browse` y `POST /api/root`:
+   la app navega el filesystem local y, al elegir una carpeta, el servidor la analiza y empieza a
+   vigilarla. `POST /api/watch` activa o detiene el watcher; la app refleja `live` o `servido`.
+6. **El build web viaja en el paquete.** `build:cli` copia `apps/web/dist` a `apps/cli/dist/web` y el
    manifiesto publicado incluye `web`. Así `npx codarch serve` funciona sin Vite ni clonar el repo.
    `pack:cli` y `publish:cli` construyen la web antes del CLI.
-6. **Mismo modelo y mismas métricas.** El servidor no reimplementa nada: usa el snapshot del parser,
+7. **Mismo modelo y mismas métricas.** El servidor no reimplementa nada: usa el snapshot del parser,
    con la lente de migración y el reporte existentes. La app solo cambia el transporte.
 
 ## Consecuencias
@@ -44,6 +48,8 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
   un checkout.
 - El servidor es mono-usuario y local. No hay cuotas, sesiones ni autorización; exponerlo fuera de
   loopback es responsabilidad del usuario y no está soportado.
+- La selección de carpeta desde la web solo funciona con `codarch serve` arrancado; no es análisis
+  en el navegador. Expone el filesystem local a la app en loopback, con APIs sin autenticación.
 - El watch puede perder eventos si el editor escribe de forma no atómica; el debounce y el
   reanálisis completo lo hacen tolerable. En repos muy grandes, `--no-watch` evita reanálisis
   constantes.

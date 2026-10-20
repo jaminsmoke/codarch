@@ -34,6 +34,7 @@ import {
   type RenderModel,
   type TreeNode
 } from "@codarch/render/browser";
+import FolderPicker from "./FolderPicker";
 import PrPanel from "./PrPanel";
 import {
   readRepositoryFromFiles,
@@ -99,6 +100,8 @@ export default function App() {
   const [serverMode, setServerMode] = useState<"demo" | "local" | "served" | "live">(
     "demo"
   );
+  const [serverRootPath, setServerRootPath] = useState("");
+  const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
@@ -178,6 +181,13 @@ export default function App() {
           meta !== null &&
           (meta as { watch?: unknown }).watch === true;
         setServerMode(watch ? "live" : "served");
+        if (
+          typeof meta === "object" &&
+          meta !== null &&
+          typeof (meta as { rootPath?: unknown }).rootPath === "string"
+        ) {
+          setServerRootPath((meta as { rootPath: string }).rootPath);
+        }
         const servedReport = await fetchJson("data/report.json");
         if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
         return;
@@ -359,6 +369,83 @@ export default function App() {
     setTab("file");
   }, []);
 
+  const refreshFromServer = useCallback(async () => {
+    const meta = (await fetchJson("data/meta.json")) as {
+      watch?: boolean;
+      rootPath?: string;
+    } | null;
+    const snapshot = await fetchJson("data/snapshot.cc.json");
+    if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
+    loadSnapshot(snapshot, "servidor local");
+    setServerMode(meta?.watch ? "live" : "served");
+    if (meta?.rootPath) setServerRootPath(meta.rootPath);
+    const report = await fetchJson("data/report.json");
+    if (report) loadReport(report, "servidor local", false);
+    else resetReport();
+  }, [loadReport, loadSnapshot, resetReport]);
+
+  const selectFolder = useCallback(
+    async (pathValue: string) => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/root", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: pathValue })
+        });
+        const body = (await response.json()) as {
+          error?: string;
+          watch?: boolean;
+        };
+        if (!response.ok) {
+          throw new Error(body.error ?? "no se pudo analizar la carpeta");
+        }
+        setFolderPickerOpen(false);
+        await refreshFromServer();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [refreshFromServer]
+  );
+
+  const toggleWatch = useCallback(async () => {
+    if (serverMode !== "live" && serverMode !== "served") return;
+    const enabled = serverMode !== "live";
+    try {
+      const response = await fetch("/api/watch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled })
+      });
+      const body = (await response.json()) as {
+        error?: string;
+        watch?: boolean;
+      };
+      if (!response.ok) {
+        throw new Error(body.error ?? "no se pudo cambiar el modo live");
+      }
+      if (enabled) {
+        const snapshot = await fetchJson("data/snapshot.cc.json");
+        if (snapshot) loadSnapshot(snapshot, "servidor local", true);
+      }
+      setServerMode(body.watch ? "live" : "served");
+    } catch (cause) {
+      setError((cause as Error).message);
+    }
+  }, [serverMode, loadSnapshot]);
+
+  const openLiveFolder = useCallback(() => {
+    closeOpenMenu();
+    if (serverMode === "demo") {
+      setError(
+        "Para monitorizar carpetas hace falta el servidor local. Ejecuta `codarch serve` una vez y abre su URL."
+      );
+      return;
+    }
+    setFolderPickerOpen(true);
+  }, [closeOpenMenu, serverMode]);
+
   const openRepository = useCallback(async () => {
     closeOpenMenu();
     manualLoadRef.current = true;
@@ -499,6 +586,18 @@ export default function App() {
               <span className="button-label-short">Abrir</span>
             </summary>
             <div className="open-menu-panel">
+              <button
+                type="button"
+                onClick={openLiveFolder}
+                disabled={serverMode === "demo"}
+                title={
+                  serverMode === "demo"
+                    ? "Arranca `codarch serve` para elegir carpetas locales"
+                    : "Analiza y vigila una carpeta local"
+                }
+              >
+                Monitorizar carpeta (live)…
+              </button>
               <button type="button" onClick={openRepository}>
                 Carpeta con .codarch…
               </button>
@@ -512,8 +611,8 @@ export default function App() {
                 Archivo cc.json…
               </button>
               <p>
-                Carga artefactos ya generados. Para datos en vivo: ejecuta
-                <code>codarch serve .</code> en la raíz del repo.
+                Monitorizar analiza una carpeta en el servidor local. .codarch carga
+                artefactos ya generados. Para activarlo: <code>codarch serve</code>.
               </p>
             </div>
           </details>
@@ -580,6 +679,29 @@ export default function App() {
               </div>
             ) : null}
           </section>
+
+          {serverMode === "live" || serverMode === "served" ? (
+            <section className="panel-block">
+              <div className="eyebrow">Servidor local</div>
+              <div className="live-row">
+                <span className={`mono live-state${serverMode === "live" ? " is-live" : ""}`}>
+                  {serverMode === "live" ? "live" : "servido"}
+                </span>
+                <button
+                  className="button dark small"
+                  type="button"
+                  onClick={() => void toggleWatch()}
+                >
+                  {serverMode === "live" ? "Detener live" : "Activar live"}
+                </button>
+              </div>
+              <p className="muted tiny">
+                {serverMode === "live"
+                  ? "Reanaliza al guardar y refresca por SSE."
+                  : "Análisis inicial; sin refresco automático."}
+              </p>
+            </section>
+          ) : null}
 
           <LanguageSample model={view.model} migration={migration} />
 
@@ -714,6 +836,13 @@ export default function App() {
           />
         </aside>
       </div>
+
+      <FolderPicker
+        open={folderPickerOpen}
+        initialPath={serverRootPath}
+        onClose={() => setFolderPickerOpen(false)}
+        onSelect={selectFolder}
+      />
     </div>
   );
 }

@@ -28,16 +28,36 @@ const MIME: Record<string, string> = {
 const IGNORED_WATCH =
   /(^|\/)(node_modules|\.git|\.codarch|dist|coverage|\.next|out|target)(\/|$)/;
 
-interface SnapshotState {
+const IGNORED_BROWSE = new Set([
+  ".git",
+  "node_modules",
+  ".codarch",
+  "dist",
+  "coverage",
+  ".next",
+  "out",
+  "target"
+]);
+
+interface AnalysisState {
+  root: string;
   snapshot: ReturnType<typeof analyzeRepository>["snapshot"];
   files: number;
   checksum: string;
   warnings: string[];
+  updatedAt: string;
+  watch: boolean;
+}
+
+interface BrowseEntry {
+  name: string;
+  path: string;
+  kind: "directory";
 }
 
 /**
- * Servidor local de solo lectura: analiza el repo al arrancar, sirve el build
- * web y expone snapshot/report. Con `--watch`, reanaliza y avisa por SSE.
+ * Servidor local de solo lectura: analiza el repo, sirve el build web y permite
+ * cambiar la carpeta y el modo live desde la propia app.
  *
  * No monitoriza GitHub ni es un servicio remoto: escucha en loopback por
  * defecto y no escribe en el repositorio.
@@ -52,12 +72,46 @@ export function runServe(options: ServeOptions): number {
     return 1;
   }
 
-  let state = analyze(root);
+  let state = analyzeState(root, options.watch);
+  let watcher: fs.FSWatcher | null = null;
+  let timer: NodeJS.Timeout | undefined;
   const clients = new Set<http.ServerResponse>();
 
-  const refresh = (): void => {
+  const startWatcher = (): string | null => {
+    if (watcher) return null;
     try {
-      state = analyze(root);
+      watcher = fs.watch(state.root, { recursive: true }, (_event, filename) => {
+        if (!filename) return;
+        const relative = filename.toString().replace(/\\/g, "/");
+        if (IGNORED_WATCH.test(relative)) return;
+        scheduleRefresh();
+      });
+      return null;
+    } catch (error) {
+      watcher = null;
+      return (error as Error).message;
+    }
+  };
+
+  const stopWatcher = (): void => {
+    if (timer) {
+      clearTimeout(timer);
+      timer = undefined;
+    }
+    watcher?.close();
+    watcher = null;
+  };
+
+  const closeClients = (): void => {
+    for (const client of clients) client.end();
+    clients.clear();
+  };
+
+  const refresh = (): void => {
+    if (!state.watch) return;
+    try {
+      const next = analyzeState(state.root, state.watch);
+      state = next;
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files
@@ -72,69 +126,189 @@ export function runServe(options: ServeOptions): number {
     }
   };
 
-  const server = http.createServer((request, response) => {
-    const url = new URL(request.url ?? "/", "http://localhost");
-    const pathname = url.pathname;
+  const scheduleRefresh = (): void => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = undefined;
+      refresh();
+    }, 350);
+  };
 
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      response.writeHead(405, { Allow: "GET, HEAD" });
-      response.end();
-      return;
+  const setWatch = (enabled: boolean): void => {
+    if (enabled === state.watch) return;
+    if (enabled) {
+      const error = startWatcher();
+      if (error) throw new Error(`watch no disponible: ${error}`);
+      state = { ...state, watch: true };
+    } else {
+      stopWatcher();
+      closeClients();
+      state = { ...state, watch: false };
     }
+    broadcast(clients, "watch", { watch: state.watch });
+  };
 
-    if (pathname === "/data/snapshot.cc.json") {
-      sendJson(response, state.snapshot);
-      return;
+  const switchRoot = (nextRoot: string): AnalysisState => {
+    const resolved = path.resolve(nextRoot);
+    const stat = fs.statSync(resolved);
+    if (!stat.isDirectory()) throw new Error("la ruta no es un directorio");
+
+    const next = analyzeState(resolved, state.watch);
+    stopWatcher();
+    state = next;
+    if (state.watch) {
+      const error = startWatcher();
+      if (error) {
+        state = { ...state, watch: false };
+        console.error(`watch no disponible en ${resolved}: ${error}`);
+      }
     }
+    broadcast(clients, "update", {
+      checksum: state.checksum,
+      files: state.files
+    });
+    console.log(
+      `  → ${state.root} · ${state.files} ficheros · ${state.watch ? "live" : "servido"}`
+    );
+    return state;
+  };
 
-    if (pathname === "/data/meta.json") {
-      sendJson(response, {
-        root: path.basename(root),
-        watch: options.watch,
-        files: state.files,
-        checksum: state.checksum,
-        warnings: state.warnings,
-        updatedAt: new Date().toISOString()
-      });
-      return;
-    }
+  const meta = () => ({
+    root: path.basename(state.root),
+    rootPath: state.root,
+    watch: state.watch,
+    files: state.files,
+    checksum: state.checksum,
+    warnings: state.warnings,
+    updatedAt: state.updatedAt
+  });
 
-    if (pathname === "/data/report.json") {
-      const report = readReport(root);
-      if (report === null) {
-        response.writeHead(404, { "Content-Type": "application/json" });
-        response.end('{"error":"no hay .codarch/report.json"}');
+  const server = http.createServer(async (request, response) => {
+    try {
+      const host = request.headers.host ?? `${options.host}:${options.port}`;
+      const url = new URL(request.url ?? "/", `http://${host}`);
+      const pathname = url.pathname;
+
+      if (request.method === "POST") {
+        if (!originAllowed(request, options)) {
+          sendError(response, 403, "origen no permitido");
+          return;
+        }
+
+        if (pathname === "/api/root") {
+          const body = await readBody(request);
+          const nextRoot =
+            typeof body === "object" && body !== null && typeof (body as { path?: unknown }).path === "string"
+              ? ((body as { path: string }).path)
+              : "";
+          if (!nextRoot.trim()) {
+            sendError(response, 400, "falta la ruta de la carpeta");
+            return;
+          }
+          const next = switchRoot(nextRoot);
+          sendJson(response, {
+            ...meta(),
+            rootPath: next.root,
+            watch: next.watch
+          });
+          return;
+        }
+
+        if (pathname === "/api/watch") {
+          const body = await readBody(request);
+          const enabled =
+            typeof body === "object" &&
+            body !== null &&
+            (body as { enabled?: unknown }).enabled === true;
+          try {
+            setWatch(enabled);
+          } catch (error) {
+            sendError(response, 400, (error as Error).message);
+            return;
+          }
+          sendJson(response, meta());
+          return;
+        }
+
+        sendError(response, 404, "endpoint desconocido");
         return;
       }
-      sendJson(response, report);
-      return;
-    }
 
-    if (pathname === "/events") {
-      if (!options.watch) {
-        response.writeHead(204);
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        response.writeHead(405, { Allow: "GET, HEAD, POST" });
         response.end();
         return;
       }
-      response.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-store",
-        Connection: "keep-alive",
-        "X-Accel-Buffering": "no"
-      });
-      response.write(
-        `event: ready\ndata: ${JSON.stringify({
-          checksum: state.checksum,
-          files: state.files
-        })}\n\n`
-      );
-      clients.add(response);
-      request.on("close", () => clients.delete(response));
-      return;
-    }
 
-    serveStatic(webRoot, pathname, request.method === "HEAD", response);
+      if (pathname === "/api/browse") {
+        try {
+          sendJson(response, browseDirectories(state.root, url.searchParams.get("path")));
+        } catch (error) {
+          sendError(response, 400, (error as Error).message);
+        }
+        return;
+      }
+
+      if (pathname === "/data/snapshot.cc.json") {
+        sendJson(response, state.snapshot);
+        return;
+      }
+
+      if (pathname === "/data/meta.json") {
+        sendJson(response, meta());
+        return;
+      }
+
+      if (pathname === "/data/report.json") {
+        const report = readReport(state.root);
+        if (report === null) {
+          sendError(response, 404, "no hay .codarch/report.json");
+          return;
+        }
+        sendJson(response, report);
+        return;
+      }
+
+      if (pathname === "/events") {
+        if (!state.watch) {
+          response.writeHead(204);
+          response.end();
+          return;
+        }
+        response.writeHead(200, {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-store",
+          Connection: "keep-alive",
+          "X-Accel-Buffering": "no"
+        });
+        response.write(
+          `event: ready\ndata: ${JSON.stringify({
+            checksum: state.checksum,
+            files: state.files
+          })}\n\n`
+        );
+        clients.add(response);
+        request.on("close", () => clients.delete(response));
+        return;
+      }
+
+      serveStatic(webRoot, pathname, request.method === "HEAD", response);
+    } catch (error) {
+      if (!response.headersSent) {
+        sendError(response, 500, (error as Error).message);
+      } else {
+        response.end();
+      }
+    }
   });
+
+  if (state.watch) {
+    const error = startWatcher();
+    if (error) {
+      state = { ...state, watch: false };
+      console.error(`watch no disponible; se sirve el análisis inicial: ${error}`);
+    }
+  }
 
   server.on("error", (error) => {
     console.error(`no se pudo escuchar en ${options.host}:${options.port}: ${error.message}`);
@@ -147,62 +321,93 @@ export function runServe(options: ServeOptions): number {
       "",
       "  CodArch · serve",
       "",
-      `  raíz         ${root}`,
+      `  raíz         ${state.root}`,
       `  web          ${webRoot}`,
       `  URL          ${url}`,
       `  snapshot     ${state.files} ficheros · checksum ${state.checksum.slice(0, 8)}`,
-      `  modo         ${options.watch ? "watch activo (SSE)" : "solo análisis inicial"}`,
+      `  modo         ${state.watch ? "watch activo (SSE)" : "solo análisis inicial"}`,
       ""
     ];
     console.log(lines.join("\n"));
   });
 
-  if (options.watch) {
-    let timer: NodeJS.Timeout | undefined;
-    const schedule = (): void => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        timer = undefined;
-        refresh();
-      }, 350);
-    };
-
-    try {
-      const watcher = fs.watch(root, { recursive: true }, (_event, filename) => {
-        if (!filename) return;
-        const relative = filename.toString().replace(/\\/g, "/");
-        if (IGNORED_WATCH.test(relative)) return;
-        schedule();
-      });
-      process.on("SIGINT", () => {
-        watcher.close();
-        shutdown(server, clients);
-      });
-      process.on("SIGTERM", () => {
-        watcher.close();
-        shutdown(server, clients);
-      });
-    } catch (error) {
-      console.error(
-        `watch no disponible; se sirve el análisis inicial: ${(error as Error).message}`
-      );
-    }
-  } else {
-    process.on("SIGINT", () => shutdown(server, clients));
-    process.on("SIGTERM", () => shutdown(server, clients));
-  }
+  const shutdown = (): void => {
+    stopWatcher();
+    closeClients();
+    server.close(() => process.exit(0));
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 
   return 0;
 }
 
-function analyze(root: string): SnapshotState {
+function analyzeState(root: string, watch: boolean): AnalysisState {
   const result = analyzeRepository(root, { git: true });
   return {
+    root,
     snapshot: result.snapshot,
     files: result.files,
     checksum: result.snapshot.meta.checksum ?? "",
-    warnings: result.warnings.slice(0, 5)
+    warnings: result.warnings.slice(0, 5),
+    updatedAt: new Date().toISOString(),
+    watch
   };
+}
+
+export function browseDirectories(root: string, requested: string | null): {
+  path: string;
+  parent: string | null;
+  entries: BrowseEntry[];
+} {
+  const target = requested?.trim() ? path.resolve(requested) : root;
+  const stat = fs.statSync(target);
+  if (!stat.isDirectory()) throw new Error("la ruta no es un directorio");
+
+  const entries = fs
+    .readdirSync(target, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !IGNORED_BROWSE.has(entry.name))
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .slice(0, 500)
+    .map((entry) => ({
+      name: entry.name,
+      path: path.join(target, entry.name),
+      kind: "directory" as const
+    }));
+
+  const parent = path.dirname(target);
+  return {
+    path: target,
+    parent: parent === target ? null : parent,
+    entries
+  };
+}
+
+async function readBody(request: http.IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buffer.length;
+    if (size > 64 * 1024) throw new Error("cuerpo demasiado grande");
+    chunks.push(buffer);
+  }
+  const text = Buffer.concat(chunks).toString("utf8");
+  return text ? (JSON.parse(text) as unknown) : {};
+}
+
+function originAllowed(
+  request: http.IncomingMessage,
+  options: ServeOptions
+): boolean {
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  const allowed = new Set([
+    `http://${options.host}:${options.port}`,
+    `http://127.0.0.1:${options.port}`,
+    `http://localhost:${options.port}`
+  ]);
+  return allowed.has(origin);
 }
 
 function findWebRoot(): string | null {
@@ -291,6 +496,20 @@ function sendJson(response: http.ServerResponse, value: unknown): void {
   response.end(body);
 }
 
+function sendError(
+  response: http.ServerResponse,
+  status: number,
+  message: string
+): void {
+  const body = `${JSON.stringify({ error: message })}\n`;
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": Buffer.byteLength(body),
+    "Cache-Control": "no-store"
+  });
+  response.end(body);
+}
+
 function broadcast(
   clients: Set<http.ServerResponse>,
   event: string,
@@ -304,13 +523,4 @@ function broadcast(
       clients.delete(client);
     }
   }
-}
-
-function shutdown(
-  server: http.Server,
-  clients: Set<http.ServerResponse>
-): void {
-  for (const client of clients) client.end();
-  clients.clear();
-  server.close(() => process.exit(0));
 }
