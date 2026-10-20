@@ -2,7 +2,7 @@
   "meta": {
     "projectName": "codarch",
     "apiVersion": "2.0",
-    "checksum": "ce2effe670e7b845ed989e2af3ff9d9e"
+    "checksum": "895ca5fb205b92a336b47d9d9d3cef29"
   },
   "files": [
     {
@@ -191,6 +191,11 @@
                     {
                       "id": "08d179696a04919f",
                       "name": "App.tsx",
+                      "type": "File"
+                    },
+                    {
+                      "id": "40c0a2f73716c0c0",
+                      "name": "PrPanel.tsx",
                       "type": "File"
                     },
                     {
@@ -1314,25 +1319,46 @@
           "migrationDebt": 3
         },
         "08d179696a04919f": {
-          "loc": 916,
-          "rloc": 855,
-          "functions": 67,
-          "maxComplexity": 29,
-          "maxFunctionLength": 327,
-          "imports": 3,
+          "loc": 1032,
+          "rloc": 965,
+          "functions": 80,
+          "maxComplexity": 33,
+          "maxFunctionLength": 422,
+          "imports": 5,
           "externalImports": 1,
           "builtinImports": 0,
-          "typeOnlyImports": 0,
+          "typeOnlyImports": 1,
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
           "fanIn": 1,
-          "fanOut": 2,
+          "fanOut": 4,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 1,
           "ffiCrossings": 0,
-          "migrationDebt": 60
+          "migrationDebt": 68
+        },
+        "40c0a2f73716c0c0": {
+          "loc": 228,
+          "rloc": 216,
+          "functions": 15,
+          "maxComplexity": 15,
+          "maxFunctionLength": 176,
+          "imports": 2,
+          "externalImports": 0,
+          "builtinImports": 0,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0,
+          "number_of_commits": 0,
+          "number_of_authors": 0,
+          "fanIn": 1,
+          "fanOut": 2,
+          "inCycle": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "ffiCrossings": 0,
+          "migrationDebt": 32
         },
         "12edc8da54f99c54": {
           "loc": 13,
@@ -1440,25 +1466,25 @@
           "migrationDebt": 5
         },
         "7bcf3b43a704a8a7": {
-          "loc": 9,
-          "rloc": 9,
+          "loc": 21,
+          "rloc": 21,
           "functions": 0,
           "maxComplexity": 0,
           "maxFunctionLength": 0,
-          "imports": 2,
+          "imports": 4,
           "externalImports": 0,
           "builtinImports": 0,
-          "typeOnlyImports": 1,
+          "typeOnlyImports": 3,
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 1,
-          "fanOut": 1,
+          "fanIn": 3,
+          "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
           "dependencyLevel": 7,
           "ffiCrossings": 0,
-          "migrationDebt": 2
+          "migrationDebt": 4
         },
         "9eb99044509012b1": {
           "loc": 263,
@@ -1477,7 +1503,7 @@
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 7,
+          "dependencyLevel": 10,
           "ffiCrossings": 0,
           "migrationDebt": 56
         },
@@ -1494,13 +1520,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 2,
           "number_of_authors": 1,
-          "fanIn": 1,
+          "fanIn": 2,
           "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 5,
+          "dependencyLevel": 8,
           "ffiCrossings": 0,
-          "migrationDebt": 46
+          "migrationDebt": 69
         },
         "ce4e478b41d30b8b": {
           "loc": 46,
@@ -1557,13 +1583,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 2,
+          "fanIn": 3,
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 6,
+          "dependencyLevel": 9,
           "ffiCrossings": 0,
-          "migrationDebt": 42
+          "migrationDebt": 56
         },
         "842eb609f52074ed": {
           "loc": 155,
@@ -1660,7 +1686,7 @@
           "builtinImports": 2,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 3,
+          "number_of_commits": 4,
           "number_of_authors": 1,
           "fanIn": 1,
           "fanOut": 8,
@@ -1723,7 +1749,7 @@
           "builtinImports": 0,
           "typeOnlyImports": 8,
           "unresolvedImports": 0,
-          "number_of_commits": 6,
+          "number_of_commits": 7,
           "number_of_authors": 1,
           "fanIn": 9,
           "fanOut": 9,
@@ -1765,7 +1791,7 @@
           "builtinImports": 3,
           "typeOnlyImports": 1,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 2,
           "fanOut": 1,
@@ -2494,7 +2520,7 @@
           "builtinImports": 3,
           "typeOnlyImports": 0,
           "unresolvedImports": 0,
-          "number_of_commits": 2,
+          "number_of_commits": 3,
           "number_of_authors": 1,
           "fanIn": 0,
           "fanOut": 1,
@@ -2538,13 +2564,13 @@
           "unresolvedImports": 0,
           "number_of_commits": 1,
           "number_of_authors": 1,
-          "fanIn": 1,
+          "fanIn": 2,
           "fanOut": 4,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 2,
+          "dependencyLevel": 3,
           "ffiCrossings": 0,
-          "migrationDebt": 2
+          "migrationDebt": 3
         },
         "21bcbf2594e09ec6": {
           "loc": 915,
@@ -2794,7 +2820,7 @@
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 10,
+          "dependencyLevel": 12,
           "ffiCrossings": 0,
           "migrationDebt": 20
         },
@@ -2815,7 +2841,7 @@
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 10,
+          "dependencyLevel": 12,
           "ffiCrossings": 0,
           "migrationDebt": 18
         },
@@ -2836,7 +2862,7 @@
           "fanOut": 6,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 7,
+          "dependencyLevel": 9,
           "ffiCrossings": 0,
           "migrationDebt": 27
         },
@@ -2857,7 +2883,7 @@
           "fanOut": 3,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 9,
+          "dependencyLevel": 11,
           "ffiCrossings": 0,
           "migrationDebt": 117
         },
@@ -2878,7 +2904,7 @@
           "fanOut": 4,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 8,
+          "dependencyLevel": 10,
           "ffiCrossings": 0,
           "migrationDebt": 6
         },
@@ -2899,7 +2925,7 @@
           "fanOut": 2,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 9,
+          "dependencyLevel": 11,
           "ffiCrossings": 0,
           "migrationDebt": 51
         },
@@ -2920,7 +2946,7 @@
           "fanOut": 2,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 8,
+          "dependencyLevel": 10,
           "ffiCrossings": 0,
           "migrationDebt": 33
         },
@@ -2941,7 +2967,7 @@
           "fanOut": 1,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 9,
+          "dependencyLevel": 11,
           "ffiCrossings": 0,
           "migrationDebt": 24
         },
@@ -2962,7 +2988,7 @@
           "fanOut": 0,
           "inCycle": 0,
           "cycleSize": 0,
-          "dependencyLevel": 11,
+          "dependencyLevel": 13,
           "ffiCrossings": 0,
           "migrationDebt": 9
         },
@@ -3699,6 +3725,24 @@
         },
         {
           "fromId": "08d179696a04919f",
+          "toId": "40c0a2f73716c0c0",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "08d179696a04919f",
+          "toId": "7bcf3b43a704a8a7",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "08d179696a04919f",
           "toId": "be4a6311b99090e4",
           "attributes": {
             "weight": 1,
@@ -3709,6 +3753,24 @@
         {
           "fromId": "08d179696a04919f",
           "toId": "b435e03a2f26b0ad",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 0
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "40c0a2f73716c0c0",
+          "toId": "7bcf3b43a704a8a7",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "40c0a2f73716c0c0",
+          "toId": "be4a6311b99090e4",
           "attributes": {
             "weight": 1,
             "typeOnly": 0
@@ -3744,9 +3806,27 @@
         },
         {
           "fromId": "7bcf3b43a704a8a7",
+          "toId": "5d009899bcb23f5d",
+          "attributes": {
+            "weight": 1,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7bcf3b43a704a8a7",
           "toId": "cbf3c68ca387a814",
           "attributes": {
             "weight": 2,
+            "typeOnly": 1
+          },
+          "isCyclic": false
+        },
+        {
+          "fromId": "7bcf3b43a704a8a7",
+          "toId": "af054fa2218bd0d2",
+          "attributes": {
+            "weight": 1,
             "typeOnly": 1
           },
           "isCyclic": false
@@ -4860,6 +4940,9 @@
         "08d179696a04919f": {
           "level": 1
         },
+        "40c0a2f73716c0c0": {
+          "level": 2
+        },
         "12edc8da54f99c54": {
           "level": 0
         },
@@ -4879,10 +4962,10 @@
           "level": 7
         },
         "9eb99044509012b1": {
-          "level": 7
+          "level": 10
         },
         "5d009899bcb23f5d": {
-          "level": 5
+          "level": 8
         },
         "ce4e478b41d30b8b": {
           "level": 4
@@ -4891,7 +4974,7 @@
           "level": 8
         },
         "af054fa2218bd0d2": {
-          "level": 6
+          "level": 9
         },
         "842eb609f52074ed": {
           "level": 0
@@ -5035,7 +5118,7 @@
           "level": 0
         },
         "be4a6311b99090e4": {
-          "level": 2
+          "level": 3
         },
         "21bcbf2594e09ec6": {
           "level": 0
@@ -5071,31 +5154,31 @@
           "level": 7
         },
         "bb449db437d5d115": {
-          "level": 10
+          "level": 12
         },
         "d4bed36d12f65516": {
-          "level": 10
+          "level": 12
         },
         "c9347051246ce0ec": {
-          "level": 7
+          "level": 9
         },
         "714516814a6051f3": {
-          "level": 9
+          "level": 11
         },
         "3f9b35ccf62c2de0": {
-          "level": 8
+          "level": 10
         },
         "d4e9ed661bdf3145": {
-          "level": 9
+          "level": 11
         },
         "b05e86b9630171dd": {
-          "level": 8
+          "level": 10
         },
         "e14cbb6f10fb3e07": {
-          "level": 9
+          "level": 11
         },
         "6a607a4c97052747": {
-          "level": 11
+          "level": 13
         },
         "bebb2eb3e32353aa": {
           "level": 0
@@ -5313,9 +5396,17 @@
         "08d179696a04919f": {
           "language": "ts",
           "status": "js",
-          "loc": 916,
-          "rloc": 855,
-          "debt": 60,
+          "loc": 1032,
+          "rloc": 965,
+          "debt": 68,
+          "crossings": 0
+        },
+        "40c0a2f73716c0c0": {
+          "language": "ts",
+          "status": "js",
+          "loc": 228,
+          "rloc": 216,
+          "debt": 32,
           "crossings": 0
         },
         "12edc8da54f99c54": {
@@ -5361,9 +5452,9 @@
         "7bcf3b43a704a8a7": {
           "language": "ts",
           "status": "js",
-          "loc": 9,
-          "rloc": 9,
-          "debt": 2,
+          "loc": 21,
+          "rloc": 21,
+          "debt": 4,
           "crossings": 0
         },
         "9eb99044509012b1": {
@@ -5379,7 +5470,7 @@
           "status": "js",
           "loc": 599,
           "rloc": 524,
-          "debt": 46,
+          "debt": 69,
           "crossings": 0
         },
         "ce4e478b41d30b8b": {
@@ -5403,7 +5494,7 @@
           "status": "js",
           "loc": 295,
           "rloc": 265,
-          "debt": 42,
+          "debt": 56,
           "crossings": 0
         },
         "842eb609f52074ed": {
@@ -5784,7 +5875,7 @@
           "status": "js",
           "loc": 24,
           "rloc": 24,
-          "debt": 2,
+          "debt": 3,
           "crossings": 0
         },
         "21bcbf2594e09ec6": {
@@ -6049,12 +6140,12 @@
         }
       ],
       "summary": {
-        "files": 111,
+        "files": 112,
         "languages": {
           "ts": {
-            "files": 100,
-            "loc": 14534,
-            "rloc": 12931
+            "files": 101,
+            "loc": 14890,
+            "rloc": 13269
           },
           "js": {
             "files": 8,
@@ -6078,7 +6169,7 @@
           }
         },
         "status": {
-          "js": 106,
+          "js": 107,
           "rust": 0,
           "bridge": 3,
           "native": 2
@@ -6086,7 +6177,7 @@
         "bridgeFiles": 3,
         "ffiEdges": 2,
         "ffiCrossings": 4,
-        "migrationDebt": 2536
+        "migrationDebt": 2616
       }
     }
   }

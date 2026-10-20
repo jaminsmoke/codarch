@@ -18,6 +18,7 @@ import {
   type CcMigrationNode,
   type CcMigrationStatus
 } from "@codarch/schema/browser";
+import type { DiffReport } from "@codarch/metrics/browser";
 import {
   buildRenderModel,
   formatCompact,
@@ -32,6 +33,7 @@ import {
   type RenderFile,
   type RenderModel
 } from "@codarch/render/browser";
+import PrPanel from "./PrPanel";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -84,7 +86,12 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState(false);
+  const [report, setReport] = useState<DiffReport | null>(null);
+  const [reportSource, setReportSource] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [tab, setTab] = useState<"file" | "pr">("file");
   const inputRef = useRef<HTMLInputElement>(null);
+  const reportInputRef = useRef<HTMLInputElement>(null);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
@@ -115,6 +122,33 @@ export default function App() {
       setLoading(false);
     }
   }, []);
+
+  const loadReport = useCallback((raw: unknown, label: string, focus = true) => {
+    const next = readReport(raw);
+    if (!next) {
+      setReportError(`El fichero ${label} no parece un report.json de CodArch.`);
+      return;
+    }
+    setReport(next);
+    setReportSource(label);
+    setReportError(null);
+    if (focus) setTab("pr");
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("demo.report.json")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((json) => {
+        if (json && !cancelled) loadReport(json, "demo.report.json");
+      })
+      .catch(() => {
+        // La demo del mapa funciona sin reporte.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadReport]);
 
   useEffect(() => {
     let cancelled = false;
@@ -218,6 +252,32 @@ export default function App() {
       }
     },
     [loadSnapshot]
+  );
+
+  const onReportFile = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      try {
+        loadReport(JSON.parse(await file.text()), file.name);
+      } catch (cause) {
+        setReportError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
+      }
+    },
+    [loadReport]
+  );
+
+  const selectPath = useCallback(
+    (path: string) => {
+      const index =
+        view.model?.files.findIndex((candidate) => candidate.path === path) ?? -1;
+      if (index >= 0) {
+        setSelectedIndex(index);
+        setTab("file");
+      }
+    },
+    [view.model]
   );
 
   const reloadDemo = useCallback(async () => {
@@ -389,17 +449,75 @@ export default function App() {
         </main>
 
         <aside className="inspector">
-          <Inspector
-            model={view.model}
-            file={selectedFile}
-            migrationNode={selectedMigration}
-            areaMetric={areaMetric}
-            metricTitle={metricTitle}
+          <div className="tabs" role="tablist" aria-label="Panel derecho">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "file"}
+              className={`tab${tab === "file" ? " is-active" : ""}`}
+              onClick={() => setTab("file")}
+            >
+              Fichero
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "pr"}
+              className={`tab${tab === "pr" ? " is-active" : ""}`}
+              onClick={() => setTab("pr")}
+            >
+              PR {report ? <i className="tab-dot" title="Reporte cargado" /> : null}
+            </button>
+          </div>
+          {tab === "file" ? (
+            <Inspector
+              model={view.model}
+              file={selectedFile}
+              migrationNode={selectedMigration}
+              areaMetric={areaMetric}
+              metricTitle={metricTitle}
+            />
+          ) : (
+            <PrPanel
+              report={report}
+              source={reportSource}
+              error={reportError}
+              onLoad={() => reportInputRef.current?.click()}
+              onSelectPath={selectPath}
+            />
+          )}
+          <input
+            ref={reportInputRef}
+            className="sr-only"
+            type="file"
+            accept=".json,application/json"
+            onChange={onReportFile}
           />
         </aside>
       </div>
     </div>
   );
+}
+
+function readReport(value: unknown): DiffReport | null {
+  if (typeof value !== "object" || value === null) return null;
+  const report = value as Partial<DiffReport>;
+  if (
+    report.schemaVersion !== "1.0" ||
+    typeof report.summary !== "object" ||
+    report.summary === null ||
+    typeof report.base !== "object" ||
+    report.base === null ||
+    typeof report.head !== "object" ||
+    report.head === null ||
+    typeof report.files !== "object" ||
+    report.files === null ||
+    typeof report.rules !== "object" ||
+    report.rules === null
+  ) {
+    return null;
+  }
+  return report as DiffReport;
 }
 
 function readMigration(cc: CcJson | null): CcMigrationLens | null {
@@ -817,7 +935,6 @@ function Inspector({
   if (!file) {
     return (
       <section className="inspector-empty">
-        <div className="eyebrow">Inspector</div>
         <h2>Selecciona una celda</h2>
         <p className="muted small">
           El mapa conserva la jerarquía de carpetas. Pasa el cursor para ver la ruta y haz
@@ -854,7 +971,6 @@ function Inspector({
 
   return (
     <section className="inspector-file">
-      <div className="eyebrow">Inspector</div>
       <div className="inspector-path" title={file.path}>
         {file.path}
       </div>

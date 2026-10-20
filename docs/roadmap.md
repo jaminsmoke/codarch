@@ -100,14 +100,16 @@ Límites: Rust solo se mide con escáner léxico; las aristas napi no se observa
 
 ## M5 — App web
 
-**Estado:** en curso. Primer vertical slice en `apps/web` (React + Vite) sobre `@codarch/render`.
+**Estado:** en curso. App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista
+de PR.
 
 - [x] Cargar un `snapshot.cc.json` local (botón o drag & drop) y una demo incluida.
 - [x] Reutilizar `buildRenderModel` y `layoutMap`; layout dinámico al tamaño del contenedor.
 - [x] Selector de área/color, búsqueda por ruta y ficha de fichero.
 - [x] Panel de migración: estratos por lenguaje, estados, puentes, FFI y top de deuda.
 - [x] Color por estado (`js`, `rust`, `bridge`, `native`) y por cualquier métrica.
-- [ ] Cargar `report.json` y vista de PR: diff, violaciones, hotspots.
+- [x] Cargar `report.json` y vista de PR: resumen, reglas, hotspots, ciclos y ficheros.
+- [x] Clic en una fila del PR para enfocar el fichero en el mapa.
 - [ ] Foco por carpeta y navegación por teclado más completa.
 - [ ] Cargar snapshots por URL y servir con `codarch serve`; build estático ya disponible.
 

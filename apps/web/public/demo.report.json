@@ -1,0 +1,1047 @@
+{
+  "schemaVersion": "1.0",
+  "base": {
+    "projectName": "codarch",
+    "checksum": "5ed11ddf4da5cbf59bae9bfbe4c5ccd4",
+    "files": 104,
+    "folders": 44,
+    "edges": 147
+  },
+  "head": {
+    "projectName": "codarch",
+    "checksum": "895ca5fb205b92a336b47d9d9d3cef29",
+    "files": 112,
+    "folders": 46,
+    "edges": 170
+  },
+  "summary": {
+    "addedFiles": 8,
+    "removedFiles": 0,
+    "changedFiles": 17,
+    "addedEdges": 24,
+    "removedEdges": 1,
+    "cyclicEdgesAdded": 0,
+    "cyclicEdgesRemoved": 0,
+    "introducedCycles": 0,
+    "fixedCycles": 0,
+    "hotspots": 5
+  },
+  "hotspotMetric": "maxComplexity",
+  "rules": {
+    "configured": true,
+    "summary": {
+      "layers": 2,
+      "rules": 3,
+      "introduced": 0,
+      "existing": 5,
+      "resolved": 0,
+      "introducedErrors": 0,
+      "introducedWarnings": 0
+    },
+    "violations": {
+      "introduced": [],
+      "existing": [
+        {
+          "key": "cycles:sin-ciclos:394fa23e86d5af73|83cc88bd35c82f9f",
+          "rule": "sin-ciclos",
+          "type": "cycles",
+          "severity": "error",
+          "message": "Ciclo de 2 ficheros: packages/parsers/test/fixtures/repo/src/cycle/a.ts → packages/parsers/test/fixtures/repo/src/cycle/b.ts",
+          "files": [
+            "packages/parsers/test/fixtures/repo/src/cycle/a.ts",
+            "packages/parsers/test/fixtures/repo/src/cycle/b.ts"
+          ],
+          "cycle": {
+            "size": 2,
+            "nodes": [
+              {
+                "id": "83cc88bd35c82f9f",
+                "path": "packages/parsers/test/fixtures/repo/src/cycle/a.ts"
+              },
+              {
+                "id": "394fa23e86d5af73",
+                "path": "packages/parsers/test/fixtures/repo/src/cycle/b.ts"
+              }
+            ]
+          }
+        },
+        {
+          "key": "cycles:sin-ciclos:8069eeca8bd3d6fd",
+          "rule": "sin-ciclos",
+          "type": "cycles",
+          "severity": "error",
+          "message": "Ciclo de 1 ficheros: packages/parsers/test/fixtures/repo/src/index.ts",
+          "files": [
+            "packages/parsers/test/fixtures/repo/src/index.ts"
+          ],
+          "cycle": {
+            "size": 1,
+            "nodes": [
+              {
+                "id": "8069eeca8bd3d6fd",
+                "path": "packages/parsers/test/fixtures/repo/src/index.ts"
+              }
+            ]
+          }
+        },
+        {
+          "key": "threshold:complejidad-maxima:7ebe33ce7d290ed6",
+          "rule": "complejidad-maxima",
+          "type": "threshold",
+          "severity": "warn",
+          "message": "apps/cli/src/commands/diff.ts: maxComplexity = 42 (máximo 40)",
+          "files": [
+            "apps/cli/src/commands/diff.ts"
+          ],
+          "metric": {
+            "name": "maxComplexity",
+            "value": 42,
+            "max": 40
+          }
+        },
+        {
+          "key": "threshold:complejidad-maxima:84877654a59491cb",
+          "rule": "complejidad-maxima",
+          "type": "threshold",
+          "severity": "warn",
+          "message": "packages/render/src/model.ts: maxComplexity = 51 (máximo 40)",
+          "files": [
+            "packages/render/src/model.ts"
+          ],
+          "metric": {
+            "name": "maxComplexity",
+            "value": 51,
+            "max": 40
+          }
+        },
+        {
+          "key": "threshold:complejidad-maxima:e8e35f3b6ef889d9",
+          "rule": "complejidad-maxima",
+          "type": "threshold",
+          "severity": "warn",
+          "message": "packages/parsers/src/migration.ts: maxComplexity = 41 (máximo 40)",
+          "files": [
+            "packages/parsers/src/migration.ts"
+          ],
+          "metric": {
+            "name": "maxComplexity",
+            "value": 41,
+            "max": 40
+          }
+        }
+      ],
+      "resolved": []
+    }
+  },
+  "files": {
+    "added": [
+      {
+        "id": "08d179696a04919f",
+        "path": "apps/web/src/App.tsx",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 1,
+          "externalImports": 1,
+          "fanIn": 1,
+          "fanOut": 4,
+          "ffiCrossings": 0,
+          "functions": 80,
+          "imports": 5,
+          "inCycle": 0,
+          "loc": 1032,
+          "maxComplexity": 33,
+          "maxFunctionLength": 422,
+          "migrationDebt": 68,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 965,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "40c0a2f73716c0c0",
+        "path": "apps/web/src/PrPanel.tsx",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 2,
+          "externalImports": 0,
+          "fanIn": 1,
+          "fanOut": 2,
+          "ffiCrossings": 0,
+          "functions": 15,
+          "imports": 2,
+          "inCycle": 0,
+          "loc": 228,
+          "maxComplexity": 15,
+          "maxFunctionLength": 176,
+          "migrationDebt": 32,
+          "number_of_authors": 0,
+          "number_of_commits": 0,
+          "rloc": 216,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "12edc8da54f99c54",
+        "path": "apps/web/src/main.tsx",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "externalImports": 2,
+          "fanIn": 0,
+          "fanOut": 1,
+          "ffiCrossings": 0,
+          "functions": 0,
+          "imports": 4,
+          "inCycle": 0,
+          "loc": 13,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "migrationDebt": 1,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 11,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "32e005163718cb30",
+        "path": "apps/web/vite.config.ts",
+        "metrics": {
+          "builtinImports": 2,
+          "cycleSize": 0,
+          "dependencyLevel": 0,
+          "externalImports": 2,
+          "fanIn": 0,
+          "fanOut": 0,
+          "ffiCrossings": 0,
+          "functions": 1,
+          "imports": 4,
+          "inCycle": 0,
+          "loc": 49,
+          "maxComplexity": 1,
+          "maxFunctionLength": 1,
+          "migrationDebt": 2,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 47,
+          "typeOnlyImports": 0,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "7bcf3b43a704a8a7",
+        "path": "packages/metrics/src/browser.ts",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "externalImports": 0,
+          "fanIn": 3,
+          "fanOut": 3,
+          "ffiCrossings": 0,
+          "functions": 0,
+          "imports": 4,
+          "inCycle": 0,
+          "loc": 21,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "migrationDebt": 4,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 21,
+          "typeOnlyImports": 3,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "be4a6311b99090e4",
+        "path": "packages/render/src/browser.ts",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 3,
+          "externalImports": 0,
+          "fanIn": 2,
+          "fanOut": 4,
+          "ffiCrossings": 0,
+          "functions": 0,
+          "imports": 6,
+          "inCycle": 0,
+          "loc": 24,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "migrationDebt": 3,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 24,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "b435e03a2f26b0ad",
+        "path": "packages/schema/src/browser.ts",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 7,
+          "externalImports": 0,
+          "fanIn": 2,
+          "fanOut": 5,
+          "ffiCrossings": 0,
+          "functions": 0,
+          "imports": 6,
+          "inCycle": 0,
+          "loc": 26,
+          "maxComplexity": 0,
+          "maxFunctionLength": 0,
+          "migrationDebt": 3,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 25,
+          "typeOnlyImports": 2,
+          "unresolvedImports": 0
+        }
+      },
+      {
+        "id": "d4e9ed661bdf3145",
+        "path": "packages/schema/src/parse2.ts",
+        "metrics": {
+          "builtinImports": 0,
+          "cycleSize": 0,
+          "dependencyLevel": 11,
+          "externalImports": 0,
+          "fanIn": 2,
+          "fanOut": 2,
+          "ffiCrossings": 0,
+          "functions": 5,
+          "imports": 2,
+          "inCycle": 0,
+          "loc": 105,
+          "maxComplexity": 16,
+          "maxFunctionLength": 94,
+          "migrationDebt": 51,
+          "number_of_authors": 1,
+          "number_of_commits": 1,
+          "rloc": 83,
+          "typeOnlyImports": 1,
+          "unresolvedImports": 0
+        }
+      }
+    ],
+    "removed": [],
+    "changed": [
+      {
+        "id": "5d009899bcb23f5d",
+        "path": "packages/metrics/src/diff.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 1,
+            "head": 2,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 46,
+            "head": 69,
+            "delta": 23
+          }
+        ]
+      },
+      {
+        "id": "ce4e478b41d30b8b",
+        "path": "packages/metrics/src/index.ts",
+        "changes": [
+          {
+            "metric": "dependencyLevel",
+            "base": 7,
+            "head": 4,
+            "delta": -3
+          },
+          {
+            "metric": "fanIn",
+            "base": 9,
+            "head": 8,
+            "delta": -1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 10,
+            "head": 9,
+            "delta": -1
+          }
+        ]
+      },
+      {
+        "id": "cbf3c68ca387a814",
+        "path": "packages/metrics/src/risk.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 1,
+            "head": 2,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 12,
+            "head": 18,
+            "delta": 6
+          }
+        ]
+      },
+      {
+        "id": "af054fa2218bd0d2",
+        "path": "packages/metrics/src/rules.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 42,
+            "head": 56,
+            "delta": 14
+          }
+        ]
+      },
+      {
+        "id": "95bc40c24f74b056",
+        "path": "packages/parsers/src/analyze.ts",
+        "changes": [
+          {
+            "metric": "loc",
+            "base": 331,
+            "head": 332,
+            "delta": 1
+          },
+          {
+            "metric": "maxComplexity",
+            "base": 33,
+            "head": 34,
+            "delta": 1
+          },
+          {
+            "metric": "maxFunctionLength",
+            "base": 240,
+            "head": 241,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 68,
+            "head": 70,
+            "delta": 2
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 3,
+            "head": 4,
+            "delta": 1
+          },
+          {
+            "metric": "rloc",
+            "base": 298,
+            "head": 299,
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "6e5233d4751aa079",
+        "path": "packages/parsers/src/index.ts",
+        "changes": [
+          {
+            "metric": "number_of_commits",
+            "base": 6,
+            "head": 7,
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "2a66e41c4dfda2d5",
+        "path": "packages/parsers/src/resolve.ts",
+        "changes": [
+          {
+            "metric": "functions",
+            "base": 41,
+            "head": 43,
+            "delta": 2
+          },
+          {
+            "metric": "loc",
+            "base": 627,
+            "head": 658,
+            "delta": 31
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "rloc",
+            "base": 541,
+            "head": 569,
+            "delta": 28
+          }
+        ]
+      },
+      {
+        "id": "b73758a489459b7c",
+        "path": "packages/parsers/test/resolve.test.ts",
+        "changes": [
+          {
+            "metric": "functions",
+            "base": 15,
+            "head": 17,
+            "delta": 2
+          },
+          {
+            "metric": "loc",
+            "base": 137,
+            "head": 149,
+            "delta": 12
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "rloc",
+            "base": 121,
+            "head": 132,
+            "delta": 11
+          }
+        ]
+      },
+      {
+        "id": "802739c7a55e1902",
+        "path": "packages/render/src/color.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 3,
+            "head": 4,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 24,
+            "head": 30,
+            "delta": 6
+          }
+        ]
+      },
+      {
+        "id": "b877860362505819",
+        "path": "packages/render/src/layout.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "loc",
+            "base": 81,
+            "head": 85,
+            "delta": 4
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 33,
+            "head": 44,
+            "delta": 11
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 1,
+            "head": 2,
+            "delta": 1
+          },
+          {
+            "metric": "rloc",
+            "base": 62,
+            "head": 66,
+            "delta": 4
+          }
+        ]
+      },
+      {
+        "id": "84877654a59491cb",
+        "path": "packages/render/src/model.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 5,
+            "head": 6,
+            "delta": 1
+          },
+          {
+            "metric": "fanOut",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 312,
+            "head": 364,
+            "delta": 52
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 3,
+            "head": 4,
+            "delta": 1
+          }
+        ]
+      },
+      {
+        "id": "34a960fe7e283135",
+        "path": "packages/render/src/svg.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 39,
+            "head": 52,
+            "delta": 13
+          }
+        ]
+      },
+      {
+        "id": "bb449db437d5d115",
+        "path": "packages/schema/src/errors.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 2,
+            "head": 4,
+            "delta": 2
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 12,
+            "head": 20,
+            "delta": 8
+          }
+        ]
+      },
+      {
+        "id": "3f9b35ccf62c2de0",
+        "path": "packages/schema/src/parse.ts",
+        "changes": [
+          {
+            "metric": "fanOut",
+            "base": 3,
+            "head": 4,
+            "delta": 1
+          },
+          {
+            "metric": "functions",
+            "base": 5,
+            "head": 1,
+            "delta": -4
+          },
+          {
+            "metric": "loc",
+            "base": 112,
+            "head": 18,
+            "delta": -94
+          },
+          {
+            "metric": "maxComplexity",
+            "base": 17,
+            "head": 2,
+            "delta": -15
+          },
+          {
+            "metric": "maxFunctionLength",
+            "base": 96,
+            "head": 4,
+            "delta": -92
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 36,
+            "head": 6,
+            "delta": -30
+          },
+          {
+            "metric": "number_of_commits",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "rloc",
+            "base": 86,
+            "head": 8,
+            "delta": -78
+          }
+        ]
+      },
+      {
+        "id": "b05e86b9630171dd",
+        "path": "packages/schema/src/stats.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 1,
+            "head": 2,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 22,
+            "head": 33,
+            "delta": 11
+          }
+        ]
+      },
+      {
+        "id": "e14cbb6f10fb3e07",
+        "path": "packages/schema/src/tree.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 2,
+            "head": 3,
+            "delta": 1
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 18,
+            "head": 24,
+            "delta": 6
+          }
+        ]
+      },
+      {
+        "id": "6a607a4c97052747",
+        "path": "packages/schema/src/types.ts",
+        "changes": [
+          {
+            "metric": "fanIn",
+            "base": 6,
+            "head": 8,
+            "delta": 2
+          },
+          {
+            "metric": "migrationDebt",
+            "base": 7,
+            "head": 9,
+            "delta": 2
+          }
+        ]
+      }
+    ]
+  },
+  "edges": {
+    "added": [
+      {
+        "fromId": "08d179696a04919f",
+        "toId": "40c0a2f73716c0c0",
+        "from": "apps/web/src/App.tsx",
+        "to": "apps/web/src/PrPanel.tsx",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "08d179696a04919f",
+        "toId": "7bcf3b43a704a8a7",
+        "from": "apps/web/src/App.tsx",
+        "to": "packages/metrics/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "08d179696a04919f",
+        "toId": "be4a6311b99090e4",
+        "from": "apps/web/src/App.tsx",
+        "to": "packages/render/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "08d179696a04919f",
+        "toId": "b435e03a2f26b0ad",
+        "from": "apps/web/src/App.tsx",
+        "to": "packages/schema/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "40c0a2f73716c0c0",
+        "toId": "7bcf3b43a704a8a7",
+        "from": "apps/web/src/PrPanel.tsx",
+        "to": "packages/metrics/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "40c0a2f73716c0c0",
+        "toId": "be4a6311b99090e4",
+        "from": "apps/web/src/PrPanel.tsx",
+        "to": "packages/render/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "12edc8da54f99c54",
+        "toId": "08d179696a04919f",
+        "from": "apps/web/src/main.tsx",
+        "to": "apps/web/src/App.tsx",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "7bcf3b43a704a8a7",
+        "toId": "5d009899bcb23f5d",
+        "from": "packages/metrics/src/browser.ts",
+        "to": "packages/metrics/src/diff.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "7bcf3b43a704a8a7",
+        "toId": "cbf3c68ca387a814",
+        "from": "packages/metrics/src/browser.ts",
+        "to": "packages/metrics/src/risk.ts",
+        "weight": 2,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "7bcf3b43a704a8a7",
+        "toId": "af054fa2218bd0d2",
+        "from": "packages/metrics/src/browser.ts",
+        "to": "packages/metrics/src/rules.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "be4a6311b99090e4",
+        "toId": "802739c7a55e1902",
+        "from": "packages/render/src/browser.ts",
+        "to": "packages/render/src/color.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "be4a6311b99090e4",
+        "toId": "b877860362505819",
+        "from": "packages/render/src/browser.ts",
+        "to": "packages/render/src/layout.ts",
+        "weight": 2,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "be4a6311b99090e4",
+        "toId": "84877654a59491cb",
+        "from": "packages/render/src/browser.ts",
+        "to": "packages/render/src/model.ts",
+        "weight": 2,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "be4a6311b99090e4",
+        "toId": "34a960fe7e283135",
+        "from": "packages/render/src/browser.ts",
+        "to": "packages/render/src/svg.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "84877654a59491cb",
+        "toId": "7bcf3b43a704a8a7",
+        "from": "packages/render/src/model.ts",
+        "to": "packages/metrics/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "84877654a59491cb",
+        "toId": "b435e03a2f26b0ad",
+        "from": "packages/render/src/model.ts",
+        "to": "packages/schema/src/browser.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "b435e03a2f26b0ad",
+        "toId": "bb449db437d5d115",
+        "from": "packages/schema/src/browser.ts",
+        "to": "packages/schema/src/errors.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "b435e03a2f26b0ad",
+        "toId": "d4e9ed661bdf3145",
+        "from": "packages/schema/src/browser.ts",
+        "to": "packages/schema/src/parse2.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "b435e03a2f26b0ad",
+        "toId": "b05e86b9630171dd",
+        "from": "packages/schema/src/browser.ts",
+        "to": "packages/schema/src/stats.ts",
+        "weight": 2,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "b435e03a2f26b0ad",
+        "toId": "e14cbb6f10fb3e07",
+        "from": "packages/schema/src/browser.ts",
+        "to": "packages/schema/src/tree.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "b435e03a2f26b0ad",
+        "toId": "6a607a4c97052747",
+        "from": "packages/schema/src/browser.ts",
+        "to": "packages/schema/src/types.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      },
+      {
+        "fromId": "3f9b35ccf62c2de0",
+        "toId": "d4e9ed661bdf3145",
+        "from": "packages/schema/src/parse.ts",
+        "to": "packages/schema/src/parse2.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "d4e9ed661bdf3145",
+        "toId": "bb449db437d5d115",
+        "from": "packages/schema/src/parse2.ts",
+        "to": "packages/schema/src/errors.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      },
+      {
+        "fromId": "d4e9ed661bdf3145",
+        "toId": "6a607a4c97052747",
+        "from": "packages/schema/src/parse2.ts",
+        "to": "packages/schema/src/types.ts",
+        "weight": 1,
+        "typeOnly": 1,
+        "isCyclic": false
+      }
+    ],
+    "removed": [
+      {
+        "fromId": "84877654a59491cb",
+        "toId": "ce4e478b41d30b8b",
+        "from": "packages/render/src/model.ts",
+        "to": "packages/metrics/src/index.ts",
+        "weight": 1,
+        "typeOnly": 0,
+        "isCyclic": false
+      }
+    ],
+    "cyclicAdded": [],
+    "cyclicRemoved": []
+  },
+  "cycles": {
+    "introduced": [],
+    "fixed": []
+  },
+  "hotspots": [
+    {
+      "id": "08d179696a04919f",
+      "path": "apps/web/src/App.tsx",
+      "metric": "maxComplexity",
+      "base": 0,
+      "head": 33,
+      "delta": 33,
+      "change": "added"
+    },
+    {
+      "id": "d4e9ed661bdf3145",
+      "path": "packages/schema/src/parse2.ts",
+      "metric": "maxComplexity",
+      "base": 0,
+      "head": 16,
+      "delta": 16,
+      "change": "added"
+    },
+    {
+      "id": "40c0a2f73716c0c0",
+      "path": "apps/web/src/PrPanel.tsx",
+      "metric": "maxComplexity",
+      "base": 0,
+      "head": 15,
+      "delta": 15,
+      "change": "added"
+    },
+    {
+      "id": "95bc40c24f74b056",
+      "path": "packages/parsers/src/analyze.ts",
+      "metric": "maxComplexity",
+      "base": 33,
+      "head": 34,
+      "delta": 1,
+      "change": "changed"
+    },
+    {
+      "id": "32e005163718cb30",
+      "path": "apps/web/vite.config.ts",
+      "metric": "maxComplexity",
+      "base": 0,
+      "head": 1,
+      "delta": 1,
+      "change": "added"
+    }
+  ]
+}
