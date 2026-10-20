@@ -31,9 +31,14 @@ import {
   VIEW_WIDTH,
   type PlacedNode,
   type RenderFile,
-  type RenderModel
+  type RenderModel,
+  type TreeNode
 } from "@codarch/render/browser";
 import PrPanel from "./PrPanel";
+import {
+  readRepositoryFromFiles,
+  readRepositoryFromPicker
+} from "./repository";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -90,8 +95,11 @@ export default function App() {
   const [reportSource, setReportSource] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [tab, setTab] = useState<"file" | "pr">("file");
+  const [focusPath, setFocusPath] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
+  const repositoryInputRef = useRef<HTMLInputElement>(null);
+  const openMenuRef = useRef<HTMLDetailsElement>(null);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
@@ -115,6 +123,7 @@ export default function App() {
       );
       setQuery("");
       setSelectedIndex(null);
+      setFocusPath(null);
       setError(null);
     } catch (cause) {
       setError((cause as Error).message);
@@ -187,9 +196,26 @@ export default function App() {
     }
   }, [cc, areaMetric, colorMode]);
 
+  const mapRoots = useMemo(() => {
+    if (!view.model) return [];
+    if (!focusPath) return view.model.roots;
+    const folder = findFolder(view.model.roots, focusPath);
+    return folder ? [folder] : view.model.roots;
+  }, [view.model, focusPath]);
+
   useEffect(() => {
     setSelectedIndex(view.model?.defaultSelection ?? null);
   }, [view.model]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setFocusPath(null);
+      setSelectedIndex(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const metricOptions = useMemo(() => {
     if (!stats) return [];
@@ -232,6 +258,10 @@ export default function App() {
       if (!file) return;
       try {
         loadSnapshot(JSON.parse(await file.text()), file.name);
+        setReport(null);
+        setReportSource(null);
+        setReportError(null);
+        setTab("file");
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
@@ -247,6 +277,10 @@ export default function App() {
       if (!file) return;
       try {
         loadSnapshot(JSON.parse(await file.text()), file.name);
+        setReport(null);
+        setReportSource(null);
+        setReportError(null);
+        setTab("file");
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
@@ -268,6 +302,65 @@ export default function App() {
     [loadReport]
   );
 
+  const closeOpenMenu = useCallback(() => {
+    openMenuRef.current?.removeAttribute("open");
+  }, []);
+
+  const resetReport = useCallback(() => {
+    setReport(null);
+    setReportSource(null);
+    setReportError(null);
+    setTab("file");
+  }, []);
+
+  const openRepository = useCallback(async () => {
+    closeOpenMenu();
+    setError(null);
+    if (!("showDirectoryPicker" in window)) {
+      repositoryInputRef.current?.click();
+      return;
+    }
+    setLoading(true);
+    try {
+      const artifacts = await readRepositoryFromPicker();
+      loadSnapshot(artifacts.snapshot, artifacts.label);
+      if (artifacts.report !== null) {
+        loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
+      } else {
+        resetReport();
+      }
+    } catch (cause) {
+      if ((cause as DOMException).name !== "AbortError") {
+        setError((cause as Error).message);
+      }
+      setLoading(false);
+    }
+  }, [closeOpenMenu, loadReport, loadSnapshot, resetReport]);
+
+  const onRepositoryFiles = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? []);
+      event.target.value = "";
+      closeOpenMenu();
+      if (files.length === 0) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const artifacts = await readRepositoryFromFiles(files);
+        loadSnapshot(artifacts.snapshot, artifacts.label);
+        if (artifacts.report !== null) {
+          loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
+        } else {
+          resetReport();
+        }
+      } catch (cause) {
+        setError((cause as Error).message);
+        setLoading(false);
+      }
+    },
+    [closeOpenMenu, loadReport, loadSnapshot, resetReport]
+  );
+
   const selectPath = useCallback(
     (path: string) => {
       const index =
@@ -283,14 +376,24 @@ export default function App() {
   const reloadDemo = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("demo.cc.json");
-      if (!response.ok) throw new Error(`no se pudo cargar la demo (${response.status})`);
-      loadSnapshot(await response.json(), "demo.cc.json");
+      const [snapshotResponse, reportResponse] = await Promise.all([
+        fetch("demo.cc.json"),
+        fetch("demo.report.json")
+      ]);
+      if (!snapshotResponse.ok) {
+        throw new Error(`no se pudo cargar la demo (${snapshotResponse.status})`);
+      }
+      loadSnapshot(await snapshotResponse.json(), "demo.cc.json");
+      if (reportResponse.ok) {
+        loadReport(await reportResponse.json(), "demo.report.json");
+      } else {
+        resetReport();
+      }
     } catch (cause) {
       setError((cause as Error).message);
       setLoading(false);
     }
-  }, [loadSnapshot]);
+  }, [loadReport, loadSnapshot, resetReport]);
 
   return (
     <div
@@ -319,20 +422,41 @@ export default function App() {
           <button className="button ghost" type="button" onClick={reloadDemo}>
             Demo
           </button>
-          <button
-            className="button"
-            type="button"
-            onClick={() => inputRef.current?.click()}
-          >
-            <span className="button-label-long">Abrir snapshot</span>
-            <span className="button-label-short">Abrir</span>
-          </button>
+          <details className="open-menu" ref={openMenuRef}>
+            <summary className="button">
+              <span className="button-label-long">Abrir repositorio o archivo</span>
+              <span className="button-label-short">Abrir</span>
+            </summary>
+            <div className="open-menu-panel">
+              <button type="button" onClick={openRepository}>
+                Repositorio (carpeta)…
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  closeOpenMenu();
+                  inputRef.current?.click();
+                }}
+              >
+                Archivo cc.json…
+              </button>
+              <p>Repositorio lee .codarch/snapshot.cc.json y report.json.</p>
+            </div>
+          </details>
           <input
             ref={inputRef}
             className="sr-only"
             type="file"
             accept=".json,application/json"
             onChange={onFile}
+          />
+          <input
+            ref={repositoryInputRef}
+            className="sr-only"
+            type="file"
+            multiple
+            onChange={onRepositoryFiles}
+            {...({ webkitdirectory: "true", directory: "true" } as Record<string, string>)}
           />
         </div>
       </header>
@@ -400,6 +524,15 @@ export default function App() {
             <div>
               <div className="eyebrow">Mapa</div>
               <h1>{view.model?.meta.title ?? "Sin snapshot"}</h1>
+              {focusPath ? (
+                <div className="breadcrumb">
+                  <button type="button" onClick={() => setFocusPath(null)}>
+                    Todo
+                  </button>
+                  <span>/</span>
+                  <span>{focusPath}</span>
+                </div>
+              ) : null}
             </div>
             <div className="stage-kpis">
               <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
@@ -424,11 +557,13 @@ export default function App() {
             ) : view.model ? (
               <MapCanvas
                 model={view.model}
+                roots={mapRoots}
                 colorMode={colorMode}
                 migration={migration}
                 query={query.trim().toLowerCase()}
                 selectedIndex={selectedIndex}
                 onSelect={setSelectedIndex}
+                onFocusFolder={setFocusPath}
               />
             ) : (
               <div className="empty">Abre un cc.json para empezar.</div>
@@ -497,6 +632,17 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {
+  for (const node of nodes) {
+    if (node.kind === "folder" && node.path === path) return node;
+    if (node.children) {
+      const found = findFolder(node.children, path);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 function readReport(value: unknown): DiffReport | null {
@@ -746,24 +892,28 @@ function DebtList({
 
 function MapCanvas({
   model,
+  roots,
   colorMode,
   migration,
   query,
   selectedIndex,
-  onSelect
+  onSelect,
+  onFocusFolder
 }: {
   model: RenderModel;
+  roots: TreeNode[];
   colorMode: string;
   migration: CcMigrationLens | null;
   query: string;
   selectedIndex: number | null;
   onSelect: (index: number) => void;
+  onFocusFolder: (path: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
   const placed = useMemo(
-    () => layoutMap(model.roots, size.width, size.height),
-    [model.roots, size.width, size.height]
+    () => layoutMap(roots, size.width, size.height),
+    [roots, size.width, size.height]
   );
 
   useEffect(() => {
@@ -877,17 +1027,42 @@ function MapCanvas({
           pointerEvents="none"
         />
         {placedNode.headerHeight > 0 && rect.w > 34 ? (
-          <text
-            x={rect.x + 4}
-            y={rect.y + 11.5}
-            fill="rgba(18,26,32,.58)"
-            fontSize={9}
-            letterSpacing=".08em"
-            fontFamily="IBM Plex Mono, ui-monospace, monospace"
-            pointerEvents="none"
-          >
-            {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
-          </text>
+          <>
+            <text
+              x={rect.x + 4}
+              y={rect.y + 11.5}
+              fill="rgba(18,26,32,.58)"
+              fontSize={9}
+              letterSpacing=".08em"
+              fontFamily="IBM Plex Mono, ui-monospace, monospace"
+              pointerEvents="none"
+            >
+              {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
+            </text>
+            <rect
+              x={rect.x}
+              y={rect.y}
+              width={Math.max(1, rect.w)}
+              height={placedNode.headerHeight}
+              fill="transparent"
+              className="folder-hit"
+              role="button"
+              tabIndex={0}
+              aria-label={`Enfocar ${node.path}`}
+              onClick={(event) => {
+                event.stopPropagation();
+                onFocusFolder(node.path);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onFocusFolder(node.path);
+                }
+              }}
+            >
+              <title>{`Enfocar ${node.path}`}</title>
+            </rect>
+          </>
         ) : null}
         {placedNode.children.map(renderNode)}
       </g>

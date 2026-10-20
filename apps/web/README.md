@@ -13,8 +13,15 @@ npm run web:preview
 ```
 
 La demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de este repo entre el
-commit anterior a la app web y el árbol actual. Puedes abrir otro snapshot con **Abrir snapshot** o
-arrastrando el fichero al mapa, y otro reporte desde la pestaña **PR**.
+commit anterior a la app web y el árbol actual.
+
+**Abrir repositorio o archivo** ofrece dos caminos:
+
+- **Repositorio (carpeta):** selecciona la raíz de un repo y busca `.codarch/snapshot.cc.json` y
+  `.codarch/report.json`. No analiza código en el navegador; usa artefactos ya generados.
+- **Archivo cc.json:** carga un snapshot suelto; el reporte se puede abrir desde la pestaña PR.
+
+También puedes arrastrar un `cc.json` al mapa.
 
 ## Qué incluye
 
@@ -26,14 +33,18 @@ arrastrando el fichero al mapa, y otro reporte desde la pestaña **PR**.
 - Vista de PR: resumen de ficheros/aristas/ciclos/hotspots, reglas introducidas/existentes/resueltas,
   lista de hotspots, ciclos nuevos y ficheros modificados/nuevos.
 - Clic en una fila del PR para enfocar el fichero correspondiente en el mapa.
+- Foco por carpeta: clic en la cabecera de una carpeta; breadcrumb para volver al mapa completo.
+- `Esc` limpia la selección y vuelve al mapa completo.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
 ## Límites
 
 - El snapshot y el reporte se cargan en memoria; no hay backend ni persistencia.
+- **Abrir repositorio** no analiza: carga artefactos `.codarch` ya generados. El análisis en navegador
+  (WASM) está en el roadmap como M6.
 - No hay carga por URL ni `codarch serve` todavía.
 - El layout se recalcula al redimensionar; el mapa es SVG, no WebGL.
 - Los ficheros sin la métrica de área se dibujan con área mínima para no desaparecer.
 
-El objetivo siguiente es foco por carpeta, navegación de teclado completa y un `codarch serve`
-opcional para publicar el visor estático.
+El objetivo siguiente es `codarch serve`, carga por URL, persistencia y navegación de teclado
+completa.

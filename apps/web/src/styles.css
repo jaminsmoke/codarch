@@ -81,6 +81,8 @@ button {
 }
 
 .topbar {
+  position: relative;
+  z-index: 20;
   min-height: 64px;
   padding: 0 20px;
   display: grid;
@@ -169,6 +171,59 @@ button {
   background: transparent;
   color: #dbe3e4;
   border-color: #596970;
+}
+
+.open-menu {
+  position: relative;
+}
+
+.open-menu > summary {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  cursor: pointer;
+}
+
+.open-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.open-menu[open] > summary {
+  background: #ffffff;
+}
+
+.open-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 216px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  box-shadow: 0 14px 30px rgba(18, 26, 32, 0.18);
+}
+
+.open-menu-panel button {
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: 500 11px/1.3 var(--sans);
+  cursor: pointer;
+}
+
+.open-menu-panel button:hover {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.open-menu-panel p {
+  margin: 4px 10px 6px;
+  color: var(--muted);
+  font-size: 9.5px;
+  line-height: 1.35;
 }
 
 .button.ghost:hover {
@@ -535,6 +590,16 @@ button {
   stroke-width: 2.5;
 }
 
+.folder-hit {
+  cursor: zoom-in;
+}
+
+.folder-hit:focus-visible {
+  outline: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
 .empty {
   position: absolute;
   inset: 0;
@@ -570,6 +635,30 @@ button {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: none;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  font: 10px/1.3 var(--mono);
+  color: var(--muted);
+}
+
+.breadcrumb button {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.breadcrumb button:hover {
+  border-bottom-color: var(--ink);
 }
 
 .stage-foot {
