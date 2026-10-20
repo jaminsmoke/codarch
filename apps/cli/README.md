@@ -47,6 +47,7 @@ configuración.
 ```bash
 codarch serve .                 # analiza, sirve la web y reanaliza al cambiar ficheros
 codarch serve . --no-watch      # solo análisis inicial; sin SSE
+codarch serve . --no-web        # modo API para Vite u otro frontend
 codarch serve . --port 8080
 ```
 

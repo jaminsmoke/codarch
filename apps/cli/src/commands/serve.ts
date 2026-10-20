@@ -9,6 +9,8 @@ export interface ServeOptions {
   port: number;
   host: string;
   watch: boolean;
+  /** `false` para modo API sin servir la app (Vite ya la sirve). */
+  web: boolean;
   help: boolean;
 }
 
@@ -64,8 +66,8 @@ interface BrowseEntry {
  */
 export function runServe(options: ServeOptions): number {
   const root = path.resolve(options.root ?? ".");
-  const webRoot = findWebRoot();
-  if (!webRoot) {
+  const webRoot = options.web === false ? null : findWebRoot();
+  if (options.web !== false && !webRoot) {
     console.error(
       "no se encontró el build web. Ejecuta `npm run web:build` o usa el paquete publicado."
     );
@@ -292,6 +294,10 @@ export function runServe(options: ServeOptions): number {
         return;
       }
 
+      if (!webRoot) {
+        sendError(response, 404, "servidor en modo API: la web la sirve otro proceso");
+        return;
+      }
       serveStatic(webRoot, pathname, request.method === "HEAD", response);
     } catch (error) {
       if (!response.headersSent) {
@@ -322,7 +328,7 @@ export function runServe(options: ServeOptions): number {
       "  CodArch · serve",
       "",
       `  raíz         ${state.root}`,
-      `  web          ${webRoot}`,
+      `  web          ${webRoot ?? "modo API (la sirve Vite)"}`,
       `  URL          ${url}`,
       `  snapshot     ${state.files} ficheros · checksum ${state.checksum.slice(0, 8)}`,
       `  modo         ${state.watch ? "watch activo (SSE)" : "solo análisis inicial"}`,
@@ -402,12 +408,16 @@ function originAllowed(
 ): boolean {
   const origin = request.headers.origin;
   if (!origin) return true;
-  const allowed = new Set([
-    `http://${options.host}:${options.port}`,
-    `http://127.0.0.1:${options.port}`,
-    `http://localhost:${options.port}`
-  ]);
-  return allowed.has(origin);
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== "http:") return false;
+    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+      return true;
+    }
+    return origin === `http://${options.host}:${options.port}`;
+  } catch {
+    return false;
+  }
 }
 
 function findWebRoot(): string | null {

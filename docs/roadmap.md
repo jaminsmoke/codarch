@@ -123,6 +123,7 @@ de PR.
 - [x] Foco por carpeta y breadcrumb.
 - [x] `codarch serve`: analiza al arrancar, sirve el build web y los artefactos; live + SSE.
 - [x] Elegir carpeta desde la web, cambiar de repo y alternar live/stop sin reiniciar.
+- [x] `npm run web:dev` arranca y para el servidor automáticamente; `CODARCH_NO_AUTOSERVE=1` lo evita.
 - [ ] Carga por URL y enlaces compartibles con el estado de vista.
 - [ ] Persistencia local del último proyecto y de las preferencias de área/color.
 - [ ] Atajos de teclado y navegación completa del mapa.

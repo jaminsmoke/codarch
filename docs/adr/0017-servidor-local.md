@@ -37,7 +37,12 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
 6. **El build web viaja en el paquete.** `build:cli` copia `apps/web/dist` a `apps/cli/dist/web` y el
    manifiesto publicado incluye `web`. Así `npx codarch serve` funciona sin Vite ni clonar el repo.
    `pack:cli` y `publish:cli` construyen la web antes del CLI.
-7. **Mismo modelo y mismas métricas.** El servidor no reimplementa nada: usa el snapshot del parser,
+7. **Ciclo de vida en desarrollo.** `npm run web:dev` arranca `codarch serve --no-web` con el código
+   fuente vía `tsx`, proxya `/api`, `/data` y `/events` desde Vite y detiene el proceso al cerrar
+   Vite. `CODARCH_NO_AUTOSERVE=1` lo desactiva. El botón **Detener live** apaga el watcher y pasa a
+   `servido`; no mata el proceso que sirve los datos, porque en producción ese proceso es la propia
+   app. El proceso se cierra con Vite o con `codarch serve`.
+8. **Mismo modelo y mismas métricas.** El servidor no reimplementa nada: usa el snapshot del parser,
    con la lente de migración y el reporte existentes. La app solo cambia el transporte.
 
 ## Consecuencias
@@ -50,6 +55,8 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
   loopback es responsabilidad del usuario y no está soportado.
 - La selección de carpeta desde la web solo funciona con `codarch serve` arrancado; no es análisis
   en el navegador. Expone el filesystem local a la app en loopback, con APIs sin autenticación.
+- En desarrollo, apagar Vite apaga el servidor de datos; en producción, apagar `codarch serve` apaga
+  también la app. El control live no debe prometer lo contrario.
 - El watch puede perder eventos si el editor escribe de forma no atómica; el debounce y el
   reanálisis completo lo hacen tolerable. En repos muy grandes, `--no-watch` evita reanálisis
   constantes.

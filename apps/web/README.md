@@ -7,12 +7,16 @@ render estático, reutilizando `buildRenderModel`, `layoutMap` y las escalas de 
 ## Uso
 
 ```bash
-npm run web:dev      # http://127.0.0.1:5173
+npm run web:dev      # http://127.0.0.1:5173; arranca codarch serve automáticamente
 npm run web:build    # estático en apps/web/dist
 npm run web:preview
-npm run serve        # analiza el repo y sirve la app en http://127.0.0.1:4173
+npm run serve        # servidor autocontenido en http://127.0.0.1:4173
 npm run serve -- . --no-watch
 ```
+
+`web:dev` arranca `codarch serve --no-web` en `127.0.0.1:4173`, proxya `/api`, `/data` y `/events`
+desde Vite y lo para al cerrar Vite. Para desactivarlo:
+`CODARCH_NO_AUTOSERVE=1 npm run web:dev`.
 
 `serve` carga `data/meta.json`, `data/snapshot.cc.json` y, si existe, `data/report.json`. El watch es
 live por defecto: reanaliza al guardar y la app se refresca por SSE sin recargar.
@@ -20,7 +24,8 @@ live por defecto: reanaliza al guardar y la app se refresca por SSE sin recargar
 Con el servidor arrancado, **Abrir repositorio o archivo → Monitorizar carpeta (live)** abre un
 navegador de carpetas del servidor: puedes cambiar de repo sin reiniciar el comando. El panel
 **Servidor local** permite **Detener live** / **Activar live**; el badge del topbar pasa de `live` a
-`servido`.
+`servido`. Detener live apaga el watcher, no el proceso que sirve los datos; el proceso se cierra
+con Vite o con `codarch serve`.
 
 Si no hay servidor, la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de
 este repo entre el commit anterior a la app web y el árbol actual.

@@ -45,7 +45,7 @@ npm run mcp -- --help
 npm run inspect -- .codarch/snapshot.cc.json --metric migrationDebt --top 10
 npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o .codarch/migration.html
 
-# App web (M5): treemap, búsqueda, inspector y panel de migración
+# App web (M5): arranca también el servidor de datos y lo para al cerrar Vite
 npm run web:dev
 npm run web:build
 

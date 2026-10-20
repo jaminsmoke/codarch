@@ -57,6 +57,7 @@ Opciones de serve:
   --host <host>     interfaz (por defecto 127.0.0.1)
   --watch           reanaliza al cambiar ficheros y refresca por SSE (por defecto)
   --no-watch        solo analiza al arrancar
+  --no-web          modo API sin servir la app (para Vite u otro frontend)
   -h, --help        esta ayuda
 
 Ejemplos:
@@ -363,6 +364,7 @@ function parseServe(args: string[]): ServeOptions | number {
     port: 4173,
     host: "127.0.0.1",
     watch: true,
+    web: true,
     help: false
   };
   const positional: string[] = [];
@@ -398,6 +400,8 @@ function parseServe(args: string[]): ServeOptions | number {
       options.watch = true;
     } else if (arg === "--no-watch") {
       options.watch = false;
+    } else if (arg === "--no-web") {
+      options.web = false;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
     } else if (arg.startsWith("-")) {

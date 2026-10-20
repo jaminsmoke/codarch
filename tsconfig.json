@@ -13,6 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "noEmit": true,
     "baseUrl": ".",
@@ -34,6 +35,7 @@
     "apps/*/src/**/*.tsx",
     "apps/*/test/**/*.ts",
     "apps/*/vite.config.ts",
+    "apps/*/vite-server.ts",
     "scripts/*.ts",
     "vitest.config.ts"
   ],
