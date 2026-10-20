@@ -3,12 +3,13 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M2 cerrado (MVP repo-local). Churn, diff, reglas y GitHub Action ya funcionan.
-Siguiente: MCP.
+**Estado:** M2 cerrado (MVP repo-local). M3 en curso: el servidor MCP de solo lectura ya funciona.
+Churn, diff, reglas, GitHub Action y consultas para agentes están disponibles. La publicación del CLI
+y de la acción sigue pendiente.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
-[`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md) y
-el plan en [`docs/roadmap.md`](docs/roadmap.md).
+[`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
+MCP en [`docs/mcp.md`](docs/mcp.md) y el plan en [`docs/roadmap.md`](docs/roadmap.md).
 
 ---
 
@@ -30,6 +31,11 @@ npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.htm
 # Comparar dos snapshots (por ejemplo, base y head de un PR)
 npm run diff -- base.cc.json head.cc.json -o report.json
 npm run diff -- base.cc.json head.cc.json --fail-on violations
+
+# Servidor MCP para agentes (solo lectura, stdio)
+npm run analyze -- .
+npm run mcp -- --help
+# configuración del cliente: docs/mcp.md
 
 # Política de arquitectura opcional
 cp .codarch.example.yml .codarch.yml
@@ -69,8 +75,9 @@ Salida de `analyze` sobre el fixture de test con `--no-git`:
 ```
 
 El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
-entrantes/salientes y tres lentes: estructura, riesgo y métrica. La lente de riesgo se deriva en el
-render; no se almacena en el snapshot.
+entrantes/salientes y tres lentes: estructura, riesgo y métrica. El riesgo se calcula en
+`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta churn o
+complejidad, los pesos se renormalizan.
 
 ### Diff entre commits
 
@@ -158,6 +165,49 @@ Es **repo-local** en M2: asume que el workspace contiene el código de CodArch y
 La documentación, entradas y límites están en
 [`apps/github-action/README.md`](apps/github-action/README.md). El workflow de ejemplo es
 [`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
+
+### MCP para agentes
+
+`apps/mcp` es un servidor MCP local por stdio que lee un snapshot y, si existe, un reporte. No
+analiza código ni escribe nada: expone el mismo modelo que ven el mapa y el PR.
+
+```bash
+npm run analyze -- .
+npm run mcp -- --help
+```
+
+Configuración genérica del cliente (sustituye la ruta por tu checkout):
+
+```json
+{
+  "mcpServers": {
+    "codarch": {
+      "command": "node",
+      "args": [
+        "C:/ruta/repo/apps/mcp/bin/codarch-mcp.mjs",
+        "--root", "C:/ruta/repo",
+        "--snapshot", ".codarch/snapshot.cc.json",
+        "--report", ".codarch/report.json"
+      ]
+    }
+  }
+}
+```
+
+Herramientas:
+
+| Herramienta | Pregunta que responde |
+|---|---|
+| `get_architecture_map` | ¿Cómo se organiza el proyecto y qué pesa en cada carpeta? |
+| `find_hotspots` | ¿Qué ficheros concentran riesgo o una métrica? |
+| `check_change_impact` | ¿Qué depende de este fichero, directa o transitivamente? |
+| `list_violations` | ¿Qué reglas se rompen y cuáles son nuevas? |
+| `explain_module` | Dame métricas, aristas, ciclo, diff y violaciones de esta ruta. |
+
+Sin reporte, las consultas de cambios y violaciones devuelven `available: false` con un motivo. Las
+rutas son relativas al proyecto; también se aceptan ids. Se rechazan rutas absolutas y `..`. Toda la
+superficie es de solo lectura. Referencia completa en [`docs/mcp.md`](docs/mcp.md) y decisión en
+[ADR 0013](docs/adr/0013-mcp-readonly.md).
 
 ---
 
@@ -284,6 +334,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
 | Diff | reporte estable, sin reanálisis | ~9 ms para 2.000 → 2.010 ficheros (sintético) |
 | Reglas | solo bloquea lo introducido | `introduced` / `existing` / `resolved` en el reporte |
+| MCP | consultas de solo lectura, sin análisis oculto | 5 herramientas, 24 tests y smoke stdio |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
 | Comentario de PR | < 10 s de extremo a extremo | acción repo-local validada; falta medir en runner |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
@@ -292,8 +343,8 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 
 ```
 packages/   schema · parsers · metrics · layouts · render
-apps/       cli · web (futuro) · mcp (futuro) · github-action
-docs/       adr/ · design/ · model.md · rules.md · roadmap.md
+apps/       cli · mcp · github-action · web (futuro)
+docs/       adr/ · design/ · model.md · rules.md · mcp.md · roadmap.md
 scripts/    bench-render.ts · bench-analyze.ts · bench-diff.ts · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
@@ -301,7 +352,8 @@ design/     prototipo navegable del mapa 2D
 Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos `codarch analyze`,
 `codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
 `.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
-el diff determinista, las reglas y la GitHub Action.
+el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `apps/mcp` expone el modelo
+a agentes por stdio.
 
 ## Inspiración
 

@@ -275,7 +275,7 @@ Reglas:
 - `report.json` es determinista y no tiene timestamps. Ver
   [ADR 0010](adr/0010-diff-entre-snapshots.md) y [ADR 0011](adr/0011-reglas-de-arquitectura.md).
 
-## Pipeline de M1/M2
+## Pipeline de M1/M2/M3
 
 ```
 walkSourceFiles(root)
@@ -292,6 +292,10 @@ buildSnapshot({ projectName, files, graph })
   → árbol, lentes metrics/dependency, checksum
 diffSnapshots(base, head, { rules })
   → ficheros/aristas/ciclos/hotspots + violaciones introducidas/existentes/resueltas
+loadArchitectureStore(snapshot, report)
+  → índice de solo lectura, riesgo compartido, SCC, agregados de carpeta
+MCP tools
+  → mapa, hotspots, impacto, violaciones y explicación; sin reanalizar
 ```
 
 Cada fase es pura o casi pura y tiene tests propios. El analizador no guarda árboles de tree-sitter:

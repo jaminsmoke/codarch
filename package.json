@@ -15,6 +15,7 @@
     "diff": "tsx apps/cli/src/index.ts diff",
     "inspect": "tsx apps/cli/src/index.ts inspect",
     "render": "tsx apps/cli/src/index.ts render",
+    "mcp": "node apps/mcp/bin/codarch-mcp.mjs",
     "bench:render": "tsx scripts/bench-render.ts",
     "bench:analyze": "tsx scripts/bench-analyze.ts",
     "bench:diff": "tsx scripts/bench-diff.ts",

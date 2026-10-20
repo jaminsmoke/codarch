@@ -46,8 +46,8 @@ Métricas del snapshot: `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctio
 `inCycle`, `cycleSize`, `dependencyLevel`.
 
 El snapshot es `cc.json` 2.0 con lentes `metrics` y `dependency`. El checksum es MD5 de la
-serialización canónica de `{ files, lenses }`, sin timestamps ni rutas absolutas. La lente de riesgo
-se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
+serialización canónica de `{ files, lenses }`, sin timestamps ni rutas absolutas. El riesgo se calcula
+en `packages/metrics` y lo comparten render y MCP; renormaliza sus pesos si falta churn o complejidad.
 
 ## M2 — Diff y PR
 
@@ -67,9 +67,14 @@ se deriva en el render y renormaliza sus pesos si falta churn o complejidad.
 
 ## M3 — MCP
 
-- [ ] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.
-- [ ] Las herramientas devuelven datos del snapshot, nunca texto inventado.
-- [ ] El agente puede pedir el mapa de un PR concreto.
+**Estado:** en curso. El servidor MCP local de solo lectura está cerrado; la publicación del CLI y de
+la acción sigue pendiente.
+
+- [x] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.
+- [x] Las herramientas devuelven datos del snapshot, nunca texto inventado.
+- [x] El agente puede pedir el mapa de un PR concreto si su snapshot/reporte están en disco (artefactos de la acción o generados localmente).
+- [x] Riesgo compartido entre render y MCP; ciclos verificados por SCC sobre las aristas del snapshot.
+- [x] 24 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
 - [ ] Publicar el CLI y la acción (npm/GitHub Marketplace) para dejar de depender de un checkout local.
 
 ## M4 — Lente de migración
