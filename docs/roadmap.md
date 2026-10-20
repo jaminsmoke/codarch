@@ -110,8 +110,31 @@ de PR.
 - [x] Color por estado (`js`, `rust`, `bridge`, `native`) y por cualquier métrica.
 - [x] Cargar `report.json` y vista de PR: resumen, reglas, hotspots, ciclos y ficheros.
 - [x] Clic en una fila del PR para enfocar el fichero en el mapa.
-- [ ] Foco por carpeta y navegación por teclado más completa.
-- [ ] Cargar snapshots por URL y servir con `codarch serve`; build estático ya disponible.
+- [x] Foco por carpeta: clic en la cabecera de una carpeta y breadcrumb para volver.
+- [x] Menú **Abrir repositorio o archivo**; el repositorio carga `.codarch/snapshot.cc.json` y `.codarch/report.json`.
+- [ ] Navegación por teclado completa: flechas, Escape y foco inicial.
+- [ ] Cargar snapshots/reportes por URL y servir con `codarch serve`; build estático ya disponible.
+- [ ] Recordar el último snapshot/reporte y el estado de vista.
+
+## M5.1 — Básicos de uso
+
+- [x] Abrir repositorio por carpeta con File System Access API; fallback `webkitdirectory`.
+- [x] Abrir un `cc.json` suelto y cargar el reporte desde la pestaña PR.
+- [x] Foco por carpeta y breadcrumb.
+- [ ] `codarch serve`: servidor local opcional para el build estático y artefactos.
+- [ ] Carga por URL y enlaces compartibles con el estado de vista.
+- [ ] Persistencia local del último proyecto y de las preferencias de área/color.
+- [ ] Atajos de teclado y navegación completa del mapa.
+- [ ] Manejo explícito de snapshots grandes (virtualización o WebGL).
+
+## M6 — Análisis en el navegador
+
+**Estado:** futuro. Hoy “Abrir repositorio” lee artefactos ya generados, no analiza código.
+
+- [ ] Walker y parser TS/JS en el navegador (tree-sitter WASM o equivalente).
+- [ ] Sistema de ficheros virtual sobre File System Access API.
+- [ ] Churn y git fuera del navegador; snapshot sin historial o con datos externos.
+- [ ] Mismo modelo, métricas y checksum que el CLI para no abrir dos verdades.
 
 ## Después
 
