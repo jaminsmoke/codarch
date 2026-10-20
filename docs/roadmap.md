@@ -74,7 +74,7 @@ la acción sigue pendiente.
 - [x] Las herramientas devuelven datos del snapshot, nunca texto inventado.
 - [x] El agente puede pedir el mapa de un PR concreto si su snapshot/reporte están en disco (artefactos de la acción o generados localmente).
 - [x] Riesgo compartido entre render y MCP; ciclos verificados por SCC sobre las aristas del snapshot.
-- [x] 24 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
+- [x] 25 tests de herramientas, servidor, carga de artefactos y raíces múltiples, incluido transporte MCP en memoria, y smoke stdio contra artefactos reales.
 - [ ] Publicar el CLI y la acción (npm/GitHub Marketplace) para dejar de depender de un checkout local.
 
 ## M4 — Lente de migración

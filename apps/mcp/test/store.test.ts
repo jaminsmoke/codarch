@@ -111,3 +111,33 @@ describe("snapshots con varias raíces", () => {
     expect(store.resolveTarget("two/a.ts")).toMatchObject({ id: "a2" });
   });
 });
+
+describe("prefijo de la raíz", () => {
+  it("acepta el nombre de la raíz sin romper rutas reales", () => {
+    const single: CcJson = {
+      meta: {
+        projectName: "src",
+        apiVersion: "2.1",
+        checksum: "single-checksum",
+        commitHash: "single-commit"
+      },
+      files: [
+        {
+          id: "root",
+          name: "src",
+          type: "Folder",
+          children: [{ id: "file", name: "a.ts", type: "File" }]
+        }
+      ],
+      lenses: {
+        metrics: {
+          attributes: { file: { rloc: 5 } }
+        }
+      }
+    };
+
+    const store = new ArchitectureStore(parseCcJson(single));
+    expect(store.resolveTarget("a.ts")).toMatchObject({ path: "a.ts" });
+    expect(store.resolveTarget("src/a.ts")).toMatchObject({ path: "a.ts" });
+  });
+});

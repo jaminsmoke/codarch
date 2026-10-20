@@ -334,7 +334,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Salida | determinista (mismo hash) | test de dos ejecuciones, también con churn |
 | Diff | reporte estable, sin reanálisis | ~9 ms para 2.000 → 2.010 ficheros (sintético) |
 | Reglas | solo bloquea lo introducido | `introduced` / `existing` / `resolved` en el reporte |
-| MCP | consultas de solo lectura, sin análisis oculto | 5 herramientas, 24 tests y smoke stdio |
+| MCP | consultas de solo lectura, sin análisis oculto | 5 herramientas, 25 tests y smoke stdio |
 | Configuración | cero para el primer resultado | `codarch analyze .` |
 | Comentario de PR | < 10 s de extremo a extremo | acción repo-local validada; falta medir en runner |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |

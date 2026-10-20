@@ -195,7 +195,7 @@ apps/mcp/
 ├── src/tools.ts          las cinco consultas
 ├── src/server.ts         registro MCP y esquemas de entrada
 ├── src/index.ts          entrada stdio y opciones
-└── test/                 24 tests, incluido transporte en memoria
+└── test/                 25 tests, incluido transporte en memoria
 ```
 
 El servidor carga e indexa una vez; las llamadas trabajan en memoria. `npm test` cubre las

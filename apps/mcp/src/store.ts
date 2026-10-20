@@ -235,12 +235,6 @@ export class ArchitectureStore {
       segments.push(segment);
     }
     value = segments.join("/");
-
-    if (this.rootName) {
-      if (value === this.rootName) return "";
-      const prefix = `${this.rootName}/`;
-      if (value.startsWith(prefix)) value = value.slice(prefix.length);
-    }
     return value;
   }
 
@@ -249,17 +243,26 @@ export class ArchitectureStore {
       return this.filesById.get(input) as StoreFile;
     }
 
-    let value: string;
-    try {
-      value = this.normalizePath(input);
-    } catch (error) {
-      throw error;
-    }
-
+    const value = this.normalizePath(input);
     const file = this.filesByPath.get(value);
     if (file) return file;
     const folder = this.folders.get(value);
     if (folder) return folder;
+
+    if (this.rootName) {
+      if (value === this.rootName) {
+        const rootFolder = this.folders.get("");
+        if (rootFolder) return rootFolder;
+      }
+      const prefix = `${this.rootName}/`;
+      if (value.startsWith(prefix)) {
+        const relative = value.slice(prefix.length);
+        const strippedFile = this.filesByPath.get(relative);
+        if (strippedFile) return strippedFile;
+        const strippedFolder = this.folders.get(relative);
+        if (strippedFolder) return strippedFolder;
+      }
+    }
 
     throw new McpDataError(this.withSuggestions(input, value));
   }

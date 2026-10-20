@@ -256,8 +256,11 @@ export function findHotspots(
 ): FindHotspotsResult {
   const scope: HotspotScope = input.scope ?? "snapshot";
   const limit = clampInteger(input.limit, 10, 1, 100);
-  const folder = store.normalizePath(input.folder ?? "");
-  resolveFolder(store, folder, input.folder ?? "");
+  const folder = resolveFolder(
+    store,
+    store.normalizePath(input.folder ?? ""),
+    input.folder ?? ""
+  ).path;
 
   if (scope === "diff") {
     if (!store.report) {
