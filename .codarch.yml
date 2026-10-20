@@ -1,0 +1,29 @@
+# Política de arquitectura de CodArch sobre sí mismo.
+# Las reglas se evalúan en `codarch diff`; solo bloquean las violaciones introducidas.
+version: 1
+
+layers:
+  - name: packages
+    paths:
+      - packages/**
+  - name: apps
+    paths:
+      - apps/**
+
+rules:
+  - name: packages-no-apps
+    type: forbidden
+    from: packages
+    to: apps
+    severity: error
+    message: Los paquetes del core no pueden depender de las aplicaciones
+
+  - name: sin-ciclos
+    type: cycles
+    severity: error
+
+  - name: complejidad-maxima
+    type: threshold
+    metric: maxComplexity
+    max: 40
+    severity: warn
