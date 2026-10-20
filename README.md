@@ -6,9 +6,10 @@
 **Estado:** M4 cerrado y M5 en curso. El CLI `codarch@0.1.3` está publicado en npm, la GitHub Action
 pública `jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
 operativo, la lente de migración mide lenguajes/puentes/deuda y la app web ya carga snapshots y
-reportes (archivo o carpeta de repo), dibuja el treemap reutilizando el motor del render y añade
-inspector, foco por carpeta, panel de migración y vista de PR. `codarch serve` analiza el repo en
-local, permite elegir otra carpeta desde la web, alternar live/stop y refresca por SSE.
+reportes (archivo, carpeta de repo o URL), dibuja el treemap reutilizando el motor del render y añade
+inspector, foco por carpeta, panel de migración y vista de PR. La URL lleva el estado de la vista, así
+que cualquier vista se puede compartir. `codarch serve` analiza el repo en local, permite elegir otra
+carpeta desde la web, alterna live/stop y refresca por SSE.
 
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el

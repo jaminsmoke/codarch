@@ -48,6 +48,13 @@ import {
   writeProject,
   type ViewPreferences
 } from "./storage";
+import {
+  buildSearch,
+  parseSourceRequest,
+  parseViewState,
+  type SourceRequest,
+  type ViewState as UrlViewState
+} from "./viewState";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -110,6 +117,11 @@ export default function App() {
   );
   const [serverRootPath, setServerRootPath] = useState("");
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
+  const [urlInput, setUrlInput] = useState("");
+  const [reportUrlInput, setReportUrlInput] = useState("");
+  const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +132,13 @@ export default function App() {
   if (preferencesRef.current === undefined) {
     preferencesRef.current = readPreferences();
   }
+  // La URL se lee una sola vez: al arrancar decide qué se carga y qué vista se aplica.
+  const urlRef = useRef<{ view: UrlViewState; source: SourceRequest } | null>(null);
+  if (urlRef.current === null) {
+    const search = typeof window === "undefined" ? "" : window.location.search;
+    urlRef.current = { view: parseViewState(search), source: parseSourceRequest(search) };
+  }
+  const selectedPathRef = useRef<string | null>(null);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
@@ -168,6 +187,7 @@ export default function App() {
         });
         if (!preserveView) {
           setQuery("");
+          selectedPathRef.current = null;
           setSelectedIndex(null);
           setFocusPath(null);
         }
@@ -210,6 +230,44 @@ export default function App() {
     let cancelled = false;
 
     const boot = async (): Promise<void> => {
+      // Una URL explícita manda sobre el servidor local y sobre la demo.
+      const requested = urlRef.current?.source;
+      if (requested?.snapshotUrl) {
+        try {
+          const raw = await fetchJsonStrict(requested.snapshotUrl);
+          if (cancelled) return;
+          manualLoadRef.current = true;
+          if (loadSnapshot(raw, requested.snapshotUrl)) {
+            setServerMode("local");
+            setSourceUrl(requested.snapshotUrl);
+            if (requested.reportUrl) {
+              try {
+                const report = await fetchJsonStrict(requested.reportUrl);
+                if (!cancelled && report) {
+                  loadReport(report, requested.reportUrl);
+                  setReportUrl(requested.reportUrl);
+                }
+              } catch (cause) {
+                if (!cancelled) {
+                  setReportError(`No se pudo cargar el reporte: ${(cause as Error).message}`);
+                }
+              }
+            }
+            return;
+          }
+          setLoading(false);
+          return;
+        } catch (cause) {
+          // No se cae al servidor ni a la demo: la URL pedida es explícita.
+          if (!cancelled) {
+            setServerMode("local");
+            setError(`No se pudo cargar ${requested.snapshotUrl}: ${(cause as Error).message}`);
+            setLoading(false);
+          }
+          return;
+        }
+      }
+
       const meta = await fetchJson("data/meta.json");
       const servedSnapshot = await fetchJson("data/snapshot.cc.json");
 
@@ -314,9 +372,93 @@ export default function App() {
     return folder ? [folder] : view.model.roots;
   }, [view.model, focusPath]);
 
+  /**
+   * Selecciona un fichero por índice y recuerda su ruta.
+   *
+   * La ruta es la identidad estable: el índice depende del orden del árbol y
+   * cambia cuando el snapshot se reanaliza o cambia la métrica de área.
+   */
+  const selectIndex = useCallback(
+    (index: number | null) => {
+      setSelectedIndex(index);
+      const file = index === null ? undefined : view.model?.files[index];
+      selectedPathRef.current = file?.path ?? null;
+    },
+    [view.model]
+  );
+
   useEffect(() => {
-    setSelectedIndex(view.model?.defaultSelection ?? null);
-  }, [view.model]);
+    const files = view.model?.files;
+    if (!files) {
+      selectIndex(null);
+      return;
+    }
+    // Al cambiar de métrica se conserva el fichero seleccionado si sigue existiendo.
+    const wanted = selectedPathRef.current;
+    if (wanted) {
+      const index = files.findIndex((file) => file.path === wanted);
+      if (index >= 0) {
+        selectIndex(index);
+        return;
+      }
+    }
+    selectIndex(view.model?.defaultSelection ?? null);
+  }, [view.model, selectIndex]);
+
+  /**
+   * Aplica el estado de vista de la URL una sola vez, cuando ya hay modelo.
+   *
+   * Los parámetros que no encajan con el snapshot (métrica inexistente, carpeta
+   * que no está, fichero borrado) se ignoran en silencio: el enlace es una
+   * pista, no un contrato.
+   */
+  const [urlApplied, setUrlApplied] = useState(false);
+  useEffect(() => {
+    if (urlApplied || !view.model || !stats) return;
+    const wanted = urlRef.current?.view;
+    if (!wanted) {
+      setUrlApplied(true);
+      return;
+    }
+    const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
+    if (wanted.areaMetric && coverage.has(wanted.areaMetric)) {
+      setAreaMetric(wanted.areaMetric);
+    }
+    if (wanted.colorMode && isValidColorMode(wanted.colorMode, coverage, migration)) {
+      setColorMode(wanted.colorMode);
+    }
+    if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
+      setFocusPath(wanted.focusPath);
+    }
+    if (wanted.filePath) {
+      const index = view.model.files.findIndex((file) => file.path === wanted.filePath);
+      if (index >= 0) selectIndex(index);
+    }
+    if (wanted.tab) setTab(wanted.tab);
+    setUrlApplied(true);
+  }, [urlApplied, view.model, stats, migration, selectIndex]);
+
+  // La URL refleja la vista actual: el enlace se puede compartir tal cual.
+  useEffect(() => {
+    if (!urlApplied || !view.model || typeof window === "undefined") return;
+    const file = selectedIndex === null ? undefined : view.model.files[selectedIndex];
+    const search = buildSearch(
+      {
+        areaMetric,
+        colorMode,
+        focusPath,
+        filePath: file?.path ?? null,
+        tab
+      },
+      { snapshotUrl: sourceUrl, reportUrl }
+    );
+    if (search === window.location.search) return;
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}${search}${window.location.hash}`
+    );
+  }, [urlApplied, view.model, areaMetric, colorMode, focusPath, selectedIndex, tab, sourceUrl, reportUrl]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -334,6 +476,7 @@ export default function App() {
 
       if (event.key !== "Escape") return;
       setFocusPath(null);
+      selectedPathRef.current = null;
       setSelectedIndex(null);
       setQuery("");
       if (typing) target.blur();
@@ -386,6 +529,8 @@ export default function App() {
         const raw = JSON.parse(await file.text()) as unknown;
         if (loadSnapshot(raw, file.name)) {
           setServerMode("local");
+          setSourceUrl(null);
+          setReportUrl(null);
           clearProject();
           writeProject({
             snapshot: raw,
@@ -416,6 +561,8 @@ export default function App() {
         const raw = JSON.parse(await file.text()) as unknown;
         if (loadSnapshot(raw, file.name)) {
           setServerMode("local");
+          setSourceUrl(null);
+          setReportUrl(null);
           clearProject();
           writeProject({
             snapshot: raw,
@@ -470,6 +617,64 @@ export default function App() {
     setTab("file");
   }, []);
 
+  /** Carga un snapshot (y opcionalmente un reporte) desde una URL. */
+  const loadFromUrl = useCallback(async () => {
+    const snapshotUrl = urlInput.trim();
+    if (!snapshotUrl) return;
+    const reportTarget = reportUrlInput.trim();
+    closeOpenMenu();
+    manualLoadRef.current = true;
+    setLoading(true);
+    setError(null);
+    try {
+      const raw = await fetchJsonStrict(snapshotUrl);
+      if (!loadSnapshot(raw, snapshotUrl)) {
+        setLoading(false);
+        return;
+      }
+      setServerMode("local");
+      setSourceUrl(snapshotUrl);
+      clearProject();
+      writeProject({
+        snapshot: raw,
+        report: null,
+        label: snapshotUrl,
+        reportLabel: null
+      });
+      if (reportTarget) {
+        try {
+          const report = await fetchJsonStrict(reportTarget);
+          if (report) {
+            loadReport(report, reportTarget);
+            setReportUrl(reportTarget);
+          }
+        } catch (cause) {
+          setReportError(`No se pudo cargar el reporte: ${(cause as Error).message}`);
+        }
+      } else {
+        resetReport();
+      }
+    } catch (cause) {
+      setError(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [closeOpenMenu, loadReport, loadSnapshot, reportUrlInput, resetReport, urlInput]);
+
+  /** Copia el enlace de la vista actual al portapapeles. */
+  const copyLink = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    const link = window.location.href;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      // Sin permiso de portapapeles: el enlace sigue visible en la barra.
+      return;
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  }, []);
+
   const refreshFromServer = useCallback(async () => {
     const meta = (await fetchJson("data/meta.json")) as {
       watch?: boolean;
@@ -479,6 +684,8 @@ export default function App() {
     if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
     loadSnapshot(snapshot, "servidor local");
     setServerMode(meta?.watch ? "live" : "served");
+    setSourceUrl(null);
+    setReportUrl(null);
     if (meta?.rootPath) setServerRootPath(meta.rootPath);
     const report = await fetchJson("data/report.json");
     if (report) loadReport(report, "servidor local", false);
@@ -560,6 +767,8 @@ export default function App() {
       const artifacts = await readRepositoryFromPicker();
       if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
         setServerMode("local");
+        setSourceUrl(null);
+        setReportUrl(null);
         clearProject();
         writeProject({
           snapshot: artifacts.snapshot,
@@ -594,6 +803,8 @@ export default function App() {
         const artifacts = await readRepositoryFromFiles(files);
         if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
           setServerMode("local");
+          setSourceUrl(null);
+          setReportUrl(null);
           clearProject();
           writeProject({
             snapshot: artifacts.snapshot,
@@ -620,11 +831,11 @@ export default function App() {
       const index =
         view.model?.files.findIndex((candidate) => candidate.path === path) ?? -1;
       if (index >= 0) {
-        setSelectedIndex(index);
+        selectIndex(index);
         setTab("file");
       }
     },
-    [view.model]
+    [selectIndex, view.model]
   );
 
   const reloadDemo = useCallback(async () => {
@@ -641,6 +852,8 @@ export default function App() {
       }
       loadSnapshot(await snapshotResponse.json(), "demo.cc.json");
       setServerMode("demo");
+      setSourceUrl(null);
+      setReportUrl(null);
       if (reportResponse.ok) {
         loadReport(await reportResponse.json(), "demo.report.json");
       } else {
@@ -698,6 +911,14 @@ export default function App() {
           <button className="button ghost" type="button" onClick={reloadDemo}>
             Demo
           </button>
+          <button
+            className="button ghost"
+            type="button"
+            onClick={() => void copyLink()}
+            title="Copia el enlace de la vista actual (área, color, carpeta y fichero)"
+          >
+            {copied ? "Copiado" : "Copiar enlace"}
+          </button>
           <details className="open-menu" ref={openMenuRef}>
             <summary className="button">
               <span className="button-label-long">Abrir repositorio o archivo</span>
@@ -728,6 +949,39 @@ export default function App() {
               >
                 Archivo cc.json…
               </button>
+              <div className="url-load">
+                <label className="field">
+                  <span>Snapshot por URL</span>
+                  <input
+                    type="text"
+                    value={urlInput}
+                    placeholder="https://…/snapshot.cc.json"
+                    onChange={(event) => setUrlInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void loadFromUrl();
+                    }}
+                  />
+                </label>
+                <label className="field">
+                  <span>Reporte por URL (opcional)</span>
+                  <input
+                    type="text"
+                    value={reportUrlInput}
+                    placeholder="https://…/report.json"
+                    onChange={(event) => setReportUrlInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void loadFromUrl();
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void loadFromUrl()}
+                  disabled={!urlInput.trim()}
+                >
+                  Cargar por URL
+                </button>
+              </div>
               <p>
                 Monitorizar analiza una carpeta en el servidor local. .codarch carga
                 artefactos ya generados. Para activarlo: <code>codarch serve</code>.
@@ -799,7 +1053,7 @@ export default function App() {
                     file.path.toLowerCase().includes(needle)
                   );
                   if (match) {
-                    setSelectedIndex(match.index);
+                    selectIndex(match.index);
                     setTab("file");
                   }
                 }}
@@ -843,7 +1097,7 @@ export default function App() {
             model={view.model}
             migration={migration}
             selectedIndex={selectedIndex}
-            onSelect={setSelectedIndex}
+            onSelect={selectIndex}
           />
         </aside>
 
@@ -900,7 +1154,7 @@ export default function App() {
                 migration={migration}
                 query={query.trim().toLowerCase()}
                 selectedIndex={selectedIndex}
-                onSelect={setSelectedIndex}
+                onSelect={selectIndex}
                 onFocusFolder={setFocusPath}
               />
             ) : (
@@ -987,6 +1241,37 @@ async function fetchJson(url: string): Promise<unknown | null> {
   } catch {
     return null;
   }
+}
+
+/** Igual que `fetchJson`, pero explica por qué falló la carga por URL. */
+async function fetchJsonStrict(url: string): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (cause) {
+    throw new Error(
+      `no se pudo contactar con ${url} (${(cause as Error).message}). Si el origen no permite CORS, sirve el fichero desde el mismo servidor.`
+    );
+  }
+  if (!response.ok) {
+    throw new Error(`respondió ${response.status}`);
+  }
+  try {
+    return (await response.json()) as unknown;
+  } catch (cause) {
+    throw new Error(`el JSON no es válido (${(cause as Error).message})`);
+  }
+}
+
+/** Un color es válido si es una lente fija o una métrica presente en el snapshot. */
+function isValidColorMode(
+  colorMode: string,
+  coverage: ReadonlySet<string>,
+  migration: CcMigrationLens | null
+): boolean {
+  if (colorMode === "risk" || colorMode === "structure") return true;
+  if (colorMode === "status") return Boolean(migration);
+  return coverage.has(colorMode);
 }
 
 function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {

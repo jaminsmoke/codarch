@@ -30,13 +30,37 @@ con Vite o con `codarch serve`.
 Si no hay servidor, la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de
 este repo entre el commit anterior a la app web y el árbol actual.
 
-**Abrir repositorio o archivo** ofrece dos caminos:
+**Abrir repositorio o archivo** ofrece tres caminos:
 
 - **Repositorio (carpeta):** selecciona la raíz de un repo y busca `.codarch/snapshot.cc.json` y
   `.codarch/report.json`. No analiza código en el navegador; usa artefactos ya generados.
 - **Archivo cc.json:** carga un snapshot suelto; el reporte se puede abrir desde la pestaña PR.
+- **Cargar por URL:** pega la dirección de un `snapshot.cc.json` y, opcionalmente, la de un
+  `report.json`. La URL debe permitir CORS o servirse desde el mismo origen.
 
 También puedes arrastrar un `cc.json` al mapa.
+
+## Enlaces compartibles
+
+La URL lleva el estado de la vista, así que cualquier vista se puede compartir o marcar:
+
+```
+http://127.0.0.1:4173/?area=rloc&color=risk&focus=packages/render&file=packages/render/src/model.ts&tab=file
+```
+
+| Parámetro | Significado |
+|---|---|
+| `area` | métrica que decide el área |
+| `color` | `risk`, `structure`, `status` o una métrica |
+| `focus` | carpeta enfocada |
+| `file` | fichero seleccionado |
+| `tab` | `file` o `pr` |
+| `src` | URL del snapshot a cargar |
+| `report` | URL del reporte a cargar |
+
+**Copiar enlace** pone la URL actual en el portapapeles. Los parámetros que no encajan con el snapshot
+se ignoran: el enlace es una pista, no un contrato. Con `src`, la app carga ese snapshot y no cae al
+servidor local ni a la demo; si la URL falla, el error se muestra en lugar de datos de otro origen.
 
 ## Qué incluye
 
@@ -53,6 +77,8 @@ También puedes arrastrar un `cc.json` al mapa.
 - Con `codarch serve`: selector de carpetas del servidor, cambio de repo y toggle live/stop.
 - Preferencias de área/color y último proyecto abierto con artefactos se guardan en `localStorage` y
   se restauran al recargar.
+- El estado de vista (área, color, carpeta, fichero, pestaña) vive en la URL: se puede compartir y
+  recargar sin perder el contexto.
 - Atajos: `/` enfoca la búsqueda, `Enter` abre el primer resultado y `Esc` limpia foco/selección.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
@@ -62,9 +88,9 @@ También puedes arrastrar un `cc.json` al mapa.
   ~2,5 MB. Los datos servidos por `codarch serve` no se guardan.
 - **Abrir repositorio** no analiza: carga artefactos `.codarch` ya generados. El análisis en navegador
   (WASM) está en el roadmap como M6.
-- No hay carga por URL todavía.
+- La carga por URL depende de CORS: un `cc.json` servido desde otro origen sin cabeceras CORS no se
+  puede leer desde el navegador.
 - El layout se recalcula al redimensionar; el mapa es SVG, no WebGL.
 - Los ficheros sin la métrica de área se dibujan con área mínima para no desaparecer.
 
-El objetivo siguiente es `codarch serve`, carga por URL, persistencia y navegación de teclado
-completa.
+Lo siguiente: navegación por flechas entre celdas y manejo explícito de snapshots grandes.

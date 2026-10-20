@@ -1,0 +1,120 @@
+/**
+ * Estado de vista en la URL.
+ *
+ * La app web se puede abrir en tres sitios: la demo, un fichero local o el
+ * servidor local. En los tres casos la URL puede llevar el estado de la vista
+ * (área, color, carpeta enfocada, fichero seleccionado, pestaña) y las
+ * direcciones de los artefactos que se cargan por URL.
+ *
+ * Las claves son cortas y estables porque la URL se comparte y se pega en
+ * tickets: `area`, `color`, `focus`, `file`, `tab`, `src` y `report`.
+ */
+
+export interface ViewState {
+  /** Métrica que decide el área del treemap. */
+  areaMetric: string | null;
+  /** `risk`, `structure`, `status` o el nombre de una métrica. */
+  colorMode: string | null;
+  /** Ruta de la carpeta enfocada. */
+  focusPath: string | null;
+  /** Ruta del fichero seleccionado. */
+  filePath: string | null;
+  /** Pestaña del panel derecho. */
+  tab: "file" | "pr" | null;
+}
+
+export interface SourceRequest {
+  /** URL del snapshot a cargar. */
+  snapshotUrl: string | null;
+  /** URL del reporte a cargar. */
+  reportUrl: string | null;
+}
+
+const VIEW_KEYS = ["area", "color", "focus", "file", "tab"] as const;
+const SOURCE_KEYS = ["src", "report"] as const;
+
+export const EMPTY_VIEW_STATE: ViewState = {
+  areaMetric: null,
+  colorMode: null,
+  focusPath: null,
+  filePath: null,
+  tab: null
+};
+
+export const EMPTY_SOURCE_REQUEST: SourceRequest = {
+  snapshotUrl: null,
+  reportUrl: null
+};
+
+function readParam(params: URLSearchParams, key: string): string | null {
+  const value = params.get(key);
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
+/** Lee el estado de vista de una query string (`?area=rloc&focus=src/app`). */
+export function parseViewState(search: string): ViewState {
+  const params = new URLSearchParams(search);
+  const tab = readParam(params, "tab");
+  return {
+    areaMetric: readParam(params, "area"),
+    colorMode: readParam(params, "color"),
+    focusPath: readParam(params, "focus"),
+    filePath: readParam(params, "file"),
+    tab: tab === "file" || tab === "pr" ? tab : null
+  };
+}
+
+/** Lee las direcciones de los artefactos que se cargan por URL. */
+export function parseSourceRequest(search: string): SourceRequest {
+  const params = new URLSearchParams(search);
+  return {
+    snapshotUrl: readParam(params, "src"),
+    reportUrl: readParam(params, "report")
+  };
+}
+
+/**
+ * Construye la query string con el estado de vista y las fuentes.
+ *
+ * Conserva los parámetros ajenos a la app y deja las barras en las rutas para
+ * que el enlace sea legible: `?file=src/app/main.ts`, no `?file=src%2Fapp%2Fmain.ts`.
+ */
+export function buildSearch(
+  state: ViewState,
+  source: SourceRequest,
+  current = ""
+): string {
+  const params = new URLSearchParams(current);
+  for (const key of VIEW_KEYS) params.delete(key);
+  for (const key of SOURCE_KEYS) params.delete(key);
+
+  const entries: Array<[string, string]> = [];
+  if (state.areaMetric) entries.push(["area", state.areaMetric]);
+  if (state.colorMode) entries.push(["color", state.colorMode]);
+  if (state.focusPath) entries.push(["focus", state.focusPath]);
+  if (state.filePath) entries.push(["file", state.filePath]);
+  if (state.tab) entries.push(["tab", state.tab]);
+  if (source.snapshotUrl) entries.push(["src", source.snapshotUrl]);
+  if (source.reportUrl) entries.push(["report", source.reportUrl]);
+
+  const parts = entries.map(([key, value]) => `${key}=${encodeValue(value)}`);
+  const preserved = params.toString();
+  if (preserved) parts.unshift(preserved);
+  return parts.length === 0 ? "" : `?${parts.join("&")}`;
+}
+
+/**
+ * Codifica un valor de query string dejando legibles las rutas y las URLs.
+ *
+ * `encodeURIComponent` escapa `/` y `:`, que en un valor de query string son
+ * seguros y hacen el enlace mucho más legible. Los separadores (`&`, `=`, `+`)
+ * se mantienen escapados para no romper el parseo.
+ */
+function encodeValue(value: string): string {
+  return encodeURIComponent(value).replace(
+    /%(2F|3A|40|24|2C|3B|21|2A|27|28|29|7E)/g,
+    (match) => decodeURIComponent(match)
+  );
+}
