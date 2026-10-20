@@ -3,7 +3,7 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M4 cerrado y M5 en curso. El CLI `codarch@0.1.2` está publicado en npm, la GitHub Action
+**Estado:** M4 cerrado y M5 en curso. El CLI `codarch@0.1.3` está publicado en npm, la GitHub Action
 pública `jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
 operativo, la lente de migración mide lenguajes/puentes/deuda y la app web ya carga snapshots y
 reportes (archivo o carpeta de repo), dibuja el treemap reutilizando el motor del render y añade

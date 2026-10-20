@@ -10,9 +10,17 @@ const actionPath = path.join(root, "apps", "github-action", "action.yml");
 const workflowPath = path.join(root, ".github", "workflows", "codarch.yml");
 
 const action = parse(fs.readFileSync(actionPath, "utf8"));
+const cliVersion = JSON.parse(
+  fs.readFileSync(path.join(root, "apps", "cli", "package.json"), "utf8")
+).version;
+assert.match(cliVersion, /^\d+\.\d+\.\d+$/, "la versión del CLI no es semver");
 assert.equal(action.runs?.using, "composite");
 assert.equal(action.inputs?.["fail-on"]?.default, "none");
-assert.equal(action.inputs?.version?.default, "0.1.1");
+assert.equal(
+  action.inputs?.version?.default,
+  cliVersion,
+  `la acción debe instalar la versión publicada del CLI (${cliVersion})`
+);
 assert.ok(
   action.runs.steps.some((step) =>
     String(step.run ?? "").includes("codarch@${CODARCH_VERSION}")

@@ -79,7 +79,9 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 - [x] Tarball `codarch@0.1.0` (~48 KB) instalado en un proyecto limpio y validado con `analyze`, `inspect`, `diff` y `render`.
 - [x] Publicar `codarch@0.1.0` en npm.
 - [x] Publicar `codarch@0.1.1` con la lente de migración; `latest` apunta a esa versión.
-- [x] La acción instala `codarch@0.1.1` por defecto.
+- [x] Publicar `codarch@0.1.2` con el servidor local (`serve`) y el modo live.
+- [x] Publicar `codarch@0.1.3` con persistencia y atajos en la app web; `latest` apunta a esa versión.
+- [x] La acción instala la versión publicada del CLI; `check:action` lo verifica para que no se desincronice.
 - [x] La acción instala `codarch` desde npm y ya no ejecuta `npm ci` sobre el proyecto analizado.
 - [x] Repo público `jaminsmoke/codarch-action@v1`, generado desde `apps/github-action` con `npm run sync:action`.
 - [x] Prueba externa en `jaminsmoke/codarch-action-smoke`: comentario, artefacto, análisis base/head y gate con exit `2`.
