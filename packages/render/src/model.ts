@@ -1,5 +1,11 @@
 import type { CcEdge, CcJson, CcNode } from "@codarch/schema";
 import { defaultMetric, getStats, walkFiles } from "@codarch/schema";
+import {
+  CHURN_METRIC_CANDIDATES,
+  COMPLEXITY_METRIC_CANDIDATES,
+  firstMetric,
+  riskScores
+} from "@codarch/metrics";
 
 export type Lens = "structure" | "risk" | "metric";
 
@@ -145,16 +151,6 @@ const CURATED_METRICS = [
   "outgoing_dependencies"
 ];
 
-const COMPLEXITY_KEYS = [
-  "maxComplexity",
-  "max_complexity_per_function",
-  "complexity",
-  "logic_complexity",
-  "sonar_cognitive_complexity"
-];
-
-const CHURN_KEYS = ["number_of_commits", "number_of_authors", "number_of_renames"];
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -168,16 +164,6 @@ function valueOf(
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function firstPresent(
-  coverage: Set<string>,
-  candidates: readonly string[]
-): string | null {
-  for (const candidate of candidates) {
-    if (coverage.has(candidate)) return candidate;
-  }
-  return null;
-}
-
 function percentile(values: readonly number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -186,11 +172,6 @@ function percentile(values: readonly number[], p: number): number {
     Math.max(0, Math.floor((sorted.length - 1) * p))
   );
   return sorted[index] ?? 0;
-}
-
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.min(1, value));
 }
 
 /** FNV-1a: estable entre ejecuciones y barato. */
@@ -273,8 +254,8 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     areaMetric = defaultMetric(stats) ?? null;
   }
 
-  const complexityKey = firstPresent(coverage, COMPLEXITY_KEYS);
-  const churnKey = firstPresent(coverage, CHURN_KEYS);
+  const complexityKey = firstMetric(coverage, COMPLEXITY_METRIC_CANDIDATES);
+  const churnKey = firstMetric(coverage, CHURN_METRIC_CANDIDATES);
 
   const metricKeys: string[] = [];
   const addMetric = (key: string | null): void => {
@@ -337,37 +318,15 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   // Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
   // Si falta una señal, los pesos se renormalizan: un proyecto sin historial
   // git no debe quedar con un máximo artificial de 68/100.
-  const complexityP95 = percentile(
-    files.map((file) => file.complexity).filter((value) => value > 0),
-    0.95
+  const risks = riskScores(
+    files.map((file) => ({
+      complexity: file.complexity,
+      churn: file.churn,
+      size: file.actualArea
+    }))
   );
-  const churnP95 = percentile(
-    files.map((file) => file.churn).filter((value) => value > 0),
-    0.95
-  );
-  const areaP95 = percentile(
-    files.map((file) => file.actualArea).filter((value) => value > 0),
-    0.95
-  );
-
-  const complexityWeight = complexityP95 > 0 ? 0.5 : 0;
-  const churnWeight = churnP95 > 0 ? 0.32 : 0;
-  const areaWeight = areaP95 > 0 ? 0.18 : 0;
-  const totalWeight = complexityWeight + churnWeight + areaWeight;
-
-  const norm = (value: number, p95: number): number =>
-    p95 > 0 ? clamp01(value / p95) : 0;
-
-  for (const file of files) {
-    const raw =
-      totalWeight > 0
-        ? (complexityWeight * norm(file.complexity, complexityP95) +
-            churnWeight * norm(file.churn, churnP95) +
-            areaWeight * norm(file.actualArea, areaP95)) /
-          totalWeight
-        : 0;
-    // Gamma: solo los outliers de verdad se encienden. Un mapa todo rojo no informa.
-    file.risk = Math.pow(clamp01(raw), 1.7);
+  for (const [index, file] of files.entries()) {
+    file.risk = risks[index] ?? 0;
   }
 
   // Secciones: color categórico por las tres primeras partes de la ruta.

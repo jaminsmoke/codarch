@@ -9,6 +9,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@codarch/layouts": "*",
+    "@codarch/metrics": "*",
     "@codarch/schema": "*"
   }
 }
