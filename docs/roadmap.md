@@ -101,8 +101,9 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 - [x] Publicar `codarch@0.1.3` con persistencia y atajos en la app web; `latest` apunta a esa versión.
 - [x] Publicar `codarch@0.1.4` con el estado de vista en la URL, la carga por URL y la navegación por
   flechas; `latest` apunta a esa versión y la acción pública instala ya esa versión.
-- [ ] Publicar `codarch@0.2.0` con la lente de dominio: catálogo de perfiles, generador de capas y
-  la migración en el reporte, el comentario del PR y el MCP.
+- [x] Publicar `codarch@0.2.0` con la lente de dominio: catálogo de perfiles, generador de capas y
+  la migración en el reporte, el comentario del PR y el MCP. `latest` apunta a esa versión y la
+  acción pública instala ya esa versión.
 - [x] La acción instala la versión publicada del CLI; `check:action` lo verifica para que no se desincronice.
 - [x] La acción instala `codarch` desde npm y ya no ejecuta `npm ci` sobre el proyecto analizado.
 - [x] Repo público `jaminsmoke/codarch-action@v1`, generado desde `apps/github-action` con `npm run sync:action`.

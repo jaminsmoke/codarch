@@ -77,9 +77,9 @@ también `npm run sync:action` y actualizar el repo público.
   mismo, las apps no se importan la una a la otra. Instaladores sin firmar por CI.
 - M8 cerrado: la lente de migración se ve en el reporte, en el comentario del PR y en el MCP
   (`get_migration_plan`); decisión en ADR 0022.
-- M9 en curso: la lente de dominio entra por pasos (ADR 0023). M9.1 cerrado: catálogo de perfiles
-  (`codarch profiles`), las reglas del perfil entran como aviso y el reporte dice de dónde sale cada
-  regla. Sigue el generador (M9.2) y, más adelante, endurecerlas.
+- M9 cerrado: la lente de dominio (catálogo de perfiles, generador de capas y perfiles propios) y
+  la migración en el reporte, el PR y el MCP; decisiones en ADR 0022 y ADR 0023. `codarch@0.2.0` y
+  CodArch Desktop `0.2.0` publicados.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
