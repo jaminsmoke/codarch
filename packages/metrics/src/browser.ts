@@ -24,6 +24,12 @@ export type {
 } from "./diff";
 export type { RuleReport, RuleViolation, ViolationType } from "./rules";
 export {
+  DOMAIN_PROFILES,
+  domainProfileIds,
+  findDomainProfile
+} from "./profiles";
+export type { DomainProfile } from "./profiles";
+export {
   REPORT_SCHEMA_VERSION,
   emptyMigrationReport,
   migrationFiles,

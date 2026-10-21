@@ -4,6 +4,7 @@ import type {
   MigrationFileDebt,
   MigrationReport
 } from "./diff";
+import type { RuleViolation } from "./rules";
 
 /**
  * Versión actual del esquema del reporte.
@@ -11,7 +12,10 @@ import type {
  * Sube cuando cambia la forma del `report.json`. Los lectores reconstruyen los
  * reportes de versiones anteriores, así que siempre se usa la más nueva.
  */
-export const REPORT_SCHEMA_VERSION = "1.1";
+export const REPORT_SCHEMA_VERSION = "1.2";
+
+/** Las versiones que el lector sabe reconstruir. */
+const KNOWN_VERSIONS = ["1.0", "1.1", "1.2"];
 
 /** La sección de migración vacía: lo que se reconstruye desde un 1.0. */
 export function emptyMigrationReport(): MigrationReport {
@@ -45,7 +49,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseReport(raw: unknown): DiffReport | null {
   if (!isRecord(raw)) return null;
   const version = raw.schemaVersion;
-  if (version !== "1.0" && version !== REPORT_SCHEMA_VERSION) return null;
+  if (typeof version !== "string" || !KNOWN_VERSIONS.includes(version)) {
+    return null;
+  }
 
   const files = raw.files;
   const rules = raw.rules;
@@ -74,16 +80,31 @@ export function parseReport(raw: unknown): DiffReport | null {
   }
 
   const report = raw as unknown as DiffReport;
-  if (version === REPORT_SCHEMA_VERSION && report.migration !== undefined) {
+  if (version === REPORT_SCHEMA_VERSION) {
     return report;
   }
 
-  // Reporte de una versión anterior: se reconstruye con la sección que falte.
+  // Reporte de una versión anterior: se reconstruye con las secciones que le
+  // falten.
   return {
     ...report,
     schemaVersion: REPORT_SCHEMA_VERSION,
-    migration: null
+    migration: report.migration ?? null,
+    rules: {
+      ...report.rules,
+      profile: report.rules?.profile ?? null,
+      violations: {
+        introduced: (report.rules?.violations?.introduced ?? []).map(withSource),
+        existing: (report.rules?.violations?.existing ?? []).map(withSource),
+        resolved: (report.rules?.violations?.resolved ?? []).map(withSource)
+      }
+    }
   };
+}
+
+/** Las violaciones de un reporte antiguo no dicen de dónde sale la regla. */
+function withSource(violation: RuleViolation): RuleViolation {
+  return { ...violation, source: violation.source ?? "config" };
 }
 
 /** Los ficheros de un reporte, con la forma que espera la vista de PR. */

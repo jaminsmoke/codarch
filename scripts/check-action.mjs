@@ -87,7 +87,7 @@ for (const relative of [
 }
 
 const report = {
-  schemaVersion: "1.1",
+  schemaVersion: "1.2",
   base: { checksum: "base-checksum" },
   head: { checksum: "head-checksum" },
   summary: {

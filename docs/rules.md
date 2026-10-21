@@ -38,6 +38,42 @@ rules:
     severity: error
 ```
 
+## Perfiles
+
+Un perfil es una configuración de reglas escrita de antemano. `codarch profiles` lista el catálogo:
+
+```bash
+codarch profiles
+codarch profiles --json
+```
+
+Para usarlo, en `.codarch.yml`:
+
+```yaml
+version: 1
+profile: capas
+```
+
+El perfil aporta sus capas y sus reglas, y el equipo puede añadir las suyas encima. Lo que trae el
+perfil entra **como aviso** (`warn`): consulta, no bloquea. Una regla del equipo con el mismo nombre
+sustituye a la del perfil, así que endurecerla es escribirla otra vez con `severity: error`:
+
+```yaml
+version: 1
+profile: capas
+rules:
+  - name: dominio-sin-infraestructura
+    type: forbidden
+    from: domain
+    to: infrastructure
+    severity: error
+```
+
+En el reporte, cada violación dice de dónde sale (`source: "config"` o `source: "profile"`) y el
+reporte lleva el perfil aplicado (`rules.profile`). Así nadie bloquea un PR por una regla que no
+escribió, y endurecer una es una decisión consciente
+([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
+
 ## Capas
 
 - `patterns` (o su alias `paths`) son globs relativos al root del proyecto, con `/`.

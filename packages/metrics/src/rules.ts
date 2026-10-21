@@ -3,6 +3,7 @@ import type {
   LayerConfig,
   RuleConfig,
   RuleConfigEntry,
+  RuleSource,
   Severity
 } from "./config";
 
@@ -38,6 +39,8 @@ export interface RuleViolation {
   rule: string;
   type: ViolationType;
   severity: Severity;
+  /** De dónde sale la regla: del archivo del equipo o de un perfil. */
+  source: RuleSource;
   message: string;
   /** Rutas implicadas, solo para mostrar. */
   files: string[];
@@ -61,6 +64,8 @@ export interface RuleViolation {
 
 export interface RuleReport {
   configured: boolean;
+  /** Perfil del catálogo aplicado, si hubo alguno. */
+  profile: string | null;
   summary: {
     layers: number;
     rules: number;
@@ -80,6 +85,7 @@ export interface RuleReport {
 export function emptyRuleReport(): RuleReport {
   return {
     configured: false,
+    profile: null,
     summary: {
       layers: 0,
       rules: 0,
@@ -129,6 +135,7 @@ export function evaluateRules(
 
   return {
     configured: true,
+    profile: config.profile ?? null,
     summary: {
       layers: config.layers.length,
       rules: config.rules.length,
@@ -203,6 +210,7 @@ function evaluateForbidden(
       rule: rule.name,
       type: "forbidden",
       severity: rule.severity,
+      source: rule.source ?? "config",
       message:
         rule.message ?? `${edge.from} no puede depender de ${edge.to}`,
       files: [edge.from, edge.to],
@@ -238,6 +246,7 @@ function evaluateThreshold(
       rule: rule.name,
       type: "threshold",
       severity: rule.severity,
+      source: rule.source ?? "config",
       message:
         rule.message ??
         `${file.path}: ${rule.metric} = ${value} (${limit})`,
@@ -267,6 +276,7 @@ function evaluateCycles(
       rule: rule.name,
       type: "cycles",
       severity: rule.severity,
+      source: rule.source ?? "config",
       message: rule.message ?? cycleMessage(paths),
       files: paths,
       cycle: {

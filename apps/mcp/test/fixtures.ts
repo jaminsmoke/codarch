@@ -93,7 +93,7 @@ export function makeStore(report: DiffReport | null = makeReport()): Architectur
 
 export function makeReport(): DiffReport {
   return {
-    schemaVersion: "1.1",
+    schemaVersion: "1.2",
     base: {
       projectName: "Acme",
       checksum: "checksum-base",
@@ -123,6 +123,7 @@ export function makeReport(): DiffReport {
     hotspotMetric: "maxComplexity",
     rules: {
       configured: true,
+      profile: null,
       summary: {
         layers: 2,
         rules: 2,
@@ -137,6 +138,7 @@ export function makeReport(): DiffReport {
           {
             key: "forbidden:domain-no-infra:c->d",
             rule: "domain-no-infra",
+            source: "config",
             type: "forbidden",
             severity: "error",
             message: "domain no puede depender de infra",
@@ -153,6 +155,7 @@ export function makeReport(): DiffReport {
           {
             key: "threshold:a:maxComplexity",
             rule: "complejidad-maxima",
+            source: "config",
             type: "threshold",
             severity: "warn",
             message: "src/a.ts: maxComplexity = 10 (máximo 8)",

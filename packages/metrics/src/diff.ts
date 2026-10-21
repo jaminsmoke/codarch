@@ -140,7 +140,7 @@ export interface DiffSummary {
 }
 
 export interface DiffReport {
-  schemaVersion: "1.1";
+  schemaVersion: "1.2";
   base: SnapshotSummary;
   head: SnapshotSummary;
   summary: DiffSummary;
@@ -244,7 +244,7 @@ export function diffSnapshots(
     : emptyRuleReport();
 
   return {
-    schemaVersion: "1.1",
+    schemaVersion: "1.2",
     base: summarize(baseIndex),
     head: summarize(headIndex),
     summary: {

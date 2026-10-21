@@ -205,6 +205,25 @@ Decisión en [ADR 0022](adr/0022-la-migracion-donde-faltaba.md).
   inventar ceros. Un solo lector del reporte, en `@codarch/metrics`, para la web, el escritorio y el
   MCP.
 
+## M9 — Lente de dominio, por pasos
+
+**Estado:** M9.1 cerrada (el catálogo). M9.2 (el generador) es el siguiente paso; endurecer las
+reglas del perfil para que bloqueen se decide en su momento, mirando cómo esté el código.
+
+Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
+
+- [x] **M9.1** Catálogo de perfiles declarativos (`capas`, `hexagonal`): `.codarch.yml` acepta
+  `profile: <id>` y las reglas del perfil se añaden a las del equipo.
+- [x] Las reglas del perfil entran **como aviso** (`warn`): consultan, no bloquean. El equipo las
+  sube a `error` escribiéndolas otra vez, cuando el código esté listo.
+- [x] El reporte dice qué perfil se aplicó (`rules.profile`) y de dónde sale cada regla
+  (`source`), y el comando `codarch profiles` lista el catálogo.
+- [ ] **M9.2** Generador, versión 0.01: deduce las capas del repo y propone un perfil o unas
+  capas concretas, para pegar en `.codarch.yml`. Propone, no decide.
+- [ ] **M9.3** Endurecer, cuando toque: subir las reglas del perfil a `error` y que bloqueen. Se
+  decide con el código a la vista.
+- [ ] **M9.4** Perfiles propios del equipo, reutilizables.
+
 ## Después
 
 Candidatos, del más útil al menos. Los tres últimos están fuera de la v1 por `AGENTS.md` (símbolos,

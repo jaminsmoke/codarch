@@ -4,6 +4,7 @@ import { runDiff, type DiffCommandOptions, type FailOn } from "./commands/diff";
 import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 import { runServe, type ServeOptions } from "./commands/serve";
+import { runProfiles } from "./commands/profiles";
 
 declare const __CODARCH_VERSION__: string | undefined;
 
@@ -19,6 +20,7 @@ Uso:
   codarch render  <fichero.cc.json[.gz]> [opciones]
   codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
   codarch serve   [ruta] [opciones]
+  codarch profiles [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -60,6 +62,10 @@ Opciones de serve:
   --no-web          modo API sin servir la app (para Vite u otro frontend)
   -h, --help        esta ayuda
 
+Opciones de profiles:
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
 Ejemplos:
   codarch analyze .
   codarch analyze . -o .codarch --title "Mi proyecto"
@@ -69,6 +75,7 @@ Ejemplos:
   codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
   codarch serve .
   codarch serve . --no-watch
+  codarch profiles
 `;
 
 function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
@@ -465,6 +472,10 @@ function main(argv: string[]): number {
       return 0;
     }
     return runServe(parsed);
+  }
+
+  if (command === "profiles") {
+    return runProfiles(rest.includes("--json"));
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

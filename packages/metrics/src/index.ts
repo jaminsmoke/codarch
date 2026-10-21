@@ -36,6 +36,12 @@ export type {
   SnapshotSummary
 } from "./diff";
 export { emptyRuleReport, evaluateRules } from "./rules";
+export {
+  DOMAIN_PROFILES,
+  domainProfileIds,
+  findDomainProfile
+} from "./profiles";
+export type { DomainProfile } from "./profiles";
 export type {
   RuleCycle,
   RuleEdge,

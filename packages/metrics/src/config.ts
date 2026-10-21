@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { parse as parseYaml } from "yaml";
+import { findDomainProfile, domainProfileIds, type DomainProfile } from "./profiles";
 
 export type Severity = "info" | "warn" | "error";
 
@@ -16,6 +17,8 @@ export interface ForbiddenRuleConfig {
   to: string;
   severity: Severity;
   message?: string;
+  /** De dónde sale la regla. */
+  source?: RuleSource;
 }
 
 export interface ThresholdRuleConfig {
@@ -26,6 +29,8 @@ export interface ThresholdRuleConfig {
   max?: number;
   severity: Severity;
   message?: string;
+  /** De dónde sale la regla. */
+  source?: RuleSource;
 }
 
 export interface CyclesRuleConfig {
@@ -33,6 +38,8 @@ export interface CyclesRuleConfig {
   name: string;
   severity: Severity;
   message?: string;
+  /** De dónde sale la regla. */
+  source?: RuleSource;
 }
 
 export type RuleConfigEntry =
@@ -40,8 +47,13 @@ export type RuleConfigEntry =
   | ThresholdRuleConfig
   | CyclesRuleConfig;
 
+/** De dónde sale una regla: escrita por el equipo o traída por un perfil. */
+export type RuleSource = "config" | "profile";
+
 export interface RuleConfig {
   version: 1;
+  /** Perfil del catálogo que se ha aplicado, si hubo alguno. */
+  profile: string | null;
   layers: LayerConfig[];
   rules: RuleConfigEntry[];
 }
@@ -58,6 +70,10 @@ const SEVERITIES = new Set<Severity>(["info", "warn", "error"]);
 /**
  * Valida y normaliza `.codarch.yml`. No depende del filesystem: sirve para
  * tests y para configuraciones inline.
+ *
+ * Si el archivo elige un `profile` del catálogo, sus capas y sus reglas se
+ * añaden a las del equipo. Las del perfil entran **como aviso** (`warn`): son
+ * una consulta hasta que el equipo las sube a `error` (ADR 0023).
  */
 export function parseRuleConfig(input: unknown): RuleConfig {
   const root = asObject(input, "config");
@@ -65,11 +81,73 @@ export function parseRuleConfig(input: unknown): RuleConfig {
     throw new ConfigError("config.version debe ser 1");
   }
 
-  const layers = parseLayers(root.layers);
+  const profile = parseProfile(root.profile);
+  const layers = mergeLayers(profile, parseLayers(root.layers));
   const layerNames = new Set(layers.map((layer) => layer.name));
-  const rules = parseRules(root.rules, layerNames);
+  const rules = mergeRules(
+    profile,
+    parseRules(root.rules, layerNames),
+    layerNames
+  );
 
-  return { version: 1, layers, rules };
+  return { version: 1, profile: profile?.id ?? null, layers, rules };
+}
+
+function parseProfile(value: unknown): DomainProfile | null {
+  if (value === undefined || value === null) return null;
+  const id = asString(value, "config.profile");
+  const profile = findDomainProfile(id);
+  if (!profile) {
+    throw new ConfigError(
+      `config.profile desconocido: ${id}. Disponibles: ${domainProfileIds().join(", ")}`
+    );
+  }
+  return profile;
+}
+
+/** Las capas del perfil primero; las del equipo sustituyen a las de su nombre. */
+function mergeLayers(
+  profile: DomainProfile | null,
+  own: LayerConfig[]
+): LayerConfig[] {
+  const layers = new Map<string, LayerConfig>();
+  for (const layer of profile?.layers ?? []) layers.set(layer.name, layer);
+  for (const layer of own) layers.set(layer.name, layer);
+  return [...layers.values()];
+}
+
+/**
+ * Las reglas del perfil y las del equipo juntas.
+ *
+ * Una regla del equipo con el mismo nombre sustituye a la del perfil, y así
+ * puede subirla de `warn` a `error` sin tocar el catálogo.
+ */
+function mergeRules(
+  profile: DomainProfile | null,
+  own: RuleConfigEntry[],
+  layerNames: Set<string>
+): RuleConfigEntry[] {
+  const rules = new Map<string, RuleConfigEntry>();
+  for (const rule of profile?.rules ?? []) {
+    rules.set(rule.name, { ...rule, source: "profile" });
+  }
+  for (const rule of own) {
+    rules.set(rule.name, { ...rule, source: "config" });
+  }
+
+  // Una regla del perfil puede apuntar a una capa que el equipo sustituyó por
+  // otra: si la capa ya no existe, la regla no aplica y se avisa.
+  for (const rule of rules.values()) {
+    if (rule.type !== "forbidden") continue;
+    if (layerNames.has(rule.from) && layerNames.has(rule.to)) continue;
+    if (rule.source === "profile") {
+      throw new ConfigError(
+        `la regla "${rule.name}" del perfil apunta a una capa que no existe: ${rule.from} → ${rule.to}`
+      );
+    }
+  }
+
+  return [...rules.values()];
 }
 
 export function loadRuleConfig(file: string): RuleConfig {
