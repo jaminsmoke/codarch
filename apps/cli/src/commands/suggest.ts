@@ -1,0 +1,109 @@
+import { parseCcJson } from "@codarch/schema";
+import { suggestLayers, type Suggestion } from "@codarch/metrics";
+import { stringify as toYaml } from "yaml";
+import { readJsonFile } from "../io";
+
+/**
+ * Propone capas y reglas a partir de un snapshot.
+ *
+ * Mira el grafo de dependencias y deduce la arquitectura que el código ya
+ * tiene: qué carpetas están hacia dentro y cuáles hacia fuera. La salida es un
+ * fragmento para `.codarch.yml`; el equipo lo revisa y decide
+ * (ADR 0023).
+ */
+export interface SuggestOptions {
+  file?: string;
+  json: boolean;
+}
+
+export function runSuggest(options: SuggestOptions): number {
+  if (!options.file) {
+    console.error(
+      "falta la ruta del fichero cc.json\n\n  codarch suggest <fichero.cc.json[.gz]>"
+    );
+    return 1;
+  }
+
+  let loaded;
+  try {
+    loaded = readJsonFile(options.file);
+  } catch (error) {
+    console.error(`no se pudo leer ${options.file}: ${(error as Error).message}`);
+    return 1;
+  }
+
+  let suggestion: Suggestion;
+  try {
+    const cc = parseCcJson(loaded.json);
+    suggestion = suggestLayers(cc);
+  } catch (error) {
+    console.error(`no se pudo leer ${options.file}: ${(error as Error).message}`);
+    return 1;
+  }
+
+  if (options.json) {
+    console.log(
+      JSON.stringify(
+        {
+          layers: suggestion.layers,
+          rules: suggestion.rules,
+          ungrouped: suggestion.ungrouped,
+          notes: suggestion.notes
+        },
+        null,
+        2
+      )
+    );
+    return 0;
+  }
+
+  console.log("");
+  console.log("  CodArch · propuesta de capas");
+  console.log("");
+  if (suggestion.layers.length === 0) {
+    console.log("  No se ha encontrado ninguna carpeta con código.");
+    for (const note of suggestion.notes) console.log(`  ${note}`);
+    console.log("");
+    return 0;
+  }
+
+  for (const layer of suggestion.layers) {
+    console.log(
+      `  ${layer.name} · ${layer.files} ficheros · nivel ${layer.depth}` +
+        (layer.usedBy.length > 0
+          ? ` · de aquí dependen: ${layer.usedBy.join(", ")}`
+          : "")
+    );
+  }
+  console.log("");
+
+  const yaml = toYaml(
+    {
+      version: 1,
+      layers: suggestion.layers.map((layer) => ({
+        name: layer.name,
+        paths: [layer.pattern]
+      })),
+      rules: suggestion.rules
+    },
+    { lineWidth: 0 }
+  );
+
+  console.log("  Propuesta para .codarch.yml:");
+  console.log("");
+  console.log(
+    yaml
+      .split("\n")
+      .map((line) => `    ${line}`)
+      .join("\n")
+      .trimEnd()
+  );
+  console.log("");
+  for (const note of suggestion.notes) console.log(`  ${note}`);
+  console.log("");
+  console.log(
+    "  Las reglas salen como aviso: consultan, no bloquean. Revísalas y súbelas a \"error\" si encajan."
+  );
+  console.log("");
+  return 0;
+}

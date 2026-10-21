@@ -5,6 +5,7 @@ import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 import { runServe, type ServeOptions } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
+import { runSuggest, type SuggestOptions } from "./commands/suggest";
 
 declare const __CODARCH_VERSION__: string | undefined;
 
@@ -21,6 +22,7 @@ Uso:
   codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
   codarch serve   [ruta] [opciones]
   codarch profiles [--json]
+  codarch suggest <fichero.cc.json[.gz]> [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -66,6 +68,10 @@ Opciones de profiles:
   --json            salida machine-readable
   -h, --help        esta ayuda
 
+Opciones de suggest:
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
 Ejemplos:
   codarch analyze .
   codarch analyze . -o .codarch --title "Mi proyecto"
@@ -76,6 +82,7 @@ Ejemplos:
   codarch serve .
   codarch serve . --no-watch
   codarch profiles
+  codarch suggest .codarch/snapshot.cc.json
 `;
 
 function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
@@ -143,6 +150,35 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
   }
 
   options.root = positional[0] ?? ".";
+  return options;
+}
+
+function parseSuggest(args: string[]): SuggestOptions | number {
+  const options: SuggestOptions = { json: false };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length > 1) {
+    console.error(`sobra un argumento: ${positional[1]}`);
+    return 1;
+  }
+
+  options.file = positional[0];
   return options;
 }
 
@@ -476,6 +512,12 @@ function main(argv: string[]): number {
 
   if (command === "profiles") {
     return runProfiles(rest.includes("--json"));
+  }
+
+  if (command === "suggest") {
+    const parsed = parseSuggest(rest);
+    if (typeof parsed === "number") return parsed;
+    return runSuggest(parsed);
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

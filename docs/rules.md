@@ -87,6 +87,43 @@ reporte lleva el perfil aplicado (`rules.profile`). Así nadie bloquea un PR por
 escribió, y endurecer una es una decisión consciente
 ([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
 
+## Generar las capas
+
+Si el repo no encaja en ningún perfil, `codarch suggest` deduce la estructura del propio código:
+
+```bash
+codarch suggest .codarch/snapshot.cc.json
+codarch suggest .codarch/snapshot.cc.json --json
+```
+
+Agrupar los ficheros por carpeta, mirar el grafo de dependencias y ordenar las capas de más interior
+a más exterior. Con eso propone unas capas y las reglas que las protegerían, en un fragmento listo
+para `.codarch.yml`:
+
+```yaml
+version: 1
+layers:
+  - name: src/domain
+    paths:
+      - src/domain/**
+  - name: src/infra
+    paths:
+      - src/infra/**
+rules:
+  - name: src-domain-sin-src-infra
+    type: forbidden
+    from: src/domain
+    to: src/infra
+    severity: warn
+    message: src/domain no debe depender de src/infra
+```
+
+Es la **versión 0.01** del generador: agrupa por el primer y segundo nivel del directorio y supone
+que las dependencias van hacia dentro. Los ficheros sueltos en la raíz (los puntos de entrada) no
+forman capa, y el comando lo dice.
+
+Propone, no decide: la salida se revisa y se pega. Como las reglas del perfil, salen como aviso.
+
 ## Capas
 
 - `patterns` (o su alias `paths`) son globs relativos al root del proyecto, con `/`.

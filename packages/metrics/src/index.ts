@@ -42,6 +42,12 @@ export {
   findDomainProfile
 } from "./profiles";
 export type { DomainProfile } from "./profiles";
+export { suggestLayers } from "./suggest";
+export type {
+  Suggestion,
+  SuggestedLayer,
+  SuggestedRule
+} from "./suggest";
 export type {
   RuleCycle,
   RuleEdge,

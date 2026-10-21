@@ -185,6 +185,17 @@ en el archivo del equipo con el mismo nombre y `severity: error`; el reporte dic
 regla (`source: "config"` o `source: "profile"`). Decisión en
 [ADR 0023](docs/adr/0023-lente-de-dominio-por-pasos.md).
 
+#### Generar las capas
+
+Si el repo no encaja en ningún perfil, el generador deduce la estructura del propio código:
+
+```bash
+codarch suggest .codarch/snapshot.cc.json
+```
+
+Agrupar por carpeta, mirar el grafo y ordenar las capas de dentro afuera. Devuelve un fragmento
+para `.codarch.yml` con las capas y las reglas que las protegerían. Propone, no decide.
+
 ### GitHub Action
 
 La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, `map.html` y

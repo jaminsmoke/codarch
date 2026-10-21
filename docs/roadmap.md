@@ -220,6 +220,9 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
   (`source`), y el comando `codarch profiles` lista el catálogo.
 - [ ] **M9.2** Generador, versión 0.01: deduce las capas del repo y propone un perfil o unas
   capas concretas, para pegar en `.codarch.yml`. Propone, no decide.
+  → Hecho en v0.01: `codarch suggest` agrupa por carpeta, ordena por dependencia y propone capas y
+  reglas. Falta la parte de "proponer un perfil del catálogo" (decir cuál encaja mejor) y afinar la
+  agrupación.
 - [ ] **M9.3** Endurecer, cuando toque: subir las reglas del perfil a `error` y que bloqueen. Se
   decide con el código a la vista.
 - [ ] **M9.4** Perfiles propios del equipo, reutilizables.
