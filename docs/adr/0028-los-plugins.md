@@ -104,8 +104,9 @@ interface PluginContext {
 }
 ```
 
-Y **contribuye** con piezas concretas ✓: una vista (una pestaña del mapa central ✓), un panel de la
-barra lateral ✓, un modo de color ✓.
+Y **contribuye** con piezas concretas ✓. Hoy, **solo vistas** ✓ (una pestaña del mapa central ✓): la
+app no sabe pintar paneles laterales ni modos de color de un plugin ✓, y un contrato que promete lo
+que no hace se pudre ✓. Cuando haga falta, se añaden ✓ — con la app que los sabe pintar ✓.
 
 El riesgo de esto es que **la app se convierta en un nido de plugins** ✗. Por eso el contrato es
 **pequeño y explícito** ✓: la vista 3D es la prueba ✓ (necesita el modelo ✓, la selección ✓, una

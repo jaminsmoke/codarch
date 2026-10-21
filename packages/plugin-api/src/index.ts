@@ -28,12 +28,16 @@ export interface PluginManifest {
   requires?: PluginRequirements;
 }
 
-/** Lo que un plugin puede aportar. */
+/**
+ * Lo que un plugin puede aportar.
+ *
+ * Hoy, solo vistas ✓. Los paneles de la barra lateral **no** están: la app no
+ * los pinta todavía ✓, y un contrato que promete lo que no hace se pudre ✓
+ * (la guía, §4.1 ✓).
+ */
 export interface PluginContributions {
   /** Vistas para el mapa central. Cada una es una pestaña. */
   views?: PluginView[];
-  /** Paneles para la barra lateral. */
-  panels?: PluginPanel[];
 }
 
 /** Lo que un plugin necesita. La app lo comprueba y lo dice. */
@@ -114,18 +118,10 @@ export interface PluginView {
   render(context: PluginContext): ReactNode;
 }
 
-/** Un panel que el plugin añade a la barra lateral. */
-export interface PluginPanel {
-  id: string;
-  label: string;
-  render(context: PluginContext): ReactNode;
-}
-
 /** Un plugin ya cargado. */
 export interface Plugin {
   manifest: PluginManifest;
   views?: PluginView[];
-  panels?: PluginPanel[];
 }
 
 /**
@@ -137,7 +133,6 @@ export interface Plugin {
  */
 export interface PluginModule {
   views?: PluginView[];
-  panels?: PluginPanel[];
 }
 
 /** Un plugin tal y como lo deja el manifiesto, antes de cargarlo. */
