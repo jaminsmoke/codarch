@@ -39,9 +39,16 @@ function createWindow(): void {
     height: 900,
     minWidth: 960,
     minHeight: 600,
-    backgroundColor: "#121a20",
+    backgroundColor: "#eef1f2",
     title: "CodArch",
-    show: false
+    show: false,
+    webPreferences: {
+      // El puente con el proceso principal ✓: sin esto, el renderer no tiene
+      // con quién hablar y la app se queda en blanco ✓.
+      preload: path.join(__dirname, "preload.cjs"),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
   });
 
   void window.loadFile(path.join(RENDERER_DIST, "index.html"));

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1589,18 +1590,30 @@ function MapCanvas({
     [cursor, onFocusFolder, onSelect, targetMeta, targets]
   );
 
-  useEffect(() => {
+  // El tamaño del marco, medido.
+  //
+  // Se mide al montar (para que el primer dibujado ya sea del tamaño
+  // correcto), se observa el marco y se mide también al redimensionar la
+  // ventana. Con las tres, el mapa nunca se dibuja a la escala equivocada.
+  useLayoutEffect(() => {
     const element = containerRef.current;
     if (!element) return;
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      const width = Math.round(entry.contentRect.width);
-      const height = Math.round(entry.contentRect.height);
+
+    const measure = (): void => {
+      const rect = element.getBoundingClientRect();
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
       if (width > 0 && height > 0) setSize({ width, height });
-    });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
     observer.observe(element);
-    return () => observer.disconnect();
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   const metricIndex = useMemo(
@@ -1620,40 +1633,58 @@ function MapCanvas({
       const fill = fillFor(file);
       const selected = selectedIndex === file.index;
       const matched = query === "" || file.path.toLowerCase().includes(query);
-      // Con los nombres puestos, se muestran aunque el bloque sea pequeño:
-      // se recortan para que quepan.
-      const fits = showLabels ? rect.w > 16 && rect.h > 8 : rect.w > 38 && rect.h > 14;
-      const label = fits
-        ? truncate(file.name, Math.max(3, Math.floor((rect.w - 8) / 6.1)))
-        : "";
+      // Con los nombres puestos, se muestran aunque el bloque sea pequeño.
+      // Si el nombre entero no cabe, se quita la extensión: "App" se entiende,
+      // "App.…" no dice nada.
+      const capacity = Math.max(3, Math.floor((rect.w - 8) / 6.1));
+      const fits = showLabels ? rect.w > 24 && rect.h > 9 : rect.w > 38 && rect.h > 14;
+      const withoutExtension = file.name.replace(/\.[^.]+$/, "");
+      const label = !fits
+        ? ""
+        : file.name.length <= capacity
+          ? file.name
+          : withoutExtension.length <= capacity
+            ? withoutExtension
+            : truncate(file.name, capacity);
       const migrationNode = migration?.nodes[file.nodeId];
       // El tooltip solo en las celdas con área legible: en un mapa grande cada
       // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
       const withTitle = rect.w > 24 && rect.h > 10;
 
+      // El texto va FUERA del rect: en SVG un <rect> no admite hijos, y
+      // dentro se dibuja con tamaño cero (o sea: nunca se ve).
       return (
-        <rect
-          key={node.key}
-          className={`cell${activeKey === `f:${file.index}` ? " is-cursor" : ""}`}
-          x={rect.x}
-          y={rect.y}
-          width={Math.max(1, rect.w)}
-          height={Math.max(1, rect.h)}
-          fill={fill}
-          stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
-          strokeWidth={selected ? 2 : 0.55}
-          opacity={matched ? 1 : 0.13}
-          role="button"
-          data-cell-key={`f:${file.index}`}
-          data-file-index={file.index}
-          tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
-          aria-label={file.path}
-          onFocus={() => setCursor(`f:${file.index}`)}
-          onClick={(event) => {
-            event.stopPropagation();
-            onSelect(file.index);
-          }}
-        >
+        <g key={node.key}>
+          <rect
+            className={`cell${activeKey === `f:${file.index}` ? " is-cursor" : ""}`}
+            x={rect.x}
+            y={rect.y}
+            width={Math.max(1, rect.w)}
+            height={Math.max(1, rect.h)}
+            fill={fill}
+            stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
+            strokeWidth={selected ? 2 : 0.55}
+            opacity={matched ? 1 : 0.13}
+            role="button"
+            data-cell-key={`f:${file.index}`}
+            data-file-index={file.index}
+            tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
+            aria-label={file.path}
+            onFocus={() => setCursor(`f:${file.index}`)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect(file.index);
+            }}
+          >
+            {withTitle ? (
+              <title>
+                {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
+                  (migrationNode
+                    ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
+                    : "")}
+              </title>
+            ) : null}
+          </rect>
           {label ? (
             <text
               x={rect.x + 5}
@@ -1666,15 +1697,7 @@ function MapCanvas({
               {label}
             </text>
           ) : null}
-          {withTitle ? (
-            <title>
-              {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
-                (migrationNode
-                  ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
-                  : "")}
-            </title>
-          ) : null}
-        </rect>
+        </g>
       );
     }
 
@@ -1698,21 +1721,20 @@ function MapCanvas({
             event.stopPropagation();
             onFocusFolder(node.path);
           }}
-        >
-          {(placedNode.headerHeight > 0 || showLabels) && rect.w > 22 ? (
-            <text
-              x={rect.x + 4}
-              y={rect.y + 11.5}
-              fill="rgba(18,26,32,.58)"
-              fontSize={9}
-              letterSpacing=".08em"
-              fontFamily="IBM Plex Mono, ui-monospace, monospace"
-              pointerEvents="none"
-            >
-              {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
-            </text>
-          ) : null}
-        </rect>
+        />
+        {(placedNode.headerHeight > 0 || showLabels) && rect.w > 22 ? (
+          <text
+            x={rect.x + 4}
+            y={rect.y + 11.5}
+            fill="rgba(18,26,32,.58)"
+            fontSize={9}
+            letterSpacing=".08em"
+            fontFamily="IBM Plex Mono, ui-monospace, monospace"
+            pointerEvents="none"
+          >
+            {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
+          </text>
+        ) : null}
         {placedNode.headerHeight > 0 && rect.w > 34 ? (
           <rect
             x={rect.x}

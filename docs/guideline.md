@@ -125,13 +125,26 @@ Y con eso, el **zoom** ✓: botones `+` ✓, `−` ✓ y `Ajustar` ✓, más la 
 centrado en el puntero ✓). La distribución del mapa **no** cambia ✓: lo que cambia es el rectángulo
 visible ✓, así que acercar es gratis ✓.
 
-### 4.6 El 3D: las cajas no tienen etiqueta ✗
+### 4.6 El mapa: los nombres no se veían (hecho)
+
+Dos fallos que llevaban desde siempre ✓ y que solo se veían al mirar la pantalla ✓:
+
+1. **El texto estaba dentro del `<rect>`** ✓. En SVG un `<rect>` no admite hijos ✓ → el texto se
+   dibujaba con **tamaño cero** ✓ → los nombres de los ficheros y de las carpetas **nunca** se han
+   visto ✓. Ahora el texto es hermano del rect ✓.
+2. **El marco no se medía** ✓: el `ResizeObserver` no llegaba a disparar ✓ → el mapa se dibujaba
+   siempre para 1400×900 ✓ y se escalaba a la mitad ✓ → un texto de 10,5px quedaba en 5 ✓.
+   Ahora se mide al montar ✓, se observa el marco ✓ y se mide al redimensionar ✓.
+
+**Hecho** ✓: los nombres se leen ✓ ("App.tsx" ✓, "PrPanel.tsx" ✓, "APPS" ✓) ✓.
+
+### 4.7 El 3D: las cajas no tienen etiqueta ✗
 
 Con 200 cajas no se sabe cuál es cuál ✓.
 
 **Veredicto** ✓: en la guía del plugin ✓ ✓.
 
-### 4.7 Las reglas del plugin no llegan al MCP ✗
+### 4.8 Las reglas del plugin no llegan al MCP ✗
 
 Un plugin puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero el MCP ✓ no las ve ✗
 porque lee el snapshot ✓ y las reglas viven en la configuración ✓.
