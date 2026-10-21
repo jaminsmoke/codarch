@@ -156,6 +156,11 @@ export default function App() {
   const [chain, setChain] = useState<SymbolChain | null>(null);
   /** Si los ajustes están abiertos. */
   const [settingsOpen, setSettingsOpen] = useState(false);
+  /** El zoom del mapa (1 = el mapa entero). */
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState({ x: 0.5, y: 0.5 });
+  /** Si los bloques muestran su nombre aunque no quepa entero. */
+  const [showLabels, setShowLabels] = useState(true);
   /** Los plugins: los compilados, los activados y sus módulos. */
   const plugins = usePlugins();
   /** La vista del plugin abierta en el mapa central (null = el mapa). */
@@ -185,6 +190,33 @@ export default function App() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  /** Acercar o alejar el mapa, centrado en un punto (0..1). */
+  const zoomAt = useCallback(
+    (factor: number, at?: { x: number; y: number }) => {
+      setZoom((current) => {
+        const next = Math.min(8, Math.max(1, current * factor));
+        if (next === current) return current;
+        if (at) {
+          const dx = at.x - center.x;
+          const dy = at.y - center.y;
+          const scale = 1 - next / current;
+          setCenter({
+            x: Math.min(1, Math.max(0, center.x + dx * scale)),
+            y: Math.min(1, Math.max(0, center.y + dy * scale))
+          });
+        }
+        return next;
+      });
+    },
+    [center]
+  );
+
+  /** Volver a ver el mapa entero. */
+  const fitMap = useCallback(() => {
+    setZoom(1);
+    setCenter({ x: 0.5, y: 0.5 });
   }, []);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
@@ -260,10 +292,10 @@ export default function App() {
 
   useEffect(() => {
     if (!cc || !areaMetric) return;
-    const preferences = { areaMetric, colorMode };
+    const preferences = { areaMetric, colorMode, showLabels };
     preferencesRef.current = preferences;
     writePreferences(preferences);
-  }, [cc, areaMetric, colorMode]);
+  }, [cc, areaMetric, colorMode, showLabels]);
 
   /** Abre una foto del historial, leyéndola del disco. */
   const openHistorySnapshot = useCallback(
@@ -874,6 +906,10 @@ export default function App() {
                   selectedIndex={selectedIndex}
                   onSelect={selectIndex}
                   onFocusFolder={setFocusPath}
+                  zoom={zoom}
+                  center={center}
+                  onZoomAt={zoomAt}
+                  showLabels={showLabels}
                 />
               )
             ) : (
@@ -883,6 +919,35 @@ export default function App() {
           </div>
 
           <div className="stage-foot">
+            <div className="map-controls">
+              <button
+                type="button"
+                onClick={() => zoomAt(1.25)}
+                disabled={zoom >= 8}
+                title="Acercar"
+                aria-label="Acercar"
+              >
+                +
+              </button>
+              <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
+              <button
+                type="button"
+                onClick={() => zoomAt(1 / 1.25)}
+                disabled={zoom <= 1}
+                title="Alejar"
+                aria-label="Alejar"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                onClick={fitMap}
+                disabled={zoom === 1}
+                title="Ver el mapa entero"
+              >
+                Ajustar
+              </button>
+            </div>
             <span>
               {view.model
                 ? `${view.model.fileCount} ficheros · ${view.model.folderCount} carpetas · ${view.model.meta.apiVersion}`
@@ -980,6 +1045,8 @@ export default function App() {
         enabledPlugins={plugins.enabled}
         onTogglePlugin={plugins.toggle}
         failedPlugins={plugins.failed}
+        showLabels={showLabels}
+        onShowLabels={setShowLabels}
       />
     </div>
   );
@@ -1386,7 +1453,11 @@ function MapCanvas({
   query,
   selectedIndex,
   onSelect,
-  onFocusFolder
+  onFocusFolder,
+  zoom,
+  center,
+  onZoomAt,
+  showLabels
 }: {
   model: RenderModel;
   roots: TreeNode[];
@@ -1396,19 +1467,23 @@ function MapCanvas({
   selectedIndex: number | null;
   onSelect: (index: number) => void;
   onFocusFolder: (path: string) => void;
+  /** El zoom del mapa (1 = el mapa entero). */
+  zoom: number;
+  /** El centro del rectángulo visible (0..1). */
+  center: { x: number; y: number };
+  /** Acercar o alejar, centrado en un punto (0..1). */
+  onZoomAt: (factor: number, at?: { x: number; y: number }) => void;
+  /** Si los bloques muestran su nombre aunque no quepa entero. */
+  showLabels: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
   /**
-   * El zoom del mapa.
+   * El rectángulo visible, en coordenadas del mapa.
    *
-   * La distribución no cambia (sigue siendo la del marco): lo que cambia es el
-   * rectángulo visible. Así el mapa se puede acercar sin recalcular nada.
+   * La distribución no cambia (sigue siendo la del marco): lo que cambia es
+   * el rectángulo visible. Así el mapa se puede acercar sin recalcular nada.
    */
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState({ x: 0.5, y: 0.5 });
-
-  /** El rectángulo visible, en coordenadas del mapa. */
   const viewBox = useMemo(() => {
     const width = size.width / zoom;
     const height = size.height / zoom;
@@ -1419,34 +1494,6 @@ function MapCanvas({
       height
     };
   }, [size, zoom, center]);
-
-  /** Acercar o alejar, centrado en un punto (0..1). */
-  const zoomAt = useCallback(
-    (factor: number, at?: { x: number; y: number }) => {
-      setZoom((current) => {
-        const next = Math.min(8, Math.max(1, current * factor));
-        if (next === current) return current;
-        if (at) {
-          // El punto bajo el cursor se queda quieto.
-          const dx = at.x - center.x;
-          const dy = at.y - center.y;
-          const scale = 1 - next / current;
-          setCenter({
-            x: Math.min(1, Math.max(0, center.x + dx * scale)),
-            y: Math.min(1, Math.max(0, center.y + dy * scale))
-          });
-        }
-        return next;
-      });
-    },
-    [center]
-  );
-
-  /** Volver a ver el mapa entero. */
-  const fitMap = useCallback(() => {
-    setZoom(1);
-    setCenter({ x: 0.5, y: 0.5 });
-  }, []);
   const placed = useMemo(
     () => layoutMap(roots, size.width, size.height),
     [roots, size.width, size.height]
@@ -1573,10 +1620,12 @@ function MapCanvas({
       const fill = fillFor(file);
       const selected = selectedIndex === file.index;
       const matched = query === "" || file.path.toLowerCase().includes(query);
-      const label =
-        rect.w > 38 && rect.h > 14
-          ? truncate(file.name, Math.max(4, Math.floor((rect.w - 10) / 6.1)))
-          : "";
+      // Con los nombres puestos, se muestran aunque el bloque sea pequeño:
+      // se recortan para que quepan.
+      const fits = showLabels ? rect.w > 16 && rect.h > 8 : rect.w > 38 && rect.h > 14;
+      const label = fits
+        ? truncate(file.name, Math.max(3, Math.floor((rect.w - 8) / 6.1)))
+        : "";
       const migrationNode = migration?.nodes[file.nodeId];
       // El tooltip solo en las celdas con área legible: en un mapa grande cada
       // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
@@ -1650,7 +1699,7 @@ function MapCanvas({
             onFocusFolder(node.path);
           }}
         >
-          {placedNode.headerHeight > 0 && rect.w > 34 ? (
+          {(placedNode.headerHeight > 0 || showLabels) && rect.w > 22 ? (
             <text
               x={rect.x + 4}
               y={rect.y + 11.5}
@@ -1704,7 +1753,7 @@ function MapCanvas({
           // La rueda acerca el mapa (la página ya no scrollea).
           event.preventDefault();
           const bounds = event.currentTarget.getBoundingClientRect();
-          zoomAt(
+          onZoomAt(
             event.deltaY < 0 ? 1.12 : 1 / 1.12,
             {
               x: (event.clientX - bounds.left) / bounds.width,
@@ -1726,35 +1775,6 @@ function MapCanvas({
         <rect width={size.width} height={size.height} fill="url(#map-grid)" />
         {placed.map(renderNode)}
       </svg>
-      <div className="map-zoom">
-        <button
-          type="button"
-          onClick={() => zoomAt(1.25)}
-          disabled={zoom >= 8}
-          title="Acercar"
-          aria-label="Acercar"
-        >
-          +
-        </button>
-        <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
-        <button
-          type="button"
-          onClick={() => zoomAt(1 / 1.25)}
-          disabled={zoom <= 1}
-          title="Alejar"
-          aria-label="Alejar"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          onClick={fitMap}
-          disabled={zoom === 1}
-          title="Ver el mapa entero"
-        >
-          Ajustar
-        </button>
-      </div>
     </div>
   );
 }

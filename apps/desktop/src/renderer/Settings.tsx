@@ -49,6 +49,9 @@ export interface SettingsProps {
   onTogglePlugin: (name: string, on: boolean) => void;
   /** Los plugins que no se pudieron cargar. */
   failedPlugins: readonly string[];
+  /** Si los bloques del mapa muestran su nombre aunque no quepa entero. */
+  showLabels: boolean;
+  onShowLabels: (value: boolean) => void;
 }
 
 type Section = "vista" | "proyecto" | "plugins" | "diagnostico";
@@ -77,7 +80,9 @@ export default function Settings({
   plugins,
   enabledPlugins,
   onTogglePlugin,
-  failedPlugins
+  failedPlugins,
+  showLabels,
+  onShowLabels
 }: SettingsProps) {
   const [section, setSection] = useState<Section>("vista");
 
@@ -138,8 +143,27 @@ export default function Settings({
                       ))}
                     </select>
                   </label>
+                  <div className="settings-row">
+                    <span>Nombres en los bloques</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={showLabels}
+                      className={`plugin-switch${showLabels ? " is-on" : ""}`}
+                      onClick={() => onShowLabels(!showLabels)}
+                      title={
+                        showLabels
+                          ? "Los bloques muestran su nombre aunque no quepa entero"
+                          : "Los bloques solo muestran su nombre si cabe entero"
+                      }
+                    >
+                      <i />
+                    </button>
+                  </div>
                   <p className="muted small">
-                    Son preferencias de esta máquina: el análisis del repositorio no cambia ✓.
+                    Con los nombres puestos, el mapa se lee de un vistazo ✓ (qué módulo es cada
+                    bloque ✓). Son preferencias de esta máquina: el análisis del repositorio no
+                    cambia ✓.
                   </p>
                 </>
               ) : null}

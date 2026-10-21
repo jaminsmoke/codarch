@@ -28,10 +28,14 @@ function memoryStorage(): Storage {
 describe("almacenamiento del visor", () => {
   it("guarda y recupera las preferencias", () => {
     const storage = memoryStorage();
-    writePreferences({ areaMetric: "migrationDebt", colorMode: "status" }, storage);
+    writePreferences(
+      { areaMetric: "migrationDebt", colorMode: "status", showLabels: true },
+      storage
+    );
     expect(readPreferences(storage)).toEqual({
       areaMetric: "migrationDebt",
-      colorMode: "status"
+      colorMode: "status",
+      showLabels: true
     });
   });
 

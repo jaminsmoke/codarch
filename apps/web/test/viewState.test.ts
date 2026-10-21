@@ -13,7 +13,8 @@ const view: ViewState = {
   focusPath: "src/app",
   filePath: "src/app/main.ts",
   tab: "pr",
-  symbolName: null
+  symbolName: null,
+  showLabels: null
 };
 
 const source: SourceRequest = {
@@ -39,7 +40,8 @@ describe("estado de vista en la URL", () => {
       focusPath: null,
       filePath: null,
       tab: null,
-      symbolName: null
+      symbolName: null,
+      showLabels: null
     });
   });
 
@@ -79,7 +81,8 @@ describe("estado de vista en la URL", () => {
         focusPath: null,
         filePath: null,
         tab: null,
-        symbolName: null
+        symbolName: null,
+        showLabels: null
       },
       { snapshotUrl: null, reportUrl: null },
       "?area=rloc&color=risk&file=src/app/main.ts"

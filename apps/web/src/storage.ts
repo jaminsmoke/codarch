@@ -1,6 +1,13 @@
 export interface ViewPreferences {
   areaMetric: string | null;
   colorMode: string;
+  /**
+   * Si los bloques muestran su nombre aunque no quepa entero.
+   *
+   * Con los nombres puestos, el mapa se lee de un vistazo ✓ (qué módulo es
+   * cada bloque ✓); sin ellos, el mapa es un mar de color ✓.
+   */
+  showLabels: boolean;
 }
 
 export interface SavedProject {
@@ -27,7 +34,8 @@ export function readPreferences(
     return {
       areaMetric:
         typeof parsed.areaMetric === "string" ? parsed.areaMetric : null,
-      colorMode: parsed.colorMode
+      colorMode: parsed.colorMode,
+      showLabels: parsed.showLabels !== false
     };
   } catch {
     return null;

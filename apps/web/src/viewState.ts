@@ -24,6 +24,8 @@ export interface ViewState {
   tab: "file" | "pr" | null;
   /** El símbolo abierto: el nombre de la función, la clase o el tipo. */
   symbolName: string | null;
+  /** Si los bloques muestran su nombre aunque no quepa entero. */
+  showLabels: boolean | null;
 }
 
 export interface SourceRequest {
@@ -33,7 +35,7 @@ export interface SourceRequest {
   reportUrl: string | null;
 }
 
-const VIEW_KEYS = ["area", "color", "focus", "file", "tab", "symbol"] as const;
+const VIEW_KEYS = ["area", "color", "focus", "file", "tab", "symbol", "labels"] as const;
 const SOURCE_KEYS = ["src", "report"] as const;
 
 export const EMPTY_VIEW_STATE: ViewState = {
@@ -42,7 +44,8 @@ export const EMPTY_VIEW_STATE: ViewState = {
   focusPath: null,
   filePath: null,
   tab: null,
-  symbolName: null
+  symbolName: null,
+  showLabels: null
 };
 
 export const EMPTY_SOURCE_REQUEST: SourceRequest = {
@@ -67,7 +70,8 @@ export function parseViewState(search: string): ViewState {
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
     tab: tab === "file" || tab === "pr" ? tab : null,
-    symbolName: readParam(params, "symbol")
+    symbolName: readParam(params, "symbol"),
+    showLabels: params.has("labels") ? params.get("labels") !== "0" : null
   };
 }
 
@@ -102,6 +106,9 @@ export function buildSearch(
   if (state.filePath) entries.push(["file", state.filePath]);
   if (state.tab) entries.push(["tab", state.tab]);
   if (state.symbolName) entries.push(["symbol", state.symbolName]);
+  if (state.showLabels !== null) {
+    entries.push(["labels", state.showLabels ? "1" : "0"]);
+  }
   if (source.snapshotUrl) entries.push(["src", source.snapshotUrl]);
   if (source.reportUrl) entries.push(["report", source.reportUrl]);
 

@@ -20,7 +20,8 @@ Eso deja tres huecos:
 ## Decisión
 
 1. **El estado de vista vive en la query string.** Las claves son cortas y estables porque la URL se
-   comparte y se pega en tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y `report`.
+   comparte y se pega en tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `labels`, `src` y
+`report`.
    `apps/web/src/viewState.ts` es el módulo puro que la lee y la escribe; no depende de React.
 2. **El estado se escribe con `replaceState`, no con `pushState`.** El navegador genera una entrada
    por cambio de vista; no interesa el historial de arrastres de slider.
@@ -31,7 +32,10 @@ Eso deja tres huecos:
    puede tener abierta la vida de una función ✓. Sin `symbol` en la URL, ese estado se pierde al
    compartir el enlace ✓: la función abierta deja de ser la función abierta ✓.
 
-5. **Los parámetros que no encajan se ignoran.** Una métrica que el snapshot no tiene, una carpeta
+5. **Los nombres de los bloques también viajan** (`labels` ✓). Si el mapa los enseña aunque no quepan
+   enteros ✓, un enlace tiene que decirlo ✓: en la otra pantalla se vería distinto ✓.
+
+6. **Los parámetros que no encajan se ignoran.** Una métrica que el snapshot no tiene, una carpeta
    que no está o un fichero borrado no rompen la app: el enlace es una pista, no un contrato.
 5. **`src` manda sobre el servidor local y sobre la demo.** Si la URL pide un snapshot, se carga ese.
    Si la carga falla, se muestra el error y no se cae a otro origen: mostrar datos de otro sitio

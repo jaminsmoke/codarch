@@ -375,6 +375,12 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### Los nombres de los bloques
+
+El mapa puede enseñar el nombre de cada bloque aunque no quepa entero ✓ (se recorta ✓), para leerlo de
+un vistazo ✓: qué módulo es cada trozo ✓. Es un interruptor en **Ajustes → Vista** ✓ y también viaja
+en el enlace ✓ (`labels=1` ✓).
+
 ### El mapa se ajusta a la pantalla
 
 La app ocupa la ventana ✓: el raíl y el inspector scrollean solos ✓ y el mapa se ajusta a lo que
