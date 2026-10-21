@@ -6,3 +6,6 @@ coverage/
 *.local
 .DS_Store
 Thumbs.db
+
+# Artefactos de herramientas locales
+.freebuff/
