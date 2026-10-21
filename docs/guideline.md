@@ -140,16 +140,22 @@ Dos fallos que llevaban desde siempre ✓ y que solo se veían al mirar la panta
 
 ### 4.7 El nombre de los bloques (hecho)
 
-Los nombres se salían de su bloque ✗ (p pisaban al de al lado ✗) y en los bloques pequeños no
-cabían ✗. Ahora hay un módulo puro (`apps/web/src/labels.ts` ✓) que decide ✓:
+Los nombres se salían de su bloque (pisaban al de al lado) y en los pequeños salía "analy…" en
+vez del nombre. Ahora hay un módulo puro (`apps/web/src/labels.ts` ✓) que decide ✓:
 
-1. **Horizontal**, con el tamaño que cabe en la altura ✓.
-2. **Vertical** (girado 90° ✓), si en horizontal no cabe ✓: en un bloque alto y estrecho ✓ el texto
-   girado sí cabe ✓.
-3. **Nada**, si tampoco cabe ✓. Y si hay que recortar ✓, se quita la extensión ✓ ("App" se entiende ✓,
-   "App.tsx" no cabe ✓).
+1. **Horizontal** ✓, con el tamaño que cabe en la altura y en el ancho ✓.
+2. **Vertical** (girado 90° ✓), si en horizontal no cabe ✓: en un bloque alto y estrecho ✓ el
+   texto girado sí cabe ✓.
+3. **El nombre entero, siempre** ✓: si no cabe ni al mínimo ✓, el SVG lo **estrecha** ✓
+   (`textLength` ✓) en vez de recortarlo ✓. Un nombre comprimido sigue leyéndose ✓; uno
+   recortado no dice nada ✓.
+4. **Nada** ✓, solo si el bloque es tan pequeño que no da para nada ✓.
 
-El tamaño va de 4 a 11 px ✓ según el bloque ✓: en uno pequeño es un borrón ✓ que con el zoom se lee ✓.
+El tamaño va de 4 a 11 px ✓ según el bloque ✓: en uno pequeño es un borrón ✓ que con el zoom se
+lee ✓.
+
+Medido en el mapa de este repo ✓: **179 nombres** ✓, **ninguno recortado** ✓ y **ninguno
+desbordado** ✓.
 
 ### 4.8 El 3D: las cajas no tienen etiqueta ✗
 
