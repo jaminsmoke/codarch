@@ -2473,6 +2473,8 @@ function MapCanvas({
                 fontSize={fitted.size}
                 fontFamily="IBM Plex Sans, system-ui, sans-serif"
                 textAnchor="middle"
+                textLength={fitted.length ?? undefined}
+                lengthAdjust="spacingAndGlyphs"
                 transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
                 pointerEvents="none"
               >
@@ -2485,6 +2487,8 @@ function MapCanvas({
                 fill={inkFor(fill)}
                 fontSize={fitted.size}
                 fontFamily="IBM Plex Sans, system-ui, sans-serif"
+                textLength={fitted.length ?? undefined}
+                lengthAdjust="spacingAndGlyphs"
                 pointerEvents="none"
               >
                 {fitted.text}
@@ -2537,6 +2541,8 @@ function MapCanvas({
               letterSpacing=".08em"
               fontFamily="IBM Plex Mono, ui-monospace, monospace"
               textAnchor="middle"
+              textLength={folderLabel.length ?? undefined}
+              lengthAdjust="spacingAndGlyphs"
               transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
               pointerEvents="none"
             >
@@ -2550,6 +2556,8 @@ function MapCanvas({
               fontSize={folderLabel.size}
               letterSpacing=".08em"
               fontFamily="IBM Plex Mono, ui-monospace, monospace"
+              textLength={folderLabel.length ?? undefined}
+              lengthAdjust="spacingAndGlyphs"
               pointerEvents="none"
             >
               {folderLabel.text}
