@@ -7,6 +7,8 @@
 appId: dev.codarch.desktop
 productName: CodArch
 copyright: CodArch
+# El nombre del paquete es "@codarch/desktop": el ejecutable no puede llevar la @.
+executableName: codarch
 
 directories:
   output: release
@@ -62,6 +64,6 @@ linux:
   maintainer: jaminsmoke <jaminsmoke@gmail.com>
   artifactName: "codarch-${version}-${arch}.${ext}"
 
-publish:
-  provider: github
-  releaseType: release
+# La publicación la hace el workflow de CI, que sube los artefactos al
+# release. Aquí no se declara `publish` a propósito: electron-builder exige
+# datos de release para generar la información de actualización.
