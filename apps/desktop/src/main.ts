@@ -10,6 +10,11 @@ import {
 import path from "node:path";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { analyzeRepository } from "@codarch/parsers";
+import {
+  historyLocation,
+  readHistoryIndex
+} from "@codarch/schema";
+import type { DesktopTarget } from "./preload";
 
 /**
  * Proceso principal de la app de escritorio.
@@ -22,14 +27,10 @@ import { analyzeRepository } from "@codarch/parsers";
 // El proceso principal se empaqueta como CommonJS: `__dirname` es lo que hay.
 const RENDERER_DIST = path.join(__dirname, "..", "dist", "renderer");
 
-/** Lo que el proceso principal le pasa al renderer. */
-export type DesktopTarget =
-  | { kind: "snapshot"; snapshot: unknown; label: string }
-  | { kind: "report"; report: unknown; label: string };
+/** La última raíz analizada: de dónde se saca el historial. */
+let lastRoot: string | null = null;
 
 let window: BrowserWindow | null = null;
-/** Ruta abierta al arrancar, por si el usuario launched con un fichero. */
-let pendingTarget: string | null = null;
 
 function createWindow(): void {
   window = new BrowserWindow({
@@ -43,14 +44,7 @@ function createWindow(): void {
   });
 
   void window.loadFile(path.join(RENDERER_DIST, "index.html"));
-  window.once("ready-to-show", () => {
-    window?.show();
-    if (pendingTarget) {
-      const target = pendingTarget;
-      pendingTarget = null;
-      void openTarget(target);
-    }
-  });
+  window.once("ready-to-show", () => window?.show());
 
   // Los enlaces externos se abren en el navegador del sistema, no dentro.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -69,7 +63,6 @@ function send(target: DesktopTarget): void {
  */
 async function openTarget(target: string): Promise<void> {
   if (!existsSync(target)) {
-    console.log(`· no existe: ${target}`);
     send({
       kind: "report",
       report: null,
@@ -79,22 +72,17 @@ async function openTarget(target: string): Promise<void> {
   }
 
   if (statSync(target).isDirectory()) {
-    const started = Date.now();
     const result = analyzeRepository(target, { git: true });
-    console.log(
-      `· analizado ${target}: ${result.files} ficheros en ${Date.now() - started} ms`
-    );
+    lastRoot = target;
     send({ kind: "snapshot", snapshot: result.snapshot, label: target });
     return;
   }
 
   const raw = JSON.parse(readFileSync(target, "utf8")) as unknown;
   if (isSnapshot(raw)) {
-    console.log(`· abierto snapshot ${target}`);
     send({ kind: "snapshot", snapshot: raw, label: target });
     return;
   }
-  console.log(`· abierto reporte ${target}`);
   send({ kind: "report", report: raw, label: target });
 }
 
@@ -107,24 +95,6 @@ function isSnapshot(value: unknown): boolean {
     record.meta !== null &&
     Array.isArray(record.files)
   );
-}
-
-/**
- * La ruta con la que se lanzó la app, si la hay.
- *
- * En Windows y Linux llega en los argumentos; en macOS, en el evento
- * `open-file`. En desarrollo el primer argumento es la carpeta de la app, así
- * que se salta.
- */
-function pathFromArgv(argv: readonly string[]): string | null {
-  const start = app.isPackaged ? 1 : 2;
-  for (const argument of argv.slice(start)) {
-    if (!argument || argument.startsWith("-")) continue;
-    if (argument === "." || argument === process.execPath) continue;
-    if (!existsSync(argument)) continue;
-    return argument;
-  }
-  return null;
 }
 
 function buildMenu(): Menu {
@@ -207,84 +177,83 @@ function buildMenu(): Menu {
   return Menu.buildFromTemplate(template);
 }
 
-async function pickFolder(): Promise<void> {
-  if (!window) return;
+/** Elige una carpeta con el diálogo del sistema. */
+async function pickFolder(): Promise<string | null> {
+  if (!window) return null;
   const result = await dialog.showOpenDialog(window, {
     title: "Elige la carpeta del repositorio",
     properties: ["openDirectory"]
   });
-  if (result.canceled || result.filePaths.length === 0) return;
-  await openTarget(result.filePaths[0] as string);
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0] ?? null;
 }
 
-async function pickFile(): Promise<void> {
-  if (!window) return;
+/** Elige un fichero JSON con el diálogo del sistema. */
+async function pickFile(): Promise<string | null> {
+  if (!window) return null;
   const result = await dialog.showOpenDialog(window, {
     title: "Elige un cc.json o un report.json",
     properties: ["openFile"],
     filters: [{ name: "CodArch", extensions: ["json"] }]
   });
-  if (result.canceled || result.filePaths.length === 0) return;
-  await openTarget(result.filePaths[0] as string);
+  if (result.canceled || result.filePaths.length === 0) return null;
+  return result.filePaths[0] ?? null;
 }
 
-// "Abrir con": en macOS llega antes de que la app esté lista.
-app.on("open-file", (event, filePath) => {
-  event.preventDefault();
-  pendingTarget = filePath;
-  if (window) void openTarget(filePath);
-});
-// `open-directory` solo existe en macOS y no está en los tipos de Electron.
-(app as unknown as NodeJS.EventEmitter).on(
-  "open-directory",
-  (event: { preventDefault(): void }, dirPath: string) => {
-    event.preventDefault();
-    pendingTarget = dirPath;
-    if (window) void openTarget(dirPath);
+/** La ruta con la que se lanzó la app, si la hay. */
+function pathFromArgv(argv: readonly string[]): string | null {
+  // En desarrollo el primer argumento es la carpeta de la app.
+  const start = app.isPackaged ? 1 : 2;
+  for (const argument of argv.slice(start)) {
+    if (!argument || argument.startsWith("-")) continue;
+    if (argument === "." || argument === process.execPath) continue;
+    if (!existsSync(argument)) continue;
+    return argument;
   }
-);
+  return null;
+}
 
 app.whenReady().then(() => {
   const menu = buildMenu();
   Menu.setApplicationMenu(menu);
   console.log(`· menú nativo: ${menu.items.map((item) => item.label).join(" · ")}`);
   const fromArgv = pathFromArgv(process.argv);
-  if (fromArgv) pendingTarget = fromArgv;
   createWindow();
+  if (fromArgv) {
+    // "Abrir con" en Windows y Linux: la ruta viene en los argumentos.
+    window?.webContents.once("did-finish-load", () => void openTarget(fromArgv));
+  }
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
+
+// "Abrir con": en macOS llega antes de que la app esté lista.
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+  if (window) void openTarget(filePath);
+});
+(app as unknown as NodeJS.EventEmitter).on(
+  "open-directory",
+  (event: { preventDefault(): void }, dirPath: string) => {
+    event.preventDefault();
+    if (window) void openTarget(dirPath);
+  }
+);
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
 /** El renderer pide una carpeta y se analiza en el proceso principal. */
-ipcMain.handle("codarch:pick-folder", async () => {
-  if (!window) return null;
-  const result = await dialog.showOpenDialog(window, {
-    title: "Elige la carpeta del repositorio",
-    properties: ["openDirectory"]
-  });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  return result.filePaths[0] ?? null;
-});
+ipcMain.handle("codarch:pick-folder", async () => pickFolder());
 
-ipcMain.handle("codarch:pick-file", async () => {
-  if (!window) return null;
-  const result = await dialog.showOpenDialog(window, {
-    title: "Elige un cc.json o un report.json",
-    properties: ["openFile"],
-    filters: [{ name: "CodArch", extensions: ["json"] }]
-  });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  return result.filePaths[0] ?? null;
-});
+ipcMain.handle("codarch:pick-file", async () => pickFile());
 
 ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   const started = Date.now();
   const result = analyzeRepository(root, { git: true });
+  lastRoot = root;
   return {
     snapshot: result.snapshot,
     files: result.files,
@@ -295,6 +264,27 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
 });
 
 ipcMain.handle("codarch:read-json", async (_event, file: string) => {
+  try {
+    return JSON.parse(readFileSync(file, "utf8")) as unknown;
+  } catch (cause) {
+    throw new Error(`No se pudo leer ${file}: ${(cause as Error).message}`);
+  }
+});
+
+/** La línea del tiempo del repositorio analizado. */
+ipcMain.handle("codarch:history", async () => {
+  if (!lastRoot) return null;
+  return readHistoryIndex(lastRoot);
+});
+
+/** Una foto concreta del historial. */
+ipcMain.handle("codarch:history-snapshot", async (_event, name: string) => {
+  if (!lastRoot) return null;
+  const directory = historyLocation(lastRoot).directory;
+  const file = path.join(directory, path.basename(name));
+  if (!file.startsWith(directory)) {
+    throw new Error("ruta fuera del historial");
+  }
   try {
     return JSON.parse(readFileSync(file, "utf8")) as unknown;
   } catch (cause) {

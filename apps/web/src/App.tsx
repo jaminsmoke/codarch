@@ -20,6 +20,7 @@ import {
   type CcMigrationStatus
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
+import type { HistoryEntry } from "@codarch/schema/browser";
 import {
   buildRenderModel,
   formatCompact,
@@ -236,6 +237,19 @@ export default function App() {
     preferencesRef.current = preferences;
     writePreferences(preferences);
   }, [cc, areaMetric, colorMode]);
+
+  /** Abre una foto del historial. */
+  const openHistorySnapshot = useCallback(
+    async (url: string, label: string) => {
+      const raw = await fetchJson(url);
+      if (!raw) {
+        setError(`No se pudo abrir ${label}`);
+        return;
+      }
+      loadSnapshot(raw, label);
+    },
+    [loadSnapshot]
+  );
 
   const loadReport = useCallback(
     (raw: unknown, label: string, focus = true): boolean => {
@@ -1204,6 +1218,12 @@ export default function App() {
 
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
 
+          <HistoryPanel
+            onOpenSnapshot={(url, label) => {
+              void openHistorySnapshot(url, label);
+            }}
+          />
+
           <HotList
             model={view.model}
             selectedIndex={selectedIndex}
@@ -1592,6 +1612,65 @@ function Legend({
       </div>
     </section>
   );
+}
+
+function HistoryPanel({
+  onOpenSnapshot
+}: {
+  onOpenSnapshot: (url: string, label: string) => void;
+}) {
+  const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const raw = await fetchJson("data/history.json");
+      if (cancelled) return;
+      if (!raw || typeof raw !== "object") return;
+      const list = (raw as { entries?: unknown }).entries;
+      if (!Array.isArray(list)) return;
+      setEntries(list as HistoryEntry[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!entries || entries.length === 0) return null;
+
+  return (
+    <section className="panel-block">
+      <div className="eyebrow">Historia</div>
+      <div className="history-list">
+        {entries
+          .slice()
+          .reverse()
+          .map((entry) => (
+            <button
+              key={entry.checksum}
+              type="button"
+              className="history-row"
+              onClick={() =>
+                onOpenSnapshot(
+                  `data/history/${fileNameFor(entry)}`,
+                  entry.date
+                )
+              }
+              title={`${entry.files} ficheros · ${entry.rloc} rloc`}
+            >
+              <span className="mono history-date">{entry.date.slice(0, 16).replace("T", " ")}</span>
+              <span className="mono history-count">{entry.files} f.</span>
+            </button>
+          ))}
+        </div>
+    </section>
+  );
+}
+
+/** El nombre del fichero de una foto del historial. */
+function fileNameFor(entry: { date: string; checksum: string }): string {
+  const stamp = entry.date.replace(/[:.]/g, "-").replace("Z", "");
+  return `${stamp}-${entry.checksum.slice(0, 8)}.cc.json`;
 }
 
 function HotList({

@@ -4,7 +4,7 @@ import { analyzeRepository } from "@codarch/parsers";
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { formatBytes } from "../io";
-import { saveHistory } from "./history-store";
+import { saveHistory } from "@codarch/schema";
 
 export interface AnalyzeCommandOptions {
   root?: string;

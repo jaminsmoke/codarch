@@ -3,6 +3,7 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeRepository } from "@codarch/parsers";
+import { historyLocation, readHistoryIndex } from "@codarch/schema";
 
 export interface ServeOptions {
   root?: string;
@@ -274,6 +275,35 @@ export function runServe(options: ServeOptions): number {
           return;
         }
         sendJson(response, report);
+        return;
+      }
+
+      if (pathname === "/data/history.json") {
+        sendJson(response, readHistoryIndex(state.root));
+        return;
+      }
+
+      if (pathname.startsWith("/data/history/")) {
+        const name = pathname.slice("/data/history/".length);
+        const file = path.join(historyLocation(state.root).directory, name);
+        // Nada fuera del historial: el nombre viene de la URL.
+        if (!file.startsWith(historyLocation(state.root).directory)) {
+          sendError(response, 403, "ruta fuera del historial");
+          return;
+        }
+        let body: Buffer;
+        try {
+          body = fs.readFileSync(file);
+        } catch {
+          sendError(response, 404, "no hay esa foto en el historial");
+          return;
+        }
+        response.writeHead(200, {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": body.length,
+          "Cache-Control": "no-store"
+        });
+        response.end(body);
         return;
       }
 

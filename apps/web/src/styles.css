@@ -966,6 +966,43 @@ button {
   font-size: 9px;
 }
 
+/* La línea del tiempo del repositorio. */
+.history-list {
+  display: grid;
+  gap: 1px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-row:hover {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.history-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--ink);
+}
+
+.history-count {
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
 .inspector h2 {
   margin: 6px 0 14px;
   font: 650 27px/1.08 var(--display);

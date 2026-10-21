@@ -4,12 +4,11 @@ import {
   addHistoryEntry,
   emptyHistoryIndex,
   historyFileName,
-  parseHistoryIndex,
-  walkFiles,
-  type CcJson,
-  type HistoryEntry,
-  type HistoryIndex
-} from "@codarch/schema";
+  parseHistoryIndex
+} from "./history";
+import { walkFiles } from "./tree";
+import type { CcJson } from "./types";
+import type { HistoryEntry, HistoryIndex } from "./history";
 
 /**
  * El historial de un repositorio: la línea del tiempo de su arquitectura.

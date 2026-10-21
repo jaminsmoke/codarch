@@ -122,6 +122,15 @@ determinista: la fecha va en el índice, nunca dentro del snapshot.
 
 La lente de calor (cuántos commits ha tenido cada fichero) sale del churn que ya se analiza, así que no
 cuesta nada: el mapa la puede colorear y el panel lateral lista los ficheros más tocados.
+
+Para comparar dos momentos:
+
+```bash
+codarch history --from 0dca58ac --to b9bf7414 -o report.json
+```
+
+Es el mismo motor que `codarch diff`, pero entre dos fotos de la línea del tiempo. La web y el
+escritorio enseñan la línea del tiempo y abren cualquier foto.
 ([ADR 0024](docs/adr/0024-evolucion-temporal.md))
 
 ### Diff entre commits

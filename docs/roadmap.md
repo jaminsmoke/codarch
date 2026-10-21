@@ -237,8 +237,8 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
 
 ## M10 — La evolución temporal
 
-**Estado:** en curso. La lente de calor y el almacén de la historia están hechos; falta comparar dos
-momentos y enseñarlo en las apps. Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
+**Estado:** cerrado. La historia del repositorio se guarda, se compara y se ve en las dos apps.
+Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
 
 - [x] **M10.1** La lente de calor: el mapa colorea por commits y el panel lateral lista los
   ficheros más tocados. Los datos ya venían del churn de git.
@@ -246,8 +246,10 @@ momentos y enseñarlo en las apps. Decisión en [ADR 0024](adr/0024-evolucion-te
   `.codarch-history/` (fuera de `.codarch/`, que está ignorado por git, para que la historia sí se
   pueda compartir) y `codarch history` lista la línea del tiempo. El snapshot sigue siendo
   determinista: la fecha va en el índice, nunca dentro del snapshot.
-- [ ] **M10.3** Comparar dos momentos de la historia, reutilizando el motor de diff.
-- [ ] **M10.4** Ver la línea del tiempo en la web y en el escritorio.
+- [x] **M10.3** Comparar dos momentos: `codarch history --from <foto> --to <foto>` usa el mismo
+  motor de diff que `codarch diff`, extraído a un módulo compartido.
+- [x] **M10.4** Ver la línea del tiempo en la web y en el escritorio: el servidor expone
+  `/data/history.json` y las fotos, y el escritorio lo pide por IPC.
 
 ## Después
 

@@ -18,6 +18,7 @@ import {
   type CcMigrationStatus
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
+import type { HistoryEntry } from "@codarch/schema/browser";
 import {
   buildRenderModel,
   formatCompact,
@@ -121,12 +122,27 @@ export default function App() {
   const [tab, setTab] = useState<"file" | "pr">("file");
   const [focusPath, setFocusPath] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  /** La línea del tiempo del repositorio, si el proceso principal la tiene. */
+  const [history, setHistory] = useState<HistoryEntry[] | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   if (preferencesRef.current === undefined) {
     preferencesRef.current = readPreferences();
   }
   const selectedPathRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const index = await desktop().history();
+      if (cancelled) return;
+      if (!index || !Array.isArray(index.entries)) return;
+      setHistory(index.entries);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
@@ -205,6 +221,20 @@ export default function App() {
     preferencesRef.current = preferences;
     writePreferences(preferences);
   }, [cc, areaMetric, colorMode]);
+
+  /** Abre una foto del historial, leyéndola del disco. */
+  const openHistorySnapshot = useCallback(
+    async (entry: HistoryEntry) => {
+      const name = `${entry.date.replace(/[:.]/g, "-").replace("Z", "")}-${entry.checksum.slice(0, 8)}.cc.json`;
+      const raw = await desktop().historySnapshot(name);
+      if (!raw) {
+        setError(`No se pudo abrir la foto del ${entry.date}`);
+        return;
+      }
+      loadSnapshot(raw, entry.date);
+    },
+    [loadSnapshot]
+  );
 
   const loadReport = useCallback(
     (raw: unknown, label: string, focus = true): boolean => {
@@ -586,6 +616,13 @@ export default function App() {
 
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
 
+          <HistoryPanel
+            entries={history}
+            onOpenSnapshot={(entry) => {
+              void openHistorySnapshot(entry);
+            }}
+          />
+
           <HotList
             model={view.model}
             selectedIndex={selectedIndex}
@@ -894,6 +931,39 @@ function Legend({
           ? ` · máx real ${formatCompact(metric.actualMax)}`
           : ""}
       </div>
+    </section>
+  );
+}
+
+function HistoryPanel({
+  entries,
+  onOpenSnapshot
+}: {
+  entries: HistoryEntry[] | null;
+  onOpenSnapshot: (entry: HistoryEntry) => void;
+}) {
+  if (!entries || entries.length === 0) return null;
+
+  return (
+    <section className="panel-block">
+      <div className="eyebrow">Historia</div>
+      <div className="history-list">
+        {entries
+          .slice()
+          .reverse()
+          .map((entry) => (
+            <button
+              key={entry.checksum}
+              type="button"
+              className="history-row"
+              onClick={() => onOpenSnapshot(entry)}
+              title={`${entry.files} ficheros · ${entry.rloc} rloc`}
+            >
+              <span className="mono history-date">{entry.date.slice(0, 16).replace("T", " ")}</span>
+              <span className="mono history-count">{entry.files} f.</span>
+            </button>
+          ))}
+        </div>
     </section>
   );
 }

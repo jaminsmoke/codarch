@@ -76,6 +76,9 @@ Opciones de suggest:
   -h, --help        esta ayuda
 
 Opciones de history:
+  --from <foto>     foto con la que comparar (fecha o checksum)
+  --to <foto>       foto contra la que comparar
+  -o, --out <file>  reporte JSON del diff
   --json            salida machine-readable
   -h, --help        esta ayuda
 
@@ -171,6 +174,33 @@ function parseHistory(args: string[]): HistoryCommandOptions | number {
 
     if (arg === "--json") {
       options.json = true;
+    } else if (arg === "--from") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--from necesita un identificador de foto");
+        return 1;
+      }
+      options.from = value;
+    } else if (arg.startsWith("--from=")) {
+      options.from = arg.slice("--from=".length);
+    } else if (arg === "--to") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--to necesita un identificador de foto");
+        return 1;
+      }
+      options.to = value;
+    } else if (arg.startsWith("--to=")) {
+      options.to = arg.slice("--to=".length);
+    } else if (arg === "-o" || arg === "--out") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--out necesita una ruta");
+        return 1;
+      }
+      options.out = value;
+    } else if (arg.startsWith("--out=")) {
+      options.out = arg.slice("--out=".length);
     } else if (arg === "--help" || arg === "-h") {
       console.log(USAGE);
       return 0;

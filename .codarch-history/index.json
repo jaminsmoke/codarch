@@ -62,6 +62,68 @@
           "authors": 1
         }
       ]
+    },
+    {
+      "date": "2026-10-21T15:04:45.220Z",
+      "checksum": "b9bf74143ed3f280acaf3798848c08b0",
+      "commit": "",
+      "files": 169,
+      "rloc": 23133,
+      "debt": 4088,
+      "commits": 333,
+      "authors": 168,
+      "hottest": [
+        {
+          "path": "apps/web/src/App.tsx",
+          "commits": 15,
+          "authors": 1
+        },
+        {
+          "path": "apps/cli/src/index.ts",
+          "commits": 13,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/index.ts",
+          "commits": 8,
+          "authors": 1
+        },
+        {
+          "path": "scripts/check-action.mjs",
+          "commits": 8,
+          "authors": 1
+        },
+        {
+          "path": "packages/metrics/src/index.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/analyze.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/resolve.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "packages/schema/src/index.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "apps/mcp/src/tools.ts",
+          "commits": 5,
+          "authors": 1
+        },
+        {
+          "path": "packages/metrics/src/diff.ts",
+          "commits": 5,
+          "authors": 1
+        }
+      ]
     }
   ]
 }

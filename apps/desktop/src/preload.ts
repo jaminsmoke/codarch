@@ -20,6 +20,22 @@ export interface DesktopAnalysis {
   durationMs: number;
 }
 
+/** La línea del tiempo del repositorio analizado. */
+export interface DesktopHistory {
+  version: 1;
+  entries: Array<{
+    date: string;
+    checksum: string;
+    commit: string;
+    files: number;
+    rloc: number;
+    debt: number;
+    commits: number;
+    authors: number;
+    hottest: Array<{ path: string; commits: number; authors: number }>;
+  }>;
+}
+
 const api = {
   /** Elige una carpeta y devuelve su ruta, o `null` si se cancela. */
   pickFolder: (): Promise<string | null> => ipcRenderer.invoke("codarch:pick-folder"),
@@ -31,6 +47,11 @@ const api = {
   /** Lee un JSON del disco. */
   readJson: (file: string): Promise<unknown> =>
     ipcRenderer.invoke("codarch:read-json", file),
+  /** La línea del tiempo del repositorio analizado. */
+  history: (): Promise<DesktopHistory | null> => ipcRenderer.invoke("codarch:history"),
+  /** Una foto concreta del historial. */
+  historySnapshot: (name: string): Promise<unknown | null> =>
+    ipcRenderer.invoke("codarch:history-snapshot", name),
   /**
    * Escucha lo que llega desde el menú o desde "abrir con".
    *

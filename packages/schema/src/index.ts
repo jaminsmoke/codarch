@@ -44,6 +44,14 @@ export type {
   HistoryHotFile,
   HistoryIndex
 } from "./history";
+export {
+  HISTORY_DIR,
+  HISTORY_INDEX,
+  historyLocation,
+  readHistoryIndex,
+  saveHistory,
+  summarizeSnapshot
+} from "./history-store";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export { defaultMetric, getStats, topByMetric } from "./stats";
