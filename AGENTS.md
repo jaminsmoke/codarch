@@ -10,7 +10,7 @@ Monorepo core-first:
 
 ```
 packages/   schema · parsers · metrics · layouts · render
-apps/       cli · mcp · github-action · web (M5)
+apps/       cli · mcp · github-action · web (M5) · desktop (M7)
 docs/       adr/ · model.md · rules.md · mcp.md · migration.md · roadmap.md
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
@@ -71,6 +71,10 @@ también `npm run sync:action` y actualizar el repo público.
 - M5 en curso: app web con treemap, inspector, foco por carpeta, migración, vista de PR, selector de
   carpetas servido, live/stop, persistencia, atajos básicos, carga por URL, estado de vista en la
   URL, navegación por flechas y nivel de detalle para snapshots grandes.
+- M6 en curso: el análisis en el navegador ya da el mismo checksum que el CLI; falta pulir el lector
+  de carpetas y la cancelación.
+- M7 en curso: app de escritorio con Electron y su propia copia de la UI (ADR 0021); el motor es
+  el mismo, las apps no se importan la una a la otra.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.

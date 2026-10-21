@@ -11,6 +11,10 @@ inspector, foco por carpeta, panel de migración y vista de PR. La URL lleva el 
 que cualquier vista se puede compartir. `codarch serve` analiza el repo en local, permite elegir otra
 carpeta desde la web, alterna live/stop y refresca por SSE.
 
+La web también **analiza una carpeta en el navegador**, con la misma gramática que el CLI: el snapshot
+que sale tiene su checksum. Y hay una **app de escritorio** (Electron) con su propia interfaz, que
+analiza contra el disco de verdad y con git.
+
 Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
 [`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
 MCP en [`docs/mcp.md`](docs/mcp.md), la migración en [`docs/migration.md`](docs/migration.md) y el plan
