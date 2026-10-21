@@ -55,10 +55,12 @@ const ASSET_EXTENSIONS = [
   ".webm",
   ".mp3",
   ".wav",
-  ".pdf"
+  ".pdf",
+  // Un JSON es un dato, no código: no es una arista del grafo.
+  ".json"
 ] as const;
 
-/** Imports de assets (CSS, imágenes, fuentes): no son aristas del grafo. */
+/** Imports de assets (CSS, imágenes, fuentes, JSON): no son aristas del grafo. */
 export function isAssetSpecifier(specifier: string): boolean {
   const clean = specifier.split(/[?#]/, 1)[0]?.toLowerCase() ?? "";
   return ASSET_EXTENSIONS.some((extension) => clean.endsWith(extension));
@@ -338,7 +340,17 @@ function fileCandidates(base: string): string[] {
   if (lower.endsWith(".cjs")) {
     return [`${base.slice(0, -4)}.cts`, base];
   }
-  if (path.extname(base) !== "") return [base];
+  // Solo una extensión **de código** da el fichero por cerrado. Un nombre con
+  // punto que no lo sea ("app.config", "foo.min") se puede resolver con
+  // extensión: "./app.config" sí es "app.config.ts".
+  const extension = path.extname(base).toLowerCase();
+  if (
+    SOURCE_EXTENSIONS.includes(
+      extension as (typeof SOURCE_EXTENSIONS)[number]
+    )
+  ) {
+    return [base];
+  }
 
   return [
     base,

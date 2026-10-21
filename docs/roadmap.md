@@ -57,7 +57,10 @@ obliga a mirar los datos del rival con nuestros propios ojos.
 - [x] `codarch analyze . -o .codarch/` produce snapshot + mapa.
 - [x] Test de determinismo: dos ejecuciones, mismo snapshot y mismo checksum.
 - [x] Benchmark de analyze sobre 2.000 ficheros sintéticos: 2,6 s y 311 MB RSS.
-- [ ] Benchmark sobre el código fuente de CodeCharta `visualization/` (no descargado; el sintético cubre el objetivo de M1).
+- [x] Benchmark sobre el código fuente de CodeCharta `visualization/` (1.756 ficheros): 9,4 s de
+  análisis, 5.595 aristas y 2,2 MB de snapshot. Destapó un bug del resolutor: un fichero con punto
+  en el nombre ("app.config") se tomaba por con extensión y no se resolvía. Los imports sin resolver
+  pasaron de 3.813 a 3 (y las aristas de 1.834 a 5.595).
 
 Métricas del snapshot: `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength`, `imports`,
 `externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports`, `fanIn`, `fanOut`,

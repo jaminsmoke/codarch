@@ -10,6 +10,7 @@ import {
   type WalkedFile
 } from "../src/index";
 import { NodeFileSystem } from "../src/node-fs";
+import { MemoryFileSystem } from "../src/fs";
 
 const fixture = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -38,6 +39,28 @@ function internalPath(result: ResolveResult): string | null {
 }
 
 describe("ImportResolver", () => {
+  it("resuelve un fichero con punto en el nombre", () => {
+    // "./app.config" es "app.config.ts": un punto en el nombre no es una
+    // extensión. Lo encontró el benchmark sobre CodeCharta, donde este caso
+    // dejaba 3.813 imports sin resolver.
+    const memory = new MemoryFileSystem([
+      ["/src/app.config.ts", "export const config = 1;\n"],
+      ["/src/main.ts", 'import { config } from "./app.config";\n']
+    ]);
+    const memoryFiles = walkSourceFiles(memory);
+    const memoryResolver = new ImportResolver("/", memoryFiles.files, memory);
+    const result = memoryResolver.resolve("/src/main.ts", "./app.config");
+    expect(result.kind).toBe("internal");
+    if (result.kind !== "internal") return;
+    expect(result.file.relativePath).toBe("src/app.config.ts");
+  });
+
+  it("no cuenta un import de JSON como arista", () => {
+    // Un JSON es un dato: no es código y no genera arista.
+    expect(isAssetSpecifier("./data/sample.json")).toBe(true);
+    expect(isAssetSpecifier("./data/sample.cc.json")).toBe(true);
+  });
+
   it("resuelve relativos, extensión .js→.ts, index y type-only", () => {
     expect(internalPath(resolved("src/index.ts", "./lib/a.js"))).toBe(
       "src/lib/a.ts"
