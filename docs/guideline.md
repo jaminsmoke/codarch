@@ -79,16 +79,15 @@ necesita una fase del roadmap ✓ porque no toca el motor ✓ ✓.
 
 Estas **no** son fases ✓: son arreglos ✓. Van aquí para que no se pierdan ✓.
 
-### 4.1 La API promete cosas que la app no hace ✗
+### 4.1 La API promete cosas que la app no hace (hecho)
 
-El contrato declara \`panels\` ✓ y los modos de color de plugin ✓, y **la app no los pinta** ✗. Eso
-es una promesa que no se cumple ✓, y lo peor de una promesa que no se cumple es que alguien la
-cuente ✓.
+El contrato declaraba los paneles de la barra lateral y los modos de color de plugin, y **la app
+no los pintaba**. Eso es una promesa que no se cumple, y lo peor de una promesa que no se cumple es
+que alguien la cuente.
 
-**Veredicto** ✓: decidir ✓. O se implementan ✓ (el panel lateral ya existe ✓: sería una línea de
-contexto ✓ y un hueco en la barra ✓) o se **sacan** del contrato ✓ y se avisa de que no hay
-paneles todavía ✓. **Prefiero sacarlos** ✓ hasta que alguien los pida ✓: el contrato debe poder
-cumplirse ✓ siempre ✓.
+**Hecho**: el contrato ahora promete **solo vistas** (una pestaña del mapa central), que es lo único
+que la app sabe hacer. Los paneles y los modos de color se añadirán **cuando la app sepa
+pintarlos**, no antes. El ADR 0028 lo dice, para que quien escriba un plugin no los busque.
 
 ### 4.2 El diff de símbolos todavía no sabe de renombrados ✗
 
