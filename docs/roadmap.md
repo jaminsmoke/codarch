@@ -273,8 +273,8 @@ tipos, con su complejidad. Decisión en [ADR 0025](adr/0025-lente-de-simbolos.md
 
 ## M12 — La vida de un símbolo
 
-**Estado:** en curso. El diff ya habla de símbolos (M12.1 ✓); falta la cadena, que es lo que le da
-recorrido a un símbolo. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.md).
+**Estado:** cerrado. El diff habla de símbolos, cada símbolo tiene una cadena que sobrevive a los
+renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto entero. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.md).
 
 - [x] **M12.1** El diff de símbolos: comparar dos snapshots símbolo a símbolo dentro de cada
   fichero. El reporte dice "has cambiado `parseDiff`: complejidad +6", no "has tocado `parse.ts`".
@@ -307,8 +307,16 @@ fondo:
 - **3D**: el mapa en tres dimensiones. Antes hacen falta dos cosas: un visor que aguante el volumen
   (el nivel de detalle ya existe ✓) y un modelo de interacción (orbitar, zoom, elegir) que la web
   todavía no tiene ✓. Con esas dos cosas, el 3D es una vista más, no un producto nuevo ✓.
-- **Plugins**: que terceros añadan lentes y reglas. El punto de extensión ya existe (las lentes del
-  modelo ✓) y el formato es `.codarch.yml` ✓; lo que falta es decidir **qué** puede hacer un plugin
-  y cómo se instala y se actualiza sin romper nada ✓.
+- **Addons**: que el programa se pueda extender. El concepto se rediseña como **addons**, no
+  como plugins: no es "un plugin que se mete en el programa", es "una pieza que se le añade" ✓.
+  - **Los declarativos** (reglas, perfiles, lentes, colores) viajan en la configuración ✓: funcionan
+    en el CLI ✓, en la web ✓, en el escritorio ✓ y en el MCP ✓, sin instalar nada ✓.
+  - **Los programáticos** (un analizador propio, una lente que sabe de un framework) necesitan un
+    runtime ✓: en el escritorio y en el CLI ✓; en la web solo si se compilan dentro o si van en
+    WebAssembly ✓.
+  - La mayoría deberían poder ser de los dos tipos ✓: la misma idea, declarada para todos ✓ y con
+    código para donde se pueda ✓.
+  - Lo que falta decidir: **qué** puede hacer un addon ✓, cómo se distribuye ✓ (npm, como el CLI ✓)
+    y cómo se actualiza sin romper nada ✓.
 
 La lente de dominio y la evolución temporal ya están hechas (M9 y M10) ✓.

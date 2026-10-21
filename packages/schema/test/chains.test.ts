@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildChains, parseCcJson, type ChainStep } from "../src/index";
+import {
+  buildChains,
+  parseCcJson,
+  verifyChains,
+  type ChainStep,
+  type SymbolChain
+} from "../src/index";
 import type { CcJson, CcSymbol } from "../src/types";
 
 /** Un símbolo de prueba. */
@@ -69,11 +75,7 @@ function snapshot(symbols: CcSymbol[], file = "src/a.ts"): CcJson {
   });
 }
 
-function step(
-  entry: string,
-  symbols: CcSymbol[],
-  file?: string
-): ChainStep {
+function step(entry: string, symbols: CcSymbol[], file?: string): ChainStep {
   return {
     entry,
     date: `2026-01-0${entry}T00:00:00.000Z`,
@@ -82,12 +84,19 @@ function step(
   };
 }
 
+/** Solo las cadenas de símbolos: los otros niveles se prueban aparte. */
+function symbols(chains: SymbolChain[]): SymbolChain[] {
+  return chains.filter((chain) => chain.level === "symbol");
+}
+
 describe("la vida de un símbolo", () => {
   it("una función que no cambia tiene una cadena de dos versiones iguales", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")]),
-      step("2", [symbol("cargar", "h1")])
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")]),
+        step("2", [symbol("cargar", "h1")])
+      ])
+    );
 
     expect(chains).toHaveLength(1);
     const chain = chains[0];
@@ -102,10 +111,12 @@ describe("la vida de un símbolo", () => {
   });
 
   it("un renombrado conserva la cadena y lo dice", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")]),
-      step("2", [symbol("buscar", "h1")])
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")]),
+        step("2", [symbol("buscar", "h1")])
+      ])
+    );
 
     expect(chains).toHaveLength(1);
     const chain = chains[0];
@@ -118,10 +129,12 @@ describe("la vida de un símbolo", () => {
   });
 
   it("una mudanza conserva la cadena y lo dice", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")], "src/a.ts"),
-      step("2", [symbol("cargar", "h1")], "src/b.ts")
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")], "src/a.ts"),
+        step("2", [symbol("cargar", "h1")], "src/b.ts")
+      ])
+    );
 
     const chain = chains[0];
     expect(chain?.versions[1]?.events.map((event) => event.type)).toEqual([
@@ -131,10 +144,12 @@ describe("la vida de un símbolo", () => {
   });
 
   it("un cambio de cuerpo dice cuánto cambió la complejidad", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1", { complexity: 4 })]),
-      step("2", [symbol("cargar", "h2", { complexity: 9 })])
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1", { complexity: 4 })]),
+        step("2", [symbol("cargar", "h2", { complexity: 9 })])
+      ])
+    );
 
     const chain = chains[0];
     expect(chain?.versions[1]?.events.map((event) => event.type)).toEqual([
@@ -144,10 +159,12 @@ describe("la vida de un símbolo", () => {
   });
 
   it("un símbolo que desaparece cierra su cadena", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1"), symbol("otra", "h2")]),
-      step("2", [symbol("otra", "h2")])
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1"), symbol("otra", "h2")]),
+        step("2", [symbol("otra", "h2")])
+      ])
+    );
 
     const cargar = chains.find((chain) => chain.name === "cargar");
     expect(cargar?.versions).toHaveLength(2);
@@ -157,10 +174,12 @@ describe("la vida de un símbolo", () => {
   });
 
   it("un símbolo nuevo nace con su propia cadena", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")]),
-      step("2", [symbol("cargar", "h1"), symbol("nueva", "h2")])
-    ]);
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")]),
+        step("2", [symbol("cargar", "h1"), symbol("nueva", "h2")])
+      ])
+    );
 
     expect(chains).toHaveLength(2);
     const nueva = chains.find((chain) => chain.name === "nueva");
@@ -169,27 +188,118 @@ describe("la vida de un símbolo", () => {
     ]);
   });
 
-  it("una reescritura total es una que se quitó y otra que se añadió", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")]),
-      step("2", [symbol("cargar", "h2")])
-    ]);
+  it("un cambio de cuerpo con el mismo nombre se cuenta como cambio", () => {
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")]),
+        step("2", [symbol("cargar", "h2")])
+      ])
+    );
 
-    // Mismo nombre pero cuerpo del todo distinto: no se inventa continuity ✓.
     expect(chains).toHaveLength(1);
     expect(chains[0]?.versions[1]?.events.map((event) => event.type)).toEqual([
       "changed"
     ]);
   });
 
-  it("la cabeza de la cadena cambia con cada versión y encadena la anterior", () => {
-    const chains = buildChains([
-      step("1", [symbol("cargar", "h1")]),
-      step("2", [symbol("cargar", "h2")])
-    ]);
+  it("la cabeza de la cadena cambia con cada versión", () => {
+    const chains = symbols(
+      buildChains([
+        step("1", [symbol("cargar", "h1")]),
+        step("2", [symbol("cargar", "h2")])
+      ])
+    );
 
     const versions = chains[0]?.versions ?? [];
     expect(versions[0]?.head).not.toBe(versions[1]?.head);
     expect(versions[1]?.head).toMatch(/^[0-9a-f]{64}$/);
+  });
+});
+
+describe("el anidamiento de las cadenas", () => {
+  it("cada nivel tiene su cadena: símbolo, fichero, carpeta y proyecto", () => {
+    const chains = buildChains([
+      step("1", [symbol("cargar", "h1")], "src/a.ts"),
+      step("2", [symbol("cargar", "h1")], "src/a.ts")
+    ]);
+
+    const niveles = chains.map((chain) => chain.level);
+    expect(niveles).toContain("symbol");
+    expect(niveles).toContain("file");
+    expect(niveles).toContain("folder");
+    expect(niveles).toContain("project");
+  });
+
+  it("el cuerpo de la carpeta se compromete con el de sus ficheros", () => {
+    const antes = buildChains([step("1", [symbol("cargar", "h1")], "src/a.ts")]);
+    const despues = buildChains([
+      step("1", [symbol("cargar", "h1")], "src/a.ts"),
+      step("2", [symbol("cargar", "h2")], "src/a.ts")
+    ]);
+
+    const carpetaAntes = antes.find((chain) => chain.level === "folder");
+    const carpetaDespues = despues.find(
+      (chain) => chain.level === "folder" && chain.versions.length === 2
+    );
+
+    expect(carpetaAntes?.versions[0]?.bodyHash).not.toBe(
+      carpetaDespues?.versions[1]?.bodyHash
+    );
+  });
+
+  it("el proyecto se compromete con todo: su cabeza cambia si cambia una hoja", () => {
+    const antes = buildChains([step("1", [symbol("cargar", "h1")], "src/a.ts")]);
+    const despues = buildChains([
+      step("1", [symbol("cargar", "h1")], "src/a.ts"),
+      step("2", [symbol("cargar", "h2")], "src/a.ts")
+    ]);
+
+    const proyectoAntes = antes.find((chain) => chain.level === "project");
+    const proyectoDespues = despues.find(
+      (chain) => chain.level === "project" && chain.versions.length === 2
+    );
+
+    expect(proyectoAntes?.versions[0]?.bodyHash).not.toBe(
+      proyectoDespues?.versions[1]?.bodyHash
+    );
+  });
+
+  it("el fichero cambia cuando cambia un símbolo suyo", () => {
+    const chains = buildChains([
+      step("1", [symbol("cargar", "h1")], "src/a.ts"),
+      step("2", [symbol("cargar", "h2")], "src/a.ts")
+    ]);
+
+    const fichero = chains.find(
+      (chain) => chain.level === "file" && chain.versions.length === 2
+    );
+    expect(fichero?.versions[1]?.events.map((event) => event.type)).toEqual([
+      "changed"
+    ]);
+  });
+});
+
+describe("la comprobación", () => {
+  it("un snapshot que encaja con su cadena pasa la comprobación", () => {
+    const steps = [step("1", [symbol("cargar", "h1")])];
+    const chains = buildChains(steps);
+
+    const result = verifyChains(chains, steps[0]?.snapshot as CcJson);
+
+    expect(result.ok).toBe(true);
+    expect(result.mismatches).toHaveLength(0);
+    expect(result.checked).toBe(1);
+    expect(result.entry).toBe("1");
+  });
+
+  it("un snapshot con un hash que no es el de la cadena no pasa", () => {
+    const steps = [step("1", [symbol("cargar", "h1")])];
+    const chains = buildChains(steps);
+
+    const otro = snapshot([symbol("cargar", "otro-hash")]);
+    const result = verifyChains(chains, otro);
+
+    expect(result.ok).toBe(false);
+    expect(result.mismatches[0]?.name).toBe("cargar");
   });
 });

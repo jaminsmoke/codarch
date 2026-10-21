@@ -1,18 +1,27 @@
 import { sha256Hex } from "./hash";
-import { walkFiles } from "./tree";
-import type { CcJson, CcSymbol } from "./types";
+import { walkTree } from "./tree";
+import type { CcJson, CcNode, CcSymbol } from "./types";
 
 /**
  * La vida de un símbolo: su cadena a lo largo del historial.
  *
  * Un símbolo no es su nombre: es su cuerpo. Por eso el hash del cuerpo es
- * su identidad ✓, y por eso la cadena sobrevive a los renombrados y a las
- * mudanzas ✓ (ADR 0026 ✓).
+ * su identidad, y por eso la cadena sobrevive a los renombrados y a las
+ * mudanzas (ADR 0026).
  *
  * Lo que **no** hace: inventarse Continuity. Si dos versiones no se parecen
- * en nada, la función se cuenta como eliminada y otra como añadida ✓. Una
- * cadena equivocada es peor que ninguna cadena ✓.
+ * en nada, la función se cuenta como eliminada y otra como añadida. Una
+ * cadena equivocada es peor que ninguna cadena.
  */
+
+/**
+ * El nivel de la cadena.
+ *
+ * Los niveles se **anidan**: el cuerpo de un padre se compromete con los
+ * cuerpos de sus hijos (un árbol de Merkle). Así, la cabeza del proyecto no se
+ * puede mover sin que se muevan las de abajo.
+ */
+export type ChainLevel = "symbol" | "file" | "folder" | "project";
 
 /** Un cambio en la vida del símbolo. */
 export interface SymbolEvent {
@@ -39,7 +48,7 @@ export interface ChainVersion {
   commit: string;
   name: string;
   path: string;
-  kind: CcSymbol["kind"];
+  kind: ChainLevel;
   /** El hash del cuerpo en esta versión. */
   bodyHash: string;
   /** La cabeza de la cadena después de esta versión. */
@@ -49,11 +58,13 @@ export interface ChainVersion {
   lines: number | null;
 }
 
-/** La cadena completa de un símbolo. */
+/** La cadena completa de un nodo del repo. */
 export interface SymbolChain {
-  /** El id que se acuñó cuando el símbolo nació. */
+  /** El id que se acuñó cuando nació. */
   id: string;
-  kind: CcSymbol["kind"];
+  /** El nivel: símbolo, fichero, carpeta o proyecto. */
+  level: ChainLevel;
+  kind: CcSymbol["kind"] | "file" | "folder" | "project";
   /** El nombre actual. */
   name: string;
   /** La ruta actual. */
@@ -70,11 +81,11 @@ export interface ChainStep {
   snapshot: CcJson;
 }
 
-/** Un símbolo vivo en una foto, con la cadena a la que pertenece. */
-interface LiveSymbol {
+/** Un nodo vivo en una foto, con la cadena a la que pertenece. */
+interface LiveNode {
+  level: ChainLevel;
   name: string;
   path: string;
-  kind: CcSymbol["kind"];
   bodyHash: string;
   complexity: number | null;
   lines: number | null;
@@ -83,21 +94,21 @@ interface LiveSymbol {
 }
 
 /**
- * Encadena las fotos del historial y devuelve la vida de cada símbolo.
+ * Encadena las fotos del historial y devuelve la vida de cada nodo.
  *
  * Las fotos van **en orden**: la cadena se construye comparando cada una con
- * la anterior ✓.
+ * la anterior.
  */
 export function buildChains(steps: readonly ChainStep[]): SymbolChain[] {
   const chains = new Map<string, SymbolChain>();
-  let previous: LiveSymbol[] = [];
+  let previous: LiveNode[] = [];
 
   for (const step of steps) {
-    const current = liveSymbols(step.snapshot);
+    const current = liveNodes(step.snapshot);
 
-    // Los símbolos de antes que no se emparejaron con ninguno de ahora se
-    // han ido: su cadena se cierra con el evento `removed` ✓.
-    const matched = matchSymbols(previous, current);
+    // Los nodos de antes que no se emparejaron con ninguno de ahora se han
+    // ido: su cadena se cierra con el evento `removed`.
+    const matched = matchNodes(previous, current);
     const used = new Set(matched.pairs.map((pair) => pair.previous));
 
     for (const pair of matched.pairs) {
@@ -105,7 +116,7 @@ export function buildChains(steps: readonly ChainStep[]): SymbolChain[] {
       const after = pair.current;
       const chain = chains.get(before.chainId);
       if (!chain) continue;
-      // El símbolo de ahora es el mismo: hereda la cadena ✓.
+      // El nodo de ahora es el mismo: hereda la cadena.
       after.chainId = before.chainId;
 
       const events: SymbolEvent[] = [];
@@ -125,48 +136,59 @@ export function buildChains(steps: readonly ChainStep[]): SymbolChain[] {
         events.push({ type: "unchanged" });
       }
 
-      chain.versions.push(
-        version(step, after, events, chainHead(chain))
-      );
+      chain.versions.push(version(step, after, events, chainHead(chain)));
       chain.name = after.name;
       chain.path = after.path;
     }
 
-    for (const symbol of current) {
-      if (matched.pairs.some((pair) => pair.current === symbol)) continue;
-      // Un símbolo nuevo: nace una cadena ✓.
+    for (const node of current) {
+      if (matched.pairs.some((pair) => pair.current === node)) continue;
+      // Un nodo nuevo: nace una cadena.
       const id = sha256Hex(
-        `chain:${symbol.bodyHash}|${symbol.name}|${symbol.path}|${step.entry}`
+        `chain:${node.level}:${node.bodyHash}|${node.name}|${node.path}|${step.entry}`
       );
-      symbol.chainId = id;
+      node.chainId = id;
       const chain: SymbolChain = {
         id,
-        kind: symbol.kind,
-        name: symbol.name,
-        path: symbol.path,
+        level: node.level,
+        kind: node.level === "symbol" ? "function" : node.level,
+        name: node.name,
+        path: node.path,
         versions: []
       };
-      chain.versions.push(
-        version(step, symbol, [{ type: "created" }], null)
-      );
+      chain.versions.push(version(step, node, [{ type: "created" }], null));
       chains.set(id, chain);
     }
 
-    for (const symbol of previous) {
-      if (used.has(symbol)) continue;
-      const chain = chains.get(symbol.chainId);
+    for (const node of previous) {
+      if (used.has(node)) continue;
+      const chain = chains.get(node.chainId);
       if (!chain) continue;
-      chain.versions.push(
-        version(step, symbol, [{ type: "removed" }], chainHead(chain))
-      );
+      chain.versions.push(version(step, node, [{ type: "removed" }], chainHead(chain)));
     }
 
     previous = current;
   }
 
-  return [...chains.values()].sort((left, right) =>
-    left.name.localeCompare(right.name) || left.path.localeCompare(right.path)
+  return [...chains.values()].sort(
+    (left, right) =>
+      levelOrder(left.level) - levelOrder(right.level) ||
+      left.name.localeCompare(right.name) ||
+      left.path.localeCompare(right.path)
   );
+}
+
+function levelOrder(level: ChainLevel): number {
+  switch (level) {
+    case "symbol":
+      return 0;
+    case "file":
+      return 1;
+    case "folder":
+      return 2;
+    default:
+      return 3;
+  }
 }
 
 /** La cabeza de la cadena: el hash de su última versión. */
@@ -176,26 +198,259 @@ function chainHead(chain: SymbolChain): string {
 
 function version(
   step: ChainStep,
-  symbol: LiveSymbol,
+  node: LiveNode,
   events: SymbolEvent[],
   previousHead: string | null
 ): ChainVersion {
   const head = sha256Hex(
-    `${previousHead ?? ""}|${symbol.bodyHash}|${symbol.name}|${symbol.path}`
+    `${previousHead ?? ""}|${node.bodyHash}|${node.name}|${node.path}`
   );
   return {
     entry: step.entry,
     date: step.date,
     commit: step.commit,
-    name: symbol.name,
-    path: symbol.path,
-    kind: symbol.kind,
-    bodyHash: symbol.bodyHash,
+    name: node.name,
+    path: node.path,
+    kind: node.level,
+    bodyHash: node.bodyHash,
     head,
     events,
-    complexity: symbol.complexity,
-    lines: symbol.lines
+    complexity: node.complexity,
+    lines: node.lines
   };
+}
+
+/**
+ * Los nodos de una foto, en los cuatro niveles.
+ *
+ * El cuerpo de cada padre se compone con los de sus hijos ✓: así el hash de
+ * una carpeta depende de lo que hay dentro ✓, y el del proyecto de todo ✓.
+ */
+function liveNodes(snapshot: CcJson): LiveNode[] {
+  const nodes: LiveNode[] = [];
+  const lens = snapshot.lenses?.symbols;
+
+  // Las rutas, sin el nombre de la raíz: como en el diff.
+  const paths = new Map<string, string>();
+  for (const root of snapshot.files) {
+    const prefix = `${root.name}/`;
+    walkTree([root], (entry) => {
+      paths.set(
+        entry.node.id,
+        entry.path.startsWith(prefix) ? entry.path.slice(prefix.length) : entry.path
+      );
+    });
+  }
+
+  // 1. Los símbolos: su cuerpo son sus tokens.
+  const symbolsByFile = new Map<string, CcSymbol[]>();
+  for (const [id, list] of Object.entries(lens?.nodes ?? {})) {
+    symbolsByFile.set(id, list);
+    for (const symbol of list) {
+      nodes.push({
+        level: "symbol",
+        name: symbol.name,
+        path: paths.get(id) ?? id,
+        bodyHash: symbol.hash ?? "",
+        complexity: symbol.complexity ?? null,
+        lines: symbol.lines ?? null,
+        line: symbol.line,
+        chainId: ""
+      });
+    }
+  }
+
+  // 2. Los ficheros: su cuerpo son sus símbolos y sus métricas.
+  const attributes = snapshot.lenses?.metrics?.attributes ?? {};
+  const fileBodies = new Map<string, string>();
+  for (const root of snapshot.files) {
+    walkTree([root], (entry) => {
+      if (entry.node.type !== "File") return;
+      const id = entry.node.id;
+      const symbols = symbolsByFile.get(id) ?? [];
+      const metrics = attributes[id] ?? {};
+      const parts = [
+        ...symbols.map((symbol) => symbol.hash ?? ""),
+        ...Object.keys(metrics)
+          .sort()
+          .map((key) => `${key}=${metrics[key]}`)
+      ];
+      const bodyHash = sha256Hex(parts.join("|"));
+      fileBodies.set(id, bodyHash);
+      nodes.push({
+        level: "file",
+        name: entry.node.name,
+        path: paths.get(id) ?? entry.node.name,
+        bodyHash,
+        complexity: metrics.maxComplexity ?? null,
+        lines: metrics.rloc ?? null,
+        line: 0,
+        chainId: ""
+      });
+    });
+  }
+
+  // 3. Las carpetas: su cuerpo son las cabezas de sus hijos.
+  const folderBodies = new Map<string, string>();
+  const visit = (node: CcNode, path: string): string => {
+    if (node.type === "File") {
+      return fileBodies.get(node.id) ?? "";
+    }
+    const childBodies: string[] = [];
+    for (const child of node.children ?? []) {
+      childBodies.push(visit(child, path ? `${path}/${child.name}` : child.name));
+    }
+    const bodyHash = sha256Hex(childBodies.join("|"));
+    if (path) {
+      folderBodies.set(path, bodyHash);
+      nodes.push({
+        level: "folder",
+        name: node.name,
+        path,
+        bodyHash,
+        complexity: null,
+        lines: null,
+        line: 0,
+        chainId: ""
+      });
+    }
+    return bodyHash;
+  };
+
+  for (const root of snapshot.files) {
+    const bodyHash = visit(root, "");
+    nodes.push({
+      level: "project",
+      name: root.name,
+      path: "",
+      bodyHash,
+      complexity: null,
+      lines: null,
+      line: 0,
+      chainId: ""
+    });
+  }
+
+  return nodes;
+}
+
+/**
+ * Empareja los nodos de antes con los de ahora.
+ *
+ * Las reglas van en orden: la primera que aplica gana.
+ */
+function matchNodes(
+  previous: readonly LiveNode[],
+  current: readonly LiveNode[]
+): { pairs: Array<{ previous: LiveNode; current: LiveNode }> } {
+  const pairs: Array<{ previous: LiveNode; current: LiveNode }> = [];
+  const taken = new Set<LiveNode>();
+
+  const take = (before: LiveNode | undefined, after: LiveNode): void => {
+    if (!before || taken.has(before)) return;
+    taken.add(before);
+    pairs.push({ previous: before, current: after });
+  };
+
+  const sameLevel = (level: ChainLevel) => (node: LiveNode) =>
+    node.level === level;
+
+  for (const level of ["symbol", "file", "folder", "project"] as ChainLevel[]) {
+    // 1. El mismo sitio y el mismo nombre.
+    for (const after of current.filter(sameLevel(level))) {
+      take(
+        previous.find(
+          (before) =>
+            !taken.has(before) &&
+            before.level === level &&
+            before.path === after.path &&
+            before.name === after.name
+        ),
+        after
+      );
+    }
+
+    // 2. El mismo sitio, otro nombre, el mismo cuerpo: un renombrado.
+    for (const after of current.filter(sameLevel(level))) {
+      if (pairs.some((pair) => pair.current === after)) continue;
+      take(
+        closest(
+          previous.filter(
+            (before) =>
+              !taken.has(before) &&
+              before.level === level &&
+              before.path === after.path &&
+              before.bodyHash === after.bodyHash &&
+              before.bodyHash !== ""
+          ),
+          after
+        ),
+        after
+      );
+    }
+
+    // 3. Otro sitio, el mismo nombre y el mismo cuerpo: una mudanza.
+    for (const after of current.filter(sameLevel(level))) {
+      if (pairs.some((pair) => pair.current === after)) continue;
+      take(
+        closest(
+          previous.filter(
+            (before) =>
+              !taken.has(before) &&
+              before.level === level &&
+              before.path !== after.path &&
+              before.name === after.name &&
+              before.bodyHash === after.bodyHash &&
+              before.bodyHash !== ""
+          ),
+          after
+        ),
+        after
+      );
+    }
+
+    // 4. Otro sitio y otro nombre, pero el mismo cuerpo.
+    for (const after of current.filter(sameLevel(level))) {
+      if (pairs.some((pair) => pair.current === after)) continue;
+      take(
+        closest(
+          previous.filter(
+            (before) =>
+              !taken.has(before) &&
+              before.level === level &&
+              before.bodyHash === after.bodyHash &&
+              before.bodyHash !== ""
+          ),
+          after
+        ),
+        after
+      );
+    }
+  }
+
+  return { pairs };
+}
+
+/** El más cercano por línea: si hay varios candidatos, el de al lado. */
+function closest(
+  candidates: readonly LiveNode[],
+  after: LiveNode
+): LiveNode | undefined {
+  let best: LiveNode | undefined;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const candidate of candidates) {
+    const distance = Math.abs(candidate.line - after.line);
+    if (distance < bestDistance) {
+      best = candidate;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+function delta(base: number | null, head: number | null): number | null {
+  if (base === null || head === null) return null;
+  return head - base;
 }
 
 /**
@@ -203,7 +458,7 @@ function version(
  *
  * A nivel de fichero no existe esta señal: un fichero con veinte funciones
  * que no se tocan y otro con una que se reescribe cada semana pesan lo mismo.
- * Aquí no ✓.
+ * Aquí no.
  */
 export interface SymbolHeat {
   id: string;
@@ -220,7 +475,7 @@ export interface SymbolHeat {
    * El ruido total: cambios y mudanzas juntos.
    *
    * Un renombrado también es curro: la función sigue siendo la misma, pero
-   * quien la usa tiene que buscarla otra vez ✓.
+   * quien la usa tiene que buscarla otra vez.
    */
   churn: number;
   complexity: number | null;
@@ -229,34 +484,36 @@ export interface SymbolHeat {
 /**
  * Los símbolos más reescritos.
  *
- * Ordena por cambios de verdad y, a empate, por mudanzas y renombrados ✓.
+ * Ordena por ruido total y, a empate, por cambios de verdad.
  */
 export function summarizeChains(
   chains: readonly SymbolChain[],
   limit = 10
 ): SymbolHeat[] {
-  const heat: SymbolHeat[] = chains.map((chain) => {
-    let changes = 0;
-    let moves = 0;
-    for (const version of chain.versions) {
-      for (const event of version.events) {
-        if (event.type === "changed") changes++;
-        else if (event.type === "renamed" || event.type === "moved") moves++;
+  const heat: SymbolHeat[] = chains
+    .filter((chain) => chain.level === "symbol")
+    .map((chain) => {
+      let changes = 0;
+      let moves = 0;
+      for (const version of chain.versions) {
+        for (const event of version.events) {
+          if (event.type === "changed") changes++;
+          else if (event.type === "renamed" || event.type === "moved") moves++;
+        }
       }
-    }
-    const last = chain.versions[chain.versions.length - 1];
-    return {
-      id: chain.id,
-      name: chain.name,
-      path: chain.path,
-      kind: chain.kind,
-      versions: chain.versions.length,
-      changes,
-      moves,
-      churn: changes + moves,
-      complexity: last?.complexity ?? null
-    };
-  });
+      const last = chain.versions[chain.versions.length - 1];
+      return {
+        id: chain.id,
+        name: chain.name,
+        path: chain.path,
+        kind: "function" as CcSymbol["kind"],
+        versions: chain.versions.length,
+        changes,
+        moves,
+        churn: changes + moves,
+        complexity: last?.complexity ?? null
+      };
+    });
 
   heat.sort(
     (left, right) =>
@@ -268,150 +525,89 @@ export function summarizeChains(
   return heat.slice(0, limit);
 }
 
-/** Los símbolos de una foto, por ruta de fichero. */
-function liveSymbols(snapshot: CcJson): LiveSymbol[] {
-  const lens = snapshot.lenses?.symbols;
-  if (!lens) return [];
-
-  const paths = new Map<string, string>();
-  for (const root of snapshot.files) {
-    const prefix = `${root.name}/`;
-    walkFiles([root], (entry) => {
-      paths.set(
-        entry.node.id,
-        entry.path.startsWith(prefix) ? entry.path.slice(prefix.length) : entry.path
-      );
-    });
-  }
-
-  const symbols: LiveSymbol[] = [];
-  for (const [id, list] of Object.entries(lens.nodes)) {
-    const path = paths.get(id) ?? id;
-    for (const symbol of list) {
-      symbols.push({
-        name: symbol.name,
-        path,
-        kind: symbol.kind,
-        bodyHash: symbol.hash ?? "",
-        complexity: symbol.complexity ?? null,
-        lines: symbol.lines ?? null,
-        line: symbol.line,
-        chainId: ""
-      });
-    }
-  }
-  return symbols;
+/** El resultado de comprobar el snapshot contra el libro mayor. */
+export interface ChainVerification {
+  /** Si todo cuadra. */
+  ok: boolean;
+  /** Los nodos del snapshot que no encajan con su cadena. */
+  mismatches: Array<{ name: string; path: string; reason: string }>;
+  /** La cabeza de la cadena del proyecto. */
+  projectHead: string;
+  /** La foto a la que corresponde el snapshot. */
+  entry: string | null;
+  /** Cuántos nodos se han comprobado. */
+  checked: number;
 }
 
 /**
- * Empareja los símbolos de antes con los de ahora.
+ * Comprueba que el snapshot encaja con el libro mayor.
  *
- * Las reglas van en orden: la primera que aplica gana ✓.
+ * Cada símbolo del snapshot tiene que ser la última versión de su cadena ✓:
+ * si el hash del cuerpo no es el de la cadena, el snapshot y la historia
+ * cuentan historias distintas ✓.
  */
-function matchSymbols(
-  previous: readonly LiveSymbol[],
-  current: readonly LiveSymbol[]
-): { pairs: Array<{ previous: LiveSymbol; current: LiveSymbol }> } {
-  const pairs: Array<{ previous: LiveSymbol; current: LiveSymbol }> = [];
-  const taken = new Set<LiveSymbol>();
+export function verifyChains(
+  chains: readonly SymbolChain[],
+  snapshot: CcJson
+): ChainVerification {
+  const mismatches: ChainVerification["mismatches"] = [];
+  const project = chains.find((chain) => chain.level === "project");
+  const projectHead = project ? chainHead(project) : "";
 
-  const take = (before: LiveSymbol | undefined, after: LiveSymbol): void => {
-    if (!before || taken.has(before)) return;
-    taken.add(before);
-    pairs.push({ previous: before, current: after });
+  const byName = new Map<string, SymbolChain>();
+  for (const chain of chains) {
+    if (chain.level !== "symbol") continue;
+    byName.set(`${chain.path}::${chain.name}`, chain);
+  }
+
+  let checked = 0;
+  let snapshotEntry: string | null = null;
+
+  for (const root of snapshot.files) {
+    const prefix = `${root.name}/`;
+    walkTree([root], (entry) => {
+      if (entry.node.type !== "File") return;
+      const path = entry.path.startsWith(prefix)
+        ? entry.path.slice(prefix.length)
+        : entry.path;
+      const symbols = snapshot.lenses?.symbols?.nodes[entry.node.id] ?? [];
+      for (const symbol of symbols) {
+        checked++;
+        const chain = byName.get(`${path}::${symbol.name}`);
+        if (!chain) {
+          mismatches.push({
+            name: symbol.name,
+            path,
+            reason: "este símbolo no tiene cadena"
+          });
+          continue;
+        }
+        const last = chain.versions[chain.versions.length - 1];
+        if (!last) {
+          mismatches.push({
+            name: symbol.name,
+            path,
+            reason: "la cadena está vacía"
+          });
+          continue;
+        }
+        snapshotEntry = last.entry;
+        if ((symbol.hash ?? "") !== last.bodyHash) {
+          mismatches.push({
+            name: symbol.name,
+            path,
+            reason: "el hash del cuerpo no es el de la cadena"
+          });
+        }
+      }
+    });
+  }
+
+  return {
+    ok: mismatches.length === 0,
+    mismatches,
+    projectHead,
+    entry: snapshotEntry,
+    checked
   };
-
-  for (const after of current) {
-    // 1. El mismo fichero y el mismo nombre ✓.
-    take(
-      previous.find(
-        (before) =>
-          !taken.has(before) &&
-          before.path === after.path &&
-          before.name === after.name
-      ),
-      after
-    );
-  }
-
-  for (const after of current) {
-    if (pairs.some((pair) => pair.current === after)) continue;
-    // 2. El mismo fichero, otro nombre, el mismo cuerpo ✓: un renombrado ✓.
-    take(
-      closest(
-        previous.filter(
-          (before) =>
-            !taken.has(before) &&
-            before.path === after.path &&
-            before.bodyHash === after.bodyHash &&
-            before.bodyHash !== ""
-        ),
-        after
-      ),
-      after
-    );
-  }
-
-  for (const after of current) {
-    if (pairs.some((pair) => pair.current === after)) continue;
-    // 3. Otro fichero, el mismo nombre y el mismo cuerpo ✓: una mudanza ✓.
-    take(
-      closest(
-        previous.filter(
-          (before) =>
-            !taken.has(before) &&
-            before.path !== after.path &&
-            before.name === after.name &&
-            before.bodyHash === after.bodyHash &&
-            before.bodyHash !== ""
-        ),
-        after
-      ),
-      after
-    );
-  }
-
-  for (const after of current) {
-    if (pairs.some((pair) => pair.current === after)) continue;
-    // 4. Otro fichero y otro nombre, pero el mismo cuerpo ✓.
-    take(
-      closest(
-        previous.filter(
-          (before) =>
-            !taken.has(before) &&
-            before.bodyHash === after.bodyHash &&
-            before.bodyHash !== ""
-        ),
-        after
-      ),
-      after
-    );
-  }
-
-  return { pairs };
-}
-
-/** El más cercano por línea: si hay varios candidatos, el de al lado ✓. */
-function closest(
-  candidates: readonly LiveSymbol[],
-  after: LiveSymbol
-): LiveSymbol | undefined {
-  let best: LiveSymbol | undefined;
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (const candidate of candidates) {
-    const distance = Math.abs(candidate.line - after.line);
-    if (distance < bestDistance) {
-      best = candidate;
-      bestDistance = distance;
-    }
-  }
-  return best;
-}
-
-function delta(
-  base: number | null,
-  head: number | null
-): number | null {
-  if (base === null || head === null) return null;
-  return head - base;
 }

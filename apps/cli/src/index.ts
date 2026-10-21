@@ -7,6 +7,7 @@ import { runServe, type ServeOptions } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
 import { runHistory, type HistoryCommandOptions } from "./commands/history";
 import { runChain, type ChainCommandOptions } from "./commands/chain";
+import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
 
 declare const __CODARCH_VERSION__: string | undefined;
@@ -27,6 +28,7 @@ Uso:
   codarch suggest <fichero.cc.json[.gz]> [--json]
   codarch history [ruta] [--json]
   codarch chain   [símbolo] [opciones]
+  codarch verify  [--root <ruta>] [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -74,6 +76,11 @@ Opciones de profiles:
   -h, --help        esta ayuda
 
 Opciones de suggest:
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de verify:
+  --root <ruta>    el repositorio (por defecto, el actual)
   --json            salida machine-readable
   -h, --help        esta ayuda
 
@@ -169,6 +176,34 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
   }
 
   options.root = positional[0] ?? ".";
+  return options;
+}
+
+function parseVerify(args: string[]): VerifyCommandOptions | number {
+  const options: VerifyCommandOptions = { json: false, help: false };
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--root") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--root necesita una ruta");
+        return 1;
+      }
+      options.root = value;
+    } else if (arg.startsWith("--root=")) {
+      options.root = arg.slice("--root=".length);
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    }
+  }
+
   return options;
 }
 
@@ -636,6 +671,12 @@ function main(argv: string[]): number {
     const parsed = parseChain(rest);
     if (typeof parsed === "number") return parsed;
     return runChain(parsed);
+  }
+
+  if (command === "verify") {
+    const parsed = parseVerify(rest);
+    if (typeof parsed === "number") return parsed;
+    return runVerify(parsed);
   }
 
   if (command === "suggest") {

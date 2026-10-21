@@ -81,7 +81,7 @@ function printChain(chain: SymbolChain): void {
     version.events.map((event) => eventLabel(event.type)).join("+")
   );
 
-  console.log(`  ${chain.name}  (${chain.kind})`);
+  console.log(`  ${chain.name}  (${LEVEL_LABEL[chain.level] ?? chain.level})`);
   console.log(`    ${chain.path}`);
   console.log(`    id ${chain.id.slice(0, 12)} · ${chain.versions.length} versiones`);
   console.log("");
@@ -110,6 +110,14 @@ function printChain(chain: SymbolChain): void {
 
   console.log("");
 }
+
+/** Cómo se lee cada nivel de la cadena. */
+const LEVEL_LABEL: Record<string, string> = {
+  symbol: "símbolo",
+  file: "fichero",
+  folder: "carpeta",
+  project: "proyecto"
+};
 
 function eventLabel(type: string): string {
   switch (type) {

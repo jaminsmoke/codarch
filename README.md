@@ -397,6 +397,22 @@ codarch chain buscar
 El libro mayor (`.codarch/chains.json`) es un artefacto derivado: se regenera siempre desde las
 fotos del historial. ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### Comprobar el historial
+
+Las cadenas se anidan: la del fichero se compromete con las de sus símbolos, la de la carpeta con las
+de sus hijos, y la del proyecto con todo el repo. Eso permite una comprobación global:
+
+```bash
+codarch verify
+```
+
+    CodArch · comprobación del historial
+
+    ✅ Todo encaja: 1 símbolos cuadran con sus cadenas.
+       Cabeza del proyecto: 7189039b399b13cf
+
+Si alguien manipula un snapshot, el hash del cuerpo ya no es el de la cadena y se nota ✓.
+
 ### El calor por símbolo
 
 Un fichero con veinte funciones quietas y otro con una que se reescribe cada semana pesan igual en el
