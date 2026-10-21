@@ -163,7 +163,9 @@ ninguna depende de la otra. Ver el ADR para el porqué y para lo que se copia.
 - [x] Empaquetado de escritorio con el mismo build web.
 - [x] Analizador local integrado (el CLI en proceso, sin servidor).
 - [x] Diálogo de carpeta nativo y apertura de fichero.
-- [ ] Menú nativo, atajos de sistema y "abrir con" desde el explorador de archivos.
+- [x] Menú nativo, atajos de sistema (`Cmd/Ctrl+O`, `Cmd/Ctrl+Shift+O`) y "abrir con" desde el
+  explorador de archivos: una carpeta se analiza, un `cc.json` se abre como snapshot y un
+  `report.json` como reporte.
 - [ ] Instalador firmado y publicación por plataforma.
 
 ## Después

@@ -366,6 +366,37 @@ export default function App() {
     [selectIndex, view.model]
   );
 
+  /**
+   * Lo que llega del menú nativo o de "abrir con" con el sistema.
+   *
+   * El proceso principal ya hizo el trabajo (analizar o leer): aquí solo se
+   * pinta el resultado.
+   */
+  useEffect(() => {
+    const api = (window as unknown as { codarch?: CodarchDesktop }).codarch;
+    if (!api?.onTarget) return;
+    return api.onTarget((target) => {
+      if (target.kind === "snapshot") {
+        if (loadSnapshot(target.snapshot, target.label)) {
+          clearProject();
+          writeProject({
+            snapshot: target.snapshot,
+            report: null,
+            label: target.label,
+            reportLabel: null
+          });
+          resetReport();
+        }
+        return;
+      }
+      if (target.report === null) {
+        setError(`No se pudo abrir ${target.label}`);
+        return;
+      }
+      loadReport(target.report, target.label);
+    });
+  }, [loadReport, loadSnapshot, resetReport]);
+
   /** Analiza una carpeta elegida con el diálogo del sistema. */
   const analyzeFolder = useCallback(async () => {
     const root = await desktop().pickFolder();

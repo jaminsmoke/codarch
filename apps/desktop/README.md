@@ -12,7 +12,9 @@ son la verdad del producto y llegan igual a la web y al escritorio.
 - **Analiza contra el disco de verdad**, con git: el snapshot lleva churn y no hay límites de
   memoria ni de permisos del navegador.
 - **Diálogos nativos** para elegir carpeta o fichero.
-- **Atajos y menús del sistema**, y la posibilidad de integrarse con el explorador de archivos.
+- **Menú nativo y atajos**: `Cmd/Ctrl+O` analiza una carpeta, `Cmd/Ctrl+Shift+O` abre un JSON.
+- **"Abrir con"**: al abrir una carpeta, un `cc.json` o un `report.json` desde el explorador de
+  archivos, la app lo analiza y lo muestra.
 
 ## Uso
 
@@ -44,6 +46,7 @@ src/
 ## Límites
 
 - Todavía no hay instalador firmado ni empaquetado para publicar: se ejecuta con `electron .`.
-- No hay menú nativo ni atajos de sistema todavía.
+- El menú es el de Electron con las acciones de CodArch añadidas: no hay todavía archivos recientes
+  ni menú en el Dock de macOS.
 - El proyecto abierto se recuerda en `localStorage` (como en la web), no en un fichero de
   configuración.
