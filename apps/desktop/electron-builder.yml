@@ -1,0 +1,67 @@
+# Empaquetado de la app de escritorio.
+#
+# Sin firma: los instaladores se generan sin firmar, que en Windows y macOS
+# avisan al usuario. Firmar cuesta dinero (certificado de firma de código y
+# Apple Developer ID), así que queda para cuando el producto lo justifique.
+
+appId: dev.codarch.desktop
+productName: CodArch
+copyright: CodArch
+
+directories:
+  output: release
+  buildResources: build
+
+# Solo se empaqueta lo construido: el proceso principal y el renderer.
+files:
+  - dist/**/*
+  - package.json
+
+asar: true
+
+# El análisis usa el binding nativo de tree-sitter: no se puede empaquetar
+# comoasar sin desempaquetarlo en tiempo de ejecución.
+asarUnpack:
+  - "**/node_modules/tree-sitter/**"
+  - "**/node_modules/tree-sitter-typescript/**"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  artifactName: "codarch-${version}-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: CodArch
+  artifactName: "codarch-${version}-setup.${ext}"
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  category: public.app-category.developer-tools
+  artifactName: "codarch-${version}-${arch}.${ext}"
+
+dmg:
+  title: "CodArch ${version}"
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  category: Development
+  maintainer: jaminsmoke <jaminsmoke@gmail.com>
+  artifactName: "codarch-${version}-${arch}.${ext}"
+
+publish:
+  provider: github
+  releaseType: release

@@ -11,6 +11,8 @@
     "build": "npm run build:main && npm run build:renderer",
     "dev": "npm run build:main && vite",
     "start": "npm run build && electron .",
+    "package": "npm run build && electron-builder",
+    "package:dir": "npm run build && electron-builder --dir",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,7 +25,8 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "electron": "^45.0.0",
+    "electron": "45.0.0",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.28.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
