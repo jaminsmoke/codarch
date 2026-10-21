@@ -16,6 +16,7 @@ export function runProfiles(json: boolean): number {
             id: profile.id,
             title: profile.title,
             description: profile.description,
+            when: profile.when,
             layers: profile.layers.map((layer) => ({
               name: layer.name,
               patterns: layer.patterns
@@ -42,6 +43,7 @@ export function runProfiles(json: boolean): number {
   for (const profile of DOMAIN_PROFILES) {
     console.log(`  ${profile.id} · ${profile.title}`);
     console.log(`    ${profile.description}`);
+    console.log(`    para: ${profile.when}`);
     console.log(
       `    capas: ${profile.layers.map((layer) => layer.name).join(", ")}`
     );

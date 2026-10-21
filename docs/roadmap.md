@@ -212,8 +212,8 @@ reglas del perfil para que bloqueen se decide en su momento, mirando cómo esté
 
 Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
 
-- [x] **M9.1** Catálogo de perfiles declarativos (`capas`, `hexagonal`): `.codarch.yml` acepta
-  `profile: <id>` y las reglas del perfil se añaden a las del equipo.
+- [x] **M9.1** Catálogo de perfiles declarativos (`capas`, `hexagonal`, `onion`, `ddd`): `.codarch.yml`
+  acepta `profile: <id>` y las reglas del perfil se añaden a las del equipo.
 - [x] Las reglas del perfil entran **como aviso** (`warn`): consultan, no bloquean. El equipo las
   sube a `error` escribiéndolas otra vez, cuando el código esté listo.
 - [x] El reporte dice qué perfil se aplicó (`rules.profile`) y de dónde sale cada regla

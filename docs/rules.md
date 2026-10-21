@@ -47,7 +47,20 @@ codarch profiles
 codarch profiles --json
 ```
 
-Para usarlo, en `.codarch.yml`:
+El catálogo de hoy:
+
+| Perfil | Para repos con | Capas |
+|---|---|---|
+| `capas` | `src/domain`, `src/application`, `src/infra` | domain, application, infrastructure |
+| `hexagonal` | puertos en el centro y adaptadores fuera | domain, application, adapters |
+| `onion` | capa de presentación propia | domain, application, infrastructure, presentation |
+| `ddd` | modelo, servicios y repositorios | domain, application, infrastructure |
+
+Los repos que se organizan **por módulo o por feature** no encajan en ningún perfil estático: sus
+capas las decide el repositorio, y por eso las propone el generador
+([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
+
+Para usar un perfil, en `.codarch.yml`:
 
 ```yaml
 version: 1

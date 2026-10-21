@@ -167,6 +167,24 @@ rules:
 La referencia completa está en [`docs/rules.md`](docs/rules.md) y la decisión en
 [ADR 0011](docs/adr/0011-reglas-de-arquitectura.md). `--no-config` desactiva las reglas.
 
+#### Perfiles de arquitectura
+
+En vez de escribir las capas y las reglas a mano, se puede elegir un **perfil** del catálogo:
+
+```yaml
+version: 1
+profile: capas        # capas | hexagonal | onion | ddd
+```
+
+```bash
+codarch profiles      # lista el catálogo con sus capas y sus reglas
+```
+
+Las reglas del perfil entran **como aviso**: consultan, no bloquean. Para endurecer una, se escribe
+en el archivo del equipo con el mismo nombre y `severity: error`; el reporte dice de dónde sale cada
+regla (`source: "config"` o `source: "profile"`). Decisión en
+[ADR 0023](docs/adr/0023-lente-de-dominio-por-pasos.md).
+
 ### GitHub Action
 
 La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, `map.html` y
