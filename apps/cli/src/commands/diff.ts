@@ -1,6 +1,8 @@
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { ConfigError, loadRuleConfig, type RuleConfig } from "@codarch/metrics";
+import { ruleConfigAddon } from "@codarch/addons";
+import { loadAddons } from "@codarch/addons/node";
 import { CcJsonError, parseCcJson, type CcJson } from "@codarch/schema";
 import { readJsonFile } from "../io";
 import { compareSnapshots } from "./compare";
@@ -43,7 +45,15 @@ export function runDiff(options: DiffCommandOptions): number {
   try {
     if (!options.noConfig) {
       configPath = options.config ?? defaultConfigPath();
-      if (configPath) rules = loadRuleConfig(configPath);
+      if (configPath) {
+        // Los addons viven al lado de la configuración (ADR 0029): el archivo
+        // dice cuáles, y aquí se cargan para que sus reglas entren.
+        const loaded = loadAddons(path.dirname(path.resolve(configPath)));
+        for (const error of loaded.errors) {
+          console.error(`aviso: ${error.message}`);
+        }
+        rules = loadRuleConfig(configPath, loaded.addons.map(ruleConfigAddon));
+      }
     }
   } catch (error) {
     if (error instanceof ConfigError) {

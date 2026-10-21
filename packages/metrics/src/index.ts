@@ -1,14 +1,20 @@
 export {
+  ADDON_NAME,
   ConfigError,
   loadRuleConfig,
-  parseRuleConfig
+  parseLayerList,
+  parseProfileEntry,
+  parseRuleConfig,
+  parseRuleList
 } from "./config";
 export type {
   CyclesRuleConfig,
   ForbiddenRuleConfig,
   LayerConfig,
   RuleConfig,
+  RuleConfigAddon,
   RuleConfigEntry,
+  RuleSource,
   Severity,
   ThresholdRuleConfig
 } from "./config";

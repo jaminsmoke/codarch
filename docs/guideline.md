@@ -190,7 +190,7 @@ sus reglas ✓ y una vista inicial razonable ✓ puestas desde el primer día �
 compañeros ✓ y su CI ✓. Hoy eso es un README con un bloque para copiar ✗.
 
 **Decisión** ✓: [ADR 0029](adr/0029-los-addons.md) ✓. Un addon **no** aporta código ✓ (eso es un
-plugin ✓, ADR 0028 ✓) ni lentes ✓ (eso cambia el checksum ✗). Vive en `.codarch/addons/` ✓ y el repo
+plugin ✓, ADR 0028 ✓) ni lentes ✓ (eso cambia el checksum ✗). Vive en `addons/<nombre>/` ✓ y el repo
 lo declara en `.codarch.yml` ✓.
 
 **La frontera, en una línea** ✓: el **plugin** aporta **código** ✓; el **addon** aporta **conocimiento**

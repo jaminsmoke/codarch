@@ -258,4 +258,83 @@ describe("runDiff", () => {
     };
     expect(disabled.rules.configured).toBe(false);
   });
+
+  it("las reglas de un addon del repo entran en el análisis y dicen de dónde vienen", () => {
+    const root = tempDir();
+    const basePath = path.join(root, "base.cc.json");
+    const headPath = path.join(root, "head.cc.json");
+    const outPath = path.join(root, "report.json");
+    const configPath = path.join(root, ".codarch.yml");
+
+    const files = [
+      { path: "src/domain/a.ts", metrics: { rloc: 1 } },
+      { path: "src/infra/b.ts", metrics: { rloc: 1 } }
+    ];
+    fs.writeFileSync(basePath, JSON.stringify(snapshot("proj", files, [])), "utf8");
+    fs.writeFileSync(
+      headPath,
+      JSON.stringify(
+        snapshot("proj", files, [{ from: "src/domain/a.ts", to: "src/infra/b.ts" }])
+      ),
+      "utf8"
+    );
+
+    fs.writeFileSync(configPath, "version: 1\n\naddons:\n  - demo\n", "utf8");
+    fs.mkdirSync(path.join(root, "addons", "demo"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, "addons", "demo", "addon.json"),
+      JSON.stringify({
+        name: "demo",
+        version: "0.1.0",
+        title: "Demo",
+        contributes: { profiles: ["profile.yml"] }
+      }),
+      "utf8"
+    );
+    fs.writeFileSync(
+      path.join(root, "addons", "demo", "profile.yml"),
+      [
+        "id: demo",
+        "title: Las capas de demo",
+        "layers:",
+        "  - name: domain",
+        "    patterns: [src/domain/**]",
+        "  - name: infra",
+        "    patterns: [src/infra/**]",
+        "rules:",
+        "  - type: forbidden",
+        "    name: domain-no-infra",
+        "    from: domain",
+        "    to: infra",
+        "    severity: warn"
+      ].join("\n"),
+      "utf8"
+    );
+
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    expect(
+      runDiff({
+        base: basePath,
+        head: headPath,
+        out: outPath,
+        top: 5,
+        failOn: "violations",
+        config: configPath,
+        help: false
+      })
+    ).toBe(0);
+
+    const report = JSON.parse(fs.readFileSync(outPath, "utf8")) as {
+      rules: {
+        summary: { rules: number; introducedWarnings: number };
+        violations: { introduced: Array<{ rule: string; source: string }> };
+      };
+    };
+    expect(report.rules.summary.rules).toBe(1);
+    expect(report.rules.summary.introducedWarnings).toBe(1);
+    expect(report.rules.violations.introduced[0]?.rule).toBe("domain-no-infra");
+    expect(report.rules.violations.introduced[0]?.source).toBe("addon:demo");
+  });
 });

@@ -9,6 +9,7 @@ import { runHistory, type HistoryCommandOptions } from "./commands/history";
 import { runChain, type ChainCommandOptions } from "./commands/chain";
 import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
+import { runAddons, type AddonsOptions } from "./commands/addons";
 
 import { VERSION } from "./version";
 
@@ -26,6 +27,7 @@ Uso:
   codarch history [ruta] [--json]
   codarch chain   [símbolo] [opciones]
   codarch verify  [--root <ruta>] [--json]
+  codarch addons  [list|add|remove] [ruta|nombre] [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -84,6 +86,14 @@ Opciones de verify:
 Opciones de chain:
   --json            salida machine-readable
   --rebuild         rehace el libro mayor aunque esté en caché
+  -h, --help        esta ayuda
+
+Opciones de addons:
+  list              los addons de addons/ y cuáles declara el repo
+  add <ruta>        copia un addon a addons/ y lo declara en .codarch.yml
+  remove <nombre>   lo quita del repo y de la declaración
+  --root <ruta>     el repositorio (por defecto, el actual)
+  --json            salida machine-readable
   -h, --help        esta ayuda
 
 Opciones de history:
@@ -323,6 +333,49 @@ function parseSuggest(args: string[]): SuggestOptions | number {
   }
 
   options.file = positional[0];
+  return options;
+}
+
+function parseAddons(args: string[]): AddonsOptions | number {
+  const options: AddonsOptions = { action: "list", root: ".", json: false };
+  const positional: string[] = [];
+  let action: AddonsOptions["action"] | null = null;
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--root") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--root necesita una ruta");
+        return 1;
+      }
+      options.root = value;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else if (action === null) {
+      if (arg !== "list" && arg !== "add" && arg !== "remove") {
+        console.error(`acción desconocida: ${arg} (list, add o remove)`);
+        return 1;
+      }
+      action = arg;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  options.action = action ?? "list";
+  if (positional.length > 1) {
+    console.error(`sobra un argumento: ${positional[1]}`);
+    return 1;
+  }
+  options.target = positional[0];
   return options;
 }
 
@@ -680,6 +733,12 @@ function main(argv: string[]): number {
     const parsed = parseSuggest(rest);
     if (typeof parsed === "number") return parsed;
     return runSuggest(parsed);
+  }
+
+  if (command === "addons") {
+    const parsed = parseAddons(rest);
+    if (typeof parsed === "number") return parsed;
+    return runAddons(parsed);
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

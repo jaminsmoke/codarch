@@ -9,9 +9,10 @@ modelo, no la fuente de verdad. Implementación clean-room: `cc.json` solo como 
 Monorepo core-first:
 
 ```
-packages/   schema · parsers · metrics · layouts · render · plugin-api
+packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
 apps/       cli · mcp · github-action · web (M5) · desktop (M7)
-plugins/    vista-3d · ejemplo          # plugins del repo (ADR 0028)
+plugins/    vista-3d · ejemplo          # plugins del repo: código (ADR 0028)
+addons/     ejemplo                     # addons del repo: conocimiento (ADR 0029)
 docs/       adr/ · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline.md
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
@@ -95,9 +96,11 @@ también `npm run sync:action` y actualizar el repo público.
 - M14 cerrada: los plugins (ADR 0028). Piezas del repo que se compilan en el build y se activan
   desde los ajustes; el contrato promete **solo vistas**.
 - M15 cerrada: la vista 3D, el primer plugin, en su propio chunk y con su hoja de ruta.
-- M16 abierta: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas guardadas)
-  que se instala copiando una carpeta y viaja con el repo. Un addon **no** aporta código ni lentes:
-  el checksum no cambia.
+- M16 en curso: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas
+  guardadas) que se instala copiando una carpeta y viaja con el repo. Un addon **no** aporta código
+  ni lentes: el checksum no cambia. Hecho: `@codarch/addons`, `addons:` en `.codarch.yml`,
+  `codarch addons list|add|remove` y el diff aplicando sus reglas. Faltan las vistas en las apps y
+  que el MCP lea la configuración.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

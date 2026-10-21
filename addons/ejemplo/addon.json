@@ -1,0 +1,10 @@
+{
+  "name": "ejemplo",
+  "version": "0.1.0",
+  "title": "Ejemplo",
+  "description": "Un addon de juguete: dos capas, una prohibición y una vista. Sirve para ver el formato y para probar el contrato.",
+  "contributes": {
+    "profiles": ["perfil.yml"],
+    "views": ["vistas.yml"]
+  }
+}

@@ -1,0 +1,20 @@
+# Un perfil: capas y reglas, con la misma forma que el catálogo del motor y
+# que `profiles:` en `.codarch.yml` (ADR 0023, ADR 0029).
+id: ejemplo
+title: Dos capas de ejemplo
+description: El núcleo no depende de las aplicaciones.
+when: Para un repo con packages/ y apps/.
+layers:
+  - name: core
+    patterns:
+      - packages/**
+  - name: apps
+    patterns:
+      - apps/**
+rules:
+  - type: forbidden
+    name: core-sin-apps
+    from: core
+    to: apps
+    severity: warn
+    message: El core no puede depender de las aplicaciones

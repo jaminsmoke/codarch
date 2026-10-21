@@ -422,10 +422,19 @@ las acciones ✓, las preferencias ✓ y el estado de la URL ✓. El plugin de e
 ([ADR 0028](docs/adr/0028-los-plugins.md))
 
 Un **addon** es otra cosa ✓ ([ADR 0029](docs/adr/0029-los-addons.md) ✓): **datos, no código** ✓.
-Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vistas guardadas ✓ — y se instala
-copiando una carpeta en `.codarch/addons/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo
-mismo ✓. No puede aportar lentes ✓, así que no cambia el checksum ✓. *Todavía no está: es la fase
-M16.*
+Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vistas guardadas ✓ — y vive en
+`addons/<nombre>/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo mismo ✓. No puede
+aportar lentes ✓, así que no cambia el checksum ✓.
+
+```bash
+codarch addons list            # los que hay en addons/ y cuáles declara el repo
+codarch addons add ./nestjs    # copia la carpeta y lo declara en .codarch.yml
+codarch addons remove nestjs   # lo quita del repo y de la declaración
+```
+
+El repo declara los que usa (`.codarch.yml`: `addons: [...]` ✓) y `codarch diff` aplica sus reglas
+✓, cada una con su origen (`addon:nestjs` ✓). `addons/ejemplo/` es el de juguete: dos capas ✓, una
+prohibición ✓ y una vista ✓. Las **vistas guardadas** todavía no se aplican en las apps ✗ (M16).
 
 ### Los ajustes
 

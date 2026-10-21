@@ -47,13 +47,33 @@ export type RuleConfigEntry =
   | ThresholdRuleConfig
   | CyclesRuleConfig;
 
-/** De dónde sale una regla: escrita por el equipo o traída por un perfil. */
-export type RuleSource = "config" | "profile";
+/**
+ * De dónde sale una regla.
+ *
+ * `config` es el equipo, `profile` el perfil que elige el equipo y
+ * `addon:<nombre>` un addon del repo (ADR 0029).
+ */
+export type RuleSource = "config" | "profile" | `addon:${string}`;
+
+/**
+ * Un addon ya cargado, con lo que aporta al análisis.
+ *
+ * Se pasa como piezas neutras (capas y reglas) para que este paquete no sepa
+ * qué es un addon: quien los lee es `@codarch/addons`.
+ */
+export interface RuleConfigAddon {
+  /** El nombre del addon: entra en el `source` de sus reglas. */
+  name: string;
+  layers: LayerConfig[];
+  rules: RuleConfigEntry[];
+}
 
 export interface RuleConfig {
   version: 1;
   /** Perfil del catálogo que se ha aplicado, si hubo alguno. */
   profile: string | null;
+  /** Los addons que aportaron algo, en el orden en que se declaran. */
+  addons: string[];
   layers: LayerConfig[];
   rules: RuleConfigEntry[];
 }
@@ -75,7 +95,10 @@ const SEVERITIES = new Set<Severity>(["info", "warn", "error"]);
  * añaden a las del equipo. Las del perfil entran **como aviso** (`warn`): son
  * una consulta hasta que el equipo las sube a `error` (ADR 0023).
  */
-export function parseRuleConfig(input: unknown): RuleConfig {
+export function parseRuleConfig(
+  input: unknown,
+  available: readonly RuleConfigAddon[] = []
+): RuleConfig {
   const root = asObject(input, "config");
   if (root.version !== 1) {
     throw new ConfigError("config.version debe ser 1");
@@ -84,16 +107,72 @@ export function parseRuleConfig(input: unknown): RuleConfig {
   const own = parseInlineProfiles(root.profiles);
   const profile = parseProfile(root.profile, own);
   const profileSeverity = parseProfileSeverity(root.profile_severity);
-  const layers = mergeLayers(profile, parseLayers(root.layers));
+  const addons = resolveAddons(root.addons, available);
+  const layers = mergeLayers(profile, addons, parseLayerList(root.layers));
   const layerNames = new Set(layers.map((layer) => layer.name));
   const rules = mergeRules(
     profile,
     profileSeverity,
-    parseRules(root.rules, layerNames),
+    addons,
+    parseRuleList(root.rules, layerNames),
     layerNames
   );
 
-  return { version: 1, profile: profile?.id ?? null, layers, rules };
+  return {
+    version: 1,
+    profile: profile?.id ?? null,
+    addons: addons.map((addon) => addon.name),
+    layers,
+    rules
+  };
+}
+
+/** El nombre de un addon: minúsculas, números y guiones. */
+export const ADDON_NAME = /^[a-z0-9][a-z0-9-]*$/;
+
+/** Los addons que declara el equipo, en orden. */
+function parseAddonNames(value: unknown): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) {
+    throw new ConfigError("config.addons debe ser una lista");
+  }
+
+  const names: string[] = [];
+  value.forEach((raw, index) => {
+    const name = asString(raw, `config.addons[${index}]`);
+    if (!ADDON_NAME.test(name)) {
+      throw new ConfigError(
+        `config.addons[${index}] no es un nombre de addon: ${name}`
+      );
+    }
+    if (names.includes(name)) {
+      throw new ConfigError(`addon repetido: ${name}`);
+    }
+    names.push(name);
+  });
+  return names;
+}
+
+/**
+ * Los addons declarados, ya cargados.
+ *
+ * Un addon declarado que no está en `addons/` es un error: callar dejaría el
+ * análisis sin las reglas que el repo cree tener.
+ */
+function resolveAddons(
+  value: unknown,
+  available: readonly RuleConfigAddon[]
+): RuleConfigAddon[] {
+  return parseAddonNames(value).map((name) => {
+    const addon = available.find((entry) => entry.name === name);
+    if (!addon) {
+      const known = available.map((entry) => entry.name).join(", ") || "ninguno";
+      throw new ConfigError(
+        `config.addons: no se encontró "${name}" en addons/ (hay: ${known})`
+      );
+    }
+    return addon;
+  });
 }
 
 /**
@@ -110,39 +189,50 @@ function parseInlineProfiles(value: unknown): Map<string, DomainProfile> {
   }
 
   value.forEach((raw, index) => {
-    const entry = asObject(raw, `config.profiles[${index}]`);
-    const id = asString(entry.id, `config.profiles[${index}].id`);
-    const title = asString(entry.title, `config.profiles[${index}].title`);
-    const description =
-      entry.description === undefined
-        ? ""
-        : asString(entry.description, `config.profiles[${index}].description`);
-
-    const layers = parseLayers(entry.layers).map((layer) => ({
-      name: layer.name,
-      patterns: layer.patterns
-    }));
-    if (layers.length === 0) {
-      throw new ConfigError(
-        `config.profiles[${index}] necesita al menos una capa`
-      );
+    const profile = parseProfileEntry(raw, `config.profiles[${index}]`);
+    if (profiles.has(profile.id)) {
+      throw new ConfigError(`perfil duplicado: ${profile.id}`);
     }
-    const layerNames = new Set(layers.map((layer) => layer.name));
-    const rules = parseRules(entry.rules, layerNames).filter(
-      (rule): rule is ForbiddenRuleConfig => rule.type === "forbidden"
-    );
-
-    profiles.set(id, {
-      id,
-      title,
-      description,
-      when: `Perfil propio del equipo, definido en ${"el archivo de reglas"}.`,
-      layers,
-      rules
+    profiles.set(profile.id, {
+      ...profile,
+      // El `when` de un perfil propio no lo elige nadie en un catálogo: se dice.
+      when:
+        profile.when || "Perfil propio del equipo, definido en el archivo de reglas."
     });
   });
 
   return profiles;
+}
+
+/**
+ * Un perfil escrito como datos: capas y reglas.
+ *
+ * Es el mismo dialecto en el catálogo, en `.codarch.yml` y en un addon
+ * (ADR 0029), así que se valida en un solo sitio. `when` es opcional porque
+ * solo tiene sentido cuando alguien **elige** el perfil de una lista.
+ */
+export function parseProfileEntry(value: unknown, path: string): DomainProfile {
+  const entry = asObject(value, path);
+  const id = asString(entry.id, `${path}.id`);
+  const title = asString(entry.title, `${path}.title`);
+  const description =
+    entry.description === undefined
+      ? ""
+      : asString(entry.description, `${path}.description`);
+  const when =
+    entry.when === undefined ? "" : asString(entry.when, `${path}.when`);
+
+  const layers = parseLayerList(entry.layers, `${path}.layers`);
+  if (layers.length === 0) {
+    throw new ConfigError(`${path} necesita al menos una capa`);
+  }
+
+  const layerNames = new Set(layers.map((layer) => layer.name));
+  const rules = parseRuleList(entry.rules, layerNames, `${path}.rules`).filter(
+    (rule): rule is ForbiddenRuleConfig => rule.type === "forbidden"
+  );
+
+  return { id, title, description, when, layers, rules };
 }
 
 /**
@@ -180,26 +270,33 @@ function parseProfileSeverity(value: unknown): Severity {
   return value as Severity;
 }
 
-/** Las capas del perfil primero; las del equipo sustituyen a las de su nombre. */
+/** Las capas: del perfil, luego los addons en orden, y el equipo al final. */
 function mergeLayers(
   profile: DomainProfile | null,
+  addons: readonly RuleConfigAddon[],
   own: LayerConfig[]
 ): LayerConfig[] {
   const layers = new Map<string, LayerConfig>();
   for (const layer of profile?.layers ?? []) layers.set(layer.name, layer);
+  for (const addon of addons) {
+    for (const layer of addon.layers) layers.set(layer.name, layer);
+  }
   for (const layer of own) layers.set(layer.name, layer);
   return [...layers.values()];
 }
 
 /**
- * Las reglas del perfil y las del equipo juntas.
+ * Las reglas de todas las fuentes juntas.
  *
- * Una regla del equipo con el mismo nombre sustituye a la del perfil, y así
- * puede subirla de `warn` a `error` sin tocar el catálogo.
+ * Manda el equipo, luego el último addon declarado, luego los addons
+ * anteriores y por último el perfil (ADR 0029). Una regla con el mismo nombre
+ * sustituye a la anterior, y así el equipo puede subir una regla de `warn` a
+ * `error` sin tocar el addon.
  */
 function mergeRules(
   profile: DomainProfile | null,
   profileSeverity: Severity,
+  addons: readonly RuleConfigAddon[],
   own: RuleConfigEntry[],
   layerNames: Set<string>
 ): RuleConfigEntry[] {
@@ -211,11 +308,16 @@ function mergeRules(
       source: "profile"
     });
   }
+  for (const addon of addons) {
+    for (const rule of addon.rules) {
+      rules.set(rule.name, { ...rule, source: `addon:${addon.name}` });
+    }
+  }
   for (const rule of own) {
     rules.set(rule.name, { ...rule, source: "config" });
   }
 
-  // Una regla del perfil puede apuntar a una capa que el equipo sustituyó por
+  // Una regla de fuera puede apuntar a una capa que el equipo sustituyó por
   // otra: si la capa ya no existe, la regla no aplica y se avisa.
   for (const rule of rules.values()) {
     if (rule.type !== "forbidden") continue;
@@ -225,12 +327,26 @@ function mergeRules(
         `la regla "${rule.name}" del perfil apunta a una capa que no existe: ${rule.from} → ${rule.to}`
       );
     }
+    if (rule.source?.startsWith("addon:")) {
+      throw new ConfigError(
+        `la regla "${rule.name}" del addon ${rule.source.slice("addon:".length)} apunta a una capa que no existe: ${rule.from} → ${rule.to}`
+      );
+    }
   }
 
   return [...rules.values()];
 }
 
-export function loadRuleConfig(file: string): RuleConfig {
+/**
+ * Lee un `.codarch.yml` del disco.
+ *
+ * `available` son los addons ya cargados de `addons/` (ADR 0029): el archivo
+ * dice **cuáles** usa, y aquí se resuelven por nombre.
+ */
+export function loadRuleConfig(
+  file: string,
+  available: readonly RuleConfigAddon[] = []
+): RuleConfig {
   let text: string;
   try {
     text = fs.readFileSync(file, "utf8");
@@ -250,7 +366,7 @@ export function loadRuleConfig(file: string): RuleConfig {
   }
 
   try {
-    return parseRuleConfig(value);
+    return parseRuleConfig(value, available);
   } catch (error) {
     if (error instanceof ConfigError) {
       throw new ConfigError(`${file}: ${error.message}`);
@@ -259,18 +375,21 @@ export function loadRuleConfig(file: string): RuleConfig {
   }
 }
 
-function parseLayers(value: unknown): LayerConfig[] {
+export function parseLayerList(
+  value: unknown,
+  path = "config.layers"
+): LayerConfig[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
-    throw new ConfigError("config.layers debe ser una lista");
+    throw new ConfigError(`${path} debe ser una lista`);
   }
 
   const layers: LayerConfig[] = [];
   const names = new Set<string>();
 
   value.forEach((raw, index) => {
-    const layer = asObject(raw, `config.layers[${index}]`);
-    const name = asString(layer.name, `config.layers[${index}].name`);
+    const layer = asObject(raw, `${path}[${index}]`);
+    const name = asString(layer.name, `${path}[${index}].name`);
     if (names.has(name)) {
       throw new ConfigError(`capa duplicada: ${name}`);
     }
@@ -278,20 +397,20 @@ function parseLayers(value: unknown): LayerConfig[] {
 
     if (layer.patterns !== undefined && layer.paths !== undefined) {
       throw new ConfigError(
-        `config.layers[${index}] no puede tener patterns y paths a la vez`
+        `${path}[${index}] no puede tener patterns y paths a la vez`
       );
     }
     const rawPatterns = layer.patterns ?? layer.paths;
     if (!Array.isArray(rawPatterns) || rawPatterns.length === 0) {
       throw new ConfigError(
-        `config.layers[${index}].patterns debe ser una lista no vacía`
+        `${path}[${index}].patterns debe ser una lista no vacía`
       );
     }
 
     const patterns = rawPatterns.map((rawPattern, patternIndex) => {
       const pattern = asString(
         rawPattern,
-        `config.layers[${index}].patterns[${patternIndex}]`
+        `${path}[${index}].patterns[${patternIndex}]`
       )
         .replaceAll("\\", "/")
         .replace(/^\.\//, "");
@@ -309,69 +428,57 @@ function parseLayers(value: unknown): LayerConfig[] {
   return layers;
 }
 
-function parseRules(
+export function parseRuleList(
   value: unknown,
-  layerNames: Set<string>
+  layerNames: Set<string>,
+  path = "config.rules"
 ): RuleConfigEntry[] {
   if (value === undefined) return [];
   if (!Array.isArray(value)) {
-    throw new ConfigError("config.rules debe ser una lista");
+    throw new ConfigError(`${path} debe ser una lista`);
   }
 
   const rules: RuleConfigEntry[] = [];
   const names = new Set<string>();
 
   value.forEach((raw, index) => {
-    const rule = asObject(raw, `config.rules[${index}]`);
-    const name = asString(rule.name, `config.rules[${index}].name`);
+    const at = `${path}[${index}]`;
+    const rule = asObject(raw, at);
+    const name = asString(rule.name, `${at}.name`);
     if (names.has(name)) {
       throw new ConfigError(`regla duplicada: ${name}`);
     }
     names.add(name);
 
-    const type = asString(rule.type, `config.rules[${index}].type`);
-    const severity = parseSeverity(
-      rule.severity,
-      `config.rules[${index}].severity`
-    );
+    const type = asString(rule.type, `${at}.type`);
+    const severity = parseSeverity(rule.severity, `${at}.severity`);
     const message =
       rule.message === undefined
         ? undefined
-        : asString(rule.message, `config.rules[${index}].message`);
+        : asString(rule.message, `${at}.message`);
 
     if (type === "forbidden") {
-      const from = asString(rule.from, `config.rules[${index}].from`);
-      const to = asString(rule.to, `config.rules[${index}].to`);
+      const from = asString(rule.from, `${at}.from`);
+      const to = asString(rule.to, `${at}.to`);
       if (!layerNames.has(from)) {
-        throw new ConfigError(
-          `config.rules[${index}].from apunta a una capa inexistente: ${from}`
-        );
+        throw new ConfigError(`${at}.from apunta a una capa inexistente: ${from}`);
       }
       if (!layerNames.has(to)) {
-        throw new ConfigError(
-          `config.rules[${index}].to apunta a una capa inexistente: ${to}`
-        );
+        throw new ConfigError(`${at}.to apunta a una capa inexistente: ${to}`);
       }
       rules.push({ type, name, from, to, severity, message });
       return;
     }
 
     if (type === "threshold") {
-      const metric = asString(
-        rule.metric,
-        `config.rules[${index}].metric`
-      );
-      const min = optionalNumber(rule.min, `config.rules[${index}].min`);
-      const max = optionalNumber(rule.max, `config.rules[${index}].max`);
+      const metric = asString(rule.metric, `${at}.metric`);
+      const min = optionalNumber(rule.min, `${at}.min`);
+      const max = optionalNumber(rule.max, `${at}.max`);
       if (min === undefined && max === undefined) {
-        throw new ConfigError(
-          `config.rules[${index}] necesita min o max`
-        );
+        throw new ConfigError(`${at} necesita min o max`);
       }
       if (min !== undefined && max !== undefined && min > max) {
-        throw new ConfigError(
-          `config.rules[${index}]: min no puede ser mayor que max`
-        );
+        throw new ConfigError(`${at}: min no puede ser mayor que max`);
       }
       rules.push({ type, name, metric, min, max, severity, message });
       return;
@@ -382,9 +489,7 @@ function parseRules(
       return;
     }
 
-    throw new ConfigError(
-      `config.rules[${index}].type desconocido: ${type}`
-    );
+    throw new ConfigError(`${at}.type desconocido: ${type}`);
   });
 
   return rules;

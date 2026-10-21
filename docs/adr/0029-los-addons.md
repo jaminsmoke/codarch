@@ -45,7 +45,7 @@ De ahí sale todo lo demás ✓:
 ### 2. Vive donde vive la configuración
 
 ```
-.codarch/addons/nestjs/
+addons/nestjs/
   addon.json
   profiles/nestjs.yml
   rules.yml
@@ -59,6 +59,11 @@ Y el repo los declara en `.codarch.yml`, al lado de los plugins ✓:
 addons:
   - nestjs
 ```
+
+**Empezó en `.codarch/addons/`** y se movió a `addons/` al empezar a construirlo ✓: `.codarch/`
+es la carpeta de **artefactos** del repo ✓ (está ignorada por git ✓), así que un addon ahí no viajaría
+con el repo ✗ — justo lo contrario de lo que se busca ✓. `addons/` en la raíz se ve en el PR ✓ y
+no hay que tocar el `.gitignore` de nadie ✓.
 
 Lo que está en el repo **viaja con el repo** ✓: los compañeros lo tienen al hacer `pull` ✓, el PR lo
 revisa ✓, el CI lo aplica ✓ y el comentario del PR dice lo mismo que en tu máquina ✓. **El proyecto
@@ -136,7 +141,7 @@ nombre sustituye a la del addon ✓, y así se puede subir de `warn` a `error` s
 
 ```bash
 codarch addons list          # los que declara el repo y qué aporta cada uno
-codarch addons add ./nestjs  # copia la carpeta a .codarch/addons/ y la declara
+codarch addons add ./nestjs  # copia la carpeta a addons/ y la declara
 codarch addons remove nestjs # la quita del repo y de la declaración
 ```
 
@@ -160,7 +165,7 @@ necesite una señal nueva la calcula **en su vista** ✓ (como hace el 3D ✓), 
 - Un paquete pequeño ✓ `@codarch/addons` ✓: el esquema del manifiesto ✓, la validación ✓ y la fusión
   con la configuración ✓. Lo usan el CLI ✓, la web ✓, el escritorio ✓ y el MCP ✓ — por eso es paquete
   y no una carpeta de una app ✗.
-- `.codarch.yml` gana `addons:` ✓. El parser de reglas (`@codarch/metrics` ✓) acepta las piezas ya
+- `.codarch.yml` gana `addons:` ✓ y el addon vive en `addons/<nombre>/` ✓. El parser de reglas (`@codarch/metrics` ✓) acepta las piezas ya
   validadas ✓: la fusión por nombre es **la misma** que la de los perfiles ✓ ✓.
 - El MCP y la acción **tienen que leer la configuración** ✓ para verlos ✓ — lo que ya hacía el CLI ✓
   (la guía, §4.9 ✓).

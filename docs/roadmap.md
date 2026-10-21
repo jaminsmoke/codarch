@@ -342,20 +342,21 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 
 ## M16 — Los addons
 
-**Estado:** abierta. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
-**datos, no código**.
+**Estado:** en curso. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
+**datos, no código**. La mitad del CLI está hecha.
 
-- [ ] `@codarch/addons`: el manifiesto, la validación y la fusión con la configuración.
-- [ ] `.codarch.yml` gana `addons:` y `codarch addons list|add|remove` copia la carpeta a
-  `.codarch/addons/`.
-- [ ] Un addon aporta perfiles, reglas y vistas guardadas; manda la configuración del equipo y cada
-  pieza dice de dónde sale (`addon:nestjs`).
-- [ ] Las dos apps enseñan los addons del proyecto (solo lectura) y aplican sus vistas guardadas.
-- [ ] El MCP y la acción leen la configuración, así que ven los mismos addons.
-- [ ] El checksum no cambia: un addon no aporta lentes (ADR 0029). La puerta a las lentes es la vía
-  B, con su propio ADR.
-- [ ] **La prueba**: un addon de verdad (por ejemplo, las capas de un framework) que se instala con
-  un comando y se ve en el mapa, en el reporte y en el PR.
+- [x] `@codarch/addons`: el manifiesto, la validación (una clave desconocida es error ✓) y la
+  fusión con la configuración. Sin código que ejecutar.
+- [x] Los addons viven en `addons/<nombre>/` y el repo los declara en `.codarch.yml`
+  (`addons: [...]`). `codarch addons list|add|remove` los lista, los copia y los quita.
+- [x] Un addon aporta perfiles, reglas y vistas guardadas; manda la configuración del equipo y cada
+  regla dice de dónde sale (`source: "addon:<nombre>"`).
+- [x] `codarch diff` los carga y aplica sus reglas; la acción también, porque ejecuta el CLI.
+- [x] El checksum no cambia: un addon vive en la capa de la configuración, no en la del snapshot.
+- [ ] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
+  guardadas**; el MCP lee la configuración para verlos (la guía, §4.9).
+- [ ] **La prueba**: `addons/ejemplo/` ya está en el repo y el CLI lo enseña; falta verlo en el
+  mapa, en el reporte y en el PR.
 
 ## Después
 
