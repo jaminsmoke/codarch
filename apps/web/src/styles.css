@@ -827,17 +827,35 @@ button {
   cursor: pointer;
 }
 
-.cell:hover rect {
+.cell:hover {
   filter: brightness(1.08);
 }
 
 .cell:focus-visible {
   outline: none;
-}
-
-.cell:focus-visible rect {
   stroke: var(--rust);
   stroke-width: 2.5;
+}
+
+/* Cursor de teclado: por dónde va el usuario entre celdas y carpetas. */
+.cell.is-cursor,
+.folder-block.is-cursor {
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
+.folder-block {
+  cursor: zoom-in;
+}
+
+.folder-block:hover {
+  fill: rgba(18, 26, 32, 0.05);
+}
+
+.folder-block:focus-visible {
+  outline: none;
+  stroke: var(--rust);
+  stroke-width: 2;
 }
 
 .folder-hit {

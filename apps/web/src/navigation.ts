@@ -8,8 +8,8 @@
  */
 
 export interface CellBox {
-  /** Índice del fichero en el modelo de render. */
-  index: number;
+  /** Identidad estable del elemento: `f:12` para ficheros, `d:src/app` para carpetas. */
+  key: string;
   x: number;
   y: number;
   w: number;
@@ -43,21 +43,21 @@ function lateralPenalty(origin: Range, cell: Range): number {
 }
 
 /**
- * Devuelve el índice de la celda a la que se movería el foco.
+ * Devuelve la clave de la celda a la que se movería el foco.
  *
- * `current` es el índice de la celda seleccionada; si es `null`, se devuelve la
+ * `current` es la clave de la celda activa; si es `null`, se devuelve la
  * primera celda para que las flechas siempre tengan destino.
  */
 export function nextCell(
   cells: readonly CellBox[],
-  current: number | null,
+  current: string | null,
   direction: Direction
-): number | null {
+): string | null {
   if (cells.length === 0) return null;
-  if (current === null) return cells[0]?.index ?? null;
+  if (current === null) return cells[0]?.key ?? null;
 
-  const origin = cells.find((cell) => cell.index === current);
-  if (!origin) return cells[0]?.index ?? null;
+  const origin = cells.find((cell) => cell.key === current);
+  if (!origin) return cells[0]?.key ?? null;
 
   const horizontal = direction === "left" || direction === "right";
   const along = horizontal ? "x" : "y";
@@ -71,7 +71,7 @@ export function nextCell(
   let bestScore = Number.POSITIVE_INFINITY;
 
   for (const cell of cells) {
-    if (cell.index === current) continue;
+    if (cell.key === current) continue;
     const cellAlong = range(cell, along);
     const cellAcross = range(cell, across);
 
@@ -91,5 +91,5 @@ export function nextCell(
     }
   }
 
-  return best ? best.index : current;
+  return best ? best.key : current;
 }

@@ -16,11 +16,29 @@ const cliVersion = JSON.parse(
 assert.match(cliVersion, /^\d+\.\d+\.\d+$/, "la versión del CLI no es semver");
 assert.equal(action.runs?.using, "composite");
 assert.equal(action.inputs?.["fail-on"]?.default, "none");
-assert.equal(
-  action.inputs?.version?.default,
-  cliVersion,
-  `la acción debe instalar la versión publicada del CLI (${cliVersion})`
+
+const actionVersion = action.inputs?.version?.default;
+assert.match(
+  actionVersion ?? "",
+  /^\d+\.\d+\.\d+$/,
+  "la versión por defecto de la acción no es semver"
 );
+// La acción no puede instalar una versión que todavía no está en npm.
+assert.ok(
+  compareVersions(actionVersion, cliVersion) <= 0,
+  `la acción instala ${actionVersion}, pero el CLI del repo está en ${cliVersion}: publica primero o baja la versión`
+);
+// Y tampoco puede quedarse atrás de lo ya publicado: esa desincronización
+// silenciosa fue la que dejó la acción en 0.1.1 mientras npm iba por la 0.1.3.
+const published = publishedLatest();
+if (published) {
+  assert.ok(
+    compareVersions(actionVersion, published) >= 0,
+    `la acción instala ${actionVersion} pero npm ya publica ${published}: actualiza la acción, sincroniza y mueve el tag v1`
+  );
+} else {
+  console.log("aviso · no se pudo leer la versión publicada en npm; se omite esa comprobación");
+}
 assert.ok(
   action.runs.steps.some((step) =>
     String(step.run ?? "").includes("codarch@${CODARCH_VERSION}")
@@ -152,3 +170,42 @@ try {
 }
 
 console.log("ok · acción, workflow y comentario validados");
+
+/** Compara dos versiones semver `x.y.z`. */
+function compareVersions(left, right) {
+  const parse = (value) =>
+    String(value)
+      .split(".")
+      .map((part) => Number.parseInt(part, 10) || 0);
+  const a = parse(left);
+  const b = parse(right);
+  for (let index = 0; index < 3; index += 1) {
+    const diff = (a[index] ?? 0) - (b[index] ?? 0);
+    if (diff !== 0) return diff > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
+/** Última versión publicada en npm, o `null` si no se puede consultar. */
+function publishedLatest() {
+  try {
+    // En Windows `npm` es `npm.cmd`: se usa el CLI de node directamente.
+    const npmCli = process.env.npm_execpath;
+    const command = npmCli ? process.execPath : "npm";
+    const args = npmCli
+      ? [npmCli, "view", "codarch", "dist-tags.latest", "--json"]
+      : ["view", "codarch", "dist-tags.latest", "--json"];
+    const output = execFileSync(command, args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    const value = JSON.parse(output);
+    // npm devuelve un array cuando la clave existe en varias etiquetas.
+    const candidate = Array.isArray(value) ? value[0] : value;
+    return typeof candidate === "string" && /^\d+\.\d+\.\d+$/.test(candidate)
+      ? candidate
+      : null;
+  } catch {
+    return null;
+  }
+}

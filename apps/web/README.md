@@ -80,9 +80,23 @@ servidor local ni a la demo; si la URL falla, el error se muestra en lugar de da
 - El estado de vista (área, color, carpeta, fichero, pestaña) vive en la URL: se puede compartir y
   recargar sin perder el contexto.
 - Atajos: `/` enfoca la búsqueda, `Enter` abre el primer resultado y `Esc` limpia foco/selección.
-- Flechas para moverse entre celdas del mapa; el foco sigue a la selección y solo hay un tab stop por
-  fichero (el seleccionado).
+- Flechas para moverse entre celdas del mapa; el foco sigue a la selección y solo hay un tab stop
+  por celda. `Enter` activa: selecciona el fichero o entra en la carpeta.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
+
+## Snapshots grandes
+
+Un treemap de 20.000 ficheros no se lee: son 20.000 celdas de un píxel. El mapa se poda por tamaño
+(la decisión está en [ADR 0019](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0019-nivel-de-detalle-del-mapa.md)):
+
+- Una carpeta con más de 800 ficheros no se expande: sus hijos se dibujan como bloques.
+- Un bloque se pulsa para entrar en la carpeta; el breadcrumb permite volver.
+- El pie del mapa dice el nivel y cuántos ficheros quedan dentro: nada se esconde en silencio.
+- El modelo no se toca: la búsqueda, el inspector y los enlaces siguen llegando a cualquier fichero.
+
+Medido con 20.000 ficheros (17,8 MB de snapshot): el render pasa de ~10 s a ~300 ms de JavaScript y
+de 61.266 a 672 nodos DOM.
+
 
 ## Límites
 
@@ -95,4 +109,4 @@ servidor local ni a la demo; si la URL falla, el error se muestra en lugar de da
 - El layout se recalcula al redimensionar; el mapa es SVG, no WebGL.
 - Los ficheros sin la métrica de área se dibujan con área mínima para no desaparecer.
 
-Lo siguiente: manejo explícito de snapshots grandes.
+Lo siguiente: análisis en el navegador (M6).

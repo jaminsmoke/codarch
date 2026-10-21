@@ -57,6 +57,7 @@ import {
   type ViewState as UrlViewState
 } from "./viewState";
 import { nextCell, type CellBox, type Direction } from "./navigation";
+import { DEFAULT_DETAIL_OPTIONS, pruneTree } from "./detail";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -374,12 +375,19 @@ export default function App() {
     }
   }, [cc, areaMetric, colorMode]);
 
-  const mapRoots = useMemo(() => {
-    if (!view.model) return [];
-    if (!focusPath) return view.model.roots;
-    const folder = findFolder(view.model.roots, focusPath);
-    return folder ? [folder] : view.model.roots;
+  /**
+   * Árbol que se dibuja. En repos grandes se poda: un mosaico de 20.000
+   * celdas no se lee ni se pinta, el nivel de carpeta sí.
+   */
+  const detail = useMemo(() => {
+    if (!view.model) return null;
+    const folder = focusPath ? findFolder(view.model.roots, focusPath) : null;
+    const roots = folder ? [folder] : view.model.roots;
+    const total = folder ? folder.fileCount : view.model.fileCount;
+    return pruneTree(roots, DEFAULT_DETAIL_OPTIONS, total);
   }, [view.model, focusPath]);
+
+  const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
   /**
    * Selecciona un fichero por índice y recuerda su ruta.
@@ -1178,9 +1186,15 @@ export default function App() {
                 ? `${view.model.fileCount} ficheros · ${view.model.folderCount} carpetas · ${view.model.meta.apiVersion}`
                 : "—"}
             </span>
-            <span className="mono">
-              {view.model?.warnings[0] ?? "clic en una celda para inspeccionar"}
-            </span>
+            {detail && detail.hiddenFiles > 0 ? (
+              <span className="mono detail-note">
+                {`nivel carpeta · ${detail.cells} bloques · ${detail.hiddenFiles} ficheros dentro`}
+              </span>
+            ) : (
+              <span className="mono">
+                {view.model?.warnings[0] ?? "clic en una celda para inspeccionar"}
+              </span>
+            )}
           </div>
         </main>
 
@@ -1565,49 +1579,94 @@ function MapCanvas({
     [roots, size.width, size.height]
   );
 
-  /** Geometría de las celdas de fichero, para mover el foco con las flechas. */
-  const cells = useMemo<CellBox[]>(() => {
+  /**
+   * Celdas navegables: ficheros y carpetas sin contenido dibujado.
+   *
+   * Una carpeta con hijos es un contenedor, no una celda: ocupa el área de sus
+   * hijos y no se puede "entrar" moviéndose a un lado. Las carpetas hoja sí:
+   * en un repositorio grande el mapa se dibuja a nivel de carpeta.
+   */
+  const { targets, targetMeta } = useMemo(() => {
     const boxes: CellBox[] = [];
+    const meta = new Map<
+      string,
+      { kind: "file" | "folder"; fileIndex?: number; path?: string }
+    >();
     const walk = (nodes: PlacedNode[]): void => {
       for (const placedNode of nodes) {
         const { node, rect } = placedNode;
-        if (node.kind === "file" && node.fileIndex !== undefined) {
-          boxes.push({ index: node.fileIndex, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+        if (node.kind === "file") {
+          if (node.fileIndex === undefined) continue;
+          const key = `f:${node.fileIndex}`;
+          boxes.push({ key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+          meta.set(key, { kind: "file", fileIndex: node.fileIndex });
+          continue;
         }
-        if (placedNode.children) walk(placedNode.children);
+        const children = placedNode.children ?? [];
+        if (children.length === 0) {
+          boxes.push({ key: node.key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+          meta.set(node.key, { kind: "folder", path: node.path });
+          continue;
+        }
+        walk(children);
       }
     };
     walk(placed);
-    return boxes;
+    return { targets: boxes, targetMeta: meta };
   }, [placed]);
 
+  /** Cursor de teclado: por dónde va el usuario, al margen de la selección. */
+  const [cursor, setCursor] = useState<string | null>(null);
+  const selectedKey = selectedIndex !== null ? `f:${selectedIndex}` : null;
+  // El fichero seleccionado puede no estar dibujado (nivel de carpeta), así que
+  // el tab stop cae en la primera celda visible.
+  const activeKey =
+    cursor ??
+    (selectedKey && targetMeta.has(selectedKey)
+      ? selectedKey
+      : targets[0]?.key ?? null);
+
   /**
-   * El foco solo se mueve si el cambio de selección vino de las flechas.
-   * Con el ratón no se roba el foco: el clic ya lo dejó donde toca.
+   * El foco solo se mueve si el cambio vino de las flechas. Con el ratón no se
+   * roba el foco: el clic ya lo dejó donde toca.
    */
   const pendingFocusRef = useRef(false);
 
   useEffect(() => {
-    if (selectedIndex === null || !pendingFocusRef.current) return;
+    if (!pendingFocusRef.current || !cursor) return;
     pendingFocusRef.current = false;
-    const node = containerRef.current?.querySelector(
-      `[data-file-index="${selectedIndex}"]`
-    );
+    const node = containerRef.current?.querySelector(`[data-cell-key="${cursor}"]`);
     // Las celdas son elementos SVG: no son HTMLElement.
     if (node instanceof SVGElement) node.focus();
-  }, [selectedIndex, cells]);
+  }, [cursor, targets]);
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<SVGSVGElement>) => {
       const direction = ARROW_DIRECTIONS[event.key];
-      if (!direction) return;
-      const next = nextCell(cells, selectedIndex, direction);
-      if (next === null || next === selectedIndex) return;
+      if (direction) {
+        // Si el cursor todavía no existe, se sale de la celda que tiene el foco.
+        const from =
+          cursor ??
+          (event.target as Element | null)?.getAttribute?.("data-cell-key") ??
+          null;
+        const next = nextCell(targets, from, direction);
+        if (next === null || next === from) return;
+        event.preventDefault();
+        pendingFocusRef.current = true;
+        setCursor(next);
+        return;
+      }
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const target = cursor ? targetMeta.get(cursor) : undefined;
+      if (!target) return;
       event.preventDefault();
-      pendingFocusRef.current = true;
-      onSelect(next);
+      if (target.kind === "file" && target.fileIndex !== undefined) {
+        onSelect(target.fileIndex);
+        return;
+      }
+      if (target.path) onFocusFolder(target.path);
     },
-    [cells, onSelect, selectedIndex]
+    [cursor, onFocusFolder, onSelect, targetMeta, targets]
   );
 
   useEffect(() => {
@@ -1660,33 +1719,33 @@ function MapCanvas({
           ? truncate(file.name, Math.max(4, Math.floor((rect.w - 10) / 6.1)))
           : "";
       const migrationNode = migration?.nodes[file.nodeId];
+      // El tooltip solo en las celdas con área legible: en un mapa grande cada
+      // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
+      const withTitle = rect.w > 24 && rect.h > 10;
 
       return (
-        <g
+        <rect
           key={node.key}
-          className="cell"
+          className={`cell${activeKey === `f:${file.index}` ? " is-cursor" : ""}`}
+          x={rect.x}
+          y={rect.y}
+          width={Math.max(1, rect.w)}
+          height={Math.max(1, rect.h)}
+          fill={fill}
+          stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
+          strokeWidth={selected ? 2 : 0.55}
           opacity={matched ? 1 : 0.13}
           role="button"
+          data-cell-key={`f:${file.index}`}
           data-file-index={file.index}
-          tabIndex={selected ? 0 : -1}
+          tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
           aria-label={file.path}
-          onClick={() => onSelect(file.index)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onSelect(file.index);
-            }
+          onFocus={() => setCursor(`f:${file.index}`)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect(file.index);
           }}
         >
-          <rect
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={Math.max(1, rect.h)}
-            fill={fill}
-            stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
-            strokeWidth={selected ? 2 : 0.55}
-          />
           {label ? (
             <text
               x={rect.x + 5}
@@ -1699,19 +1758,22 @@ function MapCanvas({
               {label}
             </text>
           ) : null}
-          <title>
-            {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
-              (migrationNode
-                ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
-                : "")}
-          </title>
-        </g>
+          {withTitle ? (
+            <title>
+              {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
+                (migrationNode
+                  ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
+                  : "")}
+            </title>
+          ) : null}
+        </rect>
       );
     }
 
     return (
       <g key={node.key}>
         <rect
+          className={`folder-block${activeKey === node.key ? " is-cursor" : ""}`}
           x={rect.x}
           y={rect.y}
           width={Math.max(1, rect.w)}
@@ -1719,10 +1781,17 @@ function MapCanvas({
           fill="rgba(18,26,32,.022)"
           stroke="rgba(18,26,32,.25)"
           strokeWidth={0.7}
-          pointerEvents="none"
-        />
-        {placedNode.headerHeight > 0 && rect.w > 34 ? (
-          <>
+          role="button"
+          data-cell-key={node.key}
+          tabIndex={activeKey === node.key ? 0 : -1}
+          aria-label={`Enfocar ${node.path}`}
+          onFocus={() => setCursor(node.key)}
+          onClick={(event) => {
+            event.stopPropagation();
+            onFocusFolder(node.path);
+          }}
+        >
+          {placedNode.headerHeight > 0 && rect.w > 34 ? (
             <text
               x={rect.x + 4}
               y={rect.y + 11.5}
@@ -1734,30 +1803,22 @@ function MapCanvas({
             >
               {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
             </text>
-            <rect
-              x={rect.x}
-              y={rect.y}
-              width={Math.max(1, rect.w)}
-              height={placedNode.headerHeight}
-              fill="transparent"
-              className="folder-hit"
-              role="button"
-              tabIndex={0}
-              aria-label={`Enfocar ${node.path}`}
-              onClick={(event) => {
-                event.stopPropagation();
-                onFocusFolder(node.path);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onFocusFolder(node.path);
-                }
-              }}
-            >
-              <title>{`Enfocar ${node.path}`}</title>
-            </rect>
-          </>
+          ) : null}
+        </rect>
+        {placedNode.headerHeight > 0 && rect.w > 34 ? (
+          <rect
+            x={rect.x}
+            y={rect.y}
+            width={Math.max(1, rect.w)}
+            height={placedNode.headerHeight}
+            fill="transparent"
+            className="folder-hit"
+            aria-label={`Enfocar ${node.path}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onFocusFolder(node.path);
+            }}
+          />
         ) : null}
         {placedNode.children.map(renderNode)}
       </g>

@@ -132,7 +132,7 @@ de PR.
 - [x] Atajos básicos: `/` busca, `Enter` abre el primer resultado, `Esc` limpia foco/selección.
 - [x] Carga por URL y enlaces compartibles con el estado de vista (`area`, `color`, `focus`, `file`, `tab`, `src`, `report`); decisión en [ADR 0018](adr/0018-estado-vista-en-la-url.md).
 - [x] Navegación por flechas entre celdas y foco inicial del mapa.
-- [ ] Manejo explícito de snapshots grandes (virtualización o WebGL).
+- [x] Manejo explícito de snapshots grandes: nivel de detalle por tamaño y menos nodos por celda; decisión en [ADR 0019](adr/0019-nivel-de-detalle-del-mapa.md).
 
 ## M6 — Análisis en el navegador
 
