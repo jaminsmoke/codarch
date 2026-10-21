@@ -30,7 +30,7 @@ async function readGrammar(name: string): Promise<Uint8Array> {
 }
 
 describe("paridad entre el parser nativo y el WASM", () => {
-  it("produce las mismas métricas e importaciones", async () => {
+  it("produce las mismas métricas, importaciones y símbolos", async () => {
     const wasm = await WasmTypeScriptParser.create(
       await readGrammar("tree-sitter-typescript.wasm"),
       await readGrammar("tree-sitter-tsx.wasm")
@@ -59,6 +59,9 @@ describe("paridad entre el parser nativo y el WASM", () => {
       ).toEqual(left.metrics);
       expect(right.imports, `importaciones distintas en ${relative}`).toEqual(
         left.imports
+      );
+      expect(right.symbols, `símbolos distintos en ${relative}`).toEqual(
+        left.symbols
       );
     }
   });

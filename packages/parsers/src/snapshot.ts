@@ -7,14 +7,20 @@ import {
   type CcEdge,
   type CcJson,
   type CcMigrationLens,
-  type CcNode
+  type CcNode,
+  type CcSymbol,
+  type CcSymbolsLens,
+  type CcSymbolsSummary
 } from "@codarch/schema";
 import type { GraphResult } from "./graph";
 import type { MigrationResult } from "./migration";
+import type { ParsedSymbol } from "./types";
 
 export interface SnapshotFile {
   relativePath: string;
   metrics: Record<string, number>;
+  /** Los símbolos del fichero; vacíos si el parser no los da. */
+  symbols?: readonly ParsedSymbol[];
 }
 
 export interface SnapshotInput {
@@ -157,6 +163,18 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
   const folders = new Map<string, CcNode>([["", root]]);
   const attributes: Record<string, Record<string, number>> = {};
   const metricNames = new Set<string>();
+  /** Los símbolos de cada fichero, para la lente `symbols`. */
+  const symbolNodes: Record<string, CcSymbol[]> = {};
+  const symbolCounts = {
+    functions: 0,
+    classes: 0,
+    interfaces: 0,
+    types: 0,
+    enums: 0,
+    variables: 0
+  };
+  let symbolTotal = 0;
+  let mostComplex: { path: string; name: string; complexity: number } | null = null;
 
   for (const file of files) {
     const segments = file.relativePath.split("/");
@@ -191,6 +209,29 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     parent.children?.push(node);
     attributes[node.id] = { ...file.metrics };
     for (const metric of Object.keys(file.metrics)) metricNames.add(metric);
+
+    if (file.symbols && file.symbols.length > 0) {
+      symbolNodes[node.id] = file.symbols.map((symbol) => ({ ...symbol }));
+      symbolTotal += file.symbols.length;
+      for (const symbol of file.symbols) {
+        if (symbol.kind === "function") symbolCounts.functions++;
+        else if (symbol.kind === "class") symbolCounts.classes++;
+        else if (symbol.kind === "interface") symbolCounts.interfaces++;
+        else if (symbol.kind === "type") symbolCounts.types++;
+        else if (symbol.kind === "enum") symbolCounts.enums++;
+        else symbolCounts.variables++;
+
+        if (symbol.kind === "function" && symbol.complexity !== undefined) {
+          if (!mostComplex || symbol.complexity > mostComplex.complexity) {
+            mostComplex = {
+              path: file.relativePath,
+              name: symbol.name,
+              complexity: symbol.complexity
+            };
+          }
+        }
+      }
+    }
   }
 
   sortChildren(root);
@@ -224,6 +265,20 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     ? migrationLensFrom(input.migration)
     : undefined;
 
+  const symbolsSummary: CcSymbolsSummary = {
+    symbols: symbolTotal,
+    functions: symbolCounts.functions,
+    classes: symbolCounts.classes,
+    interfaces: symbolCounts.interfaces,
+    types: symbolCounts.types,
+    enums: symbolCounts.enums,
+    mostComplex
+  };
+  const symbolsLens: CcSymbolsLens = {
+    nodes: symbolNodes,
+    summary: symbolsSummary
+  };
+
   const lenses = {
     metrics: {
       attributes,
@@ -239,7 +294,8 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
         typeOnly: "absolute" as const
       }
     },
-    ...(migrationLens ? { migration: migrationLens } : {})
+    ...(migrationLens ? { migration: migrationLens } : {}),
+    symbols: symbolsLens
   };
 
   return {

@@ -247,6 +247,7 @@ export function analyzeFiles(
 
     parsedFiles.push({
       relativePath: file.relativePath,
+      symbols: parsed.symbols ?? [],
       metrics: {
         ...parsed.metrics,
         imports: parsed.imports.length,

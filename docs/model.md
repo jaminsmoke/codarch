@@ -89,6 +89,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `dependency` | aristas, niveles, ciclos, capas | sí |
 | `risk` | score compuesto, violaciones | derivada en render, no se almacena |
 | `migration` | LOC por lenguaje, estado, deuda y frontera FFI | sí (v1) |
+| `symbols` | lo que hay dentro de cada fichero: funciones, clases, tipos | sí (M11) |
 | `domain` | palabras, frecuencia, tf-idf | después |
 | `evolution` | series temporales, acoplamiento temporal | después |
 
@@ -179,6 +180,34 @@ porque el glue no está en el fuente. Las aristas FFI solo existen cuando un imp
 un `.wasm` o `.node` incluido en el análisis.
 
 Si la herramienta no sirve para gestionar su propia migración, no sirve.
+
+### La lente de símbolos
+
+La tercera escala del modelo: qué hay **dentro** de cada fichero. Hasta M11 el mapa solo knew
+cuántos ficheros había y cómo se llamaban entre sí; un fichero de dos mil líneas y veinte ficheros
+de cien eran el mismo mapa.
+
+```ts
+type CcSymbol = {
+  name: string
+  kind: 'function' | 'class' | 'interface' | 'type' | 'enum' | 'variable'
+  line: number          // 1-based
+  lines?: number        // líneas que ocupa
+  complexity?: number   // complejidad ciclomática; solo en las funciones con cuerpo
+}
+```
+
+La lente guarda `nodes` (los símbolos de cada fichero, por su id) y un `summary` con el total, el
+reparto por tipo y la función más compleja del repo.
+
+Decisiones (ADR 0025):
+
+- **El parser la recoge en el mismo paseo** que mide las métricas: no cuesta un segundo análisis ✓.
+- **El código es compartido con el navegador** ✓, así que el checksum del snapshot no cambia y la
+  paridad navegador/CLI sigue valiendo ✓.
+- **Solo los símbolos con forma**: funciones, clases, interfaces, tipos y enums. Las constantes no:
+  son datos, no estructura ✓.
+- **El diff sigue siendo de ficheros**. Comparar función a función es un paso aparte (M12) ✓.
 
 ## Reglas y violaciones
 

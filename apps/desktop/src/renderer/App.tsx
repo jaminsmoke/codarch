@@ -11,11 +11,13 @@ import {
   defaultMetric,
   getStats,
   parseCcJson,
+  symbolsOf,
   type CcJson,
   type CcMigrationLanguageStats,
   type CcMigrationLens,
   type CcMigrationNode,
-  type CcMigrationStatus
+  type CcMigrationStatus,
+  type CcSymbol
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
 import type { HistoryEntry } from "@codarch/schema/browser";
@@ -52,6 +54,16 @@ const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   rust: "Rust",
   bridge: "Puente",
   native: "Nativo"
+};
+
+/** Cómo se lee cada tipo de símbolo en el inspector. */
+const SYMBOL_LABEL: Record<CcSymbol["kind"], string> = {
+  function: "fn",
+  class: "cls",
+  interface: "int",
+  type: "typ",
+  enum: "enum",
+  variable: "var"
 };
 
 const STATUS_COLOR: Record<CcMigrationStatus, string> = {
@@ -379,6 +391,11 @@ export default function App() {
   const selectedMigration = selectedFile
     ? migration?.nodes[selectedFile.nodeId] ?? null
     : null;
+  /** Los símbolos del fichero elegido, de la función más compleja a la más simple. */
+  const selectedSymbols = useMemo(
+    () => (selectedFile && cc ? symbolsOf(cc, selectedFile.nodeId) : []),
+    [cc, selectedFile]
+  );
 
   const matches = useMemo(() => {
     if (!view.model || query.trim() === "") return view.model?.fileCount ?? 0;
@@ -736,6 +753,7 @@ export default function App() {
               migrationNode={selectedMigration}
               areaMetric={areaMetric}
               metricTitle={metricTitle}
+              symbols={selectedSymbols}
             />
           ) : (
             <PrPanel
@@ -1395,13 +1413,15 @@ function Inspector({
   file,
   migrationNode,
   areaMetric,
-  metricTitle
+  metricTitle,
+  symbols
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
   migrationNode: CcMigrationNode | null;
   areaMetric: string | null;
   metricTitle: (key: string) => string;
+  symbols: CcSymbol[];
 }) {
   if (!file) {
     return (
@@ -1480,6 +1500,33 @@ function Inspector({
               <span className="mono">{formatCompact(row.value)}</span>
             </div>
           ))}
+        </div>
+      ) : null}
+
+      {symbols.length > 0 ? (
+        <div className="symbol-list">
+          <div className="eyebrow">Símbolos</div>
+          {symbols.slice(0, 12).map((symbol) => (
+            <div key={`${symbol.name}-${symbol.line}`} className="symbol-row">
+              <span className={`symbol-kind symbol-${symbol.kind}`}>
+                {SYMBOL_LABEL[symbol.kind]}
+              </span>
+              <span className="symbol-name" title={symbol.name}>
+                {symbol.name}
+              </span>
+              {symbol.complexity !== undefined ? (
+                <span
+                  className="mono symbol-complexity"
+                  title="Complejidad ciclomática"
+                >
+                  {symbol.complexity}
+                </span>
+              ) : null}
+            </div>
+          ))}
+          {symbols.length > 12 ? (
+            <div className="symbol-more">y {symbols.length - 12} más</div>
+          ) : null}
         </div>
       ) : null}
     </section>

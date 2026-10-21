@@ -16,6 +16,9 @@ export type {
   CcMigrationSummary,
   CcNode,
   CcNodeType,
+  CcSymbol,
+  CcSymbolsLens,
+  CcSymbolsSummary,
   FileEntry
 } from "./types";
 
@@ -54,4 +57,12 @@ export {
 } from "./history-store";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
-export { defaultMetric, getStats, topByMetric } from "./stats";
+export type { RankedSymbol } from "./stats";
+export {
+  defaultMetric,
+  getStats,
+  readSymbols,
+  symbolRanking,
+  symbolsOf,
+  topByMetric
+} from "./stats";

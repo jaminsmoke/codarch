@@ -1088,6 +1088,67 @@ button {
   padding-top: 12px;
 }
 
+/* Los símbolos del fichero: lo que hay dentro. */
+.symbol-list {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.symbol-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.symbol-kind {
+  font: 500 8.5px/1.5 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.symbol-function {
+  color: #2f6fed;
+  border-color: rgba(47, 111, 237, 0.4);
+}
+
+.symbol-class {
+  color: #c2410c;
+  border-color: rgba(194, 65, 12, 0.35);
+}
+
+.symbol-interface,
+.symbol-type {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.35);
+}
+
+.symbol-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.symbol-complexity {
+  color: var(--ink);
+}
+
+.symbol-more {
+  padding-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
 .metric-table > div:not(.eyebrow) {
   display: flex;
   justify-content: space-between;

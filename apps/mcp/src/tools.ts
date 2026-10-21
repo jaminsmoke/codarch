@@ -11,6 +11,7 @@ import {
 } from "@codarch/schema";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { symbolRanking, symbolsOf } from "@codarch/schema";
 import {
   ArchitectureStore,
   McpDataError,
@@ -63,6 +64,20 @@ export interface ArchitectureMap {
     risk: string;
   };
   stats: ReturnType<ArchitectureStore["summary"]>;
+  /** Lo que hay dentro de los ficheros: símbolos y la función más compleja. */
+  symbols?: {
+    available: boolean;
+    total: number;
+    functions: number;
+    classes: number;
+    interfaces: number;
+    mostComplex: Array<{
+      path: string;
+      name: string;
+      complexity: number;
+      line: number;
+    }>;
+  };
   root: MapNode;
 }
 
@@ -247,6 +262,15 @@ export interface EdgeView {
   isCyclic: boolean;
 }
 
+/** Un símbolo de un fichero: una función, una clase, un tipo. */
+export interface SymbolView {
+  name: string;
+  kind: "function" | "class" | "interface" | "type" | "enum" | "variable";
+  line: number;
+  complexity?: number;
+  lines?: number;
+}
+
 export interface ExplainModuleResult {
   kind: "file" | "folder";
   path: string;
@@ -275,6 +299,8 @@ export interface ExplainModuleResult {
   };
   childFolders?: string[];
   topFiles?: Array<{ path: string; risk: number; size: number }>;
+  /** Los símbolos del fichero, de la función más compleja a la más simple. */
+  symbols?: SymbolView[];
   diff:
     | { available: false; reason: string }
     | {
@@ -314,6 +340,20 @@ export function getArchitectureMap(
       risk: "máximo riesgo compuesto de los ficheros"
     },
     stats: store.summary(),
+    symbols: {
+      available: store.snapshot.lenses?.symbols !== undefined,
+      total: store.snapshot.lenses?.symbols?.summary.symbols ?? 0,
+      functions: store.snapshot.lenses?.symbols?.summary.functions ?? 0,
+      classes: store.snapshot.lenses?.symbols?.summary.classes ?? 0,
+      interfaces: store.snapshot.lenses?.symbols?.summary.interfaces ?? 0,
+      mostComplex: symbolRanking(store.snapshot, 5).map((symbol) => ({
+        // Las rutas del store no llevan el nombre de la raíz.
+        path: store.files.find((file) => file.id === symbol.id)?.path ?? symbol.path,
+        name: symbol.name,
+        complexity: symbol.complexity,
+        line: symbol.line
+      }))
+    },
     root: mapFolder(store, folder, 0, depth, limit, includeFiles)
   };
 }
@@ -873,6 +913,17 @@ export function explainModule(
       metrics: sortMetrics(file.metrics),
       risk: file.risk,
       complexity: file.complexity,
+      symbols: symbolsOf(store.snapshot, file.id)
+        .slice(0, limit)
+        .map((symbol) => ({
+          name: symbol.name,
+          kind: symbol.kind,
+          line: symbol.line,
+          ...(symbol.complexity === undefined
+            ? {}
+            : { complexity: symbol.complexity }),
+          ...(symbol.lines === undefined ? {} : { lines: symbol.lines })
+        })),
       riskRank: store.riskRank.get(file.id),
       cycle: {
         inCycle: file.inCycle > 0,

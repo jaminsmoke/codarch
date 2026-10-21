@@ -20,7 +20,12 @@ export interface ParsedImport {
 export interface ParsedSymbol {
   name: string;
   kind: "function" | "class" | "interface" | "type" | "enum" | "variable";
+  /** Línea 1-based. */
   line: number;
+  /** Complejidad ciclomática. Solo en las funciones con cuerpo. */
+  complexity?: number;
+  /** Líneas que ocupa. */
+  lines?: number;
 }
 
 export interface FileParseResult {

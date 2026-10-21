@@ -254,33 +254,40 @@ Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
   cambiados), no solo cuántos ficheros.
 - [x] El MCP puede preguntar por la historia (`get_history`).
 
+## M11 — La lente de símbolos
+
+**Estado:** cerrado. El mapa ya sabe qué hay dentro de cada fichero: funciones, clases, interfaces y
+tipos, con su complejidad. Decisión en [ADR 0025](adr/0025-lente-de-simbolos.md).
+
+- [x] **M11.1** El parser recoge los símbolos en el mismo paseo que mide las métricas, con el
+  **código compartido** con el navegador: el checksum del snapshot no cambia y la paridad
+  navegador/CLI sigue valiendo ✓.
+- [x] Solo los símbolos con forma (funciones, clases, interfaces, tipos, enums): las constantes son
+  datos, no estructura.
+- [x] La lente `symbols` en el snapshot. El `apiVersion` no cambia: una lente opcional no invalida
+  el formato ✓ (como la de migración ✓).
+- [x] El inspector de las dos apps lista los símbolos del fichero, de la función más compleja a la
+  más simple ✓.
+- [x] El MCP responde a las dos preguntas: `explain_module` da los símbolos de un fichero y
+  `get_architecture_map` resume los del repo y sus funciones más complejas ✓.
+
 ## Después
 
-Candidatos, del más útil al menos. Los tres últimos están fuera de la v1 por `AGENTS.md` (símbolos,
-3D y plugins no son objetivo) y solo entrarían con una decisión nueva.
+Cada idea sigue aquí, con los pasos que le faltan delante. Nada se cae: lo que cambia es que ahora
+se ve el camino para llegar.
 
-### Lente de dominio
+### Después de los símbolos
 
-Reglas propias del dominio, no solo las genéricas de capas y ciclos. Dos caminos posibles:
+La lente de símbolos está hecha (M11 ✓). Lo que sigue es usarla a fondo:
 
-- **Catálogo de perfiles** (`clean architecture`, `hexagonal`, `ddd`): el equipo elige uno y recibe
-  las reglas y las capas ya escritas.
-- **Generador**: el análisis detecta las capas por sus dependencias y propone las reglas.
 
-Va al `report.json` y al gate, como las reglas de `.codarch.yml`, o en un informe aparte. **Decisión
-pendiente.**
+- **El diff de símbolos**: comparar función a función y no solo fichero a fichero. Es lo que de
+  verdad interesa ("has cambiado el algoritmo de esta función") y necesita la lente de antes ✓.
+- **3D**: el mapa en tres dimensiones. Antes hacen falta dos cosas: un visor que aguante el volumen
+  (el nivel de detalle ya existe ✓) y un modelo de interacción (orbitar, zoom, elegir) que la web
+  todavía no tiene ✓. Con esas dos cosas, el 3D es una vista más, no un producto nuevo ✓.
+- **Plugins**: que terceros añadan lentes y reglas. El punto de extensión ya existe (las lentes del
+  modelo ✓) y el formato es `.codarch.yml` ✓; lo que falta es decidir **qué** puede hacer un plugin
+  y cómo se instala y se actualiza sin romper nada ✓.
 
-### Evolución temporal
-
-El snapshot ya lleva `number_of_commits` y `number_of_authors` por fichero, y el riesgo los usa. Falta
-enseñar la historia: cómo se mueve la deuda, qué módulos se tocan más, cuándo se degradó. Es la parte
-de "mapa vivo" que todavía no existe.
-
-### Símbolos
-
-Lente de símbolos (funciones, clases, tipos) en vez de solo ficheros. El modelo ya lo contempla
-(ADR 0006) y es una fase grande.
-
-### 3D y plugins
-
-Fuera de la v1. Cada uno necesita su propia decisión.
+La lente de dominio y la evolución temporal ya están hechas (M9 y M10) ✓.

@@ -119,7 +119,7 @@ export function measureSource(source: string, root: SyntaxNodeLike): Metrics {
  * Complejidad ciclomática de una función: 1 + decisiones de su cuerpo.
  * No desciende a funciones anidadas: cada una se mide por separado.
  */
-function functionComplexity(fn: SyntaxNodeLike): number {
+export function functionComplexity(fn: SyntaxNodeLike): number {
   let complexity = 1;
   const body = fn.childForFieldName("body") ?? fn;
   const stack: SyntaxNodeLike[] = [];

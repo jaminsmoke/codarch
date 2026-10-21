@@ -336,6 +336,21 @@ Métricas de historial (si hay git):
 | `number_of_commits` | Commits que tocaron el fichero |
 | `number_of_authors` | Autores únicos de esos commits |
 
+### Símbolos
+
+El mapa no solo sabe qué ficheros hay y cómo se llamaban entre sí: también sabe **qué hay dentro** de
+cada uno. La lente `symbols` guarda las funciones, clases, interfaces, tipos y enums de cada fichero,
+con su línea y, en las funciones, su complejidad ciclomática.
+
+```bash
+# La función más enrevesada del repo
+codarch analyze . -o .codarch/verif
+```
+
+En la web y en el escritorio, el inspector lista los símbolos del fichero de la función más compleja
+a la más simple. El agente pregunta lo mismo con `explain_module` y `get_architecture_map`.
+([ADR 0025](docs/adr/0025-lente-de-simbolos.md))
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.

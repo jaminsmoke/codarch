@@ -80,6 +80,30 @@ export const SNAPSHOT: CcJson = {
         ffiCrossings: 4,
         migrationDebt: 72
       }
+    },
+    symbols: {
+      nodes: {
+        a: [
+          { name: "cargar", kind: "function", line: 10, complexity: 12, lines: 40 },
+          { name: "Guardar", kind: "interface", line: 3 }
+        ],
+        c: [
+          { name: "resolver", kind: "function", line: 20, complexity: 20, lines: 60 }
+        ]
+      },
+      summary: {
+        symbols: 3,
+        functions: 2,
+        classes: 0,
+        interfaces: 1,
+        types: 0,
+        enums: 0,
+        mostComplex: {
+          path: "src/domain/c.ts",
+          name: "resolver",
+          complexity: 20
+        }
+      }
     }
   }
 };

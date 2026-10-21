@@ -1,6 +1,7 @@
 import Parser from "web-tree-sitter";
 import type { FileParseResult, SourceParser } from "../types";
 import { collectImports, measureSource, usesTsxGrammar, type SyntaxNodeLike } from "./measure";
+import { collectSymbols } from "./symbols";
 
 const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"] as const;
 
@@ -54,7 +55,8 @@ export class WasmTypeScriptParser implements SourceParser {
     const node = root as unknown as SyntaxNodeLike;
     return {
       metrics: measureSource(source, node),
-      imports: collectImports(node)
+      imports: collectImports(node),
+      symbols: collectSymbols(node)
     };
   }
 }

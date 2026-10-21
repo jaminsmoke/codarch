@@ -82,6 +82,9 @@ también `npm run sync:action` y actualizar el repo público.
   CodArch Desktop `0.2.0` publicados.
 - M10 cerrado: la evolución temporal (ADR 0024). La lente de calor (commits), el historial del repo
   en `.codarch-history/`, la comparación de dos momentos y su vista en las dos apps.
+- M11 cerrado: la lente de símbolos (ADR 0025). El parser recoge funciones, clases, interfaces y
+  tipos con su complejidad; el inspector de las dos apps los lista y el MCP responde por ellos. El
+  diff de símbolos (función a función) es el paso siguiente.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.

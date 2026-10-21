@@ -107,10 +107,44 @@ export interface CcMigrationLens {
   summary: CcMigrationSummary;
 }
 
+export interface CcSymbol {
+  name: string;
+  kind: "function" | "class" | "interface" | "type" | "enum" | "variable";
+  /** Línea 1-based dentro del fichero. */
+  line: number;
+  /** Líneas que ocupa. */
+  lines?: number;
+  /** Complejidad ciclomática. Solo en las funciones con cuerpo. */
+  complexity?: number;
+}
+
+export interface CcSymbolsSummary {
+  symbols: number;
+  functions: number;
+  classes: number;
+  interfaces: number;
+  types: number;
+  enums: number;
+  /** La función más compleja del repo, si la hay. */
+  mostComplex: { path: string; name: string; complexity: number } | null;
+}
+
+/**
+ * La lente de símbolos: qué hay dentro de cada fichero.
+ *
+ * Es opcional: un snapshot sin ella sigue siendo válido ✓.
+ */
+export interface CcSymbolsLens {
+  /** Los símbolos de cada fichero, por su id. */
+  nodes: Record<string, CcSymbol[]>;
+  summary: CcSymbolsSummary;
+}
+
 export interface CcLenses {
   metrics?: CcMetricsLens;
   dependency?: CcDependencyLens;
   migration?: CcMigrationLens;
+  symbols?: CcSymbolsLens;
   /** Lentes desconocidas se preservan: una herramienta nueva no rompe a una vieja. */
   [name: string]: unknown;
 }

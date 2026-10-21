@@ -7,6 +7,7 @@ import {
   usesTsxGrammar,
   type SyntaxNodeLike
 } from "./measure";
+import { collectSymbols } from "./symbols";
 
 const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"] as const;
 
@@ -41,7 +42,8 @@ export class TypeScriptParser implements SourceParser {
     const node = root as unknown as SyntaxNodeLike;
     return {
       metrics: measureSource(source, node),
-      imports: collectImports(node)
+      imports: collectImports(node),
+      symbols: collectSymbols(node)
     };
   }
 }
