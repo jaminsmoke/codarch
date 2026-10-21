@@ -72,6 +72,11 @@ function isComment(text: string): boolean {
   return text.startsWith("//") || text.startsWith("/*") || text.startsWith("#!");
 }
 
+/** Si el texto es un comentario. Lo exported porque el hash del cuerpo lo necesita. */
+export function commentText(text: string): boolean {
+  return isComment(text);
+}
+
 /** Agregados por fichero a partir del árbol de sintaxis. */
 export function measureSource(source: string, root: SyntaxNodeLike): Metrics {
   const codeLines = new Set<number>();

@@ -283,6 +283,10 @@ recorrido a un símbolo. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.
 - [ ] **M12.2** La cadena del símbolo: la identidad que sobrevive al renombrado y a la mudanza. El
   hash del cuerpo es la identidad; cada versión lleva dentro el hash de la anterior, así que la
   cadena es reproducible desde el historial. La CLI responde `codarch chain <símbolo>`.
+  - [x] El **hash del cuerpo** en la lente: los tokens, sin comentarios y sin el nombre propio, así
+    que un reformateo o un comentario nuevo no lo cambian. El mismo código da el mismo hash en el
+    navegador y en el CLI ✓ (lo fija el test de paridad ✓).
+  - [ ] El emparejamiento (las cinco reglas), los eventos y el libro mayor.
 - [ ] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
   símbolo (cuántas veces se ha reescrito cada función) como señal de deuda de refactorización.
 

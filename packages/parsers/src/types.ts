@@ -26,6 +26,13 @@ export interface ParsedSymbol {
   complexity?: number;
   /** Líneas que ocupa. */
   lines?: number;
+  /**
+   * Hash del cuerpo (los tokens, sin comentarios).
+   *
+   * Es la identidad del símbolo: sobrevive a los renombrados y a las mudanzas
+   * (ADR 0026 ✓).
+   */
+  hash?: string;
 }
 
 export interface FileParseResult {

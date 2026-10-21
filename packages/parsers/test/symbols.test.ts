@@ -102,4 +102,63 @@ describe("TypeScriptParser · símbolos", () => {
     expect(symbols[0]?.line).toBe(3);
     expect(symbols[0]?.lines).toBe(3);
   });
+
+  it("el hash del cuerpo no depende del formato", () => {
+    const original = ["function suma(a: number, b: number) {", "  return a + b;", "}"].join(
+      "\n"
+    );
+    const reformateado = [
+      "function suma(a: number, b: number) {",
+      "",
+      "    return a + b;",
+      "",
+      "}"
+    ].join("\n");
+
+    const uno = parser.parse(original, "src/a.ts").symbols?.[0];
+    const otro = parser.parse(reformateado, "src/a.ts").symbols?.[0];
+
+    expect(uno?.hash).toBeDefined();
+    expect(otro?.hash).toBe(uno?.hash);
+  });
+
+  it("el hash del cuerpo ignora los comentarios", () => {
+    const conComentario = [
+      "/** Suma dos números. */",
+      "function suma(a: number, b: number) {",
+      "  return a + b;",
+      "}"
+    ].join("\n");
+    const sinComentario = [
+      "function suma(a: number, b: number) {",
+      "  return a + b;",
+      "}"
+    ].join("\n");
+
+    const uno = parser.parse(conComentario, "src/a.ts").symbols?.[0];
+    const otro = parser.parse(sinComentario, "src/a.ts").symbols?.[0];
+
+    expect(uno?.hash).toBe(otro?.hash);
+  });
+
+  it("el hash del cuerpo cambia cuando cambia el código", () => {
+    const uno = parser.parse("function suma(a: number) { return a; }", "src/a.ts")
+      .symbols?.[0];
+    const otro = parser.parse("function suma(a: number) { return a + 1; }", "src/a.ts")
+      .symbols?.[0];
+
+    expect(uno?.hash).not.toBe(otro?.hash);
+  });
+
+  it("el hash sobrevive a un cambio de nombre y de sitio", () => {
+    const antes = parser.parse("function suma(a: number) { return a; }", "src/a.ts")
+      .symbols?.[0];
+    const despues = parser
+      .parse("function sumar(a: number) { return a; }", "src/b.ts")
+      .symbols?.[0];
+
+    // Mismo cuerpo, distinta identidad: el hash es el del cuerpo ✓.
+    expect(despues?.hash).toBe(antes?.hash);
+    expect(despues?.name).not.toBe(antes?.name);
+  });
 });

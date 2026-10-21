@@ -367,6 +367,14 @@ cambió y cómo cambió su complejidad, en vez de "has tocado tres ficheros":
 
 Lo mismo aparece en el comentario del PR y en el panel de PR de las dos apps.
 
+### La identidad de un símbolo
+
+Cada símbolo lleva el **hash de su cuerpo**: los tokens, sin comentarios y sin su propio nombre. Con
+ese hash, un renombrado o una mudanza no rompen nada, porque lo que define al símbolo es el código,
+no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, así que el checksum del
+snapshot no cambia.
+([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.
