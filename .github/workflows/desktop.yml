@@ -41,10 +41,17 @@ jobs:
         working-directory: apps/desktop
         run: npx electron-builder --publish never
 
+      # Solo los instaladores: la carpeta "unpacked" lleva los binarios
+      # sueltos y GitHub limita las peticiones al subir assets.
       - uses: actions/upload-artifact@v7
         with:
           name: codarch-desktop-${{ matrix.os }}
-          path: apps/desktop/release/**
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.blockmap
           if-no-files-found: error
 
   release:

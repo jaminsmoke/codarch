@@ -1357,6 +1357,8 @@ async function fetchJson(url: string): Promise<unknown | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) return null;
+    // El servidor responde 204 cuando no hay reporte que enseñar.
+    if (response.status === 204) return null;
     return (await response.json()) as unknown;
   } catch {
     return null;

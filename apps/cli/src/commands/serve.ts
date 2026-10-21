@@ -264,7 +264,13 @@ export function runServe(options: ServeOptions): number {
       if (pathname === "/data/report.json") {
         const report = readReport(state.root);
         if (report === null) {
-          sendError(response, 404, "no hay .codarch/report.json");
+          // No hay reporte: es normal en un repo sin histórico. Un 204 no
+          // ensucia la consola del navegador como sí lo hace un 404.
+          response.writeHead(204, {
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff"
+          });
+          response.end();
           return;
         }
         sendJson(response, report);
