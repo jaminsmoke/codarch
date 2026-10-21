@@ -138,13 +138,26 @@ Dos fallos que llevaban desde siempre ✓ y que solo se veían al mirar la panta
 
 **Hecho** ✓: los nombres se leen ✓ ("App.tsx" ✓, "PrPanel.tsx" ✓, "APPS" ✓) ✓.
 
-### 4.7 El 3D: las cajas no tienen etiqueta ✗
+### 4.7 El nombre de los bloques (hecho)
+
+Los nombres se salían de su bloque ✗ (p pisaban al de al lado ✗) y en los bloques pequeños no
+cabían ✗. Ahora hay un módulo puro (`apps/web/src/labels.ts` ✓) que decide ✓:
+
+1. **Horizontal**, con el tamaño que cabe en la altura ✓.
+2. **Vertical** (girado 90° ✓), si en horizontal no cabe ✓: en un bloque alto y estrecho ✓ el texto
+   girado sí cabe ✓.
+3. **Nada**, si tampoco cabe ✓. Y si hay que recortar ✓, se quita la extensión ✓ ("App" se entiende ✓,
+   "App.tsx" no cabe ✓).
+
+El tamaño va de 4 a 11 px ✓ según el bloque ✓: en uno pequeño es un borrón ✓ que con el zoom se lee ✓.
+
+### 4.8 El 3D: las cajas no tienen etiqueta ✗
 
 Con 200 cajas no se sabe cuál es cuál ✓.
 
 **Veredicto** ✓: en la guía del plugin ✓ ✓.
 
-### 4.8 Las reglas del plugin no llegan al MCP ✗
+### 4.9 Las reglas del plugin no llegan al MCP ✗
 
 Un plugin puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero el MCP ✓ no las ve ✗
 porque lee el snapshot ✓ y las reglas viven en la configuración ✓.

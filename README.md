@@ -377,6 +377,12 @@ snapshot no cambia.
 
 ### Los nombres de los bloques
 
+Cada bloque enseña su nombre **si cabe** ✓: en horizontal ✓, girado cuando el bloque es alto y
+estrecho ✓, y con el tamaño que le toque ✓ (en uno pequeño es un borrón ✓ que con el zoom se lee ✓).
+Con el botón derecho apretado, el mapa se mueve ✓.
+
+### Los nombres de los bloques
+
 El mapa puede enseñar el nombre de cada bloque aunque no quepa entero ✓ (se recorta ✓), para leerlo de
 un vistazo ✓: qué módulo es cada trozo ✓. Es un interruptor en **Ajustes → Vista** ✓ y también viaja
 en el enlace ✓ (`labels=1` ✓).

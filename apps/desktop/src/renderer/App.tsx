@@ -44,6 +44,7 @@ import {
 } from "@codarch/render/browser";
 import Settings from "./Settings";
 import { usePlugins } from "./plugins";
+import { fitLabel } from "./labels";
 import type { PluginContext } from "@codarch/plugin-api";
 import PrPanel from "./PrPanel";
 import {
@@ -215,6 +216,22 @@ export default function App() {
   );
 
   /** Volver a ver el mapa entero. */
+  /** Mover el mapa, en fracciones de su tamaño. */
+  const panMap = useCallback(
+    (dx: number, dy: number) => {
+      setCenter((current) => {
+        // Sin zoom no hay nada escondido que enseñar.
+        const hidden = 1 - 1 / zoom;
+        if (hidden <= 0.001) return current;
+        return {
+          x: Math.min(1, Math.max(0, current.x - dx / hidden)),
+          y: Math.min(1, Math.max(0, current.y - dy / hidden))
+        };
+      });
+    },
+    [zoom]
+  );
+
   const fitMap = useCallback(() => {
     setZoom(1);
     setCenter({ x: 0.5, y: 0.5 });
@@ -911,6 +928,7 @@ export default function App() {
                   center={center}
                   onZoomAt={zoomAt}
                   showLabels={showLabels}
+                  onPan={panMap}
                 />
               )
             ) : (
@@ -948,6 +966,9 @@ export default function App() {
               >
                 Ajustar
               </button>
+              <span className="map-controls-hint" title="Con el botón derecho apretado, arrastra para mover el mapa">
+                botón derecho: mover
+              </span>
             </div>
             <span>
               {view.model
@@ -1458,7 +1479,8 @@ function MapCanvas({
   zoom,
   center,
   onZoomAt,
-  showLabels
+  showLabels,
+  onPan
 }: {
   model: RenderModel;
   roots: TreeNode[];
@@ -1476,6 +1498,8 @@ function MapCanvas({
   onZoomAt: (factor: number, at?: { x: number; y: number }) => void;
   /** Si los bloques muestran su nombre aunque no quepa entero. */
   showLabels: boolean;
+  /** Mover el mapa, en fracciones de su tamaño. */
+  onPan: (dx: number, dy: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
@@ -1485,6 +1509,9 @@ function MapCanvas({
    * La distribución no cambia (sigue siendo la del marco): lo que cambia es
    * el rectángulo visible. Así el mapa se puede acercar sin recalcular nada.
    */
+  // El pan: con el botón derecho apretado.
+  const panRef = useRef<{ x: number; y: number } | null>(null);
+
   const viewBox = useMemo(() => {
     const width = size.width / zoom;
     const height = size.height / zoom;
@@ -1633,19 +1660,12 @@ function MapCanvas({
       const fill = fillFor(file);
       const selected = selectedIndex === file.index;
       const matched = query === "" || file.path.toLowerCase().includes(query);
-      // Con los nombres puestos, se muestran aunque el bloque sea pequeño.
-      // Si el nombre entero no cabe, se quita la extensión: "App" se entiende,
-      // "App.…" no dice nada.
-      const capacity = Math.max(3, Math.floor((rect.w - 8) / 6.1));
-      const fits = showLabels ? rect.w > 24 && rect.h > 9 : rect.w > 38 && rect.h > 14;
-      const withoutExtension = file.name.replace(/\.[^.]+$/, "");
-      const label = !fits
-        ? ""
-        : file.name.length <= capacity
-          ? file.name
-          : withoutExtension.length <= capacity
-            ? withoutExtension
-            : truncate(file.name, capacity);
+      // El nombre se ajusta al bloque: entra entero o no se dibuja.
+      // En un bloque alto y estrecho va girado, y en uno pequeño se encoge
+      // (con el zoom se lee).
+      const fitted = showLabels
+        ? fitLabel(file.name, { width: rect.w, height: rect.h })
+        : null;
       const migrationNode = migration?.nodes[file.nodeId];
       // El tooltip solo en las celdas con área legible: en un mapa grande cada
       // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
@@ -1685,21 +1705,47 @@ function MapCanvas({
               </title>
             ) : null}
           </rect>
-          {label ? (
-            <text
-              x={rect.x + 5}
-              y={rect.y + 13}
-              fill={inkFor(fill)}
-              fontSize={10.5}
-              fontFamily="IBM Plex Sans, system-ui, sans-serif"
-              pointerEvents="none"
-            >
-              {label}
-            </text>
+          {fitted ? (
+            fitted.rotate ? (
+              <text
+                x={rect.x + rect.h / 2}
+                y={rect.y + rect.w / 2}
+                fill={inkFor(fill)}
+                fontSize={fitted.size}
+                fontFamily="IBM Plex Sans, system-ui, sans-serif"
+                textAnchor="middle"
+                transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
+                pointerEvents="none"
+              >
+                {fitted.text}
+              </text>
+            ) : (
+              <text
+                x={rect.x + 4}
+                y={rect.y + fitted.size + 3}
+                fill={inkFor(fill)}
+                fontSize={fitted.size}
+                fontFamily="IBM Plex Sans, system-ui, sans-serif"
+                pointerEvents="none"
+              >
+                {fitted.text}
+              </text>
+            )
           ) : null}
         </g>
       );
     }
+
+    // El nombre de la carpeta también se ajusta a su bloque.
+    const folderLabel =
+      placedNode.headerHeight > 0 || showLabels
+        ? fitLabel(node.name.toUpperCase(), {
+          width: rect.w,
+          height: rect.h,
+          maxSize: 9,
+          charWidth: 0.68
+        })
+        : null;
 
     return (
       <g key={node.key}>
@@ -1722,18 +1768,34 @@ function MapCanvas({
             onFocusFolder(node.path);
           }}
         />
-        {(placedNode.headerHeight > 0 || showLabels) && rect.w > 22 ? (
-          <text
-            x={rect.x + 4}
-            y={rect.y + 11.5}
-            fill="rgba(18,26,32,.58)"
-            fontSize={9}
-            letterSpacing=".08em"
-            fontFamily="IBM Plex Mono, ui-monospace, monospace"
-            pointerEvents="none"
-          >
-            {truncate(node.name.toUpperCase(), Math.floor((rect.w - 8) / 5.6))}
-          </text>
+        {folderLabel ? (
+          folderLabel.rotate ? (
+            <text
+              x={rect.x + rect.h / 2}
+              y={rect.y + rect.w / 2}
+              fill="rgba(18,26,32,.58)"
+              fontSize={folderLabel.size}
+              letterSpacing=".08em"
+              fontFamily="IBM Plex Mono, ui-monospace, monospace"
+              textAnchor="middle"
+              transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
+              pointerEvents="none"
+            >
+              {folderLabel.text}
+            </text>
+          ) : (
+            <text
+              x={rect.x + 4}
+              y={rect.y + folderLabel.size + 3}
+              fill="rgba(18,26,32,.58)"
+              fontSize={folderLabel.size}
+              letterSpacing=".08em"
+              fontFamily="IBM Plex Mono, ui-monospace, monospace"
+              pointerEvents="none"
+            >
+              {folderLabel.text}
+            </text>
+          )
         ) : null}
         {placedNode.headerHeight > 0 && rect.w > 34 ? (
           <rect
@@ -1771,6 +1833,28 @@ function MapCanvas({
         role="group"
         aria-label={`Mapa de arquitectura de ${model.meta.project}`}
         onKeyDown={onKeyDown}
+        onContextMenu={(event) => event.preventDefault()}
+        onPointerDown={(event) => {
+          if (event.button !== 2) return;
+          event.preventDefault();
+          panRef.current = { x: event.clientX, y: event.clientY };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const start = panRef.current;
+          if (!start) return;
+          const dx = (event.clientX - start.x) / (event.currentTarget.clientWidth || 1);
+          const dy = (event.clientY - start.y) / (event.currentTarget.clientHeight || 1);
+          start.x = event.clientX;
+          start.y = event.clientY;
+          onPan(dx, dy);
+        }}
+        onPointerUp={(event) => {
+          panRef.current = null;
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+        }}
         onWheel={(event) => {
           // La rueda acerca el mapa (la página ya no scrollea).
           event.preventDefault();
@@ -2006,9 +2090,3 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function truncate(value: string, max: number): string {
-  if (max <= 0) return "";
-  if (value.length <= max) return value;
-  if (max === 1) return "…";
-  return `${value.slice(0, max - 1)}…`;
-}

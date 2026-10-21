@@ -1157,6 +1157,13 @@ button {
   cursor: not-allowed;
 }
 
+.map-controls-hint {
+  padding: 0 9px;
+  font: 400 10px/1 var(--sans);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .map-zoom-level {
   min-width: 40px;
   text-align: center;
