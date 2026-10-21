@@ -485,6 +485,17 @@ export default function App() {
         setTab: (tab: "file" | "pr") => setTab(tab)
       },
       preferences: { areaMetric, colorMode },
+      colorFor: (index: number) => {
+        const file = view.model?.files[index];
+        if (!file || !view.model) return "#d5d2ca";
+        return mapColorFor(
+          file,
+          colorMode,
+          view.model,
+          migration,
+          metricIndexOf(view.model)
+        );
+      },
       url: {
         read: () => ({
           areaMetric,
@@ -978,6 +989,11 @@ function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {
 }
 
 /** El almacenamiento local, si el navegador lo deja. */
+/** El índice de las métricas por clave ✓. */
+function metricIndexOf(model: RenderModel): Map<string, number> {
+  return new Map(model.metrics.map((metric, index) => [metric.key, index]));
+}
+
 function readStorage(): Storage | null {
   try {
     return typeof window === "undefined" ? null : window.localStorage;
@@ -1489,30 +1505,8 @@ function MapCanvas({
     [model.metrics]
   );
 
-  const fillFor = (file: RenderFile): string => {
-    if (colorMode === "status") {
-      const status = migration?.nodes[file.nodeId]?.status ?? "js";
-      return STATUS_COLOR[status];
-    }
-    if (colorMode === "structure") {
-      const section = model.sections[file.section];
-      return section ? sectionColor(section) : "#d5d2ca";
-    }
-    if (colorMode === "churn") {
-      // El calor: cuántas veces se ha tocado el fichero.
-      const index = metricIndex.get(CHURN_METRIC);
-      if (index === undefined) return riskColor(file.risk);
-      const metric = model.metrics[index];
-      if (!metric) return riskColor(file.risk);
-      return metricColor(file.values[index] ?? null, metric);
-    }
-    if (colorMode === "risk") return riskColor(file.risk);
-    const index = metricIndex.get(colorMode);
-    if (index === undefined) return riskColor(file.risk);
-    const metric = model.metrics[index];
-    if (!metric) return riskColor(file.risk);
-    return metricColor(file.values[index] ?? null, metric);
-  };
+  const fillFor = (file: RenderFile): string =>
+    mapColorFor(file, colorMode, model, migration, metricIndex);
 
   const renderNode = (placedNode: PlacedNode): ReactNode => {
     const { node, rect } = placedNode;
@@ -1666,6 +1660,42 @@ function MapCanvas({
       </svg>
     </div>
   );
+}
+
+/**
+ * El color de un fichero, el mismo que en el mapa ✓.
+ *
+ * Vive aquí para que los plugins dibujen **lo mismo** que el mapa ✓ (ADR 0028 ✓).
+ */
+function mapColorFor(
+  file: RenderFile,
+  colorMode: string,
+  model: RenderModel,
+  migration: CcMigrationLens | null,
+  metricIndex: Map<string, number>
+): string {
+  if (colorMode === "status") {
+    const status = migration?.nodes[file.nodeId]?.status ?? "js";
+    return STATUS_COLOR[status];
+  }
+  if (colorMode === "structure") {
+    const section = model.sections[file.section];
+    return section ? sectionColor(section) : "#d5d2ca";
+  }
+  if (colorMode === "churn") {
+    // El calor: cuántas veces se ha tocado el fichero.
+    const index = metricIndex.get(CHURN_METRIC);
+    if (index === undefined) return riskColor(file.risk);
+    const metric = model.metrics[index];
+    if (!metric) return riskColor(file.risk);
+    return metricColor(file.values[index] ?? null, metric);
+  }
+  if (colorMode === "risk") return riskColor(file.risk);
+  const index = metricIndex.get(colorMode);
+  if (index === undefined) return riskColor(file.risk);
+  const metric = model.metrics[index];
+  if (!metric) return riskColor(file.risk);
+  return metricColor(file.values[index] ?? null, metric);
 }
 
 function Inspector({

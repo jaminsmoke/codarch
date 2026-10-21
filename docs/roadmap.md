@@ -329,11 +329,16 @@ Decisión en [ADR 0028](docs/adr/0028-los-plugins.md).
 
 ## M15 — La vista 3D
 
-**Estado:** pendiente. El primer plugin, y la prueba de que el sistema sirve.
+**Estado:** cerrada. El primer plugin, y la prueba de que el sistema sirve.
 
-- [ ] Una pestaña nueva en el mapa central, que cambia solo el mapa (las barras siguen igual).
-- [ ] Three.js cargado bajo demanda, con el mapa 2D intacto.
-- [ ] El plugin declara sus requisitos (WebGL2, GPU) y la app los comprueba.
+- [x] Una pestaña nueva en el mapa central, que cambia solo el mapa (las barras siguen igual ✓).
+- [x] Three.js cargado bajo demanda ✓: el plugin va en su propio chunk ✓ (495 KB ✓) y el bundle
+  principal no crece ✓.
+- [x] El plugin declara sus requisitos (WebGL2 ✓, GPU ✓) y la app los comprueba ✓.
+- [x] Orbitar y zoom con el ratón ✓; al pulsar una caja se selecciona el fichero ✓.
+- [x] **Su propia hoja de ruta** (`plugins/vista-3d/ROADMAP.md` ✓): el octree y el nivel de
+  detalle para los repositorios grandes ✓, las carpetas como contenedores ✓ y las etiquetas ✓.
+  Empezar por el `RenderModel` tal cual ✓ y migrar después ✓.
 
 ## Después
 

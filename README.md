@@ -375,6 +375,18 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### La vista 3D
+
+El primer plugin ✓: el mapa en tres dimensiones ✓. Cada fichero es una caja ✓ —la base es su
+rectángulo del treemap ✓ y la altura su riesgo ✓— y el color es el del mapa ✓. Se orbita con el
+ratón ✓ y al pulsar una caja se selecciona el fichero ✓.
+
+Va en **su propio chunk** ✓ (495 KB ✓), así que el bundle principal no crece ✓ y solo se descarga si
+alguien abre la vista ✓. Necesita WebGL2 ✓: si no lo hay, el store lo dice ✓.
+
+Su hoja de ruta propia (el octree ✓, el nivel de detalle ✓, las carpetas como contenedores ✓) está
+en `plugins/vista-3d/ROADMAP.md` ✓.
+
 ### Los plugins
 
 Un plugin es una pieza **del repo** ✓, en `plugins/` ✓, que se activa desde los ajustes ✓ y que

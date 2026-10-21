@@ -31,3 +31,4 @@ rules:
 # Los plugins que entran en el bundle (ADR 0028).
 plugins:
   - ejemplo
+  - vista-3d

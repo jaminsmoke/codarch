@@ -1,0 +1,14 @@
+{
+  "name": "vista-3d",
+  "version": "0.1.0",
+  "title": "Vista 3D",
+  "description": "El mapa en tres dimensiones: cada fichero es una caja y la altura dice cuánto pesa.",
+  "icon": "cube",
+  "contributes": {
+    "views": ["vista-3d"]
+  },
+  "requires": {
+    "webgl2": true,
+    "gpu": true
+  }
+}

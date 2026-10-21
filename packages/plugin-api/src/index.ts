@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { RenderModel } from "@codarch/render";
+import type { RenderModel } from "@codarch/render/browser";
 
 /**
  * El contrato entre CodArch y sus plugins.
@@ -91,6 +91,13 @@ export interface PluginContext {
   actions: PluginActions;
   /** Las preferencias de la vista. */
   preferences: PluginPreferences;
+  /**
+   * El color de un fichero, el mismo que en el mapa ✓.
+   *
+   * Para que un plugin dibuje **lo mismo** que el mapa ✓: el color depende
+   * del modo de color de la app ✓ y ese criterio es de la app ✓.
+   */
+  colorFor(fileIndex: number): string;
   /** El estado de la URL. */
   url: PluginUrl;
   /** El almacenamiento local, si lo hay. */
