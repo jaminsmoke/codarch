@@ -102,7 +102,27 @@ Salida de `analyze` sobre el fixture de test con `--no-git`:
 
 El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
 entrantes/salientes y tres lentes: estructura, riesgo y métrica. El riesgo se calcula en
-`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta churn ocomplejidad, los pesos se renormalizan.
+`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta
+churn o complejidad, los pesos se renormalizan.
+
+### La historia del repositorio
+
+`codarch analyze --history` guarda la foto en `.codarch-history/`, en la raíz del repo, y
+`codarch history` lista la línea del tiempo:
+
+```
+.codarch-history/
+├── index.json                      # la línea del tiempo: fecha, checksum, recuentos
+└── 2026-10-21T14-54-09-296-0dca58ac.cc.json
+```
+
+El historial vive **fuera** de `.codarch/` a propósito: ahí están los artefactos locales (ignorados
+por git) y la historia es justo lo que un equipo quiere compartir. El snapshot sigue siendo
+determinista: la fecha va en el índice, nunca dentro del snapshot.
+
+La lente de calor (cuántos commits ha tenido cada fichero) sale del churn que ya se analiza, así que no
+cuesta nada: el mapa la puede colorear y el panel lateral lista los ficheros más tocados.
+([ADR 0024](docs/adr/0024-evolucion-temporal.md))
 
 ### Diff entre commits
 
