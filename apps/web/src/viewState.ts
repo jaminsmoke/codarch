@@ -3,11 +3,12 @@
  *
  * La app web se puede abrir en tres sitios: la demo, un fichero local o el
  * servidor local. En los tres casos la URL puede llevar el estado de la vista
- * (área, color, carpeta enfocada, fichero seleccionado, pestaña) y las
- * direcciones de los artefactos que se cargan por URL.
+ * (área, color, carpeta enfocada, fichero seleccionado, pestaña, símbolo) y
+ * las direcciones de los artefactos que se cargan por URL.
  *
  * Las claves son cortas y estables porque la URL se comparte y se pega en
- * tickets: `area`, `color`, `focus`, `file`, `tab`, `src` y `report`.
+ * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y
+ * `report`.
  */
 
 export interface ViewState {
@@ -21,6 +22,8 @@ export interface ViewState {
   filePath: string | null;
   /** Pestaña del panel derecho. */
   tab: "file" | "pr" | null;
+  /** El símbolo abierto: el nombre de la función, la clase o el tipo. */
+  symbolName: string | null;
 }
 
 export interface SourceRequest {
@@ -30,7 +33,7 @@ export interface SourceRequest {
   reportUrl: string | null;
 }
 
-const VIEW_KEYS = ["area", "color", "focus", "file", "tab"] as const;
+const VIEW_KEYS = ["area", "color", "focus", "file", "tab", "symbol"] as const;
 const SOURCE_KEYS = ["src", "report"] as const;
 
 export const EMPTY_VIEW_STATE: ViewState = {
@@ -38,7 +41,8 @@ export const EMPTY_VIEW_STATE: ViewState = {
   colorMode: null,
   focusPath: null,
   filePath: null,
-  tab: null
+  tab: null,
+  symbolName: null
 };
 
 export const EMPTY_SOURCE_REQUEST: SourceRequest = {
@@ -62,7 +66,8 @@ export function parseViewState(search: string): ViewState {
     colorMode: readParam(params, "color"),
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
-    tab: tab === "file" || tab === "pr" ? tab : null
+    tab: tab === "file" || tab === "pr" ? tab : null,
+    symbolName: readParam(params, "symbol")
   };
 }
 
@@ -96,6 +101,7 @@ export function buildSearch(
   if (state.focusPath) entries.push(["focus", state.focusPath]);
   if (state.filePath) entries.push(["file", state.filePath]);
   if (state.tab) entries.push(["tab", state.tab]);
+  if (state.symbolName) entries.push(["symbol", state.symbolName]);
   if (source.snapshotUrl) entries.push(["src", source.snapshotUrl]);
   if (source.reportUrl) entries.push(["report", source.reportUrl]);
 

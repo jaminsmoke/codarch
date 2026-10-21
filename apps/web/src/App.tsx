@@ -536,8 +536,12 @@ export default function App() {
       if (index >= 0) selectIndex(index);
     }
     if (wanted.tab) setTab(wanted.tab);
+    // El símbolo se abre después, cuando ya se puede pedir su cadena.
+    if (wanted.symbolName) {
+      void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
+    }
     setUrlApplied(true);
-  }, [urlApplied, view.model, stats, migration, selectIndex]);
+  }, [urlApplied, view.model, stats, migration, selectIndex, openSymbolChain]);
 
   // La URL refleja la vista actual: el enlace se puede compartir tal cual.
   useEffect(() => {
@@ -549,7 +553,8 @@ export default function App() {
         colorMode,
         focusPath,
         filePath: file?.path ?? null,
-        tab
+        tab,
+        symbolName: chain?.name ?? null
       },
       { snapshotUrl: sourceUrl, reportUrl }
     );
@@ -559,7 +564,7 @@ export default function App() {
       "",
       `${window.location.pathname}${search}${window.location.hash}`
     );
-  }, [urlApplied, view.model, areaMetric, colorMode, focusPath, selectedIndex, tab, sourceUrl, reportUrl]);
+  }, [urlApplied, view.model, areaMetric, colorMode, focusPath, selectedIndex, tab, chain, sourceUrl, reportUrl]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

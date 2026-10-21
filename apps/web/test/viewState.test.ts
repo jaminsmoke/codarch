@@ -12,7 +12,8 @@ const view: ViewState = {
   colorMode: "risk",
   focusPath: "src/app",
   filePath: "src/app/main.ts",
-  tab: "pr"
+  tab: "pr",
+  symbolName: null
 };
 
 const source: SourceRequest = {
@@ -37,7 +38,8 @@ describe("estado de vista en la URL", () => {
       colorMode: null,
       focusPath: null,
       filePath: null,
-      tab: null
+      tab: null,
+      symbolName: null
     });
   });
 
@@ -76,12 +78,22 @@ describe("estado de vista en la URL", () => {
         colorMode: null,
         focusPath: null,
         filePath: null,
-        tab: null
+        tab: null,
+        symbolName: null
       },
       { snapshotUrl: null, reportUrl: null },
       "?area=rloc&color=risk&file=src/app/main.ts"
     );
     expect(search).toBe("");
+  });
+
+  it("lleva el símbolo abierto en la URL", () => {
+    const search = buildSearch(
+      { ...view, symbolName: "parseDiff" },
+      source
+    );
+    expect(search).toContain("symbol=parseDiff");
+    expect(parseViewState(search).symbolName).toBe("parseDiff");
   });
 
   it("hace ida y vuelta con el estado de vista", () => {
