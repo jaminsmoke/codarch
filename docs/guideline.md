@@ -112,13 +112,26 @@ comparación ✓.
 
 **Veredicto** ✓: arreglo ✓ o nada ✓. No es urgente ✓: la línea del tiempo ya da el contexto ✓.
 
-### 4.5 El 3D: las cajas no tienen etiqueta ✗
+### 4.5 El layout: el mapa crecía la página (hecho)
+
+El `.map-frame` no tenía altura acotada ✗ → el SVG crecía con su propia relación de aspecto ✗ →
+la página entera scrollea ✗ y el raíl, que tenía `overflow: auto` ✓, nunca scrolleaba ✓.
+
+**Hecho** ✓: en la anchura ancha ✓ la app ocupa la pantalla ✓ (`100dvh` ✓), el raíl y el inspector
+scrollean solos ✓ y el mapa se ajusta a lo que queda ✓. En la anchura estrecha ✓ (donde el inspector
+se apila ✓) el mapa ocupa la pantalla ✓ y la página scrollea solo para el inspector ✓.
+
+Y con eso, el **zoom** ✓: botones `+` ✓, `−` ✓ y `Ajustar` ✓, más la rueda ✓ (que acerca
+centrado en el puntero ✓). La distribución del mapa **no** cambia ✓: lo que cambia es el rectángulo
+visible ✓, así que acercar es gratis ✓.
+
+### 4.6 El 3D: las cajas no tienen etiqueta ✗
 
 Con 200 cajas no se sabe cuál es cuál ✓.
 
 **Veredicto** ✓: en la guía del plugin ✓ ✓.
 
-### 4.6 Las reglas del plugin no llegan al MCP ✗
+### 4.7 Las reglas del plugin no llegan al MCP ✗
 
 Un plugin puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero el MCP ✓ no las ve ✗
 porque lee el snapshot ✓ y las reglas viven en la configuración ✓.

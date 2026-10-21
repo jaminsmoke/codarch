@@ -375,6 +375,12 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### El mapa se ajusta a la pantalla
+
+La app ocupa la ventana ✓: el raíl y el inspector scrollean solos ✓ y el mapa se ajusta a lo que
+queda ✓ (nada crece la página ✓). El mapa se acerca con `+` ✓, `−` ✓, `Ajustar` ✓ o la rueda ✓
+— la distribución no se recalcula ✓, solo el rectángulo visible ✓, así que acercar es gratis ✓.
+
 ### La vista 3D
 
 El primer plugin ✓: el mapa en tres dimensiones ✓. Cada fichero es una caja ✓ —la base es su

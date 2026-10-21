@@ -1196,6 +1196,23 @@ export default function App() {
           </span>
         </div>
         <div className="topbar-actions">
+          {serverMode === "live" || serverMode === "served" ? (
+            <button
+              className={`button ghost live-toggle${
+                serverMode === "live" ? " is-live" : ""
+              }`}
+              type="button"
+              onClick={() => void toggleWatch()}
+              title={
+                serverMode === "live"
+                  ? "El servidor reanaliza al guardar. Pulsa para detenerlo."
+                  : "El servidor no reanaliza solo. Pulsa para activarlo."
+              }
+            >
+              <i />
+              {serverMode === "live" ? "Live" : "Servido"}
+            </button>
+          ) : null}
           <button className="button ghost" type="button" onClick={reloadDemo}>
             Demo
           </button>
@@ -1206,6 +1223,24 @@ export default function App() {
             title="Copia el enlace de la vista actual (área, color, carpeta y fichero)"
           >
             {copied ? "Copiado" : "Copiar enlace"}
+          </button>
+          <button
+            className="button ghost icon-button"
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            title="Ajustes"
+            aria-label="Ajustes"
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8 5.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm0 1.6a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"
+              />
+              <path
+                fill="currentColor"
+                d="M6.6.9h2.8l.3 1.6c.4.1.8.3 1.1.5l1.4-.9 2 2-.9 1.4c.2.4.4.7.5 1.1l1.6.3v2.8l-1.6.3c-.1.4-.3.8-.5 1.1l.9 1.4-2 2-1.4-.9c-.4.2-.7.4-1.1.5l-.3 1.6H6.6l-.3-1.6c-.4-.1-.8-.3-1.1-.5l-1.4.9-2-2 .9-1.4c-.2-.4-.4-.7-.5-1.1l-1.6-.3V6.9l1.6-.3c.1-.4.3-.8.5-1.1l-.9-1.4 2-2 1.4.9c.3-.2.7-.4 1.1-.5L6.6.9Z"
+              />
+            </svg>
           </button>
           <details className="open-menu" ref={openMenuRef}>
             <summary className="button">
@@ -1303,16 +1338,6 @@ export default function App() {
 
       <div className="shell">
         <aside className="rail">
-          <button
-            type="button"
-            className="rail-settings"
-            onClick={() => setSettingsOpen(true)}
-            title="Ajustes"
-            aria-label="Ajustes"
-          >
-            ⚙
-          </button>
-
           <section className="panel-block">
             <div className="eyebrow">Vista</div>
             <label className="field">
@@ -1371,29 +1396,6 @@ export default function App() {
               </div>
             ) : null}
           </section>
-
-          {serverMode === "live" || serverMode === "served" ? (
-            <section className="panel-block">
-              <div className="eyebrow">Servidor local</div>
-              <div className="live-row">
-                <span className={`mono live-state${serverMode === "live" ? " is-live" : ""}`}>
-                  {serverMode === "live" ? "live" : "servido"}
-                </span>
-                <button
-                  className="button dark small"
-                  type="button"
-                  onClick={() => void toggleWatch()}
-                >
-                  {serverMode === "live" ? "Detener live" : "Activar live"}
-                </button>
-              </div>
-              <p className="muted tiny">
-                {serverMode === "live"
-                  ? "Reanaliza al guardar y refresca por SSE."
-                  : "Análisis inicial; sin refresco automático."}
-              </p>
-            </section>
-          ) : null}
 
           <LanguageSample model={view.model} migration={migration} />
 
@@ -2134,6 +2136,54 @@ function MapCanvas({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
+  /**
+   * El zoom del mapa ✓.
+   *
+   * La distribución no cambia ✓ (sigue siendo la del marco ✓): lo que cambia es
+   * el rectángulo visible ✓. Así el mapa se puede acercar sin recalcular nada ✓.
+   */
+  const [zoom, setZoom] = useState(1);
+  const [center, setCenter] = useState({ x: 0.5, y: 0.5 });
+
+  /** El rectángulo visible, en coordenadas del mapa ✓. */
+  const viewBox = useMemo(() => {
+    const width = size.width / zoom;
+    const height = size.height / zoom;
+    return {
+      x: (size.width - width) * center.x,
+      y: (size.height - height) * center.y,
+      width,
+      height
+    };
+  }, [size, zoom, center]);
+
+  /** Acercar o alejar, centrado en un punto (0..1) ✓. */
+  const zoomAt = useCallback(
+    (factor: number, at?: { x: number; y: number }) => {
+      setZoom((current) => {
+        const next = Math.min(8, Math.max(1, current * factor));
+        if (next === current) return current;
+        if (at) {
+          // El punto bajo el cursor se queda quieto ✓.
+          const dx = at.x - center.x;
+          const dy = at.y - center.y;
+          const scale = 1 - next / current;
+          setCenter({
+            x: Math.min(1, Math.max(0, center.x + dx * scale)),
+            y: Math.min(1, Math.max(0, center.y + dy * scale))
+          });
+        }
+        return next;
+      });
+    },
+    [center]
+  );
+
+  /** Volver a ver el mapa entero ✓. */
+  const fitMap = useCallback(() => {
+    setZoom(1);
+    setCenter({ x: 0.5, y: 0.5 });
+  }, []);
   const placed = useMemo(
     () => layoutMap(roots, size.width, size.height),
     [roots, size.width, size.height]
@@ -2389,10 +2439,22 @@ function MapCanvas({
     >
       <svg
         className="map"
-        viewBox={`0 0 ${size.width} ${size.height}`}
+        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
         role="group"
         aria-label={`Mapa de arquitectura de ${model.meta.project}`}
         onKeyDown={onKeyDown}
+        onWheel={(event) => {
+          // La rueda acerca el mapa ✓ (la página ya no scrollea ✓).
+          event.preventDefault();
+          const bounds = event.currentTarget.getBoundingClientRect();
+          zoomAt(
+            event.deltaY < 0 ? 1.12 : 1 / 1.12,
+            {
+              x: (event.clientX - bounds.left) / bounds.width,
+              y: (event.clientY - bounds.top) / bounds.height
+            }
+          );
+        }}
       >
         <defs>
           <pattern id="map-grid" width="48" height="48" patternUnits="userSpaceOnUse">
@@ -2407,6 +2469,35 @@ function MapCanvas({
         <rect width={size.width} height={size.height} fill="url(#map-grid)" />
         {placed.map(renderNode)}
       </svg>
+      <div className="map-zoom">
+        <button
+          type="button"
+          onClick={() => zoomAt(1.25)}
+          disabled={zoom >= 8}
+          title="Acercar"
+          aria-label="Acercar"
+        >
+          +
+        </button>
+        <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
+        <button
+          type="button"
+          onClick={() => zoomAt(1 / 1.25)}
+          disabled={zoom <= 1}
+          title="Alejar"
+          aria-label="Alejar"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={fitMap}
+          disabled={zoom === 1}
+          title="Ver el mapa entero"
+        >
+          Ajustar
+        </button>
+      </div>
     </div>
   );
 }
