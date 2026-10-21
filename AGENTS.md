@@ -9,9 +9,10 @@ modelo, no la fuente de verdad. Implementación clean-room: `cc.json` solo como 
 Monorepo core-first:
 
 ```
-packages/   schema · parsers · metrics · layouts · render
+packages/   schema · parsers · metrics · layouts · render · plugin-api
 apps/       cli · mcp · github-action · web (M5) · desktop (M7)
-docs/       adr/ · model.md · rules.md · mcp.md · migration.md · roadmap.md
+plugins/    vista-3d · ejemplo          # plugins del repo (ADR 0028)
+docs/       adr/ · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline.md
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
 
@@ -23,6 +24,9 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar.
+- El `roadmap.md` tiene las **fases** (M0 a M15 ✓, todas cerradas ✓). Las ideas que no son fase
+  viven en `docs/guideline.md` ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓ o
+  esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
 ## Comandos
 

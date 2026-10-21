@@ -280,7 +280,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
   fichero. El reporte dice "has cambiado `parseDiff`: complejidad +6", no "has tocado `parse.ts`".
   Sección nueva en el reporte → `schemaVersion` `1.3`. La CLI, el comentario del PR y el panel de
   PR de las dos apps lo enseñan ✓.
-- [ ] **M12.2** La cadena del símbolo: la identidad que sobrevive al renombrado y a la mudanza. El
+- [x] **M12.2** La cadena del símbolo: la identidad que sobrevive al renombrado y a la mudanza. El
   hash del cuerpo es la identidad; cada versión lleva dentro el hash de la anterior, así que la
   cadena es reproducible desde el historial. La CLI responde `codarch chain <símbolo>`.
   - [x] El **hash del cuerpo** en la lente: los tokens, sin comentarios y sin el nombre propio, así
@@ -290,7 +290,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
     `.codarch/chains.json`: es **derivado**, así que se regenera cuando las fotos cambian ✓.
   - [x] La CLI responde `codarch chain <símbolo>`: la vida de un símbolo, con sus versiones y lo que
     pasó en cada una ✓.
-- [ ] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
+- [x] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
   símbolo (cuántas veces se ha reescrito cada función) como señal de deuda de refactorización.
 
 ## M13 — Los ajustes
@@ -342,19 +342,10 @@ Decisión en [ADR 0028](docs/adr/0028-los-plugins.md).
 
 ## Después
 
-Cada idea sigue aquí, con los pasos que le faltan delante. Nada se cae: lo que cambia es que ahora
-se ve el camino para llegar.
+Las ideas que todavía **no son fase** viven en [la guía](guideline.md): cada una dice qué es, qué
+falta y si merece fase, ADR o solo un arreglo.
 
-### Después de los símbolos
+Ahí están el registro público de plugins, las lentes de los plugins, la vista 3D a fondo
+(`plugins/vista-3d/ROADMAP.md`) y la lista de **mejoras de lo que ya hay**.
 
-La lente de símbolos está hecha (M11 ✓) y su diff y su cadena son M12 ✓.
-
-Lo que sigue, cuando las fases anteriores estén hechas:
-
-- **Un registro de plugins** (ADR 0028 ✓): hoy los plugins son del repo ✓; un catálogo público
-  necesita firma ✓ y una política de versiones ✓.
-- **Lentes de plugins en el modelo**: si un plugin puede añadir una lente ✓, el checksum del snapshot
-  depende de lo instalado ✓. Es posible ✓, pero hay que decidir cómo se declara ✓.
-- **El resto de lo que se quedó fuera de la v1**: el 3D ya tiene fase ✓ (M15 ✓).
-
-La lente de dominio y la evolución temporal ya están hechas (M9 y M10) ✓.
+Este roadmap tiene las fases: M0 a M15, todas cerradas.
