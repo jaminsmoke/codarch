@@ -104,6 +104,14 @@ export function compareSnapshots(
   );
   lines.push(
     field(
+      "código",
+      `${signed(report.summary.addedRloc)} rloc añadidos · ${signed(
+        -report.summary.removedRloc
+      )} · ~${signed(report.summary.changedRloc)} en ficheros cambiados`
+    )
+  );
+  lines.push(
+    field(
       "ciclos",
       `${signed(report.summary.introducedCycles)} nuevos · ${signed(
         -report.summary.fixedCycles

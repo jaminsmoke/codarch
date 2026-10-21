@@ -250,6 +250,9 @@ Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
   motor de diff que `codarch diff`, extraído a un módulo compartido.
 - [x] **M10.4** Ver la línea del tiempo en la web y en el escritorio: el servidor expone
   `/data/history.json` y las fotos, y el escritorio lo pide por IPC.
+- [x] El diff dice **cuánto** ha cambiado el código (rloc añadido, eliminado y en ficheros
+  cambiados), no solo cuántos ficheros.
+- [x] El MCP puede preguntar por la historia (`get_history`).
 
 ## Después
 

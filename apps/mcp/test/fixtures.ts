@@ -118,7 +118,10 @@ export function makeReport(): DiffReport {
       cyclicEdgesRemoved: 0,
       introducedCycles: 1,
       fixedCycles: 0,
-      hotspots: 1
+      hotspots: 1,
+      addedRloc: 120,
+      removedRloc: 40,
+      changedRloc: 25
     },
     hotspotMetric: "maxComplexity",
     rules: {

@@ -289,6 +289,7 @@ Herramientas:
 | `list_violations` | ¿Qué reglas se rompen y cuáles son nuevas? |
 | `explain_module` | Dame métricas, aristas, ciclo, diff y violaciones de esta ruta. |
 | `get_migration_plan` | ¿Cuánta deuda de migración queda, dónde y cómo ha cambiado? |
+| `get_history` | ¿Cómo ha cambiado la arquitectura de este repo a lo largo del tiempo? |
 
 Sin reporte, las consultas de cambios y violaciones devuelven `available: false` con un motivo. Las
 rutas son relativas al proyecto; también se aceptan ids. Se rechazan rutas absolutas y `..`. Toda la

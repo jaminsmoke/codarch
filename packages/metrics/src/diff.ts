@@ -137,6 +137,17 @@ export interface DiffSummary {
   introducedCycles: number;
   fixedCycles: number;
   hotspots: number;
+  /**
+   * Líneas de código que han cambiado.
+   *
+   * Los recuentos de ficheros no dicen cuánto ha cambiado el código: añadir
+   * tres funciones a un fichero de mil líneas es un cambio mayor que tocar
+   * veinte ficheros de cinco líneas.
+   */
+  addedRloc: number;
+  removedRloc: number;
+  /** Delta de rloc de los ficheros que cambiaron (con signo). */
+  changedRloc: number;
 }
 
 export interface DiffReport {
@@ -257,7 +268,10 @@ export function diffSnapshots(
       cyclicEdgesRemoved: edgeDiff.cyclicRemoved.length,
       introducedCycles: introducedCycles.length,
       fixedCycles: fixedCycles.length,
-      hotspots: hotspots.length
+      hotspots: hotspots.length,
+      addedRloc: sumRloc(added),
+      removedRloc: sumRloc(removed),
+      changedRloc: changedRloc(changed)
     },
     hotspotMetric,
     rules,
@@ -424,8 +438,26 @@ function relativePath(root: CcNode, fullPath: string, leaf: CcNode): string {
     : fullPath;
 }
 
-function summarize(index: IndexedSnapshot): SnapshotSummary {
-  let folders = 0;
+/** Las líneas de código de un conjunto de ficheros. */
+function sumRloc(files: readonly DiffFile[]): number {
+  let total = 0;
+  for (const file of files) total += file.metrics.rloc ?? 0;
+  return total;
+}
+
+/** El delta de rloc de los ficheros que cambiaron. */
+function changedRloc(files: readonly ChangedFile[]): number {
+  let total = 0;
+  for (const file of files) {
+    for (const change of file.changes) {
+      if (change.metric !== "rloc") continue;
+      total += change.delta ?? 0;
+    }
+  }
+  return total;
+}
+
+function summarize(index: IndexedSnapshot): SnapshotSummary {  let folders = 0;
   walkTree(index.cc.files, (entry) => {
     if (entry.node.type === "Folder" && entry.depth > 0) folders++;
   });

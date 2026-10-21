@@ -4,6 +4,14 @@ import type {
   CcMigrationStatus
 } from "@codarch/schema";
 import {
+  historyFileName,
+  historyLocation,
+  parseHistoryIndex,
+  type HistoryIndex
+} from "@codarch/schema";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import {
   ArchitectureStore,
   McpDataError,
   type StatusViolation,
@@ -426,6 +434,102 @@ export function getMigrationPlan(
             "el reporte no tiene sección de migración; se generó con una versión anterior"
         }
   };
+}
+
+export interface GetHistoryInput {
+  /**
+   * Foto concreta a cargar: un trozo de su fecha o de su checksum.
+   *
+   * Sin esto, la herramienta devuelve solo la línea del tiempo.
+   */
+  snapshot?: string;
+  limit?: number;
+}
+
+export interface GetHistoryEntry {
+  date: string;
+  checksum: string;
+  commit: string;
+  files: number;
+  rloc: number;
+  debt: number;
+  commits: number;
+  authors: number;
+  hottest: Array<{ path: string; commits: number; authors: number }>;
+}
+
+export interface GetHistoryResult {
+  available: boolean;
+  root: string;
+  entries: GetHistoryEntry[];
+  /** La foto pedida, si la hubo. */
+  snapshot?: unknown;
+  reason?: string;
+}
+
+/**
+ * La línea del tiempo del repositorio: las fotos guardadas con
+ * `codarch analyze --history`.
+ */
+export function getHistory(
+  store: ArchitectureStore,
+  input: GetHistoryInput = {}
+): GetHistoryResult {
+  const limit = clampInteger(input.limit, 10, 1, 100);
+  const location = historyLocation(store.root);
+
+  let index: HistoryIndex;
+  try {
+    const raw = readFileSync(location.indexFile, "utf8");
+    index = parseHistoryIndex(JSON.parse(raw) as unknown);
+  } catch {
+    return {
+      available: false,
+      root: store.root,
+      entries: [],
+      reason:
+        "no hay historial en este repositorio; se guarda con codarch analyze --history"
+    };
+  }
+
+  const entries = index.entries.slice(-limit).reverse();
+
+  if (!input.snapshot) {
+    return { available: true, root: store.root, entries };
+  }
+
+  const needle = input.snapshot.trim().toLowerCase();
+  const entry = index.entries.find(
+    (item) =>
+      item.date.toLowerCase().includes(needle) ||
+      item.checksum.toLowerCase().startsWith(needle)
+  );
+  if (!entry) {
+    return {
+      available: true,
+      root: store.root,
+      entries,
+      reason: `no hay ninguna foto con "${input.snapshot}"`
+    };
+  }
+
+  const name = historyFileName(entry);
+  try {
+    const raw = readFileSync(join(location.directory, name), "utf8");
+    return {
+      available: true,
+      root: store.root,
+      entries,
+      snapshot: JSON.parse(raw) as unknown
+    };
+  } catch (cause) {
+    return {
+      available: true,
+      root: store.root,
+      entries,
+      reason: `no se pudo leer la foto: ${(cause as Error).message}`
+    };
+  }
 }
 
 export function findHotspots(

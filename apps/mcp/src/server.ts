@@ -7,6 +7,7 @@ import {
   explainModule,
   findHotspots,
   getArchitectureMap,
+  getHistory,
   getMigrationPlan,
   listViolations
 } from "./tools";
@@ -209,6 +210,30 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => getMigrationPlan(store, args))
+  );
+
+  server.registerTool(
+    "get_history",
+    {
+      title: "Línea del tiempo",
+      description:
+        "La línea del tiempo del repositorio: las fotos de arquitectura guardadas con `codarch analyze --history`, con su fecha, tamaño, calor y los ficheros más tocados. Con `snapshot` devuelve además esa foto.",
+      inputSchema: {
+        snapshot: z
+          .string()
+          .optional()
+          .describe("Foto concreta: un trozo de su fecha o de su checksum"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe("Máximo de entradas (por defecto 10)")
+      },
+      annotations: READ_ONLY
+    },
+    (args) => invoke(() => getHistory(store, args))
   );
 
   return server;

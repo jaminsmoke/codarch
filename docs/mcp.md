@@ -171,6 +171,18 @@ sus cruces) y `changes` (si hay `report.json`: los ficheros cuya deuda ha crecid
 el delta total de deuda). Si el snapshot no tiene la lente de migración, `available` es `false` y lo
 dice.
 
+### `get_history`
+
+La línea del tiempo del repositorio: las fotos guardadas con `codarch analyze --history`.
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `snapshot` | string | — | Foto concreta: un trozo de su fecha o de su checksum |
+| `limit` | 1–100 | 10 | Máximo de entradas |
+
+Sin `snapshot` devuelve la línea del tiempo (fecha, checksum, ficheros, rloc, deuda, calor y los
+ficheros más tocados). Con `snapshot` devuelve además esa foto.
+
 ### `explain_module`
 
 Ficha de un fichero o carpeta:
