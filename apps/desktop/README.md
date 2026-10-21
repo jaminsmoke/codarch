@@ -17,18 +17,14 @@ son la verdad del producto y llegan igual a la web y al escritorio.
 ## Uso
 
 ```bash
-npm install                 # instala las dependencias del monorepo
+npm install                 # instala las dependencias del monorepo y el binario de Electron
 npm run desktop:build       # proceso principal + preload + renderer
 npm run desktop:start       # abre la app
 ```
 
-La primera vez, Electron descarga su binario (unos 100 MB). El monorepo no lo aprueba en
-`allowScripts` para no lastrar la instalación de todos: si la app no arranca por falta del binario,
-aprobálo con
-
-```bash
-npm install-scripts approve electron
-```
+Electron 45 no trae script de instalación: su binario se baja la primera vez que se usa el CLI. El
+`postinstall` de este workspace lo adelanta, así que `npm install` deja todo listo. El download está
+en la caché de Electron, así que repetirlo no cuesta nada.
 
 ## Cómo está montado
 
