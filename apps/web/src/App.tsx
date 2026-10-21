@@ -58,7 +58,8 @@ import {
 } from "./viewState";
 import { nextCell, type CellBox, type Direction } from "./navigation";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree } from "./detail";
-import { analyzeInBrowser } from "./analysis/client";
+import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
+import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
 
@@ -135,6 +136,10 @@ export default function App() {
   const [urlInput, setUrlInput] = useState("");
   const [reportUrlInput, setReportUrlInput] = useState("");
   const [progress, setProgress] = useState<string | null>(null);
+  /** El análisis en marcha, para poder cortarlo. */
+  const analysisRef = useRef<AnalysisHandle | null>(null);
+  /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
+  const cancelRef = useRef<{ aborted: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
@@ -701,20 +706,31 @@ export default function App() {
     manualLoadRef.current = true;
     setLoading(true);
     setError(null);
+    cancelRef.current = { aborted: false };
     setProgress("Seleccionando la carpeta…");
     try {
       const root = await picker({ mode: "read" });
       setProgress("Leyendo los ficheros…");
       const read = await readDirectoryToMemory(root, {
+        signal: cancelRef.current,
         onProgress: (state) =>
           setProgress(`Leyendo ${state.read} ficheros… ${state.current}`)
       });
+      if (cancelRef.current?.aborted) throw new AnalysisCancelled();
+
       setProgress("Analizando en el navegador…");
-      const result = await analyzeInBrowser({
+      const handle = analyzeInBrowser({
         files: read.fileSystem.entries(),
         projectName: root.name,
-        onProgress: (message) => setProgress(message)
+        onProgress: (message) => setProgress(message),
+        onFileProgress: (state) =>
+          setProgress(
+            `Analizando ${state.done}/${state.total}… ${state.current}`
+          )
       });
+      analysisRef.current = handle;
+      const result = await handle.result;
+      analysisRef.current = null;
       if (loadSnapshot(result.snapshot, `${root.name} · navegador`)) {
         setServerMode("local");
         setSourceUrl(null);
@@ -722,14 +738,23 @@ export default function App() {
         resetReport();
       }
     } catch (cause) {
-      if ((cause as DOMException).name !== "AbortError") {
+      if (cause instanceof AnalysisCancelled) {
+        setProgress("Análisis cancelado");
+      } else if ((cause as DOMException).name !== "AbortError") {
         setError((cause as Error).message);
       }
     } finally {
+      analysisRef.current = null;
       setProgress(null);
       setLoading(false);
     }
   }, [closeOpenMenu, loadSnapshot, resetReport]);
+
+  /** Corta el análisis en marcha, esté leyendo o analizando. */
+  const cancelAnalysis = useCallback(() => {
+    cancelRef.current = { aborted: true };
+    analysisRef.current?.cancel();
+  }, []);
 
   /** Copia el enlace de la vista actual al portapapeles. */
   const copyLink = useCallback(async () => {
@@ -1247,7 +1272,17 @@ export default function App() {
                 : "—"}
             </span>
             {progress ? (
-              <span className="mono detail-note">{progress}</span>
+              <span className="progress-cell">
+                <span className="mono detail-note">{progress}</span>
+                <button
+                  className="button ghost small"
+                  type="button"
+                  onClick={cancelAnalysis}
+                  title="Cortar el análisis"
+                >
+                  Cancelar
+                </button>
+              </span>
             ) : detail && detail.hiddenFiles > 0 ? (
               <span className="mono detail-note">
                 {`nivel carpeta · ${detail.cells} bloques · ${detail.hiddenFiles} ficheros dentro`}

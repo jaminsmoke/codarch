@@ -56,6 +56,23 @@ export interface AnalyzeCoreOptions {
    * churn, como el del CLI con `--no-git`.
    */
   churn?: (relativePaths: string[]) => ChurnResult;
+  /**
+   * Avisa del progreso fichero a fichero.
+   *
+   * El navegador lo usa para pintar una barra y para saber cuándo puede
+   * cancelar: el análisis es síncrono y solo se puede interrumpir entre
+   * ficheros.
+   */
+  onProgress?: (progress: AnalyzeProgress) => void;
+}
+
+export interface AnalyzeProgress {
+  /** Ficheros ya procesados. */
+  done: number;
+  /** Ficheros totales. */
+  total: number;
+  /** Ruta del fichero en curso. */
+  current: string;
 }
 
 export interface UnresolvedImportIssue {
@@ -117,8 +134,16 @@ export function analyzeFiles(
   let externalImports = 0;
   let builtinImports = 0;
   let typeOnlyImports = 0;
+  let processed = 0;
 
   for (const file of walked.files) {
+    processed += 1;
+    options.onProgress?.({
+      done: processed,
+      total: walked.files.length,
+      current: file.relativePath
+    });
+
     const language = languageForPath(file.relativePath);
     if (!language) continue;
 

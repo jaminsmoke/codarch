@@ -21,6 +21,12 @@ export type AnalyzeResponse =
   | { type: "ready" }
   | { type: "progress"; message: string }
   | {
+      type: "progress-file";
+      done: number;
+      total: number;
+      current: string;
+    }
+  | {
       type: "done";
       snapshot: unknown;
       files: number;
@@ -37,9 +43,13 @@ export interface GrammarSources {
   runtime?: string;
 }
 
+/** Avisa del progreso sin lanzar exceptions: un fallo aquí no debe tumbar el análisis. */
+export type ProgressReporter = (response: AnalyzeResponse) => void;
+
 export async function runAnalysis(
   request: AnalyzeRequest,
-  sources: GrammarSources
+  sources: GrammarSources,
+  report: ProgressReporter = () => undefined
 ): Promise<AnalyzeResponse> {
   try {
     const parser = await WasmTypeScriptParser.create(
@@ -53,7 +63,8 @@ export async function runAnalysis(
       fileSystem: new MemoryFileSystem(request.files),
       root: "/",
       projectName: request.projectName,
-      parser
+      parser,
+      onProgress: (progress) => report({ type: "progress-file", ...progress })
     });
 
     return {

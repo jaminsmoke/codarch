@@ -136,8 +136,8 @@ de PR.
 
 ## M6 — Análisis en el navegador
 
-**Estado:** en curso. El parser, el puerto de ficheros y el worker ya funcionan; falta el botón en la
-app y pulir el lector de carpetas.
+**Estado:** cerrado. El navegador analiza una carpeta con la misma gramática y el mismo código que el
+CLI, y el snapshot que sale tiene su checksum.
 
 - [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete
   `tree-sitter-typescript`); decisión en [ADR 0020](adr/0020-analisis-en-el-navegador.md).
@@ -148,7 +148,8 @@ app y pulir el lector de carpetas.
 - [x] Hash en JavaScript puro (`@noble/hashes`) para que el navegador calcule ids y checksum igual
   que el CLI.
 - [x] Lector de carpetas con File System Access API y botón **Analizar carpeta aquí…** en la app.
-- [ ] Progreso fino por fichero y cancelación del análisis en el navegador.
+- [x] Progreso fino por fichero y cancelación: el botón **Cancelar** corta el análisis al momento
+  (terminar el worker), y se puede cortar también la lectura de ficheros.
 - [x] Churn y git fuera del navegador; el snapshot sale sin historial, como el del CLI con
   `--no-git`.
 

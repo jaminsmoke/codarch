@@ -10,6 +10,9 @@ import tsxWasm from "tree-sitter-typescript/tree-sitter-tsx.wasm?url";
  * si corriera en el hilo principal, la interfaz se congelaría. Aquí corre
  * con las mismas gramáticas y el mismo código que el CLI, así que el snapshot
  * que sale tiene su checksum.
+ *
+ * Cancelar es terminar el worker: el proceso muere y el análisis se corta en
+ * el momento, sin esperar al siguiente fichero.
  */
 
 const scope = self as unknown as {
@@ -26,11 +29,11 @@ scope.addEventListener("message", (event) => {
 
   void (async () => {
     scope.postMessage({ type: "progress", message: "Cargando el parser…" });
-    const response = await runAnalysis(request, {
-      typescript: typescriptWasm,
-      tsx: tsxWasm,
-      runtime: runtimeWasm
-    });
+    const response = await runAnalysis(
+      request,
+      { typescript: typescriptWasm, tsx: tsxWasm, runtime: runtimeWasm },
+      (update) => scope.postMessage(update)
+    );
     scope.postMessage(response);
   })();
 });

@@ -945,6 +945,27 @@ button {
   white-space: nowrap;
 }
 
+.progress-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.progress-cell .detail-note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-cell .button {
+  flex: none;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  font-size: 9px;
+}
+
 .inspector h2 {
   margin: 6px 0 14px;
   font: 650 27px/1.08 var(--display);

@@ -84,6 +84,16 @@ servidor local ni a la demo; si la URL falla, el error se muestra en lugar de da
   por celda. `Enter` activa: selecciona el fichero o entra en la carpeta.
 - Carga local de `cc.json` 2.x; en navegador no se soporta el formato legacy 1.x.
 
+## Analizar en el navegador
+
+**Abrir repositorio o archivo → Analizar carpeta aquí…** elige una carpeta con File System Access
+API y la analiza en un worker, con la misma gramática y el mismo código que el CLI: el snapshot que
+sale tiene su checksum (sin historial, como el del CLI con `--no-git`).
+
+- El pie de la mapa muestra el progreso fichero a fichero y un botón **Cancelar** que corta el
+  análisis al momento. La lectura de ficheros también se puede cortar.
+- El motor y las gramáticas (~3 MB) se cargan bajo demanda, solo cuando se pide analizar.
+
 ## Snapshots grandes
 
 Un treemap de 20.000 ficheros no se lee: son 20.000 celdas de un píxel. El mapa se poda por tamaño

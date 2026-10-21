@@ -79,8 +79,7 @@ describe("análisis en el navegador", () => {
     expect(response.type === "done" || response.type === "error").toBe(true);
   }, 60_000);
 
-  it("usa el nombre de la carpeta cuando no hay package.json", async () => {
-    // El nombre de la raíz entra en el checksum: sin package.json, el CLI usa
+  it("usa el nombre de la carpeta cuando no hay package.json", async () => {    // El nombre de la raíz entra en el checksum: sin package.json, el CLI usa
     // el nombre de la carpeta y el navegador el de la carpeta elegida.
     const files: Array<[string, string]> = [
       ["/src/app.ts", "export const a = 1;\n"]
@@ -96,5 +95,35 @@ describe("análisis en el navegador", () => {
     if (response.type !== "done") return;
     const snapshot = response.snapshot as { meta: { projectName: string } };
     expect(snapshot.meta.projectName).toBe("mi-proyecto");
+  }, 60_000);
+
+  it("avisa del progreso fichero a fichero", async () => {
+    const files: Array<[string, string]> = [
+      ["/src/a.ts", "export const a = 1;\n"],
+      ["/src/b.ts", "export const b = 2;\n"],
+      ["/src/c.ts", "export const c = 3;\n"]
+    ];
+    const progress: Array<{ done: number; total: number; current: string }> = [];
+    const response = await runAnalysis(
+      { type: "analyze", files },
+      {
+        typescript: readGrammar("tree-sitter-typescript.wasm"),
+        tsx: readGrammar("tree-sitter-tsx.wasm")
+      },
+      (update) => {
+        if (update.type === "progress-file") {
+          progress.push({
+            done: update.done,
+            total: update.total,
+            current: update.current
+          });
+        }
+      }
+    );
+
+    expect(response.type).toBe("done");
+    expect(progress).toHaveLength(3);
+    expect(progress[0]).toEqual({ done: 1, total: 3, current: "src/a.ts" });
+    expect(progress[2]).toEqual({ done: 3, total: 3, current: "src/c.ts" });
   }, 60_000);
 });
