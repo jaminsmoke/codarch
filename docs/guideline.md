@@ -50,7 +50,7 @@ zip y un hash ✓ (el §5 ✓). Lo que sigue haciendo falta es **firmar y distri
 **Tamaño** ✓: medio ✓. Lo difícil no es el registro ✓ (un índice y un endpoint ✓) sino la firma y
 las reglas ✓.
 
-## 2. Las lentes de los plugins
+## 2. Las lentes de las extensiones
 
 **Qué es** ✓: que un plugin pueda **medir algo nuevo** ✓ y meterlo en el snapshot ✓ (por ejemplo,
 las dependencias de NestJS ✓ o los módulos de un framework ✓).
@@ -58,7 +58,7 @@ las dependencias de NestJS ✓ o los módulos de un framework ✓).
 **Por qué** ✓: es lo que haría los plugins **verdaderamente útiles** ✓: no solo vistas ✓, sino
 señales nuevas ✓.
 
-**Qué falta** ✓: el **checksum** ✓. Si una lente depende del plugin ✓, el snapshot depende de lo
+**El problema** ✓: el **checksum** ✓. Si una lente depende de la extensión ✓, el snapshot depende de lo
 instalado ✓ → el mismo código daría checksums distintos ✗ → el análisis dejaría de ser reproducible
 ✗ (que es la propiedad que el producto protege con más cuidado ✓).
 
