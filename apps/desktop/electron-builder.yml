@@ -9,6 +9,8 @@ productName: CodArch
 copyright: CodArch
 # El nombre del paquete es "@codarch/desktop": el ejecutable no puede llevar la @.
 executableName: codarch
+homepage: https://github.com/jaminsmoke/codarch
+description: Mapa de arquitectura para equipos y agentes de IA
 
 directories:
   output: release
@@ -63,6 +65,8 @@ linux:
   category: Development
   maintainer: jaminsmoke <jaminsmoke@gmail.com>
   artifactName: "codarch-${version}-${arch}.${ext}"
+  # El .desktop necesita un nombre estable para asociar la ventana.
+  syncDesktopName: true
 
 # La publicación la hace el workflow de CI, que sube los artefactos al
 # release. Aquí no se declara `publish` a propósito: electron-builder exige
