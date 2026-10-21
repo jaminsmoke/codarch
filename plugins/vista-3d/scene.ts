@@ -28,6 +28,8 @@ export interface BoxCell {
 export interface SceneOptions {
   /** Las cajas a dibujar. */
   cells: BoxCell[];
+  /** El fondo de la escena: el de la app ✓ (su tema manda ✓). */
+  background: string;
   /** La ruta del fichero seleccionado, si lo hay. */
   selected: string | null;
   /** Se llama al pulsar una caja. */
@@ -49,8 +51,10 @@ export function mountScene(
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#121a20");
-  scene.fog = new THREE.Fog("#121a20", 400, 1600);
+  // El fondo es el de la app ✓: un mapa en 3D sobre un color ajeno al tema
+  // parece un programa pegado dentro de otro ✓.
+  scene.background = new THREE.Color(options.background);
+  scene.fog = new THREE.Fog(options.background, 400, 1600);
 
   const camera = new THREE.PerspectiveCamera(50, 1, 1, 4000);
   camera.position.set(-220, 260, 320);
@@ -62,17 +66,21 @@ export function mountScene(
   controls.target.set(0, 0, 0);
 
   scene.add(new THREE.AmbientLight(0xffffff, 1.1));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  const key = new THREE.DirectionalLight(0xffffff, 1.35);
   key.position.set(-300, 500, 200);
   scene.add(key);
-  const fill = new THREE.DirectionalLight(0x88aaff, 0.5);
+  const fill = new THREE.DirectionalLight(0x88aaff, 0.45);
   fill.position.set(320, 180, -260);
   scene.add(fill);
 
   // El suelo: da la referencia de dónde está el cero.
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1200, 1200),
-    new THREE.MeshBasicMaterial({ color: "#182129", transparent: true, opacity: 0.7 })
+    new THREE.MeshBasicMaterial({
+      color: options.background,
+      transparent: true,
+      opacity: 0.55
+    })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.5;

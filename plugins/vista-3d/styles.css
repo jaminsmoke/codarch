@@ -1,4 +1,6 @@
-/* La vista 3D: el canvas y su aviso. */
+/* La vista 3D: el canvas y su aviso.
+   Los colores son los del tema de la app ✓: el plugin no trae su propia
+   paleta ✓. */
 .vista3d {
   position: relative;
   width: 100%;
@@ -7,7 +9,7 @@
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
-  background: #121a20;
+  background: var(--paper);
 }
 
 .vista3d-canvas {
@@ -26,8 +28,9 @@
   left: 12px;
   bottom: 12px;
   padding: 6px 10px;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: rgba(8, 12, 16, 0.72);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
   color: var(--muted);
   font: 400 11px/1.4 var(--sans);
   pointer-events: none;

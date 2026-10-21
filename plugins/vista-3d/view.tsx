@@ -14,6 +14,15 @@ import { mountScene, type BoxCell } from "./scene";
 const VIEW_WIDTH = 1000;
 const VIEW_HEIGHT = 700;
 
+/** Un color del tema de la app ✓ (el plugin no bringa su propia paleta ✓). */
+function themeColor(name: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value === "" ? fallback : value;
+}
+
 export function Vista3D({ context }: { context: PluginContext }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const model = context.model;
@@ -59,6 +68,7 @@ export function Vista3D({ context }: { context: PluginContext }) {
     return mountScene(canvas, {
       cells,
       selected: selection,
+      background: themeColor("--paper", "#eef1f2"),
       onSelect: (path) => context.actions.select(path)
     });
   }, [cells, selection, context]);
