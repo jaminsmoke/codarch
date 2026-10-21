@@ -43,9 +43,38 @@ src/
   `analyze` y `readJson`. El renderer no tiene acceso a Node.
 - El **renderer** dibuja el mapa con `@codarch/render/browser`, el mismo motor que la web.
 
+## Instaladores
+
+Se empaquetan con electron-builder, **sin firmar** (en Windows y macOS el sistema avisa al
+instalador de que no viene de un desarrollador identificado; firmarlo cuesta dinero).
+
+| Plataforma | Artefactos |
+|---|---|
+| Windows | `codarch-<versión>-setup.exe` (NSIS) y `codarch-<versión>-x64.exe` (portable) |
+| macOS | `codarch-<versión>-x64.dmg` y `codarch-<versión>-arm64.dmg` |
+| Linux | `codarch-<versión>-x86_64.AppImage` y `.deb` |
+
+```bash
+npm run package --workspace @codarch/desktop    # para la plataforma actual
+npm run package:dir --workspace @codarch/desktop  # sin instalador, solo la carpeta
+```
+
+El workflow `.github/workflows/desktop.yml` los construye para los tres sistemas. Para publicar:
+
+```bash
+git tag desktop-v0.1.4
+git push --tags
+```
+
+El workflow sube los artefactos al release de GitHub.
+
+En Windows hace falta la carga de trabajo de C++ de Visual Studio Build Tools: electron-builder
+recompila los módulos nativos (tree-sitter) para el ABI de Electron.
+
 ## Límites
 
-- Todavía no hay instalador firmado ni empaquetado para publicar: se ejecuta con `electron .`.
+- No hay firma de código: macOS lo bloquea en la primera apertura y hay que abrirlo a mano.
+- El icono es el de Electron por defecto.
 - El menú es el de Electron con las acciones de CodArch añadidas: no hay todavía archivos recientes
   ni menú en el Dock de macOS.
 - El proyecto abierto se recuerda en `localStorage` (como en la web), no en un fichero de
