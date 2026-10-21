@@ -140,22 +140,22 @@ Dos fallos que llevaban desde siempre ✓ y que solo se veían al mirar la panta
 
 ### 4.7 El nombre de los bloques (hecho)
 
-Los nombres se salían de su bloque (pisaban al de al lado ✗) y en los pequeños salía "analy…" en
-vez del nombre ✗. Ahora hay un módulo puro (`apps/web/src/labels.ts` ✓) que decide ✓:
+Empezó mal ✓: el nombre se pintaba como un texto aparte ✓ y se calculaba a mano cuánto cabía ✗.
+Salía recortado ("analy…" ✗), se desbordaba del bloque ✗ y los bloques pequeños se quedaban sin
+nombre ✗.
 
-1. **Las dos orientaciones, y gana la que se lee mejor** ✓ (la fuente más grande ✓): en un bloque
-   alto y estrecho ✓, el texto girado se lee mucho mejor que el horizontal aplastado ✓.
-2. **El nombre entero, siempre** ✓: si no cabe cómodo ✓, el SVG lo **estrecha** ✓ (`textLength` ✓)
-   en vez de recortarlo ✓. Un nombre comprimido sigue leyéndose ✓; uno recortado no dice nada ✓.
-3. **El tamaño va de 1,8 a 11 px** ✓ según el bloque ✓. En una astilla de dos píxeles ✓ el nombre se
-   dibuja como un pelo ✓, y con el zoom se lee ✓ ✓ (el zoom agranda el bloque y su nombre a la vez ✓).
+**El enfoque definitivo**: el nombre **es del bloque** ✓. Cada bloque lleva un `foreignObject` con
+texto HTML dentro ✓ y es el **navegador** el que lo envuelve ✓ y lo recorta ✓. Así **no puede
+salirse del bloque** ✓, por diseño ✓, diga lo que diga el nombre ✓.
 
-Ojo con `textLength` ✓: es **exacto** ✓, el navegador estira el texto hasta ese largo ✓. Por eso
-solo se usa cuando el texto es más largo de lo que cabe ✓.
+Lo único que se decide en código es lo que el navegador no puede adivinar ✓:
 
-Medido en el mapa de este repo ✓: **222 nombres** ✓, **ninguno recortado** ✓ y **ninguno
-desbordado** ✓. Solo se quedan sin nombre los bloques de **un píxel** ✓, donde no cabe ninguna
-fuente ✓ (ni squeezing ✓).
+- **El tamaño de la fuente** ✓, del lado corto del bloque ✓ (de 4 a 11 px ✓).
+- **Si va en vertical** ✓ (`writing-mode: vertical-rl` ✓) cuando el bloque es alto y estrecho ✓.
+- **Si el bloque da para algo** ✓: por debajo de dos píxeles no hay nada que enseñar ✓.
+
+Medido en el mapa de este repo ✓: **215 labels** ✓, **ninguno desbordado** ✓ y **85 en vertical** ✓.
+Los que se quedan sin nombre son bloques de un píxel ✓, donde no cabe ni una letra ✓.
 
 ### 4.8 El 3D: las cajas no tienen etiqueta ✗
 

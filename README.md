@@ -377,10 +377,12 @@ snapshot no cambia.
 
 ### Los nombres de los bloques
 
-Cada bloque enseña su nombre **entero** ✓: entra entero o el SVG lo estrecha ✓ (nunca se recorta ✓
-ni se sale del bloque ✓). En horizontal ✓, girado cuando el bloque es alto y estrecho ✓, y con el
-tamaño que le toque ✓ (en uno pequeño es un borrón ✓ que con el zoom se lee ✓). Con el botón derecho
-apretado, el mapa se mueve ✓.
+Cada bloque lleva su nombre **dentro** ✓ (`foreignObject` con texto HTML ✓): el navegador lo envuelve
+✓ y lo recorta ✓, así que **no puede salirse** ✓. En bloques altos y estrechos escribe en vertical ✓
+(`writing-mode` ✓), y el tamaño sale del lado corto del bloque ✓ (de 4 a 11 px ✓).
+
+Es un interruptor en **Ajustes → Vista** ✓ y también viaja en el enlace ✓ (`labels=1` ✓). Con el
+botón derecho apretado, el mapa se mueve ✓.
 
 ### Los nombres de los bloques
 
