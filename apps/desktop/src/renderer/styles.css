@@ -1297,6 +1297,39 @@ button {
   cursor: not-allowed;
 }
 
+/* El label de un bloque.
+   El texto vive DENTRO del bloque ✓ (un `foreignObject` ✓): el navegador lo
+   envuelve ✓ y lo recorta ✓, así que no puede salirse ✓ por diseño ✓. */
+.map-label {
+  margin: 0;
+  /* Sin padding: en un bloque de cuatro píxeles, cualquier aire lo hace más
+     ancho que el bloque ✓. El texto empieza pegado al borde ✓. */
+  padding: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.05;
+  font-family: var(--sans);
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-label.is-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.map-label.is-folder {
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(18, 26, 32, 0.62);
+}
+
 /* Los ajustes: un diálogo con secciones. */
 .rail-settings {
   align-self: flex-end;

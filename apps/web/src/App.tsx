@@ -43,7 +43,7 @@ import {
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
 import { usePlugins } from "./plugins";
-import { fitLabel } from "./labels";
+import { labelFor } from "./labels";
 import type { PluginContext } from "@codarch/plugin-api";
 import PrPanel from "./PrPanel";
 import {
@@ -2419,12 +2419,9 @@ function MapCanvas({
       const fill = fillFor(file);
       const selected = selectedIndex === file.index;
       const matched = query === "" || file.path.toLowerCase().includes(query);
-      // El nombre se ajusta al bloque: entra entero o no se dibuja ✓.
-      // En un bloque alto y estrecho va girado ✓, y en uno pequeño se encoge ✓
-      // (con el zoom se lee ✓).
-      const fitted = showLabels
-        ? fitLabel(file.name, { width: rect.w, height: rect.h })
-        : null;
+      // El nombre va DENTRO del bloque: el SVG envuelve y recorta ✓ y no
+      // puede salirse por diseño ✓.
+      const label = showLabels ? labelFor(rect.w, rect.h) : null;
       const migrationNode = migration?.nodes[file.nodeId];
       // El tooltip solo en las celdas con área legible: en un mapa grande cada
       // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
@@ -2464,50 +2461,30 @@ function MapCanvas({
               </title>
             ) : null}
           </rect>
-          {fitted ? (
-            fitted.rotate ? (
-              <text
-                x={rect.x + rect.h / 2}
-                y={rect.y + rect.w / 2}
-                fill={inkFor(fill)}
-                fontSize={fitted.size}
-                fontFamily="IBM Plex Sans, system-ui, sans-serif"
-                textAnchor="middle"
-                textLength={fitted.length ?? undefined}
-                lengthAdjust="spacingAndGlyphs"
-                transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
-                pointerEvents="none"
+          {label ? (
+            <foreignObject
+              x={rect.x}
+              y={rect.y}
+              width={Math.max(1, rect.w)}
+              height={Math.max(1, rect.h)}
+              pointerEvents="none"
+            >
+              <div
+                className={`map-label${label.vertical ? " is-vertical" : ""}`}
+                style={{ fontSize: label.size, color: inkFor(fill) }}
               >
-                {fitted.text}
-              </text>
-            ) : (
-              <text
-                x={rect.x + 4}
-                y={rect.y + fitted.size + 3}
-                fill={inkFor(fill)}
-                fontSize={fitted.size}
-                fontFamily="IBM Plex Sans, system-ui, sans-serif"
-                textLength={fitted.length ?? undefined}
-                lengthAdjust="spacingAndGlyphs"
-                pointerEvents="none"
-              >
-                {fitted.text}
-              </text>
-            )
+                {file.name}
+              </div>
+            </foreignObject>
           ) : null}
         </g>
       );
     }
 
-    // El nombre de la carpeta también se ajusta a su bloque ✓.
+    // El nombre de la carpeta va dentro de su bloque, como el de un fichero.
     const folderLabel =
       placedNode.headerHeight > 0 || showLabels
-        ? fitLabel(node.name.toUpperCase(), {
-          width: rect.w,
-          height: rect.h,
-          maxSize: 9,
-          charWidth: 0.68
-        })
+        ? labelFor(rect.w, rect.h)
         : null;
 
     return (
@@ -2532,37 +2509,20 @@ function MapCanvas({
           }}
         />
         {folderLabel ? (
-          folderLabel.rotate ? (
-            <text
-              x={rect.x + rect.h / 2}
-              y={rect.y + rect.w / 2}
-              fill="rgba(18,26,32,.58)"
-              fontSize={folderLabel.size}
-              letterSpacing=".08em"
-              fontFamily="IBM Plex Mono, ui-monospace, monospace"
-              textAnchor="middle"
-              textLength={folderLabel.length ?? undefined}
-              lengthAdjust="spacingAndGlyphs"
-              transform={`rotate(-90 ${rect.x + rect.h / 2} ${rect.y + rect.w / 2})`}
-              pointerEvents="none"
+          <foreignObject
+            x={rect.x}
+            y={rect.y}
+            width={Math.max(1, rect.w)}
+            height={Math.max(1, rect.h)}
+            pointerEvents="none"
+          >
+            <div
+              className={`map-label is-folder${folderLabel.vertical ? " is-vertical" : ""}`}
+              style={{ fontSize: folderLabel.size }}
             >
-              {folderLabel.text}
-            </text>
-          ) : (
-            <text
-              x={rect.x + 4}
-              y={rect.y + folderLabel.size + 3}
-              fill="rgba(18,26,32,.58)"
-              fontSize={folderLabel.size}
-              letterSpacing=".08em"
-              fontFamily="IBM Plex Mono, ui-monospace, monospace"
-              textLength={folderLabel.length ?? undefined}
-              lengthAdjust="spacingAndGlyphs"
-              pointerEvents="none"
-            >
-              {folderLabel.text}
-            </text>
-          )
+              {node.name.toUpperCase()}
+            </div>
+          </foreignObject>
         ) : null}
         {placedNode.headerHeight > 0 && rect.w > 34 ? (
           <rect
