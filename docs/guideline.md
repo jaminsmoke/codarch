@@ -42,6 +42,11 @@ cuando el plugin cambia el snapshot ✓ → el checksum ✓).
 **Veredicto** ✓: **fase + ADR** ✓. Es una decisión de producto ✓ (abrir la puerta a terceros ✓) y
 afecta a la distribución ✓.
 
+**Una mitad ya está resuelta** ✓: los **addons** ✓ ([ADR 0029](adr/0029-los-addons.md) ✓) son **datos** ✓
+— perfiles ✓, reglas ✓ y vistas guardadas ✓ — y repartir datos no necesita firmar código ✓: basta un
+zip y un hash ✓ (el §5 ✓). Lo que sigue haciendo falta es **firmar y distribuir plugins** ✓ (código
+✓), que es la otra mitad ✓.
+
 **Tamaño** ✓: medio ✓. Lo difícil no es el registro ✓ (un índice y un endpoint ✓) sino la firma y
 las reglas ✓.
 
@@ -57,9 +62,12 @@ señales nuevas ✓.
 instalado ✓ → el mismo código daría checksums distintos ✗ → el análisis dejaría de ser reproducible
 ✗ (que es la propiedad que el producto protege con más cuidado ✓).
 
-**Veredicto** ✓: **ADR primero** ✓, fase después ✓. La decisión es conceptual ✓: hay una salida
-razonable ✓ (el hash del plugin **dentro** del snapshot ✓ → "el mismo código + los mismos plugins =
-el mismo checksum" ✓ ✓), pero hay que elegirla antes de escribir código ✓.
+**Decidido** ✓ en [ADR 0029](adr/0029-los-addons.md) ✓: hoy **no** ✓. Un addon no añade lentes ✓
+(«A» ✓), y la puerta queda abierta a «B» ✓ —el productor **dentro** del snapshot ✓ → «el mismo código
++ los mismos addons = el mismo checksum» ✓ ✓— cuando la manera esté decidida ✓, con su propio ADR ✓.
+
+Mientras tanto, un addon que necesite una señal nueva la **calcula en su vista** ✓ (como hace el 3D ✓)
+y no la comparte ✓: no puede pintarla ✓, ni verla en el PR ✓, ni preguntársela al agente ✓.
 
 **Tamaño** ✓: grande ✓. Y el primero en necesitarlo quizá sea el 3D ✓ (que ahora no toca el modelo ✓
 ✓).
@@ -169,6 +177,27 @@ Un plugin puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero 
 porque lee el snapshot ✓ y las reglas viven en la configuración ✓.
 
 **Veredicto** ✓: mirar ✓. El MCP debería leer la configuración ✓ como hace el CLI ✓ ✓.
+
+---
+
+## 5. Los addons
+
+**Qué es** ✓: **conocimiento declarativo** ✓ — perfiles ✓, reglas ✓ y vistas guardadas ✓ — que se
+instala copiando una carpeta ✓ y que viaja con el repo ✓.
+
+**Por qué** ✓: un equipo que trabaja con un framework no quiere una vista nueva ✗: quiere sus capas ✓,
+sus reglas ✓ y una vista inicial razonable ✓ puestas desde el primer día ✓, y que las tengan sus
+compañeros ✓ y su CI ✓. Hoy eso es un README con un bloque para copiar ✗.
+
+**Decisión** ✓: [ADR 0029](adr/0029-los-addons.md) ✓. Un addon **no** aporta código ✓ (eso es un
+plugin ✓, ADR 0028 ✓) ni lentes ✓ (eso cambia el checksum ✗). Vive en `.codarch/addons/` ✓ y el repo
+lo declara en `.codarch.yml` ✓.
+
+**La frontera, en una línea** ✓: el **plugin** aporta **código** ✓; el **addon** aporta **conocimiento**
+✓; la **lente** aporta **medidas** ✓ y es la única que toca el checksum ✓.
+
+**Veredicto** ✓: **fase** ✓ — **M16** ✓ en el [roadmap](roadmap.md) ✓. Estuvo aquí y ya es fase ✓:
+queda el rastro de por qué ✓.
 
 ---
 

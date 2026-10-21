@@ -384,12 +384,6 @@ Cada bloque lleva su nombre **dentro** ✓ (`foreignObject` con texto HTML ✓):
 Es un interruptor en **Ajustes → Vista** ✓ y también viaja en el enlace ✓ (`labels=1` ✓). Con el
 botón derecho apretado, el mapa se mueve ✓.
 
-### Los nombres de los bloques
-
-El mapa puede enseñar el nombre de cada bloque aunque no quepa entero ✓ (se recorta ✓), para leerlo de
-un vistazo ✓: qué módulo es cada trozo ✓. Es un interruptor en **Ajustes → Vista** ✓ y también viaja
-en el enlace ✓ (`labels=1` ✓).
-
 ### El mapa se ajusta a la pantalla
 
 La app ocupa la ventana ✓: el raíl y el inspector scrollean solos ✓ y el mapa se ajusta a lo que
@@ -427,9 +421,15 @@ las acciones ✓, las preferencias ✓ y el estado de la URL ✓. El plugin de e
 (`plugins/ejemplo/` ✓) sirve para comprobar que el contrato aguanta ✓.
 ([ADR 0028](docs/adr/0028-los-plugins.md))
 
+Un **addon** es otra cosa ✓ ([ADR 0029](docs/adr/0029-los-addons.md) ✓): **datos, no código** ✓.
+Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vistas guardadas ✓ — y se instala
+copiando una carpeta en `.codarch/addons/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo
+mismo ✓. No puede aportar lentes ✓, así que no cambia el checksum ✓. *Todavía no está: es la fase
+M16.*
+
 ### Los ajustes
 
-Hay un engranaje en la barra lateral que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
+Hay un engranaje en la cabecera que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
 el proyecto guardado ✓ y el diagnóstico ✓ (versión ✓, checksum ✓, si el almacenamiento local está
 disponible ✓). En el escritorio, también desde el menú nativo ✓.
 

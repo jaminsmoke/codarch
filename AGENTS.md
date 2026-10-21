@@ -24,7 +24,7 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar.
-- El `roadmap.md` tiene las **fases** (M0 a M15 ✓, todas cerradas ✓). Las ideas que no son fase
+- El `roadmap.md` tiene las **fases** (M0 a M16; M0 a M15 cerradas y M16 ✓ los addons ✓ abierta). Las ideas que no son fase
   viven en `docs/guideline.md` ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓ o
   esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
@@ -87,16 +87,24 @@ también `npm run sync:action` y actualizar el repo público.
 - M10 cerrado: la evolución temporal (ADR 0024). La lente de calor (commits), el historial del repo
   en `.codarch-history/`, la comparación de dos momentos y su vista en las dos apps.
 - M11 cerrado: la lente de símbolos (ADR 0025). El parser recoge funciones, clases, interfaces y
-  tipos con su complejidad; el inspector de las dos apps los lista y el MCP responde por ellos. El
-  diff de símbolos (función a función) es el paso siguiente.
+  tipos con su complejidad; el inspector de las dos apps los lista y el MCP responde por ellos.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
+- M12 cerrado: la vida de un símbolo (ADR 0026). El diff habla de símbolos y cada uno tiene su
+  cadena a través de renombrados y mudanzas.
+- M13 cerrada: los ajustes y el store de plugins (ADR 0027).
+- M14 cerrada: los plugins (ADR 0028). Piezas del repo que se compilan en el build y se activan
+  desde los ajustes; el contrato promete **solo vistas**.
+- M15 cerrada: la vista 3D, el primer plugin, en su propio chunk y con su hoja de ruta.
+- M16 abierta: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas guardadas)
+  que se instala copiando una carpeta y viaja con el repo. Un addon **no** aporta código ni lentes:
+  el checksum no cambia.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 
 ## No objetivos de v1
 
-3D, plugins y backend remoto. No añadirlos sin mover el roadmap y documentar la decisión.
+Backend remoto. El 3D y los plugins entraron por el roadmap (M14 y M15) y los addons son M16: entrar
+en el roadmap es la forma de decidir algo, y cada cosa que entra lleva su ADR.
 
-La lente de dominio (M9), la evolución temporal (M10) y la lente de símbolos (M11) ya están dentro:
-entrar en el roadmap es la forma de decidirlos. Lo que queda de los símbolos es el diff y la cadena
-(M12), que ya tienen su ADR.
+La regla que no se mueve: **el checksum depende del código, no de lo que tengas instalado**. Un
+plugin o un addon no pueden aportar lentes mientras esa decisión no cambie (ADR 0029).

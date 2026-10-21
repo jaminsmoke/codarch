@@ -18,7 +18,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M4, M6, M7 y M8 están cerradas. M5 está cerrada en lo funcional; queda pulido.
+Las fases M0–M15 están cerradas. M16 (los addons) es la que está abierta.
 
 ---
 
@@ -296,7 +296,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 ## M13 — Los ajustes
 
 **Estado:** cerrada. Los ajustes y el store de plugins. Decisión en
-[ADR 0027](docs/adr/0027-los-ajustes.md).
+[ADR 0027](adr/0027-los-ajustes.md).
 
 - [x] **M13.1** Un panel de ajustes con secciones: **Vista** (métrica de área, modo de color),
   **Proyecto** (el proyecto guardado, borrarlo) y **Diagnóstico** (versión, formato del modelo,
@@ -312,7 +312,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 ## M14 — Los plugins
 
 **Estado:** cerrada con un plugin de prueba ✓. Piezas del repo que se activan desde los ajustes.
-Decisión en [ADR 0028](docs/adr/0028-los-plugins.md).
+Decisión en [ADR 0028](adr/0028-los-plugins.md).
 
 - [x] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
   versión, título, icono, qué aporta y qué necesita).
@@ -340,6 +340,23 @@ Decisión en [ADR 0028](docs/adr/0028-los-plugins.md).
   detalle para los repositorios grandes ✓, las carpetas como contenedores ✓ y las etiquetas ✓.
   Empezar por el `RenderModel` tal cual ✓ y migrar después ✓.
 
+## M16 — Los addons
+
+**Estado:** abierta. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
+**datos, no código**.
+
+- [ ] `@codarch/addons`: el manifiesto, la validación y la fusión con la configuración.
+- [ ] `.codarch.yml` gana `addons:` y `codarch addons list|add|remove` copia la carpeta a
+  `.codarch/addons/`.
+- [ ] Un addon aporta perfiles, reglas y vistas guardadas; manda la configuración del equipo y cada
+  pieza dice de dónde sale (`addon:nestjs`).
+- [ ] Las dos apps enseñan los addons del proyecto (solo lectura) y aplican sus vistas guardadas.
+- [ ] El MCP y la acción leen la configuración, así que ven los mismos addons.
+- [ ] El checksum no cambia: un addon no aporta lentes (ADR 0029). La puerta a las lentes es la vía
+  B, con su propio ADR.
+- [ ] **La prueba**: un addon de verdad (por ejemplo, las capas de un framework) que se instala con
+  un comando y se ve en el mapa, en el reporte y en el PR.
+
 ## Después
 
 Las ideas que todavía **no son fase** viven en [la guía](guideline.md): cada una dice qué es, qué
@@ -348,4 +365,4 @@ falta y si merece fase, ADR o solo un arreglo.
 Ahí están el registro público de plugins, las lentes de los plugins, la vista 3D a fondo
 (`plugins/vista-3d/ROADMAP.md`) y la lista de **mejoras de lo que ya hay**.
 
-Este roadmap tiene las fases: M0 a M15, todas cerradas.
+Este roadmap tiene las fases: M0 a M16. M0 a M15 están cerradas; M16 es la que está abierta.
