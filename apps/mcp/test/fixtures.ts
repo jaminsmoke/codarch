@@ -58,6 +58,28 @@ export const SNAPSHOT: CcJson = {
         { fromId: "index", toId: "a" },
         { fromId: "d", toId: "c" }
       ]
+    },
+    migration: {
+      nodes: {
+        a: { language: "ts", status: "js", loc: 200, rloc: 100, debt: 22, crossings: 1 },
+        b: { language: "ts", status: "js", loc: 80, rloc: 40, debt: 6, crossings: 0 },
+        c: { language: "ts", status: "js", loc: 160, rloc: 80, debt: 42, crossings: 2 },
+        d: { language: "rust", status: "native", loc: 40, rloc: 20, crossings: 1 },
+        index: { language: "ts", status: "js", loc: 20, rloc: 10, debt: 2, crossings: 0 }
+      },
+      edges: [{ fromId: "d", toId: "c", kind: "native" }],
+      summary: {
+        files: 5,
+        languages: {
+          ts: { files: 4, loc: 460, rloc: 230 },
+          rust: { files: 1, loc: 40, rloc: 20 }
+        },
+        status: { js: 4, rust: 0, bridge: 0, native: 1 },
+        bridgeFiles: 1,
+        ffiEdges: 1,
+        ffiCrossings: 4,
+        migrationDebt: 72
+      }
     }
   }
 };
@@ -224,6 +246,54 @@ export function makeReport(): DiffReport {
         delta: 8,
         change: "changed"
       }
-    ]
+    ],
+    migration: {
+      languages: {
+        base: { ts: { files: 3, loc: 120, rloc: 60 } },
+        head: { ts: { files: 4, loc: 160, rloc: 80 }, rust: { files: 1, loc: 40, rloc: 20 } }
+      },
+      status: {
+        base: { js: 3, rust: 0, bridge: 0, native: 0 },
+        head: { js: 3, rust: 1, bridge: 0, native: 0 }
+      },
+      debt: { base: 40, head: 30, delta: -10 },
+      crossings: { base: 2, head: 1, delta: -1 },
+      bridgeFiles: { base: 1, head: 1, delta: 0 },
+      files: {
+        increased: [
+          {
+            id: "c",
+            path: "src/domain/c.ts",
+            language: "ts",
+            status: "js",
+            base: 10,
+            head: 14,
+            delta: 4
+          }
+        ],
+        decreased: [
+          {
+            id: "a",
+            path: "src/a.ts",
+            language: "ts",
+            status: "js",
+            base: 20,
+            head: 16,
+            delta: -4
+          }
+        ]
+      },
+      topDebt: [
+        {
+          id: "a",
+          path: "src/a.ts",
+          language: "ts",
+          status: "js",
+          debt: 16,
+          rloc: 30,
+          crossings: 1
+        }
+      ]
+    }
   };
 }

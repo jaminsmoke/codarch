@@ -132,6 +132,31 @@ const report = {
         }
       ]
     }
+  },
+  migration: {
+    languages: { base: {}, head: {} },
+    status: {
+      base: { js: 2, rust: 0, bridge: 0, native: 0 },
+      head: { js: 1, rust: 1, bridge: 0, native: 0 }
+    },
+    debt: { base: 40, head: 30, delta: -10 },
+    crossings: { base: 2, head: 1, delta: -1 },
+    bridgeFiles: { base: 1, head: 1, delta: 0 },
+    files: {
+      increased: [
+        {
+          id: "b",
+          path: "src/b.ts",
+          language: "ts",
+          status: "js",
+          base: 10,
+          head: 14,
+          delta: 4
+        }
+      ],
+      decreased: []
+    },
+    topDebt: []
   }
 };
 
@@ -160,6 +185,8 @@ try {
     "Ciclos nuevos",
     "Hotspots",
     "Violaciones nuevas",
+    "Migración",
+    "deuda 10 → 14",
     "base-checksum",
     "head-checksum"
   ]) {

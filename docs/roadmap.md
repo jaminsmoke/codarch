@@ -168,6 +168,18 @@ mismo. Decisión en [ADR 0021](adr/0021-app-de-escritorio.md).
   deb), con electron-builder y un workflow de CI. Sin firma, el sistema avisa al usuario; firmarlo
   cuesta dinero y queda para cuando el producto lo justifique.
 
+## M8 — La migración, donde ya faltaba
+
+**Estado:** cerrado. La lente de migración se ve en el PR y el agente puede preguntar por ella.
+Decisión en [ADR 0022](adr/0022-la-migracion-donde-faltaba.md).
+
+- [x] El `report.json` tiene sección de migración: estado por lenguaje y categoría, deuda, cruces
+  FFI y los ficheros cuya deuda ha cambiado.
+- [x] El MCP gana `get_migration_plan`: el plan de migración, los ficheros con más deuda y cómo ha
+  cambiado respecto a la base.
+- [x] El comentario del PR muestra la deuda y los cruces FFI, con el detalle de lo que ha cambiado.
+- [x] La vista de PR de la web muestra lo mismo.
+
 ## Después
 
 Lente de dominio → evolución temporal → símbolos → 3D → plugins.

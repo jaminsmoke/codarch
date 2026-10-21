@@ -4,6 +4,7 @@ import {
   folderId,
   parseCcJson,
   type CcJson,
+  type CcMigrationLens,
   type CcNode
 } from "@codarch/schema";
 import { diffSnapshots, parseRuleConfig } from "../src/index";
@@ -22,7 +23,8 @@ interface EdgeSpec {
 function snapshot(
   projectName: string,
   files: readonly FileSpec[],
-  edges: readonly EdgeSpec[] = []
+  edges: readonly EdgeSpec[] = [],
+  migration?: CcMigrationLens
 ): CcJson {
   const root: CcNode = {
     id: folderId(""),
@@ -82,7 +84,8 @@ function snapshot(
           attributes: { weight: 1, typeOnly: 0 },
           isCyclic: edge.cyclic === true
         }))
-      }
+      },
+      ...(migration ? { migration } : {})
     }
   });
 }
@@ -303,6 +306,79 @@ describe("diffSnapshots", () => {
     expect(report.rules.violations.introduced.map((violation) => violation.type)).toEqual([
       "cycles",
       "forbidden"
+    ]);
+  });
+
+  it("compara la lente de migración entre base y head", () => {
+    const migration = (
+      nodes: Record<string, { debt: number; status: "js" | "rust" }>,
+      total: number
+    ): CcMigrationLens => ({
+      nodes: Object.fromEntries(
+        Object.entries(nodes).map(([path, node]) => [
+          fileId(path),
+          {
+            language: node.status === "rust" ? "rust" : "ts",
+            status: node.status,
+            loc: 100,
+            rloc: 50,
+            debt: node.debt,
+            crossings: 0
+          }
+        ])
+      ),
+      edges: [],
+      summary: {
+        files: Object.keys(nodes).length,
+        languages: { ts: { files: 1, loc: 100, rloc: 50 } },
+        status: { js: 1, rust: 0, bridge: 0, native: 0 },
+        bridgeFiles: 0,
+        ffiEdges: 0,
+        ffiCrossings: 0,
+        migrationDebt: total
+      }
+    });
+
+    const base = snapshot(
+      "proj",
+      [
+        { path: "src/a.ts" },
+        { path: "src/b.ts" }
+      ],
+      [],
+      migration({ "src/a.ts": { debt: 10, status: "js" }, "src/b.ts": { debt: 5, status: "js" } }, 15)
+    );
+    const head = snapshot(
+      "proj",
+      [
+        { path: "src/a.ts" },
+        { path: "src/b.ts" },
+        { path: "src/lib.rs" }
+      ],
+      [],
+      migration(
+        {
+          "src/a.ts": { debt: 14, status: "js" },
+          "src/b.ts": { debt: 2, status: "js" },
+          "src/lib.rs": { debt: 0, status: "rust" }
+        },
+        16
+      )
+    );
+
+    const report = diffSnapshots(base, head);
+    expect(report.migration.debt).toEqual({ base: 15, head: 16, delta: 1 });
+    expect(report.migration.files.increased.map((file) => file.path)).toEqual([
+      "src/a.ts"
+    ]);
+    expect(report.migration.files.increased[0]?.delta).toBe(4);
+    expect(report.migration.files.decreased.map((file) => file.path)).toEqual([
+      "src/b.ts"
+    ]);
+    expect(report.migration.files.decreased[0]?.delta).toBe(-3);
+    expect(report.migration.topDebt.map((file) => file.path)).toEqual([
+      "src/a.ts",
+      "src/b.ts"
     ]);
   });
 });

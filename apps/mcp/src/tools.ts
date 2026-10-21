@@ -1,3 +1,8 @@
+import type {
+  CcMigrationLanguage,
+  CcMigrationLanguageStats,
+  CcMigrationStatus
+} from "@codarch/schema";
 import {
   ArchitectureStore,
   McpDataError,
@@ -144,6 +149,59 @@ export type ViolationStatusFilter =
   | "existing"
   | "resolved";
 
+export interface MigrationPlanInput {
+  /** Carpeta desde la que empezar; vacío = raíz. */
+  folder?: string;
+  /** Máximo de ficheros listados (por defecto 15). */
+  limit?: number;
+}
+
+export interface MigrationFileEntry {
+  path: string;
+  id: string;
+  language: CcMigrationLanguage;
+  status: CcMigrationStatus;
+  /** Deuda de migración del fichero. */
+  debt: number;
+  rloc: number;
+  /** Aristas FFI que tocan el fichero. */
+  crossings: number;
+}
+
+export interface MigrationChangeEntry {
+  path: string;
+  id: string;
+  language: CcMigrationLanguage;
+  status: CcMigrationStatus;
+  base: number | null;
+  head: number | null;
+  delta: number | null;
+}
+
+export interface MigrationPlanResult {
+  available: boolean;
+  folder: string;
+  summary: {
+    files: number;
+    languages: Partial<Record<CcMigrationLanguage, CcMigrationLanguageStats>>;
+    status: Record<CcMigrationStatus, number>;
+    debt: number;
+    crossings: number;
+    bridgeFiles: number;
+  } | null;
+  /** Ficheros con más deuda, de más a menos. */
+  topDebt: MigrationFileEntry[];
+  /** Cómo ha cambiado la deuda, si hay reporte. */
+  changes:
+    | { available: false; reason: string }
+    | {
+        available: true;
+        increased: MigrationChangeEntry[];
+        decreased: MigrationChangeEntry[];
+        debt: { base: number; head: number; delta: number };
+      };
+  reason?: string;
+}
 export interface ListViolationsInput {
   status?: ViolationStatusFilter;
   severity?: "all" | "info" | "warn" | "error";
@@ -250,11 +308,120 @@ export function getArchitectureMap(
   };
 }
 
+/**
+ * Plan de migración: cuánta deuda queda, dónde está y cómo ha cambiado.
+ *
+ * La migración es el motivo de ser del producto (ADR 0016): el agente tiene que
+ * poder preguntar por ella con los mismos datos que ve el mapa.
+ */
+export function getMigrationPlan(
+  store: ArchitectureStore,
+  input: MigrationPlanInput = {}
+): MigrationPlanResult {
+  const limit = clampInteger(input.limit, 15, 1, 100);
+  const folder = resolveFolder(
+    store,
+    store.normalizePath(input.folder ?? ""),
+    input.folder ?? ""
+  ).path;
+
+  const lens = store.snapshot.lenses?.migration;
+  if (!lens) {
+    return {
+      available: false,
+      folder,
+      summary: null,
+      topDebt: [],
+      changes: {
+        available: false,
+        reason:
+          "el snapshot no tiene la lente de migración; analiza con una versión que la incluya"
+      }
+    };
+  }
+
+  const paths = new Map<string, string>();
+  for (const file of store.files) paths.set(file.id, file.path);
+
+  const topDebt: MigrationFileEntry[] = [];
+  for (const [id, node] of Object.entries(lens.nodes)) {
+    // La deuda solo existe en lo que falta por migrar: lo ya migrado (rust,
+    // nativo) no tiene nada que migrar.
+    if (!node.debt) continue;
+    const path = paths.get(id);
+    if (!path) continue;
+    if (folder !== "" && !path.startsWith(`${folder}/`)) continue;
+    topDebt.push({
+      path,
+      id,
+      language: node.language,
+      status: node.status,
+      debt: node.debt ?? 0,
+      rloc: node.rloc,
+      crossings: node.crossings
+    });
+  }
+  topDebt.sort(
+    (left, right) => right.debt - left.debt || compareStrings(left.path, right.path)
+  );
+
+  const report = store.report;
+  if (!report) {
+    return {
+      available: true,
+      folder,
+      summary: {
+        files: lens.summary.files,
+        languages: lens.summary.languages,
+        status: lens.summary.status,
+        debt: lens.summary.migrationDebt,
+        crossings: lens.summary.ffiCrossings,
+        bridgeFiles: lens.summary.bridgeFiles
+      },
+      topDebt: topDebt.slice(0, limit),
+      changes: {
+        available: false,
+        reason:
+          "no hay report.json cargado; ejecuta codarch diff o pasa --report"
+      }
+    };
+  }
+
+  const toChange = (entry: {
+    id: string;
+    path: string;
+    language: CcMigrationLanguage;
+    status: CcMigrationStatus;
+    base: number | null;
+    head: number | null;
+    delta: number | null;
+  }): MigrationChangeEntry => ({ ...entry });
+
+  return {
+    available: true,
+    folder,
+    summary: {
+      files: lens.summary.files,
+      languages: lens.summary.languages,
+      status: lens.summary.status,
+      debt: lens.summary.migrationDebt,
+      crossings: lens.summary.ffiCrossings,
+      bridgeFiles: lens.summary.bridgeFiles
+    },
+    topDebt: topDebt.slice(0, limit),
+    changes: {
+      available: true,
+      increased: report.migration.files.increased.map(toChange),
+      decreased: report.migration.files.decreased.map(toChange),
+      debt: report.migration.debt
+    }
+  };
+}
+
 export function findHotspots(
   store: ArchitectureStore,
   input: FindHotspotsInput = {}
-): FindHotspotsResult {
-  const scope: HotspotScope = input.scope ?? "snapshot";
+): FindHotspotsResult {  const scope: HotspotScope = input.scope ?? "snapshot";
   const limit = clampInteger(input.limit, 10, 1, 100);
   const folder = resolveFolder(
     store,

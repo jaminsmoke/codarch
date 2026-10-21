@@ -2,6 +2,9 @@ import {
   walkFiles,
   walkTree,
   type CcJson,
+  type CcMigrationLanguage,
+  type CcMigrationLanguageStats,
+  type CcMigrationStatus,
   type CcNode
 } from "@codarch/schema";
 import type { RuleConfig } from "./config";
@@ -55,6 +58,63 @@ export interface CycleComponent {
   nodes: Array<{ id: string; path: string }>;
 }
 
+/** Deuda de migración de un fichero, con su antes y su después. */
+export interface MigrationFileChange {
+  id: string;
+  path: string;
+  language: CcMigrationLanguage;
+  status: CcMigrationStatus;
+  /** Deuda en la base; `null` si el fichero no estaba. */
+  base: number | null;
+  /** Deuda en el head; `null` si el fichero ya no está. */
+  head: number | null;
+  /** `head - base`. */
+  delta: number | null;
+}
+
+/** Un fichero y su deuda actual. */
+export interface MigrationFileDebt {
+  id: string;
+  path: string;
+  language: CcMigrationLanguage;
+  status: CcMigrationStatus;
+  debt: number;
+  rloc: number;
+  /** Aristas FFI que tocan el fichero. */
+  crossings: number;
+}
+
+/** Cómo ha cambiado la migración entre la base y el head. */
+export interface MigrationReport {
+  /** Estado por lenguaje, en la base y en el head. */
+  languages: {
+    base: Partial<Record<CcMigrationLanguage, CcMigrationLanguageStats>>;
+    head: Partial<Record<CcMigrationLanguage, CcMigrationLanguageStats>>;
+  };
+  /** Estado por categoría (`js`, `rust`, `bridge`, `native`). */
+  status: {
+    base: Record<CcMigrationStatus, number>;
+    head: Record<CcMigrationStatus, number>;
+  };
+  /** Deuda total de migración. */
+  debt: MigrationDelta;
+  /** Cruces FFI. */
+  crossings: MigrationDelta;
+  /** Puentes (ficheros que tocan FFI). */
+  bridgeFiles: MigrationDelta;
+  /** Ficheros cuya deuda ha crecido o se ha reducido. */
+  files: { increased: MigrationFileChange[]; decreased: MigrationFileChange[] };
+  /** Los ficheros con más deuda ahora. */
+  topDebt: MigrationFileDebt[];
+}
+
+/** Un valor con su antes y su después. El delta es `head - base`. */
+export interface MigrationDelta {
+  base: number;
+  head: number;
+  delta: number;
+}
+
 export interface Hotspot {
   id: string;
   path: string;
@@ -102,6 +162,8 @@ export interface DiffReport {
     fixed: CycleComponent[];
   };
   hotspots: Hotspot[];
+  /** Cómo ha cambiado la migración: es el motivo de ser del producto. */
+  migration: MigrationReport;
 }
 
 export interface DiffOptions {
@@ -197,8 +259,117 @@ export function diffSnapshots(
     files: { added, removed, changed },
     edges: edgeDiff,
     cycles: { introduced: introducedCycles, fixed: fixedCycles },
-    hotspots
+    hotspots,
+    migration: buildMigrationReport(baseIndex, headIndex, top)
   };
+}
+
+/**
+ * Compara la lente de migración entre la base y el head.
+ *
+ * La migración es el motivo de ser del producto: que su deuda se vea en el
+ * PR, no solo en el mapa.
+ */
+function buildMigrationReport(
+  baseIndex: IndexedSnapshot,
+  headIndex: IndexedSnapshot,
+  top: number
+): MigrationReport {
+  const baseLens = baseIndex.cc.lenses?.migration;
+  const headLens = headIndex.cc.lenses?.migration;
+
+  const baseNodes = baseLens?.nodes ?? {};
+  const headNodes = headLens?.nodes ?? {};
+
+  const changes: MigrationFileChange[] = [];
+  for (const id of new Set([...Object.keys(baseNodes), ...Object.keys(headNodes)])) {
+    const base = baseNodes[id];
+    const head = headNodes[id];
+    if (!base && !head) continue;
+    const reference = head ?? (base as NonNullable<typeof base>);
+    const baseDebt = base ? base.debt ?? 0 : null;
+    const headDebt = head ? head.debt ?? 0 : null;
+    const delta =
+      baseDebt === null || headDebt === null ? null : headDebt - baseDebt;
+    if (delta === null || delta === 0) continue;
+    changes.push({
+      id,
+      path: headIndex.paths.get(id) ?? baseIndex.paths.get(id) ?? id,
+      language: reference.language,
+      status: reference.status,
+      base: baseDebt,
+      head: headDebt,
+      delta
+    });
+  }
+
+  const increased = changes
+    .filter((change) => (change.delta ?? 0) > 0)
+    .sort(
+      (left, right) =>
+        (right.delta ?? 0) - (left.delta ?? 0) || compareByPath(left, right)
+    );
+  const decreased = changes
+    .filter((change) => (change.delta ?? 0) < 0)
+    .sort(
+      (left, right) =>
+        (left.delta ?? 0) - (right.delta ?? 0) || compareByPath(left, right)
+    );
+
+  const topDebt: MigrationFileDebt[] = [];
+  for (const [id, node] of Object.entries(headNodes)) {
+    if (!node.debt) continue;
+    topDebt.push({
+      id,
+      path: headIndex.paths.get(id) ?? id,
+      language: node.language,
+      status: node.status,
+      debt: node.debt,
+      rloc: node.rloc,
+      crossings: node.crossings
+    });
+  }
+  topDebt.sort(
+    (left, right) => right.debt - left.debt || compareByPath(left, right)
+  );
+
+  const baseSummary = baseLens?.summary;
+  const headSummary = headLens?.summary;
+
+  return {
+    languages: {
+      base: baseSummary?.languages ?? {},
+      head: headSummary?.languages ?? {}
+    },
+    status: {
+      base: baseSummary?.status ?? emptyStatus(),
+      head: headSummary?.status ?? emptyStatus()
+    },
+    debt: {
+      base: baseSummary?.migrationDebt ?? 0,
+      head: headSummary?.migrationDebt ?? 0,
+      delta: (headSummary?.migrationDebt ?? 0) - (baseSummary?.migrationDebt ?? 0)
+    },
+    crossings: {
+      base: baseSummary?.ffiCrossings ?? 0,
+      head: headSummary?.ffiCrossings ?? 0,
+      delta: (headSummary?.ffiCrossings ?? 0) - (baseSummary?.ffiCrossings ?? 0)
+    },
+    bridgeFiles: {
+      base: baseSummary?.bridgeFiles ?? 0,
+      head: headSummary?.bridgeFiles ?? 0,
+      delta: (headSummary?.bridgeFiles ?? 0) - (baseSummary?.bridgeFiles ?? 0)
+    },
+    files: {
+      increased: increased.slice(0, top),
+      decreased: decreased.slice(0, top)
+    },
+    topDebt: topDebt.slice(0, top)
+  };
+}
+
+function emptyStatus(): Record<CcMigrationStatus, number> {
+  return { js: 0, rust: 0, bridge: 0, native: 0 };
 }
 
 function indexSnapshot(cc: CcJson): IndexedSnapshot {
@@ -274,7 +445,7 @@ function difference(
       metrics: sortedMetrics(present.metrics[id])
     });
   }
-  return files.sort(compareFiles);
+  return files.sort(compareByPath);
 }
 
 function changedFiles(
@@ -568,7 +739,7 @@ function edgeKey(fromId: string, toId: string): string {
   return `${fromId}\u0000${toId}`;
 }
 
-function compareFiles(left: DiffFile, right: DiffFile): number {
+function compareByPath(left: { path: string; id: string }, right: { path: string; id: string }): number {
   return compareStrings(left.path, right.path) || compareStrings(left.id, right.id);
 }
 

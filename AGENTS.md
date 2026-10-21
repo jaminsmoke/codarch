@@ -75,6 +75,8 @@ también `npm run sync:action` y actualizar el repo público.
   y cancelación instantánea.
 - M7 cerrado: app de escritorio con Electron y su propia copia de la UI (ADR 0021); el motor es el
   mismo, las apps no se importan la una a la otra. Instaladores sin firmar por CI.
+- M8 cerrado: la lente de migración se ve en el reporte, en el comentario del PR y en el MCP
+  (`get_migration_plan`); decisión en ADR 0022.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.

@@ -7,6 +7,7 @@ import {
   explainModule,
   findHotspots,
   getArchitectureMap,
+  getMigrationPlan,
   listViolations
 } from "./tools";
 
@@ -184,6 +185,30 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => explainModule(store, args))
+  );
+
+  server.registerTool(
+    "get_migration_plan",
+    {
+      title: "Plan de migración",
+      description:
+        "Plan de migración a otro lenguaje: estado por lenguaje y categoría, deuda total, cruces FFI, los ficheros con más deuda y cómo ha cambiado respecto a la base del report.json.",
+      inputSchema: {
+        folder: z
+          .string()
+          .optional()
+          .describe("Carpeta relativa desde la que empezar; vacío = raíz"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe("Máximo de ficheros listados (por defecto 15)")
+      },
+      annotations: READ_ONLY
+    },
+    (args) => invoke(() => getMigrationPlan(store, args))
   );
 
   return server;

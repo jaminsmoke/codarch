@@ -1153,6 +1153,19 @@ button {
   color: var(--debt);
 }
 
+/* La deuda de migración que baja es buena; la que sube, mala. */
+.pr-stat-good b {
+  color: var(--patina);
+}
+
+.pr-delta.is-worse {
+  color: var(--debt);
+}
+
+.pr-delta.is-better {
+  color: var(--patina);
+}
+
 .pr-section {
   margin-top: 13px;
   padding-top: 12px;

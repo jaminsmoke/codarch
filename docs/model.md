@@ -277,6 +277,7 @@ type DiffReport = {
   }
   hotspots: Hotspot[]
   hotspotMetric: string | null
+  migration: MigrationReport      // la migración, que es el motivo de ser
 }
 ```
 
@@ -289,6 +290,10 @@ Reglas:
   ciclo resuelto y otro introducido.
 - Hotspots por `maxComplexity` (o `rloc` si falta), solo con delta positivo; un fichero nuevo parte
   de 0. Sin fórmula compuesta opaca.
+- La sección `migration` compara la lente de migración de la base con la del head: el estado por
+  lenguaje y categoría, la deuda, los cruces FFI, los ficheros cuya deuda cambia y los de más deuda.
+  Sus deltas son `head - base` como en el resto del reporte: en la deuda, un delta negativo es
+  bueno.
 - Las violaciones se comparan por clave estable entre base y head; solo las introducidas con
   severidad `error` bloquean con `--fail-on violations`.
 - `report.json` es determinista y no tiene timestamps. Ver
