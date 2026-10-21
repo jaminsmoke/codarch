@@ -367,16 +367,19 @@ describe("diffSnapshots", () => {
     );
 
     const report = diffSnapshots(base, head);
-    expect(report.migration.debt).toEqual({ base: 15, head: 16, delta: 1 });
-    expect(report.migration.files.increased.map((file) => file.path)).toEqual([
+    const migrationReport = report.migration;
+    expect(migrationReport).not.toBeNull();
+    if (!migrationReport) return;
+    expect(migrationReport.debt).toEqual({ base: 15, head: 16, delta: 1 });
+    expect(migrationReport.files.increased.map((file) => file.path)).toEqual([
       "src/a.ts"
     ]);
-    expect(report.migration.files.increased[0]?.delta).toBe(4);
-    expect(report.migration.files.decreased.map((file) => file.path)).toEqual([
+    expect(migrationReport.files.increased[0]?.delta).toBe(4);
+    expect(migrationReport.files.decreased.map((file) => file.path)).toEqual([
       "src/b.ts"
     ]);
-    expect(report.migration.files.decreased[0]?.delta).toBe(-3);
-    expect(report.migration.topDebt.map((file) => file.path)).toEqual([
+    expect(migrationReport.files.decreased[0]?.delta).toBe(-3);
+    expect(migrationReport.topDebt.map((file) => file.path)).toEqual([
       "src/a.ts",
       "src/b.ts"
     ]);

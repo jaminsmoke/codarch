@@ -250,7 +250,7 @@ entre dos snapshots inmutables. `rules` es opcional; si falta, `rules.configured
 
 ```ts
 type DiffReport = {
-  schemaVersion: '1.0'
+  schemaVersion: '1.1'
   base: { projectName, checksum, files, folders, edges }
   head: { projectName, checksum, files, folders, edges }
   summary: {
@@ -294,6 +294,9 @@ Reglas:
   lenguaje y categoría, la deuda, los cruces FFI, los ficheros cuya deuda cambia y los de más deuda.
   Sus deltas son `head - base` como en el resto del reporte: en la deuda, un delta negativo es
   bueno.
+- `schemaVersion` sube cuando cambia la forma del reporte. Los lectores reconstruyen los reportes de
+  versiones anteriores a la actual, así que siempre se usa la más nueva: lo que no se pudo medir
+  (la sección de migración en un `1.0`) se marca con `null` en vez de inventar ceros.
 - Las violaciones se comparan por clave estable entre base y head; solo las introducidas con
   severidad `error` bloquean con `--fail-on violations`.
 - `report.json` es determinista y no tiene timestamps. Ver

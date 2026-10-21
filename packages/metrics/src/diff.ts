@@ -140,7 +140,7 @@ export interface DiffSummary {
 }
 
 export interface DiffReport {
-  schemaVersion: "1.0";
+  schemaVersion: "1.1";
   base: SnapshotSummary;
   head: SnapshotSummary;
   summary: DiffSummary;
@@ -162,8 +162,13 @@ export interface DiffReport {
     fixed: CycleComponent[];
   };
   hotspots: Hotspot[];
-  /** Cómo ha cambiado la migración: es el motivo de ser del producto. */
-  migration: MigrationReport;
+  /**
+   * Cómo ha cambiado la migración: es el motivo de ser del producto.
+   *
+   * Es `null` cuando no se midió (un reporte reconstruido desde una versión
+   * anterior, o snapshots sin la lente de migración).
+   */
+  migration: MigrationReport | null;
 }
 
 export interface DiffOptions {
@@ -239,7 +244,7 @@ export function diffSnapshots(
     : emptyRuleReport();
 
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     base: summarize(baseIndex),
     head: summarize(headIndex),
     summary: {
@@ -263,7 +268,6 @@ export function diffSnapshots(
     migration: buildMigrationReport(baseIndex, headIndex, top)
   };
 }
-
 /**
  * Compara la lente de migración entre la base y el head.
  *
@@ -274,9 +278,12 @@ function buildMigrationReport(
   baseIndex: IndexedSnapshot,
   headIndex: IndexedSnapshot,
   top: number
-): MigrationReport {
+): MigrationReport | null {
   const baseLens = baseIndex.cc.lenses?.migration;
   const headLens = headIndex.cc.lenses?.migration;
+  // Sin la lente en ninguno de los dos lados no hay nada que comparar: se dice
+  // con `null` en vez de inventar ceros.
+  if (!baseLens && !headLens) return null;
 
   const baseNodes = baseLens?.nodes ?? {};
   const headNodes = headLens?.nodes ?? {};

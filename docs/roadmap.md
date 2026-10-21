@@ -2,6 +2,24 @@
 
 Cada milestone deja el producto funcionando y verificable. Nada de big-bang.
 
+## Estado
+
+Hoy CodArch tiene:
+
+- **CLI** (`codarch`): `analyze`, `diff`, `render`, `inspect` y `serve`. Publicado en npm.
+- **Modelo** `cc.json` 2.x: árbol de ficheros, métricas, grafo de dependencias, ciclos, lente de
+  migración y checksum determinista. Es la verdad del producto y la comparten todas las apps.
+- **Reglas** de arquitectura en `.codarch.yml`: capas, prohibiciones, umbrales y ciclos, con severidad
+  y política de bloqueo.
+- **MCP** de solo lectura: seis consultas para agentes.
+- **GitHub Action**: analiza base y head del PR, comenta el resultado y bloquea si la política falla.
+- **App web**: mapa, inspector, vista de PR, nivel de detalle para repos grandes y análisis de una
+  carpeta en el navegador con el mismo checksum que el CLI.
+- **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
+  e instaladores sin firmar.
+
+Las fases M0–M4, M6, M7 y M8 están cerradas. M5 está cerrada en lo funcional; queda pulido.
+
 ---
 
 ## M0 — Modelo y mapa, sin parsers
@@ -104,8 +122,9 @@ Límites: Rust solo se mide con escáner léxico; las aristas napi no se observa
 
 ## M5 — App web
 
-**Estado:** en curso. App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista
-de PR.
+**Estado:** cerrada en lo funcional; queda pulido (iconos propios hechos, queda afinar el detalle).
+
+App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista de PR.
 
 - [x] Cargar un `snapshot.cc.json` local (botón o drag & drop) y una demo incluida.
 - [x] Reutilizar `buildRenderModel` y `layoutMap`; layout dinámico al tamaño del contenedor.
@@ -121,6 +140,8 @@ de PR.
 - [x] Recordar el último snapshot/reporte y el estado de vista.
 
 ## M5.1 — Básicos de uso
+
+**Estado:** cerrada.
 
 - [x] Abrir repositorio por carpeta con File System Access API; fallback `webkitdirectory`.
 - [x] Abrir un `cc.json` suelto y cargar el reporte desde la pestaña PR.
@@ -179,7 +200,38 @@ Decisión en [ADR 0022](adr/0022-la-migracion-donde-faltaba.md).
   cambiado respecto a la base.
 - [x] El comentario del PR muestra la deuda y los cruces FFI, con el detalle de lo que ha cambiado.
 - [x] La vista de PR de la web muestra lo mismo.
+- [x] `schemaVersion` del reporte a `1.1` y **obligatorio**: los lectores reconstruyen los reportes
+  de versiones anteriores a la actual, y lo que no se pudo medir se marca con `null` en vez de
+  inventar ceros. Un solo lector del reporte, en `@codarch/metrics`, para la web, el escritorio y el
+  MCP.
 
 ## Después
 
-Lente de dominio → evolución temporal → símbolos → 3D → plugins.
+Candidatos, del más útil al menos. Los tres últimos están fuera de la v1 por `AGENTS.md` (símbolos,
+3D y plugins no son objetivo) y solo entrarían con una decisión nueva.
+
+### Lente de dominio
+
+Reglas propias del dominio, no solo las genéricas de capas y ciclos. Dos caminos posibles:
+
+- **Catálogo de perfiles** (`clean architecture`, `hexagonal`, `ddd`): el equipo elige uno y recibe
+  las reglas y las capas ya escritas.
+- **Generador**: el análisis detecta las capas por sus dependencias y propone las reglas.
+
+Va al `report.json` y al gate, como las reglas de `.codarch.yml`, o en un informe aparte. **Decisión
+pendiente.**
+
+### Evolución temporal
+
+El snapshot ya lleva `number_of_commits` y `number_of_authors` por fichero, y el riesgo los usa. Falta
+enseñar la historia: cómo se mueve la deuda, qué módulos se tocan más, cuándo se degradó. Es la parte
+de "mapa vivo" que todavía no existe.
+
+### Símbolos
+
+Lente de símbolos (funciones, clases, tipos) en vez de solo ficheros. El modelo ya lo contempla
+(ADR 0006) y es una fase grande.
+
+### 3D y plugins
+
+Fuera de la v1. Cada uno necesita su propia decisión.

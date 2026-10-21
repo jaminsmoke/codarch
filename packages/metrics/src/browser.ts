@@ -16,6 +16,16 @@ export type {
   EdgeChange,
   Hotspot,
   MetricChange,
+  MigrationDelta,
+  MigrationFileChange,
+  MigrationFileDebt,
+  MigrationReport,
   SnapshotSummary
 } from "./diff";
 export type { RuleReport, RuleViolation, ViolationType } from "./rules";
+export {
+  REPORT_SCHEMA_VERSION,
+  emptyMigrationReport,
+  migrationFiles,
+  parseReport
+} from "./report";

@@ -17,7 +17,7 @@ import {
   type CcMigrationNode,
   type CcMigrationStatus
 } from "@codarch/schema/browser";
-import type { DiffReport } from "@codarch/metrics/browser";
+import { parseReport, type DiffReport } from "@codarch/metrics/browser";
 import {
   buildRenderModel,
   formatCompact,
@@ -709,24 +709,7 @@ function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {
 }
 
 function readReport(value: unknown): DiffReport | null {
-  if (typeof value !== "object" || value === null) return null;
-  const report = value as Partial<DiffReport>;
-  if (
-    report.schemaVersion !== "1.0" ||
-    typeof report.summary !== "object" ||
-    report.summary === null ||
-    typeof report.base !== "object" ||
-    report.base === null ||
-    typeof report.head !== "object" ||
-    report.head === null ||
-    typeof report.files !== "object" ||
-    report.files === null ||
-    typeof report.rules !== "object" ||
-    report.rules === null
-  ) {
-    return null;
-  }
-  return report as DiffReport;
+  return parseReport(value);
 }
 
 function readMigration(cc: CcJson | null): CcMigrationLens | null {

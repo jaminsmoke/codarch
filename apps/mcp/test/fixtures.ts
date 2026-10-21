@@ -93,7 +93,7 @@ export function makeStore(report: DiffReport | null = makeReport()): Architectur
 
 export function makeReport(): DiffReport {
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "1.1",
     base: {
       projectName: "Acme",
       checksum: "checksum-base",

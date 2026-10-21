@@ -397,6 +397,8 @@ export function getMigrationPlan(
     delta: number | null;
   }): MigrationChangeEntry => ({ ...entry });
 
+  const migration = report.migration;
+
   return {
     available: true,
     folder,
@@ -409,12 +411,18 @@ export function getMigrationPlan(
       bridgeFiles: lens.summary.bridgeFiles
     },
     topDebt: topDebt.slice(0, limit),
-    changes: {
-      available: true,
-      increased: report.migration.files.increased.map(toChange),
-      decreased: report.migration.files.decreased.map(toChange),
-      debt: report.migration.debt
-    }
+    changes: migration
+      ? {
+          available: true,
+          increased: migration.files.increased.map(toChange),
+          decreased: migration.files.decreased.map(toChange),
+          debt: migration.debt
+        }
+      : {
+          available: false,
+          reason:
+            "el reporte no tiene sección de migración; se generó con una versión anterior"
+        }
   };
 }
 

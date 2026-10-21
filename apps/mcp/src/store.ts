@@ -9,7 +9,9 @@ import {
 import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
+  REPORT_SCHEMA_VERSION,
   firstMetric,
+  parseReport,
   riskScores,
   type DiffReport,
   type Hotspot,
@@ -642,35 +644,15 @@ export function loadArchitectureStore(
 }
 
 function parseDiffReport(input: unknown, source: string): DiffReport {
-  if (!isRecord(input)) {
-    throw new McpDataError(`reporte inválido en ${source}: se esperaba un objeto`);
-  }
-  const files = input.files;
-  const rules = input.rules;
-  const cycles = input.cycles;
-  if (
-    input.schemaVersion !== "1.0" ||
-    !isRecord(files) ||
-    !Array.isArray(files.added) ||
-    !Array.isArray(files.removed) ||
-    !Array.isArray(files.changed) ||
-    !isRecord(rules) ||
-    typeof rules.configured !== "boolean" ||
-    !isRecord(rules.summary) ||
-    !isRecord(rules.violations) ||
-    !Array.isArray(rules.violations.introduced) ||
-    !Array.isArray(rules.violations.existing) ||
-    !Array.isArray(rules.violations.resolved) ||
-    !isRecord(cycles) ||
-    !Array.isArray(cycles.introduced) ||
-    !Array.isArray(cycles.fixed) ||
-    !Array.isArray(input.hotspots)
-  ) {
+  // El lector es el del paquete de métricas: un reporte de una versión
+  // anterior se reconstruye a la actual.
+  const report = parseReport(input);
+  if (!report) {
     throw new McpDataError(
-      `reporte inválido en ${source}: no parece un reporte CodArch schemaVersion 1.0`
+      `reporte inválido en ${source}: no parece un reporte CodArch (schemaVersion ${REPORT_SCHEMA_VERSION})`
     );
   }
-  return input as unknown as DiffReport;
+  return report;
 }
 
 function relativePath(
@@ -821,10 +803,6 @@ function statusOrder(status: ViolationStatus): number {
 
 function severityOrder(severity: RuleViolation["severity"]): number {
   return severity === "error" ? 0 : severity === "warn" ? 1 : 2;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function compareStrings(left: string, right: string): number {

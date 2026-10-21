@@ -13,6 +13,12 @@ export type {
   ThresholdRuleConfig
 } from "./config";
 export { diffSnapshots } from "./diff";
+export {
+  REPORT_SCHEMA_VERSION,
+  emptyMigrationReport,
+  migrationFiles,
+  parseReport
+} from "./report";
 export type {
   ChangedFile,
   CycleComponent,
@@ -23,6 +29,10 @@ export type {
   EdgeChange,
   Hotspot,
   MetricChange,
+  MigrationDelta,
+  MigrationFileChange,
+  MigrationFileDebt,
+  MigrationReport,
   SnapshotSummary
 } from "./diff";
 export { emptyRuleReport, evaluateRules } from "./rules";
