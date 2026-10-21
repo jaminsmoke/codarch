@@ -159,10 +159,11 @@ app y pulir el lector de carpetas.
 Electron con la misma app web, pero **copiada, no compartida**: las dos apps evolves por separado y
 ninguna depende de la otra. Ver el ADR para el porqué y para lo que se copia.
 
-- [ ] Empaquetado de escritorio con el mismo build web.
-- [ ] Analizador local integrado (el CLI en proceso, sin servidor).
-- [ ] Diálogo de carpeta nativo y apertura de fichero.
-- [ ] Atajos de teclado y "abrir con" desde el explorador de archivos.
+- [x] Empaquetado de escritorio con el mismo build web.
+- [x] Analizador local integrado (el CLI en proceso, sin servidor).
+- [x] Diálogo de carpeta nativo y apertura de fichero.
+- [ ] Menú nativo, atajos de sistema y "abrir con" desde el explorador de archivos.
+- [ ] Instalador firmado y publicación por plataforma.
 
 ## Después
 

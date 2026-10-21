@@ -1,0 +1,49 @@
+import { build } from "esbuild";
+import { mkdir, rm } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/**
+ * Empaqueta el proceso principal y el preload.
+ *
+ * El proceso principal usa `node:fs` y el binding nativo de tree-sitter, así
+ * que se empaqueta como CommonJS y las dependencias nativas se quedan fuera.
+ */
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const DIST = path.join(ROOT, "dist");
+
+await rm(DIST, { recursive: true, force: true });
+await mkdir(DIST, { recursive: true });
+
+const shared = {
+  bundle: true,
+  platform: "node",
+  target: "node22",
+  format: "cjs",
+  sourcemap: false,
+  minify: false,
+  external: [
+    "electron",
+    "ignore",
+    "minimatch",
+    "tree-sitter",
+    "tree-sitter-typescript",
+    "typescript",
+    "yaml"
+  ]
+};
+
+await build({
+  ...shared,
+  entryPoints: [path.join(ROOT, "src", "main.ts")],
+  outfile: path.join(DIST, "main.cjs")
+});
+
+await build({
+  ...shared,
+  entryPoints: [path.join(ROOT, "src", "preload.ts")],
+  outfile: path.join(DIST, "preload.cjs")
+});
+
+console.log(`ok · proceso principal y preload en ${path.relative(ROOT, DIST)}`);

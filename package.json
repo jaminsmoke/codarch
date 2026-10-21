@@ -26,6 +26,8 @@
     "web:dev": "npm run dev --workspace @codarch/web",
     "web:build": "npm run build --workspace @codarch/web",
     "web:preview": "npm run preview --workspace @codarch/web",
+    "desktop:build": "npm run build --workspace @codarch/desktop",
+    "desktop:start": "npm run start --workspace @codarch/desktop",
     "serve": "npm run web:build && tsx apps/cli/src/index.ts serve",
     "check:action": "node scripts/check-action.mjs",
     "lint": "oxlint .",
