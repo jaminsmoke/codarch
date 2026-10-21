@@ -323,7 +323,7 @@ describe("rutas e ids", () => {
 });
 
 describe("servidor MCP", () => {
-  it("registra las siete herramientas y responde por transporte en memoria", async () => {
+  it("registra las ocho herramientas y responde por transporte en memoria", async () => {
     const server = createServer(makeStore());
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -343,6 +343,7 @@ describe("servidor MCP", () => {
         "get_architecture_map",
         "get_history",
         "get_migration_plan",
+        "get_symbol_chain",
         "list_violations"
       ]);
 

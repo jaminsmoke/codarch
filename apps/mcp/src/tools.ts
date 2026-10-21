@@ -4,9 +4,11 @@ import type {
   CcMigrationStatus
 } from "@codarch/schema";
 import {
+  chainsPayload,
   historyFileName,
   historyLocation,
   parseHistoryIndex,
+  type ChainsPayload,
   type HistoryIndex
 } from "@codarch/schema";
 import { readFileSync } from "node:fs";
@@ -570,6 +572,59 @@ export function getHistory(
       reason: `no se pudo leer la foto: ${(cause as Error).message}`
     };
   }
+}
+
+/**
+ * La vida de un símbolo: su cadena a lo largo del historial.
+ *
+ * Responde a "¿esta función es la misma que la de hace un año?" y a
+ * "¿cuántas veces se ha reescrito esto?" ✓.
+ */
+export function getSymbolChain(
+  store: ArchitectureStore,
+  input: SymbolChainInput = {}
+): SymbolChainResult {
+  const symbol = input.symbol?.trim();
+  if (!symbol) {
+    return {
+      available: false,
+      reason: "dime qué símbolo buscas: el nombre de la función, la clase o el tipo",
+      chains: [],
+      heat: []
+    };
+  }
+
+  const payload = chainsPayload(store.root, symbol);
+  if (!payload.available) {
+    return {
+      available: false,
+      reason:
+        "no hay historial en este repositorio; se guarda con codarch analyze --history",
+      chains: [],
+      heat: []
+    };
+  }
+
+  const limit = clampInteger(input.limit, 10, 1, 50);
+  return {
+    available: true,
+    reason: undefined,
+    chains: payload.chains.slice(0, limit),
+    heat: payload.heat
+  };
+}
+
+export interface SymbolChainInput {
+  /** El símbolo: su nombre o parte de él. */
+  symbol?: string;
+  limit?: number;
+}
+
+export interface SymbolChainResult {
+  available: boolean;
+  reason?: string;
+  chains: ChainsPayload["chains"];
+  heat: ChainsPayload["heat"];
 }
 
 export function findHotspots(

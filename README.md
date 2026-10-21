@@ -397,6 +397,14 @@ codarch chain buscar
 El libro mayor (`.codarch/chains.json`) es un artefacto derivado: se regenera siempre desde las
 fotos del historial. ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### El calor por símbolo
+
+Un fichero con veinte funciones quietas y otro con una que se reescribe cada semana pesan igual en el
+mapa. Con las cadenas, no: la barra lateral lista los **símbolos más reescritos** ✓, y el inspector
+enseña la vida del que elijas ✓ (nació, se renombró, se mudó, cambió su complejidad ✓).
+
+El agente pregunta lo mismo: `get_symbol_chain` ✓.
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.

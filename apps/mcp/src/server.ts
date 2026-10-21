@@ -9,6 +9,7 @@ import {
   getArchitectureMap,
   getHistory,
   getMigrationPlan,
+  getSymbolChain,
   listViolations
 } from "./tools";
 
@@ -210,6 +211,30 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => getMigrationPlan(store, args))
+  );
+
+  server.registerTool(
+    "get_symbol_chain",
+    {
+      title: "La vida de un símbolo",
+      description:
+        "La cadena de un símbolo a lo largo del historial: cuándo nació, cómo se renombró o se mudó, cuántas veces cambió su complejidad y cuándo desapareció. También devuelve el calor del repo: los símbolos más reescritos.",
+      inputSchema: {
+        symbol: z
+          .string()
+          .optional()
+          .describe("El símbolo: el nombre de la función, la clase o el tipo"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .describe("Máximo de cadenas (por defecto 10)")
+      },
+      annotations: READ_ONLY
+    },
+    (args) => invoke(() => getSymbolChain(store, args))
   );
 
   server.registerTool(

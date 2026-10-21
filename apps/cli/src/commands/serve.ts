@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeRepository } from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
+import { chainsPayload } from "./chains-payload";
 
 export interface ServeOptions {
   root?: string;
@@ -280,6 +281,14 @@ export function runServe(options: ServeOptions): number {
 
       if (pathname === "/data/history.json") {
         sendJson(response, readHistoryIndex(state.root));
+        return;
+      }
+
+      if (pathname === "/data/chains.json") {
+        // Las cadenas de los símbolos: "?symbol=nombre" trae la de ese
+        // símbolo; sin él, el calor de los más reescritos ✓.
+        const symbol = url.searchParams.get("symbol");
+        sendJson(response, chainsPayload(state.root, symbol));
         return;
       }
 

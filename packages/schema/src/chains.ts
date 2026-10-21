@@ -198,6 +198,76 @@ function version(
   };
 }
 
+/**
+ * El calor de un símbolo: cuántas veces se ha reescrito.
+ *
+ * A nivel de fichero no existe esta señal: un fichero con veinte funciones
+ * que no se tocan y otro con una que se reescribe cada semana pesan lo mismo.
+ * Aquí no ✓.
+ */
+export interface SymbolHeat {
+  id: string;
+  name: string;
+  path: string;
+  kind: CcSymbol["kind"];
+  /** Cuántas versiones tiene en la cadena. */
+  versions: number;
+  /** Cuántas veces cambió de verdad. */
+  changes: number;
+  /** Cuántas veces se renombró o se mudó. */
+  moves: number;
+  /**
+   * El ruido total: cambios y mudanzas juntos.
+   *
+   * Un renombrado también es curro: la función sigue siendo la misma, pero
+   * quien la usa tiene que buscarla otra vez ✓.
+   */
+  churn: number;
+  complexity: number | null;
+}
+
+/**
+ * Los símbolos más reescritos.
+ *
+ * Ordena por cambios de verdad y, a empate, por mudanzas y renombrados ✓.
+ */
+export function summarizeChains(
+  chains: readonly SymbolChain[],
+  limit = 10
+): SymbolHeat[] {
+  const heat: SymbolHeat[] = chains.map((chain) => {
+    let changes = 0;
+    let moves = 0;
+    for (const version of chain.versions) {
+      for (const event of version.events) {
+        if (event.type === "changed") changes++;
+        else if (event.type === "renamed" || event.type === "moved") moves++;
+      }
+    }
+    const last = chain.versions[chain.versions.length - 1];
+    return {
+      id: chain.id,
+      name: chain.name,
+      path: chain.path,
+      kind: chain.kind,
+      versions: chain.versions.length,
+      changes,
+      moves,
+      churn: changes + moves,
+      complexity: last?.complexity ?? null
+    };
+  });
+
+  heat.sort(
+    (left, right) =>
+      right.churn - left.churn ||
+      right.changes - left.changes ||
+      left.name.localeCompare(right.name)
+  );
+
+  return heat.slice(0, limit);
+}
+
 /** Los símbolos de una foto, por ruta de fichero. */
 function liveSymbols(snapshot: CcJson): LiveSymbol[] {
   const lens = snapshot.lenses?.symbols;

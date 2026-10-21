@@ -1,18 +1,7 @@
-import fs from "node:fs";
 import path from "node:path";
 import {
-  CcJsonError,
-  buildChains,
-  historyFileName,
-  historyLocation,
-  ledgerIsFresh,
-  parseCcJson,
-  readChainLedger,
+  loadChains,
   readHistoryIndex,
-  writeChainLedger,
-  type ChainStep,
-  type CcJson,
-  type HistoryEntry,
   type SymbolChain
 } from "@codarch/schema";
 
@@ -136,59 +125,5 @@ function eventLabel(type: string): string {
       return "eliminada";
     default:
       return "igual";
-  }
-}
-
-/**
- * El libro mayor: de la caché si está al día, y si no, se construye.
- *
- * Es derivado ✓: se puede borrar y volver a hacer ✓ sin perder nada ✓.
- */
-export function loadChains(
-  root: string,
-  entries: readonly HistoryEntry[],
-  rebuild = false
-): SymbolChain[] {
-  const checksums = entries.map((entry) => entry.checksum);
-
-  if (!rebuild) {
-    const ledger = readChainLedger(root);
-    if (ledgerIsFresh(ledger, checksums)) {
-      return Object.values(ledger.chains);
-    }
-  }
-
-  const steps: ChainStep[] = [];
-  for (const entry of entries) {
-    const snapshot = readSnapshot(root, entry);
-    if (!snapshot) continue;
-    steps.push({
-      entry: entry.checksum,
-      date: entry.date,
-      commit: entry.commit,
-      snapshot
-    });
-  }
-
-  const chains = buildChains(steps);
-  writeChainLedger(root, {
-    version: 1,
-    entries: steps.map((step) => step.entry),
-    chains: Object.fromEntries(chains.map((chain) => [chain.id, chain]))
-  });
-
-  return chains;
-}
-
-function readSnapshot(root: string, entry: HistoryEntry): CcJson | null {
-  const file = path.join(historyLocation(root).directory, historyFileName(entry));
-  try {
-    return parseCcJson(JSON.parse(fs.readFileSync(file, "utf8")) as unknown);
-  } catch (error) {
-    if (error instanceof CcJsonError) {
-      console.error(`cc.json inválido en ${file}: ${error.message}`);
-      return null;
-    }
-    return null;
   }
 }

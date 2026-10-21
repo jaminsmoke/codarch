@@ -21,6 +21,11 @@ import {
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
 import type { HistoryEntry } from "@codarch/schema/browser";
+import type {
+  SymbolChain,
+  SymbolEvent,
+  SymbolHeat
+} from "@codarch/schema/browser";
 import {
   buildRenderModel,
   formatCompact,
@@ -54,6 +59,16 @@ const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   rust: "Rust",
   bridge: "Puente",
   native: "Nativo"
+};
+
+/** Cómo se lee cada evento de la vida de un símbolo. */
+const EVENT_LABEL: Record<SymbolEvent["type"], string> = {
+  created: "nació",
+  changed: "cambió",
+  unchanged: "igual",
+  renamed: "renombrada",
+  moved: "mudada",
+  removed: "eliminada"
 };
 
 /** Cómo se lee cada tipo de símbolo en el inspector. */
@@ -134,6 +149,8 @@ export default function App() {
   const [tab, setTab] = useState<"file" | "pr">("file");
   const [focusPath, setFocusPath] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  /** La cadena del símbolo abierto, si la hay. */
+  const [chain, setChain] = useState<SymbolChain | null>(null);
   /** La línea del tiempo del repositorio, si el proceso principal la tiene. */
   const [history, setHistory] = useState<HistoryEntry[] | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -320,6 +337,32 @@ export default function App() {
       selectedPathRef.current = file?.path ?? null;
     },
     [view.model]
+  );
+
+  /**
+   * Abre la vida de un símbolo: lo selecciona en el mapa y pide su cadena.
+   *
+   * La pide al proceso principal, que la construye desde las fotos del
+   * historial.
+   */
+  const openSymbolChain = useCallback(
+    async (name: string, path: string) => {
+      const file = view.model?.files.find((item) => item.path === path);
+      if (file) selectIndex(file.index);
+
+      const raw = await desktop().chains(name);
+      if (!raw || typeof raw !== "object") {
+        setChain(null);
+        return;
+      }
+      const chains = (raw as { chains?: unknown }).chains;
+      if (!Array.isArray(chains) || chains.length === 0) {
+        setChain(null);
+        return;
+      }
+      setChain((chains as SymbolChain[])[0] ?? null);
+    },
+    [view.model, selectIndex]
   );
 
   useEffect(() => {
@@ -646,6 +689,12 @@ export default function App() {
             onSelect={selectIndex}
           />
 
+          <HeatList
+            onSelectSymbol={(name, path) => {
+              void openSymbolChain(name, path);
+            }}
+          />
+
           <DebtList
             model={view.model}
             migration={migration}
@@ -754,6 +803,10 @@ export default function App() {
               areaMetric={areaMetric}
               metricTitle={metricTitle}
               symbols={selectedSymbols}
+              chain={chain}
+              onSelectSymbol={(name) => {
+                void openSymbolChain(name, selectedFile?.path ?? "");
+              }}
             />
           ) : (
             <PrPanel
@@ -1031,6 +1084,61 @@ function HotList({
               />
             </span>
             <span className="mono">{commits}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HeatList({
+  onSelectSymbol
+}: {
+  onSelectSymbol: (name: string, path: string) => void;
+}) {
+  const [heat, setHeat] = useState<SymbolHeat[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const raw = await desktop().chains();
+      if (cancelled) return;
+      if (!raw || typeof raw !== "object") return;
+      const list = (raw as { heat?: unknown }).heat;
+      if (!Array.isArray(list)) return;
+      setHeat(list as SymbolHeat[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!heat || heat.length === 0) return null;
+
+  const max = Math.max(1, heat[0]?.churn ?? 1);
+
+  return (
+    <section className="panel-block">
+      <div className="eyebrow">Más reescritos</div>
+      <div className="debt-list">
+        {heat.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            className="debt-row"
+            onClick={() => onSelectSymbol(entry.name, entry.path)}
+            title={`${entry.path} · ${entry.changes} cambios · ${entry.moves} mudanzas`}
+          >
+            <span className="debt-name">{entry.name}</span>
+            <span className="debt-track">
+              <i
+                style={{
+                  width: `${Math.max(4, (entry.churn / max) * 100)}%`,
+                  background: "var(--rust)"
+                }}
+              />
+            </span>
+            <span className="mono">{entry.churn}</span>
           </button>
         ))}
       </div>
@@ -1414,7 +1522,9 @@ function Inspector({
   migrationNode,
   areaMetric,
   metricTitle,
-  symbols
+  symbols,
+  chain,
+  onSelectSymbol
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
@@ -1422,6 +1532,8 @@ function Inspector({
   areaMetric: string | null;
   metricTitle: (key: string) => string;
   symbols: CcSymbol[];
+  chain: SymbolChain | null;
+  onSelectSymbol: (name: string) => void;
 }) {
   if (!file) {
     return (
@@ -1507,7 +1619,13 @@ function Inspector({
         <div className="symbol-list">
           <div className="eyebrow">Símbolos</div>
           {symbols.slice(0, 12).map((symbol) => (
-            <div key={`${symbol.name}-${symbol.line}`} className="symbol-row">
+            <button
+              key={`${symbol.name}-${symbol.line}`}
+              type="button"
+              className={`symbol-row${chain?.name === symbol.name ? " is-selected" : ""}`}
+              onClick={() => onSelectSymbol(symbol.name)}
+              title="Ver la vida de este símbolo"
+            >
               <span className={`symbol-kind symbol-${symbol.kind}`}>
                 {SYMBOL_LABEL[symbol.kind]}
               </span>
@@ -1522,13 +1640,38 @@ function Inspector({
                   {symbol.complexity}
                 </span>
               ) : null}
-            </div>
+            </button>
           ))}
+
           {symbols.length > 12 ? (
             <div className="symbol-more">y {symbols.length - 12} más</div>
           ) : null}
         </div>
       ) : null}
+
+      {chain ? (
+        <div className="chain-list">
+          <div className="eyebrow">La vida de {chain.name}</div>
+          {chain.versions.map((version) => (
+            <div key={version.entry} className="chain-row">
+              <span className="mono chain-date">
+                {version.date.slice(0, 10)}
+              </span>
+              <span className="chain-events">
+                {version.events.map((event) => (
+                  <span key={event.type} className={`chain-event chain-${event.type}`}>
+                    {EVENT_LABEL[event.type]}
+                  </span>
+                ))}
+              </span>
+              <span className="chain-path" title={version.path}>
+                {version.path}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
     </section>
   );
 }

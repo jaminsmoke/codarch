@@ -1137,6 +1137,88 @@ button {
   padding: 3px 0;
   font-size: 11px;
   color: var(--ink-soft);
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.symbol-row:hover {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.symbol-row.is-selected {
+  background: rgba(47, 111, 237, 0.14);
+}
+
+/* La vida de un símbolo: sus versiones en el tiempo. */
+.chain-list {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+
+.chain-row {
+  display: grid;
+  grid-template-columns: 74px auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.chain-date {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.chain-events {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.chain-event {
+  font: 500 8.5px/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chain-created {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.4);
+}
+
+.chain-changed {
+  color: #c2410c;
+  border-color: rgba(194, 65, 12, 0.4);
+}
+
+.chain-renamed,
+.chain-moved {
+  color: #2f6fed;
+  border-color: rgba(47, 111, 237, 0.4);
+}
+
+.chain-removed {
+  color: var(--rust);
+  border-color: rgba(190, 60, 40, 0.4);
+}
+
+.chain-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
 }
 
 .symbol-kind {

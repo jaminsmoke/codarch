@@ -183,6 +183,19 @@ La línea del tiempo del repositorio: las fotos guardadas con `codarch analyze -
 Sin `snapshot` devuelve la línea del tiempo (fecha, checksum, ficheros, rloc, deuda, calor y los
 ficheros más tocados). Con `snapshot` devuelve además esa foto.
 
+### `get_symbol_chain`
+
+La vida de un símbolo a lo largo del historial: cuándo nació, cómo se renombró o se mudó, cuántas
+veces cambió su complejidad y cuándo desapareció. También devuelve el **calor** del repo: los
+símbolos más reescritos ✓.
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `symbol` | string | — | El símbolo: el nombre de la función, la clase o el tipo |
+| `limit` | 1–50 | 10 | Máximo de cadenas |
+
+Sin `symbol` no hay cadena que devolver: la herramienta lo dice ✓.
+
 ### `explain_module`
 
 Ficha de un fichero o carpeta:

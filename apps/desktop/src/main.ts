@@ -11,6 +11,7 @@ import path from "node:path";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { analyzeRepository } from "@codarch/parsers";
 import {
+  chainsPayload,
   historyLocation,
   readHistoryIndex
 } from "@codarch/schema";
@@ -275,6 +276,16 @@ ipcMain.handle("codarch:read-json", async (_event, file: string) => {
 ipcMain.handle("codarch:history", async () => {
   if (!lastRoot) return null;
   return readHistoryIndex(lastRoot);
+});
+
+/**
+ * Las cadenas de los símbolos.
+ *
+ * Con "symbol" devuelve la de ese símbolo; sin él, el calor del repo ✓.
+ */
+ipcMain.handle("codarch:chains", async (_event, symbol: string | null) => {
+  if (!lastRoot) return null;
+  return chainsPayload(lastRoot, symbol);
 });
 
 /** Una foto concreta del historial. */

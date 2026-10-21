@@ -49,6 +49,13 @@ const api = {
     ipcRenderer.invoke("codarch:read-json", file),
   /** La línea del tiempo del repositorio analizado. */
   history: (): Promise<DesktopHistory | null> => ipcRenderer.invoke("codarch:history"),
+  /**
+   * Las cadenas de los símbolos.
+   *
+   * Con "symbol" devuelve la de ese símbolo; sin él, el calor del repo ✓.
+   */
+  chains: (symbol?: string | null): Promise<unknown | null> =>
+    ipcRenderer.invoke("codarch:chains", symbol ?? null),
   /** Una foto concreta del historial. */
   historySnapshot: (name: string): Promise<unknown | null> =>
     ipcRenderer.invoke("codarch:history-snapshot", name),
