@@ -80,6 +80,8 @@ también `npm run sync:action` y actualizar el repo público.
 - M9 cerrado: la lente de dominio (catálogo de perfiles, generador de capas y perfiles propios) y
   la migración en el reporte, el PR y el MCP; decisiones en ADR 0022 y ADR 0023. `codarch@0.2.0` y
   CodArch Desktop `0.2.0` publicados.
+- M10 en curso: la evolución temporal (ADR 0024). Hechos: la lente de calor (commits) y el almacén de
+  la historia en `.codarch-history/`. Falta comparar dos momentos y verlo en las apps.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.

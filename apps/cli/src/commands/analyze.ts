@@ -4,6 +4,7 @@ import { analyzeRepository } from "@codarch/parsers";
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { formatBytes } from "../io";
+import { saveHistory } from "./history-store";
 
 export interface AnalyzeCommandOptions {
   root?: string;
@@ -13,6 +14,8 @@ export interface AnalyzeCommandOptions {
   title?: string;
   /** `false` desactiva churn de git. */
   git?: boolean;
+  /** Guarda la foto en el historial del repo. */
+  history?: boolean;
   help: boolean;
 }
 
@@ -143,9 +146,24 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     )
   );
   lines.push(field("tiempo", `${num(result.durationMs)} ms`));
+  if (options.history) {
+    try {
+      const saved = saveHistory(path.resolve(root), cc, new Date());
+      lines.push(
+        field(
+          "historial",
+          saved.saved
+            ? `guardado ${saved.file}`
+            : "sin cambios; ya había una foto igual"
+        )
+      );
+    } catch (error) {
+      lines.push(field("historial", `no se pudo guardar: ${(error as Error).message}`));
+    }
+  }
   lines.push(
     field(
-      "historial",
+      "churn",
       result.git.enabled
         ? `${num(result.git.commits)} commits · ${num(
             result.git.authors

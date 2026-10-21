@@ -102,8 +102,7 @@ Salida de `analyze` sobre el fixture de test con `--no-git`:
 
 El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
 entrantes/salientes y tres lentes: estructura, riesgo y métrica. El riesgo se calcula en
-`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta churn o
-complejidad, los pesos se renormalizan.
+`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta churn ocomplejidad, los pesos se renormalizan.
 
 ### Diff entre commits
 

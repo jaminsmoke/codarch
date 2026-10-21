@@ -5,6 +5,7 @@ import { runInspect, type InspectOptions } from "./commands/inspect";
 import { runRender, type RenderCommandOptions } from "./commands/render";
 import { runServe, type ServeOptions } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
+import { runHistory, type HistoryCommandOptions } from "./commands/history";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
 
 declare const __CODARCH_VERSION__: string | undefined;
@@ -23,6 +24,7 @@ Uso:
   codarch serve   [ruta] [opciones]
   codarch profiles [--json]
   codarch suggest <fichero.cc.json[.gz]> [--json]
+  codarch history [ruta] [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -30,6 +32,7 @@ Opciones de analyze:
   --project <nombre> nombre del proyecto en el snapshot
   --title <texto>    título del mapa
   --no-git           no leer churn del historial git
+  --history          guardar la foto en el historial del repo (.codarch-history/)
   -h, --help         esta ayuda
   -v, --version      versión
 
@@ -69,6 +72,10 @@ Opciones de profiles:
   -h, --help        esta ayuda
 
 Opciones de suggest:
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de history:
   --json            salida machine-readable
   -h, --help        esta ayuda
 
@@ -130,6 +137,8 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
       options.title = arg.slice("--title=".length);
     } else if (arg === "--no-git") {
       options.git = false;
+    } else if (arg === "--history") {
+      options.history = true;
     } else if (arg === "--help" || arg === "-h") {
       console.log(USAGE);
       return 0;
@@ -150,6 +159,35 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
   }
 
   options.root = positional[0] ?? ".";
+  return options;
+}
+
+function parseHistory(args: string[]): HistoryCommandOptions | number {
+  const options: HistoryCommandOptions = { json: false, help: false };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length > 1) {
+    console.error(`sobra un argumento: ${positional[1]}`);
+    return 1;
+  }
+
+  options.root = positional[0];
   return options;
 }
 
@@ -512,6 +550,12 @@ function main(argv: string[]): number {
 
   if (command === "profiles") {
     return runProfiles(rest.includes("--json"));
+  }
+
+  if (command === "history") {
+    const parsed = parseHistory(rest);
+    if (typeof parsed === "number") return parsed;
+    return runHistory(parsed);
   }
 
   if (command === "suggest") {

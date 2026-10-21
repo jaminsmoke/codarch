@@ -180,7 +180,6 @@ el orden de las capas sale de lo que el código ya hace).
 Propone, no decide: la salida se revisa y se pega. Como las reglas del perfil, salen como aviso.
 
 ## Capas
-
 - `patterns` (o su alias `paths`) son globs relativos al root del proyecto, con `/`.
 - Se evalúan en orden: **gana la primera capa que coincide**.
 - Un fichero sin capa no participa en reglas `forbidden`.

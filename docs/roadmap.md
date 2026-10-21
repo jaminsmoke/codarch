@@ -235,6 +235,20 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
 - [x] Las apps usan todo esto: el panel de PR de la web y del escritorio enseñan el perfil y
   marcan de dónde sale cada regla; el MCP devuelve el perfil en `list_violations`.
 
+## M10 — La evolución temporal
+
+**Estado:** en curso. La lente de calor y el almacén de la historia están hechos; falta comparar dos
+momentos y enseñarlo en las apps. Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
+
+- [x] **M10.1** La lente de calor: el mapa colorea por commits y el panel lateral lista los
+  ficheros más tocados. Los datos ya venían del churn de git.
+- [x] **M10.2** La historia, dentro del repo: `codarch analyze --history` guarda la foto en
+  `.codarch-history/` (fuera de `.codarch/`, que está ignorado por git, para que la historia sí se
+  pueda compartir) y `codarch history` lista la línea del tiempo. El snapshot sigue siendo
+  determinista: la fecha va en el índice, nunca dentro del snapshot.
+- [ ] **M10.3** Comparar dos momentos de la historia, reutilizando el motor de diff.
+- [ ] **M10.4** Ver la línea del tiempo en la web y en el escritorio.
+
 ## Después
 
 Candidatos, del más útil al menos. Los tres últimos están fuera de la v1 por `AGENTS.md` (símbolos,

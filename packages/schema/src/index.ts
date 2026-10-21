@@ -32,6 +32,18 @@ export {
   pathSegments
 } from "./identity";
 export { md5Hex, sha256Hex } from "./hash";
+export {
+  HISTORY_VERSION,
+  addHistoryEntry,
+  emptyHistoryIndex,
+  historyFileName,
+  parseHistoryIndex
+} from "./history";
+export type {
+  HistoryEntry,
+  HistoryHotFile,
+  HistoryIndex
+} from "./history";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export { defaultMetric, getStats, topByMetric } from "./stats";

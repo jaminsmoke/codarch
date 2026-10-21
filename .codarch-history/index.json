@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "date": "2026-10-21T14:54:09.296Z",
+      "checksum": "0dca58ac282fb683da632d4dbae7f35f",
+      "commit": "",
+      "files": 168,
+      "rloc": 22856,
+      "debt": 4054,
+      "commits": 324,
+      "authors": 165,
+      "hottest": [
+        {
+          "path": "apps/web/src/App.tsx",
+          "commits": 14,
+          "authors": 1
+        },
+        {
+          "path": "apps/cli/src/index.ts",
+          "commits": 12,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/index.ts",
+          "commits": 8,
+          "authors": 1
+        },
+        {
+          "path": "scripts/check-action.mjs",
+          "commits": 8,
+          "authors": 1
+        },
+        {
+          "path": "packages/metrics/src/index.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/analyze.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "packages/parsers/src/resolve.ts",
+          "commits": 6,
+          "authors": 1
+        },
+        {
+          "path": "apps/mcp/src/tools.ts",
+          "commits": 5,
+          "authors": 1
+        },
+        {
+          "path": "packages/metrics/src/diff.ts",
+          "commits": 5,
+          "authors": 1
+        },
+        {
+          "path": "packages/metrics/test/diff.test.ts",
+          "commits": 5,
+          "authors": 1
+        }
+      ]
+    }
+  ]
+}

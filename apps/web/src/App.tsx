@@ -106,6 +106,9 @@ const ARROW_DIRECTIONS: Record<string, Direction> = {
   ArrowDown: "down"
 };
 
+/** La métrica del calor: cuántas veces se ha tocado el fichero. */
+const CHURN_METRIC = "number_of_commits";
+
 interface ViewState {
   model: RenderModel | null;
   error: string | null;
@@ -161,6 +164,11 @@ export default function App() {
 
   const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
   const migration = useMemo(() => readMigration(cc), [cc]);
+  /** ¿El snapshot trae churn de git? */
+  const hasChurn = useMemo(
+    () => (stats ? stats.metricCoverage.some((entry) => entry.name === CHURN_METRIC) : false),
+    [stats]
+  );
 
   const loadSnapshot = useCallback(
     (raw: unknown, label: string, preserveView = false): boolean => {
@@ -1130,6 +1138,7 @@ export default function App() {
               <select value={colorMode} onChange={(event) => setColorMode(event.target.value)}>
                 <option value="risk">Riesgo</option>
                 <option value="structure">Estructura</option>
+                {hasChurn ? <option value="churn">Calor (commits)</option> : null}
                 {migration ? <option value="status">Estado de migración</option> : null}
                 {metricOptions.map((key) => (
                   <option key={key} value={key}>
@@ -1194,6 +1203,12 @@ export default function App() {
           <LanguageSample model={view.model} migration={migration} />
 
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
+
+          <HotList
+            model={view.model}
+            selectedIndex={selectedIndex}
+            onSelect={selectIndex}
+          />
 
           <DebtList
             model={view.model}
@@ -1579,6 +1594,58 @@ function Legend({
   );
 }
 
+function HotList({
+  model,
+  selectedIndex,
+  onSelect
+}: {
+  model: RenderModel | null;
+  selectedIndex: number | null;
+  onSelect: (index: number) => void;
+}) {
+  const index = model
+    ? model.metrics.findIndex((metric) => metric.key === CHURN_METRIC)
+    : -1;
+  if (!model || index < 0) return null;
+
+  const rows = model.files
+    .map((file) => ({ file, commits: file.values[index] ?? 0 }))
+    .filter((row) => row.commits > 0)
+    .sort((left, right) => right.commits - left.commits)
+    .slice(0, 8);
+  if (rows.length === 0) return null;
+
+  const max = rows[0]?.commits ?? 1;
+
+  return (
+    <section className="panel-block">
+      <div className="eyebrow">Más tocados</div>
+      <div className="debt-list">
+        {rows.map(({ file, commits }) => (
+          <button
+            key={file.nodeId}
+            type="button"
+            className={`debt-row${selectedIndex === file.index ? " is-selected" : ""}`}
+            onClick={() => onSelect(file.index)}
+            title={file.path}
+          >
+            <span className="debt-name">{file.path}</span>
+            <span className="debt-track">
+              <i
+                style={{
+                  width: `${Math.max(4, (commits / max) * 100)}%`,
+                  background: "var(--rust)"
+                }}
+              />
+            </span>
+            <span className="mono">{commits}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function DebtList({
   model,
   migration,
@@ -1778,6 +1845,14 @@ function MapCanvas({
     if (colorMode === "structure") {
       const section = model.sections[file.section];
       return section ? sectionColor(section) : "#d5d2ca";
+    }
+    if (colorMode === "churn") {
+      // El calor: cuántas veces se ha tocado el fichero.
+      const index = metricIndex.get(CHURN_METRIC);
+      if (index === undefined) return riskColor(file.risk);
+      const metric = model.metrics[index];
+      if (!metric) return riskColor(file.risk);
+      return metricColor(file.values[index] ?? null, metric);
     }
     if (colorMode === "risk") return riskColor(file.risk);
     const index = metricIndex.get(colorMode);
