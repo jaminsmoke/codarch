@@ -1,0 +1,11 @@
+{
+  "name": "ejemplo",
+  "version": "0.1.0",
+  "title": "Ejemplo",
+  "description": "Un plugin de juguete: sirve para probar el contrato.",
+  "icon": "beaker",
+  "contributes": {
+    "views": ["ejemplo"]
+  },
+  "requires": {}
+}

@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { codarchPlugins } from "@codarch/plugin-api/build";
 
 /**
  * Build del renderer de la app de escritorio.
@@ -17,7 +18,7 @@ const resolve = (relative: string): string => path.join(root, relative);
 export default defineConfig({
   root: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "src/renderer"),
   base: "./",
-  plugins: [react()],
+  plugins: [react(), codarchPlugins({ root })],
   resolve: {
     alias: [
       {
@@ -43,6 +44,10 @@ export default defineConfig({
       {
         find: /^@codarch\/schema$/,
         replacement: resolve("packages/schema/src/index.ts")
+      },
+      {
+        find: /^@codarch\/plugin-api$/,
+        replacement: resolve("packages/plugin-api/src/index.ts")
       },
       {
         find: /^@codarch\/layouts$/,

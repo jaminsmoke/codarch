@@ -295,8 +295,8 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 
 ## M13 — Los ajustes
 
-**Estado:** M13.1 cerrada (los ajustes). El store de plugins es la sección que le falta (M14 ✓).
-Decisión en [ADR 0027](docs/adr/0027-los-ajustes.md).
+**Estado:** cerrada. Los ajustes y el store de plugins. Decisión en
+[ADR 0027](docs/adr/0027-los-ajustes.md).
 
 - [x] **M13.1** Un panel de ajustes con secciones: **Vista** (métrica de área, modo de color),
   **Proyecto** (el proyecto guardado, borrarlo) y **Diagnóstico** (versión, formato del modelo,
@@ -305,20 +305,27 @@ Decisión en [ADR 0027](docs/adr/0027-los-ajustes.md).
 - [x] El escritorio lo abre también desde el menú nativo (por IPC ✓).
 - [x] Sin biblioteca de componentes completa: un primitive headless para el diálogo (Radix ✓) y el
   CSS de la app sobre las variables que ya existen ✓.
+- [x] **M13.2** El store: una sección más de los ajustes ✓, con los plugins del repo ✓, su versión ✓,
+  su icono ✓ y un interruptor para activarlos ✓. Dice si a un plugin le falta algo ✓ (WebGL2, GPU ✓)
+  y si no se pudo cargar ✓.
 
 ## M14 — Los plugins
 
-**Estado:** pendiente. Piezas del repo que se activan desde los ajustes. Decisión en
-[ADR 0028](docs/adr/0028-los-plugins.md).
+**Estado:** cerrada con un plugin de prueba ✓. Piezas del repo que se activan desde los ajustes.
+Decisión en [ADR 0028](docs/adr/0028-los-plugins.md).
 
-- [ ] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
+- [x] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
   versión, título, icono, qué aporta y qué necesita).
-- [ ] El contexto del plugin: el modelo, la selección, las acciones, las preferencias y el estado de
-  la URL. Un contrato **pequeño y explícito**.
-- [ ] Compilado (lo declara el repo) y activado (lo decide el usuario, en local). Lo que no está
-  compilado no entra en el bundle.
-- [ ] El store en los ajustes: lista los plugins del repo y activa o desactiva.
-- [ ] Un plugin **no** puede añadir lentes al modelo: cambiaría el checksum del snapshot.
+- [x] El contexto del plugin: el modelo, la selección, las acciones, las preferencias y el estado de
+  la URL. Un contrato **pequeño y explícito** ✓ (`@codarch/plugin-api` ✓).
+- [x] Compilado (lo declara el repo en `.codarch.yml`) y activado (lo decide el usuario, en
+  local ✓). Lo que no está compilado no entra en el bundle ✓: el registro se genera en el build ✓.
+  El código del plugin se descarga **la primera vez que se usa** ✓.
+- [x] El store en los ajustes ✓ (M13.2 ✓).
+- [x] Un plugin **no** puede añadir lentes al modelo: cambiaría el checksum del snapshot ✓.
+- [x] **La prueba**: `plugins/ejemplo/` ✓, un plugin de juguete que añade una pestaña al mapa ✓ y
+  comprueba el contrato entero (el modelo ✓, la selección ✓, las acciones ✓, las preferencias ✓).
+  Si esa vista funciona, la vista 3D también ✓.
 
 ## M15 — La vista 3D
 

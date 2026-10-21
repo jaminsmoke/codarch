@@ -1,6 +1,11 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 import type { RenderModel } from "@codarch/render/browser";
+import {
+  checkRequirements,
+  hasWebgl2,
+  type PluginDescriptor
+} from "@codarch/plugin-api";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -37,13 +42,21 @@ export interface SettingsProps {
   storageAvailable: boolean;
   /** La versión de CodArch que está corriendo. */
   version: string;
+  /** Los plugins que el repo declara compilados. */
+  plugins: readonly PluginDescriptor[];
+  /** Los plugins activados en esta máquina. */
+  enabledPlugins: readonly string[];
+  onTogglePlugin: (name: string, on: boolean) => void;
+  /** Los plugins que no se pudieron cargar. */
+  failedPlugins: readonly string[];
 }
 
-type Section = "vista" | "proyecto" | "diagnostico";
+type Section = "vista" | "proyecto" | "plugins" | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "vista", label: "Vista" },
   { id: "proyecto", label: "Proyecto" },
+  { id: "plugins", label: "Plugins" },
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
@@ -60,7 +73,11 @@ export default function Settings({
   savedProject,
   onClearProject,
   storageAvailable,
-  version
+  version,
+  plugins,
+  enabledPlugins,
+  onTogglePlugin,
+  failedPlugins
 }: SettingsProps) {
   const [section, setSection] = useState<Section>("vista");
 
@@ -144,6 +161,78 @@ export default function Settings({
                   >
                     Olvidar el proyecto
                   </button>
+                </>
+              ) : null}
+
+              {section === "plugins" ? (
+                <>
+                  {plugins.length === 0 ? (
+                    <p className="muted small">
+                      Este repositorio no declara ningún plugin. Añade uno en{" "}
+                      <code>plugins/</code> y decláralo en <code>.codarch.yml</code>.
+                    </p>
+                  ) : (
+                    <div className="plugin-list">
+                      {plugins.map((descriptor) => {
+                        const manifest = descriptor.manifest;
+                        const on = enabledPlugins.includes(manifest.name);
+                        const needs = checkRequirements(manifest, {
+                          webgl2: hasWebgl2()
+                        });
+                        const broken = failedPlugins.includes(manifest.name);
+                        return (
+                          <div key={manifest.name} className="plugin-row">
+                            <div className="plugin-text">
+                              <span className="plugin-title">
+                                {manifest.title}
+                              </span>
+                              <span className="mono plugin-version">
+                                {manifest.version}
+                              </span>
+                              {manifest.description ? (
+                                <span className="muted tiny">
+                                  {manifest.description}
+                                </span>
+                              ) : null}
+                              {!needs.ok ? (
+                                <span className="plugin-warning">
+                                  Falta: {needs.missing.join(", ")}
+                                </span>
+                              ) : null}
+                              {broken ? (
+                                <span className="plugin-warning">
+                                  No se pudo cargar
+                                </span>
+                              ) : null}
+                            </div>
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={on}
+                              className={`plugin-switch${on ? " is-on" : ""}`}
+                              onClick={() =>
+                                onTogglePlugin(manifest.name, !on)
+                              }
+                              disabled={!needs.ok}
+                              title={
+                                needs.ok
+                                  ? on
+                                    ? "Desactivar"
+                                    : "Activar"
+                                  : `Falta: ${needs.missing.join(", ")}`
+                              }
+                            >
+                              <i />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="muted small">
+                    Los plugins son de este repositorio ✓ y se activan en esta
+                    máquina ✓: el análisis no cambia por tenerlos activados ✓.
+                  </p>
                 </>
               ) : null}
 

@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin, type ProxyOptions } from "vite";
+import { codarchPlugins } from "@codarch/plugin-api/build";
 import { startDevServer } from "./vite-server.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -34,7 +35,7 @@ export default defineConfig(async ({ command }) => {
   };
 
   return {
-    plugins: [react(), devServerPlugin],
+    plugins: [react(), devServerPlugin, codarchPlugins({ root })],
     resolve: {
       alias: [
         {
@@ -60,6 +61,10 @@ export default defineConfig(async ({ command }) => {
         {
           find: /^@codarch\/schema$/,
           replacement: resolve("packages/schema/src/index.ts")
+        },
+        {
+          find: /^@codarch\/plugin-api$/,
+          replacement: resolve("packages/plugin-api/src/index.ts")
         },
         {
           find: /^@codarch\/layouts$/,

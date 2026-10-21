@@ -27,3 +27,7 @@ rules:
     metric: maxComplexity
     max: 40
     severity: warn
+
+# Los plugins que entran en el bundle (ADR 0028).
+plugins:
+  - ejemplo

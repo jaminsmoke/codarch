@@ -375,6 +375,25 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### Los plugins
+
+Un plugin es una pieza **del repo** ✓, en `plugins/` ✓, que se activa desde los ajustes ✓ y que
+puede añadir una vista al mapa central ✓.
+
+```
+plugins/vista-3d/
+  plugin.json     ← el manifiesto: nombre, versión, qué aporta y qué necesita
+  index.tsx       ← el punto de entrada
+```
+
+El repo declara cuáles están **compilados** (`.codarch.yml`: `plugins: [...]` ✓) y el usuario
+activa cuáles quiere en **su máquina** ✓: el análisis no depende de eso ✓.
+
+El contrato vive en `@codarch/plugin-api` ✓ y es pequeño a propósito ✓: el modelo ✓, la selección ✓,
+las acciones ✓, las preferencias ✓ y el estado de la URL ✓. El plugin de ejemplo
+(`plugins/ejemplo/` ✓) sirve para comprobar que el contrato aguanta ✓.
+([ADR 0028](docs/adr/0028-los-plugins.md))
+
 ### Los ajustes
 
 Hay un engranaje en la barra lateral que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,

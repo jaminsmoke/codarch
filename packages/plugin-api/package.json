@@ -1,0 +1,24 @@
+{
+  "name": "@codarch/plugin-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "El contrato entre CodArch y sus plugins.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./build": {
+      "types": "./src/build.ts",
+      "default": "./src/build.ts"
+    }
+  },
+  "dependencies": {
+    "@codarch/render": "0.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "vite": "^7.0.0"
+  }
+}

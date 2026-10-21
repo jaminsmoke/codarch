@@ -41,6 +41,8 @@ import {
 } from "@codarch/render/browser";
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
+import { usePlugins } from "./plugins";
+import type { PluginContext } from "@codarch/plugin-api";
 import PrPanel from "./PrPanel";
 import {
   readRepositoryFromFiles,
@@ -170,6 +172,10 @@ export default function App() {
   const [chain, setChain] = useState<SymbolChain | null>(null);
   /** Si los ajustes están abiertos. */
   const [settingsOpen, setSettingsOpen] = useState(false);
+  /** Los plugins: los compilados, los activados y sus módulos. */
+  const plugins = usePlugins();
+  /** La vista del plugin abierta en el mapa central (null = el mapa). */
+  const [pluginView, setPluginView] = useState<string | null>(null);
   /** El análisis en marcha, para poder cortarlo. */
   const analysisRef = useRef<AnalysisHandle | null>(null);
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
@@ -654,6 +660,64 @@ export default function App() {
   const selectedSymbols = useMemo(
     () => (selectedFile && cc ? symbolsOf(cc, selectedFile.nodeId) : []),
     [cc, selectedFile]
+  );
+
+  /** Las vistas que aportan los plugins activados. */
+  const pluginViews = useMemo(() => {
+    const views = [];
+    for (const descriptor of plugins.descriptors) {
+      if (!plugins.enabled.includes(descriptor.manifest.name)) continue;
+      const module = plugins.moduleOf(descriptor.manifest.name);
+      for (const view of module?.views ?? []) views.push(view);
+    }
+    return views;
+  }, [plugins]);
+
+  /** La vista que está abierta, si la hay. */
+  const activePluginView =
+    pluginViews.find((view) => view.id === pluginView) ?? null;
+
+  /** Lo que recibe el plugin. */
+  const pluginContext = useMemo<PluginContext>(
+    () => ({
+      model: view.model,
+      selection: selectedFile?.path ?? null,
+      actions: {
+        select: (path: string) => {
+          const index = view.model?.files.findIndex(
+            (file) => file.path === path
+          );
+          if (index !== undefined && index >= 0) selectIndex(index);
+        },
+        focus: (path: string) => setFocusPath(path),
+        setTab: (tab: "file" | "pr") => setTab(tab)
+      },
+      preferences: { areaMetric, colorMode },
+      url: {
+        read: () => ({
+          areaMetric,
+          colorMode,
+          focusPath,
+          filePath: selectedFile?.path ?? null,
+          tab
+        }),
+        write: (state) => {
+          if (state.areaMetric !== undefined) setAreaMetric(state.areaMetric);
+          if (state.colorMode !== undefined) setColorMode(state.colorMode);
+          if (state.focusPath !== undefined) setFocusPath(state.focusPath);
+        }
+      },
+      storage: readStorage()
+    }),
+    [
+      view.model,
+      selectedFile,
+      areaMetric,
+      colorMode,
+      focusPath,
+      tab,
+      selectIndex
+    ]
   );
 
   const matches = useMemo(() => {
@@ -1387,6 +1451,26 @@ export default function App() {
             </div>
           ) : null}
 
+          <div className="stage-tabs">
+            <button
+              type="button"
+              className={`stage-tab${pluginView === null ? " is-active" : ""}`}
+              onClick={() => setPluginView(null)}
+            >
+              Mapa
+            </button>
+            {pluginViews.map((view) => (
+              <button
+                key={view.id}
+                type="button"
+                className={`stage-tab${pluginView === view.id ? " is-active" : ""}`}
+                onClick={() => setPluginView(view.id)}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+
           <div className="map-frame">
             {loading ? (
               <div className="empty">Cargando snapshot…</div>
@@ -1396,17 +1480,24 @@ export default function App() {
                 <span>{view.error ?? error}</span>
               </div>
             ) : view.model ? (
-              <MapCanvas
-                model={view.model}
-                roots={mapRoots}
-                colorMode={colorMode}
-                migration={migration}
-                query={query.trim().toLowerCase()}
-                selectedIndex={selectedIndex}
-                onSelect={selectIndex}
-                onFocusFolder={setFocusPath}
-              />
+              pluginView && activePluginView ? (
+                <div className="plugin-stage">
+                  {activePluginView.render(pluginContext)}
+                </div>
+              ) : (
+                <MapCanvas
+                  model={view.model}
+                  roots={mapRoots}
+                  colorMode={colorMode}
+                  migration={migration}
+                  query={query.trim().toLowerCase()}
+                  selectedIndex={selectedIndex}
+                  onSelect={selectIndex}
+                  onFocusFolder={setFocusPath}
+                />
+              )
             ) : (
+
               <div className="empty">Abre un cc.json para empezar.</div>
             )}
             {dragging ? <div className="drop-hint">Suelta un cc.json</div> : null}
@@ -1533,9 +1624,22 @@ export default function App() {
         }}
         storageAvailable={storageAvailable}
         version={appVersion}
+        plugins={plugins.descriptors}
+        enabledPlugins={plugins.enabled}
+        onTogglePlugin={plugins.toggle}
+        failedPlugins={plugins.failed}
       />
     </div>
   );
+}
+
+/** El almacenamiento local, si el navegador lo deja. */
+function readStorage(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
