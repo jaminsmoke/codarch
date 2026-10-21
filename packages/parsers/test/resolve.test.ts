@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -10,6 +9,7 @@ import {
   type ResolveResult,
   type WalkedFile
 } from "../src/index";
+import { NodeFileSystem } from "../src/node-fs";
 
 const fixture = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -17,9 +17,10 @@ const fixture = path.join(
   "repo"
 );
 
-const walked = walkSourceFiles(fixture);
+const fileSystem = new NodeFileSystem(fixture);
+const walked = walkSourceFiles(fileSystem);
 const files = walked.files;
-const resolver = new ImportResolver(fixture, files);
+const resolver = new ImportResolver("/", files, fileSystem);
 const parser = new TypeScriptParser();
 
 function file(relativePath: string): WalkedFile {
@@ -112,7 +113,7 @@ describe("ImportResolver", () => {
 
   it("extrae y resuelve todos los imports del fichero de entrada", () => {
     const importer = file("src/index.ts");
-    const source = fs.readFileSync(importer.absolutePath, "utf8");
+    const source = fileSystem.readFile(importer.absolutePath);
     const imports = parser.parse(source, importer.relativePath).imports;
 
     const paths = imports.map((item) => {

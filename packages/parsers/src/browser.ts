@@ -1,8 +1,9 @@
 /**
  * Entrada para el navegador.
  *
- * No importa `node:fs` ni el binding nativo de tree-sitter: aquí solo vive el
- * parser WASM y las piezas puras del análisis. El CLI usa la entrada normal.
+ * No importa `node:fs`, ni el binding nativo de tree-sitter, ni git: aquí
+ * viven el parser WASM, el sistema de ficheros en memoria y el núcleo del
+ * análisis. El CLI usa la entrada normal.
  */
 export { WasmTypeScriptParser } from "./ts/wasm-parser";
 export {
@@ -12,6 +13,20 @@ export {
   usesTsxGrammar,
   type SyntaxNodeLike
 } from "./ts/measure";
+export { analyzeFiles } from "./analyze-core";
+export type {
+  AnalyzeCoreOptions,
+  AnalyzeCoreResult,
+  ChurnMetric,
+  ChurnResult,
+  UnresolvedImportIssue
+} from "./analyze-core";
+export { MemoryFileSystem, directoryOf } from "./fs";
+export type { DirectoryEntry, FileSystem } from "./fs";
+export { walkSourceFiles } from "./walk";
+export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
+export { DEFAULT_EXTENSIONS } from "./extensions";
+export * as path from "./path";
 export type {
   FileParseResult,
   ImportKind,
@@ -20,4 +35,3 @@ export type {
   ParsedSymbol,
   SourceParser
 } from "./types";
-export { DEFAULT_EXTENSIONS } from "./extensions";

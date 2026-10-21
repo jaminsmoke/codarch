@@ -1,23 +1,10 @@
-import fs from "node:fs";
-import path from "node:path";
-import { walkTree, type CcJson, type CcMigrationSummary } from "@codarch/schema";
+import { analyzeFiles, type AnalyzeCoreResult } from "./analyze-core";
+import type { FileSystem } from "./fs";
 import { collectGitChurn } from "./git";
-import { buildGraph, type DependencyLink } from "./graph";
-import {
-  buildMigration,
-  isNativeLanguage,
-  jsIsBridge,
-  languageForPath,
-  measureRustSource,
-  rustIsBridge,
-  MIGRATION_EXTENSIONS,
-  type MigrationFileInput,
-  type MigrationLinkInput
-} from "./migration";
-import { ImportResolver, isAssetSpecifier } from "./resolve";
-import { buildSnapshot, type SnapshotFile } from "./snapshot";
+import { NodeFileSystem } from "./node-fs";
 import { TypeScriptParser } from "./ts/parser";
-import { walkSourceFiles } from "./walk";
+
+export type { UnresolvedImportIssue } from "./analyze-core";
 
 export interface AnalyzeOptions {
   /** Patrones extra de exclusión, con sintaxis de `.gitignore`. */
@@ -28,6 +15,13 @@ export interface AnalyzeOptions {
   projectName?: string;
   /** Lee churn de git. Por defecto, `true`; `false` para tests sin historial. */
   git?: boolean;
+  /**
+   * Puerto de ficheros. Por defecto, el disco; el navegador usa el fichero en
+   * memoria con los ficheros que ha elegido el usuario.
+   */
+  fileSystem?: FileSystem;
+  /** Raíz virtual del análisis. */
+  root?: string;
 }
 
 export interface GitSummary {
@@ -37,31 +31,8 @@ export interface GitSummary {
   shallow: boolean;
 }
 
-export interface UnresolvedImportIssue {
-  file: string;
-  /** Línea 1-based. */
-  line: number;
-  specifier: string;
-  reason: string;
-}
-
-export interface AnalyzeResult {
-  snapshot: CcJson;
-  files: number;
-  /** Carpetas del árbol, sin contar la raíz sintética. */
-  folders: number;
-  edges: number;
-  cycles: string[][];
-  metricNames: string[];
-  warnings: string[];
-  unresolved: UnresolvedImportIssue[];
-  externalImports: number;
-  builtinImports: number;
-  typeOnlyImports: number;
-  unresolvedImports: number;
+export interface AnalyzeResult extends AnalyzeCoreResult {
   git: GitSummary;
-  migration: CcMigrationSummary;
-  durationMs: number;
 }
 
 /**
@@ -69,264 +40,45 @@ export interface AnalyzeResult {
  *
  * El pipeline es secuencial y no guarda árboles de tree-sitter: recorrido,
  * lectura/parseo fichero a fichero, resolución de imports, grafo y snapshot.
+ *
+ * Todo el acceso a ficheros pasa por el puerto `FileSystem`: el CLI usa el
+ * disco y el navegador el fichero en memoria.
  */
 export function analyzeRepository(
   rootInput: string,
   options: AnalyzeOptions = {}
 ): AnalyzeResult {
-  const started = Date.now();
-  const root = path.resolve(rootInput);
-  const projectName = options.projectName ?? readProjectName(root);
-  const walked = walkSourceFiles(root, {
+  const fileSystem = options.fileSystem ?? new NodeFileSystem(rootInput);
+  const useGit = options.git !== false;
+
+  const result = analyzeFiles({
+    fileSystem,
+    root: options.root ?? "/",
+    projectName: options.projectName,
     ignore: options.ignore,
-    extensions: options.extensions ?? MIGRATION_EXTENSIONS
-  });
-  const warnings = [...walked.warnings];
-  const resolver = new ImportResolver(root, walked.files);
-  warnings.push(...resolver.warnings);
-
-  const parser = new TypeScriptParser();
-  const parsedFiles: SnapshotFile[] = [];
-  const migrationFiles: MigrationFileInput[] = [];
-  const migrationLinks: MigrationLinkInput[] = [];
-  const links: DependencyLink[] = [];
-  const unresolved: UnresolvedImportIssue[] = [];
-  let externalImports = 0;
-  let builtinImports = 0;
-  let typeOnlyImports = 0;
-
-  for (const file of walked.files) {
-    const language = languageForPath(file.relativePath);
-    if (!language) continue;
-
-    if (isNativeLanguage(language)) {
-      parsedFiles.push({
-        relativePath: file.relativePath,
-        metrics: { loc: 0, rloc: 0 }
-      });
-      migrationFiles.push({
-        relativePath: file.relativePath,
-        language,
-        loc: 0,
-        rloc: 0,
-        maxComplexity: 0,
-        fanIn: 0,
-        bridge: false
-      });
-      continue;
+    extensions: options.extensions,
+    parser: new TypeScriptParser(),
+    churn: (relativePaths) => {
+      const git = collectGitChurn(rootInput, relativePaths, { enabled: useGit });
+      return {
+        metrics: git.metrics,
+        warnings: git.warnings,
+        enabled: git.enabled,
+        commits: git.commits,
+        authors: git.authors,
+        shallow: git.shallow
+      };
     }
-
-    let source: string;
-    try {
-      source = fs.readFileSync(file.absolutePath, "utf8");
-    } catch (error) {
-      warnings.push(
-        `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
-      );
-      continue;
-    }
-
-    if (language === "rust") {
-      const measured = measureRustSource(source);
-      parsedFiles.push({
-        relativePath: file.relativePath,
-        metrics: { loc: measured.loc, rloc: measured.rloc }
-      });
-      migrationFiles.push({
-        relativePath: file.relativePath,
-        language,
-        loc: measured.loc,
-        rloc: measured.rloc,
-        maxComplexity: 0,
-        fanIn: 0,
-        bridge: rustIsBridge(source)
-      });
-      continue;
-    }
-
-    let parsed;
-    try {
-      parsed = parser.parse(source, file.relativePath);
-    } catch (error) {
-      warnings.push(
-        `no se pudo analizar ${file.relativePath}: ${(error as Error).message}`
-      );
-      continue;
-    }
-
-    let fileExternalImports = 0;
-    let fileBuiltinImports = 0;
-    let fileTypeOnlyImports = 0;
-    let fileUnresolvedImports = 0;
-
-    for (const imported of parsed.imports) {
-      if (imported.typeOnly) fileTypeOnlyImports++;
-      if (isAssetSpecifier(imported.specifier)) continue;
-
-      const result = resolver.resolve(file.absolutePath, imported.specifier);
-      if (result.kind === "internal") {
-        const targetLanguage = languageForPath(result.file.relativePath);
-        if (targetLanguage === "wasm" || targetLanguage === "node") {
-          migrationLinks.push({
-            from: file.relativePath,
-            to: result.file.relativePath,
-            kind: targetLanguage === "wasm" ? "wasm" : "native"
-          });
-        } else {
-          links.push({
-            from: file.relativePath,
-            to: result.file.relativePath,
-            typeOnly: imported.typeOnly
-          });
-        }
-      } else if (result.kind === "external") {
-        if (result.builtin) fileBuiltinImports++;
-        else fileExternalImports++;
-      } else {
-        fileUnresolvedImports++;
-        unresolved.push({
-          file: file.relativePath,
-          line: imported.line,
-          specifier: imported.specifier,
-          reason: result.reason
-        });
-      }
-    }
-
-    externalImports += fileExternalImports;
-    builtinImports += fileBuiltinImports;
-    typeOnlyImports += fileTypeOnlyImports;
-
-    parsedFiles.push({
-      relativePath: file.relativePath,
-      metrics: {
-        ...parsed.metrics,
-        imports: parsed.imports.length,
-        externalImports: fileExternalImports,
-        builtinImports: fileBuiltinImports,
-        typeOnlyImports: fileTypeOnlyImports,
-        unresolvedImports: fileUnresolvedImports
-      }
-    });
-    migrationFiles.push({
-      relativePath: file.relativePath,
-      language,
-      loc: parsed.metrics.loc ?? 0,
-      rloc: parsed.metrics.rloc ?? 0,
-      maxComplexity: parsed.metrics.maxComplexity ?? 0,
-      fanIn: 0,
-      bridge: jsIsBridge(
-        source,
-        parsed.imports.map((imported) => imported.specifier)
-      )
-    });
-  }
-
-  const git = collectGitChurn(
-    root,
-    parsedFiles.map((file) => file.relativePath),
-    { enabled: options.git !== false }
-  );
-  warnings.push(...git.warnings);
-  if (git.enabled) {
-    for (const file of parsedFiles) {
-      const churn = git.metrics.get(file.relativePath);
-      if (!churn) continue;
-      file.metrics.number_of_commits = churn.commits;
-      file.metrics.number_of_authors = churn.authors;
-    }
-  }
-
-  const graph = buildGraph(
-    parsedFiles.map((file) => file.relativePath),
-    links
-  );
-  for (const file of parsedFiles) {
-    const metrics = graph.metrics.get(file.relativePath);
-    if (metrics) {
-      file.metrics.fanIn = metrics.fanIn;
-      file.metrics.fanOut = metrics.fanOut;
-      file.metrics.inCycle = metrics.inCycle;
-      file.metrics.cycleSize = metrics.cycleSize;
-      file.metrics.dependencyLevel = metrics.dependencyLevel;
-    }
-  }
-
-  for (const file of migrationFiles) {
-    file.fanIn = graph.metrics.get(file.relativePath)?.fanIn ?? 0;
-  }
-  const migration = buildMigration(migrationFiles, migrationLinks);
-  for (const file of parsedFiles) {
-    const node = migration.nodes.get(file.relativePath);
-    if (!node) continue;
-    file.metrics.ffiCrossings = node.crossings;
-    if (node.debt !== undefined) file.metrics.migrationDebt = node.debt;
-  }
-
-  if (unresolved.length > 0) {
-    warnings.push(
-      `${unresolved.length} imports sin resolver; se excluyen del grafo`
-    );
-  }
-
-  const snapshot = buildSnapshot({
-    projectName,
-    files: parsedFiles,
-    graph,
-    migration
   });
 
-  let folders = 0;
-  walkTree(snapshot.files, (entry) => {
-    if (entry.node.type === "Folder" && entry.depth > 0) folders++;
-  });
-
-  const metricNames = new Set<string>();
-  for (const file of parsedFiles) {
-    for (const metric of Object.keys(file.metrics)) metricNames.add(metric);
-  }
-
-  warnings.sort();
-
+  const churn = result.churn;
   return {
-    snapshot,
-    files: parsedFiles.length,
-    folders,
-    edges: graph.edges.length,
-    cycles: graph.cycles,
-    metricNames: [...metricNames].sort(),
-    warnings,
-    unresolved,
-    externalImports,
-    builtinImports,
-    typeOnlyImports,
-    unresolvedImports: unresolved.length,
+    ...result,
     git: {
-      enabled: git.enabled,
-      commits: git.commits,
-      authors: git.authors,
-      shallow: git.shallow
-    },
-    migration: migration.summary,
-    durationMs: Date.now() - started
-  };
-}
-
-function readProjectName(root: string): string {
-  try {
-    const text = fs.readFileSync(path.join(root, "package.json"), "utf8");
-    const parsed: unknown = JSON.parse(text.replace(/^\uFEFF/, ""));
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed) &&
-      typeof (parsed as Record<string, unknown>).name === "string"
-    ) {
-      const name = ((parsed as Record<string, unknown>).name as string).trim();
-      if (name) return name;
+      enabled: churn?.enabled ?? false,
+      commits: churn?.commits ?? 0,
+      authors: churn?.authors ?? 0,
+      shallow: churn?.shallow ?? false
     }
-  } catch {
-    // Sin package.json legible: el directorio es un nombre razonable.
-  }
-  return path.basename(root) || "Proyecto";
+  };
 }

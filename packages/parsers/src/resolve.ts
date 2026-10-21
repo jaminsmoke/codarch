@@ -1,7 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
 import { builtinModules } from "node:module";
 import ts from "typescript";
+import type { FileSystem } from "./fs";
+import * as path from "./path";
 import type { WalkedFile } from "./walk";
 
 const SOURCE_EXTENSIONS = [
@@ -103,15 +103,21 @@ export class ImportResolver {
   readonly warnings: string[] = [];
 
   private readonly root: string;
+  private readonly fileSystem: FileSystem;
   private readonly byPath = new Map<string, WalkedFile>();
   private readonly packageJsonCache = new Map<string, Record<string, unknown> | null>();
   private readonly configCache = new Map<string, TsConfigInfo | null>();
   private readonly workspaces: WorkspacePackage[];
 
-  constructor(rootInput: string, files: readonly WalkedFile[]) {
+  constructor(
+    rootInput: string,
+    files: readonly WalkedFile[],
+    fileSystem: FileSystem
+  ) {
     this.root = path.resolve(rootInput);
-    for (const file of files) this.byPath.set(pathKey(file.absolutePath), file);
-    this.workspaces = discoverWorkspaces(this.root, this.warnings);
+    this.fileSystem = fileSystem;
+    for (const file of files) this.byPath.set(this.pathKey(file.absolutePath), file);
+    this.workspaces = discoverWorkspaces(this.root, this.fileSystem, this.warnings);
   }
 
   resolve(importerPath: string, specifier: string): ResolveResult {
@@ -226,7 +232,7 @@ export class ImportResolver {
     if (depth > MAX_RESOLVE_DEPTH) return null;
 
     for (const candidate of fileCandidates(base)) {
-      const file = this.byPath.get(pathKey(candidate));
+      const file = this.byPath.get(this.pathKey(candidate));
       if (file) return file;
     }
 
@@ -251,7 +257,7 @@ export class ImportResolver {
     }
 
     for (const candidate of indexCandidates(base)) {
-      const file = this.byPath.get(pathKey(candidate));
+      const file = this.byPath.get(this.pathKey(candidate));
       if (file) return file;
     }
 
@@ -259,11 +265,15 @@ export class ImportResolver {
   }
 
   private readPackageJson(directory: string): Record<string, unknown> | null {
-    const key = pathKey(directory);
+    const key = this.pathKey(directory);
     if (this.packageJsonCache.has(key)) {
       return this.packageJsonCache.get(key) ?? null;
     }
-    const json = readJsonFile(path.join(directory, "package.json"), this.warnings);
+    const json = readJsonFile(
+      this.fileSystem,
+      path.join(directory, "package.json"),
+      this.warnings
+    );
     this.packageJsonCache.set(key, json);
     return json;
   }
@@ -273,7 +283,7 @@ export class ImportResolver {
     let directory = path.resolve(startDirectory);
 
     while (true) {
-      const key = pathKey(directory);
+      const key = this.pathKey(directory);
       const cached = this.configCache.get(key);
       if (cached !== undefined) {
         for (const visitedKey of visited) this.configCache.set(visitedKey, cached);
@@ -281,14 +291,14 @@ export class ImportResolver {
       }
       visited.push(key);
 
-      const configPath = findTsConfig(directory);
+      const configPath = findTsConfig(this.fileSystem, directory);
       if (configPath) {
-        const loaded = loadTsConfig(configPath, this.warnings);
+        const loaded = loadTsConfig(this.fileSystem, configPath, this.warnings);
         for (const visitedKey of visited) this.configCache.set(visitedKey, loaded);
         return loaded;
       }
 
-      if (key === pathKey(this.root)) break;
+      if (key === this.pathKey(this.root)) break;
       const parent = path.dirname(directory);
       if (parent === directory || !isWithin(this.root, parent)) break;
       directory = parent;
@@ -297,11 +307,17 @@ export class ImportResolver {
     for (const visitedKey of visited) this.configCache.set(visitedKey, null);
     return null;
   }
-}
 
-function pathKey(value: string): string {
-  const resolved = path.resolve(value);
-  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+  /**
+   * Clave de una ruta para las tablas internas.
+   *
+   * En sistemas que no distinguen mayúsculas, la clave se normaliza para que
+   * `./Foo` encuentre `foo.ts`.
+   */
+  private pathKey(value: string): string {
+    const resolved = path.resolve(value);
+    return this.fileSystem.caseSensitive ? resolved : resolved.toLowerCase();
+  }
 }
 
 function isWithin(root: string, candidate: string): boolean {
@@ -340,16 +356,37 @@ function indexCandidates(directory: string): string[] {
   );
 }
 
-function findTsConfig(directory: string): string | null {
+function findTsConfig(fileSystem: FileSystem, directory: string): string | null {
   for (const name of ["tsconfig.json", "jsconfig.json"]) {
     const candidate = path.join(directory, name);
-    if (fs.existsSync(candidate)) return candidate;
+    if (fileSystem.exists(candidate)) return candidate;
   }
   return null;
 }
 
-function loadTsConfig(configPath: string, warnings: string[]): TsConfigInfo | null {
-  const read = ts.readConfigFile(configPath, ts.sys.readFile);
+/**
+ * Lee un tsconfig con la API de TypeScript.
+ *
+ * `ts.sys` es de Node, así que se le da un host sobre el puerto de ficheros:
+ * así el navegador resuelve los alias igual que el CLI.
+ */
+function loadTsConfig(
+  fileSystem: FileSystem,
+  configPath: string,
+  warnings: string[]
+): TsConfigInfo | null {
+  const host: ts.ParseConfigFileHost = {
+    useCaseSensitiveFileNames: fileSystem.caseSensitive,
+    readDirectory: () => [],
+    fileExists: (candidate) => fileSystem.exists(candidate),
+    readFile: (candidate) => fileSystem.tryReadFile(candidate) ?? undefined,
+    getCurrentDirectory: () => "/",
+    onUnRecoverableConfigFileDiagnostic: () => undefined
+  };
+
+  const read = ts.readConfigFile(configPath, (candidate) =>
+    fileSystem.tryReadFile(candidate) ?? undefined
+  );
   if (read.error || read.config === undefined) {
     warnings.push(
       `no se pudo leer ${configPath}: ${read.error?.messageText ?? "configuración vacía"}`
@@ -359,7 +396,7 @@ function loadTsConfig(configPath: string, warnings: string[]): TsConfigInfo | nu
 
   const parsed = ts.parseJsonConfigFileContent(
     read.config,
-    ts.sys,
+    host,
     path.dirname(configPath),
     undefined,
     configPath
@@ -504,9 +541,14 @@ function matchWildcardKey(pattern: string, subpath: string): string | null {
 
 function discoverWorkspaces(
   root: string,
+  fileSystem: FileSystem,
   warnings: string[]
 ): WorkspacePackage[] {
-  const rootJson = readJsonFile(path.join(root, "package.json"), warnings);
+  const rootJson = readJsonFile(
+    fileSystem,
+    path.join(root, "package.json"),
+    warnings
+  );
   if (!rootJson) return [];
 
   const patterns = workspacePatterns(rootJson.workspaces);
@@ -529,6 +571,7 @@ function discoverWorkspaces(
       patterns.some((pattern) => pattern.test(current.relative))
     ) {
       const json = readJsonFile(
+        fileSystem,
         path.join(current.directory, "package.json"),
         warnings
       );
@@ -549,9 +592,9 @@ function discoverWorkspaces(
     }
 
     if (current.depth >= MAX_WORKSPACE_DEPTH) continue;
-    let entries: fs.Dirent[];
+    let entries: ReturnType<FileSystem["readDirectory"]>;
     try {
-      entries = fs.readdirSync(current.directory, { withFileTypes: true });
+      entries = fileSystem.readDirectory(current.directory);
     } catch (error) {
       warnings.push(
         `no se pudo leer ${current.relative || "."}: ${(error as Error).message}`
@@ -560,7 +603,7 @@ function discoverWorkspaces(
     }
 
     for (const entry of entries) {
-      if (!entry.isDirectory() || entry.isSymbolicLink()) continue;
+      if (!entry.isDirectory) continue;
       if (WORKSPACE_SKIP_DIRS.has(entry.name)) continue;
       stack.push({
         directory: path.join(current.directory, entry.name),
@@ -627,18 +670,19 @@ function escapeRegExp(value: string): string {
 }
 
 function readJsonFile(
+  fileSystem: FileSystem,
   file: string,
   warnings: string[]
 ): Record<string, unknown> | null {
-  let text: string;
+  let text: string | null;
   try {
-    text = fs.readFileSync(file, "utf8");
+    text = fileSystem.tryReadFile(file);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      warnings.push(`no se pudo leer ${file}: ${(error as Error).message}`);
-    }
+    warnings.push(`no se pudo leer ${file}: ${(error as Error).message}`);
     return null;
   }
+  // Un package.json que no existe es normal: no es un aviso.
+  if (text === null) return null;
 
   try {
     const parsed = JSON.parse(text.replace(/^\uFEFF/, ""));

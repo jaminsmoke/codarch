@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { walkSourceFiles } from "../src/index";
+import { NodeFileSystem } from "../src/node-fs";
 
 const fixture = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -10,7 +11,9 @@ const fixture = path.join(
 );
 
 function relativePaths(root: string, options?: Parameters<typeof walkSourceFiles>[1]): string[] {
-  return walkSourceFiles(root, options).files.map((file) => file.relativePath);
+  return walkSourceFiles(new NodeFileSystem(root), options).files.map(
+    (file) => file.relativePath
+  );
 }
 
 describe("walkSourceFiles", () => {
@@ -46,10 +49,10 @@ describe("walkSourceFiles", () => {
   });
 
   it("devuelve rutas relativas con separador posix y orden estable", () => {
-    const first = walkSourceFiles(fixture).files;
-    const second = walkSourceFiles(fixture).files;
+    const first = walkSourceFiles(new NodeFileSystem(fixture)).files;
+    const second = walkSourceFiles(new NodeFileSystem(fixture)).files;
     expect(first).toEqual(second);
     expect(first.every((file) => !file.relativePath.includes("\\"))).toBe(true);
-    expect(first.every((file) => path.isAbsolute(file.absolutePath))).toBe(true);
+    expect(first.every((file) => file.absolutePath.startsWith("/"))).toBe(true);
   });
 });

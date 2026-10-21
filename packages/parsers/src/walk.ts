@@ -1,7 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import ignore, { type Ignore } from "ignore";
 import { DEFAULT_EXTENSIONS } from "./extensions";
+import type { FileSystem } from "./fs";
 
 export { DEFAULT_EXTENSIONS };
 
@@ -9,6 +8,7 @@ export { DEFAULT_EXTENSIONS };
 const ALWAYS_IGNORED = [".git", "node_modules", ".codarch"];
 
 export interface WalkedFile {
+  /** Ruta virtual absoluta: `/src/app/main.ts`. */
   absolutePath: string;
   /** Ruta relativa al root, siempre con `/`. */
   relativePath: string;
@@ -32,6 +32,7 @@ interface IgnoreLayer {
 }
 
 interface PendingDirectory {
+  /** Ruta virtual absoluta. */
   absolutePath: string;
   relativePath: string;
   layers: IgnoreLayer[];
@@ -45,13 +46,10 @@ interface PendingDirectory {
  * `.gitignore` anidados se aplican con la precedencia habitual: el más cercano
  * gana, y una negación puede volver a incluir un fichero.
  */
-export function walkSourceFiles(rootInput: string, options: WalkOptions = {}): WalkResult {
-  const root = path.resolve(rootInput);
-  const stat = fs.statSync(root);
-  if (!stat.isDirectory()) {
-    throw new Error(`no es un directorio: ${rootInput}`);
-  }
-
+export function walkSourceFiles(
+  fileSystem: FileSystem,
+  options: WalkOptions = {}
+): WalkResult {
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
   const warnings: string[] = [];
   const files: WalkedFile[] = [];
@@ -59,20 +57,20 @@ export function walkSourceFiles(rootInput: string, options: WalkOptions = {}): W
   const rootMatcher = ignore().add(ALWAYS_IGNORED);
   for (const pattern of options.ignore ?? []) rootMatcher.add(pattern);
 
-  const rootGitignore = readGitignore(root, "", warnings);
+  const rootGitignore = readGitignore(fileSystem, "/", "", warnings);
   if (rootGitignore) rootMatcher.add(rootGitignore);
 
   const initialLayers: IgnoreLayer[] = [{ base: "", matcher: rootMatcher }];
   const stack: PendingDirectory[] = [
-    { absolutePath: root, relativePath: "", layers: initialLayers }
+    { absolutePath: "/", relativePath: "", layers: initialLayers }
   ];
 
   while (stack.length > 0) {
     const directory = stack.pop() as PendingDirectory;
-    let entries: fs.Dirent[];
+    let entries: ReturnType<FileSystem["readDirectory"]>;
 
     try {
-      entries = fs.readdirSync(directory.absolutePath, { withFileTypes: true });
+      entries = fileSystem.readDirectory(directory.absolutePath);
     } catch (error) {
       warnings.push(
         `no se pudo leer ${directory.relativePath || "."}: ${(error as Error).message}`
@@ -85,21 +83,22 @@ export function walkSourceFiles(rootInput: string, options: WalkOptions = {}): W
     );
 
     for (const entry of entries) {
-      if (entry.isSymbolicLink()) continue;
-
       const relativePath = directory.relativePath
         ? `${directory.relativePath}/${entry.name}`
         : entry.name;
-      const absolutePath = path.join(directory.absolutePath, entry.name);
+      const absolutePath =
+        directory.absolutePath === "/"
+          ? `/${entry.name}`
+          : `${directory.absolutePath}/${entry.name}`;
 
-      if (entry.isDirectory()) {
+      if (entry.isDirectory) {
         if (isIgnored(directory.layers, relativePath, true)) continue;
-        const nested = readGitignore(absolutePath, relativePath, warnings);
+        const nested = readGitignore(fileSystem, absolutePath, relativePath, warnings);
         const layers = nested
           ? [...directory.layers, { base: relativePath, matcher: ignore().add(nested) }]
           : directory.layers;
         stack.push({ absolutePath, relativePath, layers });
-      } else if (entry.isFile()) {
+      } else if (entry.isFile) {
         if (isIgnored(directory.layers, relativePath, false)) continue;
         if (!matchesExtension(entry.name, extensions)) continue;
         files.push({ absolutePath, relativePath });
@@ -120,19 +119,21 @@ export function walkSourceFiles(rootInput: string, options: WalkOptions = {}): W
 }
 
 function readGitignore(
-  directory: string,
+  fileSystem: FileSystem,
+  absoluteDirectory: string,
   relativeBase: string,
   warnings: string[]
 ): string | null {
-  const file = path.join(directory, ".gitignore");
+  const file =
+    absoluteDirectory === "/"
+      ? "/.gitignore"
+      : `${absoluteDirectory}/.gitignore`;
   try {
-    return fs.readFileSync(file, "utf8");
+    return fileSystem.tryReadFile(file);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      warnings.push(
-        `no se pudo leer ${relativeBase ? `${relativeBase}/` : ""}.gitignore: ${(error as Error).message}`
-      );
-    }
+    warnings.push(
+      `no se pudo leer ${relativeBase ? `${relativeBase}/` : ""}.gitignore: ${(error as Error).message}`
+    );
     return null;
   }
 }

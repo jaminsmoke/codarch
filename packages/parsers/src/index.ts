@@ -15,6 +15,13 @@ export type {
   GitSummary,
   UnresolvedImportIssue
 } from "./analyze";
+export { analyzeFiles } from "./analyze-core";
+export type {
+  AnalyzeCoreOptions,
+  AnalyzeCoreResult,
+  ChurnMetric,
+  ChurnResult
+} from "./analyze-core";
 export { collectGitChurn } from "./git";
 export type { GitChurnFile, GitChurnOptions, GitChurnResult } from "./git";
 export { buildSnapshot } from "./snapshot";
@@ -37,6 +44,10 @@ export type {
 } from "./migration";
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
 export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
+export { MemoryFileSystem, directoryOf } from "./fs";
+export type { DirectoryEntry, FileSystem } from "./fs";
+export { NodeFileSystem } from "./node-fs";
+export * as path from "./path";
 export type {
   FileParseResult,
   ImportKind,
