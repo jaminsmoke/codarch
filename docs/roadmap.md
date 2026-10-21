@@ -136,15 +136,18 @@ de PR.
 
 ## M6 — Análisis en el navegador
 
-**Estado:** en curso. El parser WASM con la misma gramática que el CLI ya existe y tiene test de
-paridad; falta el sistema de ficheros virtual y conectarlo a la app.
+**Estado:** en curso. El parser WASM con la misma gramática que el CLI y el puerto de ficheros
+virtual ya existen; falta conectarlos a la app web.
 
 - [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete
   `tree-sitter-typescript`); decisión en [ADR 0020](adr/0020-analisis-en-el-navegador.md).
 - [x] Mismas métricas y mismo checksum que el CLI: medición compartida y test de paridad.
-- [ ] Walker y sistema de ficheros virtual sobre File System Access API.
-- [ ] Churn y git fuera del navegador; snapshot sin historial o con datos externos.
-- [ ] Mismo modelo, métricas y checksum que el CLI para no abrir dos verdades.
+- [x] Puerto de sistema de ficheros y núcleo del análisis sin `node:fs` ni git; el snapshot del
+  fichero en memoria tiene el mismo checksum que el del CLI.
+- [ ] Walker y lector sobre File System Access API en la app web.
+- [ ] Análisis en un worker, con progreso, para no bloquear la interfaz.
+- [ ] Churn y git fuera del navegador; el snapshot sale sin historial, como el del CLI con
+  `--no-git`.
 
 ## Después
 
