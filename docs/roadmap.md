@@ -286,7 +286,10 @@ recorrido a un símbolo. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.
   - [x] El **hash del cuerpo** en la lente: los tokens, sin comentarios y sin el nombre propio, así
     que un reformateo o un comentario nuevo no lo cambian. El mismo código da el mismo hash en el
     navegador y en el CLI ✓ (lo fija el test de paridad ✓).
-  - [ ] El emparejamiento (las cinco reglas), los eventos y el libro mayor.
+  - [x] El emparejamiento (las cinco reglas), los eventos y el libro mayor. El libro mayor vive en
+    `.codarch/chains.json`: es **derivado**, así que se regenera cuando las fotos cambian ✓.
+  - [x] La CLI responde `codarch chain <símbolo>`: la vida de un símbolo, con sus versiones y lo que
+    pasó en cada una ✓.
 - [ ] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
   símbolo (cuántas veces se ha reescrito cada función) como señal de deuda de refactorización.
 

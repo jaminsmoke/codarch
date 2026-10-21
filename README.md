@@ -375,6 +375,28 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### La vida de un símbolo
+
+Cada símbolo lleva el hash de su cuerpo, así que un renombrado o una mudanza no lo rompen. Con el
+historial, CodArch puede contar la vida de una función:
+
+```bash
+codarch chain buscar
+```
+
+    buscar  (function)
+      src/otro.ts
+      id 6b85c9abd2b8 · 4 versiones
+
+      2026-10-21  nació         src/datos.ts
+      2026-10-21  cambió        src/datos.ts
+      2026-10-21  renombrada    src/datos.ts
+        antes se llamaba cargar
+      2026-10-21  mudada        src/otro.ts
+
+El libro mayor (`.codarch/chains.json`) es un artefacto derivado: se regenera siempre desde las
+fotos del historial. ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.

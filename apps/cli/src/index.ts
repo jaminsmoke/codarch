@@ -6,6 +6,7 @@ import { runRender, type RenderCommandOptions } from "./commands/render";
 import { runServe, type ServeOptions } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
 import { runHistory, type HistoryCommandOptions } from "./commands/history";
+import { runChain, type ChainCommandOptions } from "./commands/chain";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
 
 declare const __CODARCH_VERSION__: string | undefined;
@@ -25,6 +26,7 @@ Uso:
   codarch profiles [--json]
   codarch suggest <fichero.cc.json[.gz]> [--json]
   codarch history [ruta] [--json]
+  codarch chain   [símbolo] [opciones]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -73,6 +75,11 @@ Opciones de profiles:
 
 Opciones de suggest:
   --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de chain:
+  --json            salida machine-readable
+  --rebuild         rehace el libro mayor aunque esté en caché
   -h, --help        esta ayuda
 
 Opciones de history:
@@ -162,6 +169,43 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
   }
 
   options.root = positional[0] ?? ".";
+  return options;
+}
+
+function parseChain(args: string[]): ChainCommandOptions | number {
+  const options: ChainCommandOptions = { json: false, rebuild: false, help: false };
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--rebuild") {
+      options.rebuild = true;
+    } else if (arg === "--root") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--root necesita una ruta");
+        return 1;
+      }
+      options.root = value;
+    } else if (arg.startsWith("--root=")) {
+      options.root = arg.slice("--root=".length);
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else if (!options.symbol) {
+      options.symbol = arg;
+    } else if (!options.root) {
+      options.root = arg;
+    } else {
+      console.error(`sobra un argumento: ${arg}`);
+      return 1;
+    }
+  }
+
   return options;
 }
 
@@ -586,6 +630,12 @@ function main(argv: string[]): number {
     const parsed = parseHistory(rest);
     if (typeof parsed === "number") return parsed;
     return runHistory(parsed);
+  }
+
+  if (command === "chain") {
+    const parsed = parseChain(rest);
+    if (typeof parsed === "number") return parsed;
+    return runChain(parsed);
   }
 
   if (command === "suggest") {

@@ -22,6 +22,22 @@ export type {
   FileEntry
 } from "./types";
 
+export { buildChains } from "./chains";
+export type {
+  ChainStep,
+  ChainVersion,
+  SymbolChain,
+  SymbolEvent
+} from "./chains";
+export {
+  CHAINS_FILE,
+  chainLedgerPath,
+  emptyLedger,
+  ledgerIsFresh,
+  readChainLedger,
+  writeChainLedger
+} from "./chain-store";
+export type { ChainLedger } from "./chain-store";
 export { CcJsonError, parseCcJson } from "./parse";
 export { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
 export {

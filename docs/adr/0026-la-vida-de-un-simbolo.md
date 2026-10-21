@@ -84,8 +84,10 @@ sabe ✓.
 ### 4. Dónde vive
 
 - La cadena **no** va dentro del snapshot: el snapshot sigue siendo determinista y sin historial ✓.
-- Va en el almacén de historia (`.codarch-history/`), como un artefacto **derivado** ✓: se puede
-  borrar y regenerar ✓.
+- El **libro mayor** (el archivo que guarda las cadenas) vive en `.codarch/`, **no** en el historial
+  compartido ✓: es un artefacto **derivado** ✓ (se puede borrar y regenerar siempre ✓), así que
+  guardarlo en el repo solo añadiría conflictos y ruido ✓. Las fotos (`.codarch-history/`) son el
+  dato ✓; el libro mayor es lo que se deriva de ellas ✓.
 - Se calcula comparando **versiones consecutivas** de la línea del tiempo ✓, no todas contra todas ✓
   (el coste es lineal en el número de fotos ✓).
 
