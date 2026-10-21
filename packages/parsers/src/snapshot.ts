@@ -1,7 +1,7 @@
-import { createHash } from "node:crypto";
 import {
   fileId,
   folderId,
+  md5Hex,
   type CcAttributeDescriptor,
   type CcAttributeType,
   type CcEdge,
@@ -280,9 +280,7 @@ function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
 }
 
 function checksumFor(files: readonly CcNode[], lenses: unknown): string {
-  return createHash("md5")
-    .update(stableStringify({ files, lenses }), "utf8")
-    .digest("hex");
+  return md5Hex(stableStringify({ files, lenses }));
 }
 
 function stableStringify(value: unknown): string {

@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { analyzeFiles, type AnalyzeCoreResult } from "./analyze-core";
 import type { FileSystem } from "./fs";
 import { collectGitChurn } from "./git";
@@ -55,6 +56,7 @@ export function analyzeRepository(
     fileSystem,
     root: options.root ?? "/",
     projectName: options.projectName,
+    fallbackName: basename(rootInput),
     ignore: options.ignore,
     extensions: options.extensions,
     parser: new TypeScriptParser(),

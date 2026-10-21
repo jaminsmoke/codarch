@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { sha256Hex } from "./hash";
 import type { CcNodeType } from "./types";
 
 /** Longitud hexadecimal de los ids de nodo, igual que `cc.json` 2.x. */
@@ -37,10 +37,7 @@ export function canonicalPath(segments: readonly string[]): string {
  */
 export function idFromCanonicalPath(path: string, type: CcNodeType = "File"): string {
   const canonical = path.startsWith("/") ? path : `/${path}`;
-  return createHash("sha256")
-    .update(type + canonical, "utf8")
-    .digest("hex")
-    .slice(0, ID_LENGTH);
+  return sha256Hex(type + canonical).slice(0, ID_LENGTH);
 }
 
 /** Id de un nodo a partir de su tipo y sus segmentos. */

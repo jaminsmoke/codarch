@@ -27,10 +27,17 @@ export class WasmTypeScriptParser implements SourceParser {
    * Prepara el runtime y las dos gramáticas.
    *
    * `typescript` y `tsx` son las URLs de los `.wasm`; en el navegador se
-   * importan como assets y en Node se leen del disco.
+   * importan como assets y en Node se leen del disco. `runtime` es la URL del
+   * wasm de web-tree-sitter, que en el navegador hay que indicar a mano.
    */
-  static async create(typescript: string | Uint8Array, tsx: string | Uint8Array): Promise<WasmTypeScriptParser> {
-    await Parser.init();
+  static async create(
+    typescript: string | Uint8Array,
+    tsx: string | Uint8Array,
+    options: { runtime?: string } = {}
+  ): Promise<WasmTypeScriptParser> {
+    await Parser.init(
+      options.runtime ? { locateFile: () => options.runtime } : undefined
+    );
     const tsLanguage = await Parser.Language.load(typescript);
     const tsxLanguage = await Parser.Language.load(tsx);
 

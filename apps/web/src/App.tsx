@@ -58,6 +58,9 @@ import {
 } from "./viewState";
 import { nextCell, type CellBox, type Direction } from "./navigation";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree } from "./detail";
+import { analyzeInBrowser } from "./analysis/client";
+import { readDirectoryToMemory } from "./analysis/reader";
+import { directoryPicker } from "./fs-access";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
   js: "JS / TS",
@@ -131,6 +134,7 @@ export default function App() {
   const [reportUrl, setReportUrl] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [reportUrlInput, setReportUrlInput] = useState("");
+  const [progress, setProgress] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
@@ -678,6 +682,55 @@ export default function App() {
     }
   }, [closeOpenMenu, loadReport, loadSnapshot, reportUrlInput, resetReport, urlInput]);
 
+  /**
+   * Analiza la carpeta elegida en el navegador.
+   *
+   * No usa el CLI: lee los ficheros con File System Access API y los analiza
+   * en un worker con la misma gramática, así que el snapshot tiene el mismo
+   * checksum que el que haría el CLI (sin historial, como con `--no-git`).
+   */
+  const analyzeFolderInBrowser = useCallback(async () => {
+    closeOpenMenu();
+    const picker = directoryPicker();
+    if (!picker) {
+      setError(
+        "Este navegador no permite seleccionar carpetas. Usa Chrome o Edge, o abre un cc.json."
+      );
+      return;
+    }
+    manualLoadRef.current = true;
+    setLoading(true);
+    setError(null);
+    setProgress("Seleccionando la carpeta…");
+    try {
+      const root = await picker({ mode: "read" });
+      setProgress("Leyendo los ficheros…");
+      const read = await readDirectoryToMemory(root, {
+        onProgress: (state) =>
+          setProgress(`Leyendo ${state.read} ficheros… ${state.current}`)
+      });
+      setProgress("Analizando en el navegador…");
+      const result = await analyzeInBrowser({
+        files: read.fileSystem.entries(),
+        projectName: root.name,
+        onProgress: (message) => setProgress(message)
+      });
+      if (loadSnapshot(result.snapshot, `${root.name} · navegador`)) {
+        setServerMode("local");
+        setSourceUrl(null);
+        setReportUrl(null);
+        resetReport();
+      }
+    } catch (cause) {
+      if ((cause as DOMException).name !== "AbortError") {
+        setError((cause as Error).message);
+      }
+    } finally {
+      setProgress(null);
+      setLoading(false);
+    }
+  }, [closeOpenMenu, loadSnapshot, resetReport]);
+
   /** Copia el enlace de la vista actual al portapapeles. */
   const copyLink = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -959,6 +1012,13 @@ export default function App() {
               </button>
               <button
                 type="button"
+                onClick={() => void analyzeFolderInBrowser()}
+                title="Analiza la carpeta en el navegador, sin ejecutar el CLI"
+              >
+                Analizar carpeta aquí…
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   closeOpenMenu();
                   inputRef.current?.click();
@@ -1186,7 +1246,9 @@ export default function App() {
                 ? `${view.model.fileCount} ficheros · ${view.model.folderCount} carpetas · ${view.model.meta.apiVersion}`
                 : "—"}
             </span>
-            {detail && detail.hiddenFiles > 0 ? (
+            {progress ? (
+              <span className="mono detail-note">{progress}</span>
+            ) : detail && detail.hiddenFiles > 0 ? (
               <span className="mono detail-note">
                 {`nivel carpeta · ${detail.cells} bloques · ${detail.hiddenFiles} ficheros dentro`}
               </span>

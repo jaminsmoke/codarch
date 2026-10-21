@@ -107,4 +107,11 @@ export class MemoryFileSystem implements FileSystem {
   paths(): string[] {
     return [...this.files.keys()].sort();
   }
+
+  /** Rutas y contenido de todos los ficheros. */
+  entries(): Array<[string, string]> {
+    return [...this.files.entries()].sort((left, right) =>
+      left[0] < right[0] ? -1 : left[0] > right[0] ? 1 : 0
+    );
+  }
 }

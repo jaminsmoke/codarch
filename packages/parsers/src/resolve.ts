@@ -1,5 +1,5 @@
-import { builtinModules } from "node:module";
 import ts from "typescript";
+import { isNodeBuiltin } from "./builtins";
 import type { FileSystem } from "./fs";
 import * as path from "./path";
 import type { WalkedFile } from "./walk";
@@ -32,10 +32,6 @@ const WORKSPACE_SKIP_DIRS = new Set([
 
 const MAX_WORKSPACE_DEPTH = 8;
 const MAX_RESOLVE_DEPTH = 8;
-
-const BUILTINS = new Set(
-  builtinModules.flatMap((name) => [name, `node:${name}`])
-);
 
 const ASSET_EXTENSIONS = [
   ".css",
@@ -121,7 +117,7 @@ export class ImportResolver {
   }
 
   resolve(importerPath: string, specifier: string): ResolveResult {
-    if (BUILTINS.has(specifier) || specifier.startsWith("node:")) {
+    if (isNodeBuiltin(specifier)) {
       return { kind: "external", specifier, builtin: true };
     }
 

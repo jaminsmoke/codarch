@@ -136,18 +136,33 @@ de PR.
 
 ## M6 — Análisis en el navegador
 
-**Estado:** en curso. El parser WASM con la misma gramática que el CLI y el puerto de ficheros
-virtual ya existen; falta conectarlos a la app web.
+**Estado:** en curso. El parser, el puerto de ficheros y el worker ya funcionan; falta el botón en la
+app y pulir el lector de carpetas.
 
 - [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete
   `tree-sitter-typescript`); decisión en [ADR 0020](adr/0020-analisis-en-el-navegador.md).
 - [x] Mismas métricas y mismo checksum que el CLI: medición compartida y test de paridad.
 - [x] Puerto de sistema de ficheros y núcleo del análisis sin `node:fs` ni git; el snapshot del
   fichero en memoria tiene el mismo checksum que el del CLI.
-- [ ] Walker y lector sobre File System Access API en la app web.
-- [ ] Análisis en un worker, con progreso, para no bloquear la interfaz.
-- [ ] Churn y git fuera del navegador; el snapshot sale sin historial, como el del CLI con
+- [x] Worker con las gramáticas y el núcleo del CLI: el análisis no bloquea la interfaz.
+- [x] Hash en JavaScript puro (`@noble/hashes`) para que el navegador calcule ids y checksum igual
+  que el CLI.
+- [x] Lector de carpetas con File System Access API y botón **Analizar carpeta aquí…** en la app.
+- [ ] Progreso fino por fichero y cancelación del análisis en el navegador.
+- [x] Churn y git fuera del navegador; el snapshot sale sin historial, como el del CLI con
   `--no-git`.
+
+## M7 — App de escritorio
+
+**Estado:** planificada. Decisión en [ADR 0021](adr/0021-app-de-escritorio.md).
+
+Electron con la misma app web, pero **copiada, no compartida**: las dos apps evolves por separado y
+ninguna depende de la otra. Ver el ADR para el porqué y para lo que se copia.
+
+- [ ] Empaquetado de escritorio con el mismo build web.
+- [ ] Analizador local integrado (el CLI en proceso, sin servidor).
+- [ ] Diálogo de carpeta nativo y apertura de fichero.
+- [ ] Atajos de teclado y "abrir con" desde el explorador de archivos.
 
 ## Después
 

@@ -31,6 +31,7 @@ export {
   normalizeName,
   pathSegments
 } from "./identity";
+export { md5Hex, sha256Hex } from "./hash";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export { defaultMetric, getStats, topByMetric } from "./stats";

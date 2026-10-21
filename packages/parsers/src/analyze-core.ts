@@ -37,6 +37,13 @@ export interface AnalyzeCoreOptions {
   fileSystem: FileSystem;
   /** Raíz virtual del análisis. */
   root?: string;
+  /**
+   * Nombre del proyecto cuando no hay `package.json`.
+   *
+   * El nombre de la raíz entra en el checksum, así que el CLI y el navegador
+   * tienen que usar el mismo: el de la carpeta.
+   */
+  fallbackName?: string;
   projectName?: string;
   ignore?: readonly string[];
   extensions?: readonly string[];
@@ -91,7 +98,8 @@ export function analyzeFiles(
   const started = Date.now();
   const fileSystem = options.fileSystem;
   const root = options.root ?? "/";
-  const projectName = options.projectName ?? readProjectName(fileSystem, root);
+  const projectName =
+    options.projectName ?? readProjectName(fileSystem, root, options.fallbackName);
   const walked = walkSourceFiles(fileSystem, {
     ignore: options.ignore,
     extensions: options.extensions ?? MIGRATION_EXTENSIONS
@@ -319,7 +327,11 @@ export function analyzeFiles(
   };
 }
 
-function readProjectName(fileSystem: FileSystem, root: string): string {
+function readProjectName(
+  fileSystem: FileSystem,
+  root: string,
+  fallbackName?: string
+): string {
   try {
     const text = fileSystem.readFile(path.join(root, "package.json"));
     const parsed: unknown = JSON.parse(text.replace(/^\uFEFF/, ""));
@@ -335,5 +347,5 @@ function readProjectName(fileSystem: FileSystem, root: string): string {
   } catch {
     // Sin package.json legible: el directorio es un nombre razonable.
   }
-  return path.basename(root) || "Proyecto";
+  return fallbackName ?? path.basename(root) ?? "Proyecto";
 }
