@@ -52,10 +52,10 @@ las reglas ✓.
 
 ## 2. Las lentes de las extensiones
 
-**Qué es** ✓: que un plugin pueda **medir algo nuevo** ✓ y meterlo en el snapshot ✓ (por ejemplo,
+**Qué es** ✓: que una extensión pueda **medir algo nuevo** ✓ y meterlo en el snapshot ✓ (por ejemplo,
 las dependencias de NestJS ✓ o los módulos de un framework ✓).
 
-**Por qué** ✓: es lo que haría los plugins **verdaderamente útiles** ✓: no solo vistas ✓, sino
+**Por qué** ✓: es lo que haría las extensiones **verdaderamente útiles** ✓: no solo vistas ✓, sino
 señales nuevas ✓.
 
 **El problema** ✓: el **checksum** ✓. Si una lente depende de la extensión ✓, el snapshot depende de lo
