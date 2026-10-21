@@ -122,6 +122,24 @@ Es la **versión 0.01** del generador: agrupa por el primer y segundo nivel del 
 que las dependencias van hacia dentro. Los ficheros sueltos en la raíz (los puntos de entrada) no
 forman capa, y el comando lo dice.
 
+Además dice **qué perfil del catálogo encaja** con lo que ha deducido, y si el código incumple hoy
+alguna de sus reglas:
+
+```
+  Encaje con el catálogo de perfiles:
+
+    capas        2 de 3 capas · cubre el 100% del código
+    hexagonal    2 de 3 capas · cubre el 100% del código
+    onion        2 de 4 capas · cubre el 100% del código
+
+  Con el perfil "capas", el código incumple hoy 1 regla:
+    · El dominio no debe depender de la infraestructura
+```
+
+Cuando un perfil encaja, la propuesta usa **sus** capas y reglas, no las que se deducen del código:
+la convención la pone el perfil. Si no encaja ninguno, la propuesta se deduce del grafo (y entonces
+el orden de las capas sale de lo que el código ya hace).
+
 Propone, no decide: la salida se revisa y se pega. Como las reglas del perfil, salen como aviso.
 
 ## Capas

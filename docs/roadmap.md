@@ -218,11 +218,10 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
   sube a `error` escribiéndolas otra vez, cuando el código esté listo.
 - [x] El reporte dice qué perfil se aplicó (`rules.profile`) y de dónde sale cada regla
   (`source`), y el comando `codarch profiles` lista el catálogo.
-- [ ] **M9.2** Generador, versión 0.01: deduce las capas del repo y propone un perfil o unas
-  capas concretas, para pegar en `.codarch.yml`. Propone, no decide.
-  → Hecho en v0.01: `codarch suggest` agrupa por carpeta, ordena por dependencia y propone capas y
-  reglas. Falta la parte de "proponer un perfil del catálogo" (decir cuál encaja mejor) y afinar la
-  agrupación.
+- [x] **M9.2** Generador, versión 0.01: `codarch suggest` agrupa por carpeta, ordena por dependencia y
+  propone capas y reglas. Dice además qué perfil del catálogo encaja y qué reglas incumple el código
+  hoy. Si encaja un perfil, la propuesta usa su convención (no la que deduce el código, que con una
+  violation sale invertida). Propone, no decide.
 - [ ] **M9.3** Endurecer, cuando toque: subir las reglas del perfil a `error` y que bloqueen. Se
   decide con el código a la vista.
 - [ ] **M9.4** Perfiles propios del equipo, reutilizables.

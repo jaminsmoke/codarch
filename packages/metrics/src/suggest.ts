@@ -1,4 +1,5 @@
 import { walkFiles, type CcJson, type CcNode } from "@codarch/schema";
+import { DOMAIN_PROFILES, findDomainProfile } from "./profiles";
 
 /**
  * Generador de capas y reglas, versión 0.01.
@@ -14,8 +15,8 @@ import { walkFiles, type CcJson, type CcNode } from "@codarch/schema";
 
 export interface SuggestedLayer {
   name: string;
-  /** Patrón de los ficheros de la capa, relativo al root. */
-  pattern: string;
+  /** Patrones de los ficheros de la capa, relativos al root. */
+  patterns: string[];
   /** Cuántos ficheros tiene. */
   files: number;
   /** Capas de las que depende (hacia dentro). */
@@ -36,12 +37,40 @@ export interface SuggestedRule {
 }
 
 export interface Suggestion {
-  /** Las capas, de la más interior a la más exterior. */
+  /**
+   * Lo que el código ya tiene: las carpetas agrupadas y su orden por
+   * dependencia.
+   */
+  detected: SuggestedLayer[];
+  /** Las capas de la propuesta (las del perfil si encaja, si no las detectadas). */
   layers: SuggestedLayer[];
   rules: SuggestedRule[];
+  /**
+   * De dónde sale la propuesta: de un perfil del catálogo (su convención
+   * manda) o de lo que el código ya hace.
+   */
+  proposal: "profile" | "deduced";
+  /** El perfil que se propone, si lo hay. */
+  profile: string | null;
   /** Carpetas que no se han podido agrupar, para que se vean. */
   ungrouped: number;
   notes: string[];
+  /** Qué perfil del catálogo encaja con lo deducido. */
+  fits: ProfileFit[];
+}
+
+/** Cómo encaja un perfil del catálogo con lo que ha deducido el análisis. */
+export interface ProfileFit {
+  id: string;
+  title: string;
+  /** Capas del perfil que el repo tiene. */
+  matched: number;
+  /** Capas del perfil en total. */
+  total: number;
+  /** Porcentaje del código que cae en las capas del perfil. */
+  coverage: number;
+  /** Reglas del perfil que el código incumple hoy. */
+  broken: string[];
 }
 
 /** Carpetas raíz que no son capas: dentro de ellas está la capa de verdad. */
@@ -109,14 +138,16 @@ export function suggestLayers(cc: CcJson): Suggestion {
         files: 0,
         dependsOn: new Set(),
         usedBy: new Set()
-      };
-      groups.set(name, group);
+      };      groups.set(name, group);
     }
     group.files += 1;
     return group;
   };
 
   for (const path of paths.values()) groupOf(path);
+
+  /** Las dependencias entre grupos, con su dirección. */
+  const groupEdges: Array<{ from: Group; to: Group }> = [];
 
   for (const edge of edges) {
     const fromPath = paths.get(edge.fromId);
@@ -127,6 +158,7 @@ export function suggestLayers(cc: CcJson): Suggestion {
     if (!from || !to || from.name === to.name) continue;
     from.dependsOn.add(to.name);
     to.usedBy.add(from.name);
+    groupEdges.push({ from, to });
   }
 
   const depthOf = (name: string, visiting = new Set<string>()): number => {
@@ -145,7 +177,7 @@ export function suggestLayers(cc: CcJson): Suggestion {
   const layers: SuggestedLayer[] = [...groups.values()]
     .map((group) => ({
       name: group.name,
-      pattern: group.pattern,
+      patterns: [group.pattern],
       files: group.files,
       dependsOn: [...group.dependsOn].sort(),
       usedBy: [...group.usedBy].sort(),
@@ -184,8 +216,125 @@ export function suggestLayers(cc: CcJson): Suggestion {
       "Solo hay una capa: no se puede deducir una estructura. Prueba con un perfil del catálogo."
     );
   }
+  const fits = matchProfiles(groups, groupEdges);
+  const best = fits.find((fit) => fit.matched >= 2) ?? null;
 
-  return { layers, rules, ungrouped, notes };
+  // Si un perfil del catálogo encaja, su convención manda: las reglas que se
+  // proponen son las del perfil, no las que se deducen del código. Un repo que
+  // incumple su propia arquitectura daría unas reglas invertidas si se
+  // confiaran solo en lo que el código hace.
+  const profile = best ? (findDomainProfile(best.id) ?? null) : null;
+  const proposedLayers: SuggestedLayer[] = profile
+    ? profile.layers.map((layer) => {
+        const group = groupForLayer(layer, groups);
+        return {
+          name: layer.name,
+          patterns: [...layer.patterns],
+          files: group?.files ?? 0,
+          dependsOn: [],
+          usedBy: [],
+          depth: 0
+        };
+      })
+    : layers;
+  const proposedRules: SuggestedRule[] = profile
+    ? profile.rules.map((rule) => ({
+        name: rule.name,
+        type: "forbidden",
+        from: rule.from,
+        to: rule.to,
+        severity: "warn",
+        message: rule.message ?? `${rule.from} no debe depender de ${rule.to}`
+      }))
+    : rules;
+
+  return {
+    detected: layers,
+    layers: proposedLayers,
+    rules: proposedRules,
+    proposal: profile ? "profile" : "deduced",
+    profile: profile?.id ?? null,
+    ungrouped,
+    notes,
+    fits
+  };
+}
+
+/** El grupo del repo que corresponde a una capa del perfil. */
+function groupForLayer(
+  layer: { patterns: readonly string[] },
+  groups: Map<string, Group>
+): Group | undefined {
+  for (const candidate of groups.values()) {
+    if (layer.patterns.some((pattern) => covers(pattern, candidate.name))) {
+      return candidate;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Qué perfil del catálogo encaja con lo deducido.
+ *
+ * Se comparan las capas del perfil con los grupos del repo: si el repo tiene
+ * `src/domain` y el perfil espera una capa `domain`, encaja ✓. Y se mira si el
+ * código ya incumple las reglas del perfil: eso es la consulta que interesa.
+ */
+function matchProfiles(
+  groups: Map<string, Group>,
+  groupEdges: ReadonlyArray<{ from: Group; to: Group }>
+): ProfileFit[] {
+  const totalFiles = [...groups.values()].reduce(
+    (sum, group) => sum + group.files,
+    0
+  );
+
+  return DOMAIN_PROFILES.map((profile) => {
+    // A qué grupo del repo pertenece cada capa del perfil.
+    const layerOf = new Map<string, string>();
+    for (const layer of profile.layers) {
+      const group = [...groups.values()].find((candidate) =>
+        layer.patterns.some((pattern) => covers(pattern, candidate.name))
+      );
+      if (group) layerOf.set(layer.name, group.name);
+    }
+
+    const covered = [...layerOf.values()].reduce(
+      (sum, name) => sum + (groups.get(name)?.files ?? 0),
+      0
+    );
+
+    const broken: string[] = [];
+    for (const rule of profile.rules) {
+      const fromGroup = layerOf.get(rule.from);
+      const toGroup = layerOf.get(rule.to);
+      if (!fromGroup || !toGroup) continue;
+      const violates = groupEdges.some(
+        (edge) => edge.from.name === fromGroup && edge.to.name === toGroup
+      );
+      if (violates) broken.push(rule.message ?? `${rule.from} no puede depender de ${rule.to}`);
+    }
+
+    return {
+      id: profile.id,
+      title: profile.title,
+      matched: layerOf.size,
+      total: profile.layers.length,
+      coverage: totalFiles === 0 ? 0 : Math.round((covered / totalFiles) * 100),
+      broken
+    };
+  }).sort(
+    (left, right) =>
+      right.matched - left.matched ||
+      right.coverage - left.coverage ||
+      left.id.localeCompare(right.id)
+  );
+}
+
+/** ¿El patrón del perfil cubre esa carpeta? `src/domain/**` cubre `src/domain`. */
+function covers(pattern: string, name: string): boolean {
+  const prefix = pattern.endsWith("/**") ? pattern.slice(0, -3) : pattern;
+  return name === prefix || name.startsWith(`${prefix}/`);
 }
 
 /** Un nombre de capa puede tener `/`; en el nombre de la regla, no. */

@@ -75,18 +75,18 @@ describe("suggestLayers", () => {
 
     const suggestion = suggestLayers(cc);
 
-    expect(suggestion.layers.map((layer) => layer.name)).toEqual([
+    expect(suggestion.detected.map((layer) => layer.name)).toEqual([
       "src/domain",
       "src/application",
       "src/infra"
     ]);
     // El dominio es el más interior: nadie depende hacia fuera desde él.
-    expect(suggestion.layers[0]?.depth).toBe(0);
-    expect(suggestion.layers[0]?.usedBy).toEqual([
+    expect(suggestion.detected[0]?.depth).toBe(0);
+    expect(suggestion.detected[0]?.usedBy).toEqual([
       "src/application",
       "src/infra"
     ]);
-    expect(suggestion.layers[1]?.dependsOn).toEqual(["src/domain"]);
+    expect(suggestion.detected[1]?.dependsOn).toEqual(["src/domain"]);
   });
 
   it("propone la regla que protege la capa interior", () => {
@@ -98,21 +98,69 @@ describe("suggestLayers", () => {
     const suggestion = suggestLayers(cc);
 
     // La infra depende del dominio: la regla protege al dominio de la infra.
-    expect(suggestion.rules).toHaveLength(1);
-    expect(suggestion.rules[0]).toMatchObject({
-      name: "src-domain-sin-src-infra",
+    const regla = suggestion.rules.find(
+      (rule) => rule.name === "dominio-sin-infraestructura"
+    );
+    expect(regla).toMatchObject({
       type: "forbidden",
-      from: "src/domain",
-      to: "src/infra",
+      from: "domain",
+      to: "infrastructure",
       severity: "warn"
     });
+  });
+
+  it("encaja con el perfil del catálogo y avisa de lo que ya se incumple", () => {
+    // El dominio depende de la infra: rompe la convención de "capas".
+    const cc = snapshot(
+      ["src/domain/user.ts", "src/infra/db.ts"],
+      [["src/domain/user.ts", "src/infra/db.ts"]]
+    );
+
+    const suggestion = suggestLayers(cc);
+
+    const capas = suggestion.fits.find((fit) => fit.id === "capas");
+    expect(capas?.matched).toBe(2);
+    expect(capas?.coverage).toBe(100);
+    expect(capas?.broken).toHaveLength(1);
+
+    // La propuesta usa el perfil: su convención manda, no lo que hace el código.
+    expect(suggestion.proposal).toBe("profile");
+    expect(suggestion.profile).toBe("capas");
+    expect(suggestion.layers.map((layer) => layer.name)).toEqual([
+      "domain",
+      "application",
+      "infrastructure"
+    ]);
+    expect(
+      suggestion.rules.find((rule) => rule.name === "dominio-sin-infraestructura")
+    ).toMatchObject({ from: "domain", to: "infrastructure" });
+  });
+
+  it("deduce las reglas cuando ningún perfil encaja", () => {
+    const cc = snapshot(
+      ["libro/pedido.ts", "facturacion/cobro.ts"],
+      [["facturacion/cobro.ts", "libro/pedido.ts"]]
+    );
+
+    const suggestion = suggestLayers(cc);
+
+    expect(suggestion.proposal).toBe("deduced");
+    expect(suggestion.profile).toBeNull();
+    expect(suggestion.layers.map((layer) => layer.name)).toEqual([
+      "libro",
+      "facturacion"
+    ]);
+    expect(suggestion.rules[0]?.from).toBe("libro");
+    expect(suggestion.rules[0]?.to).toBe("facturacion");
   });
 
   it("no cuenta los ficheros sueltos de la raíz como capa", () => {
     const cc = snapshot(["src/domain/user.ts", "index.ts"], []);
     const suggestion = suggestLayers(cc);
 
-    expect(suggestion.layers.map((layer) => layer.name)).toEqual(["src/domain"]);
+    expect(suggestion.detected.map((layer) => layer.name)).toEqual([
+      "src/domain"
+    ]);
     expect(suggestion.ungrouped).toBe(1);
     expect(suggestion.notes.join(" ")).toContain("raíz");
   });
@@ -121,8 +169,7 @@ describe("suggestLayers", () => {
     const cc = snapshot(["src/only/one.ts"], []);
     const suggestion = suggestLayers(cc);
 
-    expect(suggestion.layers).toHaveLength(1);
-    expect(suggestion.rules).toHaveLength(0);
+    expect(suggestion.detected).toHaveLength(1);
     expect(suggestion.notes.join(" ")).toContain("perfil del catálogo");
   });
 
@@ -136,6 +183,6 @@ describe("suggestLayers", () => {
     );
 
     const suggestion = suggestLayers(cc);
-    expect(suggestion.layers).toHaveLength(2);
+    expect(suggestion.detected).toHaveLength(2);
   });
 });

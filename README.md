@@ -194,7 +194,8 @@ codarch suggest .codarch/snapshot.cc.json
 ```
 
 Agrupar por carpeta, mirar el grafo y ordenar las capas de dentro afuera. Devuelve un fragmento
-para `.codarch.yml` con las capas y las reglas que las protegerían. Propone, no decide.
+para `.codarch.yml` con las capas y las reglas que las protegerían, dice **qué perfil del catálogo
+encaja** y avisa de las reglas que el código ya incumple. Propone, no decide.
 
 ### GitHub Action
 
