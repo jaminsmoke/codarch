@@ -64,6 +64,84 @@ describe("parseRuleConfig", () => {
     );
   });
 
+  it("endurece las reglas del perfil cuando se lo pide", () => {
+    const config = parseRuleConfig({
+      version: 1,
+      profile: "capas",
+      profile_severity: "error"
+    });
+
+    for (const rule of config.rules) {
+      expect(rule.severity).toBe("error");
+      expect(rule.source).toBe("profile");
+    }
+  });
+
+  it("usa un perfil propio del equipo", () => {
+    const config = parseRuleConfig({
+      version: 1,
+      profile: "mi-equipo",
+      profiles: [
+        {
+          id: "mi-equipo",
+          title: "Convenciones del equipo",
+          layers: [
+            { name: "nucleo", patterns: ["src/nucleo/**"] },
+            { name: "extras", patterns: ["src/extras/**"] }
+          ],
+          rules: [
+            {
+              name: "nucleo-sin-extras",
+              type: "forbidden",
+              from: "nucleo",
+              to: "extras",
+              severity: "error"
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(config.profile).toBe("mi-equipo");
+    expect(config.layers.map((layer) => layer.name)).toEqual([
+      "nucleo",
+      "extras"
+    ]);
+    expect(config.rules).toHaveLength(1);
+    // Las reglas de un perfil propio también entran como aviso, salvo que el
+    // equipo lo diga.
+    expect(config.rules[0]?.severity).toBe("warn");
+    expect(config.rules[0]?.source).toBe("profile");
+  });
+
+  it("el equipo puede endurecer una regla de su perfil propio", () => {
+    const config = parseRuleConfig({
+      version: 1,
+      profile: "mi-equipo",
+      profile_severity: "error",
+      profiles: [
+        {
+          id: "mi-equipo",
+          title: "Convenciones del equipo",
+          layers: [
+            { name: "nucleo", patterns: ["src/nucleo/**"] },
+            { name: "extras", patterns: ["src/extras/**"] }
+          ],
+          rules: [
+            {
+              name: "nucleo-sin-extras",
+              type: "forbidden",
+              from: "nucleo",
+              to: "extras"
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(config.rules[0]?.severity).toBe("error");
+  });
+
   it("normaliza capas, reglas y patrones", () => {
     const config = parseRuleConfig({
       version: 1,

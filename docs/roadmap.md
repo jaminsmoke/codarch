@@ -101,6 +101,8 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 - [x] Publicar `codarch@0.1.3` con persistencia y atajos en la app web; `latest` apunta a esa versión.
 - [x] Publicar `codarch@0.1.4` con el estado de vista en la URL, la carga por URL y la navegación por
   flechas; `latest` apunta a esa versión y la acción pública instala ya esa versión.
+- [ ] Publicar `codarch@0.2.0` con la lente de dominio: catálogo de perfiles, generador de capas y
+  la migración en el reporte, el comentario del PR y el MCP.
 - [x] La acción instala la versión publicada del CLI; `check:action` lo verifica para que no se desincronice.
 - [x] La acción instala `codarch` desde npm y ya no ejecuta `npm ci` sobre el proyecto analizado.
 - [x] Repo público `jaminsmoke/codarch-action@v1`, generado desde `apps/github-action` con `npm run sync:action`.
@@ -222,9 +224,12 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
   propone capas y reglas. Dice además qué perfil del catálogo encaja y qué reglas incumple el código
   hoy. Si encaja un perfil, la propuesta usa su convención (no la que deduce el código, que con una
   violation sale invertida). Propone, no decide.
-- [ ] **M9.3** Endurecer, cuando toque: subir las reglas del perfil a `error` y que bloqueen. Se
-  decide con el código a la vista.
-- [ ] **M9.4** Perfiles propios del equipo, reutilizables.
+- [x] **M9.3** Endurecer, cuando toque: `profile_severity: error` sube las reglas del perfil a
+  bloqueo. Sigue siendo una decisión del equipo (y por defecto son avisos).
+- [x] **M9.4** Perfiles propios del equipo, en el propio archivo de reglas (`profiles:`), con la
+  misma forma que los del catálogo.
+- [x] Las apps usan todo esto: el panel de PR de la web y del escritorio enseñan el perfil y
+  marcan de dónde sale cada regla; el MCP devuelve el perfil en `list_violations`.
 
 ## Después
 

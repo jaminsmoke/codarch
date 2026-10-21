@@ -122,6 +122,11 @@ export default function PrPanel({
               <span>
                 <b>{rules.summary.resolved}</b> resueltas
               </span>
+              {rules.profile ? (
+                <span title="Perfil del catálogo aplicado">
+                  perfil <b>{rules.profile}</b>
+                </span>
+              ) : null}
             </div>
             {introduced.length === 0 ? (
               <p className="muted small">Sin violaciones nuevas.</p>
@@ -297,7 +302,14 @@ function Violation({
     >
       <i />
       <span>
-        <b>{violation.rule}</b>
+        <b>
+          {violation.rule}
+          {violation.source === "profile" ? (
+            <em className="violation-source" title="Viene de un perfil del catálogo">
+              perfil
+            </em>
+          ) : null}
+        </b>
         <small>{violation.message}</small>
       </span>
     </button>

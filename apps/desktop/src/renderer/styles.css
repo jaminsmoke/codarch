@@ -945,6 +945,27 @@ button {
   white-space: nowrap;
 }
 
+.progress-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.progress-cell .detail-note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-cell .button {
+  flex: none;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  font-size: 9px;
+}
+
 .inspector h2 {
   margin: 6px 0 14px;
   font: 650 27px/1.08 var(--display);
@@ -1132,6 +1153,19 @@ button {
   color: var(--debt);
 }
 
+/* La deuda de migración que baja es buena; la que sube, mala. */
+.pr-stat-good b {
+  color: var(--patina);
+}
+
+.pr-delta.is-worse {
+  color: var(--debt);
+}
+
+.pr-delta.is-better {
+  color: var(--patina);
+}
+
 .pr-section {
   margin-top: 13px;
   padding-top: 12px;
@@ -1195,6 +1229,20 @@ button {
 .violation b {
   display: block;
   font: 600 11px/1.3 var(--sans);
+}
+
+/* Marca de las reglas que vienen de un perfil del catálogo. */
+.violation-source {
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font: 500 8.5px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-style: normal;
+  vertical-align: 1px;
 }
 
 .violation small {

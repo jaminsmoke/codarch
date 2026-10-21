@@ -87,6 +87,43 @@ reporte lleva el perfil aplicado (`rules.profile`). Así nadie bloquea un PR por
 escribió, y endurecer una es una decisión consciente
 ([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
 
+### Endurecer un perfil
+
+Por defecto las reglas de un perfil son avisos. Cuando el código esté preparado, se suben de golpe:
+
+```yaml
+version: 1
+profile: capas
+profile_severity: error
+```
+
+También se puede endurecer una sola regla, escribiéndola en el archivo del equipo con el mismo
+nombre: lo del equipo sustituye a lo del perfil.
+
+### Perfiles propios
+
+Un equipo puede guardar sus convenciones como perfil, en el mismo archivo:
+
+```yaml
+version: 1
+profile: mi-equipo
+profiles:
+  - id: mi-equipo
+    title: Convenciones del equipo
+    layers:
+      - name: nucleo
+        patterns: [src/nucleo/**]
+      - name: extras
+        patterns: [src/extras/**]
+    rules:
+      - name: nucleo-sin-extras
+        type: forbidden
+        from: nucleo
+        to: extras
+```
+
+Los perfiles propios tienen la misma forma que los del catálogo y también entran como aviso.
+
 ## Generar las capas
 
 Si el repo no encaja en ningún perfil, `codarch suggest` deduce la estructura del propio código:

@@ -213,6 +213,8 @@ export interface ListViolationsInput {
 export interface ListViolationsResult {
   available: boolean;
   configured: boolean;
+  /** Perfil del catálogo aplicado, si lo hubo. */
+  profile: string | null;
   counts: {
     introduced: number;
     existing: number;
@@ -689,6 +691,7 @@ export function listViolations(
     return {
       available: false,
       configured: false,
+      profile: null,
       counts: {
         introduced: 0,
         existing: 0,
@@ -721,6 +724,7 @@ export function listViolations(
   return {
     available: true,
     configured: store.report.rules.configured,
+    profile: store.report.rules.profile ?? null,
     counts: {
       introduced: summary.introduced,
       existing: summary.existing,

@@ -81,11 +81,14 @@ export function parseRuleConfig(input: unknown): RuleConfig {
     throw new ConfigError("config.version debe ser 1");
   }
 
-  const profile = parseProfile(root.profile);
+  const own = parseInlineProfiles(root.profiles);
+  const profile = parseProfile(root.profile, own);
+  const profileSeverity = parseProfileSeverity(root.profile_severity);
   const layers = mergeLayers(profile, parseLayers(root.layers));
   const layerNames = new Set(layers.map((layer) => layer.name));
   const rules = mergeRules(
     profile,
+    profileSeverity,
     parseRules(root.rules, layerNames),
     layerNames
   );
@@ -93,16 +96,88 @@ export function parseRuleConfig(input: unknown): RuleConfig {
   return { version: 1, profile: profile?.id ?? null, layers, rules };
 }
 
-function parseProfile(value: unknown): DomainProfile | null {
+/**
+ * Los perfiles que define el propio equipo, en el archivo de reglas.
+ *
+ * Un perfil propio tiene la misma forma que los del catálogo: capas y reglas.
+ * Se escribe para reutilizar unas convenciones que no son de nadie más.
+ */
+function parseInlineProfiles(value: unknown): Map<string, DomainProfile> {
+  const profiles = new Map<string, DomainProfile>();
+  if (value === undefined || value === null) return profiles;
+  if (!Array.isArray(value)) {
+    throw new ConfigError("config.profiles debe ser una lista");
+  }
+
+  value.forEach((raw, index) => {
+    const entry = asObject(raw, `config.profiles[${index}]`);
+    const id = asString(entry.id, `config.profiles[${index}].id`);
+    const title = asString(entry.title, `config.profiles[${index}].title`);
+    const description =
+      entry.description === undefined
+        ? ""
+        : asString(entry.description, `config.profiles[${index}].description`);
+
+    const layers = parseLayers(entry.layers).map((layer) => ({
+      name: layer.name,
+      patterns: layer.patterns
+    }));
+    if (layers.length === 0) {
+      throw new ConfigError(
+        `config.profiles[${index}] necesita al menos una capa`
+      );
+    }
+    const layerNames = new Set(layers.map((layer) => layer.name));
+    const rules = parseRules(entry.rules, layerNames).filter(
+      (rule): rule is ForbiddenRuleConfig => rule.type === "forbidden"
+    );
+
+    profiles.set(id, {
+      id,
+      title,
+      description,
+      when: `Perfil propio del equipo, definido en ${"el archivo de reglas"}.`,
+      layers,
+      rules
+    });
+  });
+
+  return profiles;
+}
+
+/**
+ * El perfil elegido: del equipo si lo define, del catálogo si no.
+ */
+function parseProfile(
+  value: unknown,
+  own: Map<string, DomainProfile>
+): DomainProfile | null {
   if (value === undefined || value === null) return null;
   const id = asString(value, "config.profile");
-  const profile = findDomainProfile(id);
+  const profile = own.get(id) ?? findDomainProfile(id);
   if (!profile) {
+    const available = [...own.keys(), ...domainProfileIds()].join(", ");
     throw new ConfigError(
-      `config.profile desconocido: ${id}. Disponibles: ${domainProfileIds().join(", ")}`
+      `config.profile desconocido: ${id}. Disponibles: ${available}`
     );
   }
   return profile;
+}
+
+/**
+ * La severidad de las reglas del perfil.
+ *
+ * Por defecto son avisos: consultan, no bloquean. Subirlas a `error` es la
+ * decisión del equipo cuando el código está preparado (ADR 0023).
+ */
+function parseProfileSeverity(value: unknown): Severity {
+  if (value === undefined || value === null) return "warn";
+  if (typeof value !== "string" || !SEVERITIES.has(value as Severity)) {
+    throw new ConfigError(
+      "config.profile_severity debe ser info, warn o error"
+    );
+  }
+  return value as Severity;
 }
 
 /** Las capas del perfil primero; las del equipo sustituyen a las de su nombre. */
@@ -124,12 +199,17 @@ function mergeLayers(
  */
 function mergeRules(
   profile: DomainProfile | null,
+  profileSeverity: Severity,
   own: RuleConfigEntry[],
   layerNames: Set<string>
 ): RuleConfigEntry[] {
   const rules = new Map<string, RuleConfigEntry>();
   for (const rule of profile?.rules ?? []) {
-    rules.set(rule.name, { ...rule, source: "profile" });
+    rules.set(rule.name, {
+      ...rule,
+      severity: profileSeverity,
+      source: "profile"
+    });
   }
   for (const rule of own) {
     rules.set(rule.name, { ...rule, source: "config" });
