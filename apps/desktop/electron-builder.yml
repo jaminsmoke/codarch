@@ -9,8 +9,6 @@ productName: CodArch
 copyright: CodArch
 # El nombre del paquete es "@codarch/desktop": el ejecutable no puede llevar la @.
 executableName: codarch
-homepage: https://github.com/jaminsmoke/codarch
-description: Mapa de arquitectura para equipos y agentes de IA
 
 directories:
   output: release

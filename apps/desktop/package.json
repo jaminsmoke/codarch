@@ -1,6 +1,8 @@
 {
   "name": "@codarch/desktop",
   "version": "0.1.4",
+  "description": "Mapa de arquitectura para equipos y agentes de IA",
+  "homepage": "https://github.com/jaminsmoke/codarch",
   "private": true,
   "type": "module",
   "main": "dist/main.cjs",
