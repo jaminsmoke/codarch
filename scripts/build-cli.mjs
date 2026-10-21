@@ -77,7 +77,7 @@ const published = {
   dependencies: {
     ignore: "^7.0.13",
     minimatch: "^10.2.6",
-    "tree-sitter": "0.21.1",
+    "tree-sitter": "0.25.1",
     "tree-sitter-typescript": "0.23.2",
     typescript: "^5.9.0",
     yaml: "^2.9.1"
