@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,8 +16,15 @@ const DIST = path.join(ROOT, "dist");
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 
+const desktopPackage = JSON.parse(
+  await readFile(path.join(ROOT, "package.json"), "utf8")
+);
+
 const shared = {
   bundle: true,
+  define: {
+    __CODARCH_VERSION__: JSON.stringify(desktopPackage.version)
+  },
   platform: "node",
   target: "node22",
   format: "cjs",

@@ -375,6 +375,15 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
 
+### Los ajustes
+
+Hay un engranaje en la barra lateral que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
+el proyecto guardado ✓ y el diagnóstico ✓ (versión ✓, checksum ✓, si el almacenamiento local está
+disponible ✓). En el escritorio, también desde el menú nativo ✓.
+
+Los ajustes son de la **máquina**, no del repositorio ✓: el análisis no cambia por tener el área en
+otro sitio ✓.
+
 ### La vida de un símbolo
 
 Cada símbolo lleva el hash de su cuerpo, así que un renombrado o una mudanza no lo rompen. Con el

@@ -10,10 +10,7 @@ import { runChain, type ChainCommandOptions } from "./commands/chain";
 import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
 
-declare const __CODARCH_VERSION__: string | undefined;
-
-const VERSION =
-  typeof __CODARCH_VERSION__ === "string" ? __CODARCH_VERSION__ : "0.0.0";
+import { VERSION } from "./version";
 
 const USAGE = `
 CodArch · mapa vivo de la arquitectura de tu software

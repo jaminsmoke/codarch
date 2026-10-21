@@ -128,6 +128,11 @@ function buildMenu(): Menu {
         click: () => void pickFolder()
       },
       {
+        label: "Ajustes…",
+        accelerator: "CmdOrCtrl+,",
+        click: () => window?.webContents.send("codarch:open-settings")
+      },
+      {
         label: "Abrir cc.json…",
         accelerator: "CmdOrCtrl+Shift+O",
         click: () => void pickFile()

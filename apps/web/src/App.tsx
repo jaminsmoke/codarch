@@ -40,6 +40,7 @@ import {
   type TreeNode
 } from "@codarch/render/browser";
 import FolderPicker from "./FolderPicker";
+import Settings from "./Settings";
 import PrPanel from "./PrPanel";
 import {
   readRepositoryFromFiles,
@@ -157,6 +158,8 @@ export default function App() {
     "demo"
   );
   const [serverRootPath, setServerRootPath] = useState("");
+  /** La versión de CodArch que está sirviendo el servidor local. */
+  const [serverVersion, setServerVersion] = useState<string | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [reportUrl, setReportUrl] = useState<string | null>(null);
@@ -165,6 +168,8 @@ export default function App() {
   const [progress, setProgress] = useState<string | null>(null);
   /** La cadena del símbolo abierto, si la hay. */
   const [chain, setChain] = useState<SymbolChain | null>(null);
+  /** Si los ajustes están abiertos. */
+  const [settingsOpen, setSettingsOpen] = useState(false);
   /** El análisis en marcha, para poder cortarlo. */
   const analysisRef = useRef<AnalysisHandle | null>(null);
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
@@ -353,6 +358,13 @@ export default function App() {
           typeof (meta as { rootPath?: unknown }).rootPath === "string"
         ) {
           setServerRootPath((meta as { rootPath: string }).rootPath);
+        }
+        if (
+          typeof meta === "object" &&
+          meta !== null &&
+          typeof (meta as { version?: unknown }).version === "string"
+        ) {
+          setServerVersion((meta as { version: string }).version);
         }
         const servedReport = await fetchJson("data/report.json");
         if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
@@ -600,6 +612,27 @@ export default function App() {
       .sort((left, right) => left.localeCompare(right));
     return [...preferred, ...rest];
   }, [stats]);
+
+  /** Las preferencias guardadas, para los ajustes. */
+  const savedProjectLabel = useMemo(() => {
+    if (!settingsOpen) return null;
+    return readProject()?.label ?? null;
+  }, [settingsOpen]);
+
+  /** Si el almacenamiento local está disponible. */
+  const storageAvailable = useMemo(() => {
+    try {
+      return typeof window !== "undefined" && !!window.localStorage;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  /** La versión de CodArch que está corriendo. */
+  const appVersion = useMemo(() => {
+    if (serverVersion) return serverVersion;
+    return "web";
+  }, [serverVersion]);
 
   const descriptors = cc?.lenses?.metrics?.attributeDescriptors as
     | Record<string, { title?: string }>
@@ -1195,6 +1228,16 @@ export default function App() {
 
       <div className="shell">
         <aside className="rail">
+          <button
+            type="button"
+            className="rail-settings"
+            onClick={() => setSettingsOpen(true)}
+            title="Ajustes"
+            aria-label="Ajustes"
+          >
+            ⚙
+          </button>
+
           <section className="panel-block">
             <div className="eyebrow">Vista</div>
             <label className="field">
@@ -1457,6 +1500,39 @@ export default function App() {
         initialPath={serverRootPath}
         onClose={() => setFolderPickerOpen(false)}
         onSelect={selectFolder}
+      />
+
+      <Settings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        areaMetric={areaMetric}
+        onAreaMetric={(value) => setAreaMetric(value)}
+        colorMode={colorMode}
+        onColorMode={(value) => setColorMode(value)}
+        areaOptions={metricOptions.map((key) => ({
+          value: key,
+          label: metricTitle(key)
+        }))}
+        colorOptions={[
+          { value: "risk", label: "Riesgo" },
+          { value: "structure", label: "Estructura" },
+          ...(hasChurn ? [{ value: "churn", label: "Calor (commits)" }] : []),
+          ...(migration
+            ? [{ value: "status", label: "Estado de migración" }]
+            : []),
+          ...metricOptions.map((key) => ({
+            value: key,
+            label: metricTitle(key)
+          }))
+        ]}
+        model={view.model}
+        savedProject={savedProjectLabel ? { label: savedProjectLabel } : null}
+        onClearProject={() => {
+          clearProject();
+          setSettingsOpen(false);
+        }}
+        storageAvailable={storageAvailable}
+        version={appVersion}
       />
     </div>
   );

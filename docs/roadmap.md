@@ -293,6 +293,41 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 - [ ] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
   símbolo (cuántas veces se ha reescrito cada función) como señal de deuda de refactorización.
 
+## M13 — Los ajustes
+
+**Estado:** M13.1 cerrada (los ajustes). El store de plugins es la sección que le falta (M14 ✓).
+Decisión en [ADR 0027](docs/adr/0027-los-ajustes.md).
+
+- [x] **M13.1** Un panel de ajustes con secciones: **Vista** (métrica de área, modo de color),
+  **Proyecto** (el proyecto guardado, borrarlo) y **Diagnóstico** (versión, formato del modelo,
+  checksum, estado del almacenamiento). La sección **Plugins** llega con M14 ✓.
+- [x] Lo que se ajusta se guarda donde ya estaba: las preferencias no cambian de sitio ✓.
+- [x] El escritorio lo abre también desde el menú nativo (por IPC ✓).
+- [x] Sin biblioteca de componentes completa: un primitive headless para el diálogo (Radix ✓) y el
+  CSS de la app sobre las variables que ya existen ✓.
+
+## M14 — Los plugins
+
+**Estado:** pendiente. Piezas del repo que se activan desde los ajustes. Decisión en
+[ADR 0028](docs/adr/0028-los-plugins.md).
+
+- [ ] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
+  versión, título, icono, qué aporta y qué necesita).
+- [ ] El contexto del plugin: el modelo, la selección, las acciones, las preferencias y el estado de
+  la URL. Un contrato **pequeño y explícito**.
+- [ ] Compilado (lo declara el repo) y activado (lo decide el usuario, en local). Lo que no está
+  compilado no entra en el bundle.
+- [ ] El store en los ajustes: lista los plugins del repo y activa o desactiva.
+- [ ] Un plugin **no** puede añadir lentes al modelo: cambiaría el checksum del snapshot.
+
+## M15 — La vista 3D
+
+**Estado:** pendiente. El primer plugin, y la prueba de que el sistema sirve.
+
+- [ ] Una pestaña nueva en el mapa central, que cambia solo el mapa (las barras siguen igual).
+- [ ] Three.js cargado bajo demanda, con el mapa 2D intacto.
+- [ ] El plugin declara sus requisitos (WebGL2, GPU) y la app los comprueba.
+
 ## Después
 
 Cada idea sigue aquí, con los pasos que le faltan delante. Nada se cae: lo que cambia es que ahora
@@ -300,23 +335,14 @@ se ve el camino para llegar.
 
 ### Después de los símbolos
 
-La lente de símbolos está hecha (M11 ✓) y su diff y su cadena son M12 ✓. Lo que sigue es usarla a
-fondo:
+La lente de símbolos está hecha (M11 ✓) y su diff y su cadena son M12 ✓.
 
+Lo que sigue, cuando las fases anteriores estén hechas:
 
-- **3D**: el mapa en tres dimensiones. Antes hacen falta dos cosas: un visor que aguante el volumen
-  (el nivel de detalle ya existe ✓) y un modelo de interacción (orbitar, zoom, elegir) que la web
-  todavía no tiene ✓. Con esas dos cosas, el 3D es una vista más, no un producto nuevo ✓.
-- **Addons**: que el programa se pueda extender. El concepto se rediseña como **addons**, no
-  como plugins: no es "un plugin que se mete en el programa", es "una pieza que se le añade" ✓.
-  - **Los declarativos** (reglas, perfiles, lentes, colores) viajan en la configuración ✓: funcionan
-    en el CLI ✓, en la web ✓, en el escritorio ✓ y en el MCP ✓, sin instalar nada ✓.
-  - **Los programáticos** (un analizador propio, una lente que sabe de un framework) necesitan un
-    runtime ✓: en el escritorio y en el CLI ✓; en la web solo si se compilan dentro o si van en
-    WebAssembly ✓.
-  - La mayoría deberían poder ser de los dos tipos ✓: la misma idea, declarada para todos ✓ y con
-    código para donde se pueda ✓.
-  - Lo que falta decidir: **qué** puede hacer un addon ✓, cómo se distribuye ✓ (npm, como el CLI ✓)
-    y cómo se actualiza sin romper nada ✓.
+- **Un registro de plugins** (ADR 0028 ✓): hoy los plugins son del repo ✓; un catálogo público
+  necesita firma ✓ y una política de versiones ✓.
+- **Lentes de plugins en el modelo**: si un plugin puede añadir una lente ✓, el checksum del snapshot
+  depende de lo instalado ✓. Es posible ✓, pero hay que decidir cómo se declara ✓.
+- **El resto de lo que se quedó fuera de la v1**: el 3D ya tiene fase ✓ (M15 ✓).
 
 La lente de dominio y la evolución temporal ya están hechas (M9 y M10) ✓.

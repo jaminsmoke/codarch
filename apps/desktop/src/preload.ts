@@ -36,7 +36,11 @@ export interface DesktopHistory {
   }>;
 }
 
+import { VERSION } from "./version";
+
 const api = {
+  /** La versión de la app. */
+  version: VERSION,
   /** Elige una carpeta y devuelve su ruta, o `null` si se cancela. */
   pickFolder: (): Promise<string | null> => ipcRenderer.invoke("codarch:pick-folder"),
   /** Elige un fichero JSON. */
@@ -59,6 +63,16 @@ const api = {
   /** Una foto concreta del historial. */
   historySnapshot: (name: string): Promise<unknown | null> =>
     ipcRenderer.invoke("codarch:history-snapshot", name),
+  /**
+   * Escucha la orden de abrir los ajustes ✓.
+   *
+   * Devuelve la función para dejar de escuchar ✓.
+   */
+  onOpenSettings: (callback: () => void): (() => void) => {
+    const listener = (): void => callback();
+    ipcRenderer.on("codarch:open-settings", listener);
+    return () => ipcRenderer.removeListener("codarch:open-settings", listener);
+  },
   /**
    * Escucha lo que llega desde el menú o desde "abrir con".
    *

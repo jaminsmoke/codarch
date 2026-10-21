@@ -1088,6 +1088,140 @@ button {
   padding-top: 12px;
 }
 
+/* Los ajustes: un diálogo con secciones. */
+.rail-settings {
+  align-self: flex-end;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rail-settings:hover {
+  color: var(--ink);
+  border-color: var(--ink-soft);
+}
+
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 16, 0.6);
+  z-index: 40;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 41;
+  width: min(620px, calc(100vw - 48px));
+  max-height: min(560px, calc(100vh - 64px));
+  display: flex;
+  flex-direction: column;
+  background: var(--panel, #151d24);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-title {
+  margin: 0;
+  font: 500 13px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.settings-close {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.settings-close:hover {
+  color: var(--ink);
+}
+
+.settings-body {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 8px;
+  border-right: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.settings-section {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 11.5px/1.3 var(--sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-section:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+}
+
+.settings-section.is-active {
+  background: rgba(47, 111, 237, 0.16);
+  color: var(--ink);
+}
+
+.settings-content {
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  overflow-y: auto;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-row b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
 /* Los símbolos del fichero: lo que hay dentro. */
 .symbol-list {
   border-top: 1px solid var(--line);

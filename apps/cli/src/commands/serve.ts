@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { analyzeRepository } from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { chainsPayload } from "./chains-payload";
+import { VERSION } from "../version";
 
 export interface ServeOptions {
   root?: string;
@@ -178,6 +179,7 @@ export function runServe(options: ServeOptions): number {
   };
 
   const meta = () => ({
+    version: VERSION === "0.0.0" ? "dev" : VERSION,
     root: path.basename(state.root),
     rootPath: state.root,
     watch: state.watch,

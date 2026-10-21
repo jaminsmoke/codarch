@@ -41,6 +41,7 @@ import {
   type RenderModel,
   type TreeNode
 } from "@codarch/render/browser";
+import Settings from "./Settings";
 import PrPanel from "./PrPanel";
 import {
   clearProject,
@@ -151,6 +152,8 @@ export default function App() {
   const [progress, setProgress] = useState<string | null>(null);
   /** La cadena del símbolo abierto, si la hay. */
   const [chain, setChain] = useState<SymbolChain | null>(null);
+  /** Si los ajustes están abiertos. */
+  const [settingsOpen, setSettingsOpen] = useState(false);
   /** La línea del tiempo del repositorio, si el proceso principal la tiene. */
   const [history, setHistory] = useState<HistoryEntry[] | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -159,6 +162,11 @@ export default function App() {
     preferencesRef.current = readPreferences();
   }
   const selectedPathRef = useRef<string | null>(null);
+
+  // El menú nativo abre los ajustes ✓.
+  useEffect(() => {
+    return desktop().onOpenSettings(() => setSettingsOpen(true));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -613,6 +621,16 @@ export default function App() {
 
       <div className="shell">
         <aside className="rail">
+          <button
+            type="button"
+            className="rail-settings"
+            onClick={() => setSettingsOpen(true)}
+            title="Ajustes"
+            aria-label="Ajustes"
+          >
+            ⚙
+          </button>
+
           <section className="panel-block">
             <div className="eyebrow">Vista</div>
             <label className="field">
@@ -819,6 +837,36 @@ export default function App() {
           )}
         </aside>
       </div>
+
+      <Settings
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        areaMetric={areaMetric}
+        onAreaMetric={(value) => setAreaMetric(value)}
+        colorMode={colorMode}
+        onColorMode={(value) => setColorMode(value)}
+        areaOptions={metricOptions.map((key) => ({
+          value: key,
+          label: metricTitle(key)
+        }))}
+        colorOptions={[
+          { value: "risk", label: "Riesgo" },
+          { value: "structure", label: "Estructura" },
+          ...(hasChurn ? [{ value: "churn", label: "Calor (commits)" }] : []),
+          ...(migration
+            ? [{ value: "status", label: "Estado de migración" }]
+            : []),
+          ...metricOptions.map((key) => ({
+            value: key,
+            label: metricTitle(key)
+          }))
+        ]}
+        model={view.model}
+        savedProject={null}
+        onClearProject={() => setSettingsOpen(false)}
+        storageAvailable={true}
+        version={desktop().version}
+      />
     </div>
   );
 }
