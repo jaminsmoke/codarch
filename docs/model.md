@@ -121,6 +121,11 @@ Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símb
 lente posterior. Las dos métricas de historial solo aparecen si `git` está disponible y el análisis
 no se ejecuta con `--no-git`.
 
+`rloc` cuenta las líneas con al menos un token de código. Los comentarios se detectan **por su
+texto**, no por el tipo de nodo del árbol: dentro de un `interface`, el binding nativo de tree-sitter
+tipa el comentario como `interface_body` y el WASM como `comment`. Con la regla por texto, el CLI y
+el navegador cuentan las mismas líneas ([ADR 0020](adr/0020-analisis-en-el-navegador.md)).
+
 ### Aristas
 
 ```ts

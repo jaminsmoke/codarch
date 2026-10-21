@@ -136,10 +136,13 @@ de PR.
 
 ## M6 — Análisis en el navegador
 
-**Estado:** futuro. Hoy “Abrir repositorio” lee artefactos ya generados, no analiza código.
+**Estado:** en curso. El parser WASM con la misma gramática que el CLI ya existe y tiene test de
+paridad; falta el sistema de ficheros virtual y conectarlo a la app.
 
-- [ ] Walker y parser TS/JS en el navegador (tree-sitter WASM o equivalente).
-- [ ] Sistema de ficheros virtual sobre File System Access API.
+- [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete
+  `tree-sitter-typescript`); decisión en [ADR 0020](adr/0020-analisis-en-el-navegador.md).
+- [x] Mismas métricas y mismo checksum que el CLI: medición compartida y test de paridad.
+- [ ] Walker y sistema de ficheros virtual sobre File System Access API.
 - [ ] Churn y git fuera del navegador; snapshot sin historial o con datos externos.
 - [ ] Mismo modelo, métricas y checksum que el CLI para no abrir dos verdades.
 

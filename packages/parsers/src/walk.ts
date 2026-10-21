@@ -1,17 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import ignore, { type Ignore } from "ignore";
+import { DEFAULT_EXTENSIONS } from "./extensions";
 
-export const DEFAULT_EXTENSIONS = [
-  ".ts",
-  ".tsx",
-  ".mts",
-  ".cts",
-  ".js",
-  ".jsx",
-  ".mjs",
-  ".cjs"
-] as const;
+export { DEFAULT_EXTENSIONS };
 
 /** Patrones que no dependen del `.gitignore` del proyecto. */
 const ALWAYS_IGNORED = [".git", "node_modules", ".codarch"];
