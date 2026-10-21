@@ -71,8 +71,8 @@ también `npm run sync:action` y actualizar el repo público.
 - M5 en curso: app web con treemap, inspector, foco por carpeta, migración, vista de PR, selector de
   carpetas servido, live/stop, persistencia, atajos básicos, carga por URL, estado de vista en la
   URL, navegación por flechas y nivel de detalle para snapshots grandes.
-- M6 en curso: el análisis en el navegador ya da el mismo checksum que el CLI; falta pulir el lector
-  de carpetas y la cancelación.
+- M6 cerrado: el análisis en el navegador da el mismo checksum que el CLI, con progreso por fichero
+  y cancelación instantánea.
 - M7 cerrado: app de escritorio con Electron y su propia copia de la UI (ADR 0021); el motor es el
   mismo, las apps no se importan la una a la otra. Instaladores sin firmar por CI.
   “Abrir repositorio” lee `.codarch` ya generado; el análisis en navegador es M6 (WASM).
