@@ -91,5 +91,8 @@ también `npm run sync:action` y actualizar el repo público.
 
 ## No objetivos de v1
 
-Símbolos, 3D, plugins, lente de dominio, evolución temporal y backend remoto. No añadirlos sin mover
-el roadmap y documentar la decisión.
+3D, plugins y backend remoto. No añadirlos sin mover el roadmap y documentar la decisión.
+
+La lente de dominio (M9), la evolución temporal (M10) y la lente de símbolos (M11) ya están dentro:
+entrar en el roadmap es la forma de decidirlos. Lo que queda de los símbolos es el diff y la cadena
+(M12), que ya tienen su ADR.

@@ -14,6 +14,7 @@ import {
   type RuleInput,
   type RuleReport
 } from "./rules";
+import { buildSymbolReport, type DiffSymbolReport } from "./symbol-diff";
 
 export interface SnapshotSummary {
   projectName: string;
@@ -151,7 +152,7 @@ export interface DiffSummary {
 }
 
 export interface DiffReport {
-  schemaVersion: "1.2";
+  schemaVersion: "1.3";
   base: SnapshotSummary;
   head: SnapshotSummary;
   summary: DiffSummary;
@@ -180,6 +181,14 @@ export interface DiffReport {
    * anterior, o snapshots sin la lente de migración).
    */
   migration: MigrationReport | null;
+  /**
+   * Qué pasó dentro de los ficheros: los símbolos que se añadieron, se quitaron
+   * o cambiaron.
+   *
+   * Es `null` cuando no se midió (un reporte reconstruido desde una versión
+   * anterior, o snapshots sin la lente de símbolos).
+   */
+  symbols: DiffSymbolReport | null;
 }
 
 export interface DiffOptions {
@@ -206,6 +215,8 @@ interface IndexedSnapshot {
   metrics: Record<string, Record<string, number>>;
   edges: Map<string, IndexedEdge>;
 }
+
+export type { IndexedSnapshot };
 
 interface CycleGroup {
   key: string;
@@ -255,7 +266,7 @@ export function diffSnapshots(
     : emptyRuleReport();
 
   return {
-    schemaVersion: "1.2",
+    schemaVersion: "1.3",
     base: summarize(baseIndex),
     head: summarize(headIndex),
     summary: {
@@ -279,7 +290,8 @@ export function diffSnapshots(
     edges: edgeDiff,
     cycles: { introduced: introducedCycles, fixed: fixedCycles },
     hotspots,
-    migration: buildMigrationReport(baseIndex, headIndex, top)
+    migration: buildMigrationReport(baseIndex, headIndex, top),
+    symbols: buildSymbolReport(baseIndex, headIndex, top)
   };
 }
 /**

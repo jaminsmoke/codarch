@@ -117,7 +117,7 @@ export function makeStore(report: DiffReport | null = makeReport()): Architectur
 
 export function makeReport(): DiffReport {
   return {
-    schemaVersion: "1.2",
+    schemaVersion: "1.3",
     base: {
       projectName: "Acme",
       checksum: "checksum-base",
@@ -324,6 +324,30 @@ export function makeReport(): DiffReport {
           crossings: 1
         }
       ]
+    },
+    symbols: {
+      files: [
+        {
+          id: "c",
+          path: "src/domain/c.ts",
+          symbols: [
+            {
+              name: "resolver",
+              kind: "function",
+              status: "changed",
+              base: { complexity: 12, lines: 40, line: 20 },
+              head: { complexity: 18, lines: 52, line: 24 },
+              complexityDelta: 6
+            }
+          ]
+        }
+      ],
+      summary: {
+        added: 1,
+        removed: 0,
+        changed: 1,
+        topFile: { path: "src/domain/c.ts", changed: 1 }
+      }
     }
   };
 }

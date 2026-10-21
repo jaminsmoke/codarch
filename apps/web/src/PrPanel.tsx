@@ -43,6 +43,8 @@ export default function PrPanel({
   const migration = report.migration;
   const increased = migration?.files.increased.slice(0, 6) ?? [];
   const decreased = migration?.files.decreased.slice(0, 6) ?? [];
+  const symbols = report.symbols;
+  const symbolFiles = symbols?.files.slice(0, 6) ?? [];
 
   return (
     <section className="pr-panel">
@@ -63,6 +65,12 @@ export default function PrPanel({
             label="Deuda migración"
             value={formatCompact(migration.debt.head)}
             accent={migration.debt.delta > 0 ? "bad" : "good"}
+          />
+        ) : null}
+        {symbols ? (
+          <PrStat
+            label="Símbolos"
+            value={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
           />
         ) : null}
       </div>
@@ -108,9 +116,45 @@ export default function PrPanel({
         </div>
       ) : null}
 
+      {symbols && symbolFiles.length > 0 ? (
+        <div className="pr-section">
+          <div className="eyebrow">Símbolos</div>
+          <div className="violation-list">
+            {symbolFiles.map((file) => (
+              <div key={file.id} className="symbol-file">
+                <button
+                  type="button"
+                  className="symbol-file-path"
+                  onClick={() => onSelectPath(file.path)}
+                  title="Ver el fichero en el mapa"
+                >
+                  {file.path}
+                </button>
+                {file.symbols.slice(0, 4).map((symbol) => (
+                  <div key={`${symbol.name}-${symbol.status}`} className="symbol-change">
+                    <span className={`symbol-kind symbol-${symbol.kind}`}>
+                      {symbol.kind === "function" ? "fn" : symbol.kind.slice(0, 3)}
+                    </span>
+                    <span className="symbol-name">{symbol.name}</span>
+                    <span className="mono">
+                      {symbol.status === "added"
+                        ? "nuevo"
+                        : symbol.status === "removed"
+                          ? "eliminado"
+                          : symbol.complexityDelta === null
+                            ? "cambió"
+                            : `${symbol.complexityDelta > 0 ? "+" : ""}${symbol.complexityDelta}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="pr-section">
-        <div className="eyebrow">Reglas</div>
-        {rules.configured ? (
+        <div className="eyebrow">Reglas</div>        {rules.configured ? (
           <>
             <div className="pr-rule-summary">
               <span>

@@ -13,6 +13,13 @@ export type {
   ThresholdRuleConfig
 } from "./config";
 export { diffSnapshots } from "./diff";
+export { buildSymbolReport } from "./symbol-diff";
+export type {
+  DiffSymbolChange,
+  DiffSymbolFile,
+  DiffSymbolReport,
+  SymbolSnapshot
+} from "./symbol-diff";
 export {
   REPORT_SCHEMA_VERSION,
   emptyMigrationReport,

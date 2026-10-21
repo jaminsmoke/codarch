@@ -112,6 +112,16 @@ export function compareSnapshots(
   );
   lines.push(
     field(
+      "símbolos",
+      report.symbols
+        ? `${signed(report.symbols.summary.added)} · ${signed(
+            -report.symbols.summary.removed
+          )} · ~${num(report.symbols.summary.changed)}`
+        : "sin lente de símbolos"
+    )
+  );
+  lines.push(
+    field(
       "ciclos",
       `${signed(report.summary.introducedCycles)} nuevos · ${signed(
         -report.summary.fixedCycles
@@ -156,6 +166,32 @@ export function compareSnapshots(
       lines.push(
         `    … y ${num(report.cycles.introduced.length - 5)} más`
       );
+    }
+  }
+
+  if (report.symbols && report.symbols.files.length > 0) {
+    lines.push("");
+    lines.push("  Símbolos que más cambiaron:");
+    for (const file of report.symbols.files.slice(0, 5)) {
+      const changed = file.symbols.filter(
+        (symbol) => symbol.status === "changed"
+      );
+      const first = changed[0] ?? file.symbols[0];
+      if (!first) continue;
+      const detail =
+        first.status === "changed" && first.complexityDelta !== null
+          ? `complejidad ${signed(first.complexityDelta)}`
+          : first.status === "added"
+            ? "nuevo"
+            : "eliminado";
+      lines.push(
+        `    · ${file.path}  ${first.name} (${detail})`
+      );
+      if (changed.length > 1) {
+        lines.push(
+          `      y ${num(changed.length - 1)} más en este fichero`
+        );
+      }
     }
   }
 

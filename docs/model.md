@@ -279,7 +279,7 @@ entre dos snapshots inmutables. `rules` es opcional; si falta, `rules.configured
 
 ```ts
 type DiffReport = {
-  schemaVersion: '1.1'
+  schemaVersion: '1.3'
   base: { projectName, checksum, files, folders, edges }
   head: { projectName, checksum, files, folders, edges }
   summary: {
@@ -307,6 +307,7 @@ type DiffReport = {
   hotspots: Hotspot[]
   hotspotMetric: string | null
   migration: MigrationReport      // la migración, que es el motivo de ser
+  symbols: DiffSymbolReport | null // qué pasó dentro de los ficheros
 }
 ```
 
@@ -323,6 +324,10 @@ Reglas:
   lenguaje y categoría, la deuda, los cruces FFI, los ficheros cuya deuda cambia y los de más deuda.
   Sus deltas son `head - base` como en el resto del reporte: en la deuda, un delta negativo es
   bueno.
+- La sección `symbols` compara la lente de símbolos de la base con la del head: por fichero, los
+  símbolos que se añadieron, se quitaron o cambiaron, con su complejidad antes y después. Empareja
+  por nombre dentro del mismo fichero; reconocer renombrados y mudanzas es trabajo de la cadena
+  (ADR 0026).
 - `schemaVersion` sube cuando cambia la forma del reporte. Los lectores reconstruyen los reportes de
   versiones anteriores a la actual, así que siempre se usa la más nueva: lo que no se pudo medir
   (la sección de migración en un `1.0`) se marca con `null` en vez de inventar ceros.

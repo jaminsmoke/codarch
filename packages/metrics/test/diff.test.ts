@@ -20,11 +20,23 @@ interface EdgeSpec {
   cyclic?: boolean;
 }
 
+interface SymbolSpec {
+  path: string;
+  symbols: Array<{
+    name: string;
+    kind: "function" | "class" | "interface" | "type" | "enum" | "variable";
+    complexity?: number;
+    lines?: number;
+    line?: number;
+  }>;
+}
+
 function snapshot(
   projectName: string,
   files: readonly FileSpec[],
   edges: readonly EdgeSpec[] = [],
-  migration?: CcMigrationLens
+  migration?: CcMigrationLens,
+  symbols: readonly SymbolSpec[] = []
 ): CcJson {
   const root: CcNode = {
     id: folderId(""),
@@ -68,6 +80,17 @@ function snapshot(
     attributes[node.id] = { ...file.metrics };
   }
 
+  const symbolNodes: Record<string, unknown[]> = {};
+  for (const entry of symbols) {
+    symbolNodes[fileId(entry.path)] = entry.symbols.map((symbol) => ({
+      name: symbol.name,
+      kind: symbol.kind,
+      line: symbol.line ?? 1,
+      ...(symbol.complexity === undefined ? {} : { complexity: symbol.complexity }),
+      ...(symbol.lines === undefined ? {} : { lines: symbol.lines })
+    }));
+  }
+
   return parseCcJson({
     meta: {
       projectName,
@@ -85,7 +108,23 @@ function snapshot(
           isCyclic: edge.cyclic === true
         }))
       },
-      ...(migration ? { migration } : {})
+      ...(migration ? { migration } : {}),
+      ...(symbols.length > 0
+        ? {
+            symbols: {
+              nodes: symbolNodes,
+              summary: {
+                symbols: Object.values(symbolNodes).flat().length,
+                functions: 0,
+                classes: 0,
+                interfaces: 0,
+                types: 0,
+                enums: 0,
+                mostComplex: null
+              }
+            }
+          }
+        : {})
     }
   });
 }
@@ -383,5 +422,94 @@ describe("diffSnapshots", () => {
       "src/a.ts",
       "src/b.ts"
     ]);
+  });
+
+  it("compara los símbolos de dentro de los ficheros", () => {
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 100 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [
+            { name: "cargar", kind: "function", complexity: 12, lines: 40 },
+            { name: "viejo", kind: "function", complexity: 3, lines: 8 }
+          ]
+        }
+      ]
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 130 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [
+            { name: "cargar", kind: "function", complexity: 18, lines: 52 },
+            { name: "nuevo", kind: "function", complexity: 1, lines: 3 }
+          ]
+        }
+      ]
+    );
+
+    const report = diffSnapshots(base, head);
+    expect(report.symbols).not.toBeNull();
+    if (!report.symbols) return;
+
+    expect(report.symbols.summary).toEqual({
+      added: 1,
+      removed: 1,
+      changed: 1,
+      topFile: { path: "src/a.ts", changed: 3 }
+    });
+
+    const symbols = report.symbols.files[0]?.symbols ?? [];
+    const cargar = symbols.find((symbol) => symbol.name === "cargar");
+    expect(cargar?.status).toBe("changed");
+    expect(cargar?.base?.complexity).toBe(12);
+    expect(cargar?.head?.complexity).toBe(18);
+    expect(cargar?.complexityDelta).toBe(6);
+
+    const nuevo = symbols.find((symbol) => symbol.name === "nuevo");
+    expect(nuevo?.status).toBe("added");
+    expect(nuevo?.base).toBeNull();
+
+    const viejo = symbols.find((symbol) => symbol.name === "viejo");
+    expect(viejo?.status).toBe("removed");
+    expect(viejo?.head).toBeNull();
+  });
+
+  it("no inventa símbolos: sin la lente, la sección es null", () => {
+    const base = snapshot("proj", [{ path: "src/a.ts", metrics: { rloc: 10 } }]);
+    const head = snapshot("proj", [{ path: "src/a.ts", metrics: { rloc: 20 } }]);
+
+    const report = diffSnapshots(base, head);
+
+    expect(report.symbols).toBeNull();
+  });
+
+  it("los símbolos de un fichero borrado se van con él", () => {
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 10 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [{ name: "cargar", kind: "function", complexity: 4 }]
+        }
+      ]
+    );
+    const head = snapshot("proj", []);
+
+    const report = diffSnapshots(base, head);
+
+    expect(report.symbols?.summary.removed).toBe(1);
+    expect(report.symbols?.files[0]?.path).toBe("src/a.ts");
   });
 });

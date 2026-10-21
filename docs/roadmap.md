@@ -271,6 +271,21 @@ tipos, con su complejidad. Decisión en [ADR 0025](adr/0025-lente-de-simbolos.md
 - [x] El MCP responde a las dos preguntas: `explain_module` da los símbolos de un fichero y
   `get_architecture_map` resume los del repo y sus funciones más complejas ✓.
 
+## M12 — La vida de un símbolo
+
+**Estado:** en curso. El diff ya habla de símbolos (M12.1 ✓); falta la cadena, que es lo que le da
+recorrido a un símbolo. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.md).
+
+- [x] **M12.1** El diff de símbolos: comparar dos snapshots símbolo a símbolo dentro de cada
+  fichero. El reporte dice "has cambiado `parseDiff`: complejidad +6", no "has tocado `parse.ts`".
+  Sección nueva en el reporte → `schemaVersion` `1.3`. La CLI, el comentario del PR y el panel de
+  PR de las dos apps lo enseñan ✓.
+- [ ] **M12.2** La cadena del símbolo: la identidad que sobrevive al renombrado y a la mudanza. El
+  hash del cuerpo es la identidad; cada versión lleva dentro el hash de la anterior, así que la
+  cadena es reproducible desde el historial. La CLI responde `codarch chain <símbolo>`.
+- [ ] **M12.3** Ver la vida: la web y el escritorio enseñan la cadena de un símbolo, y el calor por
+  símbolo (cuántas veces se ha reescrito cada función) como señal de deuda de refactorización.
+
 ## Después
 
 Cada idea sigue aquí, con los pasos que le faltan delante. Nada se cae: lo que cambia es que ahora
@@ -278,11 +293,10 @@ se ve el camino para llegar.
 
 ### Después de los símbolos
 
-La lente de símbolos está hecha (M11 ✓). Lo que sigue es usarla a fondo:
+La lente de símbolos está hecha (M11 ✓) y su diff y su cadena son M12 ✓. Lo que sigue es usarla a
+fondo:
 
 
-- **El diff de símbolos**: comparar función a función y no solo fichero a fichero. Es lo que de
-  verdad interesa ("has cambiado el algoritmo de esta función") y necesita la lente de antes ✓.
 - **3D**: el mapa en tres dimensiones. Antes hacen falta dos cosas: un visor que aguante el volumen
   (el nivel de detalle ya existe ✓) y un modelo de interacción (orbitar, zoom, elegir) que la web
   todavía no tiene ✓. Con esas dos cosas, el 3D es una vista más, no un producto nuevo ✓.

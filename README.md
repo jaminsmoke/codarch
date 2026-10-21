@@ -351,6 +351,22 @@ En la web y en el escritorio, el inspector lista los símbolos del fichero de la
 a la más simple. El agente pregunta lo mismo con `explain_module` y `get_architecture_map`.
 ([ADR 0025](docs/adr/0025-lente-de-simbolos.md))
 
+### El diff, hasta el interior
+
+El diff de CodArch no solo compara ficheros: compara **símbolos**. El reporte dice qué función
+cambió y cómo cambió su complejidad, en vez de "has tocado tres ficheros":
+
+```
+  ficheros     +0 · -1 · ~1
+  código       0 rloc añadidos · -6 · ~+8 en ficheros cambiados
+  símbolos     +1 · -2 · ~1
+
+  Símbolos que más cambiaron:
+    · src/datos.ts  cargar (complejidad +2)
+```
+
+Lo mismo aparece en el comentario del PR y en el panel de PR de las dos apps.
+
 ### Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.

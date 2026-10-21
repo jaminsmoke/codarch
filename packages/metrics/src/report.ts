@@ -12,10 +12,10 @@ import type { RuleViolation } from "./rules";
  * Sube cuando cambia la forma del `report.json`. Los lectores reconstruyen los
  * reportes de versiones anteriores, así que siempre se usa la más nueva.
  */
-export const REPORT_SCHEMA_VERSION = "1.2";
+export const REPORT_SCHEMA_VERSION = "1.3";
 
 /** Las versiones que el lector sabe reconstruir. */
-const KNOWN_VERSIONS = ["1.0", "1.1", "1.2"];
+const KNOWN_VERSIONS = ["1.0", "1.1", "1.2", "1.3"];
 
 /** La sección de migración vacía: lo que se reconstruye desde un 1.0. */
 export function emptyMigrationReport(): MigrationReport {
@@ -90,6 +90,7 @@ export function parseReport(raw: unknown): DiffReport | null {
     ...report,
     schemaVersion: REPORT_SCHEMA_VERSION,
     migration: report.migration ?? null,
+    symbols: report.symbols ?? null,
     rules: {
       ...report.rules,
       profile: report.rules?.profile ?? null,
