@@ -61,7 +61,7 @@ const published = {
   license: cliPackage.license,
   type: "module",
   bin: {
-    codarch: "./index.js"
+    codarch: "index.js"
   },
   files: ["index.js", "styles.css", "client.js", "web", "LICENSE", "README.md"],
   engines: {
