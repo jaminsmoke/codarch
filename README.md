@@ -3,17 +3,23 @@
 > Visual CodArch — un mapa vivo de la arquitectura de tu software: en el pull request, en el CI y
 > en tu agente.
 
-**Estado:** M4 cerrado y M5 en curso. El CLI `codarch@0.2.0` está publicado en npm, la GitHub Action
-pública `jaminsmoke/codarch-action@v1` funciona desde otros repositorios, el MCP de solo lectura está
-operativo, la lente de migración mide lenguajes/puentes/deuda y la app web ya carga snapshots y
-reportes (archivo, carpeta de repo o URL), dibuja el treemap reutilizando el motor del render y añade
-inspector, foco por carpeta, panel de migración y vista de PR. La URL lleva el estado de la vista, así
-que cualquier vista se puede compartir. `codarch serve` analiza el repo en local, permite elegir otra
-carpeta desde la web, alterna live/stop y refresca por SSE.
+> [!IMPORTANT]
+> **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
+> (`0.3.0-alpha.1` ✓), el CLI ✓ y las apps ✓ pueden cambiar ✓ de una versión a otra ✓, y **no hay
+> soporte** ✓. Úsalo si te sirve **mirar** ✓ —un mapa ✓, un diff ✓, un comentario de PR ✓—; no si
+> necesitas que no se rompa ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓ y su checksum ✓.
 
-La web también **analiza una carpeta en el navegador**, con la misma gramática que el CLI: el snapshot
-que sale tiene su checksum. Y hay una **app de escritorio** (Electron) con su propia interfaz, que
-analiza contra el disco de verdad y con git.
+**Qué hay hoy:** el CLI `codarch` ✓ (publicado en npm ✓), la GitHub Action pública ✓
+(`jaminsmoke/codarch-action@v1` ✓, que funciona desde otros repositorios ✓), el MCP de solo lectura
+✓, la app web ✓ y la app de escritorio ✓. La lente de migración ✓ mide lenguajes ✓, puentes ✓ y
+deuda ✓; el diff habla **símbolo a símbolo** ✓ y su cadena sobrevive a los renombrados ✓; la web
+analiza una carpeta **en el navegador** ✓ con el mismo checksum ✓ que el CLI ✓; los plugins ✓ y los
+addons ✓ extienden el producto ✓, y los ajustes ✓ traen la sección de actualizaciones ✓.
+
+![El atlas de CodArch sobre su propio repositorio: cada bloque es una carpeta o un fichero, el color es el riesgo y el inspector cuenta los símbolos del fichero](docs/images/atlas.png)
+
+*CodArch analizando su propio repo: 210 ficheros ✓, 59 carpetas ✓, el riesgo por bloque ✓ y el
+inspector con los símbolos del fichero ✓.*
 
 ```mermaid
 flowchart LR
