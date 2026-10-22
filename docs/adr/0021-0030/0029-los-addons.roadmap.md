@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0029 «Los addons: conocimiento declarativo»
 
-**Decisión:** [el ADR](0029-los-addons.md) · **Estado:** aceptado · **Fecha:** 2026-10-22
+**Decisión:** [el ADR](0029-los-addons.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M16 — Los addons
 
-**Estado:** cerrada. El contrato está decidido en [ADR 0029](0029-los-addons.md): un addon es
+**Estado:** ✅ cerrada. El contrato está decidido en [ADR 0029](0029-los-addons.md): un addon es
 **datos, no código**. El CLI, las dos apps y el MCP los leen.
 
 - [x] `@codarch/addons`: el manifiesto, la validación (una clave desconocida es error ✓) y la

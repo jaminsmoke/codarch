@@ -1,6 +1,6 @@
 # ADR 0011 — Reglas de arquitectura en `.codarch.yml`
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0004 «La cuña: PR/CI + MCP»
 
-**Decisión:** [el ADR](0004-cuna-pr-ci-mcp.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0004-cuna-pr-ci-mcp.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las

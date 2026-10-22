@@ -1,6 +1,6 @@
 # ADR 0026 — La vida de un símbolo: la cadena que sobrevive al renombrado
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

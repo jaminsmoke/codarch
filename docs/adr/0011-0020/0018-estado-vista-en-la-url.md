@@ -1,6 +1,6 @@
 # ADR 0018 — Estado de vista en la URL y carga por URL
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

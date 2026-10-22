@@ -1,6 +1,6 @@
 # ADR 0024 — La evolución temporal: el calor y la historia
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # ADR 0028 — Los plugins: piezas del repo que se activan
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

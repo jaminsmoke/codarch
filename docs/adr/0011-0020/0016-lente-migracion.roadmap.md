@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0016 «Lente de migración v1»
 
-**Decisión:** [el ADR](0016-lente-migracion.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0016-lente-migracion.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M4 — Lente de migración
 
-**Estado:** cerrado (v1). Decisión en [ADR 0016](0016-lente-migracion.md); plan en
+**Estado:** ✅ cerrado (v1). Decisión en [ADR 0016](0016-lente-migracion.md); plan en
 [`migration.md`](../../migration.md).
 
 - [x] LOC por lenguaje (TS, JS, Rust, WASM, Node) y estado `js|rust|bridge|native` por fichero.

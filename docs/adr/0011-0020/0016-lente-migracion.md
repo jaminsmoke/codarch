@@ -1,6 +1,6 @@
 # ADR 0016 — Lente de migración v1
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

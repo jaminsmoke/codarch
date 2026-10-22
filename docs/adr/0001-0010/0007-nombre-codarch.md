@@ -1,6 +1,6 @@
 # ADR 0007 — El nombre: CodArch
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0020 «Análisis en el navegador con la misma gramática que el CLI»
 
-**Decisión:** [el ADR](0020-analisis-en-el-navegador.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0020-analisis-en-el-navegador.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M6 — Análisis en el navegador
 
-**Estado:** cerrado. El navegador analiza una carpeta con la misma gramática y el mismo código que el
+**Estado:** ✅ cerrado. El navegador analiza una carpeta con la misma gramática y el mismo código que el
 CLI, y el snapshot que sale tiene su checksum.
 
 - [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete

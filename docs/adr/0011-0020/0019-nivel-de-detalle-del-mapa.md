@@ -1,6 +1,6 @@
 # ADR 0019 — Nivel de detalle del mapa
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

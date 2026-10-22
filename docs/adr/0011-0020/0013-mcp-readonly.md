@@ -1,6 +1,6 @@
 # ADR 0013 — Servidor MCP de solo lectura
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

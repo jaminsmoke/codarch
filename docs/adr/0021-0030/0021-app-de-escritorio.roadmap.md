@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0021 «App de escritorio (Electron) con código copiado, no compartido»
 
-**Decisión:** [el ADR](0021-app-de-escritorio.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0021-app-de-escritorio.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M7 — App de escritorio
 
-**Estado:** cerrado. Electron con su propia interfaz, sin importing nada de `apps/web`; el motor es el
+**Estado:** ✅ cerrado. Electron con su propia interfaz, sin importing nada de `apps/web`; el motor es el
 mismo. Decisión en [ADR 0021](0021-app-de-escritorio.md).
 
 - [x] Empaquetado de escritorio con el mismo build web.

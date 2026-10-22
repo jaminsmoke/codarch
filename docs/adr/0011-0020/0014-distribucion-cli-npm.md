@@ -1,6 +1,6 @@
 # ADR 0014 — Distribución del CLI como paquete npm único
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0023 «Lente de dominio, por pasos»
 
-**Decisión:** [el ADR](0023-lente-de-dominio-por-pasos.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0023-lente-de-dominio-por-pasos.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,8 +10,8 @@ ideas que aún no son fase ✓.
 
 ### M9 — Lente de dominio, por pasos
 
-**Estado:** M9.1 cerrada (el catálogo). M9.2 (el generador) es el siguiente paso; endurecer las
-reglas del perfil para que bloqueen se decide en su momento, mirando cómo esté el código.
+**Estado:** ✅ cerrada: el catálogo, el generador y los perfiles propios están. Endurecer las reglas
+del perfil para que bloqueen sigue siendo una decisión del equipo (y por defecto son avisos).
 
 Decisión en [ADR 0023](0023-lente-de-dominio-por-pasos.md).
 

@@ -1,6 +1,6 @@
 # ADR 0020 — Análisis en el navegador con la misma gramática que el CLI
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

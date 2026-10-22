@@ -1,6 +1,6 @@
 # ADR 0021 — App de escritorio (Electron) con código copiado, no compartido
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

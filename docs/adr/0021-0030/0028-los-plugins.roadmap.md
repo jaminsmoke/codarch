@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0028 «Los plugins: piezas del repo que se activan»
 
-**Decisión:** [el ADR](0028-los-plugins.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0028-los-plugins.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M14 — Los plugins
 
-**Estado:** cerrada con un plugin de prueba ✓. Piezas del repo que se activan desde los ajustes.
+**Estado:** ✅ cerrada con un plugin de prueba ✓. Piezas del repo que se activan desde los ajustes.
 Decisión en [ADR 0028](0028-los-plugins.md).
 
 - [x] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
@@ -28,7 +28,7 @@ Decisión en [ADR 0028](0028-los-plugins.md).
 
 ### M15 — La vista 3D
 
-**Estado:** cerrada. El primer plugin, y la prueba de que el sistema sirve.
+**Estado:** ✅ cerrada. El primer plugin, y la prueba de que el sistema sirve.
 
 - [x] Una pestaña nueva en el mapa central, que cambia solo el mapa (las barras siguen igual ✓).
 - [x] Three.js cargado bajo demanda ✓: el plugin va en su propio chunk ✓ (495 KB ✓) y el bundle

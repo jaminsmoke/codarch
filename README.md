@@ -15,6 +15,18 @@ La web también **analiza una carpeta en el navegador**, con la misma gramática
 que sale tiene su checksum. Y hay una **app de escritorio** (Electron) con su propia interfaz, que
 analiza contra el disco de verdad y con git.
 
+```mermaid
+flowchart LR
+  repo["📁 Repositorio<br/>código y .codarch.yml"] --> cli["codarch analyze"]
+  cli --> snapshot["📄 cc.json<br/>el modelo, con su checksum"]
+  snapshot --> web["🖥️ App web"]
+  snapshot --> desktop["🖥️ App de escritorio"]
+  snapshot --> mcp["🤖 MCP"]
+  snapshot --> pr["💬 Comentario del PR"]
+```
+
+El mismo `cc.json` alimenta todas las salidas: el checksum no depende de quién mira.
+
 Las decisiones están registradas en [`docs/adr/`](docs/adr/) —cada una con su **hoja de ruta** al
 lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md), el MCP en [`docs/mcp.md`](docs/mcp.md), la migración en
@@ -24,7 +36,7 @@ lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
 
 ---
 
-## Quickstart
+## 🚀 Quickstart
 
 ```bash
 npm install
@@ -107,7 +119,7 @@ entrantes/salientes y tres lentes: estructura, riesgo y métrica. El riesgo se c
 `packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta
 churn o complejidad, los pesos se renormalizan.
 
-### La historia del repositorio
+### 📜 La historia del repositorio
 
 `codarch analyze --history` guarda la foto en `.codarch-history/`, en la raíz del repo, y
 `codarch history` lista la línea del tiempo:
@@ -135,7 +147,7 @@ Es el mismo motor que `codarch diff`, pero entre dos fotos de la línea del tiem
 escritorio enseñan la línea del tiempo y abren cualquier foto.
 ([ADR 0024](docs/adr/0021-0030/0024-evolucion-temporal.md))
 
-### Diff entre commits
+### 🔀 Diff entre commits
 
 `codarch diff` compara dos snapshots ya generados, sin volver a analizar el código:
 
@@ -168,7 +180,7 @@ violaciones `introduced`, `existing` y `resolved`; ver [ADR 0011](docs/adr/0011-
 `--fail-on cycles|violations|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay
 hallazgos, `1` si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
 
-### Reglas de arquitectura
+### 🧱 Reglas de arquitectura
 
 Si existe `.codarch.yml` en el cwd, el diff evalúa capas prohibidas, umbrales y ciclos. Solo las
 violaciones **introducidas** con severidad `error` bloquean; la deuda previa se reporta pero no
@@ -227,7 +239,7 @@ Agrupar por carpeta, mirar el grafo y ordenar las capas de dentro afuera. Devuel
 para `.codarch.yml` con las capas y las reglas que las protegerían, dice **qué perfil del catálogo
 encaja** y avisa de las reglas que el código ya incumple. Propone, no decide.
 
-### GitHub Action
+### 💬 GitHub Action
 
 La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, `map.html` y
 `report.json` como artefacto, y actualiza un comentario con el diff. El mismo commit puede ejecutarse
@@ -253,7 +265,7 @@ La acción instala `codarch` desde npm; no necesita el código de CodArch en el 
 `apps/github-action` con `npm run sync:action`. El workflow de ejemplo es
 [`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
 
-### MCP para agentes
+### 🤖 MCP para agentes
 
 `apps/mcp` es un servidor MCP local por stdio que lee un snapshot y, si existe, un reporte. No
 analiza código ni escribe nada: expone el mismo modelo que ven el mapa y el PR.
@@ -300,9 +312,9 @@ superficie es de solo lectura. Referencia completa en [`docs/mcp.md`](docs/mcp.m
 
 ---
 
-## Qué analiza
+## 🔍 Qué analiza
 
-### Ficheros y métricas
+### 📊 Ficheros y métricas
 
 Recorre TS/TSX/JS/JSX (`.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`) respetando
 `.gitignore` raíz y anidados, negaciones, `node_modules`, `.git` y `.codarch`.
@@ -338,7 +350,7 @@ Métricas de historial (si hay git):
 | `number_of_commits` | Commits que tocaron el fichero |
 | `number_of_authors` | Autores únicos de esos commits |
 
-### Símbolos
+### 🧩 Símbolos
 
 El mapa no solo sabe qué ficheros hay y cómo se llamaban entre sí: también sabe **qué hay dentro** de
 cada uno. La lente `symbols` guarda las funciones, clases, interfaces, tipos y enums de cada fichero,
@@ -353,7 +365,7 @@ En la web y en el escritorio, el inspector lista los símbolos del fichero de la
 a la más simple. El agente pregunta lo mismo con `explain_module` y `get_architecture_map`.
 ([ADR 0025](docs/adr/0021-0030/0025-lente-de-simbolos.md))
 
-### El diff, hasta el interior
+### 🔬 El diff, hasta el interior
 
 El diff de CodArch no solo compara ficheros: compara **símbolos**. El reporte dice qué función
 cambió y cómo cambió su complejidad, en vez de "has tocado tres ficheros":
@@ -369,7 +381,7 @@ cambió y cómo cambió su complejidad, en vez de "has tocado tres ficheros":
 
 Lo mismo aparece en el comentario del PR y en el panel de PR de las dos apps.
 
-### La identidad de un símbolo
+### 🏷️ La identidad de un símbolo
 
 Cada símbolo lleva el **hash de su cuerpo**: los tokens, sin comentarios y sin su propio nombre. Con
 ese hash, un renombrado o una mudanza no rompen nada, porque lo que define al símbolo es el código,
@@ -377,7 +389,7 @@ no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, as
 snapshot no cambia.
 ([ADR 0026](docs/adr/0021-0030/0026-la-vida-de-un-simbolo.md))
 
-### Los nombres de los bloques
+### 📝 Los nombres de los bloques
 
 Cada bloque lleva su nombre **dentro** ✓ (`foreignObject` con texto HTML ✓): el navegador lo envuelve
 ✓ y lo recorta ✓, así que **no puede salirse** ✓. En bloques altos y estrechos escribe en vertical ✓
@@ -386,13 +398,13 @@ Cada bloque lleva su nombre **dentro** ✓ (`foreignObject` con texto HTML ✓):
 Es un interruptor en **Ajustes → Vista** ✓ y también viaja en el enlace ✓ (`labels=1` ✓). Con el
 botón derecho apretado, el mapa se mueve ✓.
 
-### El mapa se ajusta a la pantalla
+### 📐 El mapa se ajusta a la pantalla
 
 La app ocupa la ventana ✓: el raíl y el inspector scrollean solos ✓ y el mapa se ajusta a lo que
 queda ✓ (nada crece la página ✓). El mapa se acerca con `+` ✓, `−` ✓, `Ajustar` ✓ o la rueda ✓
 — la distribución no se recalcula ✓, solo el rectángulo visible ✓, así que acercar es gratis ✓.
 
-### La vista 3D
+### 🧊 La vista 3D
 
 El primer plugin ✓: el mapa en tres dimensiones ✓. Cada fichero es una caja ✓ —la base es su
 rectángulo del treemap ✓ y la altura su riesgo ✓— y el color es el del mapa ✓. Se orbita con el
@@ -404,7 +416,7 @@ alguien abre la vista ✓. Necesita WebGL2 ✓: si no lo hay, el store lo dice �
 Su hoja de ruta propia (el octree ✓, el nivel de detalle ✓, las carpetas como contenedores ✓) está
 en `plugins/vista-3d/ROADMAP.md` ✓.
 
-### Los plugins
+### 🔌 Los plugins
 
 Un plugin es una pieza **del repo** ✓, en `plugins/` ✓, que se activa desde los ajustes ✓ y que
 puede añadir una vista al mapa central ✓.
@@ -432,7 +444,7 @@ El repo declara los que usa (`.codarch.yml`: `addons: [...]` ✓) y `codarch dif
 Las dos apps y el MCP leen la configuración ✓: el menú **Vistas** del mapa aplica las **vistas
 guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓.
 
-### Instalar y quitar
+### 📦 Instalar y quitar
 
 Las dos extensiones se instalan y se quitan igual ✓
 ([ADR 0030](docs/adr/0021-0030/0030-instalar-y-quitar.md) ✓): una carpeta hija ✓ y una línea en
@@ -457,7 +469,7 @@ Instalar no es activar ✓: un plugin instalado se activa en los ajustes ✓, y 
 plugin se instala en el build de CodArch ✓ (o en un fork ✓), no en el proyecto que analizas ✗; un
 addon se instala en el proyecto ✓ y viaja con él ✓.
 
-### Los ajustes
+### ⚙️ Los ajustes
 
 Hay un engranaje en la cabecera que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
 el proyecto guardado ✓, los plugins ✓, los addons del proyecto ✓ (en modo lectura ✓: son del repo,
@@ -467,7 +479,7 @@ disponible ✓). En el escritorio, también desde el menú nativo ✓.
 Los ajustes son de la **máquina**, no del repositorio ✓: el análisis no cambia por tener el área en
 otro sitio ✓.
 
-### La vida de un símbolo
+### 🕰️ La vida de un símbolo
 
 Cada símbolo lleva el hash de su cuerpo, así que un renombrado o una mudanza no lo rompen. Con el
 historial, CodArch puede contar la vida de una función:
@@ -489,7 +501,7 @@ codarch chain buscar
 El libro mayor (`.codarch/chains.json`) es un artefacto derivado: se regenera siempre desde las
 fotos del historial. ([ADR 0026](docs/adr/0021-0030/0026-la-vida-de-un-simbolo.md))
 
-### Comprobar el historial
+### 📅 Comprobar el historial
 
 Las cadenas se anidan: la del fichero se compromete con las de sus símbolos, la de la carpeta con las
 de sus hijos, y la del proyecto con todo el repo. Eso permite una comprobación global:
@@ -505,7 +517,7 @@ codarch verify
 
 Si alguien manipula un snapshot, el hash del cuerpo ya no es el de la cadena y se nota ✓.
 
-### El calor por símbolo
+### 🔥 El calor por símbolo
 
 Un fichero con veinte funciones quietas y otro con una que se reescribe cada semana pesan igual en el
 mapa. Con las cadenas, no: la barra lateral lista los **símbolos más reescritos** ✓, y el inspector
@@ -513,7 +525,7 @@ enseña la vida del que elijas ✓ (nació, se renombró, se mudó, cambió su c
 
 El agente pregunta lo mismo: `get_symbol_chain` ✓.
 
-### Resolución de imports
+### 🔗 Resolución de imports
 
 - Relativos (`./`, `../`) y absolutos desde el root.
 - `.js`/`.jsx`/`.mjs`/`.cjs` → fuente TS equivalente.
@@ -523,14 +535,14 @@ El agente pregunta lo mismo: `get_symbol_chain` ✓.
 - Builtins de Node (`node:fs`, `fs`, …) y paquetes externos se clasifican, pero no crean aristas.
 - Imports internos que no resuelven se reportan y se excluyen del grafo. No se inventan aristas.
 
-### Grafo
+### 🕸️ Grafo
 
 - Aristas deduplicadas por `(from, to)` con `weight` y `typeOnly`.
 - Fan-in/fan-out sobre destinos únicos.
 - Componentes fuertemente conexos (Kosaraju iterativo): ciclos de tamaño > 1 y self-loops.
 - Niveles en el DAG condensado, de 0 (nadie lo importa) hacia sus dependencias.
 
-### Determinismo
+### 🎯 Determinismo
 
 Dos ejecuciones sobre el mismo commit producen el mismo snapshot y el mismo checksum. Los ficheros,
 carpetas, aristas, componentes y claves de objetos se ordenan de forma estable. El checksum no cubre
@@ -542,7 +554,7 @@ pueden estar incompletos. Ver [ADR 0009](docs/adr/0001-0010/0009-churn-desde-git
 
 ---
 
-## El problema
+## ❓ El problema
 
 Las métricas de código se miran en dashboards que nadie abre. La arquitectura se discute en
 pizarras que caducan. Y cuando un cambio rompe una capa, se descubre en revisión — o en producción.
@@ -551,7 +563,7 @@ CodeCharta demostró que un mapa visual del código funciona. Pero un mapa que h
 mapa que se consulta poco. Nosotros queremos el mismo mapa **donde se toma la decisión**: en el diff
 del PR, en el pipeline y en la conversación con un agente.
 
-## La cuña
+## 🧭 La cuña
 
 Un **modelo de arquitectura headless** que alimenta tres consumidores:
 
@@ -569,7 +581,7 @@ $ codarch analyze . --base origin/main --head HEAD
 2. **Bot de PR** — el mismo análisis, convertido en comentario y en gate.
 3. **Servidor MCP** — el mismo modelo, consultable por agentes.
 
-## Principios
+## 💡 Principios
 
 1. **El modelo es el producto.** Render, CLI y MCP son consumidores. Si el modelo está bien, los
    demás son baratos.
@@ -583,13 +595,13 @@ $ codarch analyze . --base origin/main --head HEAD
 7. **Incremental por defecto.** Ningún paso deja el producto roto. Cada milestone se puede usar,
    medir y comparar con el anterior.
 
-## No objetivos de la v1
+## 🚫 No objetivos de la v1
 
 Plugins · cloud · auth · multi-repo · 3D · importación de Sonar · más de un lenguaje.
 
 Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 
-## Criterios de éxito
+## 🏆 Criterios de éxito
 
 | Criterio | Objetivo | Estado |
 |---|---|---|
@@ -603,7 +615,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 | Comentario de PR | < 10 s de extremo a extremo | acción repo-local validada; falta medir en runner |
 | Legibilidad | el mapa se entiende en una captura | verificado en M0 |
 
-## Estructura
+## 🏗️ Estructura
 
 ```
 packages/   schema · parsers · metrics · layouts · render
@@ -620,7 +632,7 @@ el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `pars
 Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo a agentes por stdio;
 `apps/web` es el visor interactivo que reutiliza `buildRenderModel` y `layoutMap`.
 
-## Inspiración
+## 🎨 Inspiración
 
 [CodeCharta](https://github.com/MaibornWolff/codecharta) (BSD-3-Clause, MaibornWolff). Proyecto
 independiente, sin código derivado. Ver [ADR 0001](docs/adr/0001-0010/0001-clean-room-con-ccjson.md).

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0024 «La evolución temporal: el calor y la historia»
 
-**Decisión:** [el ADR](0024-evolucion-temporal.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0024-evolucion-temporal.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M10 — La evolución temporal
 
-**Estado:** cerrado. La historia del repositorio se guarda, se compara y se ve en las dos apps.
+**Estado:** ✅ cerrado. La historia del repositorio se guarda, se compara y se ve en las dos apps.
 Decisión en [ADR 0024](0024-evolucion-temporal.md).
 
 - [x] **M10.1** La lente de calor: el mapa colorea por commits y el panel lateral lista los

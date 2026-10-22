@@ -1,6 +1,6 @@
 # ADR 0009 — Churn desde git, sin romper el determinismo
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

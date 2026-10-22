@@ -1,6 +1,6 @@
 # ADR 0022 — La migración, donde ya faltaba
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0001 «Clean-room, con `cc.json` como frontera»
 
-**Decisión:** [el ADR](0001-clean-room-con-ccjson.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0001-clean-room-con-ccjson.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las

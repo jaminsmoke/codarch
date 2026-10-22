@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0010 «Diff entre snapshots y reporte estable»
 
-**Decisión:** [el ADR](0010-diff-entre-snapshots.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0010-diff-entre-snapshots.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M2 — Diff y PR
 
-**Estado:** cerrado (MVP repo-local). La publicación de la acción y del CLI queda para M3.
+**Estado:** ✅ cerrado (MVP repo-local). La publicación de la acción y del CLI queda para M3.
 
 - [x] Churn y autores desde git (`number_of_commits`, `number_of_authors`) para completar la lente de riesgo.
 - [x] Test de churn con repositorio temporal y test de determinismo con historial.

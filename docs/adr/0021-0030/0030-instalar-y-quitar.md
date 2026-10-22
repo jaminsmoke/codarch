@@ -1,6 +1,6 @@
 # ADR 0030 — Instalar y quitar: plugins y addons
 
-**Estado:** aceptado · **Fecha:** 2026-10-22
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 ## Contexto
 

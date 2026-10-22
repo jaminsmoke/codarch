@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0027 «Los ajustes: un sitio donde se configura todo»
 
-**Decisión:** [el ADR](0027-los-ajustes.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0027-los-ajustes.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M13 — Los ajustes
 
-**Estado:** cerrada. Los ajustes y el store de plugins. Decisión en
+**Estado:** ✅ cerrada. Los ajustes y el store de plugins. Decisión en
 [ADR 0027](0027-los-ajustes.md).
 
 - [x] **M13.1** Un panel de ajustes con secciones: **Vista** (métrica de área, modo de color),

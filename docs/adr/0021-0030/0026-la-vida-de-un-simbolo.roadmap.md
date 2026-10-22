@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0026 «La vida de un símbolo: la cadena que sobrevive al renombrado»
 
-**Decisión:** [el ADR](0026-la-vida-de-un-simbolo.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0026-la-vida-de-un-simbolo.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M12 — La vida de un símbolo
 
-**Estado:** cerrado. El diff habla de símbolos, cada símbolo tiene una cadena que sobrevive a los
+**Estado:** ✅ cerrado. El diff habla de símbolos, cada símbolo tiene una cadena que sobrevive a los
 renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto entero. Decisión en [ADR 0026](0026-la-vida-de-un-simbolo.md).
 
 - [x] **M12.1** El diff de símbolos: comparar dos snapshots símbolo a símbolo dentro de cada

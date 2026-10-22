@@ -1,6 +1,6 @@
 # ADR 0012 — GitHub Action para PRs
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

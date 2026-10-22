@@ -1,6 +1,6 @@
 # ADR 0004 — La cuña: PR/CI + MCP
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

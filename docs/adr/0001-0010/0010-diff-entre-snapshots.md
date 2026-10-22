@@ -1,6 +1,6 @@
 # ADR 0010 — Diff entre snapshots y reporte estable
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

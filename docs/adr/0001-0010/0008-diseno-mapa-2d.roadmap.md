@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0008 «Diseño del mapa 2D»
 
-**Decisión:** [el ADR](0008-diseno-mapa-2d.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0008-diseno-mapa-2d.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M5 — App web
 
-**Estado:** cerrada en lo funcional; queda pulido (iconos propios hechos, queda afinar el detalle).
+**Estado:** ✅ cerrada en lo funcional; queda pulido (iconos propios hechos, queda afinar el detalle).
 
 App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista de PR.
 
@@ -29,7 +29,7 @@ App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista d
 
 ### M5.1 — Básicos de uso
 
-**Estado:** cerrada.
+**Estado:** ✅ cerrada.
 
 - [x] Abrir repositorio por carpeta con File System Access API; fallback `webkitdirectory`.
 - [x] Abrir un `cc.json` suelto y cargar el reporte desde la pestaña PR.

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0030 «Instalar y quitar: plugins y addons»
 
-**Decisión:** [el ADR](0030-instalar-y-quitar.md) · **Estado:** aceptado · **Fecha:** 2026-10-22
+**Decisión:** [el ADR](0030-instalar-y-quitar.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M17 — Instalar y quitar plugins y addons
 
-**Estado:** cerrada. La decisión está en [ADR 0030](0030-instalar-y-quitar.md): instalar y quitar
+**Estado:** ✅ cerrada. La decisión está en [ADR 0030](0030-instalar-y-quitar.md): instalar y quitar
 son del repo; activar es de la máquina y solo existe en plugins.
 
 - [x] `codarch plugins list|add|remove` ✓, simétrico con `codarch addons` ✓: `add` valida el

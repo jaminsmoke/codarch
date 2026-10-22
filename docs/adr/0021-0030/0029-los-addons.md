@@ -1,6 +1,6 @@
 # ADR 0029 — Los addons: conocimiento declarativo
 
-**Estado:** aceptado · **Fecha:** 2026-10-22
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 ## Contexto
 

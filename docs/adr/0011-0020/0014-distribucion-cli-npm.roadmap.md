@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0014 «Distribución del CLI como paquete npm único»
 
-**Decisión:** [el ADR](0014-distribucion-cli-npm.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
+**Decisión:** [el ADR](0014-distribucion-cli-npm.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M3 — MCP y distribución
 
-**Estado:** cerrado. El servidor MCP local, el CLI publicado en npm y la acción pública funcionan de
+**Estado:** ✅ cerrado. El servidor MCP local, el CLI publicado en npm y la acción pública funcionan de
 extremo a extremo, incluida la prueba desde un repositorio externo.
 
 - [x] `get_architecture_map`, `find_hotspots`, `check_change_impact`, `list_violations`, `explain_module`.

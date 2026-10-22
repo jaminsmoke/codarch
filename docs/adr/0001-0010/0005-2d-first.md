@@ -1,6 +1,6 @@
 # ADR 0005 — 2D primero, 3D como lente
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

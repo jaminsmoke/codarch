@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0025 «La lente de símbolos: mirar dentro del fichero»
 
-**Decisión:** [el ADR](0025-lente-de-simbolos.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0025-lente-de-simbolos.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M11 — La lente de símbolos
 
-**Estado:** cerrado. El mapa ya sabe qué hay dentro de cada fichero: funciones, clases, interfaces y
+**Estado:** ✅ cerrado. El mapa ya sabe qué hay dentro de cada fichero: funciones, clases, interfaces y
 tipos, con su complejidad. Decisión en [ADR 0025](0025-lente-de-simbolos.md).
 
 - [x] **M11.1** El parser recoge los símbolos en el mismo paseo que mide las métricas, con el

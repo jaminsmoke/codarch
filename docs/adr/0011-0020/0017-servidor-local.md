@@ -1,6 +1,6 @@
 # ADR 0017 — Servidor local `codarch serve`
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

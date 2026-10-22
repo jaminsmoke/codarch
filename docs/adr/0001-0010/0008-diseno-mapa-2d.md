@@ -1,6 +1,6 @@
 # ADR 0008 — Diseño del mapa 2D
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

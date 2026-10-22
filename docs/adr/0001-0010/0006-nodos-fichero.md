@@ -1,6 +1,6 @@
 # ADR 0006 — Nodos = ficheros, preparados para símbolos
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

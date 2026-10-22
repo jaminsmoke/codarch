@@ -1,6 +1,6 @@
 # ADR 0025 — La lente de símbolos: mirar dentro del fichero
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

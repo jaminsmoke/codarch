@@ -1,6 +1,6 @@
 # ADR 0023 — Lente de dominio, por pasos
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

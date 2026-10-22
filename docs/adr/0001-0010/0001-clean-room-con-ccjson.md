@@ -1,6 +1,6 @@
 # ADR 0001 — Clean-room, con `cc.json` como frontera
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

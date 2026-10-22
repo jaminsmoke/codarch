@@ -1,6 +1,6 @@
 # ADR 0003 — TypeScript primero, Rust cuando un benchmark lo exija
 
-**Estado:** aceptado · **Fecha:** 2026-10-20
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 ## Contexto
 

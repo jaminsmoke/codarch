@@ -1,6 +1,6 @@
 # ADR 0027 — Los ajustes: un sitio donde se configura todo
 
-**Estado:** aceptado · **Fecha:** 2026-10-21
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 ## Contexto
 

@@ -1,6 +1,6 @@
 # Hoja de ruta — ADR 0022 «La migración, donde ya faltaba»
 
-**Decisión:** [el ADR](0022-la-migracion-donde-faltaba.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
+**Decisión:** [el ADR](0022-la-migracion-donde-faltaba.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
 el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
@@ -10,7 +10,7 @@ ideas que aún no son fase ✓.
 
 ### M8 — La migración, donde ya faltaba
 
-**Estado:** cerrado. La lente de migración se ve en el PR y el agente puede preguntar por ella.
+**Estado:** ✅ cerrado. La lente de migración se ve en el PR y el agente puede preguntar por ella.
 Decisión en [ADR 0022](0022-la-migracion-donde-faltaba.md).
 
 - [x] El `report.json` tiene sección de migración: estado por lenguaje y categoría, deuda, cruces
