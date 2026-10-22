@@ -138,6 +138,18 @@ Y qué se acepta ✓:
   que es justo lo que se quiere evitar ✓.
 - **Dejar la guía numerada** ✓: no se puede insertar una idea en medio ✓ sin renumerar ✓.
 
+## Actualización (2026-10-22)
+
+El [ADR 0036](0036-el-roadmap-en-el-adr-y-el-changelog.md) cambia el reparto: la hoja de ruta vive en
+el ADR (`## Hoja de ruta`) y el sidecar es el **changelog**. Las carpetas de diez, el índice y la guía
+cronológica siguen como aquí.
+
+## Hoja de ruta
+
+Sin fases abiertas: M18, M19 y M20 están cerradas.
+
+El detalle de lo hecho está en el [changelog](0031-los-documentos.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

@@ -57,6 +57,12 @@ El escritorio ya tiene menú nativo ✓ (ADR 0021 ✓), pero no tiene ajustes �
 - **Una biblioteca de componentes completa** (con su diseño). Descartado: pelearía con la estética
   propia ✓ y obligaría a rehacer CSS que ya funciona ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M13 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0027-los-ajustes.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

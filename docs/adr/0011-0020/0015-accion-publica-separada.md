@@ -50,3 +50,9 @@ El CLI que ejecuta se instala desde npm.
   exige un token con acceso al repo privado y complica el `uses`.
 - **Publicar la acción en GitHub Marketplace sin repo propio.** Marketplace requiere un repo público
   y una release; el repo dedicado es el paso previo natural.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M3.
+
+El detalle de lo hecho está en el [changelog](0015-accion-publica-separada.changelog.md).

@@ -40,3 +40,9 @@ Lo que sí hacemos desde el principio:
 - **Ficheros + símbolos desde el inicio.** Retrasa el primer resultado y multiplica el coste de cada
   parser por cada lenguaje.
 - **Símbolos primero.** El grafo se vuelve inmanejable antes de tener producto.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M0.
+
+El detalle de lo hecho está en el [changelog](0006-nodos-fichero.changelog.md).

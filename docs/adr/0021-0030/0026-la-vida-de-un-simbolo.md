@@ -156,6 +156,12 @@ simetría.
   Descartado **de momento**: es heurístico y ruidoso ✓. La regla 5 (eliminada + añadida) es honesta y
   no miente ✓. Se puede añadir más adelante con la experiencia de las cadenas reales ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M12 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0026-la-vida-de-un-simbolo.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

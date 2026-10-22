@@ -68,6 +68,12 @@ es un paso aparte, detrás.
   checksum igual (ADR 0020) ✓.
 - **Emitir las constantes también**. Descartado: ruido ✓. La estructura es lo que interesa ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M11 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0025-lente-de-simbolos.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

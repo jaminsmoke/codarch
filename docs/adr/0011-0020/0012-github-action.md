@@ -57,3 +57,9 @@ este repositorio y que no comprometa la arquitectura del producto.
   enorme; el artefacto es el sitio correcto.
 - **Usar `pull_request_target` para tener escritura en forks.** Ejecutar código del PR con un token
   de escritura es un riesgo de seguridad que no compensa en M2.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M2.
+
+El detalle de lo hecho está en el [changelog](0012-github-action.changelog.md).

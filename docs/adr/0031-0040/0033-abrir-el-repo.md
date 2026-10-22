@@ -116,6 +116,17 @@ se proyecta ✓.
 - **Borrar la historia antes de abrir** ✗: está limpia ✓ (revisada ✓) y reescribirla rompe las
   referencias ✓ y no protege nada ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M22 está cerrada.
+
+### Ideas abiertas
+
+- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
+  el registro necesita que el repo sea público.
+
+El detalle de lo hecho está en el [changelog](0033-abrir-el-repo.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

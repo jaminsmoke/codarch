@@ -165,7 +165,7 @@ export default function Inicio() {
           </h2>
           <p className="mt-1 text-sm text-ink-soft">
             El modelo, las reglas, el roadmap y las decisiones: cada ADR con su
-            hoja de ruta, salidos del propio repositorio.
+            hoja de ruta dentro y su changelog al lado, salidos del repositorio.
           </p>
         </div>
         <Link

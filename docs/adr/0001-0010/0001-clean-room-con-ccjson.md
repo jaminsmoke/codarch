@@ -39,3 +39,9 @@ Sí adoptamos su formato como **frontera de interoperabilidad**:
 
 BSD-3-Clause permite el fork con atribución. No lo hacemos. Se acredita la inspiración en el README
 y se mantiene compatibilidad de formato, que es lo que beneficia al usuario.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M0.
+
+El detalle de lo hecho está en el [changelog](0001-clean-room-con-ccjson.changelog.md).

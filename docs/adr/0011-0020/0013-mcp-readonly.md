@@ -76,3 +76,9 @@ redactado. Ninguna de las dos cosas encaja con un producto determinista y verifi
   antes de validar el uso local. stdio es el transporte natural para un checkout y un agente local.
 - **Confiar en `inCycle`/`cycleSize` del snapshot.** Un `cc.json` de terceros puede no traerlos o
   traerlos incoherentes; el SCC sobre aristas es la fuente verificable.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M3.
+
+El detalle de lo hecho está en el [changelog](0013-mcp-readonly.changelog.md).

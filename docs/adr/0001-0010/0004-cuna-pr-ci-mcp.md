@@ -37,3 +37,9 @@ La UI web es un consumidor del modelo, no el producto.
 - **Visualizador superior como cuña.** Compite de frente y no aprovecha ninguna ventaja estructural.
 - **Exploración AI-native como cuña principal.** Es un multiplicador, no un producto: sin un modelo
   sólido, el agente solo alucina sobre el código.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M2 y M3.
+
+El detalle de lo hecho está en el [changelog](0004-cuna-pr-ci-mcp.changelog.md).

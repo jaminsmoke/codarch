@@ -54,3 +54,9 @@ la política del repositorio y contra una política más estricta en una release
   mergear nunca; el PR debe pagar solo lo que añade.
 - **Un lenguaje de consultas propio.** Demasiado pronto; tres tipos de regla cubren el caso real y
   se pueden explicar en un comentario de PR.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M2 y M9.
+
+El detalle de lo hecho está en el [changelog](0011-reglas-de-arquitectura.changelog.md).

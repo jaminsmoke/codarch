@@ -45,3 +45,9 @@ Núcleo en **TypeScript**, con arquitectura preparada para extraer piezas a Rust
   de tener producto.
 - **Kotlin/JVM.** Como CodeCharta. Rápido en repos grandes, pero arrastra la JVM al CI y no corre
   en el navegador.
+
+## Hoja de ruta
+
+Sin fases abiertas: M1 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0003-typescript-first.changelog.md).

@@ -3,9 +3,9 @@
 > Esta es la **verdad** de la guía. La web la genera (ADR 0034): una entrada
 > empieza con un `##` y su línea siguiente dice la categoría, el veredicto y la fecha.
 
-El [roadmap](../roadmap.md) **indexa** las **fases**: M0 a M22 cerradas y M23 en curso. El detalle
-de cada fase vive en la **hoja de ruta de la decisión que la trae**, al lado de su ADR
-([`docs/adr/`](../adr/index.md)).
+El [roadmap](../adr/roadmap.md) **indexa** las **fases**: M0 a M22 cerradas, M23 en curso y M24 sin
+empezar. El detalle de cada fase vive en la **hoja de ruta de la decisión que la trae**, dentro de su
+ADR ([`docs/adr/`](../adr/index.md)); lo hecho queda en su **changelog**.
 
 Aquí están las **ideas**: las que sabemos qué queremos pero no cuándo ni cómo, y las **mejoras
 de lo que ya existe**, que quizá no merecen una fase pero sí un sitio donde mirar.
@@ -253,7 +253,7 @@ compañeros y su CI. Hoy eso es un README con un bloque para copiar.
 **conocimiento**; la **lente** aporta **medidas** y es la única que toca el checksum.
 
 **Veredicto**: **fase M16**, en la hoja de
-[ADR 0029](../adr/0021-0030/0029-los-addons.roadmap.md). Estuvo aquí y ya es fase: queda el
+[ADR 0029](../adr/0021-0030/0029-los-addons.changelog.md). Estuvo aquí y ya es fase: queda el
 rastro de por qué.
 
 ## Los documentos: cada decisión con su hoja de ruta
@@ -264,11 +264,11 @@ central con el detalle de todo y la guía con las ideas numeradas: ampliar una d
 tocar ficheros que hablan de otras.
 
 **Decisión**: [ADR 0031](../adr/0031-0040/0031-los-documentos.md). Los ADR van en **carpetas
-de diez**, cada uno con su **hoja de ruta** al lado; `docs/roadmap.md` queda como **índice**
-y esta guía como **registro cronológico**.
+de diez**, cada uno con su **hoja de ruta** dentro y su **changelog** al lado;
+`docs/adr/roadmap.md` queda como **índice** y esta guía como **registro cronológico**.
 
 **Veredicto**: **fase M18**, en la hoja de
-[ADR 0031](../adr/0031-0040/0031-los-documentos.roadmap.md). Hecho.
+[ADR 0031](../adr/0031-0040/0031-los-documentos.changelog.md). Hecho.
 
 ## Los documentos, con iconos y diagramas
 *docs · fase · 2026-10-22*
@@ -281,7 +281,7 @@ como un muro: las decisiones quedan enterradas.
 diagrama ahorra un párrafo.
 
 **Veredicto**: **fase M19**, en la hoja de
-[ADR 0031](../adr/0031-0040/0031-los-documentos.roadmap.md). Hecho.
+[ADR 0031](../adr/0031-0040/0031-los-documentos.changelog.md). Hecho.
 
 ## Alpha: que la versión lo diga
 *chore · fase · 2026-10-22*
@@ -296,7 +296,7 @@ que `latest` se quede con la última normal, y el README lo dice arriba.
 Lo que **sí** se promete: el modelo `cc.json` 2.x y su checksum.
 
 **Veredicto**: **fase M21**, en la hoja de
-[ADR 0032](../adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md). Hecho.
+[ADR 0032](../adr/0031-0040/0032-las-versiones-y-las-actualizaciones.changelog.md). Hecho.
 
 ## Abrir el repo
 *chore · fase · 2026-10-22*
@@ -313,7 +313,7 @@ implementación está a la vista.
 `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y la nota de privacidad.
 
 **Veredicto**: **fase M22**, en la hoja de
-[ADR 0033](../adr/0031-0040/0033-abrir-el-repo.roadmap.md). Las medidas ya están y el repo es
+[ADR 0033](../adr/0031-0040/0033-abrir-el-repo.changelog.md). Las medidas ya están y el repo es
 público.
 
 ## La web del proyecto
@@ -327,7 +327,7 @@ los documentos **navegables**.
 publica en GitHub Pages.
 
 **Veredicto**: **fase M23**, en la hoja de
-[ADR 0034](../adr/0031-0040/0034-la-web-del-proyecto.roadmap.md). La web está publicada en
+[ADR 0034](../adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta). La web está publicada en
 `jaminsmoke.github.io/codarch`.
 
 ## Los documentos, en la web
@@ -346,7 +346,7 @@ Cada vista viaja en su trozo: la portada no lleva el markdown de nadie.
 Futuro con el mismo ancla) y el MCP dice **nueve** consultas, no seis.
 
 **Veredicto**: **fase M23**, hecha en la hoja de
-[ADR 0034](../adr/0031-0040/0034-la-web-del-proyecto.roadmap.md). Quedan el dominio y la
+[ADR 0034](../adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta). Quedan el dominio y la
 búsqueda.
 
 ## La guía, sin ruido
@@ -365,3 +365,20 @@ su cuenta; dentro, cada entrada tiene su etiqueta de veredicto, su tipografía y
 legible.
 
 **Veredicto**: **arreglo**, sin fase. No cambia el modelo ni el checksum.
+
+## El roadmap, en el ADR
+*docs · fase · 2026-10-22*
+
+**Qué era**: los sidecars se llamaban `.roadmap.md`, pero guardaban sobre todo lo que ya se había
+hecho. El roadmap de verdad estaba repartido entre el estado de las fases, las ideas de la guía y el
+índice central.
+
+**Decisión**: [ADR 0036](../adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md). La **hoja de
+ruta** vive en el ADR (`## Hoja de ruta`); el sidecar pasa a **changelog** con lo hecho. El índice de
+fases se queda dentro de `docs/adr`, en [`roadmap.md`](../adr/roadmap.md).
+
+**Qué se hizo**: los 35 sidecars cambiaron de nombre y de papel; cada ADR ganó su hoja de ruta; el
+sitio llama changelog al sidecar y muestra la hoja dentro del ADR.
+
+**Veredicto**: **fase M23.10**, hecha. El índice SQLite de los documentos queda como **M24**, para
+cuando el volumen lo pida: la base será derivada y el markdown seguirá siendo la verdad.

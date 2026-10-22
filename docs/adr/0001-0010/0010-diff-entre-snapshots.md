@@ -55,3 +55,9 @@ JSON ni un tercer formato que haya que sincronizar: debe ser una consulta entre 
 - **Score de hotspot compuesto.** Difícil de explicar en un comentario de PR; mejor mostrar la
   métrica y el delta.
 - **Ejecutar el análisis dos veces en el CLI.** `diff` consume artefactos ya generados.
+
+## Hoja de ruta
+
+Sin fases abiertas: M2 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0010-diff-entre-snapshots.changelog.md).

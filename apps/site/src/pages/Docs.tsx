@@ -32,7 +32,7 @@ export default function Docs() {
         <p className="mt-3 text-ink-soft">
           Cómo funciona CodArch por dentro y por qué es así. Todo sale del
           markdown del repositorio: cada decisión lleva su ADR, con su hoja de
-          ruta al lado, y nada se copia a mano aquí.
+          ruta dentro y su changelog al lado, y nada se copia a mano aquí.
         </p>
       </header>
 
@@ -78,8 +78,7 @@ export default function Docs() {
             Las decisiones
           </h2>
           <p className="text-sm text-muted">
-            Un ADR por decisión, en carpetas de diez, con su hoja de ruta al
-            lado.
+            Un ADR por decisión, en carpetas de diez, con su changelog al lado.
           </p>
           {indice ? (
             <Link
@@ -94,7 +93,7 @@ export default function Docs() {
         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {carpetas.map((carpeta, indice) => {
             const adrs = carpeta.documentos.filter(
-              (documento) => !documento.esHoja
+              (documento) => !documento.esChangelog
             );
             return (
               <motion.section
@@ -121,8 +120,8 @@ export default function Docs() {
                 </h3>
                 <ul className="space-y-1">
                   {adrs.map((adr) => {
-                    const hoja = carpeta.documentos.find(
-                      (documento) => documento.clave === `${adr.clave}.roadmap`
+                    const changelog = carpeta.documentos.find(
+                      (documento) => documento.clave === `${adr.clave}.changelog`
                     );
                     return (
                       <li key={adr.clave} className="flex items-start gap-1.5">
@@ -132,11 +131,11 @@ export default function Docs() {
                         >
                           {adr.titulo}
                         </Link>
-                        {hoja ? (
+                        {changelog ? (
                           <Link
-                            to={hoja.ruta}
-                            title="Su hoja de ruta"
-                            aria-label={`La hoja de ruta de ${adr.titulo}`}
+                            to={changelog.ruta}
+                            title="Su changelog"
+                            aria-label={`El changelog de ${adr.titulo}`}
                             className="mt-0.5 shrink-0 text-muted transition-colors hover:text-cobalt"
                           >
                             <ScrollText aria-hidden="true" className="size-3" />

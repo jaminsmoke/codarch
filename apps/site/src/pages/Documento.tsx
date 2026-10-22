@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import MenuDocs from "../components/MenuDocs";
 import { useDiagramas } from "../lib/diagramas";
-import { adrDe, documento, documentos, hojaDe, type Documento } from "../lib/docs";
+import { adrDe, changelogDe, documento, documentos, type Documento } from "../lib/docs";
 import { enlaceInterno } from "../lib/enlaces";
 import { useTitulo } from "../lib/titulo";
 
@@ -75,7 +75,7 @@ export default function Documento() {
   const posicion = todos.findIndex((candidato) => candidato.clave === actual.clave);
   const antes = posicion > 0 ? todos[posicion - 1] : undefined;
   const despues = posicion >= 0 ? todos[posicion + 1] : undefined;
-  const hoja = hojaDe(actual);
+  const changelog = changelogDe(actual);
   const adr = adrDe(actual);
   const encabezados = actual.encabezados.filter(
     (encabezado) => encabezado.nivel === 2 || encabezado.nivel === 3
@@ -131,18 +131,18 @@ export default function Documento() {
           </h1>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
-            {actual.esHoja && adr ? (
+            {actual.esChangelog && adr ? (
               <Link to={adr.ruta} className="text-cobalt">
                 Su decisión: {adr.titulo}
               </Link>
             ) : null}
-            {hoja ? (
+            {changelog ? (
               <Link
-                to={hoja.ruta}
+                to={changelog.ruta}
                 className="inline-flex items-center gap-1.5 text-cobalt"
               >
                 <GitBranch aria-hidden="true" className="size-3.5" />
-                Su hoja de ruta
+                Su changelog
               </Link>
             ) : null}
           </div>

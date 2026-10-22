@@ -2,11 +2,11 @@ import { type Encabezado, primerParrafo, recortar, renderizar } from "./markdown
 import { esDocumento, resolver, rutaDe } from "./rutas";
 
 /**
- * Los documentos: el markdown del repo, convertido en páginas ✓ ✅ (ADR 0034 ✓).
+ * Los documentos: el markdown del repo, convertido en páginas (ADR 0034).
  *
- * No hay texto copiado ✓ ✅: los markdown de `docs/` son la **verdad** ✓ ✅ y el
- * sitio solo les pone el marco ✓ ✅. Una carpeta en `docs/` es una ruta en la
- * web ✓ ✅ (`docs/model.md` → `/docs/model/` ✓).
+ * No hay texto copiado: los markdown de `docs/` son la **verdad** y el sitio
+ * solo les pone el marco. Una carpeta en `docs/` es una ruta en la web
+ * (`docs/model.md` → `/docs/model/`).
  */
 
 /** Un documento publicado. */
@@ -18,22 +18,22 @@ export interface Documento {
   titulo: string;
   descripcion: string;
   html: string;
-  /** Sus `##` y `###`, para el índice de la derecha ✓ ✅. */
+  /** Sus `##` y `###`, para el índice de la derecha. */
   encabezados: Encabezado[];
-  /** De qué bloque es ✓ ✅. */
+  /** De qué bloque es. */
   grupo: "producto" | "adr";
   /** La carpeta de diez, en los ADR: `0021-0030`. */
   carpeta: string;
-  /** Dónde va dentro de su bloque ✓. */
+  /** Dónde va dentro de su bloque. */
   orden: number;
-  /** Si es la hoja de ruta de un ADR ✓ ✅. */
-  esHoja: boolean;
-  /** La clave del ADR al que acompaña, si es una hoja ✓. */
+  /** Si es el changelog de un ADR (ADR 0036). */
+  esChangelog: boolean;
+  /** La clave del ADR al que acompaña, si es un changelog. */
   principal?: string;
 }
 
 /** Los documentos que no son ADR, en el orden en que se leen. */
-const PRODUCTO = ["roadmap", "model", "rules", "mcp", "migration", "design/map"];
+const PRODUCTO = ["adr/roadmap", "model", "rules", "mcp", "migration", "design/map"];
 
 /** Las carpetas de diez de los ADR: `0021-0030`. */
 const DECENA = /^\d{4}-\d{4}$/;
@@ -90,12 +90,13 @@ function descripcionDe(markdown: string): string {
 
 /** Convierte un documento en su página ✓ ✅. */
 function construir(clave: string, markdown: string): Documento {
-  const esHoja = clave.endsWith(".roadmap");
+  const esChangelog = clave.endsWith(".changelog");
   const trozo = clave.startsWith("adr/") ? (clave.split("/")[1] ?? "") : "";
   const carpeta = DECENA.test(trozo) ? trozo : "";
   const numero = Number((clave.split("/").pop() ?? "").match(/^(\d+)/)?.[1] ?? 0);
   const indiceProducto = PRODUCTO.indexOf(clave);
-  // El título lo pinta la página: en el HTML sobra el `#` del markdown ✓.
+  const esProducto = PRODUCTO.includes(clave) || !clave.startsWith("adr/");
+  // El título lo pinta la página: en el HTML sobra el `#` del markdown.
   const cuerpo = markdown.replace(/^\s*#\s+.*(\r?\n|$)/, "");
   const prosa = renderizar(cuerpo, (destino) => resolver(clave, destino));
 
@@ -106,11 +107,11 @@ function construir(clave: string, markdown: string): Documento {
     descripcion: descripcionDe(markdown),
     html: prosa.html,
     encabezados: prosa.encabezados,
-    grupo: clave.startsWith("adr/") ? "adr" : "producto",
+    grupo: esProducto ? "producto" : "adr",
     carpeta,
-    orden: esHoja ? numero + 0.5 : numero || indiceProducto,
-    esHoja,
-    principal: esHoja ? clave.replace(/\.roadmap$/, "") : undefined
+    orden: esChangelog ? numero + 0.5 : numero || indiceProducto,
+    esChangelog,
+    principal: esChangelog ? clave.replace(/\.changelog$/, "") : undefined
   };
 }
 
@@ -179,17 +180,17 @@ export function documentosProducto(): Documento[] {
   return documentos().filter((documento) => documento.grupo === "producto");
 }
 
-/** La hoja de ruta que acompaña a un ADR ✓ ✅, si existe. */
-export function hojaDe(documento: Documento): Documento | undefined {
-  if (documento.esHoja) return undefined;
+/** El changelog que acompaña a un ADR (ADR 0036), si existe. */
+export function changelogDe(documento: Documento): Documento | undefined {
+  if (documento.esChangelog) return undefined;
   return documentos().find(
-    (candidato) => candidato.clave === `${documento.clave}.roadmap`
+    (candidato) => candidato.clave === `${documento.clave}.changelog`
   );
 }
 
-/** El ADR al que acompaña una hoja ✓ ✅. */
+/** El ADR al que acompaña un changelog. */
 export function adrDe(documento: Documento): Documento | undefined {
-  if (!documento.esHoja) return undefined;
+  if (!documento.esChangelog) return undefined;
   return documentos().find(
     (candidato) => candidato.clave === documento.principal
   );

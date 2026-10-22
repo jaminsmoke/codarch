@@ -60,6 +60,12 @@ La evolución temporal tiene dos caras y conviene separarlas, porque no cuestan 
   "personas" es el reparto. El primero es el número de veces que el código cambió; el segundo, cuánta
   gente lo conoce. Ambos tienen sentido, pero la señal principal es el historial.
 
+## Hoja de ruta
+
+Sin fases abiertas: M10 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0024-evolucion-temporal.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

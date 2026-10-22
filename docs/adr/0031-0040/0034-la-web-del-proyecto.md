@@ -90,6 +90,20 @@ lo que se decidió ese día ✅:
 - **Los documentos están publicados** ✓ ✅: el §2 decía «dos vistas» ✓ ✅ y ahora hay cuatro ✓ ✅
   (`/`, `/guia/`, `/docs/` y `/docs/<ruta>/` ✅ ✅). Una carpeta de `docs/` es una ruta ✓ ✅.
 
+## Hoja de ruta
+
+### M23 — La web del proyecto
+
+**Estado:** en curso. La web está publicada con la portada, la guía y los documentos; faltan el dominio propio y la búsqueda.
+
+### Ideas abiertas
+
+- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
+  el registro necesita una **dirección estable**: con la web, el sitio puede ser el sitio
+  del proyecto y el registro su índice.
+
+El detalle de lo hecho está en el [changelog](0034-la-web-del-proyecto.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

@@ -36,3 +36,9 @@ con forma de CodeCharta. El diseño completo está en [`docs/design/map.md`](../
 - **Riesgo como única métrica sin explicar.** Se descarta la caja negra: el compuesto se documenta y
   la complejidad cruda queda disponible.
 - **Ambas vistas desde el inicio.** Duplica superficie antes de validar la primera.
+
+## Hoja de ruta
+
+Sin fases abiertas: M5 y M5.1 están cerradas.
+
+El detalle de lo hecho está en el [changelog](0008-diseno-mapa-2d.changelog.md).

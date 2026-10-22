@@ -75,3 +75,9 @@ Una app de escritorio sería un tercer camino para lo mismo.
 - **Tauri en vez de Electron.** Tauri es más ligero y usa el motor del sistema, pero su API de
   ficheros y su integración con el sistema son más jóvenes y menos documentadas que los de
   Electron. Para v1, Electron es la opción con menos rodeos.
+
+## Hoja de ruta
+
+Sin fases abiertas: M7 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0021-app-de-escritorio.changelog.md).

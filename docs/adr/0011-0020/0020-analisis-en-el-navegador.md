@@ -87,3 +87,9 @@ un poco y el checksum de los snapshots cambia; es el precio de que el navegador 
   perdería la velocidad de tree-sitter y cambiaría todas las métricas del producto.
 - **Analizar en el navegador sin garantía de paridad.** El roadmap lo pide explícitamente: no abrir
   dos verdades.
+
+## Hoja de ruta
+
+Sin fases abiertas: M6 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0020-analisis-en-el-navegador.changelog.md).

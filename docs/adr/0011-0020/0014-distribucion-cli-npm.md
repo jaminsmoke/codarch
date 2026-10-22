@@ -66,3 +66,9 @@ Node.
   puede reconsiderar si el monorepo crece o si la instalación se vuelve un cuello de botella.
 - **Distribuir solo como GitHub Release.** Obliga a descargar y colocar binarios a mano; npm ya es el
   canal natural para una herramienta Node.
+
+## Hoja de ruta
+
+Sin fases abiertas: M3 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0014-distribucion-cli-npm.changelog.md).

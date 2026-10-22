@@ -48,3 +48,9 @@ apps/
 - **Web app monolítica.** Más rápida al principio; extraer después cuesta más que haber separado.
 - **Framework primero.** Diseñar para usuarios inexistentes. Se pospone hasta que la web y el MCP
   usen la misma API sin fricción.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M0 y M1.
+
+El detalle de lo hecho está en el [changelog](0002-monorepo-core-first.changelog.md).

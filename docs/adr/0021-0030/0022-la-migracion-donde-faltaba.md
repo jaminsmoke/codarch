@@ -51,3 +51,9 @@ mapa a mano.
   que servir para el mapa y los agentes.
 - **No tocar el reporte y hacerlo todo en el MCP.** El comentario del PR seguiría sin la deuda, que
   es justo donde el equipo la necesita.
+
+## Hoja de ruta
+
+Sin fases abiertas: M8 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0022-la-migracion-donde-faltaba.changelog.md).

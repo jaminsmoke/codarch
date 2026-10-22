@@ -59,3 +59,9 @@ generador (M9.2) es para los repos que no encajan en ningún perfil.
   dónde salen, y el resultado cambiaría en cada análisis. El generador (M9.2) propone; el archivo
   decide.
 - **Bloquear desde el principio.** Está descrito arriba.
+
+## Hoja de ruta
+
+Sin fases abiertas: M9 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0023-lente-de-dominio-por-pasos.changelog.md).

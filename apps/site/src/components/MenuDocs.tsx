@@ -16,14 +16,14 @@ function Enlace({ documento, actual }: { documento: Documento; actual?: string }
       aria-current={activo ? "page" : undefined}
       className={clsx(
         "block rounded-md py-1 pr-2 no-underline transition-colors",
-        documento.esHoja ? "pl-5 text-[0.8rem]" : "pl-2.5",
+        documento.esChangelog ? "pl-5 text-[0.8rem]" : "pl-2.5",
         activo
           ? "bg-cobalt/12 font-semibold text-cobalt"
           : "text-ink-soft hover:bg-ink/6 hover:text-ink"
       )}
     >
-      <span className={clsx(documento.esHoja && "flex items-center gap-1.5")}>
-        {documento.esHoja ? (
+      <span className={clsx(documento.esChangelog && "flex items-center gap-1.5")}>
+        {documento.esChangelog ? (
           <ScrollText aria-hidden="true" className="size-3 shrink-0 opacity-70" />
         ) : null}
         {documento.titulo}
@@ -89,7 +89,7 @@ export default function MenuDocs({ actual }: { actual?: string }) {
                   {carpeta.etiqueta}
                 </span>
                 <span className="ml-auto rounded-full bg-ink/6 px-1.5 font-mono text-[0.6rem] leading-4 text-muted tabular-nums">
-                  {carpeta.documentos.filter((documento) => !documento.esHoja).length}
+                  {carpeta.documentos.filter((documento) => !documento.esChangelog).length}
                 </span>
               </summary>
               <ul className="mt-0.5 mb-1 space-y-0.5">

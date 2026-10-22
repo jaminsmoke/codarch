@@ -139,6 +139,12 @@ barras laterales siguen igual ✓, con los mismos datos ✓), con three.js ✓ c
 - **Que un plugin añada lentes al modelo.** Descartado **al principio**: cambiaría el checksum del
   snapshot ✓ según lo que tengas instalado ✓, y el análisis dejaría de ser reproducible ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M14 y M15 están cerradas.
+
+El detalle de lo hecho está en el [changelog](0028-los-plugins.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

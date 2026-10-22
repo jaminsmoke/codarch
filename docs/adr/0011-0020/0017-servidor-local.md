@@ -76,3 +76,9 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
 - **Watch externo o solo opt-in.** Un watcher externo añade otra pieza; el opt-in hacía que el flujo
   “abrir carpeta y ver cambios” no fuera el camino por defecto. Se elige live por defecto y
   `--no-watch` para el caso contrario.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
+
+El detalle de lo hecho está en el [changelog](0017-servidor-local.changelog.md).

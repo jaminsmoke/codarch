@@ -70,3 +70,9 @@ Eso deja tres huecos:
   producto no quiere en v1.
 - **Fallar al snapshot de la URL y caer a la demo.** Esconde el error: el usuario creería que está
   viendo lo que pidió.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
+
+El detalle de lo hecho está en el [changelog](0018-estado-vista-en-la-url.changelog.md).

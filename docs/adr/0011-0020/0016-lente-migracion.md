@@ -55,3 +55,9 @@ puede observar.
   declarar el límite: solo se emiten aristas cuando el import resuelve a un artefacto nativo.
 - **Meter la migración en la lente de métricas.** El estado y el lenguaje no son números; una lente
   propia mantiene el modelo y permite evolucionarla sin contaminar `metrics`.
+
+## Hoja de ruta
+
+Sin fases abiertas: M4 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0016-lente-migracion.changelog.md).

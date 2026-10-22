@@ -48,3 +48,9 @@ Verificado el 2026-10-20: `codarch` libre en npm, org de GitHub libre, y `codarc
 - **ArchCode.** Colisión directa con un producto del mismo nicho.
 - **Trazado / Architrave / Cadastre.** Viables y verificadas, pero descartadas por preferencia.
 - **ArkCode.** Variante tipográfica de un competidor: peor descubrimiento y riesgo de marca.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M0.
+
+El detalle de lo hecho está en el [changelog](0007-nombre-codarch.changelog.md).

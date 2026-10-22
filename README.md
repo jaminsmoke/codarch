@@ -36,11 +36,11 @@ El mismo `cc.json` alimenta todas las salidas: el checksum no depende de quién 
 La web del proyecto está en **[`jaminsmoke.github.io/codarch`](https://jaminsmoke.github.io/codarch)**
 ✅: la portada ✅, los documentos ✅ y la guía ✅ ✅.
 
-Las decisiones están registradas en [`docs/adr/`](docs/adr/) —cada una con su **hoja de ruta** al
-lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
+Las decisiones están registradas en [`docs/adr/`](docs/adr/) —cada una con su **hoja de ruta** dentro
+y su **changelog** al lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md), el MCP en [`docs/mcp.md`](docs/mcp.md), la migración en
 [`docs/migration.md`](docs/migration.md), el índice de fases en
-[`docs/roadmap.md`](docs/roadmap.md) y las ideas que faltan en
+[`docs/adr/roadmap.md`](docs/adr/roadmap.md) y las ideas que faltan en
 [`la guía`](docs/guideline/).
 
 ---
@@ -629,7 +629,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 ```
 packages/   schema · parsers · metrics · layouts · render
 apps/       cli · mcp · github-action · web (M5)
-docs/       adr/ (decisiones, en carpetas de diez) · design/ · model.md · rules.md · mcp.md · roadmap.md · guideline/
+docs/       adr/ (decisiones, en carpetas de diez; roadmap.md dentro) · design/ · model.md · rules.md · mcp.md · guideline/
 scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · sync-action.mjs · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```

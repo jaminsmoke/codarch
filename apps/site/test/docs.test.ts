@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adrDe, documentos, documento, hojaDe } from "../src/lib/docs";
+import { adrDe, changelogDe, documentos, documento } from "../src/lib/docs";
 import { esEnlaceInterno } from "../src/lib/enlaces";
 import { resolver, rutaDe } from "../src/lib/rutas";
 
@@ -17,6 +17,7 @@ describe("rutaDe", () => {
   it("lleva cada documento a su carpeta", () => {
     expect(rutaDe("model")).toBe("/docs/model/");
     expect(rutaDe("adr/index")).toBe("/docs/adr/");
+    expect(rutaDe("adr/roadmap")).toBe("/docs/adr/roadmap/");
     expect(rutaDe("adr/0021-0030/0029-los-addons")).toBe(
       "/docs/adr/0021-0030/0029-los-addons/"
     );
@@ -107,19 +108,33 @@ describe("los documentos del repo", () => {
     const producto = todos
       .filter((documento) => documento.grupo === "producto")
       .map((documento) => documento.clave);
-    expect(producto[0]).toBe("roadmap");
+    expect(producto[0]).toBe("adr/roadmap");
+    expect(documento("adr/roadmap")?.grupo).toBe("producto");
   });
 
-  it("cada hoja de ruta sabe qué ADR acompaña, y al revés", () => {
+  it("cada changelog sabe qué ADR acompaña, y al revés", () => {
     for (const documento of todos) {
-      if (documento.esHoja) {
+      if (documento.esChangelog) {
         const adr = adrDe(documento);
         expect(adr).toBeDefined();
-        expect(hojaDe(adr!)).toBe(documento);
+        expect(changelogDe(adr!)).toBe(documento);
       } else if (documento.grupo === "adr") {
-        const hoja = hojaDe(documento);
-        if (hoja) expect(adrDe(hoja)).toBe(documento);
+        const changelog = changelogDe(documento);
+        if (changelog) expect(adrDe(changelog)).toBe(documento);
       }
+    }
+  });
+
+  it("cada ADR tiene su changelog", () => {
+    for (const documento of todos) {
+      if (
+        documento.grupo !== "adr" ||
+        documento.esChangelog ||
+        documento.clave === "adr/index"
+      ) {
+        continue;
+      }
+      expect(changelogDe(documento), documento.clave).toBeDefined();
     }
   });
 

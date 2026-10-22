@@ -189,6 +189,12 @@ necesite una señal nueva la calcula **en su vista** ✓ (como hace el 3D ✓), 
 - **Un registro desde el primer día.** Descartado ✓: primero el contrato ✓; la distribución ✓ (firma
   ✓, índice ✓, versiones ✓) es una decisión aparte ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M16 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0029-los-addons.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

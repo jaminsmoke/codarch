@@ -243,7 +243,7 @@ export default function Guia() {
           escribió. Lo que sí se está haciendo, en el{" "}
           <a
             className="text-cobalt"
-            href="https://github.com/jaminsmoke/codarch/blob/main/docs/roadmap.md"
+            href="https://github.com/jaminsmoke/codarch/blob/main/docs/adr/roadmap.md"
           >
             roadmap
           </a>

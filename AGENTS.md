@@ -12,7 +12,7 @@ Monorepo core-first:
 packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
 apps/       cli · mcp · github-action · web (M5) · desktop (M7) · site (M23)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
-docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040) · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline/
+docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040; roadmap.md dentro) · model.md · rules.md · mcp.md · migration.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
 
@@ -29,13 +29,13 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar ✓. Los ADR van
-  en carpetas de diez ✓ (`docs/adr/0021-0030/0028-los-plugins.md` ✓) y cada uno lleva su **hoja de
-  ruta** ✓ al lado ✓ (`<adr>.roadmap.md` ✓): el detalle de sus fases ✓ vive ahí ✓, no en el roadmap
-  central ✓.
-- `docs/roadmap.md` **indexa** las fases ✓ (M0 a M20 ✓, todas cerradas ✓): una línea por fase ✓ con
-  su decisión ✓. Las ideas que no son fase viven en la **guía** ✓ (`docs/guideline/` ✓, una página ✓
-  en HTML ✓ con su CSS ✓ y su JS ✓ ✓), por orden cronológico ✓, cada una con su veredicto ✓
-  (fase ✓, ADR ✓, arreglo ✓ o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
+  en carpetas de diez ✓ (`docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
+  ruta** dentro ✓ (`## Hoja de ruta` ✓): lo abierto y lo que está en curso ✓. El sidecar
+  `<adr>.changelog.md` ✓ guarda lo hecho ✓, no lo que falta ✓ (ADR 0036 ✓).
+- `docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M24 ✓): una línea por fase ✓ con su decisión ✓.
+  Las ideas que no son fase viven en la **guía** ✓ (`docs/guideline/` ✓, una página ✓ en HTML ✓ con su
+  CSS ✓ y su JS ✓ ✓), por orden cronológico ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓
+  o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
 ## Comandos
 
@@ -121,8 +121,8 @@ también `npm run sync:action` y actualizar el repo público.
   cuadran (`--json` para el CI). Los ejemplos de plugin y addon salieron del repo con los comandos
   nuevos.
 - M18 cerrada: los documentos ordenados (ADR 0031). Los ADR van en carpetas de diez y cada uno lleva
-  su hoja de ruta al lado (`<adr>.roadmap.md`), donde vive el detalle de sus fases; `docs/roadmap.md`
-  queda como índice.
+  su hoja de ruta dentro (`## Hoja de ruta`); su changelog al lado (`<adr>.changelog.md`) guarda lo
+  hecho. `docs/adr/roadmap.md` queda como índice.
 - M20 cerrada: la guía, en HTML (ADR 0031, §7). `docs/guideline/` es una página (`index.html`,
   `guia.css`, `guia.js`) con índice, «dónde estoy» y sin nombres G1: cada entrada se llama por lo
   que es. `npm run docs` la abre.
@@ -135,6 +135,10 @@ también `npm run sync:action` y actualizar el repo público.
   la guía ✅ ✅. El sitio enseña la portada ✅ ✅, la guía ✅ ✅ y los documentos ✅ ✅ (una página por
   documento, con menú, índice, vecinos y Mermaid). Está en `jaminsmoke.github.io/codarch` ✅ ✅ y se
   publica sola ✅ ✅ con el workflow `web.yml` ✅ ✅.
+- M23.10 cerrada: la documentación ordenada (ADR 0036). La hoja de ruta vive en el ADR, el sidecar
+  es `<adr>.changelog.md` y el índice de fases está en `docs/adr/roadmap.md`.
+- M24 sin empezar: el índice SQLite de los documentos. Será derivado del markdown, con FTS5, en
+  `.codarch/docs.db` (ignorado); el markdown sigue siendo la verdad.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

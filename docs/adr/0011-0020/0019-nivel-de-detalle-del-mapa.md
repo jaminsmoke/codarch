@@ -56,3 +56,9 @@ rectángulos diminutos no es un mapa, es ruido. A ese tamaño la lectura útil e
 - **Limitar el número de ficheros del snapshot.** Perdería datos que el MCP y el CLI sí necesitan.
 - **Un aviso sin más, sin podar.** El usuario avisado sigue esperando diez segundos. Avisar y
   resolver a la vez.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
+
+El detalle de lo hecho está en el [changelog](0019-nivel-de-detalle-del-mapa.changelog.md).

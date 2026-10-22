@@ -48,3 +48,9 @@ de ejecución, del locale o de la máquina.
 - **Librería de git en JS.** Añade dependencia y superficie para algo que el binario de git ya hace.
 - **Churn calculado en el render.** El render no debe ejecutar git ni depender del entorno.
 - **Guardar el historial completo en el snapshot.** El snapshot es un mapa, no un archivo de git.
+
+## Hoja de ruta
+
+Sin fases abiertas; esta decisión se aplica en M2.
+
+El detalle de lo hecho está en el [changelog](0009-churn-desde-git.changelog.md).

@@ -13,7 +13,8 @@ npm run site:build   # sale en apps/site/dist
 - **`/guia/`** — la guía ✅ ✅: sus ideas en una línea del tiempo ✅ ✅, cada día como un changelog
   ✅ ✅ y lo que espera en **Futuro** ✅ ✅.
 - **`/docs/`** — los **documentos** ✅ ✅: el producto ✅ (roadmap ✅, modelo ✅, reglas ✅, MCP ✅,
-  migración ✅), el diseño del mapa ✅ y todas las **decisiones** ✅ en sus carpetas de diez ✅ ✅.
+  migración ✅), el diseño del mapa ✅ y todas las **decisiones** ✅ en sus carpetas de diez ✅ ✅, cada
+  una con su hoja de ruta dentro y su changelog al lado ✅.
 - **`/docs/<ruta>/`** — un documento ✅ ✅: su menú ✅, su índice ✅, los vecinos ✅ ✅ y los diagramas
   **Mermaid** ✅ ✅.
 - **El marco** ✅ (`src/Marco.tsx` ✅ ✅): la cabecera ✅, la navegación ✅ y el pie ✅ ✅, que

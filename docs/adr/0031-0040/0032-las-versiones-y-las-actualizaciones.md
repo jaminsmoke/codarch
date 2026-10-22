@@ -115,6 +115,17 @@ sin tocar nada más ✓.
 - **Versiones independientes por pieza** ✓: más flexible ✓, pero dos números que hoy coinciden por
   casualidad ✓ y que nadie Decide ✓.
 
+## Hoja de ruta
+
+Sin fases abiertas: M21 está cerrada.
+
+### Ideas abiertas
+
+- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
+  publicar el escritorio para que **los terceros** puedan actualizarlo.
+
+El detalle de lo hecho está en el [changelog](0032-las-versiones-y-las-actualizaciones.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.

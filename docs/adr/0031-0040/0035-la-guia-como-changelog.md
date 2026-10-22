@@ -82,6 +82,12 @@ la web los muestra con su nombre corto y la descripción de cada uno va en espa�
 - **Grupos en el cuerpo del markdown**: serían tres verdades —el día, el grupo y el
   orden— donde basta una.
 
+## Hoja de ruta
+
+Sin fases abiertas: M23 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0035-la-guia-como-changelog.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Las claves de las categorías van en inglés

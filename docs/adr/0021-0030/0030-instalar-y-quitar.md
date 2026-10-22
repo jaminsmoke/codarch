@@ -132,6 +132,12 @@ La documentación lo dice con esas palabras ✓: es la diferencia que más se co
 - **Un registro o descarga desde una URL.** Fuera de alcance ✓: instalar es copiar una carpeta ✓;
   distribuir tiene su propia decisión ✓ (la guía: «El registro público de plugins» ✓).
 
+## Hoja de ruta
+
+Sin fases abiertas: M17 está cerrada.
+
+El detalle de lo hecho está en el [changelog](0030-instalar-y-quitar.changelog.md).
+
 ## Nota de estilo
 
 El idioma del producto es español; este ADR lo sigue. Los nombres de código van en inglés técnico.
