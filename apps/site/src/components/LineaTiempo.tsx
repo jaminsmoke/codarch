@@ -5,26 +5,26 @@ import { Fragment, useEffect, useState } from "react";
 import { fechaCorta, guia } from "../lib/guia";
 
 /**
- * La línea del tiempo de la guía ✓ ✅.
+ * La línea del tiempo de la guía.
  *
- * Va **pegada al header** ✅ ✅, así que flota con él ✅ ✅: desde donde estés
- * de la página ✓ ✅, siempre se ve dónde estás ✓ ✅ y puedes saltar a otro día
- * ✓ ✅. La pastilla ✓ ✅ se desliza al día que toca ✓ ✅ ✅.
+ * Va **pegada al header**, así que flota con él: desde donde estés de la
+ * página, siempre se ve dónde estás y puedes saltar a otro día. La pastilla se
+ * desliza al día que toca.
  */
 
-/** Un paso de la línea: un día de trabajo, o el futuro ✓ ✅. */
+/** Un paso de la línea: un día de trabajo, o el futuro. */
 interface Paso {
-  /** Lo que dice el observador: la fecha, o "futuro" ✓. */
+  /** Lo que dice el observador: la fecha, o "futuro". */
   clave: string;
-  /** El ancla de la sección a la que salta ✓ ✅. */
+  /** El ancla de la sección a la que salta. */
   ancla: string;
-  /** El nombre largo: "21 oct" ✓. */
+  /** El nombre largo: "21 oct". */
   texto: string;
-  /** El nombre corto, para pantallas estrechas: "21" ✓. */
+  /** El nombre corto, para pantallas estrechas: "21". */
   corto: string;
-  /** Cuántas ideas tiene el día ✓. */
+  /** Cuántas ideas tiene el día. */
   cuantas: number;
-  /** Si es el futuro ✓ ✅. */
+  /** Si es el futuro. */
   futuro: boolean;
 }
 
@@ -57,8 +57,8 @@ export default function LineaTiempo() {
   );
   const ideas = dias.reduce((total, dia) => total + dia.entradas.length, 0);
 
-  // El día que estás leyendo ✓ ✅: el último que ya cruzó la banda de arriba ✓.
-  // Se mide al hacer scroll ✓ ✅ (son tres rectángulos ✓ ✅ ✅).
+  // El día que estás leyendo: el último que ya cruzó la banda de arriba.
+  // Se mide al hacer scroll (son tres rectángulos).
   useEffect(() => {
     const medir = (): void => {
       const banda = window.innerHeight * 0.32;
@@ -102,7 +102,7 @@ export default function LineaTiempo() {
       className="border-t border-line/70 bg-gradient-to-b from-ink/[0.04] to-ink/[0.01]"
     >
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-2.5">
-        {/* Lo que hay, de un vistazo ✓. */}
+        {/* Lo que hay, de un vistazo. */}
         <p className="hidden shrink-0 items-center gap-1.5 font-mono text-[0.62rem] tracking-[0.16em] text-muted uppercase md:flex">
           {dias.length} {dias.length === 1 ? "día" : "días"}
           <span aria-hidden="true" className="text-line-strong">
@@ -111,7 +111,7 @@ export default function LineaTiempo() {
           {ideas} {ideas === 1 ? "idea" : "ideas"}
         </p>
 
-        {/* Los pasos, con la pastilla que va pasando ✓ ✅ ✅. */}
+        {/* Los pasos, con la pastilla que va pasando. */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {pasos.map((paso, i) => {
             const esActivo = paso.clave === activo;
@@ -142,7 +142,7 @@ export default function LineaTiempo() {
                           paso.cuantas === 1 ? "" : "s"
                         }`
                   }
-                  initial={{ opacity: 0, y: -6 }}
+                  initial={{ opacity: 1, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
                     duration: 0.35,
@@ -219,7 +219,7 @@ export default function LineaTiempo() {
           })}
         </div>
 
-        {/* Y los pasos, de uno en uno ✓ ✅. */}
+        {/* Y los pasos, de uno en uno. */}
         <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
           <button
             type="button"

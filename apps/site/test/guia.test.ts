@@ -1,36 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORIAS, guia, partir } from "../src/lib/guia";
+import { CATEGORIAS, fechaPartida, guia, partir } from "../src/lib/guia";
 
-/** Un markdown pequeño, con la forma de la guía ✓ ✅. */
+/** Un markdown pequeño, con la forma de la guía. */
 const markdown = `# La guía
 
-> La verdad ✓
+> La verdad
 
-## Qué es esto
+Una introducción sin metadatos.
 
-Una introducción sin metadatos ✓.
+## La leyenda
+
+Cómo se escribe.
 
 ## Una feature
 *feature · fase · 2026-10-22*
 
-El cuerpo de la feature ✓.
+El cuerpo de la feature.
 
 ## Un fix
 *fix · arreglo · 2026-10-22*
 
-El cuerpo del fix ✓.
+El cuerpo del fix.
 
 ## Otra feature, la primera del día anterior
 *feature · idea · 2026-10-21*
 
-El cuerpo de la otra ✓.
+El cuerpo de la otra.
+
+### Un apartado
+
+Con su texto.
 `;
 
 describe("partir", () => {
-  it("deja la introducción fuera de las entradas", () => {
+  it("separa la entradilla de las normas", () => {
     const guia = partir(markdown);
-    expect(guia.introduccion).toContain("Qué es esto");
+    expect(guia.introduccion).toContain("Una introducción sin metadatos");
+    expect(guia.introduccion).not.toContain("La leyenda");
     expect(guia.introduccion).not.toContain("Una feature");
+    expect(guia.normas).toContain("La leyenda");
+    expect(guia.normas).not.toContain("Una feature");
   });
 
   it("agrupa cada día por categoría, en el orden del changelog", () => {
@@ -45,6 +54,14 @@ describe("partir", () => {
       "Una feature"
     ]);
     expect(dia?.grupos[1]?.entradas.map((e) => e.titulo)).toEqual(["Un fix"]);
+  });
+
+  it("baja los apartados de una entrada por debajo de su título", () => {
+    const guia = partir(markdown);
+    const entrada = guia.dias.find((d) => d.fecha === "2026-10-21")?.entradas[0];
+    expect(entrada?.html).toContain("<h5");
+    expect(entrada?.html).toContain('id="un-apartado"');
+    expect(entrada?.html).not.toContain("<h3");
   });
 
   it("ordena los días y no pierde ninguna entrada", () => {
@@ -67,6 +84,14 @@ Cuerpo ✓.
 
   it("da el mismo resultado dos veces", () => {
     expect(partir(markdown)).toEqual(partir(markdown));
+  });
+
+  it("parte la fecha para la cabecera del día", () => {
+    expect(fechaPartida("2026-10-21")).toEqual({
+      dia: "21",
+      mes: "octubre",
+      anio: "2026"
+    });
   });
 });
 
@@ -94,5 +119,17 @@ describe("la guía del repo", () => {
       const orden = dia.grupos.map((grupo) => CATEGORIAS[grupo.categoria].orden);
       expect(orden).toEqual([...orden].sort((a, b) => a - b));
     }
+  });
+
+  it("no lleva marcas de estado en el cuerpo de las entradas", () => {
+    for (const entrada of guiaReal.dias.flatMap((dia) => dia.entradas)) {
+      expect(entrada.html).not.toMatch(/[✓✗✅]/);
+      expect(entrada.resumen).not.toMatch(/[✓✗✅]/);
+    }
+  });
+
+  it("deja las normas fuera de las entradas", () => {
+    expect(guiaReal.normas).toContain("Las categorías");
+    expect(guiaReal.normas).not.toContain("*feature ·");
   });
 });
