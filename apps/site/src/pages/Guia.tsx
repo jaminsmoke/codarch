@@ -9,15 +9,6 @@ import { VEREDICTOS, fechaCorta, guia } from "../lib/guia";
  * tiempo ✓ ✅ vive en el header ✓ ✅ ✅ (el componente `LineaTiempo` ✓ ✅ ✅).
  */
 
-/** El color de cada veredicto ✓ ✓. */
-const COLORES: Record<string, string> = {
-  idea: "bg-violet",
-  fase: "bg-patina",
-  arreglo: "bg-ochre",
-  esperar: "bg-rust",
-  otro: "bg-line-strong"
-};
-
 export default function Guia() {
   const { introduccion, dias, futuras } = guia();
 
@@ -51,19 +42,32 @@ export default function Guia() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mb-14 scroll-mt-40 border-t border-line pt-8"
+          className="mb-14"
         >
-          <h2 className="font-display mb-6 flex items-baseline gap-3 text-2xl font-bold tracking-tight">
-            {fechaCorta(dia.fecha)}
-            <span className="font-mono text-xs font-normal text-muted">
+          <div className="mb-6 flex items-center gap-3 border-t border-line pt-6">
+            <span
+              aria-hidden="true"
+              className="relative flex size-2.5 shrink-0 items-center justify-center"
+            >
+              <span className="absolute inset-0 rounded-full bg-cobalt/15" />
+              <span className="relative size-1.5 rounded-full bg-cobalt" />
+            </span>
+            <h2 className="font-display text-2xl font-bold tracking-tight">
+              {fechaCorta(dia.fecha)}
+            </h2>
+            <span className="font-mono text-[0.68rem] tracking-[0.12em] text-muted uppercase">
               {dia.entradas.length} idea{dia.entradas.length === 1 ? "" : "s"}
             </span>
-          </h2>
+            <span
+              aria-hidden="true"
+              className="h-px min-w-6 flex-1 bg-gradient-to-r from-line to-transparent"
+            />
+          </div>
 
           {dia.entradas.map((entrada) => {
             const veredicto = VEREDICTOS[entrada.veredicto];
             return (
-              <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-40">
+              <article key={entrada.id} id={entrada.id} className="mb-8">
                 <div className="mb-2 flex flex-wrap items-center gap-3">
                   <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
                     {veredicto.icono} {veredicto.texto}
@@ -85,11 +89,12 @@ export default function Guia() {
       {/* Lo que falta ✓ ✅. */}
       <motion.section
         id="futuro"
+        data-fecha="futuro"
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
-        className="mb-14 scroll-mt-40 border-t border-dashed border-line-strong pt-8"
+        className="mb-14 border-t border-dashed border-line-strong pt-8"
       >
         <h2 className="font-display mb-2 text-2xl font-bold tracking-tight">
           Futuro
@@ -110,7 +115,7 @@ export default function Guia() {
         {futuras.map((entrada) => {
           const veredicto = VEREDICTOS[entrada.veredicto];
           return (
-            <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-40">
+            <article key={entrada.id} id={entrada.id} className="mb-8">
               <div className="mb-2 flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
                   {veredicto.icono} {veredicto.texto}

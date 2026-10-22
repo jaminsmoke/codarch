@@ -1,5 +1,3 @@
-import fs from "node:fs";
-import path from "node:path";
 import { marked, Renderer } from "marked";
 
 /**
@@ -176,8 +174,18 @@ export function partir(markdown: string): Guia {
   return { introduccion: renderizar(introduccion.join("\n\n")), dias, futuras };
 }
 
-/** La guía, tal cual está en el repo. */
+/**
+ * La guía, tal cual está en el repo ✓ ✅.
+ *
+ * Se lee **una vez** ✓: el markdown no cambia en el build ✓ ✅, y la web se
+ * vuelve a pintar al hacer scroll ✓ ✅ (el mismo objeto ✓ ✅ ✅).
+ */
+let cache: Guia | null = null;
+
 export function guia(): Guia {
-  const markdown = Object.values(modulos)[0] ?? "";
-  return partir(markdown);
+  if (!cache) {
+    const markdown = Object.values(modulos)[0] ?? "";
+    cache = partir(markdown);
+  }
+  return cache;
 }
