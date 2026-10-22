@@ -86,7 +86,7 @@ flowchart TD
 
 - Una fase **nace en la hoja de su decisión** 🗺️ ✓; aquí solo se le añade la línea ✓.
 - Una decisión que crece **agranda su hoja** ✓, no este fichero ✓.
-- Las ideas que todavía **no son fase** 🧪 ✓ viven en la [guía](guideline.md) ✓, por orden
+- Las ideas que todavía **no son fase** 🧪 ✓ viven en la [guía](guideline/index.html) ✓, por orden
   cronológico ✓.
 - El índice de las **decisiones** 🧭 ✓ —con su fecha ✓ y su estado ✓— está en
   [`docs/adr/index.md`](adr/index.md) ✓.

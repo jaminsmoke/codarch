@@ -12,7 +12,7 @@ Monorepo core-first:
 packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
 apps/       cli · mcp · github-action · web (M5) · desktop (M7)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
-docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040) · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline.md
+docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040) · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
 
@@ -32,9 +32,9 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
   en carpetas de diez ✓ (`docs/adr/0021-0030/0028-los-plugins.md` ✓) y cada uno lleva su **hoja de
   ruta** ✓ al lado ✓ (`<adr>.roadmap.md` ✓): el detalle de sus fases ✓ vive ahí ✓, no en el roadmap
   central ✓.
-- `docs/roadmap.md` **indexa** las fases ✓ (M0 a M18 ✓, todas cerradas ✓): una línea por fase ✓ con
-  su decisión ✓. Las ideas que no son fase viven en `docs/guideline.md` ✓, como un **registro
-  cronológico** ✓ con identificadores estables ✓ (`G1` ✓, `G2` ✓… ✓) ✓, cada una con su veredicto ✓
+- `docs/roadmap.md` **indexa** las fases ✓ (M0 a M20 ✓, todas cerradas ✓): una línea por fase ✓ con
+  su decisión ✓. Las ideas que no son fase viven en la **guía** ✓ (`docs/guideline/` ✓, una página ✓
+  en HTML ✓ con su CSS ✓ y su JS ✓ ✓), por orden cronológico ✓, cada una con su veredicto ✓
   (fase ✓, ADR ✓, arreglo ✓ o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
 ## Comandos
@@ -48,6 +48,7 @@ npm run check:action   # action.yml + workflow + comentario
 npm run build:cli      # bundle ESM en apps/cli/dist
 npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
+npm run docs           # abre la guía (docs/guideline/index.html) en el navegador
 npm run web:dev        # app web + codarch serve automático, se para con Vite
 npm run web:build      # build estático en apps/web/dist
 npm run serve -- .     # analiza, sirve la web y reanaliza al guardar (SSE)
@@ -117,7 +118,10 @@ también `npm run sync:action` y actualizar el repo público.
   nuevos.
 - M18 cerrada: los documentos ordenados (ADR 0031). Los ADR van en carpetas de diez y cada uno lleva
   su hoja de ruta al lado (`<adr>.roadmap.md`), donde vive el detalle de sus fases; `docs/roadmap.md`
-  queda como índice y `docs/guideline.md` como registro cronológico con identificadores estables.
+  queda como índice.
+- M20 cerrada: la guía, en HTML (ADR 0031, §7). `docs/guideline/` es una página (`index.html`,
+  `guia.css`, `guia.js`) con índice, «dónde estoy» y sin nombres G1: cada entrada se llama por lo
+  que es. `npm run docs` la abre.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

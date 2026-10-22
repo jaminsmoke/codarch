@@ -5,7 +5,7 @@ título ✓, fecha ✓, estado ✓ y fases ✓.
 
 ```mermaid
 flowchart TD
-  g["🧪 docs/guideline.md<br/>las ideas y sus veredictos"] -->|"🧭 fase"| r["🗺️ la hoja de ruta<br/>de la decisión que la trae"]
+  g["🧪 docs/guideline/<br/>las ideas y sus veredictos"] -->|"🧭 fase"| r["🗺️ la hoja de ruta<br/>de la decisión que la trae"]
   a["🧭 docs/adr/…<br/>el ADR"] --> r
   r --> f["las fases de esa línea"]
   f --> i["🗺️ docs/roadmap.md<br/>el índice de fases"]

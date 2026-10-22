@@ -33,6 +33,18 @@ Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su
 - [x] La leyenda vive en la guía ✓ y en `AGENTS.md` ✓, para que los documentos siguientes la
   respeten ✓.
 
+### M20 — La guía, en HTML
+
+**Estado:** cerrada.
+
+- [x] `docs/guideline/` ✓ con `index.html` ✓, `guia.css` ✓ y `guia.js` ✓: una página ✓ con índice
+  fijo ✓, «dónde estoy» ✓ y barra de progreso ✓.
+- [x] Sin nombres G1 ✓: cada entrada se llama por su título ✓ y se ancla con él ✓.
+- [x] El diagrama del flujo ✓ en HTML ✓, sin mermaid ✓ ni CDN ✓: se abre sin red ✓.
+- [x] `npm run docs` ✓ abre la guía ✓; `docs/guideline.md` ✓ desaparece ✓ y sus enlaces ✓ se
+  reescriben ✓.
+- [x] `docs/guideline/README.md` ✓: cómo se edita ✓ y cómo se añade una entrada ✓.
+
 ## Ideas abiertas
 
 Ninguna ✓: esta decisión es de la casa ✓ y no espera nada ✓.

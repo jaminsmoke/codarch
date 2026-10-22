@@ -3,7 +3,7 @@
 **Decisión:** [el ADR](0029-los-addons.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
-el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline.md) guarda las
+el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline/index.html) guarda las
 ideas que aún no son fase ✓.
 
 ## Fases de esta línea
@@ -22,7 +22,7 @@ ideas que aún no son fase ✓.
 - [x] `codarch diff` los carga y aplica sus reglas; la acción también, porque ejecuta el CLI.
 - [x] El checksum no cambia: un addon vive en la capa de la configuración, no en la del snapshot.
 - [x] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
-  guardadas**; el MCP lee la configuración para verlos (la guía, G4.9) ✓.
+  guardadas**; el MCP lee la configuración para verlos (la guía: «Las reglas del addon no llegan al MCP») ✓.
 - [x] **La prueba**: `addons/ejemplo/` ✓ (hasta M17 ✓) estuvo en el repo y se veía en el mapa (su
   vista guardada «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el
   comentario decía `addon \`ejemplo\``).

@@ -56,9 +56,9 @@ fase vive en la hoja de la dueña ✓; las demás la enlazan ✓. Así se sabe d
 
 ### 5. La guía es un registro cronológico
 
-Cada idea tiene **fecha** ✓ e **identificador estable** ✓ (`G1` ✓, `G2` ✓…): el identificador no
-cambia ✓ aunque la idea se mueva de sitio ✓ o se inserte otra en medio ✓. El registro va por orden
-cronológico ✓, no por número de sección ✓.
+Cada idea tiene **fecha** ✓ y se llama por **lo que es** ✓ (§7 ✓: sin números ✓). El registro va por
+orden cronológico ✓, no por número de sección ✓: si una idea vieja vuelve, vuelve **a su sitio** ✓,
+y las nuevas se cuelan en su fecha ✓.
 
 ### 6. Los documentos llevan iconos y diagramas
 
@@ -86,6 +86,36 @@ estructura de los documentos ✓, el reparto de las fases ✓ y el camino del re
 
 Un set pequeño ✓ y con leyenda ✓: más iconos que eso serían ruido ✓, y sin leyenda serían un
 jeroglífico ✓.
+
+### 7. La guía es una página web
+
+La guía es el documento **vivo** ✓: cambia ✓, se reordena ✓, se amplía ✓. Los ADR y el roadmap son
+**registros** ✓: se leen ✓ y no se tocan ✓. No tienen por qué vivir en lo mismo ✓.
+
+Así que la guía sale del markdown ✓ y se hace **una página** ✓ en `docs/guideline/` ✓, con su CSS ✓
+y su JS ✓:
+
+```
+docs/guideline/
+  index.html   ← la guía
+  guia.css     ← su estilo
+  guia.js      ← el índice y el «dónde estoy»
+  README.md    ← cómo se edita
+```
+
+Qué gana ✓:
+
+- **Saber dónde estás** ✓: un índice fijo ✓ que va marcando la entrada que estás leyendo ✓, y una
+  barra de progreso ✓.
+- **Sin nombres G1, G2** ✓: cada entrada se llama por lo que es ✓ y se ancla con su título ✓.
+- **Mover y editar** ✓: una entrada es un `<article>` ✓, se mueve ✓ y se edita ✓ sin renumerar nada ✓.
+- **El diagrama en HTML** ✓, sin mermaid ✓ ni CDN ✓: se abre sin red ✓.
+
+Y qué se acepta ✓:
+
+- **GitHub no lo renderiza** ✓: ahí un `.html` se ve como código ✓. La guía se lee en local ✓
+  (`npm run docs` ✓).
+- **Los ADR y el roadmap se quedan en markdown** ✓: se leen en GitHub ✓ y no cambian ✓.
 
 ## Consecuencias
 

@@ -23,6 +23,7 @@
     "pack:cli": "npm run web:build && npm run build:cli && node scripts/pack-cli.mjs",
     "publish:cli": "npm run web:build && npm run build:cli && npm publish apps/cli/dist --access public",
     "sync:action": "node scripts/sync-action.mjs",
+    "docs": "node scripts/docs.mjs",
     "web:dev": "npm run dev --workspace @codarch/web",
     "web:build": "npm run build --workspace @codarch/web",
     "web:preview": "npm run preview --workspace @codarch/web",

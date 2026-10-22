@@ -130,7 +130,7 @@ La documentación lo dice con esas palabras ✓: es la diferencia que más se co
 - **Que `list` arregle la desincronización.** Descartado ✓: borrar carpetas solo porque falta una línea
   es sorprendente ✗; avisar ✓ y dejar decidir ✓ es más barato ✓.
 - **Un registro o descarga desde una URL.** Fuera de alcance ✓: instalar es copiar una carpeta ✓;
-  distribuir tiene su propia decisión ✓ (la guía, G1 ✓).
+  distribuir tiene su propia decisión ✓ (la guía: «El registro público de plugins» ✓).
 
 ## Nota de estilo
 
