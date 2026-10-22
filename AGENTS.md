@@ -10,7 +10,7 @@ Monorepo core-first:
 
 ```
 packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
-apps/       cli · mcp · github-action · web (M5) · desktop (M7)
+apps/       cli · mcp · github-action · web (M5) · desktop (M7) · site (M23)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
 docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040) · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
@@ -51,6 +51,8 @@ npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
 npm run docs           # abre la guía (docs/guideline/index.html) en el navegador
 npm run web:dev        # app web + codarch serve automático, se para con Vite
+npm run site:dev       # la web del proyecto (docs/adr/… en el 5175)
+npm run site:build     # la web del proyecto sale en apps/site/dist
 npm run web:build      # build estático en apps/web/dist
 npm run serve -- .     # analiza, sirve la web y reanaliza al guardar (SSE)
 ```
@@ -128,6 +130,9 @@ también `npm run sync:action` y actualizar el repo público.
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
   la sección **Actualizaciones** en los ajustes de las dos apps. El escritorio se actualiza con
   las releases del repo (`CODARCH_UPDATE_REPO`).
+- M23 en curso: la web del proyecto (ADR 0034). `apps/site`: React + Vite + router, con
+  los tokens de la app; las páginas de docs **se generan del markdown del repo** (una sola verdad) y
+  la guía se publica tal cual. Se publica en GitHub Pages.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

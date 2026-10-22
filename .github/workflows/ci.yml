@@ -46,3 +46,8 @@ jobs:
       # Una versión para el producto: la de la raíz manda (ADR 0032).
       - name: Versiones
         run: node scripts/version.mjs
+
+      # La web se genera del markdown del repo (ADR 0034): si el markdown se
+      # rompe, la web también.
+      - name: La web
+        run: npm run site:build
