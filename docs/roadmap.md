@@ -83,6 +83,7 @@ flowchart TD
 | M19 | Los documentos, con iconos y diagramas | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
 | M20 | La guía, en HTML | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
 | M21 | Las versiones y las actualizaciones | en curso 🟡 | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md) |
+| M22 | El repo, con sus papeles | en curso 🟡 | [ADR 0033](adr/0031-0040/0033-abrir-el-repo.roadmap.md) |
 
 ## 📌 Cómo se lee esto
 

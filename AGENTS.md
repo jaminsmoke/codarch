@@ -127,6 +127,9 @@ también `npm run sync:action` y actualizar el repo público.
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
   la sección **Actualizaciones** en los ajustes de las dos apps. Falta el feed público del
   escritorio (`CODARCH_UPDATE_REPO`).
+- M22 en curso: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
+  dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
+  la nota de privacidad. Falta la revisión final, el ensayo y abrirlo.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

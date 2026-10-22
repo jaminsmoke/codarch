@@ -45,6 +45,7 @@ flowchart TD
 | [0030](0021-0030/0030-instalar-y-quitar.md) | Instalar y quitar: plugins y addons | 2026-10-22 | aceptado ✅ | M17 |
 | [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado ✅ | M18, M19, M20 |
 | [0032](0031-0040/0032-las-versiones-y-las-actualizaciones.md) | Las versiones y las actualizaciones | 2026-10-22 | aceptado ✅ | M21 |
+| [0033](0031-0040/0033-abrir-el-repo.md) | Abrir el repo: lo que hay que tener antes | 2026-10-22 | aceptado ✅ | M22 |
 
 ## 📌 Las carpetas
 

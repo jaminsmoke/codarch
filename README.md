@@ -636,3 +636,23 @@ Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo 
 
 [CodeCharta](https://github.com/MaibornWolff/codecharta) (BSD-3-Clause, MaibornWolff). Proyecto
 independiente, sin código derivado. Ver [ADR 0001](docs/adr/0001-0010/0001-clean-room-con-ccjson.md).
+
+## 🔒 Privacidad
+
+CodArch **no recoge nada** ✓: el análisis ✓, los snapshots ✓, los reportes ✓ y el historial ✓ se
+quedan en tu disco ✓, y nada se manda a ningún sitio ✓. Lo único que sale a la red ✓ es la
+comprobación de actualizaciones ✓ —a npm ✓ y a GitHub ✓— y solo cuando tú la pides ✓ (el botón
+**Comprobar ahora** ✓ de los ajustes ✓).
+
+El código manda su telemetría ✓ a ningún sitio ✓ porque no tiene dónde mandarla ✓.
+
+## 📄 Los papeles del repo
+
+| Fichero | Qué es |
+|---|---|
+| [`LICENSE`](LICENSE) | MIT ✓: el código ✓ es libre ✓ |
+| [`TRADEMARK.md`](TRADEMARK.md) | el nombre ✓ y el logotipo ✓ **no** se conceden ✓ |
+| [`NOTICE.md`](NOTICE.md) | los créditos ✓: CodeCharta ✓, tree-sitter ✓, las tipografías ✓ |
+| [`SECURITY.md`](SECURITY.md) | cómo se avisa de un fallo de seguridad ✓ |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | cómo se contribuye ✓ |
+| [`AGENTS.md`](AGENTS.md) | las reglas del repo ✓ |
