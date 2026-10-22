@@ -10,6 +10,7 @@ import {
 import path from "node:path";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { analyzeRepository } from "@codarch/parsers";
+import { repoAddons } from "@codarch/addons/node";
 import {
   chainsPayload,
   historyLocation,
@@ -272,7 +273,10 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
     files: result.files,
     edges: result.edges,
     warnings: result.warnings,
-    durationMs: Date.now() - started
+    durationMs: Date.now() - started,
+    // Los addons que el repo declara (ADR 0029): sus vistas guardadas se
+    // ofrecen en el mapa, sin leer nada más desde el renderer.
+    addons: repoAddons(root)
   };
 });
 

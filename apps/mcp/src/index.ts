@@ -16,6 +16,7 @@ export {
   explainModule,
   findHotspots,
   getArchitectureMap,
+  getProjectConfig,
   listViolations
 } from "./tools";
 export {
@@ -52,6 +53,7 @@ export type {
   ListViolationsInput,
   ListViolationsResult,
   MapNode,
+  ProjectConfigResult,
   ViolationStatusFilter
 } from "./tools";
 

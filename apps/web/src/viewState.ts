@@ -8,8 +8,10 @@
  *
  * Las claves son cortas y estables porque la URL se comparte y se pega en
  * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y
- * `report`.
+ * `report`. Una vista guardada de un addon usa las mismas claves (ADR 0029).
  */
+
+import type { AddonViewState } from "@codarch/addons";
 
 export interface ViewState {
   /** Métrica que decide el área del treemap. */
@@ -34,6 +36,14 @@ export interface SourceRequest {
   /** URL del reporte a cargar. */
   reportUrl: string | null;
 }
+
+/**
+ * El estado de una vista guardada (un addon, ADR 0029).
+ *
+ * Son las mismas claves cortas que la URL, sin la `?`: así una vista guardada y
+ * un enlace compartido dicen lo mismo y hablan un solo dialecto.
+ */
+export type SavedViewState = AddonViewState;
 
 const VIEW_KEYS = ["area", "color", "focus", "file", "tab", "symbol", "labels"] as const;
 const SOURCE_KEYS = ["src", "report"] as const;
@@ -81,6 +91,19 @@ export function parseSourceRequest(search: string): SourceRequest {
   return {
     snapshotUrl: readParam(params, "src"),
     reportUrl: readParam(params, "report")
+  };
+}
+
+/** Traduce una vista guardada al estado de vista de la app. */
+export function viewStateFromSaved(state: AddonViewState): ViewState {
+  return {
+    areaMetric: state.area ?? null,
+    colorMode: state.color ?? null,
+    focusPath: state.focus ?? null,
+    filePath: state.file ?? null,
+    tab: state.tab ?? null,
+    symbolName: state.symbol ?? null,
+    showLabels: state.labels ?? null
   };
 }
 

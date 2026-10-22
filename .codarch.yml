@@ -32,3 +32,9 @@ rules:
 plugins:
   - ejemplo
   - vista-3d
+
+# Los addons que este repo declara (ADR 0029): conocimiento, no código. El de
+# juguete trae el perfil «core no depende de apps» y la vista guardada de
+# packages/, que es también la prueba de que las apps lo leen.
+addons:
+  - ejemplo

@@ -3,6 +3,7 @@ import {
   buildSearch,
   parseSourceRequest,
   parseViewState,
+  viewStateFromSaved,
   type SourceRequest,
   type ViewState
 } from "../src/viewState";
@@ -103,5 +104,19 @@ describe("estado de vista en la URL", () => {
     const search = buildSearch(view, source);
     expect(parseViewState(search)).toEqual(view);
     expect(parseSourceRequest(search)).toEqual(source);
+  });
+
+  it("una vista guardada se traduce al mismo estado que la URL", () => {
+    expect(
+      viewStateFromSaved({ area: "rloc", color: "layer", focus: "src/app", labels: true })
+    ).toEqual({
+      areaMetric: "rloc",
+      colorMode: "layer",
+      focusPath: "src/app",
+      filePath: null,
+      tab: null,
+      symbolName: null,
+      showLabels: true
+    });
   });
 });

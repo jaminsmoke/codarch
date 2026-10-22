@@ -9,6 +9,7 @@ import {
   getArchitectureMap,
   getHistory,
   getMigrationPlan,
+  getProjectConfig,
   getSymbolChain,
   listViolations
 } from "./tools";
@@ -259,6 +260,18 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => getHistory(store, args))
+  );
+
+  server.registerTool(
+    "get_project_config",
+    {
+      title: "Configuración del proyecto",
+      description:
+        "Lee la configuración del repo (.codarch.yml) igual que el CLI: el perfil de dominio en uso, las capas con sus patrones, las reglas efectivas con su origen (config, profile o addon:<nombre>) y los addons declarados con sus perfiles y sus vistas guardadas. Es la contraparte del mapa: el snapshot dice cómo es el código y la configuración dice qué se espera de él.",
+      inputSchema: {},
+      annotations: READ_ONLY
+    },
+    () => invoke(() => getProjectConfig(store))
   );
 
   return server;

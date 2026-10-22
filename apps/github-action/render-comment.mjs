@@ -121,8 +121,10 @@ if (introducedViolations.length > 0) {
         : violation.severity === "warn"
           ? "⚠️"
           : "ℹ️";
+    // De dónde sale la regla (ADR 0029): el equipo, un perfil o un addon.
+    const origin = ruleOrigin(violation.source);
     lines.push(
-      `- ${icon} \`${escapeInline(violation.rule)}\`: ${escapeText(
+      `- ${icon} \`${escapeInline(violation.rule)}\`${origin}: ${escapeText(
         violation.message
       )}`
     );
@@ -222,6 +224,19 @@ process.stdout.write(`${lines.join("\n")}\n`);
 function signed(value) {
   if (!value) return "0";
   return value > 0 ? `+${value}` : String(value);
+}
+
+/**
+ * De dónde sale una regla, en corto: el equipo no se anota (es lo normal),
+ * un perfil del catálogo se dice y un addon se nombra (ADR 0029).
+ */
+function ruleOrigin(source) {
+  if (!source || source === "config") return "";
+  if (source === "profile") return " (del perfil)";
+  if (String(source).startsWith("addon:")) {
+    return ` (addon \`${escapeInline(String(source).slice("addon:".length))}\`)`;
+  }
+  return "";
 }
 
 function escapeInline(value) {

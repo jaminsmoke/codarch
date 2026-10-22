@@ -1,3 +1,5 @@
+import type { RepoAddon } from "@codarch/addons";
+
 export interface ViewPreferences {
   areaMetric: string | null;
   colorMode: string;
@@ -14,6 +16,11 @@ export interface SavedProject {
   report: unknown | null;
   label: string;
   reportLabel: string | null;
+  /**
+   * Los addons del proyecto (ADR 0029), para que sus vistas sigan ahí al
+   * reabrir la app sin volver a analizar la carpeta.
+   */
+  addons?: RepoAddon[];
 }
 
 const PREFERENCES_KEY = "codarch.preferences.v1";
@@ -112,7 +119,9 @@ export function readProject(
           : parsed.report,
       label: parsed.label,
       reportLabel:
-        typeof parsed.reportLabel === "string" ? parsed.reportLabel : null
+        typeof parsed.reportLabel === "string" ? parsed.reportLabel : null,
+      // Un proyecto guardado antes de los addons no los trae: no pasa nada.
+      addons: Array.isArray(parsed.addons) ? parsed.addons : []
     };
   } catch {
     storage.removeItem(PROJECT_KEY);

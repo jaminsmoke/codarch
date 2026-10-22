@@ -94,6 +94,29 @@ export interface Addon {
   views: AddonView[];
 }
 
+/**
+ * Un addon del repo, resumido para las apps.
+ *
+ * Es lo que la web y el escritorio necesitan para enseñar las vistas
+ * guardadas, sin cargar el addon entero.
+ */
+export interface RepoAddon {
+  name: string;
+  title: string;
+  version: string;
+  description: string | null;
+  profiles: Array<{ id: string; title: string }>;
+  rules: number;
+  views: AddonView[];
+}
+
+/** Los addons que el repo declara, con lo que aportan cada uno. */
+export interface RepoAddons {
+  addons: RepoAddon[];
+  /** Los addons que no se pudieron cargar, con su motivo. */
+  errors: string[];
+}
+
 /** Las piezas tal y como llegan del disco o de un JSON, sin validar. */
 export interface AddonPieces {
   manifest: unknown;

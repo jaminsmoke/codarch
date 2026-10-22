@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
+import type { RepoAddons } from "@codarch/addons";
 
 /**
  * Puente entre el renderer y el proceso principal.
@@ -18,6 +19,8 @@ export interface DesktopAnalysis {
   edges: number;
   warnings: string[];
   durationMs: number;
+  /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
+  addons: RepoAddons;
 }
 
 /** La línea del tiempo del repositorio analizado. */

@@ -6,7 +6,9 @@ import {
   addonError,
   parseAddon,
   parseAddonManifest,
-  type Addon
+  ruleConfigAddon,
+  type Addon,
+  type RepoAddons
 } from "./index";
 
 /**
@@ -19,6 +21,9 @@ import {
 
 /** La carpeta donde viven los addons de un repo. */
 export const ADDONS_DIR = "addons";
+
+/** Los nombres que puede tener el archivo de reglas del repo. */
+const CONFIG_FILES = [".codarch.yml", ".codarch.yaml"] as const;
 
 export interface AddonLoadResult {
   addons: Addon[];
@@ -80,6 +85,59 @@ export function loadAddon(dir: string): Addon {
     rules: readYamlPieces(dir, manifest.contributes.rules),
     views: readYamlPieces(dir, manifest.contributes.views)
   });
+}
+
+/**
+ * Los addons del repo tal y como los enseñan las apps y el servidor local.
+ *
+ * Solo van los que el repo **declara** en `.codarch.yml`: los que están en
+ * `addons/` sin declarar no afectan al análisis, así que no se ofrecen como
+ * vistas del proyecto.
+ */
+export function repoAddons(root: string): RepoAddons {
+  const loaded = loadAddons(root);
+  const declared = new Set(declaredAddons(root));
+
+  return {
+    addons: loaded.addons
+      .filter((addon) => declared.has(addon.manifest.name))
+      .map((addon) => ({
+        name: addon.manifest.name,
+        title: addon.manifest.title,
+        version: addon.manifest.version,
+        description: addon.manifest.description ?? null,
+        profiles: addon.profiles.map((profile) => ({
+          id: profile.id,
+          title: profile.title
+        })),
+        rules: ruleConfigAddon(addon).rules.length,
+        views: addon.views
+      })),
+    errors: loaded.errors.map((error) => error.message)
+  };
+}
+
+/** Los addons que declara el repo, en orden. */
+export function declaredAddons(root: string): string[] {
+  for (const name of CONFIG_FILES) {
+    const file = path.join(root, name);
+    if (!fs.existsSync(file)) continue;
+    let text: string;
+    try {
+      text = fs.readFileSync(file, "utf8");
+    } catch {
+      return [];
+    }
+    try {
+      const value = parseYaml(stripBom(text)) as { addons?: unknown } | null;
+      return Array.isArray(value?.addons)
+        ? value.addons.filter((entry): entry is string => typeof entry === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 /**

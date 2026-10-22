@@ -156,6 +156,23 @@ Lista las violaciones del reporte separando `introduced`, `existing` y `resolved
 Solo las violaciones `introduced` con severidad `error` bloquean el gate del diff; MCP las muestra
 todas para que el agente pueda explicar deuda previa sin confundirla con un fallo nuevo.
 
+### `get_project_config`
+
+La configuración del repo, leída igual que la lee el CLI: el `.codarch.yml` y los addons que declara
+(ADR 0029). Sin parámetros.
+
+- `file`: el archivo leído (`.codarch.yml` normalmente); `null` si no hay;
+- `profile`: el perfil de dominio que eligió el equipo, si lo hay;
+- `layers`: las capas efectivas con sus patrones glob;
+- `rules`: las reglas efectivas, cada una con su `source` (`config`, `profile` o
+  `addon:<nombre>`; manda el equipo);
+- `addons`: los addons declarados con sus perfiles y sus **vistas guardadas** (el mismo estado corto
+  que usa la URL de la app);
+- `errors`: los addons que no se pudieron cargar.
+
+Si el archivo declara un addon que no está en `addons/`, la herramienta no falla: devuelve lo que sí
+se pudo leer y lo explica en `reason`.
+
 ### `get_migration_plan`
 
 Plan de migración a otro lenguaje: cuánto queda, dónde y cómo ha cambiado.
@@ -212,7 +229,7 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 ## Comportamiento y límites
 
 - **Solo lectura.** No hay herramientas para analizar, escribir reglas, crear snapshots ni modificar
-  el repositorio.
+  el repositorio. Lee el snapshot, el reporte y, si existe, la configuración del repo.
 - **Sin red.** No consulta GitHub; para un PR, apunta a los artefactos que ya existen en disco.
 - **Sin prosa inventada.** El servidor devuelve JSON con los campos observados. El agente decide cómo
   explicarlo.
@@ -232,10 +249,10 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 apps/mcp/
 ├── bin/codarch-mcp.mjs   lanzador sin ruido de npm
 ├── src/store.ts          índice del snapshot/reporte, rutas, riesgo, ciclos, agregados
-├── src/tools.ts          las seis consultas
+├── src/tools.ts          las nueve consultas
 ├── src/server.ts         registro MCP y esquemas de entrada
 ├── src/index.ts          entrada stdio y opciones
-└── test/                 29 tests, incluido transporte en memoria
+└── test/                 34 tests, incluido transporte en memoria
 ```
 
 El servidor carga e indexa una vez; las llamadas trabajan en memoria. `npm test` cubre las

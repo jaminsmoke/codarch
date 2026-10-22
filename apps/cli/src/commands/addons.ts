@@ -8,7 +8,7 @@ import {
   ruleConfigAddon,
   type Addon
 } from "@codarch/addons";
-import { ADDONS_DIR, loadAddon, loadAddons } from "@codarch/addons/node";
+import { ADDONS_DIR, declaredAddons, loadAddon, loadAddons } from "@codarch/addons/node";
 
 /**
  * Los addons de un repo (ADR 0029).
@@ -49,7 +49,7 @@ export function runAddons(options: AddonsOptions): number {
 function listAddons(root: string, json: boolean): number {
   const loaded = loadAddons(root);
   const configFile = findConfig(root);
-  const declared = configFile ? readDeclared(configFile) : [];
+  const declared = declaredAddons(root);
 
   const groups = [
     ...loaded.addons.map((addon) => ({
@@ -254,11 +254,6 @@ function findConfig(root: string): string | null {
     if (fs.existsSync(full)) return full;
   }
   return null;
-}
-
-function readDeclared(file: string): string[] {
-  const doc = readDocument(file);
-  return doc.ok ? declaredIn(doc.doc) : [];
 }
 
 /** Los addons que declara un `.codarch.yml`, en orden. */

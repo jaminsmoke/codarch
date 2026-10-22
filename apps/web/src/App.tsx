@@ -23,6 +23,7 @@ import {
   type CcSymbol
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
+import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { SymbolChain, SymbolEvent, SymbolHeat } from "@codarch/schema/browser";
 import {
@@ -62,6 +63,7 @@ import {
   buildSearch,
   parseSourceRequest,
   parseViewState,
+  viewStateFromSaved,
   type SourceRequest,
   type ViewState as UrlViewState
 } from "./viewState";
@@ -181,6 +183,8 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   /** Los plugins: los compilados, los activados y sus módulos. */
   const plugins = usePlugins();
+  /** Los addons que el repo declara (solo con el servidor local). */
+  const [addons, setAddons] = useState<RepoAddon[]>([]);
   /** La vista del plugin abierta en el mapa central (null = el mapa). */
   const [pluginView, setPluginView] = useState<string | null>(null);
   /** El análisis en marcha, para poder cortarlo. */
@@ -193,6 +197,7 @@ export default function App() {
   const repositoryInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const openMenuRef = useRef<HTMLDetailsElement>(null);
+  const viewsMenuRef = useRef<HTMLDetailsElement>(null);
   const manualLoadRef = useRef(false);
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   if (preferencesRef.current === undefined) {
@@ -256,6 +261,12 @@ export default function App() {
   const hasChurn = useMemo(
     () => (stats ? stats.metricCoverage.some((entry) => entry.name === CHURN_METRIC) : false),
     [stats]
+  );
+
+  /** Los addons que traen vistas guardadas: los únicos que dan un menú. */
+  const addonsWithViews = useMemo(
+    () => addons.filter((addon) => addon.views.length > 0),
+    [addons]
   );
 
   const loadSnapshot = useCallback(
@@ -354,6 +365,19 @@ export default function App() {
     []
   );
 
+  /**
+   * Los addons que el repo declara (ADR 0029).
+   *
+   * Solo los cuenta el servidor local: en la demo y con un fichero suelto no
+   * hay repo del que sacarlos, así que no hay vistas guardadas que ofrecer.
+   */
+  const loadAddons = useCallback(async (): Promise<void> => {
+    const payload = (await fetchJson("data/addons.json")) as {
+      addons?: RepoAddon[];
+    } | null;
+    setAddons(Array.isArray(payload?.addons) ? payload.addons : []);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -425,6 +449,7 @@ export default function App() {
         }
         const servedReport = await fetchJson("data/report.json");
         if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
+        await loadAddons();
         return;
       }
 
@@ -469,7 +494,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [loadReport, loadSnapshot]);
+  }, [loadReport, loadSnapshot, loadAddons]);
 
   useEffect(() => {
     if (serverMode !== "live" || typeof EventSource === "undefined") return;
@@ -576,42 +601,49 @@ export default function App() {
   }, [view.model, selectIndex]);
 
   /**
-   * Aplica el estado de vista de la URL una sola vez, cuando ya hay modelo.
+   * Aplica un estado de vista al mapa.
    *
-   * Los parámetros que no encajan con el snapshot (métrica inexistente, carpeta
-   * que no está, fichero borrado) se ignoran en silencio: el enlace es una
-   * pista, no un contrato.
+   * Lo usan el enlace de la URL y las vistas guardadas de un addon (ADR 0029):
+   * los dos hablan el mismo dialecto. Los parámetros que no encajan con el
+   * snapshot (métrica inexistente, carpeta que no está, fichero borrado) se
+   * ignoran en silencio: es una pista, no un contrato.
    */
+  const applyWanted = useCallback(
+    (wanted: UrlViewState) => {
+      if (!view.model || !stats) return;
+      const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
+      if (wanted.areaMetric && coverage.has(wanted.areaMetric)) {
+        setAreaMetric(wanted.areaMetric);
+      }
+      if (wanted.colorMode && isValidColorMode(wanted.colorMode, coverage, migration)) {
+        setColorMode(wanted.colorMode);
+      }
+      if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
+        setFocusPath(wanted.focusPath);
+      }
+      if (wanted.filePath) {
+        const index = view.model.files.findIndex((file) => file.path === wanted.filePath);
+        if (index >= 0) selectIndex(index);
+      }
+      if (wanted.tab) setTab(wanted.tab);
+      if (wanted.showLabels !== null) setShowLabels(wanted.showLabels);
+      // El símbolo se abre después, cuando ya se puede pedir su cadena.
+      if (wanted.symbolName) {
+        void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
+      }
+    },
+    [view.model, stats, migration, selectIndex, openSymbolChain]
+  );
+
+  /** La URL decide la vista una sola vez, cuando ya hay modelo. */
   const [urlApplied, setUrlApplied] = useState(false);
+
   useEffect(() => {
     if (urlApplied || !view.model || !stats) return;
     const wanted = urlRef.current?.view;
-    if (!wanted) {
-      setUrlApplied(true);
-      return;
-    }
-    const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
-    if (wanted.areaMetric && coverage.has(wanted.areaMetric)) {
-      setAreaMetric(wanted.areaMetric);
-    }
-    if (wanted.colorMode && isValidColorMode(wanted.colorMode, coverage, migration)) {
-      setColorMode(wanted.colorMode);
-    }
-    if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
-      setFocusPath(wanted.focusPath);
-    }
-    if (wanted.filePath) {
-      const index = view.model.files.findIndex((file) => file.path === wanted.filePath);
-      if (index >= 0) selectIndex(index);
-    }
-    if (wanted.tab) setTab(wanted.tab);
-    if (wanted.showLabels !== null) setShowLabels(wanted.showLabels);
-    // El símbolo se abre después, cuando ya se puede pedir su cadena.
-    if (wanted.symbolName) {
-      void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
-    }
+    if (wanted) applyWanted(wanted);
     setUrlApplied(true);
-  }, [urlApplied, view.model, stats, migration, selectIndex, openSymbolChain]);
+  }, [urlApplied, view.model, stats, applyWanted]);
 
   // La URL refleja la vista actual: el enlace se puede compartir tal cual.
   useEffect(() => {
@@ -894,6 +926,15 @@ export default function App() {
     openMenuRef.current?.removeAttribute("open");
   }, []);
 
+  /** Aplica una vista guardada de un addon (ADR 0029). */
+  const applySavedView = useCallback(
+    (saved: SavedView) => {
+      viewsMenuRef.current?.removeAttribute("open");
+      applyWanted(viewStateFromSaved(saved.state));
+    },
+    [applyWanted]
+  );
+
   const resetReport = useCallback(() => {
     setReport(null);
     setReportSource(null);
@@ -1043,7 +1084,8 @@ export default function App() {
     const report = await fetchJson("data/report.json");
     if (report) loadReport(report, "servidor local", false);
     else resetReport();
-  }, [loadReport, loadSnapshot, resetReport]);
+    await loadAddons();
+  }, [loadReport, loadSnapshot, resetReport, loadAddons]);
 
   const selectFolder = useCallback(
     async (pathValue: string) => {
@@ -1281,6 +1323,30 @@ export default function App() {
           <button className="button ghost" type="button" onClick={reloadDemo}>
             Demo
           </button>
+          {addonsWithViews.length > 0 ? (
+            <details className="open-menu" ref={viewsMenuRef}>
+              <summary className="button ghost">Vistas</summary>
+              <div className="open-menu-panel">
+                {addonsWithViews.map((addon) => (
+                  <div key={addon.name} className="open-menu-group">
+                    <span className="open-menu-label" title={addon.description ?? addon.title}>
+                      {addon.title}
+                    </span>
+                    {addon.views.map((saved) => (
+                      <button
+                        key={`${addon.name}:${saved.id}`}
+                        type="button"
+                        title={saved.description ?? saved.title}
+                        onClick={() => applySavedView(saved)}
+                      >
+                        {saved.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
           <button
             className="button ghost"
             type="button"

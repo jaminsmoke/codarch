@@ -99,8 +99,9 @@ también `npm run sync:action` y actualizar el repo público.
 - M16 en curso: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas
   guardadas) que se instala copiando una carpeta y viaja con el repo. Un addon **no** aporta código
   ni lentes: el checksum no cambia. Hecho: `@codarch/addons`, `addons:` en `.codarch.yml`,
-  `codarch addons list|add|remove` y el diff aplicando sus reglas. Faltan las vistas en las apps y
-  que el MCP lea la configuración.
+  `codarch addons list|add|remove`, el diff aplicando sus reglas (con su `source` en el reporte y en
+  el PR), el menú **Vistas** de las dos apps y `get_project_config` en el MCP. Falta que el store de
+  los ajustes los enseñe en modo lectura.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

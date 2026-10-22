@@ -171,12 +171,14 @@ Con 200 cajas no se sabe cuál es cuál ✓.
 
 **Veredicto** ✓: en la guía del plugin ✓ ✓.
 
-### 4.9 Las reglas del plugin no llegan al MCP ✗
+### 4.9 Las reglas del addon no llegan al MCP ✓
 
-Un plugin puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero el MCP ✓ no las ve ✗
+Un addon puede aportar reglas ✓ (declarativas ✓) y la app las ve ✓, pero el MCP ✓ no las veía ✗
 porque lee el snapshot ✓ y las reglas viven en la configuración ✓.
 
-**Veredicto** ✓: mirar ✓. El MCP debería leer la configuración ✓ como hace el CLI ✓ ✓.
+**Veredicto** ✓: arreglado ✓ ✓. El MCP lee la configuración ✓ como hace el CLI ✓: `get_project_config`
+devuelve el perfil ✓, las capas ✓, las reglas con su origen ✓ (`config`, `profile` o `addon:<nombre>`)
+y los addons declarados con sus vistas guardadas ✓.
 
 ---
 

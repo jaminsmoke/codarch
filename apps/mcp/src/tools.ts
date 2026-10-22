@@ -12,8 +12,16 @@ import {
   type HistoryIndex
 } from "@codarch/schema";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { symbolRanking, symbolsOf } from "@codarch/schema";
+import {
+  ConfigError,
+  loadRuleConfig,
+  type LayerConfig,
+  type RuleConfigEntry
+} from "@codarch/metrics";
+import { ruleConfigAddon, type RepoAddon } from "@codarch/addons";
+import { loadAddons, repoAddons } from "@codarch/addons/node";
 import {
   ArchitectureStore,
   McpDataError,
@@ -572,6 +580,91 @@ export function getHistory(
       reason: `no se pudo leer la foto: ${(cause as Error).message}`
     };
   }
+}
+
+/**
+ * La configuración del repo, como la lee el CLI (la guía, §4.9).
+ *
+ * Responde a "¿qué perfiles, reglas y addons rigen este proyecto?" sin abrir
+ * ficheros a mano. Es la otra mitad del mapa: el snapshot dice cómo es el
+ * código y la configuración dice qué se espera de él.
+ */
+export interface ProjectConfigResult {
+  available: boolean;
+  /** El archivo leído, sin la ruta: `.codarch.yml` normalmente. */
+  file: string | null;
+  /** El perfil del catálogo que el equipo eligió, si lo hay. */
+  profile: string | null;
+  layers: LayerConfig[];
+  /** Las reglas efectivas; su `source` dice de dónde sale cada una. */
+  rules: RuleConfigEntry[];
+  /** Los addons declarados, con sus perfiles y sus vistas guardadas. */
+  addons: RepoAddon[];
+  /** Los addons que no se pudieron cargar, con su motivo. */
+  errors: string[];
+  reason?: string;
+}
+
+export function getProjectConfig(store: ArchitectureStore): ProjectConfigResult {
+  const loaded = loadAddons(store.root);
+  const summary = repoAddons(store.root);
+  const errors = [...summary.errors];
+  const file = configFile(store.root);
+
+  if (!file) {
+    return {
+      available: false,
+      file: null,
+      profile: null,
+      layers: [],
+      rules: [],
+      addons: [],
+      errors,
+      reason:
+        "no hay .codarch.yml en el repo: no hay perfiles, reglas ni addons que enseñar"
+    };
+  }
+
+  try {
+    // Igual que `codarch diff`: el archivo dice qué addons usa y sus reglas
+    // entran con `source: "addon:<nombre>"` (ADR 0029).
+    const config = loadRuleConfig(file, loaded.addons.map(ruleConfigAddon));
+    return {
+      available: true,
+      file: basename(file),
+      profile: config.profile,
+      layers: config.layers,
+      rules: config.rules,
+      addons: summary.addons,
+      errors
+    };
+  } catch (error) {
+    if (!(error instanceof ConfigError)) throw error;
+    return {
+      available: true,
+      file: basename(file),
+      profile: null,
+      layers: [],
+      rules: [],
+      addons: summary.addons,
+      errors,
+      reason: error.message
+    };
+  }
+}
+
+/** El `.codarch.yml` del repo, si lo hay. */
+function configFile(root: string): string | null {
+  for (const name of [".codarch.yml", ".codarch.yaml"]) {
+    const candidate = join(root, name);
+    try {
+      readFileSync(candidate);
+      return candidate;
+    } catch {
+      // Se prueba el siguiente.
+    }
+  }
+  return null;
 }
 
 /**

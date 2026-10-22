@@ -108,9 +108,12 @@ export const SNAPSHOT: CcJson = {
   }
 };
 
-export function makeStore(report: DiffReport | null = makeReport()): ArchitectureStore {
+export function makeStore(
+  report: DiffReport | null = makeReport(),
+  root = "C:/repo"
+): ArchitectureStore {
   return new ArchitectureStore(parseCcJson(SNAPSHOT), {
-    root: "C:/repo",
+    root,
     report
   });
 }

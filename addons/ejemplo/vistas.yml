@@ -1,9 +1,9 @@
 # Una vista guardada: el mismo estado que va en la URL (ADR 0018), con las
 # mismas claves cortas (ADR 0029).
-- id: capas
-  title: Las capas
-  description: El mapa por capas, con el área en rloc y los nombres puestos.
+- id: paquetes
+  title: Los paquetes
+  description: El mapa por rloc, dentro de packages/ y con los nombres puestos.
   state:
-    color: layer
     area: rloc
+    focus: packages
     labels: true

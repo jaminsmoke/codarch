@@ -289,6 +289,26 @@ button {
   cursor: not-allowed;
 }
 
+/* Un grupo del menú: el addon y, debajo, sus vistas guardadas. */
+.open-menu-group {
+  display: grid;
+  padding: 2px 0;
+}
+
+.open-menu-group + .open-menu-group {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.open-menu-label {
+  padding: 4px 10px 2px;
+  color: var(--muted);
+  font: 600 9px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .live-row {
   display: flex;
   align-items: center;

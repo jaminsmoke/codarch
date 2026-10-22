@@ -128,6 +128,7 @@ const report = {
         {
           rule: "domain-no-infra",
           severity: "error",
+          source: "addon:ejemplo",
           message: "src/domain/a.ts no puede depender de src/infra/b.ts"
         }
       ]
@@ -185,6 +186,7 @@ try {
     "Ciclos nuevos",
     "Hotspots",
     "Violaciones nuevas",
+    "addon `ejemplo`",
     "Migración",
     "deuda 10 → 14",
     "base-checksum",

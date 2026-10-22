@@ -21,6 +21,7 @@ import {
   type CcSymbol
 } from "@codarch/schema/browser";
 import { parseReport, type DiffReport } from "@codarch/metrics/browser";
+import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type {
   SymbolChain,
@@ -165,11 +166,14 @@ export default function App() {
   const [showLabels, setShowLabels] = useState(true);
   /** Los plugins: los compilados, los activados y sus módulos. */
   const plugins = usePlugins();
+  /** Los addons que el repo analizado declara (ADR 0029). */
+  const [addons, setAddons] = useState<RepoAddon[]>([]);
   /** La vista del plugin abierta en el mapa central (null = el mapa). */
   const [pluginView, setPluginView] = useState<string | null>(null);
   /** La línea del tiempo del repositorio, si el proceso principal la tiene. */
   const [history, setHistory] = useState<HistoryEntry[] | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const viewsMenuRef = useRef<HTMLDetailsElement>(null);
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   if (preferencesRef.current === undefined) {
     preferencesRef.current = readPreferences();
@@ -349,6 +353,7 @@ export default function App() {
     // El escritorio no tiene demo ni servidor: se restaura el último proyecto.
     const saved = readProject();
     if (saved && loadSnapshot(saved.snapshot, saved.label)) {
+      setAddons(saved.addons ?? []);
       if (saved.report) {
         loadReport(saved.report, saved.reportLabel ?? "report.json", false);
       }
@@ -429,6 +434,45 @@ export default function App() {
     [view.model, selectIndex]
   );
 
+  /**
+   * Aplica una vista guardada de un addon (ADR 0029).
+   *
+   * Usa las mismas claves cortas que la URL de la web. Lo que no encaja con el
+   * snapshot (una métrica que no está, una carpeta o un fichero que ya no
+   * existen) se ignora en silencio: es una pista, no un contrato.
+   */
+  const applySavedView = useCallback(
+    (saved: SavedView) => {
+      viewsMenuRef.current?.removeAttribute("open");
+      const wanted = saved.state;
+      if (!view.model || !stats) return;
+      const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
+      if (wanted.area && coverage.has(wanted.area)) setAreaMetric(wanted.area);
+      if (
+        wanted.color &&
+        (wanted.color === "risk" ||
+          wanted.color === "structure" ||
+          (wanted.color === "status" && Boolean(migration)) ||
+          coverage.has(wanted.color))
+      ) {
+        setColorMode(wanted.color);
+      }
+      if (wanted.focus && findFolder(view.model.roots, wanted.focus)) {
+        setFocusPath(wanted.focus);
+      }
+      if (wanted.file) {
+        const index = view.model.files.findIndex((file) => file.path === wanted.file);
+        if (index >= 0) selectIndex(index);
+      }
+      if (wanted.tab) setTab(wanted.tab);
+      if (wanted.labels !== undefined) setShowLabels(wanted.labels);
+      if (wanted.symbol) {
+        void openSymbolChain(wanted.symbol, wanted.file ?? "");
+      }
+    },
+    [view.model, stats, migration, selectIndex, openSymbolChain]
+  );
+
   useEffect(() => {
     const files = view.model?.files;
     if (!files) {
@@ -481,6 +525,12 @@ export default function App() {
       .sort((left, right) => left.localeCompare(right));
     return [...preferred, ...rest];
   }, [stats]);
+
+  /** Los addons que traen vistas guardadas: los únicos que dan un menú. */
+  const addonsWithViews = useMemo(
+    () => addons.filter((addon) => addon.views.length > 0),
+    [addons]
+  );
 
   const descriptors = cc?.lenses?.metrics?.attributeDescriptors as
     | Record<string, { title?: string }>
@@ -612,12 +662,14 @@ export default function App() {
     return api.onTarget((target) => {
       if (target.kind === "snapshot") {
         if (loadSnapshot(target.snapshot, target.label)) {
+          setAddons([]);
           clearProject();
           writeProject({
             snapshot: target.snapshot,
             report: null,
             label: target.label,
-            reportLabel: null
+            reportLabel: null,
+            addons: []
           });
           resetReport();
         }
@@ -641,12 +693,14 @@ export default function App() {
     try {
       const result = await desktop().analyze(root);
       if (loadSnapshot(result.snapshot, root)) {
+        setAddons(result.addons.addons);
         clearProject();
         writeProject({
           snapshot: result.snapshot,
           report: null,
           label: root,
-          reportLabel: null
+          reportLabel: null,
+          addons: result.addons.addons
         });
         resetReport();
       }
@@ -667,12 +721,15 @@ export default function App() {
     try {
       const raw = await desktop().readJson(file);
       if (loadSnapshot(raw, file)) {
+        // Un cc.json suelto no tiene repo del que sacar addons ✓.
+        setAddons([]);
         clearProject();
         writeProject({
           snapshot: raw,
           report: null,
           label: file,
-          reportLabel: null
+          reportLabel: null,
+          addons: []
         });
         resetReport();
       }
@@ -741,6 +798,30 @@ export default function App() {
           >
             Abrir report.json
           </button>
+          {addonsWithViews.length > 0 ? (
+            <details className="open-menu" ref={viewsMenuRef}>
+              <summary className="button ghost">Vistas</summary>
+              <div className="open-menu-panel">
+                {addonsWithViews.map((addon) => (
+                  <div key={addon.name} className="open-menu-group">
+                    <span className="open-menu-label" title={addon.description ?? addon.title}>
+                      {addon.title}
+                    </span>
+                    {addon.views.map((saved) => (
+                      <button
+                        key={`${addon.name}:${saved.id}`}
+                        type="button"
+                        title={saved.description ?? saved.title}
+                        onClick={() => applySavedView(saved)}
+                      >
+                        {saved.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
           <button
             className="button ghost icon-button"
             type="button"

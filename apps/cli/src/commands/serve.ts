@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeRepository } from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
+import { repoAddons } from "@codarch/addons/node";
 import { chainsPayload } from "./chains-payload";
 import { VERSION } from "../version";
 
@@ -283,6 +284,13 @@ export function runServe(options: ServeOptions): number {
 
       if (pathname === "/data/history.json") {
         sendJson(response, readHistoryIndex(state.root));
+        return;
+      }
+
+      if (pathname === "/data/addons.json") {
+        // Los addons que el repo declara, con sus vistas guardadas: la app los
+        // enseña tal cual, sin leer ficheros (ADR 0029) ✓.
+        sendJson(response, repoAddons(state.root));
         return;
       }
 

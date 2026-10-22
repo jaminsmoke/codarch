@@ -9,7 +9,7 @@ import {
   parseAddonView,
   ruleConfigAddon
 } from "../src/index";
-import { loadAddons } from "../src/node";
+import { declaredAddons, loadAddons, repoAddons } from "../src/node";
 import { ConfigError, parseRuleConfig } from "@codarch/metrics";
 
 const MANIFEST = {
@@ -274,5 +274,64 @@ rules:
     });
     const loaded = loadAddons(root);
     expect(loaded.errors[0]?.message).toMatch(/deben coincidir/);
+  });
+
+  it("el repo dice qué addons declara y solo esos se ofrecen a las apps", () => {
+    const root = repo({
+      ".codarch.yml": "version: 1\n\naddons:\n  - demo\n",
+      "addons/demo/addon.json": JSON.stringify({
+        name: "demo",
+        version: "0.1.0",
+        title: "Demo",
+        contributes: { profiles: ["profile.yml"], views: ["views.yml"] }
+      }),
+      "addons/demo/profile.yml": `id: demo-capas
+title: Las capas
+layers:
+  - name: domain
+    patterns: ["src/domain/**"]
+`,
+      "addons/demo/views.yml": `- id: capas
+  title: Las capas
+  state:
+    focus: src/domain
+    labels: true
+`,
+      "addons/suelto/addon.json": JSON.stringify({
+        name: "suelto",
+        version: "0.1.0",
+        title: "Suelto"
+      })
+    });
+
+    expect(declaredAddons(root)).toEqual(["demo"]);
+
+    const summary = repoAddons(root);
+    expect(summary.errors).toEqual([]);
+    expect(summary.addons.map((addon) => addon.name)).toEqual(["demo"]);
+    expect(summary.addons[0]?.profiles).toEqual([
+      { id: "demo-capas", title: "Las capas" }
+    ]);
+    expect(summary.addons[0]?.views[0]?.state).toEqual({
+      area: undefined,
+      color: undefined,
+      focus: "src/domain",
+      file: undefined,
+      tab: undefined,
+      symbol: undefined,
+      labels: true
+    });
+  });
+
+  it("sin .codarch.yml no se declara nada aunque haya addons", () => {
+    const root = repo({
+      "addons/demo/addon.json": JSON.stringify({
+        name: "demo",
+        version: "0.1.0",
+        title: "Demo"
+      })
+    });
+    expect(declaredAddons(root)).toEqual([]);
+    expect(repoAddons(root).addons).toEqual([]);
   });
 });

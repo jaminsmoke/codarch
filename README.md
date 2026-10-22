@@ -433,8 +433,10 @@ codarch addons remove nestjs   # lo quita del repo y de la declaración
 ```
 
 El repo declara los que usa (`.codarch.yml`: `addons: [...]` ✓) y `codarch diff` aplica sus reglas
-✓, cada una con su origen (`addon:nestjs` ✓). `addons/ejemplo/` es el de juguete: dos capas ✓, una
-prohibición ✓ y una vista ✓. Las **vistas guardadas** todavía no se aplican en las apps ✗ (M16).
+✓, cada una con su origen (`addon:nestjs` ✓) que se ve en el reporte ✓ y en el comentario del PR ✓.
+Las dos apps y el MCP leen la configuración ✓: el menú **Vistas** del mapa aplica las **vistas
+guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓. `addons/ejemplo/` es el de
+juguete: dos capas ✓, una prohibición ✓ y una vista ✓.
 
 ### Los ajustes
 

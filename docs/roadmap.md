@@ -343,7 +343,7 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 ## M16 — Los addons
 
 **Estado:** en curso. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
-**datos, no código**. La mitad del CLI está hecha.
+**datos, no código**. El CLI, las dos apps y el MCP ya los leen.
 
 - [x] `@codarch/addons`: el manifiesto, la validación (una clave desconocida es error ✓) y la
   fusión con la configuración. Sin código que ejecutar.
@@ -353,10 +353,13 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
   regla dice de dónde sale (`source: "addon:<nombre>"`).
 - [x] `codarch diff` los carga y aplica sus reglas; la acción también, porque ejecuta el CLI.
 - [x] El checksum no cambia: un addon vive en la capa de la configuración, no en la del snapshot.
-- [ ] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
-  guardadas**; el MCP lee la configuración para verlos (la guía, §4.9).
-- [ ] **La prueba**: `addons/ejemplo/` ya está en el repo y el CLI lo enseña; falta verlo en el
-  mapa, en el reporte y en el PR.
+- [x] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
+  guardadas**; el MCP lee la configuración para verlos (la guía, §4.9) ✓.
+- [x] **La prueba**: `addons/ejemplo/` está en el repo y se ve en el mapa (su vista guardada
+  «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el comentario dice
+  `addon \`ejemplo\``).
+- [ ] El store de los ajustes enseña los addons **del proyecto** en modo lectura (ADR 0029): son del
+  repo, no se activan ni se desactivan como los plugins.
 
 ## Después
 
