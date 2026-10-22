@@ -150,7 +150,7 @@ export default function LineaTiempo() {
                     ease: [0.22, 0.61, 0.36, 1]
                   }}
                   className={clsx(
-                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase transition-colors duration-300 sm:text-[0.75rem]",
+                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase transition-colors duration-300 outline-offset-2 outline-cobalt focus-visible:outline-2 sm:text-[0.75rem]",
                     esActivo
                       ? clsx(
                           "border-transparent",
@@ -226,7 +226,7 @@ export default function LineaTiempo() {
             onClick={() => ir(indice - 1)}
             disabled={indice <= 0}
             aria-label="El paso anterior"
-            className="rounded-md p-1 text-muted transition-colors hover:bg-ink/8 hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+            className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronLeft
               aria-hidden="true"
@@ -239,7 +239,7 @@ export default function LineaTiempo() {
             onClick={() => ir(indice + 1)}
             disabled={indice >= pasos.length - 1}
             aria-label="El paso siguiente"
-            className="rounded-md p-1 text-muted transition-colors hover:bg-ink/8 hover:text-ink disabled:pointer-events-none disabled:opacity-30"
+            className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-30"
           >
             <ChevronRight
               aria-hidden="true"
