@@ -4,23 +4,27 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parse } from "yaml";
+import { compareVersions } from "@codarch/versions";
 
 const root = path.resolve(import.meta.dirname, "..");
 const actionPath = path.join(root, "apps", "github-action", "action.yml");
 const workflowPath = path.join(root, ".github", "workflows", "codarch.yml");
 
+// Una versión con prerelease (alpha) también es semver.
+const SEMVER = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
+
 const action = parse(fs.readFileSync(actionPath, "utf8"));
 const cliVersion = JSON.parse(
   fs.readFileSync(path.join(root, "apps", "cli", "package.json"), "utf8")
 ).version;
-assert.match(cliVersion, /^\d+\.\d+\.\d+$/, "la versión del CLI no es semver");
+assert.match(cliVersion, SEMVER, "la versión del CLI no es semver");
 assert.equal(action.runs?.using, "composite");
 assert.equal(action.inputs?.["fail-on"]?.default, "none");
 
 const actionVersion = action.inputs?.version?.default;
 assert.match(
   actionVersion ?? "",
-  /^\d+\.\d+\.\d+$/,
+  SEMVER,
   "la versión por defecto de la acción no es semver"
 );
 // La acción no puede instalar una versión que todavía no está en npm.
@@ -201,20 +205,6 @@ try {
 console.log("ok · acción, workflow y comentario validados");
 
 /** Compara dos versiones semver `x.y.z`. */
-function compareVersions(left, right) {
-  const parse = (value) =>
-    String(value)
-      .split(".")
-      .map((part) => Number.parseInt(part, 10) || 0);
-  const a = parse(left);
-  const b = parse(right);
-  for (let index = 0; index < 3; index += 1) {
-    const diff = (a[index] ?? 0) - (b[index] ?? 0);
-    if (diff !== 0) return diff > 0 ? 1 : -1;
-  }
-  return 0;
-}
-
 /** Última versión publicada en npm, o `null` si no se puede consultar. */
 function publishedLatest() {
   try {

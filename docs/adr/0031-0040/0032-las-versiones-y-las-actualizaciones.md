@@ -75,12 +75,29 @@ configurable ✓ (`CODARCH_UPDATE_REPO` ✓) ✓.
 ✓ y dice si hay algo nuevo ✓ y con qué comando se trae ✓. No instala nada ✓: actualizar un
 instalador global desde dentro de sí mismo ✓ es pedir problemas ✓.
 
+### 6. Alpha: hasta que el producto esté maduro, la versión lo dice
+
+El producto **funciona** ✓ pero todavía no está maduro ✓: se le cambian las cosas ✓, la app de
+escritorio es una copia ✓ de la web ✓, y el modelo —que sí se promete ✓— está en 2.x ✓.
+
+Mientras sea alpha ✓, la versión lleva prerelease ✓ (`0.3.0-alpha.1` ✓):
+
+- En **npm** ✓, la alpha va a la etiqueta **`next`** ✓: `npm run publish:cli` ✓ lo decide solo ✓
+  según la versión ✓. `latest` ✓ se queda con la última versión normal ✓, para que nadie se instale
+  un alpha sin querer ✓.
+- El **README** ✓ lo dice arriba ✓, en un aviso ✓: la funcionalidad está ✓, el producto no ✓, y lo
+  que **sí** es estable ✓ es el modelo `cc.json` ✓ y su checksum ✓.
+- La **app de escritorio** ✓ se etiqueta igual ✓ (`desktop-v0.3.0-alpha.1` ✓).
+
+Y el día que el producto esté maduro ✓, la versión deja de llevar prerelease ✓ y vuelve a `latest` ✓
+sin tocar nada más ✓.
+
 ## Consecuencias
 
 - El CLI gana `codarch version` ✓ (con `--check` ✓) y las apps ganan la sección **Actualizaciones** ✓.
 - `@codarch/versions` ✓ entra en el core ✓, con sus tests ✓: comparar ✓ y preguntar ✓ con un `fetch`
   de mentira ✓.
-- `npm run version:<x>` ✓ propaga la versión ✓ y el CI la comprueba ✓.
+- `npm run version -- <x>` ✓ propaga la versión ✓ y el CI la comprueba ✓.
 - El feed del escritorio queda **configurable** ✓, para poder apuntarlo al repo público ✓ cuando
   exista ✓.
 - La web **no** se actualiza sola ✓: la sirve el CLI ✓, así que su versión es la del CLI ✓ y lo que

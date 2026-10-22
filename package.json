@@ -1,7 +1,7 @@
 {
   "name": "codarch",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0-alpha.1",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -21,7 +21,7 @@
     "bench:diff": "tsx scripts/bench-diff.ts",
     "build:cli": "node scripts/build-cli.mjs",
     "pack:cli": "npm run web:build && npm run build:cli && node scripts/pack-cli.mjs",
-    "publish:cli": "npm run web:build && npm run build:cli && npm publish apps/cli/dist --access public",
+    "publish:cli": "npm run web:build && npm run build:cli && node scripts/publish-cli.mjs",
     "sync:action": "node scripts/sync-action.mjs",
     "docs": "node scripts/docs.mjs",
     "version": "node scripts/version.mjs",

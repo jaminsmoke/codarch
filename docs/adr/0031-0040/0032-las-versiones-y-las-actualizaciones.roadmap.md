@@ -25,6 +25,9 @@ público ✓ del escritorio ✓.
 - [ ] **M21.5** El escritorio ✓: comprobar las releases ✓ ✓ y abrir la release ✓ para descargar el
   instalador ✓. El feed es configurable ✓ (`CODARCH_UPDATE_REPO` ✓) ✓ y apunta al repo público ✓,
   que todavía no existe ✓: sin él, la comprobación no encuentra nada ✓.
+- [x] **M21.6** **Alpha** ✓: la versión lleva prerelease ✓ (`0.3.0-alpha.1` ✓) ✓, en npm va a la
+  etiqueta `next` ✓ (`npm run publish:cli` ✓ lo decide ✓) ✓, el README ✓ lo dice arriba ✓ y el
+  escritorio ✓ se etiqueta igual ✓.
 
 ## Decisiones relacionadas
 

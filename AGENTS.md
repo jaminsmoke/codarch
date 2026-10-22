@@ -75,10 +75,11 @@ también `npm run sync:action` y actualizar el repo público.
 7. **Acción.** La fuente es `apps/github-action`. El repo público
    [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action) se genera con
    `npm run sync:action`; no editar allí. Tras sincronizar, mover el tag mayor `v1`.
-8. **Release del CLI.** Subir `apps/cli/package.json`, `npm run web:build`, `npm run build:cli`,
-   `npm run pack:cli`, probar el tarball en un proyecto limpio,
-   `npm publish apps/cli/dist --access public` (requiere OTP), actualizar el input `version` de la
-   acción, sincronizar y mover `v1`.
+8. **Release del CLI.** Subir la versión ✓ (`npm run version -- <x>` ✓ ✓), `npm run web:build` ✓,
+   `npm run build:cli` ✓, `npm run pack:cli` ✓, probar el tarball en un proyecto limpio ✓,
+   `npm run publish:cli` ✓ (la etiqueta la decide la versión ✓: alpha → `next` ✓, estable →
+   `latest` ✓ ✓; requiere OTP ✓), actualizar el input `version` de la acción ✓, sincronizar ✓ y
+   mover `v1` ✓.
 
 ## Estado y siguiente
 
