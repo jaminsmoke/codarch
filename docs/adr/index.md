@@ -46,6 +46,8 @@ flowchart TD
 | [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado ✅ | M18, M19, M20 |
 | [0032](0031-0040/0032-las-versiones-y-las-actualizaciones.md) | Las versiones y las actualizaciones | 2026-10-22 | aceptado ✅ | M21 |
 | [0033](0031-0040/0033-abrir-el-repo.md) | Abrir el repo: lo que hay que tener antes | 2026-10-22 | aceptado ✅ | M22 |
+| [0034](0031-0040/0034-la-web-del-proyecto.md) | La web del proyecto | 2026-10-22 | aceptado ✅ | M23 |
+| [0035](0031-0040/0035-la-guia-como-changelog.md) | La guía se lee como un changelog | 2026-10-22 | aceptado ✅ | M23 |
 
 ## 📌 Las carpetas
 
@@ -54,4 +56,4 @@ Van por bloques de diez ✓: el número ya dice cuándo se decidió ✓ y el tem
 - **0001-0010**: 0001, 0002, 0003, 0004, 0005, 0006, 0007, 0008, 0009, 0010
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
-- **0031-0040**: 0031
+- **0031-0040**: 0031, 0032, 0033, 0034, 0035
