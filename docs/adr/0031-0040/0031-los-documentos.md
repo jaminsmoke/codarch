@@ -1,6 +1,6 @@
 # ADR 0031 — Los documentos: cada decisión con su hoja de ruta
 
-**Estado:** aceptado · **Fecha:** 2026-10-22
+**Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 
 ## Contexto
 
@@ -59,6 +59,33 @@ fase vive en la hoja de la dueña ✓; las demás la enlazan ✓. Así se sabe d
 Cada idea tiene **fecha** ✓ e **identificador estable** ✓ (`G1` ✓, `G2` ✓…): el identificador no
 cambia ✓ aunque la idea se mueva de sitio ✓ o se inserte otra en medio ✓. El registro va por orden
 cronológico ✓, no por número de sección ✓.
+
+### 6. Los documentos llevan iconos y diagramas
+
+Un markdown plano no dice de un vistazo **qué tipo de cosa** es cada bloque ✓. Los documentos llevan
+un set **pequeño** de iconos ✓, con su **leyenda** ✓, y un diagrama ✓ donde el diagrama dice algo
+que el texto no dice de un vistazo ✓.
+
+Los iconos son de **categoría** ✓ (qué es esto ✓) y de **estado** ✓ (cómo está ✓). Los ✓ y ✗ que ya
+había ✓ se quedan con su significado ✓ —hecho ✓ y no hecho ✓— y no se mezclan ✓.
+
+| Icono | Qué significa |
+|---|---|
+| 🧭 | una **decisión** ✓ (un ADR ✓) |
+| 🗺️ | una **hoja de ruta** ✓ |
+| 🧪 | una **idea** ✓ (una entrada de la guía ✓) |
+| ⚖️ | un **veredicto** ✓ |
+| ✅ | **hecho** ✓ o **cerrada** ✓ |
+| 🟡 | **en curso** ✓ |
+| ⬜ | **sin empezar** ✓ |
+| 🔧 | un **arreglo** ✓ (mejora sin fase ✓) |
+| ⏳ | **esperar** ✓ |
+
+Y **mermaid** ✓ en cuatro sitios ✓, donde el dibujo ahorra un párrafo ✓: el flujo de una idea ✓, la
+estructura de los documentos ✓, el reparto de las fases ✓ y el camino del repo al producto ✓.
+
+Un set pequeño ✓ y con leyenda ✓: más iconos que eso serían ruido ✓, y sin leyenda serían un
+jeroglífico ✓.
 
 ## Consecuencias
 

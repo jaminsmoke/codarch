@@ -19,6 +19,11 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ## Idioma y estilo
 
 - Documentación, UI y mensajes de producto: español.
+- Los documentos llevan un set **pequeño** de iconos ✓, con la leyenda en la guía ✓ y aquí ✓:
+  🧭 decisión ✓ · 🗺️ hoja de ruta ✓ · 🧪 idea ✓ · ⚖️ veredicto ✓ · ✅ hecho ✓ o cerrada ✓ ·
+  🟡 en curso ✓ · ⬜ sin empezar ✓ · 🔧 arreglo ✓ · ⏳ esperar ✓. Los ✓ y ✗ siguen significando
+  **hecho / no hecho** ✓: no se mezclan con los iconos ✓.
+- Mermaid ✓ cuando el diagrama diga algo que el texto no dice de un vistazo ✓.
 - Código, nombres de API, tests y commits: inglés técnico, commits convencionales (`feat:`, `fix:`,
   `docs:`, `chore:`).
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
