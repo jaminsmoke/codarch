@@ -27,5 +27,6 @@ Una idea es una sección `##` ✅ ✅ con su línea de metadatos ✅ ✅ debajo:
 
 ## Los enlaces
 
-Los enlaces a los documentos ✅ ✅ (`../../adr/...` ✅ ✅) salen hacia el repo ✅ ✅ ✅, que es donde
-están ✅ ✅ ✅.
+Los enlaces a los documentos ✅ ✅ (`../../adr/...` ✅ ✅) se quedan en la web ✅ ✅, en la página del
+documento ✅ ✅ ✅; lo que no es un documento ✅ ✅ (una imagen ✅ ✅, un HTML ✅ ✅) sale hacia el repo
+✅ ✅ ✅.

@@ -28,12 +28,11 @@ Cada página de documentación ✓ sale del markdown del repo ✓ ✓, leído **
 `import.meta.glob` ✓ ✅) y renderizado con `marked` ✓ ✓. El texto **no** se copia a los componentes
 ✓ ✗: si se copiara ✓, habría dos verdades ✓ ✗ —justo lo que se acaba de limpiar ✓.
 
-De momento ✓ ✅, el sitio enseña **dos vistas** ✓ ✅: la portada ✓ ✅ y la guía ✓ ✅. Las
-páginas de los documentos ✓ ✅ —los ADR ✓ ✅, el roadmap ✓ ✅, el modelo ✓ ✅— **están listas** ✓ ✅ (el
-generador ✓ ✅ las saca del markdown ✓ ✅ ✅) y entran cuando tengan sitio ✓ ✅ ✅.
-
-La guía ✓ ✓ es el caso raro ✓ ✅: su contenido ✓ ✓ es un markdown ✓ ✅
-(`docs/guideline/contenido.md` ✅ ✅) ✓ ✅ y la línea del tiempo ✓ ✅ se arma sola ✓ ✅ ✅.
+Las páginas de los documentos ✓ ✅ —los ADR ✓ ✅, el roadmap ✓ ✅, el modelo ✓ ✅, las reglas ✓ ✅,
+el MCP ✓ ✅, la migración ✓ ✅ y el diseño del mapa ✓ ✅— **están publicadas** ✅ ✅: una página por
+documento ✅ ✅, con su menú ✅ ✅, su índice ✅ ✅ y sus vecinos ✅ ✅. La guía ✓ ✓ es el caso raro ✓ ✅:
+su contenido ✓ ✓ es un markdown ✓ ✅ (`docs/guideline/contenido.md` ✅ ✅) ✓ ✅ y la línea del tiempo
+✓ ✅ se arma sola ✓ ✅ ✅.
 
 ### 3. La guía sigue siendo su propia página
 
@@ -76,6 +75,20 @@ La **app web** ✓ (el mapa ✓ ✓) es el producto ✓ ✓ y tiene su propia ap
 - **Publicar solo la app del mapa** ✓ ✗: el mapa necesita un snapshot ✓ ✓ y una demo ✓ ✓; el
   producto es el CLI ✓ ✓ y sus documentos ✓ ✓.
 - **Un único HTML con todo** ✓ ✗: eso es la guía ✓ ✓, y es una página ✓ ✗ no un sitio ✓ ✓.
+
+## Actualización (2026-10-22)
+
+Tres cosas cambiaron al publicar los documentos y no se tocan arriba ✓ ✅, porque son el registro de
+lo que se decidió ese día ✅:
+
+- **La guía ya no es HTML** ✓ ✅: pasó a markdown ✓ ✅
+  ([ADR 0035](0035-la-guia-como-changelog.md) 🧭 ✅) y la web la genera como los demás documentos ✓ ✅.
+  El §3 describe el estado anterior ✅.
+- **Las animaciones usan `motion`** ✓ ✅: la línea del tiempo ✓ ✅ mueve una pastilla entre días ✓ ✅ y
+  eso pide `layoutId` ✓ ✅, no una transición de CSS ✓ ✗. El §4 se queda como estaba ✓ ✅: era la
+  decisión con dos transiciones ✓ ✅, no con una pastilla que se desliza ✅ ✅.
+- **Los documentos están publicados** ✓ ✅: el §2 decía «dos vistas» ✓ ✅ y ahora hay cuatro ✓ ✅
+  (`/`, `/guia/`, `/docs/` y `/docs/<ruta>/` ✅ ✅). Una carpeta de `docs/` es una ruta ✓ ✅.
 
 ## Nota de estilo
 
