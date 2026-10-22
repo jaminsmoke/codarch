@@ -20,8 +20,13 @@ las ideas que aún no son fase ✓.
   red ✓ es la comprobación de actualizaciones ✓ ✓.
 - [x] La **marca** ✓ avisada ✓: la licencia concede el código ✓, no el nombre «CodArch» ✓ ni el
   logotipo ✓.
-- [ ] La **revisión final** ✓: qué hacer con la rama `chore/dogfood-architecture-rules` ✓, y los
-  enlaces al repo privado ✓ desde el repo público de la acción ✓.
+- [x] La **revisión final** ✓: la rama `chore/dogfood-architecture-rules` ✓ era obsoleta ✓ (main ya
+  tenía las actions en v7 ✓ y las mismas reglas ✓) ✓ y se borró ✓; el remoto se queda con `main` ✓
+  solo ✓. Los enlaces del repo público de la acción ✓ apuntan aquí ✓: funcionan en cuanto el repo
+  sea público ✓.
+- [x] El repo, **preparado para que lo miren** ✓: CI ✓ que corre lint ✓, tipos ✓, tests ✓ y la
+  acción ✓ en cada PR ✓ (`ci.yml` ✓), plantillas de issues ✓ (`bug` ✓ e `idea` ✓) ✓, descripción ✓
+  y temas ✓ del repo ✓, y el feed de actualizaciones del escritorio ✓ apuntando aquí ✓ ✓.
 - [ ] El **ensayo** ✓: abrir el repo en público ✓ y mirar ✓ que no sale nada que no deba ✓.
 - [ ] La **puerta** ✓: si el ensayo sale bien ✓, se deja público ✓ y se anuncia ✓ (el README ✓, la
   release ✓, el paquete de npm ✓ ✓).

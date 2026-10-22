@@ -31,11 +31,11 @@ import { VERSION } from "./version";
 /**
  * Dónde se miran las actualizaciones.
  *
- * Las releases del escritorio tienen que estar en un repositorio **público**
- * para que quien lo instale pueda comprobarlas; se puede apuntar a otro con
- * la variable de entorno.
+ * Las releases del escritorio se publican en este mismo repositorio ✓; para
+ * que quien lo instale pueda comprobarlas ✓, el repositorio tiene que ser
+ * **público** ✓. Se puede apuntar a otro con la variable de entorno ✓.
  */
-const UPDATE_REPO = process.env.CODARCH_UPDATE_REPO ?? "jaminsmoke/codarch-desktop";
+const UPDATE_REPO = process.env.CODARCH_UPDATE_REPO ?? "jaminsmoke/codarch";
 
 // El proceso principal se empaqueta como CommonJS: `__dirname` es lo que hay.
 const RENDERER_DIST = path.join(__dirname, "..", "dist", "renderer");

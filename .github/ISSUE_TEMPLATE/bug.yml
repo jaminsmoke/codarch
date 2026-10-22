@@ -1,0 +1,44 @@
+name: Bug
+description: Algo no funciona como debería
+labels: [bug]
+body:
+  - type: textarea
+    id: que-pasa
+    attributes:
+      label: Qué pasa
+      description: Qué esperabas y qué pasó, en dos líneas.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Cómo se reproduce
+      description: Los pasos, o el comando y el fichero.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión
+      description: La salida de `codarch version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: donde
+    attributes:
+      label: Dónde
+      options:
+        - El CLI
+        - La app web
+        - La app de escritorio
+        - La GitHub Action
+        - El MCP
+        - Los plugins o los addons
+        - La documentación
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Salida o error
+      description: Lo que sale por consola, si ayuda.

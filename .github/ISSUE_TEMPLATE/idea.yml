@@ -1,0 +1,23 @@
+name: Idea
+description: Falta algo, o algo se puede hacer mejor
+labels: [idea]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué falta
+      description: La idea, en un párrafo.
+    validations:
+      required: true
+  - type: textarea
+    id: por-que
+    attributes:
+      label: Por qué
+      description: En qué te estorba, o qué te ahorraría.
+    validations:
+      required: true
+  - type: textarea
+    id: alternativa
+    attributes:
+      label: Alternativas que has mirado
+      description: Lo que has probado, o el plan que tienes en la cabeza.
