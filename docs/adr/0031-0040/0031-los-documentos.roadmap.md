@@ -38,7 +38,8 @@ Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su
 **Estado:** cerrada.
 
 - [x] `docs/guideline/` ✓ con `index.html` ✓, `guia.css` ✓ y `guia.js` ✓: una página ✓ con índice
-  fijo ✓, «dónde estoy» ✓ y barra de progreso ✓.
+  fijo ✓, «dónde estoy» ✓, barra de progreso ✓ y una **línea del tiempo** ✓ con las ideas ✓: un punto
+  por entrada ✓, con su color ✓ y su fecha ✓, que salta a su sección ✓ al pulsarlo ✓.
 - [x] Sin nombres G1 ✓: cada entrada se llama por su título ✓ y se ancla con él ✓.
 - [x] El diagrama del flujo ✓ en HTML ✓, sin mermaid ✓ ni CDN ✓: se abre sin red ✓.
 - [x] `npm run docs` ✓ abre la guía ✓; `docs/guideline.md` ✓ desaparece ✓ y sus enlaces ✓ se

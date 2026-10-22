@@ -30,6 +30,17 @@ Una idea es un `<article class="entrada">` dentro de `main.contenido` ✓:
 Los distintivos ✓: `badge-idea` 🧪 · `badge-fase` ✅ · `badge-arreglo` 🔧 · `badge-esperar` ⏳ ·
 `badge-decision` 🧭 · `badge-propia` 🗺️ · `badge-hecho` ✅.
 
+## La línea del tiempo
+
+No se escribe a mano ✓: se arma sola ✓ con las entradas ✓ del documento ✓.
+
+- La **fecha** ✓ sale del `<p class="fecha">` ✓ de la entrada ✓.
+- El **color** del punto ✓ sale del distintivo ✓ de la entrada ✓.
+- El **título** ✓ sale del `data-titulo` ✓ ✓.
+
+Añadir una entrada ✓ la pone en la línea ✓; cambiar su fecha ✓ o su distintivo ✓ cambia su punto ✓.
+Al pulsar un punto ✓ salta a su sección ✓, y el punto activo ✓ es el de la idea que se está leyendo ✓.
+
 ## Para añadir una idea
 
 1. Copia un `<article class="entrada">` ✓ existente ✓ y ponlo **en su sitio cronológico** ✓ (por la

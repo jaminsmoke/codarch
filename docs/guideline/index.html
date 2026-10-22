@@ -27,8 +27,17 @@
         <span><b>Estado:</b> viva</span>
         <span><b>Fecha:</b> 2026-10-22</span>
         <span><b>Entradas:</b> <span id="cuantas">—</span></span>
+        <span class="linea-leyendo" id="linea-leyendo"></span>
       </div>
       <div class="progreso" role="presentation"><span id="progreso"></span></div>
+
+      <!-- La línea del tiempo: una idea, un punto. Al pulsarlo salta a su
+           sección, y el punto activo es el de la idea que estás leyendo. -->
+      <nav class="linea" aria-label="Línea del tiempo de las ideas">
+        <ol class="linea-puntos" id="linea-puntos">
+          <li class="linea-tramo" id="linea-tramo" aria-hidden="true"></li>
+        </ol>
+      </nav>
     </header>
 
     <div class="cuerpo">
