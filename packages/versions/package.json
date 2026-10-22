@@ -1,0 +1,11 @@
+{
+  "name": "@codarch/versions",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Las versiones de CodArch y cómo se comprueban las actualizaciones.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts"
+}
