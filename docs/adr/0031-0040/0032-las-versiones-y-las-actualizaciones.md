@@ -60,13 +60,14 @@ sección ✓ o al pulsar el botón ✓. Sin red por sorpresa ✓.
 
 ### 4. El escritorio se actualiza con la release de GitHub
 
-La sección del escritorio **comprueba** las releases ✓ y ofrece el instalador ✓: lo descarga ✓ y
-lo abre ✓. Los instaladores van **sin firmar** ✓, así que el sistema avisará ✓; por eso el flujo es
-«descarga y ábrelo» ✓ y no una instalación silenciosa ✓.
+La sección del escritorio **comprueba** las releases ✓ y abre la release ✓ en el navegador ✓, y
+desde ahí se descarga el instalador ✓. Los instaladores van **sin firmar** ✓, así que el sistema
+avisará ✓; por eso el flujo es «abre la release y descarga" ✓ y no una instalación silenciosa ✓.
 
 Para que eso sirva a alguien que no sea el dueño ✓, las releases del escritorio tienen que estar en
 un **repositorio público** ✓: hoy el repo es privado ✗. El camino es el del action ✓: un repo
-público generado ✓ (`jaminsmoke/codarch-desktop` ✓) con las releases dentro ✓.
+público generado ✓ (`jaminsmoke/codarch-desktop` ✓) con las releases dentro ✓. El feed es
+configurable ✓ (`CODARCH_UPDATE_REPO` ✓) ✓.
 
 ### 5. El CLI se actualiza con npm
 

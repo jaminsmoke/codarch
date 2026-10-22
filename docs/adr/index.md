@@ -43,7 +43,8 @@ flowchart TD
 | [0028](0021-0030/0028-los-plugins.md) | Los plugins: piezas del repo que se activan | 2026-10-21 | aceptado ✅ | M14, M15 |
 | [0029](0021-0030/0029-los-addons.md) | Los addons: conocimiento declarativo | 2026-10-22 | aceptado ✅ | M16 |
 | [0030](0021-0030/0030-instalar-y-quitar.md) | Instalar y quitar: plugins y addons | 2026-10-22 | aceptado ✅ | M17 |
-| [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado ✅ | M18, M19 |
+| [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado ✅ | M18, M19, M20 |
+| [0032](0031-0040/0032-las-versiones-y-las-actualizaciones.md) | Las versiones y las actualizaciones | 2026-10-22 | aceptado ✅ | M21 |
 
 ## 📌 Las carpetas
 

@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { RenderModel } from "@codarch/render/browser";
 import {
   checkRequirements,
@@ -7,6 +7,7 @@ import {
   type PluginDescriptor
 } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
+import { checkSource } from "@codarch/versions";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -62,15 +63,34 @@ export interface SettingsProps {
   onShowLabels: (value: boolean) => void;
 }
 
-type Section = "vista" | "proyecto" | "plugins" | "addons" | "diagnostico";
+type Section =
+  | "vista"
+  | "proyecto"
+  | "plugins"
+  | "addons"
+  | "actualizaciones"
+  | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "vista", label: "Vista" },
   { id: "proyecto", label: "Proyecto" },
   { id: "plugins", label: "Plugins" },
   { id: "addons", label: "Addons" },
+  { id: "actualizaciones", label: "Actualizaciones" },
   { id: "diagnostico", label: "Diagnóstico" }
 ];
+
+/** El paquete que se publica en npm: es el CLI, el que sirve esta web. */
+const NPM_PACKAGE = "codarch";
+
+/** Lo que se sabe de las actualizaciones. */
+interface UpdateInfo {
+  current: string;
+  latest: string | null;
+  outdated: boolean;
+  error: string | null;
+  url: string | null;
+}
 
 export default function Settings({
   open,
@@ -95,6 +115,40 @@ export default function Settings({
   onShowLabels
 }: SettingsProps) {
   const [section, setSection] = useState<Section>("vista");
+  const [update, setUpdate] = useState<UpdateInfo | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  /**
+   * Pregunta en npm si hay una versión más nueva del CLI (ADR 0032).
+   *
+   * La web la sirve el CLI: lo que se actualiza es el CLI, no la página.
+   */
+  const checkUpdates = useCallback(async (): Promise<void> => {
+    setChecking(true);
+    try {
+      const resultado = await checkSource(
+        version,
+        { kind: "npm", package: NPM_PACKAGE },
+        fetch
+      );
+      setUpdate({
+        current: version,
+        latest: resultado.latest,
+        outdated: resultado.outdated,
+        error: resultado.error,
+        url: resultado.url
+      });
+    } finally {
+      setChecking(false);
+    }
+  }, [version]);
+
+  // Se comprueba al abrir la sección, no antes: sin red por sorpresa.
+  useEffect(() => {
+    if (open && section === "actualizaciones" && !update && !checking) {
+      void checkUpdates();
+    }
+  }, [open, section, update, checking, checkUpdates]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -312,6 +366,65 @@ export default function Settings({
                     activan ni se desactivan como los plugins, y no cambian el
                     checksum. Sus vistas guardadas están en el menú «Vistas»
                     del mapa.
+                  </p>
+                </>
+              ) : null}
+
+              {section === "actualizaciones" ? (
+                <>
+                  <div className="settings-row">
+                    <span>Versión en uso</span>
+                    <b className="mono">{version}</b>
+                  </div>
+                  <div className="settings-row">
+                    <span>Estado</span>
+                    <b>
+                      {checking
+                        ? "comprobando…"
+                        : !update
+                          ? "sin comprobar"
+                          : update.error
+                            ? "no se pudo comprobar"
+                            : update.outdated
+                              ? `hay una más nueva: ${update.latest}`
+                              : "al día"}
+                    </b>
+                  </div>
+                  <p>
+                    <button
+                      type="button"
+                      className="button"
+                      disabled={checking}
+                      onClick={() => void checkUpdates()}
+                    >
+                      {checking ? "Comprobando…" : "Comprobar ahora"}
+                    </button>
+                  </p>
+                  {update?.outdated ? (
+                    <>
+                      <p className="muted small">
+                        El CLI se trae con:
+                      </p>
+                      <p className="mono small">
+                        npm i -g {NPM_PACKAGE}@latest
+                      </p>
+                      {update.url ? (
+                        <p className="muted small">
+                          <a href={update.url} target="_blank" rel="noreferrer">
+                            Ver en npm
+                          </a>
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
+                  {update?.error ? (
+                    <p className="muted small">
+                      No se pudo comprobar en npm: {update.error}
+                    </p>
+                  ) : null}
+                  <p className="muted small">
+                    Esta web la sirve el CLI: lo que se actualiza es el CLI. La app de escritorio
+                    se actualiza con las releases de GitHub.
                   </p>
                 </>
               ) : null}

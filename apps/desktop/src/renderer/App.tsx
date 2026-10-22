@@ -1144,6 +1144,8 @@ export default function App() {
         onClearProject={() => setSettingsOpen(false)}
         storageAvailable={true}
         version={desktop().version}
+        onCheckUpdate={() => desktop().checkUpdate()}
+        onOpenExternal={(url) => void desktop().openExternal(url)}
         plugins={plugins.descriptors}
         enabledPlugins={plugins.enabled}
         onTogglePlugin={plugins.toggle}

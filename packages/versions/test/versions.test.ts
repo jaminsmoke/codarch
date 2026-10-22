@@ -134,6 +134,17 @@ describe("checkSource", () => {
     expect(resultado.outdated).toBe(false);
   });
 
+  it("si la versión en uso no se entiende, no se dice que haya nada nuevo", async () => {
+    const { fetch } = fakeFetch({
+      "https://registry.npmjs.org/codarch/latest": { body: { version: "0.3.0" } }
+    });
+
+    const resultado = await checkSource("dev", { kind: "npm", package: "codarch" }, fetch);
+
+    expect(resultado.latest).toBe("0.3.0");
+    expect(resultado.outdated).toBe(false);
+  });
+
   it("una fuente que falla no rompe nada", async () => {
     const { fetch } = fakeFetch({
       "https://registry.npmjs.org/codarch/latest": { status: 503, body: {} }

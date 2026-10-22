@@ -81,6 +81,8 @@ flowchart TD
 | M17 | Instalar y quitar plugins y addons | cerrada ✅ | [ADR 0030](adr/0021-0030/0030-instalar-y-quitar.roadmap.md) |
 | M18 | Los documentos ordenados | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
 | M19 | Los documentos, con iconos y diagramas | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
+| M20 | La guía, en HTML | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
+| M21 | Las versiones y las actualizaciones | en curso 🟡 | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md) |
 
 ## 📌 Cómo se lee esto
 

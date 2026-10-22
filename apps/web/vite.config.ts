@@ -69,6 +69,10 @@ export default defineConfig(async ({ command }) => {
         {
           find: /^@codarch\/layouts$/,
           replacement: resolve("packages/layouts/src/index.ts")
+        },
+        {
+          find: /^@codarch\/versions$/,
+          replacement: resolve("packages/versions/src/index.ts")
         }
       ]
     },

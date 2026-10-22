@@ -11,12 +11,14 @@ import path from "node:path";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { analyzeRepository } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
+import { checkSource } from "@codarch/versions";
 import {
   chainsPayload,
   historyLocation,
   readHistoryIndex
 } from "@codarch/schema";
 import type { DesktopTarget } from "./preload";
+import { VERSION } from "./version";
 
 /**
  * Proceso principal de la app de escritorio.
@@ -25,6 +27,15 @@ import type { DesktopTarget } from "./preload";
  * consultar git, abrir diálogos del sistema y llevar el menú nativo. El
  * renderer solo dibuja: recibe el resultado por IPC.
  */
+
+/**
+ * Dónde se miran las actualizaciones.
+ *
+ * Las releases del escritorio tienen que estar en un repositorio **público**
+ * para que quien lo instale pueda comprobarlas; se puede apuntar a otro con
+ * la variable de entorno.
+ */
+const UPDATE_REPO = process.env.CODARCH_UPDATE_REPO ?? "jaminsmoke/codarch-desktop";
 
 // El proceso principal se empaqueta como CommonJS: `__dirname` es lo que hay.
 const RENDERER_DIST = path.join(__dirname, "..", "dist", "renderer");
@@ -317,4 +328,33 @@ ipcMain.handle("codarch:history-snapshot", async (_event, name: string) => {
   } catch (cause) {
     throw new Error(`No se pudo leer ${file}: ${(cause as Error).message}`);
   }
+});
+
+/**
+ * Si hay una versión más nueva de la app (ADR 0032).
+ *
+ * El escritorio se actualiza con las releases de GitHub. La red la consulta
+ * el proceso principal: el renderer no habla con la red.
+ */
+ipcMain.handle("codarch:check-update", async () => {
+  const resultado = await checkSource(
+    VERSION,
+    { kind: "github", repo: UPDATE_REPO },
+    fetch
+  );
+  return {
+    current: VERSION,
+    latest: resultado.latest,
+    outdated: resultado.outdated,
+    error: resultado.error,
+    url: resultado.url
+  };
+});
+
+/** Abre una página (la release, el npm) en el navegador del sistema. */
+ipcMain.handle("codarch:open-external", async (_event, url: string) => {
+  if (!/^https:\/\//.test(url)) {
+    throw new Error(`no es una URL de https: ${url}`);
+  }
+  await shell.openExternal(url);
 });

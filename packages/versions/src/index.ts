@@ -88,6 +88,17 @@ export function isNewer(candidate: string, current: string): boolean {
   return compareVersions(candidate, current) > 0;
 }
 
+/**
+ * ¿Hay algo más nuevo que la versión en uso?
+ *
+ * Si la versión en uso no se entiende (una app en desarrollo dice `dev`), no
+ * se afirma que haya nada nuevo: no se sabe, y no se dice lo contrario.
+ */
+export function isOutdated(latest: string, current: string): boolean {
+  if (!parseVersion(current)) return false;
+  return isNewer(latest, current);
+}
+
 /** De dónde se averigua la última versión. */
 export type VersionSource =
   | { kind: "npm"; package: string; registry?: string }
@@ -169,10 +180,9 @@ export async function checkSource(
       return {
         ...base,
         latest: cuerpo.version,
-        outdated: isNewer(cuerpo.version, current),
+        outdated: isOutdated(cuerpo.version, current),
         url: `https://www.npmjs.com/package/${source.package}`
-      };
-    }
+      };    }
 
     const url = `${GITHUB_API}/repos/${source.repo}/releases/latest`;
     const respuesta = await fetchImpl(url, {
@@ -192,7 +202,7 @@ export async function checkSource(
     return {
       ...base,
       latest: version,
-      outdated: isNewer(version, current),
+      outdated: isOutdated(version, current),
       url:
         typeof cuerpo.html_url === "string"
           ? cuerpo.html_url

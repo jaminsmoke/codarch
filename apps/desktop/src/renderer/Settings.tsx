@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { RenderModel } from "@codarch/render/browser";
 import {
   checkRequirements,
@@ -7,6 +7,7 @@ import {
   type PluginDescriptor
 } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
+import type { DesktopUpdate } from "../preload";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -43,6 +44,14 @@ export interface SettingsProps {
   storageAvailable: boolean;
   /** La versión de CodArch que está corriendo. */
   version: string;
+  /**
+   * Si hay una versión más nueva de la app (ADR 0032).
+   *
+   * Lo pregunta el proceso principal ✓: el renderer no habla con la red ✓.
+   */
+  onCheckUpdate: () => Promise<DesktopUpdate>;
+  /** Abre una página en el navegador del sistema ✓. */
+  onOpenExternal: (url: string) => void;
   /** Los plugins que el repo declara compilados. */
   plugins: readonly PluginDescriptor[];
   /** Los plugins activados en esta máquina. */
@@ -62,13 +71,20 @@ export interface SettingsProps {
   onShowLabels: (value: boolean) => void;
 }
 
-type Section = "vista" | "proyecto" | "plugins" | "addons" | "diagnostico";
+type Section =
+  | "vista"
+  | "proyecto"
+  | "plugins"
+  | "addons"
+  | "actualizaciones"
+  | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "vista", label: "Vista" },
   { id: "proyecto", label: "Proyecto" },
   { id: "plugins", label: "Plugins" },
   { id: "addons", label: "Addons" },
+  { id: "actualizaciones", label: "Actualizaciones" },
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
@@ -86,6 +102,8 @@ export default function Settings({
   onClearProject,
   storageAvailable,
   version,
+  onCheckUpdate,
+  onOpenExternal,
   plugins,
   enabledPlugins,
   onTogglePlugin,
@@ -95,6 +113,29 @@ export default function Settings({
   onShowLabels
 }: SettingsProps) {
   const [section, setSection] = useState<Section>("vista");
+  const [update, setUpdate] = useState<DesktopUpdate | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  /**
+   * Pregunta si hay una versión más nueva de la app (ADR 0032).
+   *
+   * La red la consulta el proceso principal ✓: el renderer solo dibuja ✓.
+   */
+  const checkUpdates = useCallback(async (): Promise<void> => {
+    setChecking(true);
+    try {
+      setUpdate(await onCheckUpdate());
+    } finally {
+      setChecking(false);
+    }
+  }, [onCheckUpdate]);
+
+  // Se comprueba al abrir la sección, no antes: sin red por sorpresa.
+  useEffect(() => {
+    if (open && section === "actualizaciones" && !update && !checking) {
+      void checkUpdates();
+    }
+  }, [open, section, update, checking, checkUpdates]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -312,6 +353,67 @@ export default function Settings({
                     activan ni se desactivan como los plugins, y no cambian el
                     checksum. Sus vistas guardadas están en el menú «Vistas»
                     del mapa.
+                  </p>
+                </>
+              ) : null}
+
+              {section === "actualizaciones" ? (
+                <>
+                  <div className="settings-row">
+                    <span>Versión en uso</span>
+                    <b className="mono">{version}</b>
+                  </div>
+                  <div className="settings-row">
+                    <span>Estado</span>
+                    <b>
+                      {checking
+                        ? "comprobando…"
+                        : !update
+                          ? "sin comprobar"
+                          : update.error
+                            ? "no se pudo comprobar"
+                            : update.outdated
+                              ? `hay una más nueva: ${update.latest}`
+                              : "al día"}
+                    </b>
+                  </div>
+                  <p>
+                    <button
+                      type="button"
+                      className="button"
+                      disabled={checking}
+                      onClick={() => void checkUpdates()}
+                    >
+                      {checking ? "Comprobando…" : "Comprobar ahora"}
+                    </button>
+                  </p>
+                  {update?.outdated ? (
+                    <>
+                      <p className="muted small">
+                        La app se actualiza con la release de GitHub. Los instaladores van sin
+                        firmar, así que el sistema avisará.
+                      </p>
+                      {update.url ? (
+                        <p>
+                          <button
+                            type="button"
+                            className="button"
+                            onClick={() => onOpenExternal(update.url as string)}
+                          >
+                            Ver la release
+                          </button>
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
+                  {update?.error ? (
+                    <p className="muted small">
+                      No se pudo comprobar: {update.error}
+                    </p>
+                  ) : null}
+                  <p className="muted small">
+                    El CLI se actualiza desde npm, con{" "}
+                    <span className="mono">npm i -g codarch@latest</span>.
                   </p>
                 </>
               ) : null}

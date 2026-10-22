@@ -10,18 +10,21 @@ las ideas que aún no son fase ✓.
 
 ### M21 — Las versiones y las actualizaciones
 
-**Estado:** en curso.
+**Estado:** en curso. La comprobación y la sección están ✓; falta el feed
+público ✓ del escritorio ✓.
 
-- [ ] **M21.1** `@codarch/versions` ✓: comparar versiones ✓ y preguntar por una fuente ✓ (npm ✓ y
+- [x] **M21.1** `@codarch/versions` ✓: comparar versiones ✓ y preguntar por una fuente ✓ (npm ✓ y
   GitHub ✓) ✓, con el `fetch` inyectado ✓ para que los tests no toquen la red ✓.
-- [ ] **M21.2** Una versión para el producto ✓: la de la raíz ✓, propagada con
-  `npm run version:<x>` ✓ y comprobada por el CI ✓.
-- [ ] **M21.3** `codarch version` ✓ y `codarch version --check` ✓ (npm ✓): dice la versión ✓ y si hay
+- [x] **M21.2** Una versión para el producto ✓: la de la raíz ✓, propagada con
+  `npm run version -- <x>` ✓ y comprobada por el CI ✓.
+- [x] **M21.3** `codarch version` ✓ y `codarch version --check` ✓ (npm ✓): dice la versión ✓ y si hay
   algo nuevo ✓, con el comando para traerlo ✓. No instala nada ✓.
-- [ ] **M21.4** La sección **Actualizaciones** ✓ en los ajustes ✓ de las dos apps ✓: qué versión se
-  usa ✓, si hay algo más nuevo ✓, cómo se trae ✓ y un botón **Comprobar ahora** ✓.
-- [ ] **M21.5** El escritorio ✓: comprobar las releases ✓, descargar el instalador ✓ y abrirlo ✓.
-  El feed es configurable ✓ y apunta al repo público ✓ cuando exista ✓.
+- [x] **M21.4** La sección **Actualizaciones** ✓ en los ajustes ✓ de las dos apps ✓: qué versión se
+  usa ✓, si hay algo más nuevo ✓, cómo se trae ✓ y un botón **Comprobar ahora** ✓. Nada se descarga
+  sin que lo pidas ✓.
+- [ ] **M21.5** El escritorio ✓: comprobar las releases ✓ ✓ y abrir la release ✓ para descargar el
+  instalador ✓. El feed es configurable ✓ (`CODARCH_UPDATE_REPO` ✓) ✓ y apunta al repo público ✓,
+  que todavía no existe ✓: sin él, la comprobación no encuentra nada ✓.
 
 ## Decisiones relacionadas
 

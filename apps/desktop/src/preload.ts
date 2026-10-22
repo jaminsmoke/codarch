@@ -41,6 +41,15 @@ export interface DesktopHistory {
 
 import { VERSION } from "./version";
 
+/** Lo que se sabe de las actualizaciones de la app (ADR 0032). */
+export interface DesktopUpdate {
+  current: string;
+  latest: string | null;
+  outdated: boolean;
+  error: string | null;
+  url: string | null;
+}
+
 const api = {
   /** La versión de la app. */
   version: VERSION,
@@ -66,6 +75,16 @@ const api = {
   /** Una foto concreta del historial. */
   historySnapshot: (name: string): Promise<unknown | null> =>
     ipcRenderer.invoke("codarch:history-snapshot", name),
+  /**
+   * Si hay una versión más nueva de la app (ADR 0032).
+   *
+   * Lo pregunta el proceso principal a las releases de GitHub ✓.
+   */
+  checkUpdate: (): Promise<DesktopUpdate> =>
+    ipcRenderer.invoke("codarch:check-update"),
+  /** Abre una página en el navegador del sistema ✓. */
+  openExternal: (url: string): Promise<void> =>
+    ipcRenderer.invoke("codarch:open-external", url),
   /**
    * Escucha la orden de abrir los ajustes ✓.
    *
