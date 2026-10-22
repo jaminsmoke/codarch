@@ -58,7 +58,7 @@ El catálogo de hoy:
 
 Los repos que se organizan **por módulo o por feature** no encajan en ningún perfil estático: sus
 capas las decide el repositorio, y por eso las propone el generador
-([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
+([ADR 0023](adr/0021-0030/0023-lente-de-dominio-por-pasos.md)).
 
 Para usar un perfil, en `.codarch.yml`:
 
@@ -85,7 +85,7 @@ rules:
 En el reporte, cada violación dice de dónde sale (`source: "config"` o `source: "profile"`) y el
 reporte lleva el perfil aplicado (`rules.profile`). Así nadie bloquea un PR por una regla que no
 escribió, y endurecer una es una decisión consciente
-([ADR 0023](adr/0023-lente-de-dominio-por-pasos.md)).
+([ADR 0023](adr/0021-0030/0023-lente-de-dominio-por-pasos.md)).
 
 ### Endurecer un perfil
 

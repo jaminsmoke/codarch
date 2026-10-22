@@ -125,7 +125,7 @@ no se ejecuta con `--no-git`.
 `rloc` cuenta las líneas con al menos un token de código. Los comentarios se detectan **por su
 texto**, no por el tipo de nodo del árbol: dentro de un `interface`, el binding nativo de tree-sitter
 tipa el comentario como `interface_body` y el WASM como `comment`. Con la regla por texto, el CLI y
-el navegador cuentan las mismas líneas ([ADR 0020](adr/0020-analisis-en-el-navegador.md)).
+el navegador cuentan las mismas líneas ([ADR 0020](adr/0011-0020/0020-analisis-en-el-navegador.md)).
 
 ### Aristas
 
@@ -151,7 +151,7 @@ recalcular. Un componente cíclico es un SCC de tamaño > 1 o un self-loop.
 ### La lente de migración
 
 Es nuestra lente propia, y nace de un caso real: este proyecto migrará de TypeScript a Rust.
-La v1 está documentada en [ADR 0016](adr/0016-lente-migracion.md).
+La v1 está documentada en [ADR 0016](adr/0011-0020/0016-lente-migracion.md).
 
 ```ts
 type MigrationNode = {
@@ -270,7 +270,7 @@ type RuleViolation = {
 
 Solo las violaciones introducidas con severidad `error` bloquean con `--fail-on violations`. La
 deuda existente se publica, pero no impide mergear. Ver [`rules.md`](rules.md) y
-[ADR 0011](adr/0011-reglas-de-arquitectura.md).
+[ADR 0011](adr/0011-0020/0011-reglas-de-arquitectura.md).
 
 ## Delta
 
@@ -334,7 +334,7 @@ Reglas:
 - Las violaciones se comparan por clave estable entre base y head; solo las introducidas con
   severidad `error` bloquean con `--fail-on violations`.
 - `report.json` es determinista y no tiene timestamps. Ver
-  [ADR 0010](adr/0010-diff-entre-snapshots.md) y [ADR 0011](adr/0011-reglas-de-arquitectura.md).
+  [ADR 0010](adr/0001-0010/0010-diff-entre-snapshots.md) y [ADR 0011](adr/0011-0020/0011-reglas-de-arquitectura.md).
 
 ## Pipeline de M1/M2/M3
 

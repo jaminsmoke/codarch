@@ -131,7 +131,7 @@ codarch history --from 0dca58ac --to b9bf7414 -o report.json
 
 Es el mismo motor que `codarch diff`, pero entre dos fotos de la línea del tiempo. La web y el
 escritorio enseñan la línea del tiempo y abren cualquier foto.
-([ADR 0024](docs/adr/0024-evolucion-temporal.md))
+([ADR 0024](docs/adr/0021-0030/0024-evolucion-temporal.md))
 
 ### Diff entre commits
 
@@ -160,8 +160,8 @@ $ codarch diff base.cc.json head.cc.json -o report.json
 El reporte separa `files.added/removed/changed`, `edges.added/removed/cyclicAdded/cyclicRemoved`,
 `cycles.introduced/fixed` y `hotspots`. Es determinista y no guarda timestamps. Los cambios de
 métricas usan `delta: null` cuando una métrica solo existe en un lado; no se inventan ceros. La
-decisión está en [ADR 0010](docs/adr/0010-diff-entre-snapshots.md). El bloque `rules` separa
-violaciones `introduced`, `existing` y `resolved`; ver [ADR 0011](docs/adr/0011-reglas-de-arquitectura.md).
+decisión está en [ADR 0010](docs/adr/0001-0010/0010-diff-entre-snapshots.md). El bloque `rules` separa
+violaciones `introduced`, `existing` y `resolved`; ver [ADR 0011](docs/adr/0011-0020/0011-reglas-de-arquitectura.md).
 
 `--fail-on cycles|violations|hotspots|any` convierte el diff en gate de CI: devuelve `2` si hay
 hallazgos, `1` si hay un error de lectura. Sin `--fail-on`, devuelve `0`.
@@ -193,7 +193,7 @@ rules:
 ```
 
 La referencia completa está en [`docs/rules.md`](docs/rules.md) y la decisión en
-[ADR 0011](docs/adr/0011-reglas-de-arquitectura.md). `--no-config` desactiva las reglas.
+[ADR 0011](docs/adr/0011-0020/0011-reglas-de-arquitectura.md). `--no-config` desactiva las reglas.
 
 #### Perfiles de arquitectura
 
@@ -211,7 +211,7 @@ codarch profiles      # lista el catálogo con sus capas y sus reglas
 Las reglas del perfil entran **como aviso**: consultan, no bloquean. Para endurecer una, se escribe
 en el archivo del equipo con el mismo nombre y `severity: error`; el reporte dice de dónde sale cada
 regla (`source: "config"` o `source: "profile"`). Decisión en
-[ADR 0023](docs/adr/0023-lente-de-dominio-por-pasos.md).
+[ADR 0023](docs/adr/0021-0030/0023-lente-de-dominio-por-pasos.md).
 
 #### Generar las capas
 
@@ -294,7 +294,7 @@ Herramientas:
 Sin reporte, las consultas de cambios y violaciones devuelven `available: false` con un motivo. Las
 rutas son relativas al proyecto; también se aceptan ids. Se rechazan rutas absolutas y `..`. Toda la
 superficie es de solo lectura. Referencia completa en [`docs/mcp.md`](docs/mcp.md) y decisión en
-[ADR 0013](docs/adr/0013-mcp-readonly.md).
+[ADR 0013](docs/adr/0011-0020/0013-mcp-readonly.md).
 
 ---
 
@@ -349,7 +349,7 @@ codarch analyze . -o .codarch/verif
 
 En la web y en el escritorio, el inspector lista los símbolos del fichero de la función más compleja
 a la más simple. El agente pregunta lo mismo con `explain_module` y `get_architecture_map`.
-([ADR 0025](docs/adr/0025-lente-de-simbolos.md))
+([ADR 0025](docs/adr/0021-0030/0025-lente-de-simbolos.md))
 
 ### El diff, hasta el interior
 
@@ -373,7 +373,7 @@ Cada símbolo lleva el **hash de su cuerpo**: los tokens, sin comentarios y sin 
 ese hash, un renombrado o una mudanza no rompen nada, porque lo que define al símbolo es el código,
 no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, así que el checksum del
 snapshot no cambia.
-([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
+([ADR 0026](docs/adr/0021-0030/0026-la-vida-de-un-simbolo.md))
 
 ### Los nombres de los bloques
 
@@ -418,9 +418,9 @@ activa cuáles quiere en **su máquina** ✓: el análisis no depende de eso ✓
 
 El contrato vive en `@codarch/plugin-api` ✓ y es pequeño a propósito ✓: el modelo ✓, la selección ✓,
 las acciones ✓, las preferencias ✓ y el estado de la URL ✓.
-([ADR 0028](docs/adr/0028-los-plugins.md))
+([ADR 0028](docs/adr/0021-0030/0028-los-plugins.md))
 
-Un **addon** es otra cosa ✓ ([ADR 0029](docs/adr/0029-los-addons.md) ✓): **datos, no código** ✓.
+Un **addon** es otra cosa ✓ ([ADR 0029](docs/adr/0021-0030/0029-los-addons.md) ✓): **datos, no código** ✓.
 Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vistas guardadas ✓ — y vive en
 `addons/<nombre>/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo mismo ✓. No puede
 aportar lentes ✓, así que no cambia el checksum ✓.
@@ -433,7 +433,7 @@ guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓.
 ### Instalar y quitar
 
 Las dos extensiones se instalan y se quitan igual ✓
-([ADR 0030](docs/adr/0030-instalar-y-quitar.md) ✓): una carpeta hija ✓ y una línea en
+([ADR 0030](docs/adr/0021-0030/0030-instalar-y-quitar.md) ✓): una carpeta hija ✓ y una línea en
 `.codarch.yml` ✓, que es la lista de instalados ✓. Quitar borra **solo** la carpeta de esa
 extensión ✓, nunca `plugins/` ni `addons/` ✓.
 
@@ -485,7 +485,7 @@ codarch chain buscar
       2026-10-21  mudada        src/otro.ts
 
 El libro mayor (`.codarch/chains.json`) es un artefacto derivado: se regenera siempre desde las
-fotos del historial. ([ADR 0026](docs/adr/0026-la-vida-de-un-simbolo.md))
+fotos del historial. ([ADR 0026](docs/adr/0021-0030/0026-la-vida-de-un-simbolo.md))
 
 ### Comprobar el historial
 
@@ -536,7 +536,7 @@ carpetas, aristas, componentes y claves de objetos se ordenan de forma estable. 
 
 El churn se lee de un único `git log --no-merges --numstat`, con todo el historial. No sigue renames
 y no guarda fechas ni autores, solo conteos. Un clon shallow produce un warning porque los conteos
-pueden estar incompletos. Ver [ADR 0009](docs/adr/0009-churn-desde-git.md).
+pueden estar incompletos. Ver [ADR 0009](docs/adr/0001-0010/0009-churn-desde-git.md).
 
 ---
 
@@ -621,4 +621,4 @@ Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo 
 ## Inspiración
 
 [CodeCharta](https://github.com/MaibornWolff/codecharta) (BSD-3-Clause, MaibornWolff). Proyecto
-independiente, sin código derivado. Ver [ADR 0001](docs/adr/0001-clean-room-con-ccjson.md).
+independiente, sin código derivado. Ver [ADR 0001](docs/adr/0001-0010/0001-clean-room-con-ccjson.md).

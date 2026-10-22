@@ -8,7 +8,7 @@ El mapa es la interfaz principal del producto. Había que decidir la geometría,
 color y el orden de las vistas antes de escribir el renderer.
 
 Se construyó un prototipo navegable (`design/map-mockup.html`) con cuatro lentes y datos sintéticos
-con forma de CodeCharta. El diseño completo está en [`docs/design/map.md`](../design/map.md).
+con forma de CodeCharta. El diseño completo está en [`docs/design/map.md`](../../design/map.md).
 
 ## Decisiones
 

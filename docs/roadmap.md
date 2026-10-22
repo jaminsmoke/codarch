@@ -114,7 +114,7 @@ extremo a extremo, incluida la prueba desde un repositorio externo.
 
 ## M4 — Lente de migración
 
-**Estado:** cerrado (v1). Decisión en [ADR 0016](adr/0016-lente-migracion.md); plan en
+**Estado:** cerrado (v1). Decisión en [ADR 0016](adr/0011-0020/0016-lente-migracion.md); plan en
 [`migration.md`](migration.md).
 
 - [x] LOC por lenguaje (TS, JS, Rust, WASM, Node) y estado `js|rust|bridge|native` por fichero.
@@ -157,9 +157,9 @@ App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista d
 - [x] `npm run web:dev` arranca y para el servidor automáticamente; `CODARCH_NO_AUTOSERVE=1` lo evita.
 - [x] Persistencia local del último proyecto con artefactos y de las preferencias de área/color.
 - [x] Atajos básicos: `/` busca, `Enter` abre el primer resultado, `Esc` limpia foco/selección.
-- [x] Carga por URL y enlaces compartibles con el estado de vista (`area`, `color`, `focus`, `file`, `tab`, `src`, `report`); decisión en [ADR 0018](adr/0018-estado-vista-en-la-url.md).
+- [x] Carga por URL y enlaces compartibles con el estado de vista (`area`, `color`, `focus`, `file`, `tab`, `src`, `report`); decisión en [ADR 0018](adr/0011-0020/0018-estado-vista-en-la-url.md).
 - [x] Navegación por flechas entre celdas y foco inicial del mapa.
-- [x] Manejo explícito de snapshots grandes: nivel de detalle por tamaño y menos nodos por celda; decisión en [ADR 0019](adr/0019-nivel-de-detalle-del-mapa.md).
+- [x] Manejo explícito de snapshots grandes: nivel de detalle por tamaño y menos nodos por celda; decisión en [ADR 0019](adr/0011-0020/0019-nivel-de-detalle-del-mapa.md).
 
 ## M6 — Análisis en el navegador
 
@@ -167,7 +167,7 @@ App web en `apps/web` (React + Vite) sobre `@codarch/render`, con mapa y vista d
 CLI, y el snapshot que sale tiene su checksum.
 
 - [x] Parser TS/JS en el navegador (tree-sitter WASM con la gramática del propio paquete
-  `tree-sitter-typescript`); decisión en [ADR 0020](adr/0020-analisis-en-el-navegador.md).
+  `tree-sitter-typescript`); decisión en [ADR 0020](adr/0011-0020/0020-analisis-en-el-navegador.md).
 - [x] Mismas métricas y mismo checksum que el CLI: medición compartida y test de paridad.
 - [x] Puerto de sistema de ficheros y núcleo del análisis sin `node:fs` ni git; el snapshot del
   fichero en memoria tiene el mismo checksum que el del CLI.
@@ -183,7 +183,7 @@ CLI, y el snapshot que sale tiene su checksum.
 ## M7 — App de escritorio
 
 **Estado:** cerrado. Electron con su propia interfaz, sin importing nada de `apps/web`; el motor es el
-mismo. Decisión en [ADR 0021](adr/0021-app-de-escritorio.md).
+mismo. Decisión en [ADR 0021](adr/0021-0030/0021-app-de-escritorio.md).
 
 - [x] Empaquetado de escritorio con el mismo build web.
 - [x] Analizador local integrado (el CLI en proceso, sin servidor).
@@ -198,7 +198,7 @@ mismo. Decisión en [ADR 0021](adr/0021-app-de-escritorio.md).
 ## M8 — La migración, donde ya faltaba
 
 **Estado:** cerrado. La lente de migración se ve en el PR y el agente puede preguntar por ella.
-Decisión en [ADR 0022](adr/0022-la-migracion-donde-faltaba.md).
+Decisión en [ADR 0022](adr/0021-0030/0022-la-migracion-donde-faltaba.md).
 
 - [x] El `report.json` tiene sección de migración: estado por lenguaje y categoría, deuda, cruces
   FFI y los ficheros cuya deuda ha cambiado.
@@ -216,7 +216,7 @@ Decisión en [ADR 0022](adr/0022-la-migracion-donde-faltaba.md).
 **Estado:** M9.1 cerrada (el catálogo). M9.2 (el generador) es el siguiente paso; endurecer las
 reglas del perfil para que bloqueen se decide en su momento, mirando cómo esté el código.
 
-Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
+Decisión en [ADR 0023](adr/0021-0030/0023-lente-de-dominio-por-pasos.md).
 
 - [x] **M9.1** Catálogo de perfiles declarativos (`capas`, `hexagonal`, `onion`, `ddd`): `.codarch.yml`
   acepta `profile: <id>` y las reglas del perfil se añaden a las del equipo.
@@ -238,7 +238,7 @@ Decisión en [ADR 0023](adr/0023-lente-de-dominio-por-pasos.md).
 ## M10 — La evolución temporal
 
 **Estado:** cerrado. La historia del repositorio se guarda, se compara y se ve en las dos apps.
-Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
+Decisión en [ADR 0024](adr/0021-0030/0024-evolucion-temporal.md).
 
 - [x] **M10.1** La lente de calor: el mapa colorea por commits y el panel lateral lista los
   ficheros más tocados. Los datos ya venían del churn de git.
@@ -257,7 +257,7 @@ Decisión en [ADR 0024](adr/0024-evolucion-temporal.md).
 ## M11 — La lente de símbolos
 
 **Estado:** cerrado. El mapa ya sabe qué hay dentro de cada fichero: funciones, clases, interfaces y
-tipos, con su complejidad. Decisión en [ADR 0025](adr/0025-lente-de-simbolos.md).
+tipos, con su complejidad. Decisión en [ADR 0025](adr/0021-0030/0025-lente-de-simbolos.md).
 
 - [x] **M11.1** El parser recoge los símbolos en el mismo paseo que mide las métricas, con el
   **código compartido** con el navegador: el checksum del snapshot no cambia y la paridad
@@ -274,7 +274,7 @@ tipos, con su complejidad. Decisión en [ADR 0025](adr/0025-lente-de-simbolos.md
 ## M12 — La vida de un símbolo
 
 **Estado:** cerrado. El diff habla de símbolos, cada símbolo tiene una cadena que sobrevive a los
-renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto entero. Decisión en [ADR 0026](adr/0026-la-vida-de-un-simbolo.md).
+renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto entero. Decisión en [ADR 0026](adr/0021-0030/0026-la-vida-de-un-simbolo.md).
 
 - [x] **M12.1** El diff de símbolos: comparar dos snapshots símbolo a símbolo dentro de cada
   fichero. El reporte dice "has cambiado `parseDiff`: complejidad +6", no "has tocado `parse.ts`".
@@ -296,7 +296,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 ## M13 — Los ajustes
 
 **Estado:** cerrada. Los ajustes y el store de plugins. Decisión en
-[ADR 0027](adr/0027-los-ajustes.md).
+[ADR 0027](adr/0021-0030/0027-los-ajustes.md).
 
 - [x] **M13.1** Un panel de ajustes con secciones: **Vista** (métrica de área, modo de color),
   **Proyecto** (el proyecto guardado, borrarlo) y **Diagnóstico** (versión, formato del modelo,
@@ -312,7 +312,7 @@ renombrados y a las mudanzas, y esa cadena se anida del símbolo al proyecto ent
 ## M14 — Los plugins
 
 **Estado:** cerrada con un plugin de prueba ✓. Piezas del repo que se activan desde los ajustes.
-Decisión en [ADR 0028](adr/0028-los-plugins.md).
+Decisión en [ADR 0028](adr/0021-0030/0028-los-plugins.md).
 
 - [x] La carpeta `plugins/`, con un plugin en su carpeta y su manifiesto `plugin.json` (nombre,
   versión, título, icono, qué aporta y qué necesita).
@@ -342,7 +342,7 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 
 ## M16 — Los addons
 
-**Estado:** cerrada. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
+**Estado:** cerrada. El contrato está decidido en [ADR 0029](adr/0021-0030/0029-los-addons.md): un addon es
 **datos, no código**. El CLI, las dos apps y el MCP los leen.
 
 - [x] `@codarch/addons`: el manifiesto, la validación (una clave desconocida es error ✓) y la
@@ -363,7 +363,7 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 
 ## M17 — Instalar y quitar plugins y addons
 
-**Estado:** cerrada. La decisión está en [ADR 0030](adr/0030-instalar-y-quitar.md): instalar y quitar
+**Estado:** cerrada. La decisión está en [ADR 0030](adr/0021-0030/0030-instalar-y-quitar.md): instalar y quitar
 son del repo; activar es de la máquina y solo existe en plugins.
 
 - [x] `codarch plugins list|add|remove` ✓, simétrico con `codarch addons` ✓: `add` valida el

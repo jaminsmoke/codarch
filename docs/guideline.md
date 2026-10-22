@@ -42,7 +42,7 @@ cuando el plugin cambia el snapshot ✓ → el checksum ✓).
 **Veredicto** ✓: **fase + ADR** ✓. Es una decisión de producto ✓ (abrir la puerta a terceros ✓) y
 afecta a la distribución ✓.
 
-**Una mitad ya está resuelta** ✓: los **addons** ✓ ([ADR 0029](adr/0029-los-addons.md) ✓) son **datos** ✓
+**Una mitad ya está resuelta** ✓: los **addons** ✓ ([ADR 0029](adr/0021-0030/0029-los-addons.md) ✓) son **datos** ✓
 — perfiles ✓, reglas ✓ y vistas guardadas ✓ — y repartir datos no necesita firmar código ✓: basta un
 zip y un hash ✓ (el §5 ✓). Lo que sigue haciendo falta es **firmar y distribuir plugins** ✓ (código
 ✓), que es la otra mitad ✓.
@@ -62,7 +62,7 @@ señales nuevas ✓.
 instalado ✓ → el mismo código daría checksums distintos ✗ → el análisis dejaría de ser reproducible
 ✗ (que es la propiedad que el producto protege con más cuidado ✓).
 
-**Decidido** ✓ en [ADR 0029](adr/0029-los-addons.md) ✓: hoy **no** ✓. Un addon no añade lentes ✓
+**Decidido** ✓ en [ADR 0029](adr/0021-0030/0029-los-addons.md) ✓: hoy **no** ✓. Un addon no añade lentes ✓
 («A» ✓), y la puerta queda abierta a «B» ✓ —el productor **dentro** del snapshot ✓ → «el mismo código
 + los mismos addons = el mismo checksum» ✓ ✓— cuando la manera esté decidida ✓, con su propio ADR ✓.
 
@@ -191,7 +191,7 @@ instala copiando una carpeta ✓ y que viaja con el repo ✓.
 sus reglas ✓ y una vista inicial razonable ✓ puestas desde el primer día ✓, y que las tengan sus
 compañeros ✓ y su CI ✓. Hoy eso es un README con un bloque para copiar ✗.
 
-**Decisión** ✓: [ADR 0029](adr/0029-los-addons.md) ✓. Un addon **no** aporta código ✓ (eso es un
+**Decisión** ✓: [ADR 0029](adr/0021-0030/0029-los-addons.md) ✓. Un addon **no** aporta código ✓ (eso es un
 plugin ✓, ADR 0028 ✓) ni lentes ✓ (eso cambia el checksum ✗). Vive en `addons/<nombre>/` ✓ y el repo
 lo declara en `.codarch.yml` ✓.
 

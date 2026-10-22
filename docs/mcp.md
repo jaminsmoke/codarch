@@ -4,7 +4,7 @@ CodArch expone su modelo a agentes mediante un servidor **MCP local, de solo lec
 No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existe, el
 `report.json` del diff. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
 
-La decisión está en [ADR 0013](adr/0013-mcp-readonly.md).
+La decisión está en [ADR 0013](adr/0011-0020/0013-mcp-readonly.md).
 
 ## Requisitos
 
