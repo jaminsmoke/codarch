@@ -9,6 +9,7 @@
     "@codarch/metrics": "*",
     "@codarch/parsers": "*",
     "@codarch/render": "*",
-    "@codarch/schema": "*"
+    "@codarch/schema": "*",
+    "@codarch/versions": "*"
   }
 }

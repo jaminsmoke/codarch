@@ -11,6 +11,7 @@ import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
 import { runAddons } from "./commands/addons";
 import { runPlugins } from "./commands/plugins";
+import { runVersion, type VersionCommandOptions } from "./commands/version";
 import type { InstalledOptions } from "./commands/installed";
 
 import { VERSION } from "./version";
@@ -31,6 +32,7 @@ Uso:
   codarch verify  [--root <ruta>] [--json]
   codarch addons  [list|add|remove] [ruta|nombre] [--json]
   codarch plugins [list|add|remove] [ruta|nombre] [--json]
+  codarch version [--check] [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -104,6 +106,11 @@ Opciones de plugins:
   add <ruta>        copia un plugin a plugins/ y lo declara en .codarch.yml
   remove <nombre>   lo quita del repo y de la declaración
   --root <ruta>     el repositorio (por defecto, el actual)
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de version:
+  --check           pregunta en npm si hay una versión más nueva
   --json            salida machine-readable
   -h, --help        esta ayuda
 
@@ -344,6 +351,26 @@ function parseSuggest(args: string[]): SuggestOptions | number {
   }
 
   options.file = positional[0];
+  return options;
+}
+
+function parseVersion(args: string[]): VersionCommandOptions | number {
+  const options: VersionCommandOptions = { check: false, json: false };
+
+  for (const arg of args) {
+    if (arg === "--check") {
+      options.check = true;
+    } else if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    }
+  }
+
   return options;
 }
 
@@ -761,6 +788,16 @@ function main(argv: string[]): number {
     const parsed = parseInstalled(rest, "plugins");
     if (typeof parsed === "number") return parsed;
     return runPlugins(parsed);
+  }
+
+  if (command === "version") {
+    const parsed = parseVersion(rest);
+    if (typeof parsed === "number") return parsed;
+    // La comprobación va a la red: el código de salida se pone cuando conteste.
+    void runVersion(parsed).then((codigo) => {
+      process.exitCode = codigo;
+    });
+    return 0;
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

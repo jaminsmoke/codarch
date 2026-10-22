@@ -1,7 +1,7 @@
 {
   "name": "codarch",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -24,6 +24,7 @@
     "publish:cli": "npm run web:build && npm run build:cli && npm publish apps/cli/dist --access public",
     "sync:action": "node scripts/sync-action.mjs",
     "docs": "node scripts/docs.mjs",
+    "version": "node scripts/version.mjs",
     "web:dev": "npm run dev --workspace @codarch/web",
     "web:build": "npm run build --workspace @codarch/web",
     "web:preview": "npm run preview --workspace @codarch/web",

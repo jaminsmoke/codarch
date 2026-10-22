@@ -45,6 +45,7 @@ npm run lint           # oxlint
 npm run typecheck      # tsc --noEmit
 npx vitest run         # suite completa
 npm run check:action   # action.yml + workflow + comentario
+npm run version        # las versiones del producto, el CLI y el escritorio: cuadran
 npm run build:cli      # bundle ESM en apps/cli/dist
 npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)

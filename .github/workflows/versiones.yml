@@ -1,0 +1,22 @@
+name: Versiones
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  versiones:
+    name: Las versiones cuadran
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Una versión para el producto (ADR 0032): la de la raíz manda, y el CLI
+      # y el escritorio tienen que llevar la misma. Sin npm ci: solo se leen
+      # los package.json.
+      - name: Comprobar
+        run: node scripts/version.mjs
