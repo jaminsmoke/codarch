@@ -84,7 +84,7 @@ flowchart TD
 | M20 | La guía, en HTML | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
 | M21 | Las versiones y las actualizaciones | cerrada ✅ | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md) |
 | M22 | El repo, con sus papeles | cerrada ✅ | [ADR 0033](adr/0031-0040/0033-abrir-el-repo.roadmap.md) |
-| M23 | La web del proyecto | en curso 🟡 | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.roadmap.md) |
+| M23 | La web del proyecto | cerrada ✅ | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.roadmap.md) |
 
 ## 📌 Cómo se lee esto
 

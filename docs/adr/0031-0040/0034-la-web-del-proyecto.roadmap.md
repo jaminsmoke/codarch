@@ -10,7 +10,8 @@ las ideas que aún no son fase ✓.
 
 ### M23 — La web del proyecto
 
-**Estado:** en curso. La web está construida ✅ y se publica ✅ ✅; falta el dominio propio ✅ y la búsqueda ✅ ✅.
+**Estado:** cerrada. La web está publicada ✅ en `jaminsmoke.github.io/codarch` ✅ ✅; el dominio
+propio ✅ y la búsqueda ✅ ✅ quedan para después ✅ ✅.
 
 - [x] **M23.1** `apps/site` ✓: React ✓ + Vite ✓ + `react-router` ✓ ✓, con los tokens de color de
   la app ✓ ✓ y sus tipografías ✓ ✓ ✅.
@@ -20,7 +21,7 @@ las ideas que aún no son fase ✓.
   escritorio ✓, la acción ✓ y el MCP ✓ ✓.
 - [x] **M23.4** Las **páginas de docs** ✓: la guía ✓ ✓ (su página propia ✓ ✓), el roadmap ✓, el
   índice de decisiones ✓ ✅, el modelo ✓, las reglas ✓ ✅.
-- [ ] **M23.5** **Publicar** ✓: el workflow de Pages ✓ ✓ ✅, el `homepage` del repo ✓ y el del
+- [x] **M23.5** **Publicar** ✓: el workflow de Pages ✓ ✓ ✅, el `homepage` del repo ✓ y el del
   paquete de npm ✓ ✓.
 
 ## Decisiones relacionadas

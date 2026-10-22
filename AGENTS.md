@@ -130,9 +130,10 @@ también `npm run sync:action` y actualizar el repo público.
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
   la sección **Actualizaciones** en los ajustes de las dos apps. El escritorio se actualiza con
   las releases del repo (`CODARCH_UPDATE_REPO`).
-- M23 en curso: la web del proyecto (ADR 0034). `apps/site`: React + Vite + router, con
+- M23 cerrada: la web del proyecto (ADR 0034). `apps/site`: React + Vite + router, con
   los tokens de la app; las páginas de docs **se generan del markdown del repo** (una sola verdad) y
-  la guía se publica tal cual. Se publica en GitHub Pages.
+  la guía se publica tal cual. Está en `jaminsmoke.github.io/codarch` ✅ ✅ y se publica sola ✅ ✅
+  con el workflow `web.yml` ✅ ✅.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
