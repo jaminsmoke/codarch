@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
 import { VEREDICTOS, fechaCorta, guia } from "../lib/guia";
 
 /**
  * La guía: sus ideas por día ✓ ✓.
  *
  * El contenido sale del repo ✓ ✓ (ADR 0034 ✅ ✅): el markdown es la verdad
- * ✅ ✅ y aquí solo se le pone color ✓ ✅ y movimiento ✅ ✅ ✅.
+ * ✅ ✅ y aquí solo se le pone color ✅ ✅ y movimiento ✅ ✅ ✅. La línea del
+ * tiempo ✓ ✅ vive en el header ✓ ✅ ✅ (el componente `LineaTiempo` ✓ ✅ ✅).
  */
 
 /** El color de cada veredicto ✓ ✓. */
@@ -20,30 +20,6 @@ const COLORES: Record<string, string> = {
 
 export default function Guia() {
   const { introduccion, dias, futuras } = guia();
-  const [activo, setActivo] = useState<string>(dias[0]?.fecha ?? "");
-
-  // El día que estás leyendo: el que más se ve en pantalla ✓ ✅.
-  useEffect(() => {
-    const observador = new IntersectionObserver(
-      (vistos) => {
-        for (const visto of vistos) {
-          if (visto.isIntersecting) {
-            setActivo((visto.target as HTMLElement).dataset.fecha ?? "");
-          }
-        }
-      },
-      { rootMargin: "-30% 0px -55% 0px" }
-    );
-    for (const dia of dias) {
-      const nodo = document.getElementById(`dia-${dia.fecha}`);
-      if (nodo) observador.observe(nodo);
-    }
-    return () => observador.disconnect();
-  }, [dias]);
-
-  const irA = (ancla: string) => {
-    document.getElementById(ancla)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
@@ -65,62 +41,6 @@ export default function Guia() {
         dangerouslySetInnerHTML={{ __html: introduccion }}
       />
 
-      {/* La línea del tiempo: un nodo por día, y la línea los atraviesa ✓ ✅. */}
-      <nav
-        aria-label="Los días de la guía"
-        className="linea-tiempo my-12"
-        style={{ "--n": dias.length + 1 } as React.CSSProperties}
-      >
-        <ol className="relative flex items-start">
-          {dias.map((dia) => {
-            const esActivo = activo === dia.fecha;
-            const diaTienen = dia.entradas.length;
-            return (
-              <li key={dia.fecha} className="relative flex-1">
-                <button
-                  type="button"
-                  onClick={() => irA(`dia-${dia.fecha}`)}
-                  className="group flex w-full flex-col items-center gap-2.5"
-                  title={`${fechaCorta(dia.fecha)} · ${diaTienen} idea${diaTienen === 1 ? "" : "s"}`}
-                >
-                  <span
-                    className={[
-                      "relative z-10 h-3.5 w-3.5 rounded-full border-2 transition-all duration-300",
-                      esActivo
-                        ? "scale-125 border-cobalt bg-cobalt"
-                        : "border-line-strong bg-paper group-hover:scale-110"
-                    ].join(" ")}
-                  />
-                  <span
-                    className={[
-                      "font-mono text-xs whitespace-nowrap transition-colors",
-                      esActivo ? "font-semibold text-ink" : "text-muted"
-                    ].join(" ")}
-                  >
-                    {fechaCorta(dia.fecha)}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-
-          {/* Y después, lo que falta ✓ ✅. */}
-          <li className="relative flex-1">
-            <button
-              type="button"
-              onClick={() => irA("futuro")}
-              className="group flex w-full flex-col items-center gap-2.5"
-              title="Lo que todavía no ha pasado"
-            >
-              <span className="relative z-10 h-3.5 w-3.5 rounded-full border-2 border-dashed border-line-strong bg-paper transition-transform duration-300 group-hover:scale-110" />
-              <span className="font-mono text-xs whitespace-nowrap text-muted">
-                futuro
-              </span>
-            </button>
-          </li>
-        </ol>
-      </nav>
-
       {/* Los días, con sus ideas ✓ ✅. */}
       {dias.map((dia) => (
         <motion.section
@@ -131,7 +51,7 @@ export default function Guia() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mb-14 scroll-mt-28 border-t border-line pt-8"
+          className="mb-14 scroll-mt-40 border-t border-line pt-8"
         >
           <h2 className="font-display mb-6 flex items-baseline gap-3 text-2xl font-bold tracking-tight">
             {fechaCorta(dia.fecha)}
@@ -143,7 +63,7 @@ export default function Guia() {
           {dia.entradas.map((entrada) => {
             const veredicto = VEREDICTOS[entrada.veredicto];
             return (
-              <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-28">
+              <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-40">
                 <div className="mb-2 flex flex-wrap items-center gap-3">
                   <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
                     {veredicto.icono} {veredicto.texto}
@@ -169,7 +89,7 @@ export default function Guia() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
-        className="mb-14 scroll-mt-28 border-t border-dashed border-line-strong pt-8"
+        className="mb-14 scroll-mt-40 border-t border-dashed border-line-strong pt-8"
       >
         <h2 className="font-display mb-2 text-2xl font-bold tracking-tight">
           Futuro
@@ -190,7 +110,7 @@ export default function Guia() {
         {futuras.map((entrada) => {
           const veredicto = VEREDICTOS[entrada.veredicto];
           return (
-            <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-28">
+            <article key={entrada.id} id={entrada.id} className="mb-8 scroll-mt-40">
               <div className="mb-2 flex flex-wrap items-center gap-3">
                 <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
                   {veredicto.icono} {veredicto.texto}

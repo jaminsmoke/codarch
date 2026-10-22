@@ -1,4 +1,6 @@
 import { motion } from "motion/react";
+import { useLocation } from "react-router-dom";
+import LineaTiempo from "./components/LineaTiempo";
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 
@@ -15,9 +17,13 @@ const enlaces = [
 ];
 
 export default function Marco({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  // La línea del tiempo es de la guía ✓ ✅: solo sale en su página ✓ ✅ ✅.
+  const enGuia = pathname.startsWith("/guia");
+
   return (
     <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">
-      <header className="sticky top-0 z-20 border-b border-line bg-paper/85 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center gap-6 px-5 py-3">
           <Link to="/" className="flex items-baseline gap-2.5 no-underline">
             <span className="font-display text-xl font-bold tracking-tight text-ink">
@@ -48,6 +54,8 @@ export default function Marco({ children }: { children: ReactNode }) {
             ))}
           </nav>
         </div>
+
+        {enGuia ? <LineaTiempo /> : null}
       </header>
 
       <motion.main

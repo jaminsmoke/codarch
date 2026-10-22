@@ -44,7 +44,8 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
+  /* El header lleva la línea del tiempo pegada: el salto va más abajo ✓ ✅. */
+  scroll-padding-top: 10rem;
 }
 
 body {
