@@ -353,7 +353,7 @@ ipcMain.handle("codarch:check-update", async () => {
 
 /** Abre una página (la release, el npm) en el navegador del sistema. */
 ipcMain.handle("codarch:open-external", async (_event, url: string) => {
-  if (!/^https:\/\//.test(url)) {
+  if (!url.startsWith("https://")) {
     throw new Error(`no es una URL de https: ${url}`);
   }
   await shell.openExternal(url);

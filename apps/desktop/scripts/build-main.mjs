@@ -16,9 +16,6 @@ const DIST = path.join(ROOT, "dist");
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 
-const desktopPackage = JSON.parse(
-  await readFile(path.join(ROOT, "package.json"), "utf8")
-);
 // La versión es una para el producto (ADR 0032): manda la de la raíz del repo.
 const rootPackage = JSON.parse(
   await readFile(path.join(ROOT, "..", "..", "package.json"), "utf8")
