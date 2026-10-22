@@ -11,7 +11,7 @@ Hoy CodArch tiene:
   migración y checksum determinista. Es la verdad del producto y la comparten todas las apps.
 - **Reglas** de arquitectura en `.codarch.yml`: capas, prohibiciones, umbrales y ciclos, con severidad
   y política de bloqueo.
-- **MCP** de solo lectura: seis consultas para agentes.
+- **MCP** de solo lectura: nueve consultas para agentes.
 - **GitHub Action**: analiza base y head del PR, comenta el resultado y bloquea si la política falla.
 - **App web**: mapa, inspector, vista de PR, nivel de detalle para repos grandes y análisis de una
   carpeta en el navegador con el mismo checksum que el CLI.
