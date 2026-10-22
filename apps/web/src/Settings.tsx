@@ -202,8 +202,10 @@ export default function Settings({
                 <>
                   {plugins.length === 0 ? (
                     <p className="muted small">
-                      Este repositorio no declara ningún plugin. Añade uno en{" "}
-                      <code>plugins/</code> y decláralo en <code>.codarch.yml</code>.
+                      Este repositorio no tiene plugins instalados. Instala uno
+                      con <code>codarch plugins add &lt;carpeta&gt;</code>: copia
+                      la carpeta a <code>plugins/</code> y la declara en{" "}
+                      <code>.codarch.yml</code>.
                     </p>
                   ) : (
                     <div className="plugin-list">
@@ -264,8 +266,9 @@ export default function Settings({
                     </div>
                   )}
                   <p className="muted small">
-                    Los plugins son de este repositorio ✓ y se activan en esta
-                    máquina ✓: el análisis no cambia por tenerlos activados ✓.
+                    Los plugins instalados son de este repositorio ✓ y se activan
+                    en esta máquina ✓: el análisis no cambia por tenerlos
+                    activados ✓.
                   </p>
                 </>
               ) : null}

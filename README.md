@@ -417,8 +417,7 @@ El repo declara cuáles están **compilados** (`.codarch.yml`: `plugins: [...]` 
 activa cuáles quiere en **su máquina** ✓: el análisis no depende de eso ✓.
 
 El contrato vive en `@codarch/plugin-api` ✓ y es pequeño a propósito ✓: el modelo ✓, la selección ✓,
-las acciones ✓, las preferencias ✓ y el estado de la URL ✓. El plugin de ejemplo
-(`plugins/ejemplo/` ✓) sirve para comprobar que el contrato aguanta ✓.
+las acciones ✓, las preferencias ✓ y el estado de la URL ✓.
 ([ADR 0028](docs/adr/0028-los-plugins.md))
 
 Un **addon** es otra cosa ✓ ([ADR 0029](docs/adr/0029-los-addons.md) ✓): **datos, no código** ✓.
@@ -426,17 +425,35 @@ Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vista
 `addons/<nombre>/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo mismo ✓. No puede
 aportar lentes ✓, así que no cambia el checksum ✓.
 
-```bash
-codarch addons list            # los que hay en addons/ y cuáles declara el repo
-codarch addons add ./nestjs    # copia la carpeta y lo declara en .codarch.yml
-codarch addons remove nestjs   # lo quita del repo y de la declaración
-```
-
 El repo declara los que usa (`.codarch.yml`: `addons: [...]` ✓) y `codarch diff` aplica sus reglas
 ✓, cada una con su origen (`addon:nestjs` ✓) que se ve en el reporte ✓ y en el comentario del PR ✓.
 Las dos apps y el MCP leen la configuración ✓: el menú **Vistas** del mapa aplica las **vistas
-guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓. `addons/ejemplo/` es el de
-juguete: dos capas ✓, una prohibición ✓ y una vista ✓.
+guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓.
+
+### Instalar y quitar
+
+Las dos extensiones se instalan y se quitan igual ✓
+([ADR 0030](docs/adr/0030-instalar-y-quitar.md) ✓): una carpeta hija ✓ y una línea en
+`.codarch.yml` ✓, que es la lista de instalados ✓. Quitar borra **solo** la carpeta de esa
+extensión ✓, nunca `plugins/` ni `addons/` ✓.
+
+```bash
+codarch plugins list            # los de plugins/ y cuáles declara el repo
+codarch plugins add ./mi-vista  # copia la carpeta y la declara
+codarch plugins remove mi-vista # la borra y quita la línea
+
+codarch addons list
+codarch addons add ./nestjs
+codarch addons remove nestjs
+```
+
+Las dos listas avisan cuando el repo y la lista no cuadran ✓: una carpeta sin declarar ✓ (no entra
+en el build ✓) y una declaración sin carpeta ✓. Con `--json` lo da para el CI ✓.
+
+Instalar no es activar ✓: un plugin instalado se activa en los ajustes ✓, y un addon no se activa ✗
+— se aplica mientras esté declarado ✓. La diferencia de fondo está en **dónde vive cada uno** ✓: un
+plugin se instala en el build de CodArch ✓ (o en un fork ✓), no en el proyecto que analizas ✗; un
+addon se instala en el proyecto ✓ y viaja con él ✓.
 
 ### Los ajustes
 

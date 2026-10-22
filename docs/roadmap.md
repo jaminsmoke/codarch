@@ -18,7 +18,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M16 están cerradas. M17 (instalar y quitar) es la que está abierta.
+Las fases M0–M17 están cerradas.
 
 ---
 
@@ -323,9 +323,9 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
   El código del plugin se descarga **la primera vez que se usa** ✓.
 - [x] El store en los ajustes ✓ (M13.2 ✓).
 - [x] Un plugin **no** puede añadir lentes al modelo: cambiaría el checksum del snapshot ✓.
-- [x] **La prueba**: `plugins/ejemplo/` ✓, un plugin de juguete que añade una pestaña al mapa ✓ y
-  comprueba el contrato entero (el modelo ✓, la selección ✓, las acciones ✓, las preferencias ✓).
-  Si esa vista funciona, la vista 3D también ✓.
+- [x] **La prueba**: `plugins/ejemplo/` ✓ (hasta M17 ✓), un plugin de juguete que añade una pestaña
+  al mapa ✓ y comprueba el contrato entero (el modelo ✓, la selección ✓, las acciones ✓, las
+  preferencias ✓). Si esa vista funciona, la vista 3D también ✓.
 
 ## M15 — La vista 3D
 
@@ -355,28 +355,32 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 - [x] El checksum no cambia: un addon vive en la capa de la configuración, no en la del snapshot.
 - [x] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
   guardadas**; el MCP lee la configuración para verlos (la guía, §4.9) ✓.
-- [x] **La prueba**: `addons/ejemplo/` está en el repo y se ve en el mapa (su vista guardada
-  «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el comentario dice
-  `addon \`ejemplo\``).
+- [x] **La prueba**: `addons/ejemplo/` ✓ (hasta M17 ✓) estuvo en el repo y se veía en el mapa (su
+  vista guardada «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el
+  comentario decía `addon \`ejemplo\``).
 - [x] El store de los ajustes enseña los addons **del proyecto** en modo lectura (ADR 0029) ✓: son
   del repo, no se activan ni se desactivan como los plugins ✓.
 
 ## M17 — Instalar y quitar plugins y addons
 
-**Estado:** abierta. La decisión está en [ADR 0030](adr/0030-instalar-y-quitar.md): instalar y quitar
+**Estado:** cerrada. La decisión está en [ADR 0030](adr/0030-instalar-y-quitar.md): instalar y quitar
 son del repo; activar es de la máquina y solo existe en plugins.
 
-- [ ] `codarch plugins list|add|remove`, simétrico con `codarch addons`: `add` valida el manifiesto y
-  copia la carpeta; `remove` borra la carpeta hija y la quita de la declaración. Nunca la contenedora.
-- [ ] Las dos listas avisan cuando no cuadra: carpeta sin declarar (no entra en el build) y declaración
-  sin carpeta. `--json` para el CI.
-- [ ] El mismo guardia de nombre en plugins y addons; el build aplica el guardia al leer la declaración.
-- [ ] Los ajustes distinguen **instalado** (del repo) de **activado** (de la máquina): los plugins se
-  activan, los addons se miran.
-- [ ] Documentación: cómo se instala y se quita cada uno, y dónde vive cada uno (el plugin en el build
-  de CodArch, el addon en el proyecto que analizas).
-- [ ] Los ejemplos (`plugins/ejemplo`, `addons/ejemplo`) se quitan con los comandos nuevos; el README,
-  `AGENTS.md` y los ADR dejan de citarlos.
+- [x] `codarch plugins list|add|remove` ✓, simétrico con `codarch addons` ✓: `add` valida el
+  manifiesto ✓ y copia la carpeta ✓; `remove` borra la carpeta hija ✓ y la quita de la declaración ✓.
+  Nunca la contenedora ✓.
+- [x] Las dos listas avisan cuando no cuadra ✓: carpeta sin declarar ✓ (no entra en el build ✓) y
+  declaración sin carpeta ✓. `--json` para el CI ✓.
+- [x] El mismo guardia de nombre en plugins y addons ✓; el build aplica el guardia al leer la
+  declaración ✓.
+- [x] Los ajustes distinguen **instalado** ✓ (del repo ✓) de **activado** ✓ (de la máquina ✓): los
+  plugins se activan ✓, los addons se miran ✓.
+- [x] Documentación: cómo se instala y se quita cada uno ✓, y dónde vive cada uno ✓ (el plugin en el
+  build de CodArch ✓, el addon en el proyecto que analizas ✓).
+- [x] Los ejemplos (`plugins/ejemplo` ✓, `addons/ejemplo` ✓) salieron del repo con los comandos
+  nuevos ✓; el README ✓ y `AGENTS.md` ✓ dejan de citarlos ✓.
+- [x] **La prueba**: `apps/cli/test/plugins.test.ts` y `addons.test.ts` instalan ✓, listan (también
+  cuando la carpeta y la lista no cuadran ✓) y quitan sin tocar la carpeta contenedora ✓.
 
 ## Después
 
@@ -386,4 +390,4 @@ falta y si merece fase, ADR o solo un arreglo.
 Ahí están el registro público de plugins, las lentes de los plugins, la vista 3D a fondo
 (`plugins/vista-3d/ROADMAP.md`) y la lista de **mejoras de lo que ya hay**.
 
-Este roadmap tiene las fases: M0 a M17. M0 a M16 están cerradas; M17 es la que está abierta.
+Este roadmap tiene las fases: M0 a M17, todas cerradas.

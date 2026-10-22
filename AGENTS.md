@@ -11,8 +11,7 @@ Monorepo core-first:
 ```
 packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
 apps/       cli · mcp · github-action · web (M5) · desktop (M7)
-plugins/    vista-3d · ejemplo          # plugins del repo: código (ADR 0028)
-addons/     ejemplo                     # addons del repo: conocimiento (ADR 0029)
+plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
 docs/       adr/ · model.md · rules.md · mcp.md · migration.md · roadmap.md · guideline.md
 scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 ```
@@ -25,9 +24,9 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar.
-- El `roadmap.md` tiene las **fases** (M0 a M16 cerradas y M17 ✓ instalar y quitar plugins y addons ✓
-  abierta). Las ideas que no son fase viven en `docs/guideline.md` ✓, cada una con su veredicto ✓
-  (fase ✓, ADR ✓, arreglo ✓ o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
+- El `roadmap.md` tiene las **fases** (M0 a M17, todas cerradas). Las ideas que no son fase viven en
+  `docs/guideline.md` ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓ o esperar ✓). Un plugin
+  tiene su propia hoja de ruta en su carpeta ✓.
 
 ## Comandos
 
@@ -102,6 +101,11 @@ también `npm run sync:action` y actualizar el repo público.
   `codarch addons list|add|remove`, el diff aplicando sus reglas (con su `source` en el reporte y en
   el PR), el menú **Vistas** de las dos apps, `get_project_config` en el MCP y los addons del
   proyecto en los ajustes, en modo lectura.
+- M17 cerrada: instalar y quitar (ADR 0030). `codarch plugins list|add|remove`, simétrico con
+  `codarch addons`: instalar copia la carpeta hija y la declara; quitar la borra y la saca de la
+  lista, nunca la carpeta contenedora. Las dos listas avisan si la carpeta y `.codarch.yml` no
+  cuadran (`--json` para el CI). Los ejemplos de plugin y addon salieron del repo con los comandos
+  nuevos.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

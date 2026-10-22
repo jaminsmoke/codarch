@@ -1,9 +1,0 @@
-# Una vista guardada: el mismo estado que va en la URL (ADR 0018), con las
-# mismas claves cortas (ADR 0029).
-- id: paquetes
-  title: Los paquetes
-  description: El mapa por rloc, dentro de packages/ y con los nombres puestos.
-  state:
-    area: rloc
-    focus: packages
-    labels: true
