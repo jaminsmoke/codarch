@@ -33,6 +33,9 @@ flowchart LR
 
 El mismo `cc.json` alimenta todas las salidas: el checksum no depende de quién mira.
 
+La web del proyecto está en **[`jaminsmoke.github.io/codarch`](https://jaminsmoke.github.io/codarch)**
+✅: la portada ✅, los documentos ✅ y la guía ✅ ✅.
+
 Las decisiones están registradas en [`docs/adr/`](docs/adr/) —cada una con su **hoja de ruta** al
 lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
 [`docs/design/map.md`](docs/design/map.md), el MCP en [`docs/mcp.md`](docs/mcp.md), la migración en

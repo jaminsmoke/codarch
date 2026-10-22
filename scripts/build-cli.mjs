@@ -73,7 +73,7 @@ const published = {
     url: "git+https://github.com/jaminsmoke/codarch.git",
     directory: "apps/cli"
   },
-  homepage: "https://github.com/jaminsmoke/codarch",
+  homepage: "https://jaminsmoke.github.io/codarch",
   bugs: {
     url: "https://github.com/jaminsmoke/codarch/issues"
   },
