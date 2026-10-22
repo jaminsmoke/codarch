@@ -4,17 +4,23 @@ Mapa de arquitectura para equipos y agentes de IA. Analiza un repositorio TypeSc
 produce un snapshot interoperable con CodeCharta (`cc.json`), un mapa HTML autocontenido y un diff
 de arquitectura para PR/CI.
 
+> [!IMPORTANT]
+> **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
+> (`0.3.0-alpha.1` ✓) y **no hay soporte** ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓
+> y su checksum ✓.
+
 ## Instalación
 
 ```bash
-npm install -g codarch
+npm install -g codarch@next   # la alpha
 codarch --version
 ```
 
-Sin instalación global:
+`latest` se queda con la última versión normal ✓; las alphas viven en la etiqueta `next` ✓. Sin
+instalación global:
 
 ```bash
-npx codarch analyze .
+npx codarch@next analyze .
 ```
 
 Requiere Node 22 o superior. El análisis usa `git log` para churn y autores; sin historial se puede
@@ -102,4 +108,5 @@ rules:
 
 ## Licencia
 
-MIT.
+MIT. El nombre «CodArch» y el logotipo no se conceden con la licencia:
+[`TRADEMARK.md`](https://github.com/jaminsmoke/codarch/blob/main/TRADEMARK.md).
