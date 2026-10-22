@@ -148,6 +148,28 @@ describe("codarch addons", () => {
     expect(fs.readFileSync(path.join(root, ".codarch.yml"), "utf8")).not.toContain("- demo");
   });
 
+  it("avisa si un addon declarado no tiene carpeta", () => {
+    const root = tempDir();
+    fs.writeFileSync(
+      path.join(root, ".codarch.yml"),
+      "version: 1\n\naddons:\n  - fantasma\n",
+      "utf8"
+    );
+
+    const lines: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((line: unknown) => {
+      lines.push(String(line));
+    });
+
+    expect(runAddons({ action: "list", root, json: true })).toBe(1);
+    const parsed = JSON.parse(lines.join("\n")) as { missing: string[] };
+    expect(parsed.missing).toEqual(["fantasma"]);
+
+    lines.length = 0;
+    expect(runAddons({ action: "list", root, json: false })).toBe(1);
+    expect(lines.join("\n")).toContain("fantasma · declarado pero falta la carpeta");
+  });
+
   it("avisa si la carpeta no existe o el nombre no vale", () => {
     const root = tempDir();
     vi.spyOn(console, "error").mockImplementation(() => undefined);

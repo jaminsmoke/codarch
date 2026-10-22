@@ -18,6 +18,9 @@ import type { PluginManifest } from "./index";
 const VIRTUAL_ID = "virtual:codarch-plugins";
 const RESOLVED_ID = `\0${VIRTUAL_ID}`;
 
+/** El mismo nombre que un addon: minúsculas, números y guiones (ADR 0030). */
+const PLUGIN_NAME = /^[a-z0-9][a-z0-9-]*$/;
+
 export interface PluginBuildOptions {
   /** La raíz del repo. */
   root: string;
@@ -33,7 +36,9 @@ export function compiledPlugins(root: string): string[] {
     } | null;
     const list = parsed?.plugins;
     if (!Array.isArray(list)) return [];
-    return list.filter((name): name is string => typeof name === "string");
+    return list.filter(
+      (name): name is string => typeof name === "string" && PLUGIN_NAME.test(name)
+    );
   } catch {
     return [];
   }
@@ -51,7 +56,10 @@ export function pluginManifests(root: string): PluginManifest[] {
     const file = path.join(directory, name, "plugin.json");
     if (!fs.existsSync(file)) continue;
     try {
-      const manifest = JSON.parse(fs.readFileSync(file, "utf8")) as PluginManifest;
+      // Un `plugin.json` guardado en Windows puede traer BOM.
+      const manifest = JSON.parse(
+        fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "")
+      ) as PluginManifest;
       manifests.push({ ...manifest, name: manifest.name ?? name });
     } catch {
       // Un manifiesto roto no debe parar el build: el plugin simplemente no

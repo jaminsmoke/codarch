@@ -69,6 +69,11 @@ describe("el registro de plugins", () => {
     expect(compiledPlugins(root)).toEqual([]);
   });
 
+  it("un nombre que no es de plugin no entra en el build", () => {
+    const root = repo("version: 1\nplugins:\n  - ../fuera\n  - vista-3d\n");
+    expect(compiledPlugins(root)).toEqual(["vista-3d"]);
+  });
+
   it("lee el manifiesto del plugin", () => {
     const root = repo("version: 1\nplugins:\n  - ejemplo\n", {
       name: "ejemplo",

@@ -9,7 +9,9 @@ import { runHistory, type HistoryCommandOptions } from "./commands/history";
 import { runChain, type ChainCommandOptions } from "./commands/chain";
 import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
-import { runAddons, type AddonsOptions } from "./commands/addons";
+import { runAddons } from "./commands/addons";
+import { runPlugins } from "./commands/plugins";
+import type { InstalledOptions } from "./commands/installed";
 
 import { VERSION } from "./version";
 
@@ -28,6 +30,7 @@ Uso:
   codarch chain   [símbolo] [opciones]
   codarch verify  [--root <ruta>] [--json]
   codarch addons  [list|add|remove] [ruta|nombre] [--json]
+  codarch plugins [list|add|remove] [ruta|nombre] [--json]
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
@@ -91,6 +94,14 @@ Opciones de chain:
 Opciones de addons:
   list              los addons de addons/ y cuáles declara el repo
   add <ruta>        copia un addon a addons/ y lo declara en .codarch.yml
+  remove <nombre>   lo quita del repo y de la declaración
+  --root <ruta>     el repositorio (por defecto, el actual)
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de plugins:
+  list              los plugins de plugins/ y cuáles declara el repo
+  add <ruta>        copia un plugin a plugins/ y lo declara en .codarch.yml
   remove <nombre>   lo quita del repo y de la declaración
   --root <ruta>     el repositorio (por defecto, el actual)
   --json            salida machine-readable
@@ -336,10 +347,13 @@ function parseSuggest(args: string[]): SuggestOptions | number {
   return options;
 }
 
-function parseAddons(args: string[]): AddonsOptions | number {
-  const options: AddonsOptions = { action: "list", root: ".", json: false };
+function parseInstalled(
+  args: string[],
+  command: "addons" | "plugins"
+): InstalledOptions | number {
+  const options: InstalledOptions = { action: "list", root: ".", json: false };
   const positional: string[] = [];
-  let action: AddonsOptions["action"] | null = null;
+  let action: InstalledOptions["action"] | null = null;
 
   for (let index = 0; index < args.length; index++) {
     const arg = args[index] as string;
@@ -361,7 +375,9 @@ function parseAddons(args: string[]): AddonsOptions | number {
       return 1;
     } else if (action === null) {
       if (arg !== "list" && arg !== "add" && arg !== "remove") {
-        console.error(`acción desconocida: ${arg} (list, add o remove)`);
+        console.error(
+          `acción desconocida: ${arg} (list, add o remove)\n\n  codarch ${command} list`
+        );
         return 1;
       }
       action = arg;
@@ -736,9 +752,15 @@ function main(argv: string[]): number {
   }
 
   if (command === "addons") {
-    const parsed = parseAddons(rest);
+    const parsed = parseInstalled(rest, "addons");
     if (typeof parsed === "number") return parsed;
     return runAddons(parsed);
+  }
+
+  if (command === "plugins") {
+    const parsed = parseInstalled(rest, "plugins");
+    if (typeof parsed === "number") return parsed;
+    return runPlugins(parsed);
   }
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);

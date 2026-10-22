@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { parseDocument } from "yaml";
 import { ADDON_NAME } from "@codarch/metrics";
 import {
   AddonError,
@@ -8,26 +7,25 @@ import {
   ruleConfigAddon,
   type Addon
 } from "@codarch/addons";
-import { ADDONS_DIR, declaredAddons, loadAddon, loadAddons } from "@codarch/addons/node";
+import { ADDONS_DIR, loadAddon, loadAddons } from "@codarch/addons/node";
+import {
+  declareIn,
+  declaredIn,
+  findConfig,
+  undeclareIn,
+  type InstalledOptions
+} from "./installed";
 
 /**
- * Los addons de un repo (ADR 0029).
+ * Los addons de un repo (ADR 0029 y ADR 0030).
  *
  * Un addon es conocimiento declarativo — perfiles, reglas y vistas guardadas —
  * que vive en `addons/<nombre>/` y que el `.codarch.yml` declara. Instalarlo
- * es copiar una carpeta: no hay registro ni código que ejecutar.
+ * es copiar una carpeta: no hay registro ni código que ejecutar. Quitarlo es
+ * borrar la carpeta hija y quitar el nombre, nunca la carpeta contenedora.
  */
 
-export interface AddonsOptions {
-  action: "list" | "add" | "remove";
-  /** La ruta a copiar (`add`) o el nombre a quitar (`remove`). */
-  target?: string;
-  /** El repo (por defecto, el directorio actual). */
-  root: string;
-  json: boolean;
-}
-
-export function runAddons(options: AddonsOptions): number {
+export function runAddons(options: InstalledOptions): number {
   const root = path.resolve(options.root);
 
   if (options.action === "list") return listAddons(root, options.json);
@@ -49,7 +47,10 @@ export function runAddons(options: AddonsOptions): number {
 function listAddons(root: string, json: boolean): number {
   const loaded = loadAddons(root);
   const configFile = findConfig(root);
-  const declared = declaredAddons(root);
+  const declared = declaredIn(root, "addons");
+  const missing = declared.filter(
+    (name) => !fs.existsSync(path.join(root, ADDONS_DIR, name))
+  );
 
   const groups = [
     ...loaded.addons.map((addon) => ({
@@ -76,20 +77,21 @@ function listAddons(root: string, json: boolean): number {
           dir: ADDONS_DIR,
           config: configFile ? path.relative(root, configFile) : null,
           declared,
-          addons: groups
+          addons: groups,
+          missing
         },
         null,
         2
       )
     );
-    return loaded.errors.length > 0 ? 1 : 0;
+    return loaded.errors.length > 0 || missing.length > 0 ? 1 : 0;
   }
 
   console.log("");
   console.log("  CodArch · addons");
   console.log("");
 
-  if (groups.length === 0) {
+  if (groups.length === 0 && missing.length === 0) {
     console.log(`  No hay addons en ${ADDONS_DIR}/.`);
     console.log("");
     console.log("  Para instalar uno:");
@@ -107,7 +109,7 @@ function listAddons(root: string, json: boolean): number {
       continue;
     }
 
-    const mark = group.declared ? "declarado" : "sin declarar";
+    const mark = group.declared ? "instalado" : "sin declarar";
     console.log(`  ${group.name} ${group.version} · ${group.title} — ${mark}`);
     if (group.description) console.log(`    ${group.description}`);
     const parts: string[] = [];
@@ -122,18 +124,24 @@ function listAddons(root: string, json: boolean): number {
       console.log(`    vista ${view.id}: ${view.title}`);
     }
     if (!group.declared) {
-      console.log("    para usarlo, decláralo en .codarch.yml:");
+      console.log("    no se aplica; para instalarlo, decláralo en .codarch.yml:");
       console.log(`      addons: [${group.name}]`);
     }
     console.log("");
   }
 
-  if (declared.length === 0) {
-    console.log("  Ninguno está declarado en .codarch.yml: no afectan al análisis.");
+  for (const name of missing) {
+    console.log(`  ${name} · declarado pero falta la carpeta`);
+    console.log("    no se aplica: quítalo de .codarch.yml o vuelve a copiarlo.");
     console.log("");
   }
 
-  return loaded.errors.length > 0 ? 1 : 0;
+  if (declared.length === 0) {
+    console.log("  Ninguno está instalado: no hay addons declarados en .codarch.yml.");
+    console.log("");
+  }
+
+  return loaded.errors.length > 0 || missing.length > 0 ? 1 : 0;
 }
 
 function addAddon(root: string, target: string): number {
@@ -162,7 +170,7 @@ function addAddon(root: string, target: string): number {
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.cpSync(source, dest, { recursive: true });
 
-  const declared = declare(root, addon.manifest.name);
+  const declared = declareIn(root, "addons", addon.manifest.name);
   if (!declared.ok) {
     console.error(declared.message);
     return 1;
@@ -199,19 +207,10 @@ function removeAddon(root: string, name: string): number {
 
   fs.rmSync(dir, { recursive: true, force: true });
 
-  const config = findConfig(root);
-  if (config) {
-    const doc = readDocument(config);
-    if (doc.ok) {
-      const declared = declaredIn(doc.doc);
-      if (declared.includes(name)) {
-        doc.doc.set(
-          "addons",
-          declared.filter((entry) => entry !== name)
-        );
-        fs.writeFileSync(config, String(doc.doc), "utf8");
-      }
-    }
+  const undeclared = undeclareIn(root, "addons", name);
+  if (!undeclared.ok) {
+    console.error(undeclared.message);
+    return 1;
   }
 
   console.log("");
@@ -220,75 +219,3 @@ function removeAddon(root: string, name: string): number {
   return 0;
 }
 
-/** Declara un addon en `.codarch.yml`, creando el archivo si no existe. */
-function declare(
-  root: string,
-  name: string
-): { ok: true } | { ok: false; message: string } {
-  const config = findConfig(root);
-
-  if (!config) {
-    const file = path.join(root, ".codarch.yml");
-    fs.writeFileSync(file, `version: 1\n\naddons:\n  - ${name}\n`, "utf8");
-    return { ok: true };
-  }
-
-  const doc = readDocument(config);
-  if (!doc.ok) return { ok: false, message: doc.message };
-
-  const declared = declaredIn(doc.doc);
-  if (!declared.includes(name)) {
-    doc.doc.set("addons", [...declared, name]);
-  }
-  if (asRecord(doc.doc.toJS()).version === undefined) {
-    doc.doc.set("version", 1);
-  }
-
-  fs.writeFileSync(config, String(doc.doc), "utf8");
-  return { ok: true };
-}
-
-function findConfig(root: string): string | null {
-  for (const file of [".codarch.yml", ".codarch.yaml"]) {
-    const full = path.join(root, file);
-    if (fs.existsSync(full)) return full;
-  }
-  return null;
-}
-
-/** Los addons que declara un `.codarch.yml`, en orden. */
-function declaredIn(doc: import("yaml").Document): string[] {
-  return stringList(asRecord(doc.toJS()).addons);
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return {};
-  }
-  return value as Record<string, unknown>;
-}
-
-function readDocument(
-  file: string
-): { ok: true; doc: import("yaml").Document } | { ok: false; message: string } {
-  let text: string;
-  try {
-    text = fs.readFileSync(file, "utf8");
-  } catch (error) {
-    return { ok: false, message: `no se pudo leer ${file}: ${(error as Error).message}` };
-  }
-
-  const doc = parseDocument(text);
-  if (doc.errors.length > 0) {
-    return {
-      ok: false,
-      message: `YAML inválido en ${file}: ${doc.errors[0]?.message ?? "error"}`
-    };
-  }
-  return { ok: true, doc };
-}
-
-function stringList(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is string => typeof entry === "string");
-}
