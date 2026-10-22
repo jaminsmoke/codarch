@@ -25,9 +25,9 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar.
-- El `roadmap.md` tiene las **fases** (M0 a M16, todas cerradas). Las ideas que no son fase
-  viven en `docs/guideline.md` ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓ o
-  esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
+- El `roadmap.md` tiene las **fases** (M0 a M16 cerradas y M17 ✓ instalar y quitar plugins y addons ✓
+  abierta). Las ideas que no son fase viven en `docs/guideline.md` ✓, cada una con su veredicto ✓
+  (fase ✓, ADR ✓, arreglo ✓ o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
 ## Comandos
 

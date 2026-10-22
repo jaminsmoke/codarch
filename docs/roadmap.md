@@ -18,7 +18,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M16 están cerradas.
+Las fases M0–M16 están cerradas. M17 (instalar y quitar) es la que está abierta.
 
 ---
 
@@ -361,6 +361,23 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 - [x] El store de los ajustes enseña los addons **del proyecto** en modo lectura (ADR 0029) ✓: son
   del repo, no se activan ni se desactivan como los plugins ✓.
 
+## M17 — Instalar y quitar plugins y addons
+
+**Estado:** abierta. La decisión está en [ADR 0030](adr/0030-instalar-y-quitar.md): instalar y quitar
+son del repo; activar es de la máquina y solo existe en plugins.
+
+- [ ] `codarch plugins list|add|remove`, simétrico con `codarch addons`: `add` valida el manifiesto y
+  copia la carpeta; `remove` borra la carpeta hija y la quita de la declaración. Nunca la contenedora.
+- [ ] Las dos listas avisan cuando no cuadra: carpeta sin declarar (no entra en el build) y declaración
+  sin carpeta. `--json` para el CI.
+- [ ] El mismo guardia de nombre en plugins y addons; el build aplica el guardia al leer la declaración.
+- [ ] Los ajustes distinguen **instalado** (del repo) de **activado** (de la máquina): los plugins se
+  activan, los addons se miran.
+- [ ] Documentación: cómo se instala y se quita cada uno, y dónde vive cada uno (el plugin en el build
+  de CodArch, el addon en el proyecto que analizas).
+- [ ] Los ejemplos (`plugins/ejemplo`, `addons/ejemplo`) se quitan con los comandos nuevos; el README,
+  `AGENTS.md` y los ADR dejan de citarlos.
+
 ## Después
 
 Las ideas que todavía **no son fase** viven en [la guía](guideline.md): cada una dice qué es, qué
@@ -369,4 +386,4 @@ falta y si merece fase, ADR o solo un arreglo.
 Ahí están el registro público de plugins, las lentes de los plugins, la vista 3D a fondo
 (`plugins/vista-3d/ROADMAP.md`) y la lista de **mejoras de lo que ya hay**.
 
-Este roadmap tiene las fases: M0 a M16, todas cerradas.
+Este roadmap tiene las fases: M0 a M17. M0 a M16 están cerradas; M17 es la que está abierta.
