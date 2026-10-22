@@ -60,6 +60,27 @@ body {
   background: color-mix(in srgb, var(--color-cobalt) 30%, transparent);
 }
 
+/* La línea del tiempo: la línea atraviesa los nodos ✓ ✅ y el último
+ * tramo (el futuro ✓ ✓) va punteado ✓ ✅. */
+.linea-tiempo {
+  position: relative;
+}
+
+.linea-tiempo::before {
+  content: "";
+  position: absolute;
+  top: 0.45rem;
+  left: calc(50% / var(--n));
+  right: calc(50% / var(--n));
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--color-line) 0 calc(100% - 50% / var(--n)),
+    transparent calc(100% - 50% / var(--n))
+  );
+}
+
 /* El contenido que viene del markdown (la guía ✓). */
 .prosa-guia h1 {
   font-family: var(--font-display);

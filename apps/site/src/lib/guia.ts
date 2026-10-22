@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { marked, Renderer } from "marked";
 
 /**
@@ -32,10 +34,18 @@ export interface Entrada {
   html: string;
 }
 
-/** La guía entera: la introducción y las entradas, en orden. */
+/** Un día de trabajo: las entradas de esa fecha ✓ ✓. */
+export interface Dia {
+  fecha: string;
+  entradas: Entrada[];
+}
+
+/** La guía entera: la introducción, los días y lo que falta ✓ ✓. */
 export interface Guia {
   introduccion: string;
-  entradas: Entrada[];
+  dias: Dia[];
+  /** Las ideas que esperan ✓ ✓: lo que todavía no ha pasado ✓ ✓. */
+  futuras: Entrada[];
 }
 
 /** El contenido de la guía, del repo, en el build. */
@@ -53,6 +63,28 @@ export function slug(texto: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+/** "2026-10-21" -> "21 oct" */
+export function fechaCorta(fecha: string): string {
+  const meses = [
+    "ene",
+    "feb",
+    "mar",
+    "abr",
+    "may",
+    "jun",
+    "jul",
+    "ago",
+    "sep",
+    "oct",
+    "nov",
+    "dic"
+  ];
+  const partes = fecha.split("-");
+  if (partes.length !== 3) return fecha;
+  const mes = Number(partes[1]) - 1;
+  return `${Number(partes[2])} ${meses[mes] ?? partes[1]}`;
 }
 
 /**
@@ -96,7 +128,7 @@ export function renderizar(markdown: string): string {
 /** La línea de metadatos: `*idea · 2026-10-21*`. */
 const METADATOS = /^\*([a-záéíóúñ]+) · (\d{4}-\d{2}-\d{2})\*$/;
 
-/** Parte la guía: la introducción y las entradas. */
+/** Parte la guía: la introducción, las entradas y los días. */
 export function partir(markdown: string): Guia {
   const secciones = markdown.split(/^## /m);
   const primera = secciones.shift() ?? "";
@@ -126,7 +158,22 @@ export function partir(markdown: string): Guia {
     });
   }
 
-  return { introduccion: renderizar(introduccion.join("\n\n")), entradas };
+  // Los días: una entrada por día, agrupadas ✓ ✅.
+  const porDia = new Map<string, Entrada[]>();
+  for (const entrada of entradas) {
+    const lista = porDia.get(entrada.fecha) ?? [];
+    lista.push(entrada);
+    porDia.set(entrada.fecha, lista);
+  }
+
+  const dias: Dia[] = [...porDia.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([fecha, lista]) => ({ fecha, entradas: lista }));
+
+  // Lo que espera: las ideas sin decidir todavía ✓ ✓.
+  const futuras = entradas.filter((entrada) => entrada.veredicto === "esperar");
+
+  return { introduccion: renderizar(introduccion.join("\n\n")), dias, futuras };
 }
 
 /** La guía, tal cual está en el repo. */
