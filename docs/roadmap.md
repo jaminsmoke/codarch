@@ -18,7 +18,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M15 están cerradas. M16 (los addons) es la que está abierta.
+Las fases M0–M16 están cerradas.
 
 ---
 
@@ -342,8 +342,8 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 
 ## M16 — Los addons
 
-**Estado:** en curso. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
-**datos, no código**. El CLI, las dos apps y el MCP ya los leen.
+**Estado:** cerrada. El contrato está decidido en [ADR 0029](adr/0029-los-addons.md): un addon es
+**datos, no código**. El CLI, las dos apps y el MCP los leen.
 
 - [x] `@codarch/addons`: el manifiesto, la validación (una clave desconocida es error ✓) y la
   fusión con la configuración. Sin código que ejecutar.
@@ -358,8 +358,8 @@ Decisión en [ADR 0028](adr/0028-los-plugins.md).
 - [x] **La prueba**: `addons/ejemplo/` está en el repo y se ve en el mapa (su vista guardada
   «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el comentario dice
   `addon \`ejemplo\``).
-- [ ] El store de los ajustes enseña los addons **del proyecto** en modo lectura (ADR 0029): son del
-  repo, no se activan ni se desactivan como los plugins.
+- [x] El store de los ajustes enseña los addons **del proyecto** en modo lectura (ADR 0029) ✓: son
+  del repo, no se activan ni se desactivan como los plugins ✓.
 
 ## Después
 
@@ -369,4 +369,4 @@ falta y si merece fase, ADR o solo un arreglo.
 Ahí están el registro público de plugins, las lentes de los plugins, la vista 3D a fondo
 (`plugins/vista-3d/ROADMAP.md`) y la lista de **mejoras de lo que ya hay**.
 
-Este roadmap tiene las fases: M0 a M16. M0 a M15 están cerradas; M16 es la que está abierta.
+Este roadmap tiene las fases: M0 a M16, todas cerradas.

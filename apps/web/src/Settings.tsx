@@ -6,6 +6,7 @@ import {
   hasWebgl2,
   type PluginDescriptor
 } from "@codarch/plugin-api";
+import type { RepoAddon } from "@codarch/addons";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -49,17 +50,25 @@ export interface SettingsProps {
   onTogglePlugin: (name: string, on: boolean) => void;
   /** Los plugins que no se pudieron cargar. */
   failedPlugins: readonly string[];
+  /**
+   * Los addons que declara el proyecto (ADR 0029).
+   *
+   * Solo se miran: no se activan ni se desactivan como los plugins, porque
+   * viajan con el repo y el análisis no cambia por tenerlos.
+   */
+  addons: readonly RepoAddon[];
   /** Si los bloques del mapa muestran su nombre aunque no quepa entero. */
   showLabels: boolean;
   onShowLabels: (value: boolean) => void;
 }
 
-type Section = "vista" | "proyecto" | "plugins" | "diagnostico";
+type Section = "vista" | "proyecto" | "plugins" | "addons" | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "vista", label: "Vista" },
   { id: "proyecto", label: "Proyecto" },
   { id: "plugins", label: "Plugins" },
+  { id: "addons", label: "Addons" },
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
@@ -81,6 +90,7 @@ export default function Settings({
   enabledPlugins,
   onTogglePlugin,
   failedPlugins,
+  addons,
   showLabels,
   onShowLabels
 }: SettingsProps) {
@@ -260,6 +270,49 @@ export default function Settings({
                 </>
               ) : null}
 
+              {section === "addons" ? (
+                <>
+                  {addons.length === 0 ? (
+                    <p className="muted small">
+                      Este repositorio no declara ningún addon. Instala uno con{" "}
+                      <code>codarch addons add &lt;carpeta&gt;</code>: copia la
+                      carpeta a <code>addons/</code> y la declara en{" "}
+                      <code>.codarch.yml</code>.
+                    </p>
+                  ) : (
+                    <div className="plugin-list">
+                      {addons.map((addon) => (
+                        <div key={addon.name} className="plugin-row">
+                          <div className="plugin-text">
+                            <span className="plugin-title">{addon.title}</span>
+                            <span className="mono plugin-version">
+                              {addon.version}
+                            </span>
+                            {addon.description ? (
+                              <span className="muted tiny">
+                                {addon.description}
+                              </span>
+                            ) : null}
+                            <span className="muted tiny">
+                              {addonSummary(addon)}
+                            </span>
+                          </div>
+                          <span className="mono plugin-version">
+                            {addon.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="muted small">
+                    Los addons son del repositorio y viajan con él: no se
+                    activan ni se desactivan como los plugins, y no cambian el
+                    checksum. Sus vistas guardadas están en el menú «Vistas»
+                    del mapa.
+                  </p>
+                </>
+              ) : null}
+
               {section === "diagnostico" ? (
                 <>
                   <div className="settings-row">
@@ -291,4 +344,15 @@ export default function Settings({
       </Dialog.Portal>
     </Dialog.Root>
   );
+}
+
+/** «1 perfil · 2 reglas · 1 vista»: lo que aporta un addon, en una línea. */
+function addonSummary(addon: RepoAddon): string {
+  const count = (value: number, one: string, many: string): string =>
+    `${value} ${value === 1 ? one : many}`;
+  return [
+    count(addon.profiles.length, "perfil", "perfiles"),
+    count(addon.rules, "regla", "reglas"),
+    count(addon.views.length, "vista", "vistas")
+  ].join(" · ");
 }

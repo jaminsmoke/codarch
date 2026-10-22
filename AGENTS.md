@@ -25,7 +25,7 @@ scripts/    bench-* · build-cli · pack-cli · sync-action · check-action
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
 - Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar.
-- El `roadmap.md` tiene las **fases** (M0 a M16; M0 a M15 cerradas y M16 ✓ los addons ✓ abierta). Las ideas que no son fase
+- El `roadmap.md` tiene las **fases** (M0 a M16, todas cerradas). Las ideas que no son fase
   viven en `docs/guideline.md` ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓ o
   esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
@@ -96,12 +96,12 @@ también `npm run sync:action` y actualizar el repo público.
 - M14 cerrada: los plugins (ADR 0028). Piezas del repo que se compilan en el build y se activan
   desde los ajustes; el contrato promete **solo vistas**.
 - M15 cerrada: la vista 3D, el primer plugin, en su propio chunk y con su hoja de ruta.
-- M16 en curso: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas
+- M16 cerrada: los addons (ADR 0029). Conocimiento declarativo (perfiles, reglas y vistas
   guardadas) que se instala copiando una carpeta y viaja con el repo. Un addon **no** aporta código
-  ni lentes: el checksum no cambia. Hecho: `@codarch/addons`, `addons:` en `.codarch.yml`,
+  ni lentes: el checksum no cambia. `@codarch/addons`, `addons:` en `.codarch.yml`,
   `codarch addons list|add|remove`, el diff aplicando sus reglas (con su `source` en el reporte y en
-  el PR), el menú **Vistas** de las dos apps y `get_project_config` en el MCP. Falta que el store de
-  los ajustes los enseñe en modo lectura.
+  el PR), el menú **Vistas** de las dos apps, `get_project_config` en el MCP y los addons del
+  proyecto en los ajustes, en modo lectura.
 - Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 

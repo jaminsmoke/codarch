@@ -441,7 +441,8 @@ juguete: dos capas ✓, una prohibición ✓ y una vista ✓.
 ### Los ajustes
 
 Hay un engranaje en la cabecera que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
-el proyecto guardado ✓ y el diagnóstico ✓ (versión ✓, checksum ✓, si el almacenamiento local está
+el proyecto guardado ✓, los plugins ✓, los addons del proyecto ✓ (en modo lectura ✓: son del repo,
+no se activan) y el diagnóstico ✓ (versión ✓, checksum ✓, si el almacenamiento local está
 disponible ✓). En el escritorio, también desde el menú nativo ✓.
 
 Los ajustes son de la **máquina**, no del repositorio ✓: el análisis no cambia por tener el área en

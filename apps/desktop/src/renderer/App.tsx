@@ -1148,6 +1148,7 @@ export default function App() {
         enabledPlugins={plugins.enabled}
         onTogglePlugin={plugins.toggle}
         failedPlugins={plugins.failed}
+        addons={addons}
         showLabels={showLabels}
         onShowLabels={setShowLabels}
       />
