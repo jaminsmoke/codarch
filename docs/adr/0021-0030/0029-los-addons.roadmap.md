@@ -22,7 +22,7 @@ ideas que aún no son fase ✓.
 - [x] `codarch diff` los carga y aplica sus reglas; la acción también, porque ejecuta el CLI.
 - [x] El checksum no cambia: un addon vive en la capa de la configuración, no en la del snapshot.
 - [x] `codarch addons list` y las dos apps enseñan los addons del proyecto y aplican sus **vistas
-  guardadas**; el MCP lee la configuración para verlos (la guía, §4.9) ✓.
+  guardadas**; el MCP lee la configuración para verlos (la guía, G4.9) ✓.
 - [x] **La prueba**: `addons/ejemplo/` ✓ (hasta M17 ✓) estuvo en el repo y se veía en el mapa (su
   vista guardada «Los paquetes»), en el reporte (cada violación con `source`) y en el PR (el
   comentario decía `addon \`ejemplo\``).

@@ -40,7 +40,7 @@ De ahí sale todo lo demás ✓:
   ✓ ni runtime que cargar ✓.
 - **No puede romper el checksum** ✓ ✗: no toca ni `files` ✓ ni `lenses` ✓.
 - **Un registro es barato** ✓: distribuir datos con un hash es mucho menos que firmar código ✓ (la
-  guía, §1 ✓).
+  guía, G1 ✓).
 
 ### 2. Vive donde vive la configuración
 
@@ -147,7 +147,7 @@ codarch addons remove nestjs # la quita del repo y de la declaración
 
 No hay descarga desde una URL ✓ ni registro ✗ **todavía** ✓: un addon es una carpeta ✓, y traerla es
 cosa de git ✓, un zip ✓ o el README de quien lo publica ✓. La distribución tiene su propia decisión ✓
-(la guía, §1 ✓).
+(la guía, G1 ✓).
 
 ### 8. La puerta a las lentes, cuando se decida
 
@@ -168,7 +168,7 @@ necesite una señal nueva la calcula **en su vista** ✓ (como hace el 3D ✓), 
 - `.codarch.yml` gana `addons:` ✓ y el addon vive en `addons/<nombre>/` ✓. El parser de reglas (`@codarch/metrics` ✓) acepta las piezas ya
   validadas ✓: la fusión por nombre es **la misma** que la de los perfiles ✓ ✓.
 - El MCP y la acción **tienen que leer la configuración** ✓ para verlos ✓ — lo que ya hacía el CLI ✓
-  (la guía, §4.9 ✓).
+  (la guía, G4.9 ✓).
 - El store de los ajustes muestra los addons **del proyecto** ✓ en modo lectura ✓ (los declara el
   repo ✓); lo que se activa o desactiva ahí son los **plugins** ✓ (ADR 0027 ✓), que son otra cosa ✓.
 - El checksum no cambia ✓: un addon vive en la capa de la configuración ✓, como un `.codarch.yml`

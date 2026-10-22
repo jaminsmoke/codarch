@@ -15,10 +15,12 @@ La web también **analiza una carpeta en el navegador**, con la misma gramática
 que sale tiene su checksum. Y hay una **app de escritorio** (Electron) con su propia interfaz, que
 analiza contra el disco de verdad y con git.
 
-Las decisiones están registradas en [`docs/adr/`](docs/adr/), el modelo en
-[`docs/model.md`](docs/model.md), el diseño del mapa en [`docs/design/map.md`](docs/design/map.md), el
-MCP en [`docs/mcp.md`](docs/mcp.md), la migración en [`docs/migration.md`](docs/migration.md) y el plan
-en [`docs/roadmap.md`](docs/roadmap.md).
+Las decisiones están registradas en [`docs/adr/`](docs/adr/) —cada una con su **hoja de ruta** al
+lado—, el modelo en [`docs/model.md`](docs/model.md), el diseño del mapa en
+[`docs/design/map.md`](docs/design/map.md), el MCP en [`docs/mcp.md`](docs/mcp.md), la migración en
+[`docs/migration.md`](docs/migration.md), el índice de fases en
+[`docs/roadmap.md`](docs/roadmap.md) y las ideas que faltan en
+[`docs/guideline.md`](docs/guideline.md).
 
 ---
 
@@ -606,7 +608,7 @@ Si algo de esto entra, el MVP se convierte en CodeCharta 2 y perdemos la cuña.
 ```
 packages/   schema · parsers · metrics · layouts · render
 apps/       cli · mcp · github-action · web (M5)
-docs/       adr/ · design/ · model.md · rules.md · mcp.md · roadmap.md
+docs/       adr/ (decisiones, en carpetas de diez) · design/ · model.md · rules.md · mcp.md · roadmap.md · guideline.md
 scripts/    bench-*.ts · build-cli.mjs · pack-cli.mjs · sync-action.mjs · check-action.mjs · fetch-samples.mjs
 design/     prototipo navegable del mapa 2D
 ```
