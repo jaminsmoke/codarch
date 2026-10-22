@@ -32,6 +32,10 @@ jobs:
       - name: Tipos
         run: npm run typecheck
 
+      # La muestra real de CodeCharta: sin ella, el render real no se prueba.
+      - name: Muestras
+        run: npm run samples
+
       - name: Tests
         run: npx vitest run
 
