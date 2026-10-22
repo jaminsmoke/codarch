@@ -124,14 +124,14 @@ también `npm run sync:action` y actualizar el repo público.
 - M20 cerrada: la guía, en HTML (ADR 0031, §7). `docs/guideline/` es una página (`index.html`,
   `guia.css`, `guia.js`) con índice, «dónde estoy» y sin nombres G1: cada entrada se llama por lo
   que es. `npm run docs` la abre.
-- M21 en curso: las versiones y las actualizaciones (ADR 0032). Una versión para el producto (la de
+- M21 cerrada: las versiones y las actualizaciones (ADR 0032). Una versión para el producto (la de
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
-  la sección **Actualizaciones** en los ajustes de las dos apps. Falta el feed público del
-  escritorio (`CODARCH_UPDATE_REPO`).
-- M22 en curso: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
+  la sección **Actualizaciones** en los ajustes de las dos apps. El escritorio se actualiza con
+  las releases del repo (`CODARCH_UPDATE_REPO`).
+- M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
-  la nota de privacidad. Falta la revisión final, el ensayo y abrirlo.
-- Repos: `jaminsmoke/codarch` privado; `jaminsmoke/codarch-action` público;
+  la nota de privacidad. El repo es público desde el 2026-10-22.
+- Repos: `jaminsmoke/codarch` público; `jaminsmoke/codarch-action` público;
   `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
 
 ## No objetivos de v1

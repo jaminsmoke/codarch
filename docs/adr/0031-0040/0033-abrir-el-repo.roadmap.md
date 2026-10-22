@@ -10,7 +10,8 @@ las ideas que aún no son fase ✓.
 
 ### M22 — El repo, con sus papeles
 
-**Estado:** en curso. Las medidas están ✓; falta la revisión final ✓, el ensayo ✓ y la puerta ✓.
+**Estado:** cerrada. El repo es público ✓: las medidas ✓, la revisión final ✓, el ensayo ✓
+y la puerta ✓.
 
 - [x] La **auditoría** ✓: licencia ✓ (MIT ✓ ✓), secretos ✓ (ninguno ✓ en el árbol ✓ ni en los 124
   commits ✓ ✓), licencias de las dependencias ✓ (todas permisivas ✓: MIT ✓ e ISC ✓) ✓ y datos

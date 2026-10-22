@@ -10,8 +10,8 @@ las ideas que aún no son fase ✓.
 
 ### M21 — Las versiones y las actualizaciones
 
-**Estado:** en curso. La comprobación y la sección están ✓; falta el feed
-público ✓ del escritorio ✓.
+**Estado:** cerrada. La comprobación ✓, la sección de los ajustes ✓, la alpha ✓ y el
+primer release público ✓ del escritorio ✓.
 
 - [x] **M21.1** `@codarch/versions` ✓: comparar versiones ✓ y preguntar por una fuente ✓ (npm ✓ y
   GitHub ✓) ✓, con el `fetch` inyectado ✓ para que los tests no toquen la red ✓.
