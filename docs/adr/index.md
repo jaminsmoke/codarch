@@ -1,43 +1,51 @@
-# Las decisiones
+# 🧭 Las decisiones
 
-Cada decisión tiene su ADR ✓ y su **hoja de ruta** ✓ al lado ✓. Este es el índice ✓: número ✓,
+Cada decisión tiene su ADR ✓ y su **hoja de ruta** 🗺️ al lado ✓. Este es el índice ✓: número ✓,
 título ✓, fecha ✓, estado ✓ y fases ✓.
+
+```mermaid
+flowchart TD
+  g["🧪 docs/guideline.md<br/>las ideas y sus veredictos"] -->|"🧭 fase"| r["🗺️ la hoja de ruta<br/>de la decisión que la trae"]
+  a["🧭 docs/adr/…<br/>el ADR"] --> r
+  r --> f["las fases de esa línea"]
+  f --> i["🗺️ docs/roadmap.md<br/>el índice de fases"]
+```
 
 | ADR | Decisión | Fecha | Estado | Fases |
 |---|---|---|---|---|
-| [0001](0001-0010/0001-clean-room-con-ccjson.md) | Clean-room, con `cc.json` como frontera | 2026-10-20 | aceptado | se aplica en M0 |
-| [0002](0001-0010/0002-monorepo-core-first.md) | Monorepo core-first | 2026-10-20 | aceptado | se aplica en M0, M1 |
-| [0003](0001-0010/0003-typescript-first.md) | TypeScript primero, Rust cuando un benchmark lo exija | 2026-10-20 | aceptado | M1 |
-| [0004](0001-0010/0004-cuna-pr-ci-mcp.md) | La cuña: PR/CI + MCP | 2026-10-20 | aceptado | se aplica en M2, M3 |
-| [0005](0001-0010/0005-2d-first.md) | 2D primero, 3D como lente | 2026-10-20 | aceptado | M0 |
-| [0006](0001-0010/0006-nodos-fichero.md) | Nodos = ficheros, preparados para símbolos | 2026-10-20 | aceptado | se aplica en M0 |
-| [0007](0001-0010/0007-nombre-codarch.md) | El nombre: CodArch | 2026-10-20 | aceptado | se aplica en M0 |
-| [0008](0001-0010/0008-diseno-mapa-2d.md) | Diseño del mapa 2D | 2026-10-20 | aceptado | M5, M5.1 |
-| [0009](0001-0010/0009-churn-desde-git.md) | Churn desde git, sin romper el determinismo | 2026-10-20 | aceptado | se aplica en M2 |
-| [0010](0001-0010/0010-diff-entre-snapshots.md) | Diff entre snapshots y reporte estable | 2026-10-20 | aceptado | M2 |
-| [0011](0011-0020/0011-reglas-de-arquitectura.md) | Reglas de arquitectura en `.codarch.yml` | 2026-10-20 | aceptado | se aplica en M2, M9 |
-| [0012](0011-0020/0012-github-action.md) | GitHub Action para PRs | 2026-10-20 | aceptado | se aplica en M2 |
-| [0013](0011-0020/0013-mcp-readonly.md) | Servidor MCP de solo lectura | 2026-10-20 | aceptado | se aplica en M3 |
-| [0014](0011-0020/0014-distribucion-cli-npm.md) | Distribución del CLI como paquete npm único | 2026-10-20 | aceptado | M3 |
-| [0015](0011-0020/0015-accion-publica-separada.md) | Acción pública separada | 2026-10-20 | aceptado | se aplica en M3 |
-| [0016](0011-0020/0016-lente-migracion.md) | Lente de migración v1 | 2026-10-20 | aceptado | M4 |
-| [0017](0011-0020/0017-servidor-local.md) | Servidor local `codarch serve` | 2026-10-20 | aceptado | se aplica en M5, M5.1 |
-| [0018](0011-0020/0018-estado-vista-en-la-url.md) | Estado de vista en la URL y carga por URL | 2026-10-21 | aceptado | se aplica en M5, M5.1 |
-| [0019](0011-0020/0019-nivel-de-detalle-del-mapa.md) | Nivel de detalle del mapa | 2026-10-21 | aceptado | se aplica en M5, M5.1 |
-| [0020](0011-0020/0020-analisis-en-el-navegador.md) | Análisis en el navegador con la misma gramática que el CLI | 2026-10-21 | aceptado | M6 |
-| [0021](0021-0030/0021-app-de-escritorio.md) | App de escritorio (Electron) con código copiado, no compartido | 2026-10-21 | aceptado | M7 |
-| [0022](0021-0030/0022-la-migracion-donde-faltaba.md) | La migración, donde ya faltaba | 2026-10-21 | aceptado | M8 |
-| [0023](0021-0030/0023-lente-de-dominio-por-pasos.md) | Lente de dominio, por pasos | 2026-10-21 | aceptado | M9 |
-| [0024](0021-0030/0024-evolucion-temporal.md) | La evolución temporal: el calor y la historia | 2026-10-21 | aceptado | M10 |
-| [0025](0021-0030/0025-lente-de-simbolos.md) | La lente de símbolos: mirar dentro del fichero | 2026-10-21 | aceptado | M11 |
-| [0026](0021-0030/0026-la-vida-de-un-simbolo.md) | La vida de un símbolo: la cadena que sobrevive al renombrado | 2026-10-21 | aceptado | M12 |
-| [0027](0021-0030/0027-los-ajustes.md) | Los ajustes: un sitio donde se configura todo | 2026-10-21 | aceptado | M13 |
-| [0028](0021-0030/0028-los-plugins.md) | Los plugins: piezas del repo que se activan | 2026-10-21 | aceptado | M14, M15 |
-| [0029](0021-0030/0029-los-addons.md) | Los addons: conocimiento declarativo | 2026-10-22 | aceptado | M16 |
-| [0030](0021-0030/0030-instalar-y-quitar.md) | Instalar y quitar: plugins y addons | 2026-10-22 | aceptado | M17 |
-| [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado | M18 |
+| [0001](0001-0010/0001-clean-room-con-ccjson.md) | Clean-room, con `cc.json` como frontera | 2026-10-20 | aceptado ✅ | se aplica en M0 |
+| [0002](0001-0010/0002-monorepo-core-first.md) | Monorepo core-first | 2026-10-20 | aceptado ✅ | se aplica en M0, M1 |
+| [0003](0001-0010/0003-typescript-first.md) | TypeScript primero, Rust cuando un benchmark lo exija | 2026-10-20 | aceptado ✅ | M1 |
+| [0004](0001-0010/0004-cuna-pr-ci-mcp.md) | La cuña: PR/CI + MCP | 2026-10-20 | aceptado ✅ | se aplica en M2, M3 |
+| [0005](0001-0010/0005-2d-first.md) | 2D primero, 3D como lente | 2026-10-20 | aceptado ✅ | M0 |
+| [0006](0001-0010/0006-nodos-fichero.md) | Nodos = ficheros, preparados para símbolos | 2026-10-20 | aceptado ✅ | se aplica en M0 |
+| [0007](0001-0010/0007-nombre-codarch.md) | El nombre: CodArch | 2026-10-20 | aceptado ✅ | se aplica en M0 |
+| [0008](0001-0010/0008-diseno-mapa-2d.md) | Diseño del mapa 2D | 2026-10-20 | aceptado ✅ | M5, M5.1 |
+| [0009](0001-0010/0009-churn-desde-git.md) | Churn desde git, sin romper el determinismo | 2026-10-20 | aceptado ✅ | se aplica en M2 |
+| [0010](0001-0010/0010-diff-entre-snapshots.md) | Diff entre snapshots y reporte estable | 2026-10-20 | aceptado ✅ | M2 |
+| [0011](0011-0020/0011-reglas-de-arquitectura.md) | Reglas de arquitectura en `.codarch.yml` | 2026-10-20 | aceptado ✅ | se aplica en M2, M9 |
+| [0012](0011-0020/0012-github-action.md) | GitHub Action para PRs | 2026-10-20 | aceptado ✅ | se aplica en M2 |
+| [0013](0011-0020/0013-mcp-readonly.md) | Servidor MCP de solo lectura | 2026-10-20 | aceptado ✅ | se aplica en M3 |
+| [0014](0011-0020/0014-distribucion-cli-npm.md) | Distribución del CLI como paquete npm único | 2026-10-20 | aceptado ✅ | M3 |
+| [0015](0011-0020/0015-accion-publica-separada.md) | Acción pública separada | 2026-10-20 | aceptado ✅ | se aplica en M3 |
+| [0016](0011-0020/0016-lente-migracion.md) | Lente de migración v1 | 2026-10-20 | aceptado ✅ | M4 |
+| [0017](0011-0020/0017-servidor-local.md) | Servidor local `codarch serve` | 2026-10-20 | aceptado ✅ | se aplica en M5, M5.1 |
+| [0018](0011-0020/0018-estado-vista-en-la-url.md) | Estado de vista en la URL y carga por URL | 2026-10-21 | aceptado ✅ | se aplica en M5, M5.1 |
+| [0019](0011-0020/0019-nivel-de-detalle-del-mapa.md) | Nivel de detalle del mapa | 2026-10-21 | aceptado ✅ | se aplica en M5, M5.1 |
+| [0020](0011-0020/0020-analisis-en-el-navegador.md) | Análisis en el navegador con la misma gramática que el CLI | 2026-10-21 | aceptado ✅ | M6 |
+| [0021](0021-0030/0021-app-de-escritorio.md) | App de escritorio (Electron) con código copiado, no compartido | 2026-10-21 | aceptado ✅ | M7 |
+| [0022](0021-0030/0022-la-migracion-donde-faltaba.md) | La migración, donde ya faltaba | 2026-10-21 | aceptado ✅ | M8 |
+| [0023](0021-0030/0023-lente-de-dominio-por-pasos.md) | Lente de dominio, por pasos | 2026-10-21 | aceptado ✅ | M9 |
+| [0024](0021-0030/0024-evolucion-temporal.md) | La evolución temporal: el calor y la historia | 2026-10-21 | aceptado ✅ | M10 |
+| [0025](0021-0030/0025-lente-de-simbolos.md) | La lente de símbolos: mirar dentro del fichero | 2026-10-21 | aceptado ✅ | M11 |
+| [0026](0021-0030/0026-la-vida-de-un-simbolo.md) | La vida de un símbolo: la cadena que sobrevive al renombrado | 2026-10-21 | aceptado ✅ | M12 |
+| [0027](0021-0030/0027-los-ajustes.md) | Los ajustes: un sitio donde se configura todo | 2026-10-21 | aceptado ✅ | M13 |
+| [0028](0021-0030/0028-los-plugins.md) | Los plugins: piezas del repo que se activan | 2026-10-21 | aceptado ✅ | M14, M15 |
+| [0029](0021-0030/0029-los-addons.md) | Los addons: conocimiento declarativo | 2026-10-22 | aceptado ✅ | M16 |
+| [0030](0021-0030/0030-instalar-y-quitar.md) | Instalar y quitar: plugins y addons | 2026-10-22 | aceptado ✅ | M17 |
+| [0031](0031-0040/0031-los-documentos.md) | Los documentos: cada decisión con su hoja de ruta | 2026-10-22 | aceptado ✅ | M18, M19 |
 
-## Las carpetas
+## 📌 Las carpetas
 
 Van por bloques de diez ✓: el número ya dice cuándo se decidió ✓ y el tema lo dice el título ✓.
 
