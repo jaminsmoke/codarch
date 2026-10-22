@@ -37,7 +37,7 @@ Si tocas la acción ✓, también `npm run sync:action` ✓ y el repo público �
   consecuencias ✓.
 - Las **fases** ✓ viven en la hoja de ruta de su decisión ✓ ([`docs/adr/`](docs/adr/index.md) ✓) ✓,
   y `docs/roadmap.md` ✓ solo las indexa ✓.
-- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](docs/guideline/index.html) ✓, por
+- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](docs/guideline/contenido.md) ✓, por
   orden cronológico ✓ y con su veredicto ✓.
 
 ## La licencia

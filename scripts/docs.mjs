@@ -1,34 +1,32 @@
 import { spawn } from "node:child_process";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-// Abre la guía (docs/guideline/index.html) en el navegador del sistema.
-// Es una página estática: no hace falta servidor ni red.
+// Abre la guía en el navegador.
+//
+// La guía vive en la web del proyecto (ADR 0034 ✓): su contenido es el
+// markdown del repo ✓ ✓ y la página la genera el sitio ✓ ✅. Aquí solo se
+// abre la ruta ✓ ✅ —si el servidor de desarrollo está arriba ✓ ✅.
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const GUIDE = path.join(ROOT, "docs", "guideline", "index.html");
+const URL = "http://localhost:5175/codarch/guia/";
 
-if (!fs.existsSync(GUIDE)) {
-  console.error(`no está la guía: ${path.relative(ROOT, GUIDE)}`);
-  process.exit(1);
+const abierto = await fetch(URL, { method: "HEAD" }).catch(() => null);
+if (!abierto || !abierto.ok) {
+  console.log("La guía se sirve desde el sitio del proyecto.");
+  console.log("Levántalo con: npm run site:dev");
+  console.log(`Y está en: ${URL}`);
+  process.exit(0);
 }
 
-const url = `file:///${GUIDE.split(path.sep).join("/")}`;
-
-const [command, args] =
+const comando =
   process.platform === "win32"
-    ? ["cmd", ["/c", "start", "", url]]
+    ? ["cmd", ["/c", "start", "", URL]]
     : process.platform === "darwin"
-      ? ["open", [url]]
-      : ["xdg-open", [url]];
+      ? ["open", [URL]]
+      : ["xdg-open", [URL]];
 
 try {
-  const child = spawn(command, args, { stdio: "ignore", detached: true });
-  child.unref();
+  const hijo = spawn(comando[0], comando[1], { stdio: "ignore", detached: true });
+  hijo.unref();
+  console.log(`ok · guía abierta en ${URL}`);
 } catch {
-  // Si el navegador no se puede abrir, al menos se dice dónde está.
+  console.log(`La guía está en: ${URL}`);
 }
-
-console.log(`ok · guía abierta en ${url}`);
-console.log(`   (si no se abrió: ábrela a mano desde ${path.relative(ROOT, GUIDE)})`);

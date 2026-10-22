@@ -49,7 +49,7 @@ npm run version        # las versiones del producto, el CLI y el escritorio: cua
 npm run build:cli      # bundle ESM en apps/cli/dist
 npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
-npm run docs           # abre la guía (docs/guideline/index.html) en el navegador
+npm run docs           # abre la guía en el navegador (la del sitio, en el 5175)
 npm run web:dev        # app web + codarch serve automático, se para con Vite
 npm run site:dev       # la web del proyecto (docs/adr/… en el 5175)
 npm run site:build     # la web del proyecto sale en apps/site/dist
@@ -130,10 +130,10 @@ también `npm run sync:action` y actualizar el repo público.
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
   la sección **Actualizaciones** en los ajustes de las dos apps. El escritorio se actualiza con
   las releases del repo (`CODARCH_UPDATE_REPO`).
-- M23 cerrada: la web del proyecto (ADR 0034). `apps/site`: React + Vite + router, con
+- M23 en curso: la web del proyecto (ADR 0034). `apps/site`: React + Vite + router, con
   los tokens de la app; las páginas de docs **se generan del markdown del repo** (una sola verdad) y
-  la guía se publica tal cual. Está en `jaminsmoke.github.io/codarch` ✅ ✅ y se publica sola ✅ ✅
-  con el workflow `web.yml` ✅ ✅.
+  la guía ✅ ✅. De momento ✅ ✅, el sitio enseña la portada ✅ ✅ y la guía ✅ ✅. Está en
+  `jaminsmoke.github.io/codarch` ✅ ✅ y se publica sola ✅ ✅ con el workflow `web.yml` ✅ ✅.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

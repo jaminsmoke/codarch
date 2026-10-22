@@ -84,13 +84,13 @@ flowchart TD
 | M20 | La guía, en HTML | cerrada ✅ | [ADR 0031](adr/0031-0040/0031-los-documentos.roadmap.md) |
 | M21 | Las versiones y las actualizaciones | cerrada ✅ | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md) |
 | M22 | El repo, con sus papeles | cerrada ✅ | [ADR 0033](adr/0031-0040/0033-abrir-el-repo.roadmap.md) |
-| M23 | La web del proyecto | cerrada ✅ | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.roadmap.md) |
+| M23 | La web del proyecto | en curso 🟡 | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.roadmap.md) |
 
 ## 📌 Cómo se lee esto
 
 - Una fase **nace en la hoja de su decisión** 🗺️ ✓; aquí solo se le añade la línea ✓.
 - Una decisión que crece **agranda su hoja** ✓, no este fichero ✓.
-- Las ideas que todavía **no son fase** 🧪 ✓ viven en la [guía](guideline/index.html) ✓, por orden
+- Las ideas que todavía **no son fase** 🧪 ✓ viven en la [guía](guideline/contenido.md) ✓, por orden
   cronológico ✓.
 - El índice de las **decisiones** 🧭 ✓ —con su fecha ✓ y su estado ✓— está en
   [`docs/adr/index.md`](adr/index.md) ✓.

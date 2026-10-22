@@ -3,7 +3,7 @@
 **Decisión:** [el ADR](0015-accion-publica-separada.md) · **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓;
-el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline/index.html) guarda las
+el [roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline/contenido.md) guarda las
 ideas que aún no son fase ✓.
 
 ## Fases de esta línea

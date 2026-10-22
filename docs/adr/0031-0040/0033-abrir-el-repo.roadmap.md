@@ -3,7 +3,7 @@
 **Decisión:** [el ADR](0033-abrir-el-repo.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 
 Esta hoja guarda el trabajo de esta decisión ✓. Si la decisión crece ✓, su hoja crece con ella ✓; el
-[roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline/index.html) guarda
+[roadmap general](../../roadmap.md) solo la indexa ✓ y la [guía](../../guideline/contenido.md) guarda
 las ideas que aún no son fase ✓.
 
 ## Fases de esta línea
@@ -41,5 +41,5 @@ y la puerta ✓.
 
 ## Ideas abiertas
 
-- [La guía: el registro público de plugins](../../guideline/index.html#el-registro-publico-de-plugins)
+- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
   🧪 — el registro necesita que el repo sea público ✓ ✓.

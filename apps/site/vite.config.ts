@@ -1,8 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import { guia } from "./vite-plugin-guia";
 
 /**
  * Build de la web del proyecto (ADR 0034).
@@ -10,27 +10,15 @@ import { guia } from "./vite-plugin-guia";
  * Sale estática ✓ y se publica en GitHub Pages ✓, en `/codarch/` ✓: por eso
  * el `base` ✓ y el `basename` del router ✓ llevan ese prefijo ✓.
  *
- * Las páginas de documentación ✓ se generan del markdown del repo ✓ (ADR
- * 0034 ✓): este config no las escribe ✓, las lee ✓.
+ * Tailwind ✓ para el estilo ✓ y el contenido de la guía ✓ viene del markdown
+ * del repo ✓ ✓ (ADR 0034 ✅ ✅).
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 export default defineConfig({
   base: "/codarch/",
-  plugins: [react(), guia()],
-  resolve: {
-    alias: [
-      {
-        find: /^@codarch\/render\/browser$/,
-        replacement: path.join(root, "packages/render/src/browser.ts")
-      },
-      {
-        find: /^@codarch\/render$/,
-        replacement: path.join(root, "packages/render/src/index.ts")
-      }
-    ]
-  },
+  plugins: [react(), tailwindcss()],
   build: {
     outDir: path.join(root, "apps/site/dist"),
     emptyOutDir: true,

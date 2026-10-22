@@ -28,8 +28,12 @@ Cada página de documentación ✓ sale del markdown del repo ✓ ✓, leído **
 `import.meta.glob` ✓ ✅) y renderizado con `marked` ✓ ✓. El texto **no** se copia a los componentes
 ✓ ✗: si se copiara ✓, habría dos verdades ✓ ✗ —justo lo que se acaba de limpiar ✓.
 
-Lo que se publica: los ADR ✓, el índice de decisiones ✓, el roadmap ✓, el modelo ✓, las reglas ✓,
-el MCP ✓, la migración ✓ y la guía ✓ ✅.
+De momento ✓ ✅, el sitio enseña **dos vistas** ✓ ✅: la portada ✓ ✅ y la guía ✓ ✅. Las
+páginas de los documentos ✓ ✅ —los ADR ✓ ✅, el roadmap ✓ ✅, el modelo ✓ ✅— **están listas** ✓ ✅ (el
+generador ✓ ✅ las saca del markdown ✓ ✅ ✅) y entran cuando tengan sitio ✓ ✅ ✅.
+
+La guía ✓ ✓ es el caso raro ✓ ✅: su contenido ✓ ✓ es un markdown ✓ ✅
+(`docs/guideline/contenido.md` ✅ ✅) ✓ ✅ y la línea del tiempo ✓ ✅ se arma sola ✓ ✅ ✅.
 
 ### 3. La guía sigue siendo su propia página
 
