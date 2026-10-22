@@ -1,11 +1,16 @@
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import captura from "../../../../docs/images/atlas.png";
+import { useTitulo } from "../lib/titulo";
 
 /**
  * La portada: qué es CodArch ✓, cómo se ve ✓ y cómo se instala ✓ ✅.
  */
 export default function Inicio() {
+  useTitulo(
+    undefined,
+    "CodArch analiza tu repositorio y lo dibuja: un treemap de ficheros y carpetas con el riesgo de cada bloque, la complejidad de cada función y la deuda de migración."
+  );
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14">
       <section className="max-w-3xl">
@@ -110,7 +115,7 @@ export default function Inicio() {
             {
               titulo: "El MCP",
               texto:
-                "Seis consultas de solo lectura para que tu agente pregunte por la arquitectura sin inventarse nada."
+                "Consultas de solo lectura para que tu agente pregunte por la arquitectura sin inventarse nada."
             },
             {
               titulo: "Las apps",
@@ -146,6 +151,30 @@ export default function Inicio() {
           ))}
         </div>
       </section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.45, ease: [0.22, 0.61, 0.36, 1] }}
+        className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-3 rounded-card border border-line bg-panel p-6"
+      >
+        <div className="max-w-xl">
+          <h2 className="font-display text-xl font-bold tracking-tight">
+            ¿Cómo funciona por dentro?
+          </h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            El modelo, las reglas, el roadmap y las decisiones: cada ADR con su
+            hoja de ruta, salidos del propio repositorio.
+          </p>
+        </div>
+        <Link
+          to="/docs/"
+          className="ml-auto rounded-full border border-line-strong bg-paper px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
+        >
+          Los documentos
+        </Link>
+      </motion.section>
     </div>
   );
 }

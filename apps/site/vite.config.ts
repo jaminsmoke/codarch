@@ -4,6 +4,7 @@ import { copyFileSync, existsSync } from "node:fs";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
+import { rutasDocs } from "./vite-plugin-rutas.ts";
 
 /**
  * Build de la web del proyecto (ADR 0034).
@@ -40,7 +41,7 @@ function pagina404(): Plugin {
 
 export default defineConfig({
   base: "/codarch/",
-  plugins: [react(), tailwindcss(), pagina404()],
+  plugins: [react(), tailwindcss(), pagina404(), rutasDocs(root)],
   build: {
     outDir: dist,
     emptyOutDir: true,

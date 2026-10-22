@@ -1,4 +1,5 @@
-import { marked, Renderer } from "marked";
+import { primerParrafo, recortar, renderizar, slug } from "./markdown";
+import { resolver } from "./rutas";
 
 /**
  * La guía: su contenido, que vive en `docs/guideline/contenido.md` ✓ ✓.
@@ -8,8 +9,8 @@ import { marked, Renderer } from "marked";
  * fecha ✓ ✓ ✅.
  */
 
-/** Dónde vive el repo, para los enlaces que salen de la web. */
-const REPO = "https://github.com/jaminsmoke/codarch/blob/main";
+/** Dónde vive el contenido, dentro de `docs/`, para resolver sus enlaces. */
+const ORIGEN = "guideline/contenido";
 
 /** Los veredictos, con su icono. */
 export type Veredicto = "idea" | "fase" | "arreglo" | "esperar" | "otro";
@@ -62,6 +63,8 @@ export interface Entrada {
   categoria: Categoria;
   veredicto: Veredicto;
   fecha: string;
+  /** El primer párrafo en llano ✓ ✅: la entrada cabe en una línea. */
+  resumen: string;
   html: string;
 }
 
@@ -95,15 +98,7 @@ const modulos = import.meta.glob("../../../../docs/guideline/contenido.md", {
   eager: true
 }) as Record<string, string>;
 
-/** Un "slug" con lo mismo que el sitio: minúsculas, guiones y sin acentos. */
-export function slug(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+export { slug };
 
 /** "2026-10-21" -> "21 oct" */
 export function fechaCorta(fecha: string): string {
@@ -127,42 +122,9 @@ export function fechaCorta(fecha: string): string {
   return `${Number(partes[2])} ${meses[mes] ?? partes[1]}`;
 }
 
-/**
- * Los enlaces del markdown salen a GitHub ✓ ✅: en la web los documentos no
- * están (todavía ✓ ✓) y su sitio natural ✅ ✅ es el repo ✅ ✅.
- */
-function rutaDe(destino: string): string | null {
-  if (/^(https?:|#|mailto:)/.test(destino)) return null;
-  // "../../adr/0021-0030/0029-los-addons.md" -> "docs/adr/0021-0030/0029-…md"
-  const relativo = destino.replace(/^(\.\.\/)+/, "");
-  if (!relativo.endsWith(".md")) return null;
-  // Los documentos viven en el repo: allí se leen bien.
-  return `${REPO}/docs/${relativo}`;
-}
-
-const renderer = new Renderer();
-
-renderer.heading = ({ tokens, depth }) => {
-  const texto = marked.Parser.parseInline(tokens);
-  return `<h${depth} id="${slug(texto)}">${texto}</h${depth}>`;
-};
-
-renderer.link = ({ href, title, tokens }) => {
-  const texto = marked.Parser.parseInline(tokens);
-  const dentro = rutaDe(href);
-  const destino = dentro ?? href;
-  const atributos = title ? ` title="${title}"` : "";
-  const externo = destino.startsWith("http")
-    ? ' target="_blank" rel="noreferrer"'
-    : "";
-  return `<a href="${destino}"${atributos}${externo}>${texto}</a>`;
-};
-
-marked.use({ renderer, gfm: true, breaks: false });
-
-/** Convierte markdown en HTML, con los enlaces hacia el repo. */
-export function renderizar(markdown: string): string {
-  return marked.parse(markdown, { async: false }) as string;
+/** Le pone a un markdown sus enlaces: los documentos, dentro del sitio ✓. */
+function conEnlaces(markdown: string): string {
+  return renderizar(markdown, (destino) => resolver(ORIGEN, destino)).html;
 }
 
 /** La línea de metadatos: `*feature · fase · 2026-10-22*`. */
@@ -201,6 +163,7 @@ export function partir(markdown: string): Guia {
     }
 
     lineas.shift();
+    const cuerpo = lineas.join("\n").trim();
     const categoria = (meta[1] ?? "otro") as Categoria;
     const veredicto = (meta[2] ?? "otro") as Veredicto;
     entradas.push({
@@ -209,7 +172,8 @@ export function partir(markdown: string): Guia {
       categoria: categoria in CATEGORIAS ? categoria : "otro",
       veredicto: veredicto in VEREDICTOS ? veredicto : "otro",
       fecha: meta[3] ?? "",
-      html: renderizar(lineas.join("\n").trim())
+      resumen: recortar(primerParrafo(cuerpo), 220),
+      html: conEnlaces(cuerpo)
     });
   }
 
@@ -232,7 +196,7 @@ export function partir(markdown: string): Guia {
   // Lo que espera: las ideas sin decidir todavía ✓ ✓.
   const futuras = entradas.filter((entrada) => entrada.veredicto === "esperar");
 
-  return { introduccion: renderizar(introduccion.join("\n\n")), dias, futuras };
+  return { introduccion: conEnlaces(introduccion.join("\n\n")), dias, futuras };
 }
 
 /**

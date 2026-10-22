@@ -1,7 +1,6 @@
+import { lazy, Suspense, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { useLocation } from "react-router-dom";
-import LineaTiempo from "./components/LineaTiempo";
-import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 /**
@@ -11,9 +10,13 @@ import { Link, NavLink } from "react-router-dom";
  * página ✓ ✓. Si mañana hay más vistas ✓ ✅, todas caben en este marco ✅ ✅.
  */
 
+// La línea del tiempo lleva la guía ✓: se carga solo en su página ✓ ✅.
+const LineaTiempo = lazy(() => import("./components/LineaTiempo"));
+
 const enlaces = [
   { to: "/", texto: "Inicio", fin: true },
-  { to: "/guia/", texto: "Guía", fin: false }
+  { to: "/guia/", texto: "Guía", fin: false },
+  { to: "/docs/", texto: "Documentos", fin: false }
 ];
 
 export default function Marco({ children }: { children: ReactNode }) {
@@ -55,7 +58,11 @@ export default function Marco({ children }: { children: ReactNode }) {
           </nav>
         </div>
 
-        {enGuia ? <LineaTiempo /> : null}
+        {enGuia ? (
+          <Suspense fallback={<div className="h-[3.05rem] border-t border-line/70" />}>
+            <LineaTiempo />
+          </Suspense>
+        ) : null}
       </header>
 
       <motion.main
@@ -74,6 +81,12 @@ export default function Marco({ children }: { children: ReactNode }) {
             licencia.
           </span>
           <span className="ml-auto flex gap-3">
+            <Link to="/guia/" className="text-muted no-underline hover:text-cobalt">
+              La guía
+            </Link>
+            <Link to="/docs/" className="text-muted no-underline hover:text-cobalt">
+              Los documentos
+            </Link>
             <a href="https://github.com/jaminsmoke/codarch">El repo</a>
             <a href="https://www.npmjs.com/package/codarch">En npm</a>
             <a href="https://github.com/jaminsmoke/codarch-action">La acción</a>

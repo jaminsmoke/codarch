@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Los tokens son los de la app (apps/web/src/styles.css): el sitio se parece
- * a CodArch porque comparte su paleta ✓ ✓. */
+ * a CodArch porque comparte su paleta âœ“ âœ“. */
 @theme {
   --color-paper: #eef1f2;
   --color-panel: #f6f8f8;
@@ -44,7 +44,7 @@
 
 html {
   scroll-behavior: smooth;
-  /* El header lleva la línea pegada: el salto deja libre su alto ✓ ✅. */
+  /* El header lleva la lÃ­nea pegada: el salto deja libre su alto âœ“ âœ…. */
   scroll-padding-top: 7.5rem;
 }
 
@@ -61,15 +61,15 @@ body {
   background: color-mix(in srgb, var(--color-cobalt) 30%, transparent);
 }
 
-/* El contenido que viene del markdown (la guía ✓). */
-.prosa-guia h1 {
+/* El contenido que viene del markdown (la guÃ­a âœ“). */
+.prosa h1 {
   font-family: var(--font-display);
   font-size: 1.9rem;
   letter-spacing: -0.02em;
   margin: 0 0 0.5rem;
 }
 
-.prosa-guia h2 {
+.prosa h2 {
   font-family: var(--font-display);
   font-size: 1.25rem;
   letter-spacing: -0.01em;
@@ -78,28 +78,28 @@ body {
   border-top: 1px solid var(--color-line);
 }
 
-.prosa-guia h3 {
+.prosa h3 {
   font-family: var(--font-display);
   font-size: 1.02rem;
   margin: 1.4rem 0 0.3rem;
 }
 
-.prosa-guia p,
-.prosa-guia li {
+.prosa p,
+.prosa li {
   max-width: 72ch;
 }
 
-.prosa-guia ul,
-.prosa-guia ol {
+.prosa ul,
+.prosa ol {
   padding-left: 1.25rem;
   margin: 0.5rem 0;
 }
 
-.prosa-guia li {
+.prosa li {
   margin: 0.25rem 0;
 }
 
-.prosa-guia table {
+.prosa table {
   border-collapse: collapse;
   width: 100%;
   margin: 1.1rem 0;
@@ -108,20 +108,20 @@ body {
   overflow-x: auto;
 }
 
-.prosa-guia th,
-.prosa-guia td {
+.prosa th,
+.prosa td {
   border: 1px solid var(--color-line);
   padding: 0.4rem 0.6rem;
   text-align: left;
   vertical-align: top;
 }
 
-.prosa-guia th {
+.prosa th {
   background: var(--color-panel);
   font-weight: 600;
 }
 
-.prosa-guia code {
+.prosa code {
   font-family: var(--font-mono);
   font-size: 0.88em;
   background: color-mix(in srgb, var(--color-ink) 8%, transparent);
@@ -129,8 +129,110 @@ body {
   border-radius: 4px;
 }
 
-.prosa-guia hr {
+.prosa hr {
   border: 0;
   border-top: 1px solid var(--color-line);
   margin: 2rem 0;
+}
+
+.prosa h2,
+.prosa h3,
+.prosa h4 {
+  /* Los títulos del índice llevan aquí: que el header no los tape ✓. */
+  scroll-margin-top: 8rem;
+}
+
+.prosa h4 {
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  margin: 1.2rem 0 0.3rem;
+}
+
+.prosa a {
+  color: var(--color-cobalt);
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+.prosa a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.prosa strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.prosa pre {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-panel);
+  overflow-x: auto;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.prosa pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+
+.prosa blockquote {
+  margin: 1rem 0;
+  padding: 0.55rem 0 0.55rem 1rem;
+  border-left: 3px solid var(--color-cobalt);
+  background: color-mix(in srgb, var(--color-cobalt) 5%, transparent);
+  color: var(--color-ink-soft);
+}
+
+.prosa blockquote p {
+  margin: 0.3rem 0;
+}
+
+.prosa img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.prosa input[type="checkbox"] {
+  margin-right: 0.35rem;
+}
+
+/* Los documentos: el título lo pone la página, así que el texto empieza en `##`. */
+.prosa-docs {
+  font-size: 0.97rem;
+}
+
+.prosa-docs h2 {
+  font-size: 1.4rem;
+  margin-top: 2.6rem;
+}
+
+.prosa-docs h3 {
+  font-size: 1.05rem;
+}
+
+/* Los diagramas Mermaid (docs/roadmap.md, docs/adr/index.md). */
+.prosa .diagrama {
+  margin: 1.3rem 0;
+  padding: 0.9rem;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-panel);
+  overflow-x: auto;
+}
+
+.prosa .diagrama svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.prosa pre.diagrama-fallido {
+  border-color: var(--color-ochre);
 }

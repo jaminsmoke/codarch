@@ -1,6 +1,10 @@
 import clsx from "clsx";
 import { motion } from "motion/react";
+import { ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { enlaceInterno } from "../lib/enlaces";
 import { CATEGORIAS, VEREDICTOS, fechaCorta, guia } from "../lib/guia";
+import { useTitulo } from "../lib/titulo";
 
 /**
  * La guía: sus días, cada uno como un changelog ✓ ✅ (ADR 0035 ✅).
@@ -11,10 +15,18 @@ import { CATEGORIAS, VEREDICTOS, fechaCorta, guia } from "../lib/guia";
  */
 
 export default function Guia() {
+  useTitulo(
+    "La guía",
+    "Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
+  );
   const { introduccion, dias, futuras } = guia();
+  const navegar = useNavigate();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-5 py-10">
+    <div
+      className="mx-auto w-full max-w-5xl px-5 py-10"
+      onClick={(evento) => enlaceInterno(evento, navegar)}
+    >
       <header className="mb-10">
         <p className="font-mono text-xs tracking-[0.22em] text-muted uppercase">
           CodArch
@@ -29,7 +41,7 @@ export default function Guia() {
       </header>
 
       <div
-        className="prosa-guia mb-4"
+        className="prosa mb-4"
         dangerouslySetInnerHTML={{ __html: introduccion }}
       />
 
@@ -112,7 +124,7 @@ export default function Guia() {
                         </span>
                       </p>
                       <div
-                        className="prosa-guia"
+                        className="prosa"
                         dangerouslySetInnerHTML={{ __html: entrada.html }}
                       />
                     </article>
@@ -124,7 +136,7 @@ export default function Guia() {
         </motion.section>
       ))}
 
-      {/* Lo que falta ✓ ✅. */}
+      {/* Lo que falta ✓ ✅: una lista ✓ ✅, no el changelog de un día ✅ ✅. */}
       <motion.section
         id="futuro"
         data-fecha="futuro"
@@ -134,13 +146,18 @@ export default function Guia() {
         transition={{ duration: 0.5, ease: [0.22, 0.61, 0.36, 1] }}
         className="mb-14 border-t border-dashed border-line-strong pt-8"
       >
-        <h2 className="font-display mb-2 text-2xl font-bold tracking-tight">
-          Futuro
-        </h2>
+        <div className="mb-2 flex flex-wrap items-baseline gap-3">
+          <h2 className="font-display text-2xl font-bold tracking-tight">
+            Futuro
+          </h2>
+          <span className="rounded-full bg-ink/6 px-2 py-0.5 font-mono text-[0.62rem] tracking-[0.1em] text-muted uppercase">
+            {futuras.length} {futuras.length === 1 ? "idea" : "ideas"}
+          </span>
+        </div>
         <p className="mt-0 mb-6 max-w-2xl text-ink-soft">
           Las ideas que esperan su turno: están aquí ✓ ✓ porque no se pierden
-          ✓ ✓, no porque el trabajo esté hecho ✓ ✗ ✅. Lo que sí se está
-          haciendo, en el{" "}
+          ✓ ✓, no porque el trabajo esté hecho ✓ ✗ ✅. Cada una lleva a su día,
+          donde se escribió. Lo que sí se está haciendo, en el{" "}
           <a
             className="text-cobalt"
             href="https://github.com/jaminsmoke/codarch/blob/main/docs/roadmap.md"
@@ -150,33 +167,44 @@ export default function Guia() {
           .
         </p>
 
-        {futuras.map((entrada) => {
-          const veredicto = VEREDICTOS[entrada.veredicto];
-          const categoria = CATEGORIAS[entrada.categoria];
-          return (
-            <article key={entrada.id} id={entrada.id} className="mb-7">
-              <h3 className="font-display mb-1 text-xl font-bold tracking-tight">
-                {entrada.titulo}
-              </h3>
-              <p className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-0.5 font-mono text-[0.64rem] tracking-[0.1em] text-ink-soft uppercase">
-                  <span
-                    aria-hidden="true"
-                    className={clsx("size-1.5 rounded-full", categoria.punto)}
-                  />
-                  {categoria.texto}
-                </span>
-                <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-soft">
-                  {veredicto.icono} {veredicto.texto}
-                </span>
-              </p>
-              <div
-                className="prosa-guia"
-                dangerouslySetInnerHTML={{ __html: entrada.html }}
-              />
-            </article>
-          );
-        })}
+        <ul className="divide-y divide-line overflow-hidden rounded-card border border-dashed border-line-strong bg-panel/60">
+          {futuras.map((entrada) => {
+            const veredicto = VEREDICTOS[entrada.veredicto];
+            const categoria = CATEGORIAS[entrada.categoria];
+            return (
+              <li key={entrada.id} className="group p-4 sm:p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-0.5 font-mono text-[0.64rem] tracking-[0.1em] text-ink-soft uppercase">
+                    <span
+                      aria-hidden="true"
+                      className={clsx("size-1.5 rounded-full", categoria.punto)}
+                    />
+                    {categoria.texto}
+                  </span>
+                  <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-soft">
+                    {veredicto.icono} {veredicto.texto}
+                  </span>
+                  <span className="ml-auto font-mono text-[0.66rem] tracking-[0.08em] text-muted uppercase">
+                    {fechaCorta(entrada.fecha)}
+                  </span>
+                </div>
+                <h3 className="font-display mt-2 text-xl font-bold tracking-tight">
+                  {entrada.titulo}
+                </h3>
+                <p className="mt-1 mb-2 text-sm text-ink-soft">
+                  {entrada.resumen}
+                </p>
+                <a
+                  href={`#${entrada.id}`}
+                  className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline"
+                >
+                  <ArrowDown aria-hidden="true" className="size-3" />
+                  Leer la idea
+                </a>
+              </li>
+            );
+          })}
+        </ul>
       </motion.section>
     </div>
   );
