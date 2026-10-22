@@ -1,12 +1,13 @@
+import clsx from "clsx";
 import { motion } from "motion/react";
-import { VEREDICTOS, fechaCorta, guia } from "../lib/guia";
+import { CATEGORIAS, VEREDICTOS, fechaCorta, guia } from "../lib/guia";
 
 /**
- * La guía: sus ideas por día ✓ ✓.
+ * La guía: sus días, cada uno como un changelog ✓ ✅ (ADR 0035 ✅).
  *
  * El contenido sale del repo ✓ ✓ (ADR 0034 ✅ ✅): el markdown es la verdad
- * ✅ ✅ y aquí solo se le pone color ✅ ✅ y movimiento ✅ ✅ ✅. La línea del
- * tiempo ✓ ✅ vive en el header ✓ ✅ ✅ (el componente `LineaTiempo` ✓ ✅ ✅).
+ * ✅ ✅ y aquí solo se agrupa ✓ ✅, se le pone color ✓ ✅ y movimiento ✅ ✅.
+ * La línea del tiempo vive en el header ✓ ✅ (el componente `LineaTiempo` ✓).
  */
 
 export default function Guia() {
@@ -22,8 +23,8 @@ export default function Guia() {
           La guía
         </h1>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          Lo que se ha pensado y lo que queda. Cada día tiene sus ideas y cada
-          idea, su veredicto.
+          Lo que se ha pensado y lo que queda. Cada día es un changelog: sus
+          features, sus fixes y lo demás, con el veredicto de cada idea.
         </p>
       </header>
 
@@ -32,7 +33,7 @@ export default function Guia() {
         dangerouslySetInnerHTML={{ __html: introduccion }}
       />
 
-      {/* Los días, con sus ideas ✓ ✅. */}
+      {/* Los días, con sus grupos ✓ ✅. */}
       {dias.map((dia) => (
         <motion.section
           key={dia.fecha}
@@ -58,29 +59,66 @@ export default function Guia() {
             <span className="font-mono text-[0.68rem] tracking-[0.12em] text-muted uppercase">
               {dia.entradas.length} idea{dia.entradas.length === 1 ? "" : "s"}
             </span>
+            {/* La firma del día: qué categorías lo forman ✓ ✅. */}
+            <span aria-hidden="true" className="flex items-center gap-1">
+              {dia.grupos.map((grupo) => (
+                <span
+                  key={grupo.categoria}
+                  className={clsx(
+                    "size-1.5 rounded-full",
+                    CATEGORIAS[grupo.categoria].punto
+                  )}
+                />
+              ))}
+            </span>
             <span
               aria-hidden="true"
               className="h-px min-w-6 flex-1 bg-gradient-to-r from-line to-transparent"
             />
           </div>
 
-          {dia.entradas.map((entrada) => {
-            const veredicto = VEREDICTOS[entrada.veredicto];
+          {dia.grupos.map((grupo) => {
+            const categoria = CATEGORIAS[grupo.categoria];
             return (
-              <article key={entrada.id} id={entrada.id} className="mb-8">
-                <div className="mb-2 flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
-                    {veredicto.icono} {veredicto.texto}
+              <section
+                key={grupo.categoria}
+                aria-label={categoria.texto}
+                className="mb-8"
+              >
+                <p className="mb-3 flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={clsx("size-1.5 rounded-full", categoria.punto)}
+                  />
+                  <span className="font-mono text-[0.66rem] tracking-[0.16em] text-ink-soft uppercase">
+                    {categoria.texto}
                   </span>
-                </div>
-                <h3 className="font-display mb-2 text-xl font-bold tracking-tight">
-                  {entrada.titulo}
-                </h3>
-                <div
-                  className="prosa-guia"
-                  dangerouslySetInnerHTML={{ __html: entrada.html }}
-                />
-              </article>
+                  <span className="rounded-full bg-ink/6 px-1.5 py-0.5 font-mono text-[0.6rem] leading-4 text-muted tabular-nums">
+                    {grupo.entradas.length}
+                  </span>
+                  <span aria-hidden="true" className="h-px flex-1 bg-line/70" />
+                </p>
+
+                {grupo.entradas.map((entrada) => {
+                  const veredicto = VEREDICTOS[entrada.veredicto];
+                  return (
+                    <article key={entrada.id} id={entrada.id} className="mb-7">
+                      <h3 className="font-display mb-1 text-xl font-bold tracking-tight">
+                        {entrada.titulo}
+                      </h3>
+                      <p className="mb-2 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-soft">
+                          {veredicto.icono} {veredicto.texto}
+                        </span>
+                      </p>
+                      <div
+                        className="prosa-guia"
+                        dangerouslySetInnerHTML={{ __html: entrada.html }}
+                      />
+                    </article>
+                  );
+                })}
+              </section>
             );
           })}
         </motion.section>
@@ -114,16 +152,24 @@ export default function Guia() {
 
         {futuras.map((entrada) => {
           const veredicto = VEREDICTOS[entrada.veredicto];
+          const categoria = CATEGORIAS[entrada.categoria];
           return (
-            <article key={entrada.id} id={entrada.id} className="mb-8">
-              <div className="mb-2 flex flex-wrap items-center gap-3">
-                <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-ink-soft">
-                  {veredicto.icono} {veredicto.texto}
-                </span>
-              </div>
-              <h3 className="font-display mb-2 text-xl font-bold tracking-tight">
+            <article key={entrada.id} id={entrada.id} className="mb-7">
+              <h3 className="font-display mb-1 text-xl font-bold tracking-tight">
                 {entrada.titulo}
               </h3>
+              <p className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-0.5 font-mono text-[0.64rem] tracking-[0.1em] text-ink-soft uppercase">
+                  <span
+                    aria-hidden="true"
+                    className={clsx("size-1.5 rounded-full", categoria.punto)}
+                  />
+                  {categoria.texto}
+                </span>
+                <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-[0.68rem] text-ink-soft">
+                  {veredicto.icono} {veredicto.texto}
+                </span>
+              </p>
               <div
                 className="prosa-guia"
                 dangerouslySetInnerHTML={{ __html: entrada.html }}

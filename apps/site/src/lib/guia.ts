@@ -22,20 +22,62 @@ export const VEREDICTOS: Record<Veredicto, { icono: string; texto: string }> = {
   otro: { icono: "📌", texto: "nota" }
 };
 
+/**
+ * Las categorías, como las de un changelog ✓ ✅ (ADR 0035 ✅).
+ *
+ * Son un set cerrado ✓: cada entrada elige la suya ✓ y el día pinta solo las
+ * que tienen algo ✓, en este orden ✓ ✅.
+ */
+export type Categoria =
+  | "feature"
+  | "fix"
+  | "optimized"
+  | "refactor"
+  | "docs"
+  | "chore"
+  | "security"
+  | "removed"
+  | "otro";
+
+export const CATEGORIAS: Record<
+  Categoria,
+  { texto: string; punto: string; orden: number }
+> = {
+  feature: { texto: "Features", punto: "bg-cobalt", orden: 0 },
+  fix: { texto: "Fixes", punto: "bg-ochre", orden: 1 },
+  optimized: { texto: "Optimizado", punto: "bg-patina", orden: 2 },
+  refactor: { texto: "Refactor", punto: "bg-violet", orden: 3 },
+  docs: { texto: "Docs", punto: "bg-ink-soft", orden: 4 },
+  chore: { texto: "Mantenimiento", punto: "bg-muted", orden: 5 },
+  security: { texto: "Seguridad", punto: "bg-rust", orden: 6 },
+  removed: { texto: "Quitado", punto: "bg-debt", orden: 7 },
+  otro: { texto: "Otros", punto: "bg-line-strong", orden: 8 }
+};
+
 /** Una entrada de la guía. */
 export interface Entrada {
   /** El ancla: el nombre del título, en kebab-case ✓. */
   id: string;
   titulo: string;
+  categoria: Categoria;
   veredicto: Veredicto;
   fecha: string;
   html: string;
 }
 
-/** Un día de trabajo: las entradas de esa fecha ✓ ✓. */
+/** Un grupo de un día: las entradas de una categoría ✓ ✅. */
+export interface Grupo {
+  categoria: Categoria;
+  entradas: Entrada[];
+}
+
+/** Un día de trabajo: las entradas de esa fecha, por categoría ✓ ✅. */
 export interface Dia {
   fecha: string;
+  /** Las entradas del día, en el orden en que se escribieron ✓. */
   entradas: Entrada[];
+  /** Las mismas, agrupadas por categoría ✓ ✅. */
+  grupos: Grupo[];
 }
 
 /** La guía entera: la introducción, los días y lo que falta ✓ ✓. */
@@ -123,8 +165,21 @@ export function renderizar(markdown: string): string {
   return marked.parse(markdown, { async: false }) as string;
 }
 
-/** La línea de metadatos: `*idea · 2026-10-21*`. */
-const METADATOS = /^\*([a-záéíóúñ]+) · (\d{4}-\d{2}-\d{2})\*$/;
+/** La línea de metadatos: `*feature · fase · 2026-10-22*`. */
+const METADATOS = /^\*([a-z]+) · ([a-záéíóúñ]+) · (\d{4}-\d{2}-\d{2})\*$/;
+
+/** Agrupa las entradas de un día por categoría ✓, en el orden del changelog ✓. */
+function agrupar(entradas: Entrada[]): Grupo[] {
+  const porCategoria = new Map<Categoria, Entrada[]>();
+  for (const entrada of entradas) {
+    const lista = porCategoria.get(entrada.categoria) ?? [];
+    lista.push(entrada);
+    porCategoria.set(entrada.categoria, lista);
+  }
+  return [...porCategoria.entries()]
+    .sort(([a], [b]) => CATEGORIAS[a].orden - CATEGORIAS[b].orden)
+    .map(([categoria, lista]) => ({ categoria, entradas: lista }));
+}
 
 /** Parte la guía: la introducción, las entradas y los días. */
 export function partir(markdown: string): Guia {
@@ -146,12 +201,14 @@ export function partir(markdown: string): Guia {
     }
 
     lineas.shift();
-    const veredicto = (meta[1] ?? "otro") as Veredicto;
+    const categoria = (meta[1] ?? "otro") as Categoria;
+    const veredicto = (meta[2] ?? "otro") as Veredicto;
     entradas.push({
       id: slug(titulo),
       titulo,
+      categoria: categoria in CATEGORIAS ? categoria : "otro",
       veredicto: veredicto in VEREDICTOS ? veredicto : "otro",
-      fecha: meta[2] ?? "",
+      fecha: meta[3] ?? "",
       html: renderizar(lineas.join("\n").trim())
     });
   }
@@ -166,7 +223,11 @@ export function partir(markdown: string): Guia {
 
   const dias: Dia[] = [...porDia.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([fecha, lista]) => ({ fecha, entradas: lista }));
+    .map(([fecha, lista]) => ({
+      fecha,
+      entradas: lista,
+      grupos: agrupar(lista)
+    }));
 
   // Lo que espera: las ideas sin decidir todavía ✓ ✓.
   const futuras = entradas.filter((entrada) => entrada.veredicto === "esperar");

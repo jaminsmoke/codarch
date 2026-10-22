@@ -1,7 +1,7 @@
 # La guía
 
 > Esta es la **verdad** ✅ de la guía ✅ ✅. La web ✅ la genera ✅ ✅ (ADR 0034 ✅ ✅): una entrada
-> empieza con un `##` ✅ y su línea siguiente ✅ dice el veredicto ✅ y la fecha ✅ ✅.
+> empieza con un `##` ✅ y su línea siguiente ✅ dice la categoría ✅, el veredicto ✅ y la fecha ✅ ✅.
 
 ## Qué es esto
 
@@ -31,6 +31,26 @@ para cada idea ✓ (si merece fase ✓, si necesita un ADR ✓, o si es pequeña
 
 Los ✓ y ✗ siguen significando **hecho** y **no hecho** ✓: los iconos son de otra cosa ✓.
 
+## 📌 Las categorías
+
+Cada entrada dice **qué clase de trabajo es** ✓ además de qué se decidió ✓. Las categorías son las de
+un **changelog** ✓ ([ADR 0035](../adr/0031-0040/0035-la-guia-como-changelog.md) 🧭 ✓) y son un **set
+cerrado** ✓:
+
+| Categoría | Qué es |
+|---|---|
+| `feature` | algo **nuevo** ✓: una capacidad que antes no estaba ✓ |
+| `fix` | un **arreglo** ✓: algo que prometía y no cumplía ✓ |
+| `optimized` | lo mismo ✓, **más rápido** ✓ o más barato ✓ |
+| `refactor` | lo mismo ✓, **mejor por dentro** ✓ |
+| `docs` | **documentación** ✓: lo que se lee ✓, no lo que se ejecuta ✓ |
+| `chore` | **mantenimiento** ✓: versiones ✓, repo ✓, herramientas ✓ |
+| `security` | **seguridad** ✓: permisos ✓, secretos ✓, dependencias ✓ |
+| `removed` | **quitar** ✓ algo que ya no se sostiene ✓ |
+
+No todas se usan todos los días ✓: el día pinta **solo las que tienen algo** ✓, siempre en ese orden
+✓. Y una entrada se **declara** ✓: no se deduce del veredicto ✓.
+
 ## 📌 La regla
 
 - Una idea **entra en el roadmap** como fase cuando tiene un resultado que se puede ver ✓ y un
@@ -44,17 +64,19 @@ Los ✓ y ✗ siguen significando **hecho** y **no hecho** ✓: los iconos son d
 ## 📌 Cómo se coloca una idea aquí
 
 1. Con una frase: **qué es** ✓ y **por qué** ✓.
-2. Con lo que **falta** para decidirla ✓ (si es que falta ✓).
+2. Con una **categoría** ✓: feature ✓, fix ✓, docs ✓ — las de arriba ✓.
 3. Con un **veredicto** ⚖️: fase ✓, ADR ✓, arreglo ✓, o esperar ✓.
 4. Con **fecha** ✓: el registro va **por orden cronológico** ✓ y si una idea vieja vuelve, vuelve
    **a su sitio** ✓.
 5. Cuando el veredicto sea "fase" ✓, la idea se mueve a la hoja de ruta de su decisión 🗺️ y aquí
    queda el rastro ✓ de por qué ✓.
 
+La línea de metadatos lo dice todo ✓: `*categoría · veredicto · fecha*` ✓.
+
 ---
 
 ## El registro público de plugins
-*idea · 2026-10-21*
+*feature · idea · 2026-10-21*
 
 **Qué es** ✓: que terceros publiquen plugins ✓ y que las apps los puedan instalar ✓. Hoy los plugins
 son **del repo** ✓: un equipo que escribe una regla para todo el mundo tiene que repartirla como
@@ -78,7 +100,7 @@ firmar código ✓: basta un zip y un hash ✓ (el *Los addons* ✓). Lo que sig
 las reglas ✓.
 
 ## Las lentes de las extensiones
-*idea · 2026-10-21*
+*feature · esperar · 2026-10-21*
 
 **Qué es** ✓: que una extensión pueda **medir algo nuevo** ✓ y meterlo en el snapshot ✓ (por ejemplo,
 las dependencias de NestJS ✓ o los módulos de un framework ✓).
@@ -105,7 +127,7 @@ ofrecerla ✓.
 ✓).
 
 ## La vista 3D, a fondo
-*idea · 2026-10-21*
+*feature · idea · 2026-10-21*
 
 **Qué es** ✓: el octree ✓, el nivel de detalle ✓, las carpetas como contenedores ✓, las etiquetas ✓
 y la comparación de dos momentos ✓.
@@ -117,7 +139,7 @@ necesita una fase del roadmap ✓ porque no toca el motor ✓ ✓.
 0019 ✓), entonces sí: una fase ✓, porque el motor cambia ✓.
 
 ## Lo que ya hay, mejorado
-*arreglo · 2026-10-21*
+*fix · arreglo · 2026-10-21*
 
 Estas **no** son fases ✓: son arreglos 🔧. Van aquí para que no se pierdan ✓.
 
@@ -215,7 +237,7 @@ porque lee el snapshot ✓ y las reglas viven en la configuración ✓.
 o `addon:<nombre>`) y los addons declarados con sus vistas guardadas ✓.
 
 ## Los addons
-*fase · 2026-10-22*
+*feature · fase · 2026-10-22*
 
 **Qué es** ✓: **conocimiento declarativo** ✓ — perfiles ✓, reglas ✓ y vistas guardadas ✓ — que se
 instala copiando una carpeta ✓ y que viaja con el repo ✓.
@@ -236,7 +258,7 @@ compañeros ✓ y su CI ✓. Hoy eso es un README con un bloque para copiar ✗.
 rastro de por qué ✓.
 
 ## Los documentos: cada decisión con su hoja de ruta
-*fase · 2026-10-22*
+*docs · fase · 2026-10-22*
 
 **Qué es** ✓: que los documentos crezcan sin ensuciar ✓. Los ADR en una carpeta plana ✓, el roadmap
 central con el detalle de todo ✓ y la guía con las ideas numeradas ✓: ampliar una decisión obliga a
@@ -250,7 +272,7 @@ y esta guía ✓ como **registro cronológico** ✓.
 [ADR 0031](../adr/0031-0040/0031-los-documentos.roadmap.md) 🗺️ ✓. Hecho ✅.
 
 ## Los documentos, con iconos y diagramas
-*fase · 2026-10-22*
+*docs · fase · 2026-10-22*
 
 **Qué es** ✓: que los documentos no sean un muro de texto plano ✓. Un markdown sin señales se lee
 igual de rápido y de lento ✓, y las decisiones quedan enterradas ✓.
@@ -263,7 +285,7 @@ diagrama ahorra un párrafo ✓.
 [ADR 0031](../adr/0031-0040/0031-los-documentos.roadmap.md) 🗺️ ✓. Hecho ✅.
 
 ## Alpha: que la versión lo diga
-*fase · 2026-10-22*
+*chore · fase · 2026-10-22*
 
 **Qué es** ✓: que el producto diga que es alpha ✓. La funcionalidad está ✓; el producto todavía
 no ✓: se le cambian las cosas ✓ y la app de escritorio es una copia ✓ de la web ✓.
@@ -278,7 +300,7 @@ Lo que **sí** se promete ✓: el modelo `cc.json` 2.x ✓ y su checksum ✓.
 [ADR 0032](../adr/0031-0040/0032-las-versiones-y-las-actualizaciones.roadmap.md) 🗺️ ✓. Hecho ✅.
 
 ## Abrir el repo
-*fase · 2026-10-22*
+*chore · fase · 2026-10-22*
 
 **Qué es** ✓: que el código fuente de CodArch sea público ✓. El código ya sale ✓ —el CLI está en npm
 ✓ y la acción ✓ en su propio repo público ✓—; lo que sigue privado ✓ era el repo ✓ y sus documentos
@@ -297,7 +319,7 @@ implementación está a la vista ✓.
 público ✅ ✅.
 
 ## La web del proyecto
-*fase · 2026-10-22*
+*feature · fase · 2026-10-22*
 
 **Qué es** ✓: que el repo tenga **puerta** ✓ ✓: qué es CodArch ✓, cómo se ve ✓, cómo se instala ✓ y
 los documentos ✓ **navegables** ✓ ✓.
