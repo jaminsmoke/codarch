@@ -3,6 +3,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { saveHistory, type CcJson } from "@codarch/schema";
 import { afterEach, describe, expect, it } from "vitest";
 import { createServer } from "../src/server";
 import { McpDataError } from "../src/store";
@@ -13,15 +14,45 @@ import {
   getArchitectureMap,
   getMigrationPlan,
   getProjectConfig,
+  getSymbolChain,
   listViolations,
   type MapNode
 } from "../src/tools";
-import { makeReport, makeStore } from "./fixtures";
+import { SNAPSHOT, makeReport, makeStore } from "./fixtures";
 
 function flatten(node: MapNode, output: MapNode[] = []): MapNode[] {
   output.push(node);
   for (const child of node.children ?? []) flatten(child, output);
   return output;
+}
+
+/** Una foto del historial con un símbolo que cambia de nombre y otro estable. */
+function historySnapshot(checksum: string, renamed: string): CcJson {
+  const snapshot = structuredClone(SNAPSHOT) as CcJson;
+  snapshot.meta.checksum = checksum;
+  const nodes = snapshot.lenses!.symbols!.nodes;
+  nodes.a = [
+    {
+      name: renamed,
+      kind: "function",
+      line: 10,
+      complexity: 12,
+      lines: 40,
+      hash: "h-renamed"
+    },
+    { name: "Guardar", kind: "interface", line: 3, hash: "h-guardar" }
+  ];
+  nodes.c = [
+    {
+      name: "resolver",
+      kind: "function",
+      line: 20,
+      complexity: 20,
+      lines: 60,
+      hash: "h-resolver"
+    }
+  ];
+  return snapshot;
 }
 
 describe("getArchitectureMap", () => {
@@ -418,6 +449,65 @@ ignore:
     expect(config.ignore).toEqual([]);
     expect(config.addons).toEqual([]);
     expect(config.reason).toMatch(/\.codarch\.yml/);
+  });
+});
+
+describe("getSymbolChain", () => {
+  const roots: string[] = [];
+
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  function historyRoot(): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-mcp-chain-"));
+    roots.push(root);
+    saveHistory(
+      root,
+      historySnapshot("history-1", "cargar"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+    saveHistory(
+      root,
+      historySnapshot("history-2", "buscar"),
+      new Date("2026-01-02T00:00:00.000Z")
+    );
+    return root;
+  }
+
+  it("sin símbolo devuelve el calor del repo, no un error", () => {
+    const result = getSymbolChain(makeStore(null, historyRoot()));
+
+    expect(result.available).toBe(true);
+    expect(result.reason).toBeUndefined();
+    expect(result.chains).toEqual([]);
+    expect(result.heat.map((entry) => entry.name)).toContain("buscar");
+  });
+
+  it("encuentra el nombre antiguo y conserva el tipo del símbolo", () => {
+    const store = makeStore(null, historyRoot());
+
+    const renamed = getSymbolChain(store, { symbol: "cargar" });
+    expect(renamed.chains).toHaveLength(1);
+    expect(renamed.chains[0]?.name).toBe("buscar");
+    expect(renamed.chains[0]?.kind).toBe("function");
+
+    const iface = getSymbolChain(store, { symbol: "Guardar" });
+    expect(iface.chains[0]?.kind).toBe("interface");
+    expect(iface.heat.find((entry) => entry.name === "Guardar")?.kind).toBe(
+      "interface"
+    );
+  });
+
+  it("no devuelve cadenas de ficheros, carpetas o proyecto", () => {
+    const result = getSymbolChain(makeStore(null, historyRoot()), {
+      symbol: "acme"
+    });
+
+    expect(result.available).toBe(true);
+    expect(result.chains).toEqual([]);
   });
 });
 

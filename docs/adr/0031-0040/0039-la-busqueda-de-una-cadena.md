@@ -53,8 +53,10 @@ usando su propio nivel como `kind`.
 
 ### 5. Nada del snapshot cambia
 
-El formato de `cc.json`, el checksum y el libro mayor no cambian. La consulta lee las cadenas que
-ya existen; el arreglo es de búsqueda y de presentación.
+El formato de `cc.json` y el checksum no cambian. La consulta lee las cadenas que ya existen; el
+arreglo es de búsqueda y de presentación. El libro mayor es un artefacto derivado: sube a la
+versión 2 para que las cadenas calculadas antes de este arreglo se rehagan y no conserven el
+`kind` antiguo.
 
 ## Consecuencias
 
@@ -82,16 +84,16 @@ ya existen; el arreglo es de búsqueda y de presentación.
 
 ## Hoja de ruta
 
-**Estado:** en curso. No abre una fase: corrige la consulta de una decisión ya cerrada (M12).
+**Estado:** cerrado. No abre una fase: corrige la consulta de una decisión ya cerrada (M12).
 
-- [ ] **0039.1** `packages/schema`: el `kind` real en `LiveNode`, en la cadena y en el calor; tests
+- [x] **0039.1** `packages/schema`: el `kind` real en `LiveNode`, en la cadena y en el calor; tests
   de clase, interfaz y tipo.
-- [ ] **0039.2** `packages/schema`: `chainsPayload` devuelve calor sin símbolo, busca solo símbolos
+- [x] **0039.2** `packages/schema`: `chainsPayload` devuelve calor sin símbolo, busca solo símbolos
   por nombre o ruta actuales o históricos y respeta `limit`; tests de nombre antiguo, nivel y
-  límite.
-- [ ] **0039.3** `apps/mcp`: `getSymbolChain` devuelve calor sin símbolo, pasa el límite y actualiza
-  la descripción; tests del transporte y de la herramienta.
-- [ ] **0039.4** Documentos: `docs/mcp.md` y la guía describen la búsqueda; suite, lint, typecheck y
+  límite. El libro mayor sube a la versión 2 para rehacerse.
+- [x] **0039.3** `apps/mcp`: `getSymbolChain` devuelve calor sin símbolo, pasa el límite y actualiza
+  la descripción; tests de la herramienta y del helper compartido con la CLI.
+- [x] **0039.4** Documentos: `docs/mcp.md` y la guía describen la búsqueda; suite, lint, typecheck y
   builds en verde.
 
-El detalle de lo hecho estará en el [changelog](0039-la-busqueda-de-una-cadena.changelog.md).
+El detalle de lo hecho está en el [changelog](0039-la-busqueda-de-una-cadena.changelog.md).

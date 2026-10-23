@@ -36,7 +36,7 @@ export {
   topByMetric
 } from "./stats";
 export { md5Hex, sha256Hex } from "./hash";
-export { buildChains, summarizeChains, verifyChains } from "./chains";
+export { buildChains, findSymbolChains, summarizeChains, verifyChains } from "./chains";
 export type {
   ChainLevel,
   ChainStep,

@@ -22,7 +22,7 @@ export type {
   FileEntry
 } from "./types";
 
-export { buildChains, summarizeChains, verifyChains } from "./chains";
+export { buildChains, findSymbolChains, summarizeChains, verifyChains } from "./chains";
 export type {
   ChainLevel,
   ChainStep,

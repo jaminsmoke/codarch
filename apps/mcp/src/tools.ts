@@ -689,17 +689,12 @@ export function getSymbolChain(
   store: ArchitectureStore,
   input: SymbolChainInput = {}
 ): SymbolChainResult {
-  const symbol = input.symbol?.trim();
-  if (!symbol) {
-    return {
-      available: false,
-      reason: "dime qué símbolo buscas: el nombre de la función, la clase o el tipo",
-      chains: [],
-      heat: []
-    };
-  }
-
-  const payload = chainsPayload(store.root, symbol);
+  // Sin símbolo también hay respuesta: el calor del repo. Si hay símbolo, el
+  // payload busca solo cadenas de símbolo, por su nombre actual o por uno
+  // anterior, y respeta el límite (ADR 0039).
+  const symbol = input.symbol?.trim() || null;
+  const limit = clampInteger(input.limit, 10, 1, 50);
+  const payload = chainsPayload(store.root, symbol, limit);
   if (!payload.available) {
     return {
       available: false,
@@ -710,11 +705,10 @@ export function getSymbolChain(
     };
   }
 
-  const limit = clampInteger(input.limit, 10, 1, 50);
   return {
     available: true,
     reason: undefined,
-    chains: payload.chains.slice(0, limit),
+    chains: payload.chains,
     heat: payload.heat
   };
 }

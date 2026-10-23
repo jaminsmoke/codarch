@@ -1,6 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { buildChains, summarizeChains, type SymbolChain, type SymbolHeat } from "./chains";
+import {
+  buildChains,
+  findSymbolChains,
+  summarizeChains,
+  type SymbolChain,
+  type SymbolHeat
+} from "./chains";
 import { historyFileName } from "./history";
 import { readHistoryIndex } from "./history-store";
 import { historyLocation } from "./history-store";
@@ -22,7 +28,7 @@ import type { HistoryEntry } from "./history";
 export const CHAINS_FILE = "chains.json";
 
 export interface ChainLedger {
-  version: 1;
+  version: 2;
   /** Los checksums de las fotos con las que se construyó, en orden. */
   entries: string[];
   /** Las cadenas, por su id. */
@@ -38,11 +44,11 @@ export function readChainLedger(root: string): ChainLedger {
   try {
     const raw = fs.readFileSync(chainLedgerPath(root), "utf8");
     const parsed = JSON.parse(raw) as ChainLedger;
-    if (parsed.version !== 1 || typeof parsed.chains !== "object") {
+    if (parsed.version !== 2 || typeof parsed.chains !== "object") {
       return emptyLedger();
     }
     return {
-      version: 1,
+      version: 2,
       entries: Array.isArray(parsed.entries) ? parsed.entries : [],
       chains: parsed.chains ?? {}
     };
@@ -60,7 +66,7 @@ export function writeChainLedger(root: string, ledger: ChainLedger): string {
 }
 
 export function emptyLedger(): ChainLedger {
-  return { version: 1, entries: [], chains: {} };
+  return { version: 2, entries: [], chains: {} };
 }
 
 /** El libro mayor sirve si se construyó con las mismas fotos. */
@@ -105,7 +111,7 @@ export function loadChains(
 
   const chains = buildChains(steps);
   writeChainLedger(root, {
-    version: 1,
+    version: 2,
     entries: steps.map((step) => step.entry),
     chains: Object.fromEntries(chains.map((chain) => [chain.id, chain]))
   });
@@ -131,7 +137,8 @@ export interface ChainsPayload {
 
 export function chainsPayload(
   root: string,
-  symbol: string | null
+  symbol: string | null,
+  limit = 20
 ): ChainsPayload {
   const index = readHistoryIndex(root);
   if (index.entries.length === 0) {
@@ -141,21 +148,17 @@ export function chainsPayload(
   const chains = loadChains(root, index.entries);
   const heat = summarizeChains(chains, 10);
 
-  if (!symbol) {
+  if (!symbol || symbol.trim() === "") {
     return { available: true, entries: index.entries.length, chains: [], heat };
   }
 
-  const needle = symbol.trim().toLowerCase();
-  const matching = chains.filter(
-    (chain) =>
-      chain.name.toLowerCase().includes(needle) ||
-      chain.path.toLowerCase().includes(needle)
-  );
-
+  const max = Number.isFinite(limit)
+    ? Math.max(0, Math.min(50, Math.trunc(limit)))
+    : 20;
   return {
     available: true,
     entries: index.entries.length,
-    chains: matching.slice(0, 20),
+    chains: findSymbolChains(chains, symbol, max),
     heat
   };
 }

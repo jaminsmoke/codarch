@@ -1,7 +1,13 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   buildChains,
+  chainsPayload,
   parseCcJson,
+  saveHistory,
+  summarizeChains,
   verifyChains,
   type ChainStep,
   type SymbolChain
@@ -26,7 +32,11 @@ function symbol(
 }
 
 /** Un snapshot con un solo fichero y los símbolos que se le pasen. */
-function snapshot(symbols: CcSymbol[], file = "src/a.ts"): CcJson {
+function snapshot(
+  symbols: CcSymbol[],
+  file = "src/a.ts",
+  checksum = "c"
+): CcJson {
   // El árbol se construye con la ruta de verdad, para que la mudanza se vea.
   const segments = file.split("/");
   const name = segments.pop() as string;
@@ -53,7 +63,7 @@ function snapshot(symbols: CcSymbol[], file = "src/a.ts"): CcJson {
     meta: {
       projectName: "proj",
       apiVersion: "2.0",
-      checksum: "c"
+      checksum
     },
     files: [root],
     lenses: {
@@ -213,6 +223,81 @@ describe("la vida de un símbolo", () => {
     const versions = chains[0]?.versions ?? [];
     expect(versions[0]?.head).not.toBe(versions[1]?.head);
     expect(versions[1]?.head).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it("conserva el tipo del símbolo y lo repite en el calor", () => {
+    const chains = buildChains([
+      step("1", [symbol("Cargador", "h1", { kind: "class" })])
+    ]);
+
+    expect(symbols(chains)[0]?.kind).toBe("class");
+    expect(summarizeChains(chains)[0]?.kind).toBe("class");
+  });
+});
+
+describe("la consulta de cadenas", () => {
+  const roots: string[] = [];
+
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  function temporaryRoot(): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-chains-"));
+    roots.push(root);
+    return root;
+  }
+
+  it("sin símbolo devuelve el calor y ninguna cadena", () => {
+    const root = temporaryRoot();
+    saveHistory(
+      root,
+      snapshot([symbol("cargar", "h1")], "src/a.ts", "c1"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+
+    const payload = chainsPayload(root, null);
+
+    expect(payload.available).toBe(true);
+    expect(payload.chains).toEqual([]);
+    expect(payload.heat.map((entry) => entry.name)).toContain("cargar");
+  });
+
+  it("busca por el nombre antiguo y nunca devuelve ficheros o el proyecto", () => {
+    const root = temporaryRoot();
+    saveHistory(
+      root,
+      snapshot([symbol("cargar", "h1")], "src/a.ts", "c1"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+    saveHistory(
+      root,
+      snapshot([symbol("buscar", "h1")], "src/a.ts", "c2"),
+      new Date("2026-01-02T00:00:00.000Z")
+    );
+
+    const oldName = chainsPayload(root, "cargar");
+    expect(oldName.chains).toHaveLength(1);
+    expect(oldName.chains[0]?.name).toBe("buscar");
+
+    expect(chainsPayload(root, "proj").chains).toEqual([]);
+  });
+
+  it("respeta un límite por encima de veinte", () => {
+    const root = temporaryRoot();
+    const many = Array.from({ length: 25 }, (_, index) =>
+      symbol(`s${String(index).padStart(2, "0")}`, `h${index}`)
+    );
+    saveHistory(
+      root,
+      snapshot(many, "src/a.ts", "many"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+
+    expect(chainsPayload(root, "s", 50).chains).toHaveLength(25);
+    expect(chainsPayload(root, "s", 3).chains).toHaveLength(3);
   });
 });
 

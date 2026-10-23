@@ -1,5 +1,6 @@
 import path from "node:path";
 import {
+  findSymbolChains,
   loadChains,
   readHistoryIndex,
   type SymbolChain
@@ -14,7 +15,7 @@ import {
 
 export interface ChainCommandOptions {
   root?: string;
-  /** El símbolo (o parte de su nombre) que se busca. */
+  /** El símbolo (o parte de su nombre o ruta) que se busca. */
   symbol?: string;
   json: boolean;
   /** Rehace el libro mayor aunque esté en caché. */
@@ -41,13 +42,7 @@ export function runChain(options: ChainCommandOptions): number {
   }
 
   const wanted = (options.symbol ?? "").trim().toLowerCase();
-  const matches = wanted
-    ? chains.filter(
-        (chain) =>
-          chain.name.toLowerCase().includes(wanted) ||
-          chain.path.toLowerCase().includes(wanted)
-      )
-    : chains;
+  const matches = wanted ? findSymbolChains(chains, wanted) : chains;
 
   console.log("");
   console.log("  CodArch · la vida de los símbolos");

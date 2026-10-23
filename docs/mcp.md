@@ -210,10 +210,12 @@ símbolos más reescritos ✓.
 
 | Parámetro | Tipo | Por defecto | Descripción |
 |---|---|---|---|
-| `symbol` | string | — | El símbolo: el nombre de la función, la clase o el tipo |
+| `symbol` | string | — | El símbolo: el nombre de la función, la clase o el tipo; sin él, solo el calor |
 | `limit` | 1–50 | 10 | Máximo de cadenas |
 
-Sin `symbol` no hay cadena que devolver: la herramienta lo dice ✓.
+Sin `symbol` devuelve el calor del repo y ninguna cadena. Con `symbol` busca **solo cadenas de
+símbolo**, por el nombre o la ruta actuales o por los de cualquier versión anterior: un renombrado
+o una mudanza no esconden el símbolo. El `limit` acota las cadenas y llega hasta 50.
 
 ### `explain_module`
 

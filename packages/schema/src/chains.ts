@@ -72,6 +72,53 @@ export interface SymbolChain {
   versions: ChainVersion[];
 }
 
+const SYMBOL_KINDS: readonly CcSymbol["kind"][] = [
+  "function",
+  "class",
+  "interface",
+  "type",
+  "enum",
+  "variable"
+];
+
+/** Si el `kind` de una cadena es el de un símbolo y no el de un nodo. */
+function isSymbolKind(kind: SymbolChain["kind"]): kind is CcSymbol["kind"] {
+  return (SYMBOL_KINDS as readonly string[]).includes(kind);
+}
+
+/**
+ * Las cadenas de símbolo que casan con una búsqueda.
+ *
+ * Mira el nombre y la ruta actuales y también los de cada versión: un
+ * renombrado o una mudanza no hacen que el símbolo deje de encontrarse por
+ * como se llamaba antes. Nunca devuelve ficheros, carpetas ni el proyecto.
+ */
+export function findSymbolChains(
+  chains: readonly SymbolChain[],
+  symbol: string,
+  limit = Number.POSITIVE_INFINITY
+): SymbolChain[] {
+  const needle = symbol.trim().toLowerCase();
+  if (!needle) return [];
+
+  const matches = chains.filter((chain) => {
+    if (chain.level !== "symbol") return false;
+    if (
+      chain.name.toLowerCase().includes(needle) ||
+      chain.path.toLowerCase().includes(needle)
+    ) {
+      return true;
+    }
+    return chain.versions.some(
+      (version) =>
+        version.name.toLowerCase().includes(needle) ||
+        version.path.toLowerCase().includes(needle)
+    );
+  });
+
+  return matches.slice(0, Math.max(0, limit));
+}
+
 /** Una foto del historial, para encadenar. */
 export interface ChainStep {
   /** El checksum del snapshot: identifica la foto. */
@@ -84,6 +131,7 @@ export interface ChainStep {
 /** Un nodo vivo en una foto, con la cadena a la que pertenece. */
 interface LiveNode {
   level: ChainLevel;
+  kind: SymbolChain["kind"];
   name: string;
   path: string;
   bodyHash: string;
@@ -137,6 +185,7 @@ export function buildChains(steps: readonly ChainStep[]): SymbolChain[] {
       }
 
       chain.versions.push(version(step, after, events, chainHead(chain)));
+      chain.kind = after.kind;
       chain.name = after.name;
       chain.path = after.path;
     }
@@ -151,7 +200,7 @@ export function buildChains(steps: readonly ChainStep[]): SymbolChain[] {
       const chain: SymbolChain = {
         id,
         level: node.level,
-        kind: node.level === "symbol" ? "function" : node.level,
+        kind: node.kind,
         name: node.name,
         path: node.path,
         versions: []
@@ -249,6 +298,7 @@ function liveNodes(snapshot: CcJson): LiveNode[] {
     for (const symbol of list) {
       nodes.push({
         level: "symbol",
+        kind: symbol.kind,
         name: symbol.name,
         path: paths.get(id) ?? id,
         bodyHash: symbol.hash ?? "",
@@ -279,6 +329,7 @@ function liveNodes(snapshot: CcJson): LiveNode[] {
       fileBodies.set(id, bodyHash);
       nodes.push({
         level: "file",
+        kind: "file",
         name: entry.node.name,
         path: paths.get(id) ?? entry.node.name,
         bodyHash,
@@ -305,6 +356,7 @@ function liveNodes(snapshot: CcJson): LiveNode[] {
       folderBodies.set(path, bodyHash);
       nodes.push({
         level: "folder",
+        kind: "folder",
         name: node.name,
         path,
         bodyHash,
@@ -321,6 +373,7 @@ function liveNodes(snapshot: CcJson): LiveNode[] {
     const bodyHash = visit(root, "");
     nodes.push({
       level: "project",
+      kind: "project",
       name: root.name,
       path: "",
       bodyHash,
@@ -506,7 +559,7 @@ export function summarizeChains(
         id: chain.id,
         name: chain.name,
         path: chain.path,
-        kind: "function" as CcSymbol["kind"],
+        kind: isSymbolKind(chain.kind) ? chain.kind : "function",
         versions: chain.versions.length,
         changes,
         moves,

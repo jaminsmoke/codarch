@@ -219,12 +219,14 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "La vida de un símbolo",
       description:
-        "La cadena de un símbolo a lo largo del historial: cuándo nació, cómo se renombró o se mudó, cuántas veces cambió su complejidad y cuándo desapareció. También devuelve el calor del repo: los símbolos más reescritos.",
+        "La cadena de un símbolo a lo largo del historial: cuándo nació, cómo se renombró o se mudó, cuántas veces cambió su complejidad y cuándo desapareció. Con `symbol` busca solo símbolos, por su nombre o ruta actuales o anteriores; sin él, devuelve el calor del repo: los símbolos más reescritos.",
       inputSchema: {
         symbol: z
           .string()
           .optional()
-          .describe("El símbolo: el nombre de la función, la clase o el tipo"),
+          .describe(
+            "El símbolo: el nombre de la función, la clase o el tipo; sin él, solo el calor"
+          ),
         limit: z
           .number()
           .int()
