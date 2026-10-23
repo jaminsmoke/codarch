@@ -78,6 +78,61 @@ describe("buildGraph", () => {
     });
   });
 
+  it("no cuenta un ciclo que solo existe en tipos", () => {
+    const graph = buildGraph(["a.ts", "b.ts"], [
+      { from: "a.ts", to: "b.ts", typeOnly: true },
+      { from: "b.ts", to: "a.ts", typeOnly: true }
+    ]);
+
+    expect(graph.cycles).toEqual([]);
+    expect(graph.edges.every((edge) => !edge.isCyclic)).toBe(true);
+    expect(graph.metrics.get("a.ts")).toMatchObject({
+      fanIn: 1,
+      fanOut: 1,
+      inCycle: 0,
+      cycleSize: 0,
+      dependencyLevel: 0
+    });
+    expect(graph.metrics.get("b.ts")).toMatchObject({
+      fanIn: 1,
+      fanOut: 1,
+      inCycle: 0,
+      cycleSize: 0,
+      dependencyLevel: 0
+    });
+  });
+
+  it("una arista mixta cuenta por su import de ejecución", () => {
+    const graph = buildGraph(["a.ts", "b.ts"], [
+      { from: "a.ts", to: "b.ts" },
+      { from: "a.ts", to: "b.ts", typeOnly: true },
+      { from: "b.ts", to: "a.ts" },
+      { from: "b.ts", to: "a.ts", typeOnly: true }
+    ]);
+
+    expect(graph.cycles).toEqual([["a.ts", "b.ts"]]);
+    expect(graph.edges).toEqual([
+      { from: "a.ts", to: "b.ts", weight: 2, typeOnly: 1, isCyclic: true },
+      { from: "b.ts", to: "a.ts", weight: 2, typeOnly: 1, isCyclic: true }
+    ]);
+  });
+
+  it("no cuenta un self-loop solo de tipos", () => {
+    const graph = buildGraph(["a.ts"], [
+      { from: "a.ts", to: "a.ts", typeOnly: true }
+    ]);
+
+    expect(graph.cycles).toEqual([]);
+    expect(graph.edges[0]).toMatchObject({ isCyclic: false });
+    expect(graph.metrics.get("a.ts")).toMatchObject({
+      fanIn: 1,
+      fanOut: 1,
+      inCycle: 0,
+      cycleSize: 0,
+      dependencyLevel: 0
+    });
+  });
+
   it("deduplica aristas y conserva el peso y los type-only", () => {
     const graph = buildGraph(["a.ts", "b.ts"], [
       { from: "a.ts", to: "b.ts" },

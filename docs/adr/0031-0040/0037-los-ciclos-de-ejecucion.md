@@ -84,21 +84,21 @@ regeneran y el resultado sigue siendo determinista.
 
 ## Hoja de ruta
 
-**Estado:** abierto. No abre una fase: es un arreglo de semántica de una lente y una regla que ya
+**Estado:** cerrado. No abre una fase: es un arreglo de semántica de una lente y una regla que ya
 existen. Se aplica en M2 y M9.
 
-- [ ] **0037.1** `packages/parsers`: separar el grafo de ejecución del grafo de imports; ciclos,
+- [x] **0037.1** `packages/parsers`: separar el grafo de ejecución del grafo de imports; ciclos,
   `isCyclic`, `inCycle`, `cycleSize` y `dependencyLevel` salen del primero; `fanIn`/`fanOut` siguen
   contando todos. Tests de ciclo runtime, ciclo type-only, arista mixta y self-loop.
-- [ ] **0037.2** `packages/metrics`: filtrar `cycleGroups` y el reporte de ciclos por
+- [x] **0037.2** `packages/metrics`: filtrar `cycleGroups` y el reporte de ciclos por
   `weight > typeOnly`; el input de `sin-ciclos` y el resumen del PR usan el mismo conjunto. Tests
   de base/head con un ciclo de tipos resuelto o introducido.
-- [ ] **0037.3** `apps/mcp` y `packages/render`: recalcular o pintar ciclos con el mismo criterio;
+- [x] **0037.3** `apps/mcp` y `packages/render`: recalcular o pintar ciclos con el mismo criterio;
   el render deja de inferir un ciclo por la sola ida y vuelta de aristas. Tests de las consultas y
   del modelo de la vista.
-- [ ] **0037.4** Snapshot y checksum: comprobar que el formato no cambia y que el checksum es
+- [x] **0037.4** Snapshot y checksum: comprobar que el formato no cambia y que el checksum es
   determinista; regenerar el snapshot de la auditoría.
-- [ ] **0037.5** `docs/model.md` y `docs/rules.md`: decir que los ciclos son de ejecución y que las
+- [x] **0037.5** `docs/model.md` y `docs/rules.md`: decir que los ciclos son de ejecución y que las
   aristas de tipos siguen visibles. Pasar la suite completa y `check:action`.
 
-El detalle de lo hecho estará en el [changelog](0037-los-ciclos-de-ejecucion.changelog.md).
+El detalle de lo hecho está en el [changelog](0037-los-ciclos-de-ejecucion.changelog.md).

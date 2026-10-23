@@ -224,8 +224,11 @@ como violación introducida.
   severity: error
 ```
 
-Marca los componentes fuertemente conexos de head (tamaño > 1 o self-loop). La clave usa los ids
-del componente: un ciclo que cambia de tamaño aparece como uno resuelto y otro introducido.
+Marca los componentes fuertemente conexos de head (tamaño > 1 o self-loop) **del grafo de
+ejecución**: una arista cuenta si `weight > typeOnly`. Los imports que solo son de tipos siguen en
+el snapshot, pero no cierran un ciclo ni violan esta regla ([ADR
+0037](adr/0031-0040/0037-los-ciclos-de-ejecucion.md)). La clave usa los ids del componente: un ciclo
+que cambia de tamaño aparece como uno resuelto y otro introducido.
 
 ## Severidad y gate
 

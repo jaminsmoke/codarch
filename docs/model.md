@@ -114,7 +114,7 @@ Métricas actuales del analizador:
 |---|---|
 | Parser | `loc`, `rloc`, `functions`, `maxComplexity`, `maxFunctionLength` |
 | Imports | `imports`, `externalImports`, `builtinImports`, `typeOnlyImports`, `unresolvedImports` |
-| Grafo | `fanIn`, `fanOut`, `inCycle`, `cycleSize`, `dependencyLevel` |
+| Grafo | `fanIn`, `fanOut` (todos los imports), `inCycle`, `cycleSize`, `dependencyLevel` (ejecución) |
 | Historial | `number_of_commits`, `number_of_authors` |
 | Migración | `migrationDebt`, `ffiCrossings` |
 
@@ -145,8 +145,11 @@ El snapshot actual no guarda `kind` por arista: agrega peso y type-only. El pars
 `static`, `export`, `dynamic`, `require` y `import x = require()`; esa información se usa para
 clasificar y podría añadirse como atributo si el diff la necesita.
 
-`isCyclic` se **deriva** del grafo y se cachea en el snapshot como optimización; siempre se puede
-recalcular. Un componente cíclico es un SCC de tamaño > 1 o un self-loop.
+`isCyclic` se **deriva** del **grafo de ejecución** y se cachea en el snapshot como optimización;
+siempre se puede recalcular. Un componente cíclico es un SCC de tamaño > 1 o un self-loop de ese
+grafo. Una arista cuenta si `weight > typeOnly`: los imports que solo son de tipos siguen en la
+lente de dependencias y en `fanIn`/`fanOut`, pero no cierran un ciclo ni suben `dependencyLevel`
+([ADR 0037](adr/0031-0040/0037-los-ciclos-de-ejecucion.md)).
 
 ### La lente de migración
 
@@ -350,7 +353,7 @@ measureRustSource(source)
 collectGitChurn(root, files)
   → number_of_commits, number_of_authors (un solo git log)
 buildGraph(files, links)
-  → dedupe, fan-in/out, SCC, ciclos, niveles
+  → dedupe, fan-in/out (todos), SCC de ejecución, ciclos y niveles
 buildMigration(files, ffiLinks)
   → estados, deuda, cruces y resumen por lenguaje
 buildSnapshot({ projectName, files, graph, migration })

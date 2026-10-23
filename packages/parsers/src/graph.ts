@@ -11,15 +11,16 @@ export interface GraphEdge {
   weight: number;
   /** Cuántos de esos imports son `import type` / `export type`. */
   typeOnly: number;
+  /** Solo se marca si la arista es de ejecución y cae dentro de un ciclo de ejecución. */
   isCyclic: boolean;
 }
 
 export interface FileGraphMetrics {
   fanIn: number;
   fanOut: number;
-  /** 1 si el fichero pertenece a un ciclo (incluido un self-loop). */
+  /** 1 si el fichero pertenece a un ciclo de ejecución (incluido un self-loop). */
   inCycle: number;
-  /** Tamaño del componente cíclico; 0 si no está en un ciclo. */
+  /** Tamaño del componente cíclico de ejecución; 0 si no está en un ciclo. */
   cycleSize: number;
   /**
    * Nivel en el DAG de componentes: 0 para un componente que nadie importa,
@@ -31,7 +32,7 @@ export interface FileGraphMetrics {
 export interface GraphResult {
   edges: GraphEdge[];
   metrics: Map<string, FileGraphMetrics>;
-  /** Componentes fuertemente conexos de tamaño > 1, o self-loops. */
+  /** Componentes fuertemente conexos de ejecución de tamaño > 1, o self-loops. */
   cycles: string[][];
 }
 
@@ -45,8 +46,10 @@ interface AggregatedEdge {
 /**
  * Construye el grafo interno de dependencias.
  *
- * Deduplica aristas, calcula fan-in/fan-out, detecta componentes fuertemente
- * conexos (ciclos) y asigna un nivel a cada componente en el DAG condensado.
+ * Deduplica aristas y calcula fan-in/fan-out sobre **todos** los imports. Los
+ * ciclos, `isCyclic`, `inCycle`, `cycleSize` y `dependencyLevel` salen del
+ * **grafo de ejecución**: una arista cuenta si `weight > typeOnly`; las aristas
+ * que solo son de tipos se guardan, pero no se ejecutan.
  */
 export function buildGraph(
   files: readonly string[],
@@ -79,28 +82,45 @@ export function buildGraph(
         compareStrings(left.from, right.from) || compareStrings(left.to, right.to)
     )
     .map((edge) => ({ ...edge, isCyclic: false }));
+  const runtimeEdges = edges.filter(isRuntimeEdge);
 
   const adjacency = new Map<string, string[]>();
   const reverse = new Map<string, string[]>();
+  const runtimeAdjacency = new Map<string, string[]>();
+  const runtimeReverse = new Map<string, string[]>();
   for (const node of nodes) {
     adjacency.set(node, []);
     reverse.set(node, []);
+    runtimeAdjacency.set(node, []);
+    runtimeReverse.set(node, []);
   }
   for (const edge of edges) {
     adjacency.get(edge.from)?.push(edge.to);
     reverse.get(edge.to)?.push(edge.from);
   }
+  for (const edge of runtimeEdges) {
+    runtimeAdjacency.get(edge.from)?.push(edge.to);
+    runtimeReverse.get(edge.to)?.push(edge.from);
+  }
   for (const neighbors of adjacency.values()) neighbors.sort(compareStrings);
   for (const neighbors of reverse.values()) neighbors.sort(compareStrings);
+  for (const neighbors of runtimeAdjacency.values()) neighbors.sort(compareStrings);
+  for (const neighbors of runtimeReverse.values()) neighbors.sort(compareStrings);
 
-  const components = stronglyConnectedComponents(nodes, adjacency, reverse);
+  const components = stronglyConnectedComponents(
+    nodes,
+    runtimeAdjacency,
+    runtimeReverse
+  );
   const componentOf = new Map<string, number>();
   components.forEach((component, index) => {
     for (const node of component) componentOf.set(node, index);
   });
 
   const selfLoops = new Set(
-    edges.filter((edge) => edge.from === edge.to).map((edge) => edge.from)
+    runtimeEdges
+      .filter((edge) => edge.from === edge.to)
+      .map((edge) => edge.from)
   );
   const cycleComponents = new Set<number>();
   components.forEach((component, index) => {
@@ -112,12 +132,13 @@ export function buildGraph(
     }
   });
 
-  const levels = componentLevels(components, edges, componentOf);
+  const levels = componentLevels(components, runtimeEdges, componentOf);
 
   for (const edge of edges) {
     const fromComponent = componentOf.get(edge.from);
     const toComponent = componentOf.get(edge.to);
     edge.isCyclic =
+      isRuntimeEdge(edge) &&
       fromComponent !== undefined &&
       fromComponent === toComponent &&
       cycleComponents.has(fromComponent);
@@ -254,6 +275,11 @@ function componentLevels(
   }
 
   return levels;
+}
+
+/** Una arista cuenta para los ciclos si al menos uno de sus imports se ejecuta. */
+function isRuntimeEdge(edge: Pick<GraphEdge, "weight" | "typeOnly">): boolean {
+  return edge.weight > edge.typeOnly;
 }
 
 function compareStrings(left: string, right: string): number {

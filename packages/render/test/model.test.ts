@@ -35,7 +35,7 @@ describe("buildRenderModel", () => {
     expect(src?.children?.map((child) => child.name)).toEqual(["a.ts", "b.ts"]);
   });
 
-  it("deduplica aristas y detecta ciclos en ambos sentidos", () => {
+  it("deduplica aristas y usa las marcadas como ciclo", () => {
     const result = model();
 
     expect(result.edges).toEqual([
@@ -44,6 +44,20 @@ describe("buildRenderModel", () => {
     ]);
     expect(result.cycles).toEqual(result.edges);
     expect(result.hotspotCount).toBe(2);
+  });
+
+  it("no inventa un ciclo si el snapshot no lo marca", () => {
+    const copy = structuredClone(fixture) as {
+      lenses?: {
+        dependency?: { leafEdges?: Array<Record<string, unknown>> };
+      };
+    };
+    for (const edge of copy.lenses?.dependency?.leafEdges ?? []) {
+      delete edge.isCyclic;
+    }
+
+    const result = buildRenderModel(parseCcJson(copy));
+    expect(result.cycles).toEqual([]);
   });
 
   it("elige el fichero con más riesgo como selección inicial", () => {

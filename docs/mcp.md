@@ -219,7 +219,7 @@ Ficha de un fichero o carpeta:
 
 - métricas, riesgo y ranking de riesgo del fichero;
 - aristas de entrada y salida con peso y type-only;
-- ciclo (pertenencia y tamaño);
+- ciclo de ejecución (pertenencia y tamaño);
 - estado en el diff, cambios y hotspot;
 - violaciones que mencionan la ruta.
 

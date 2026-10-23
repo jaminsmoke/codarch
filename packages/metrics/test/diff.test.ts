@@ -18,6 +18,7 @@ interface EdgeSpec {
   from: string;
   to: string;
   cyclic?: boolean;
+  typeOnly?: boolean;
 }
 
 interface SymbolSpec {
@@ -104,7 +105,7 @@ function snapshot(
         edges: edges.map((edge) => ({
           fromId: fileId(edge.from),
           toId: fileId(edge.to),
-          attributes: { weight: 1, typeOnly: 0 },
+          attributes: { weight: 1, typeOnly: edge.typeOnly === true ? 1 : 0 },
           isCyclic: edge.cyclic === true
         }))
       },
@@ -249,6 +250,28 @@ describe("diffSnapshots", () => {
     expect(report.cycles.introduced[0]).toMatchObject({ size: 1 });
     expect(report.cycles.introduced[0]?.nodes[0]?.path).toBe("b.ts");
     expect(report.edges.cyclicAdded).toHaveLength(1);
+  });
+
+  it("no cuenta como ciclo un ciclo que solo existe en tipos", () => {
+    const base = snapshot("proj", [{ path: "a.ts" }, { path: "b.ts" }]);
+    const head = snapshot("proj", [{ path: "a.ts" }, { path: "b.ts" }], [
+      { from: "a.ts", to: "b.ts", typeOnly: true, cyclic: true },
+      { from: "b.ts", to: "a.ts", typeOnly: true, cyclic: true }
+    ]);
+
+    const report = diffSnapshots(base, head);
+    expect(report.cycles.introduced).toEqual([]);
+    expect(report.cycles.fixed).toEqual([]);
+    expect(report.summary.introducedCycles).toBe(0);
+    expect(report.edges.cyclicAdded).toEqual([]);
+
+    const config = parseRuleConfig({
+      version: 1,
+      rules: [{ name: "cycles", type: "cycles" }]
+    });
+    const withRules = diffSnapshots(base, head, { rules: config });
+    expect(withRules.rules.violations.introduced).toEqual([]);
+    expect(withRules.rules.summary.introduced).toBe(0);
   });
 
   it("usa rloc como fallback de hotspot y limita el top", () => {

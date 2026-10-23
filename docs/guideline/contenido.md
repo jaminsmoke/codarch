@@ -431,5 +431,5 @@ ejecución: cuenta una arista con al menos un import de ejecución (`weight > ty
 de tipos siguen en la lente de dependencias, pero no son ciclos ni violan la regla. El checksum
 cambia donde había un ciclo de tipos; el formato `cc.json` no.
 
-**Veredicto**: **arreglo**, con ADR 0037; sin fase. La exclusión de los fixtures intencionados
-sigue siendo un arreglo aparte.
+**Veredicto**: **arreglo**, con ADR 0037; hecho. La exclusión de los fixtures intencionados sigue
+siendo un arreglo aparte.

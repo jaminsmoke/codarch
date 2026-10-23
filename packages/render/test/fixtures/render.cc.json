@@ -68,7 +68,7 @@
     },
     "dependency": {
       "leafEdges": [
-        { "fromId": "a", "toId": "b" },
+        { "fromId": "a", "toId": "b", "isCyclic": true },
         { "fromId": "a", "toId": "b" },
         { "fromId": "b", "toId": "a", "isCyclic": true }
       ]

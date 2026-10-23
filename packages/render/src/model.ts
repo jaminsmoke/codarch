@@ -417,17 +417,16 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     flaggedEdges.add(from * n + to);
   }
 
+  // El snapshot ya decide qué aristas son ciclos de ejecución (ADR 0037).
+  // No se infiere un ciclo por la sola ida y vuelta: dos imports de tipos
+  // pueden apuntarse sin ejecutarse.
   const cycleSet = new Set<number>();
   const cycles: EdgePair[] = [];
   for (const edge of edges) {
     const key = edge.from * n + edge.to;
-    const backward = edgeSet.has(edge.to * n + edge.from);
-    if (backward || flaggedEdges.has(key)) {
-      if (!cycleSet.has(key)) {
-        cycleSet.add(key);
-        cycles.push(edge);
-      }
-    }
+    if (!flaggedEdges.has(key) || cycleSet.has(key)) continue;
+    cycleSet.add(key);
+    cycles.push(edge);
   }
   cycles.sort((a, b) => a.from - b.from || a.to - b.to);
 

@@ -567,7 +567,9 @@ function edgeChange(index: IndexedSnapshot, edge: IndexedEdge): EdgeChange {
     to: index.paths.get(edge.toId) ?? edge.toId,
     weight: edge.weight,
     typeOnly: edge.typeOnly,
-    isCyclic: edge.isCyclic
+    // Un snapshot antiguo pudo marcar un ciclo de tipos; el diff lo corrige
+    // con el mismo criterio que el grafo de ejecución (ADR 0037).
+    isCyclic: edge.isCyclic && edge.weight > edge.typeOnly
   };
 }
 
@@ -581,6 +583,9 @@ function cycleGroups(index: IndexedSnapshot): Map<string, CycleGroup> {
 
   for (const edge of index.edges.values()) {
     if (!index.paths.has(edge.fromId) || !index.paths.has(edge.toId)) continue;
+    // Los ciclos son de ejecución: una arista que solo tiene imports de tipos
+    // no se carga y no puede cerrar un ciclo (ADR 0037).
+    if (edge.weight <= edge.typeOnly) continue;
     adjacency.get(edge.fromId)?.push(edge.toId);
     reverse.get(edge.toId)?.push(edge.fromId);
   }

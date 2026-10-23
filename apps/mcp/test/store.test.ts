@@ -141,3 +141,54 @@ describe("prefijo de la raíz", () => {
     expect(store.resolveTarget("src/a.ts")).toMatchObject({ path: "a.ts" });
   });
 });
+
+describe("ciclos de ejecución", () => {
+  it("no cuenta una ida y vuelta solo de tipos", () => {
+    const copy = structuredClone(SNAPSHOT);
+    const dependency = copy.lenses?.dependency;
+    if (!dependency) throw new Error("el fixture no trae la lente de dependencias");
+
+    dependency.edges = [
+      {
+        fromId: "a",
+        toId: "b",
+        attributes: { weight: 1, typeOnly: 1 },
+        isCyclic: false
+      },
+      {
+        fromId: "b",
+        toId: "a",
+        attributes: { weight: 1, typeOnly: 1 },
+        isCyclic: false
+      }
+    ];
+
+    const store = new ArchitectureStore(parseCcJson(copy));
+    expect(
+      store.files.find((file) => file.path === "src/a.ts")
+    ).toMatchObject({ inCycle: 0, cycleSize: 0 });
+    expect(
+      store.files.find((file) => file.path === "src/b.ts")
+    ).toMatchObject({ inCycle: 0, cycleSize: 0 });
+  });
+
+  it("no cuenta un self-loop solo de tipos", () => {
+    const copy = structuredClone(SNAPSHOT);
+    const dependency = copy.lenses?.dependency;
+    if (!dependency) throw new Error("el fixture no trae la lente de dependencias");
+
+    dependency.edges = [
+      {
+        fromId: "a",
+        toId: "a",
+        attributes: { weight: 1, typeOnly: 1 },
+        isCyclic: false
+      }
+    ];
+
+    const store = new ArchitectureStore(parseCcJson(copy));
+    expect(
+      store.files.find((file) => file.path === "src/a.ts")
+    ).toMatchObject({ inCycle: 0, cycleSize: 0 });
+  });
+});

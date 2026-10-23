@@ -484,12 +484,14 @@ export class ArchitectureStore {
       reverse.set(file.id, []);
     }
     for (const edge of this.edges) {
+      // Los ciclos son de ejecución: los imports de tipos no cierran un ciclo.
+      if (edge.weight <= edge.typeOnly) continue;
       adjacency.get(edge.fromId)?.push(edge.toId);
       reverse.get(edge.toId)?.push(edge.fromId);
     }
     const selfLoops = new Set(
       this.edges
-        .filter((edge) => edge.fromId === edge.toId)
+        .filter((edge) => edge.fromId === edge.toId && edge.weight > edge.typeOnly)
         .map((edge) => edge.fromId)
     );
     const components = stronglyConnectedComponents(
