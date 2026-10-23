@@ -1,4 +1,8 @@
-import { walkTree, type CcJson, type CcMigrationSummary } from "@codarch/schema";
+import {
+  walkTree,
+  type CcJson,
+  type CcMigrationSummary
+} from "@codarch/schema/browser";
 import type { FileSystem } from "./fs";
 import { buildGraph, type DependencyLink } from "./graph";
 import {

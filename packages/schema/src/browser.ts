@@ -1,3 +1,12 @@
+/**
+ * Entrada browser-safe del schema.
+ *
+ * No exporta `history-store` ni `chain-store`: esos módulos usan `node:fs` y
+ * `node:path`. El parser compartido importa esta entrada para que el bundle del
+ * navegador no arrastre código de Node; la entrada raíz sigue teniendo los
+ * almacenes para CLI, MCP y escritorio.
+ */
+
 export type {
   CcAttributeDescriptor,
   CcAttributeType,
@@ -36,6 +45,16 @@ export {
   topByMetric
 } from "./stats";
 export { md5Hex, sha256Hex } from "./hash";
+export {
+  ID_LENGTH,
+  canonicalPath,
+  fileId,
+  folderId,
+  idFromCanonicalPath,
+  nodeId,
+  normalizeName,
+  pathSegments
+} from "./identity";
 export { buildChains, findSymbolChains, summarizeChains, verifyChains } from "./chains";
 export type {
   ChainLevel,

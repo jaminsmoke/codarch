@@ -59,8 +59,11 @@ export default defineConfig(async ({ command }) => {
           replacement: resolve("packages/schema/src/browser.ts")
         },
         {
+          // El bundle del navegador nunca debe resolver la entrada Node del
+          // schema: sus almacenes de historial y cadenas importan node:fs y
+          // node:path. La raíz sigue disponible para CLI, MCP y escritorio.
           find: /^@codarch\/schema$/,
-          replacement: resolve("packages/schema/src/index.ts")
+          replacement: resolve("packages/schema/src/browser.ts")
         },
         {
           find: /^@codarch\/plugin-api$/,

@@ -1,5 +1,5 @@
 import type { ParsedSymbol } from "../types";
-import { sha256Hex } from "@codarch/schema";
+import { sha256Hex } from "@codarch/schema/browser";
 import {
   commentText,
   functionComplexity,

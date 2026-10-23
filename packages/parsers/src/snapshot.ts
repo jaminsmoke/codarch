@@ -11,7 +11,7 @@ import {
   type CcSymbol,
   type CcSymbolsLens,
   type CcSymbolsSummary
-} from "@codarch/schema";
+} from "@codarch/schema/browser";
 import type { GraphResult } from "./graph";
 import type { MigrationResult } from "./migration";
 import type { ParsedSymbol } from "./types";

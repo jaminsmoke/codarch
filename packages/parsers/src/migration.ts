@@ -4,7 +4,7 @@ import type {
   CcMigrationNode,
   CcMigrationStatus,
   CcMigrationSummary
-} from "@codarch/schema";
+} from "@codarch/schema/browser";
 
 const EXTENSION_LANGUAGE: Record<string, CcMigrationLanguage> = {
   ".ts": "ts",

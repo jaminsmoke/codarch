@@ -1,4 +1,4 @@
-import type { CcEdge, CcJson, CcNode } from "@codarch/schema";
+import type { CcEdge, CcJson, CcNode } from "@codarch/schema/browser";
 import { defaultMetric, getStats, walkFiles } from "@codarch/schema/browser";
 import {
   CHURN_METRIC_CANDIDATES,
