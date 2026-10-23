@@ -24,3 +24,7 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entr
 - `0.3.1-alpha.1` se publicó en npm con el workflow manual de Trusted Publishing y la release
   automática `desktop-v0.3.1-alpha.1` salió con 16 assets, incluidos `latest*.yml` y los `.zip` de
   macOS. La acción pasa a `0.3.1-alpha.1` y `v1` apunta a `a8c0061`.
+- Desde `0.3.1-alpha.2` el tag del escritorio es `v<versión>`, no `desktop-v<versión>`:
+  `electron-updater` exige una etiqueta semver para encontrar la release. `desktop-v*` se sigue
+  aceptando al calcular la última versión, para no romper el historial. macOS sale de la matriz y
+  solo se publican Windows y Linux.

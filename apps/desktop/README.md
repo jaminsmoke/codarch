@@ -66,10 +66,12 @@ npm run package --workspace @codarch/desktop    # para la plataforma actual
 npm run package:dir --workspace @codarch/desktop  # sin instalador, solo la carpeta
 ```
 
-El workflow `.github/workflows/desktop.yml` los construye para los tres sistemas. El release lo crea
+El workflow `.github/workflows/desktop.yml` los construye para Windows y Linux. El release lo crea
 el propio workflow: al subir a `main` una versión nueva en `versions.json`, compara con el último
-release `desktop-v*`; si es mayor, empaqueta y crea el tag y el release en la misma ejecución. No se
-empuja `desktop-v*` a mano: el tag solo debe existir cuando los instaladores ya están construidos.
+release del escritorio; si es mayor, empaqueta y crea el tag y el release en la misma ejecución.
+Desde `0.3.1-alpha.2` el tag es `v<versión>`: `electron-updater` necesita una etiqueta semver.
+`desktop-v*` queda como histórico. No se empuja el tag a mano: solo debe existir cuando los
+instaladores ya están construidos.
 
 Un `workflow_dispatch` construye los instaladores para probarlos, pero solo publica si la versión es
 mayor que la del último release.

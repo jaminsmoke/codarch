@@ -9,12 +9,13 @@ describe("desktopVersions", () => {
     expect(
       desktopVersions([
         "desktop-v0.3.0-alpha.2",
+        "v0.3.1-alpha.2",
         "v1",
         "desktop-v0.2.0",
         "desktop-vno-es-version",
         "desktop-v0.3.0-alpha.10"
       ])
-    ).toEqual(["0.2.0", "0.3.0-alpha.2", "0.3.0-alpha.10"]);
+    ).toEqual(["0.2.0", "0.3.0-alpha.2", "0.3.0-alpha.10", "0.3.1-alpha.2"]);
   });
 
   it("una prerelease va antes que su estable", () => {

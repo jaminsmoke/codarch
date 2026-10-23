@@ -142,8 +142,9 @@ también `npm run sync:action` y actualizar el repo público.
 - M24 sin empezar: el índice SQLite de los documentos. Será derivado del markdown, con FTS5, en
   `.codarch/docs.db` (ignorado); el markdown sigue siendo la verdad.
 - M25 cerrada: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
-  escritorio crea su release solo cuando `versions.json` supera la última `desktop-v*`; la acción
-  se actualiza después de publicar. El primer release automático fue `desktop-v0.3.0-alpha.2`.
+  escritorio crea su release solo cuando `versions.json` supera la última release; la acción se
+  actualiza después de publicar. El tag pasó de `desktop-v*` a `v*` en `0.3.1-alpha.2` para que
+  `electron-updater` lo lea como semver; el primer release automático fue `desktop-v0.3.0-alpha.2`.
 - M26 cerrada: la UI compartida (ADR 0043). `packages/ui` (`@codarch/ui`) guarda las piezas puras,
   el CSS común, los plugins con el almacenamiento inyectado, los ajustes con su actualización
   inyectada, el mapa, el inspector, los paneles y las listas. La web y el escritorio siguen con su
@@ -153,9 +154,10 @@ también `npm run sync:action` y actualizar el repo público.
   sobre `/workspace`, el Compose monta el repositorio en solo lectura y publica el puerto solo en
   loopback; `docker.yml` construye en PR, publica en GHCR al entrar en `main` y prueba la imagen
   contra el repo.
-- M28 en curso: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows y
+- M28 cerrada: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows y
   AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y `electron-updater`
-  actualiza Windows y Linux. macOS no se publica hasta que haya firma y notarización.
+  actualiza Windows y Linux. El tag es `v<versión>` desde `0.3.1-alpha.2`; macOS no se publica
+  hasta que haya firma y notarización.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

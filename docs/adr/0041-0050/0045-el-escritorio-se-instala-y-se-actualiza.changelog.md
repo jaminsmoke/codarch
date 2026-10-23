@@ -15,5 +15,13 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escr
   metadatos `latest*.yml`.
 - macOS sale de la matriz de builds y de la release: sin firma ni notarización, Gatekeeper bloquea
   la app y el actualizador no puede aplicarla. No se mantiene un DMG que no funciona.
-- La firma y la notarización quedan fuera de esta fase: primero se valida el canal y la instalación
-  en Windows y Linux. El ciclo completo de actualización se probará con la siguiente versión.
+- El tag del escritorio pasa a `v<versión>` (`v0.3.1-alpha.2`): `electron-updater` lee el feed de
+  GitHub como semver y descartaba `desktop-v*`. El planificador sigue aceptando el prefijo viejo
+  para leer el historial.
+- Ciclo de actualización probado en Windows: se instaló `0.3.1-alpha.1`, al arrancar encontró
+  `0.3.1-alpha.2`, la descargó, se instaló al cerrar y la app volvió a arrancar ya como
+  `0.3.1-alpha.2`. El primer intento usó el blockmap de la etiqueta vieja, dio 404 y cayó a la
+  descarga completa; es el comportamiento esperado del puente entre etiquetas.
+- `desktop-v0.3.1-alpha.2` se renombró a `v0.3.1-alpha.2`; la release de `alpha.1` conserva su
+  etiqueta histórica. macOS queda fuera de la matriz y de los assets.
+- La firma y la notarización quedan fuera de esta fase: Windows y Linux son los canales publicados.

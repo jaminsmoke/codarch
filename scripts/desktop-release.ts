@@ -11,9 +11,9 @@ import {
  * Decide si el push actual tiene que construir y publicar el escritorio.
  *
  * La fuente de la versión es `versions.json` (ADR 0041). La referencia es el
- * último release `desktop-v*` de GitHub. Si la versión del producto no es
+ * último release del escritorio en GitHub. Si la versión del producto no es
  * mayor, no se construye: un push de código que no sube versión no debe gastar
- * tres builds de Electron.
+ * dos builds de Electron.
  */
 export interface DesktopReleasePlan {
   /** La versión del producto en `versions.json`. */
@@ -26,10 +26,15 @@ export interface DesktopReleasePlan {
   shouldBuild: boolean;
 }
 
-/** Las versiones de las etiquetas `desktop-v*`, ordenadas de menor a mayor. */
+/**
+ * Las versiones de las etiquetas del escritorio, ordenadas de menor a mayor.
+ *
+ * Las nuevas usan `v<versión>` porque electron-updater exige una etiqueta
+ * semver. `desktop-v*` se conserva para las releases anteriores ✓.
+ */
 export function desktopVersions(tags: string[]): string[] {
   return tags
-    .filter((tag) => tag.startsWith("desktop-v"))
+    .filter((tag) => /^(?:desktop-)?v\d/.test(tag))
     .map((tag) => versionInTag(tag))
     .filter((version) => parseVersion(version) !== null)
     .sort(compareVersions);

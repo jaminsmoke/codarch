@@ -46,6 +46,10 @@ diferenciales.
 El workflow sube esos archivos al release. Sin ellos, `electron-updater` no tiene a quién preguntar
 ni qué descargar.
 
+El tag de la release es `v<versión>` (`v0.3.1-alpha.2`), no `desktop-v<versión>`:
+`electron-updater` lee las etiquetas del feed de GitHub como versiones semver y descarta las que no
+lo son. El planificador acepta las dos formas para seguir leyendo el historial `desktop-v*`.
+
 ### 3. Windows y Linux se actualizan solos
 
 La app usa `electron-updater` cuando está empaquetada:
@@ -93,7 +97,8 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Añadir `publish` de GitHub y los metadatos de actualización a `electron-builder.yml`.
 - [x] Incluir `latest*.yml` y los `.blockmap` en los artefactos del workflow; sin macOS.
 - [x] Añadir `electron-updater` y la comprobación en segundo plano para Windows y Linux.
-- [ ] Probar un ciclo de actualización con una versión de prueba y documentar el resultado.
+- [x] Cambiar el tag a `v<versión>` para que `electron-updater` lo lea como semver.
+- [x] Probar el ciclo: `alpha.1` descargó `alpha.2`, la instaló al cerrar y arrancó como `alpha.2`.
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.
 
 El detalle de lo hecho está en el [changelog](0045-el-escritorio-se-instala-y-se-actualiza.changelog.md).
