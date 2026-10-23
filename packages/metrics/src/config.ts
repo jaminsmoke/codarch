@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { CONFIG_VERSION } from "@codarch/versions";
 import { parse as parseYaml } from "yaml";
 import { findDomainProfile, domainProfileIds, type DomainProfile } from "./profiles";
 import {
@@ -76,7 +77,7 @@ export interface RuleConfigAddon {
 }
 
 export interface RuleConfig {
-  version: 1;
+  version: typeof CONFIG_VERSION;
   /** Perfil del catálogo que se ha aplicado, si hubo alguno. */
   profile: string | null;
   /** Los addons que aportaron algo, en el orden en que se declaran. */
@@ -102,8 +103,8 @@ export function parseRuleConfig(
   available: readonly RuleConfigAddon[] = []
 ): RuleConfig {
   const root = asObject(input, "config");
-  if (root.version !== 1) {
-    throw new ConfigError("config.version debe ser 1");
+  if (root.version !== CONFIG_VERSION) {
+    throw new ConfigError(`config.version debe ser ${CONFIG_VERSION}`);
   }
 
   const own = parseInlineProfiles(root.profiles);
@@ -121,7 +122,7 @@ export function parseRuleConfig(
   );
 
   return {
-    version: 1,
+    version: CONFIG_VERSION,
     profile: profile?.id ?? null,
     addons: addons.map((addon) => addon.name),
     layers,

@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  CC_JSON_VERSION,
   fileId,
   folderId,
   parseCcJson,
@@ -61,7 +62,7 @@ function snapshot(
   }
 
   return parseCcJson({
-    meta: { projectName, apiVersion: "2.0", checksum: `sum-${projectName}` },
+    meta: { projectName, apiVersion: CC_JSON_VERSION, checksum: `sum-${projectName}` },
     files: [root],
     lenses: {
       metrics: { attributes },

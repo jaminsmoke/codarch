@@ -1,3 +1,4 @@
+import { CC_JSON_VERSION } from "@codarch/versions";
 import { CcJsonError, isRecord, requireRecord, requireString } from "./errors";
 import { nodeId, normalizeName } from "./identity";
 import type {
@@ -248,7 +249,7 @@ export function normalizeLegacyCcJson(input: unknown): CcJson {
   }
   if (Object.keys(dependency).length > 0) lenses.dependency = dependency;
 
-  const meta: CcJson["meta"] = { apiVersion: "2.0" };
+  const meta: CcJson["meta"] = { apiVersion: CC_JSON_VERSION };
   const projectName = readOptionalString(payload.projectName);
   if (projectName) meta.projectName = projectName;
   const commitHash = readOptionalString(payload.commitHash);

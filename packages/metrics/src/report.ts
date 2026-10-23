@@ -1,3 +1,4 @@
+import { REPORT_SCHEMA_VERSION } from "@codarch/versions";
 import type {
   DiffReport,
   MigrationFileChange,
@@ -7,15 +8,21 @@ import type {
 import type { RuleViolation } from "./rules";
 
 /**
- * Versión actual del esquema del reporte.
+ * Versión actual del esquema del reporte (ADR 0041).
  *
  * Sube cuando cambia la forma del `report.json`. Los lectores reconstruyen los
  * reportes de versiones anteriores, así que siempre se usa la más nueva.
  */
-export const REPORT_SCHEMA_VERSION = "1.3";
+export { REPORT_SCHEMA_VERSION };
 
-/** Las versiones que el lector sabe reconstruir. */
-const KNOWN_VERSIONS = ["1.0", "1.1", "1.2", "1.3"];
+/** Las versiones que el lector sabe reconstruir: las viejas y la actual. */
+const KNOWN_VERSIONS = new Set([
+  "1.0",
+  "1.1",
+  "1.2",
+  "1.3",
+  REPORT_SCHEMA_VERSION
+]);
 
 /** La sección de migración vacía: lo que se reconstruye desde un 1.0. */
 export function emptyMigrationReport(): MigrationReport {
@@ -49,7 +56,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseReport(raw: unknown): DiffReport | null {
   if (!isRecord(raw)) return null;
   const version = raw.schemaVersion;
-  if (typeof version !== "string" || !KNOWN_VERSIONS.includes(version)) {
+  if (typeof version !== "string" || !KNOWN_VERSIONS.has(version)) {
     return null;
   }
 

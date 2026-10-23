@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CONFIG_VERSION } from "@codarch/metrics";
 import { parseDocument, type Document } from "yaml";
 
 /**
@@ -56,7 +57,7 @@ export function declareIn(
   if (!file) {
     fs.writeFileSync(
       path.join(root, ".codarch.yml"),
-      `version: 1\n\n${kind}:\n  - ${name}\n`,
+      `version: ${CONFIG_VERSION}\n\n${kind}:\n  - ${name}\n`,
       "utf8"
     );
     return { ok: true };

@@ -31,6 +31,10 @@ export type {
   FileEntry
 } from "./types";
 
+export {
+  CC_JSON_VERSION,
+  CHAIN_LEDGER_VERSION
+} from "@codarch/versions";
 export { CcJsonError } from "./errors";
 export { parseCcJson2 as parseCcJson } from "./parse2";
 export { pathById, walkFiles, walkTree } from "./tree";

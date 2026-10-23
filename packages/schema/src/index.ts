@@ -22,6 +22,10 @@ export type {
   FileEntry
 } from "./types";
 
+export {
+  CC_JSON_VERSION,
+  CHAIN_LEDGER_VERSION
+} from "@codarch/versions";
 export { buildChains, findSymbolChains, summarizeChains, verifyChains } from "./chains";
 export type {
   ChainLevel,

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { fileId, folderId, parseCcJson, type CcJson, type CcNode } from "@codarch/schema";
+import {
+  CC_JSON_VERSION,
+  fileId,
+  folderId,
+  parseCcJson,
+  type CcJson,
+  type CcNode
+} from "@codarch/schema";
 import { suggestLayers } from "../src/index";
 
 /**
@@ -44,7 +51,7 @@ function snapshot(
   }
 
   return parseCcJson({
-    meta: { projectName: "proyecto", apiVersion: "2.0", checksum: "x" },
+    meta: { projectName: "proyecto", apiVersion: CC_JSON_VERSION, checksum: "x" },
     files: [root],
     lenses: {
       metrics: { attributes: {} },

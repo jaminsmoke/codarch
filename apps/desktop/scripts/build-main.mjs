@@ -16,15 +16,15 @@ const DIST = path.join(ROOT, "dist");
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 
-// La versión es una para el producto (ADR 0032): manda la de la raíz del repo.
-const rootPackage = JSON.parse(
-  await readFile(path.join(ROOT, "..", "..", "package.json"), "utf8")
+// La versión es una para el producto y se declara en `versions.json` (ADR 0041).
+const versions = JSON.parse(
+  await readFile(path.join(ROOT, "..", "..", "versions.json"), "utf8")
 );
 
 const shared = {
   bundle: true,
   define: {
-    __CODARCH_VERSION__: JSON.stringify(rootPackage.version)
+    __CODARCH_VERSION__: JSON.stringify(versions.product)
   },
   platform: "node",
   target: "node22",

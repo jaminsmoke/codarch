@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CC_JSON_VERSION,
   fileId,
   folderId,
   parseCcJson,
@@ -7,7 +8,11 @@ import {
   type CcMigrationLens,
   type CcNode
 } from "@codarch/schema";
-import { diffSnapshots, parseRuleConfig } from "../src/index";
+import {
+  REPORT_SCHEMA_VERSION,
+  diffSnapshots,
+  parseRuleConfig
+} from "../src/index";
 
 interface FileSpec {
   path: string;
@@ -95,7 +100,7 @@ function snapshot(
   return parseCcJson({
     meta: {
       projectName,
-      apiVersion: "2.0",
+      apiVersion: CC_JSON_VERSION,
       checksum: `checksum-${projectName}`
     },
     files: [root],
@@ -163,6 +168,7 @@ describe("diffSnapshots", () => {
 
     const report = diffSnapshots(base, head);
 
+    expect(report.schemaVersion).toBe(REPORT_SCHEMA_VERSION);
     expect(report.files.added.map((file) => file.path)).toEqual(["d.ts"]);
     expect(report.files.removed).toEqual([]);
     expect(report.files.changed).toHaveLength(1);

@@ -5,7 +5,19 @@
  * Aquí no hay red: el `fetch` entra por parámetro ✓, así que los tests no
  * tocan npm ni GitHub ✓ y el mismo motor sirve al CLI ✓, a la web ✓ y al
  * escritorio ✓.
+ *
+ * Las versiones de los componentes viven en `versions.json` y salen por
+ * `manifest.ts` (ADR 0041): el código importa constantes, nunca literales.
  */
+
+export {
+  CC_JSON_VERSION,
+  CHAIN_LEDGER_VERSION,
+  CONFIG_VERSION,
+  HISTORY_VERSION,
+  PRODUCT_VERSION,
+  REPORT_SCHEMA_VERSION
+} from "./manifest.ts";
 
 /** Una versión partida: `mayor.menor.parche`, con prerelease opcional. */
 export interface ParsedVersion {

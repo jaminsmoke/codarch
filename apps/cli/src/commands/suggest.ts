@@ -1,5 +1,9 @@
 import { parseCcJson } from "@codarch/schema";
-import { suggestLayers, type Suggestion } from "@codarch/metrics";
+import {
+  CONFIG_VERSION,
+  suggestLayers,
+  type Suggestion
+} from "@codarch/metrics";
 import { stringify as toYaml } from "yaml";
 import { readJsonFile } from "../io";
 
@@ -83,7 +87,7 @@ export function runSuggest(options: SuggestOptions): number {
 
   const yaml = toYaml(
     {
-      version: 1,
+      version: CONFIG_VERSION,
       layers: suggestion.layers.map((layer) => ({
         name: layer.name,
         paths: layer.patterns

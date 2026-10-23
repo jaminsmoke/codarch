@@ -9,7 +9,9 @@
  * aparte, para que un diff de git no mezcle dos fotos.
  */
 
-export const HISTORY_VERSION = 1;
+import { HISTORY_VERSION } from "@codarch/versions";
+
+export { HISTORY_VERSION };
 
 export interface HistoryEntry {
   /** Fecha ISO del análisis. */
@@ -39,7 +41,7 @@ export interface HistoryHotFile {
 }
 
 export interface HistoryIndex {
-  version: 1;
+  version: typeof HISTORY_VERSION;
   entries: HistoryEntry[];
 }
 
@@ -53,7 +55,7 @@ export function historyFileName(entry: {
 }
 
 export function emptyHistoryIndex(): HistoryIndex {
-  return { version: 1, entries: [] };
+  return { version: HISTORY_VERSION, entries: [] };
 }
 
 /** Lee el índice. Un índice que no se entiende se ignora en vez de romper. */
@@ -63,7 +65,7 @@ export function parseHistoryIndex(raw: unknown): HistoryIndex {
   if (index.version !== HISTORY_VERSION) return emptyHistoryIndex();
   if (!Array.isArray(index.entries)) return emptyHistoryIndex();
   const entries = index.entries.filter(isEntry);
-  return { version: 1, entries };
+  return { version: HISTORY_VERSION, entries };
 }
 
 function isEntry(value: unknown): value is HistoryEntry {
@@ -85,5 +87,5 @@ export function addHistoryEntry(
     ...index.entries.filter((existing) => existing.checksum !== entry.checksum),
     entry
   ].sort((left, right) => left.date.localeCompare(right.date));
-  return { version: 1, entries };
+  return { version: HISTORY_VERSION, entries };
 }

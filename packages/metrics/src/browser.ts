@@ -1,3 +1,4 @@
+export { CONFIG_VERSION } from "@codarch/versions";
 export {
   ConfigError,
   parseIgnoreConfig,

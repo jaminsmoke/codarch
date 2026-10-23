@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import type { RepoAddons } from "@codarch/addons";
+import type { HistoryIndex } from "@codarch/schema";
 
 /**
  * Puente entre el renderer y el proceso principal.
@@ -24,20 +25,7 @@ export interface DesktopAnalysis {
 }
 
 /** La línea del tiempo del repositorio analizado. */
-export interface DesktopHistory {
-  version: 1;
-  entries: Array<{
-    date: string;
-    checksum: string;
-    commit: string;
-    files: number;
-    rloc: number;
-    debt: number;
-    commits: number;
-    authors: number;
-    hottest: Array<{ path: string; commits: number; authors: number }>;
-  }>;
-}
+export type DesktopHistory = HistoryIndex;
 
 import { VERSION } from "./version";
 

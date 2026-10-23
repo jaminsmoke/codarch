@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { PRODUCT_VERSION } from "@codarch/versions";
 import {
   McpDataError,
   loadArchitectureStore,
@@ -57,7 +58,7 @@ export type {
   ViolationStatusFilter
 } from "./tools";
 
-const VERSION = "0.0.0";
+const VERSION = PRODUCT_VERSION;
 
 const USAGE = `
 CodArch MCP — arquitectura para agentes

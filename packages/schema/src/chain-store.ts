@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CHAIN_LEDGER_VERSION } from "@codarch/versions";
 import {
   buildChains,
   findSymbolChains,
@@ -28,7 +29,7 @@ import type { HistoryEntry } from "./history";
 export const CHAINS_FILE = "chains.json";
 
 export interface ChainLedger {
-  version: 2;
+  version: typeof CHAIN_LEDGER_VERSION;
   /** Los checksums de las fotos con las que se construyó, en orden. */
   entries: string[];
   /** Las cadenas, por su id. */
@@ -44,11 +45,14 @@ export function readChainLedger(root: string): ChainLedger {
   try {
     const raw = fs.readFileSync(chainLedgerPath(root), "utf8");
     const parsed = JSON.parse(raw) as ChainLedger;
-    if (parsed.version !== 2 || typeof parsed.chains !== "object") {
+    if (
+      parsed.version !== CHAIN_LEDGER_VERSION ||
+      typeof parsed.chains !== "object"
+    ) {
       return emptyLedger();
     }
     return {
-      version: 2,
+      version: CHAIN_LEDGER_VERSION,
       entries: Array.isArray(parsed.entries) ? parsed.entries : [],
       chains: parsed.chains ?? {}
     };
@@ -66,7 +70,7 @@ export function writeChainLedger(root: string, ledger: ChainLedger): string {
 }
 
 export function emptyLedger(): ChainLedger {
-  return { version: 2, entries: [], chains: {} };
+  return { version: CHAIN_LEDGER_VERSION, entries: [], chains: {} };
 }
 
 /** El libro mayor sirve si se construyó con las mismas fotos. */
@@ -111,7 +115,7 @@ export function loadChains(
 
   const chains = buildChains(steps);
   writeChainLedger(root, {
-    version: 2,
+    version: CHAIN_LEDGER_VERSION,
     entries: steps.map((step) => step.entry),
     chains: Object.fromEntries(chains.map((chain) => [chain.id, chain]))
   });

@@ -1,4 +1,4 @@
-import { DOMAIN_PROFILES } from "@codarch/metrics";
+import { CONFIG_VERSION, DOMAIN_PROFILES } from "@codarch/metrics";
 
 /**
  * Lista el catálogo de perfiles de arquitectura.
@@ -56,7 +56,7 @@ export function runProfiles(json: boolean): number {
   }
   console.log("  Para usarlo, en .codarch.yml:");
   console.log("");
-  console.log("    version: 1");
+  console.log(`    version: ${CONFIG_VERSION}`);
   console.log("    profile: capas");
   console.log("");
   console.log("  Las reglas del perfil entran como aviso: suben a \"error\" cuando el código esté listo.");

@@ -1,3 +1,4 @@
+import { REPORT_SCHEMA_VERSION } from "@codarch/versions";
 import {
   walkFiles,
   walkTree,
@@ -152,7 +153,7 @@ export interface DiffSummary {
 }
 
 export interface DiffReport {
-  schemaVersion: "1.3";
+  schemaVersion: typeof REPORT_SCHEMA_VERSION;
   base: SnapshotSummary;
   head: SnapshotSummary;
   summary: DiffSummary;
@@ -266,7 +267,7 @@ export function diffSnapshots(
     : emptyRuleReport();
 
   return {
-    schemaVersion: "1.3",
+    schemaVersion: REPORT_SCHEMA_VERSION,
     base: summarize(baseIndex),
     head: summarize(headIndex),
     summary: {

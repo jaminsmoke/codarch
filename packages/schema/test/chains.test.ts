@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  CC_JSON_VERSION,
   buildChains,
   chainsPayload,
   parseCcJson,
@@ -62,7 +63,7 @@ function snapshot(
   return parseCcJson({
     meta: {
       projectName: "proj",
-      apiVersion: "2.0",
+      apiVersion: CC_JSON_VERSION,
       checksum
     },
     files: [root],

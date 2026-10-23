@@ -9,9 +9,9 @@ const DIST = path.join(CLI_DIR, "dist");
 const RENDER_SRC = path.join(ROOT, "packages", "render", "src");
 
 const cliPackage = JSON.parse(await readFile(path.join(CLI_DIR, "package.json"), "utf8"));
-// La versión es una para el producto (ADR 0032): manda la de la raíz.
-const rootPackage = JSON.parse(await readFile(path.join(ROOT, "package.json"), "utf8"));
-const version = rootPackage.version;
+// La versión es una para el producto y se declara en `versions.json` (ADR 0041).
+const versions = JSON.parse(await readFile(path.join(ROOT, "versions.json"), "utf8"));
+const version = versions.product;
 
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });

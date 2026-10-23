@@ -1,4 +1,5 @@
 import {
+  CC_JSON_VERSION,
   fileId,
   folderId,
   md5Hex,
@@ -301,7 +302,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
   return {
     meta: {
       projectName: input.projectName,
-      apiVersion: "2.0",
+      apiVersion: CC_JSON_VERSION,
       checksum: checksumFor([root], lenses)
     },
     files: [root],

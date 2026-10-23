@@ -1,11 +1,11 @@
-import type { DiffReport } from "@codarch/metrics";
-import { parseCcJson, type CcJson } from "@codarch/schema";
+import { REPORT_SCHEMA_VERSION, type DiffReport } from "@codarch/metrics";
+import { CC_JSON_VERSION, parseCcJson, type CcJson } from "@codarch/schema";
 import { ArchitectureStore } from "../src/store";
 
 export const SNAPSHOT: CcJson = {
   meta: {
     projectName: "Acme",
-    apiVersion: "2.1",
+    apiVersion: CC_JSON_VERSION,
     checksum: "checksum-head",
     commitHash: "head-commit"
   },
@@ -120,7 +120,7 @@ export function makeStore(
 
 export function makeReport(): DiffReport {
   return {
-    schemaVersion: "1.3",
+    schemaVersion: REPORT_SCHEMA_VERSION,
     base: {
       projectName: "Acme",
       checksum: "checksum-base",

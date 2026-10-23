@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { PRODUCT_VERSION } from "@codarch/versions";
 import { z } from "zod";
 import { McpDataError, type ArchitectureStore } from "./store";
 import {
@@ -23,7 +24,7 @@ const READ_ONLY = {
 
 export function createServer(store: ArchitectureStore): McpServer {
   const server = new McpServer(
-    { name: "codarch", version: "0.0.0" },
+    { name: "codarch", version: PRODUCT_VERSION },
     {
       instructions:
         "Servidor CodArch de arquitectura. Consulta un snapshot cc.json y, si existe, un report.json de diff. Todas las rutas son relativas al proyecto; también se aceptan ids de nodo. Las herramientas son de solo lectura y devuelven JSON observado, sin texto inventado. Si falta el reporte, las consultas de cambios y violaciones lo indican explícitamente."

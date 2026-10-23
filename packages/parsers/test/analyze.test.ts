@@ -1,7 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { getStats, parseCcJson } from "@codarch/schema";
+import { CC_JSON_VERSION, getStats, parseCcJson } from "@codarch/schema";
 import { analyzeRepository } from "../src/index";
 
 const fixture = path.join(
@@ -16,7 +16,7 @@ describe("analyzeRepository", () => {
     const second = analyzeRepository(fixture, { git: false });
 
     expect(first.snapshot.meta.projectName).toBe("fixture-repo");
-    expect(first.snapshot.meta.apiVersion).toBe("2.0");
+    expect(first.snapshot.meta.apiVersion).toBe(CC_JSON_VERSION);
     expect(first.snapshot.meta.checksum).toMatch(/^[0-9a-f]{32}$/);
     expect(second.snapshot).toEqual(first.snapshot);
     expect(second.snapshot.meta.checksum).toBe(first.snapshot.meta.checksum);
