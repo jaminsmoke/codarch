@@ -44,7 +44,8 @@
 
 html {
   scroll-behavior: smooth;
-  /* El header lleva la línea pegada: el salto deja libre su alto. */
+  /* El header lleva la línea pegada: el salto deja libre su alto. Las
+     secciones de la guía no suman un scroll-margin: sería un doble salto. */
   scroll-padding-top: 7.5rem;
 }
 
@@ -267,7 +268,6 @@ body {
 
 .guia-dia {
   margin-bottom: 4rem;
-  scroll-margin-top: 9rem;
 }
 
 .guia-dia-cabecera {
@@ -414,7 +414,6 @@ body {
 .guia-entrada {
   padding: 1.25rem 1.35rem 1.45rem;
   border-left: 0 solid var(--tono);
-  scroll-margin-top: 9rem;
   transition:
     border-color 0.18s ease,
     background-color 0.18s ease;
@@ -551,7 +550,6 @@ body {
       transparent 50%
     ),
     var(--color-panel);
-  scroll-margin-top: 9rem;
 }
 
 .guia-contador {

@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { fechaCorta, guia } from "../lib/guia";
+import { bandaDeLectura, pasoEnBanda } from "../lib/linea";
 
 /**
  * La línea del tiempo de la guía.
@@ -31,6 +32,11 @@ interface Paso {
 export default function LineaTiempo() {
   const { dias } = guia();
   const [activo, setActivo] = useState(dias[0]?.fecha ?? "");
+  // Mientras un clic va de camino, manda el clic: el scroll intermedio no
+  // puede devolver la pastilla al día anterior.
+  const pendiente = useRef<string | null>(null);
+  const medirRef = useRef<() => void>(() => {});
+  const temporizador = useRef<number | null>(null);
 
   const pasos: Paso[] = [
     ...dias.map((dia) => ({
@@ -58,17 +64,24 @@ export default function LineaTiempo() {
   const ideas = dias.reduce((total, dia) => total + dia.entradas.length, 0);
 
   // El día que estás leyendo: el último que ya cruzó la banda de arriba.
-  // Se mide al hacer scroll (son tres rectángulos).
+  // La banda sale del borde de la cabecera, que es lo que tapa el contenido.
   useEffect(() => {
     const medir = (): void => {
-      const banda = window.innerHeight * 0.32;
-      let actual = "";
-      for (const dia of dias) {
-        const nodo = document.getElementById(`dia-${dia.fecha}`);
-        if (nodo && nodo.getBoundingClientRect().top <= banda) {
-          actual = dia.fecha;
-        }
-      }
+      if (pendiente.current !== null) return;
+
+      const cabecera = document.querySelector("header");
+      const banda = bandaDeLectura(
+        cabecera?.getBoundingClientRect().bottom ?? null,
+        window.innerHeight
+      );
+      const posiciones = dias.map((dia) => ({
+        clave: dia.fecha,
+        top:
+          document.getElementById(`dia-${dia.fecha}`)?.getBoundingClientRect()
+            .top ?? Number.POSITIVE_INFINITY
+      }));
+      let actual = pasoEnBanda(posiciones, banda, dias[0]?.fecha ?? "");
+
       const futuro = document.getElementById("futuro");
       const alFinal =
         window.innerHeight + window.scrollY >=
@@ -78,22 +91,50 @@ export default function LineaTiempo() {
       }
       if (actual) setActivo(actual);
     };
+    medirRef.current = medir;
     medir();
     window.addEventListener("scroll", medir, { passive: true });
     window.addEventListener("resize", medir);
     return () => {
       window.removeEventListener("scroll", medir);
       window.removeEventListener("resize", medir);
+      if (temporizador.current !== null) {
+        window.clearTimeout(temporizador.current);
+        temporizador.current = null;
+      }
     };
   }, [dias]);
 
   const ir = (destino: number): void => {
     const paso = pasos[Math.min(Math.max(destino, 0), pasos.length - 1)];
-    if (!paso) return;
+    const nodo = paso ? document.getElementById(paso.ancla) : null;
+    if (!paso || !nodo) return;
+
+    // El clic se ve al instante; la medición vuelve cuando termina el salto.
+    setActivo(paso.clave);
+    pendiente.current = paso.clave;
+    if (temporizador.current !== null) {
+      window.clearTimeout(temporizador.current);
+    }
+    temporizador.current = window.setTimeout(() => {
+      pendiente.current = null;
+      temporizador.current = null;
+      medirRef.current();
+    }, 1000);
+
     const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document
-      .getElementById(paso.ancla)
-      ?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
+    const cabecera = document.querySelector("header");
+    const padding =
+      Number.parseFloat(
+        getComputedStyle(document.documentElement).scrollPaddingTop
+      ) || cabecera?.getBoundingClientRect().bottom || 0;
+    const top = window.scrollY + nodo.getBoundingClientRect().top - padding;
+    // `scrollIntoView` no mueve nada si el principio de la sección ya está
+    // visible; el clic tiene que dejar el día arriba, bajo la cabecera.
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: suave ? "smooth" : "auto"
+    });
   };
 
   return (
