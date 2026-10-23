@@ -3,6 +3,7 @@ dist/
 .codarch/
 samples/
 coverage/
+apps/desktop/release/
 *.local
 .DS_Store
 Thumbs.db

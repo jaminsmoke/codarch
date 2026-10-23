@@ -51,9 +51,14 @@ instalador de que no viene de un desarrollador identificado; firmarlo cuesta din
 
 | Plataforma | Artefactos |
 |---|---|
-| Windows | `codarch-<versión>-setup.exe` (NSIS) y `codarch-<versión>-x64.exe` (portable) |
-| macOS | `codarch-<versión>-x64.dmg` y `codarch-<versión>-arm64.dmg` |
+| Windows | `codarch-<versión>-setup.exe` (NSIS por usuario) y `codarch-<versión>-x64.exe` (portable) |
+| macOS | `codarch-<versión>-x64.dmg`, `codarch-<versión>-arm64.dmg` y sus `.zip` |
 | Linux | `codarch-<versión>-x86_64.AppImage` y `.deb` |
+
+En Windows el instalador deja la app en `%LOCALAPPDATA%\Programs\CodArch`, sin pedir
+administrador, y permite cambiar la carpeta. En macOS el DMG arrastra `CodArch.app` a
+`/Applications`. Los releases incluyen `latest*.yml` y `.blockmap` para las actualizaciones
+(ADR 0045).
 
 ```bash
 npm run package --workspace @codarch/desktop    # para la plataforma actual
@@ -68,13 +73,17 @@ empuja `desktop-v*` a mano: el tag solo debe existir cuando los instaladores ya 
 Un `workflow_dispatch` construye los instaladores para probarlos, pero solo publica si la versión es
 mayor que la del último release.
 
+Windows y Linux se actualizan solos al cerrar: `electron-updater` descarga la versión nueva, la
+verifica con el hash del `latest*.yml` y la instala. macOS, mientras los instaladores no estén
+firmados, sigue ofreciendo el DMG desde la página de releases.
+
 En Windows hace falta la carga de trabajo de C++ de Visual Studio Build Tools: electron-builder
 recompila los módulos nativos (tree-sitter) para el ABI de Electron.
 
 ## Límites
 
-- No hay firma de código: macOS lo bloquea en la primera apertura y hay que abrirlo a mano.
-- El icono es el de Electron por defecto.
+- No hay firma de código: macOS lo bloquea en la primera apertura y hay que abrirlo a mano. Por eso
+  la actualización automática de macOS espera a la firma y la notarización.
 - El menú es el de Electron con las acciones de CodArch añadidas: no hay todavía archivos recientes
   ni menú en el Dock de macOS.
 - El proyecto abierto se recuerda en `localStorage` (como en la web), no en un fichero de

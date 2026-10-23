@@ -1,0 +1,14 @@
+.git
+.github
+.vscode
+node_modules
+**/node_modules
+**/dist
+**/release
+**/.codarch
+**/.codarch-history
+coverage
+samples
+docs
+apps/desktop/build
+*.log

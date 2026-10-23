@@ -10,6 +10,14 @@ copyright: CodArch
 # El nombre del paquete es "@codarch/desktop": el ejecutable no puede llevar la @.
 executableName: codarch
 
+# electron-builder genera `latest*.yml` y los `.blockmap` aunque el workflow
+# suba los archivos a mano con `--publish never`. Sin esos metadatos,
+# electron-updater no sabe qué versión hay ni qué descargar (ADR 0045).
+publish:
+  provider: github
+  owner: jaminsmoke
+  repo: codarch
+
 directories:
   output: release
   buildResources: build
@@ -41,12 +49,18 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  differentialPackage: true
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
   shortcutName: CodArch
   artifactName: "codarch-${version}-setup.${ext}"
 
 mac:
   target:
     - target: dmg
+      arch: [x64, arm64]
+    # El ZIP es el formato que usa electron-updater en macOS.
+    - target: zip
       arch: [x64, arm64]
   category: public.app-category.developer-tools
   artifactName: "codarch-${version}-${arch}.${ext}"
@@ -67,5 +81,5 @@ linux:
   syncDesktopName: true
 
 # La publicación la hace el workflow de CI, que sube los artefactos al
-# release. Aquí no se declara `publish` a propósito: electron-builder exige
-# datos de release para generar la información de actualización.
+# release. `publish` solo aporta el proveedor y los metadatos de actualización;
+# el workflow sigue usando `--publish never`.

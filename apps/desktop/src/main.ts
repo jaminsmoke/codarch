@@ -9,6 +9,7 @@ import {
 } from "electron";
 import path from "node:path";
 import { existsSync, readFileSync, statSync } from "node:fs";
+import { autoUpdater } from "electron-updater";
 import { analyzeRepository } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import { checkSource } from "@codarch/versions";
@@ -19,6 +20,7 @@ import {
 } from "@codarch/schema";
 import type { DesktopTarget } from "./preload";
 import { VERSION } from "./version";
+import { canAutoUpdate } from "./updates";
 
 /**
  * Proceso principal de la app de escritorio.
@@ -75,6 +77,32 @@ function createWindow(): void {
 
 function send(target: DesktopTarget): void {
   window?.webContents.send("codarch:target", target);
+}
+
+/**
+ * Las actualizaciones en segundo plano ✓ (ADR 0045).
+ *
+ * Windows y Linux instalan el paquete nuevo al cerrar ✓. macOS espera a tener
+ * firma y notarización ✓; mientras tanto, la release sigue en los ajustes ✓.
+ */
+function configureUpdates(): void {
+  if (!canAutoUpdate(process.platform, app.isPackaged)) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  // El producto está en alpha y publica prereleases ✓.
+  autoUpdater.allowPrerelease = true;
+  autoUpdater.on("error", (error) => {
+    console.error(`actualización: ${error.message}`);
+  });
+  autoUpdater.on("update-downloaded", (info) => {
+    console.log(
+      `actualización ${info.version} descargada; se instalará al cerrar`
+    );
+  });
+  void autoUpdater.checkForUpdatesAndNotify().catch((error: Error) => {
+    console.error(`no se pudo comprobar la actualización: ${error.message}`);
+  });
 }
 
 /**
@@ -244,6 +272,7 @@ app.whenReady().then(() => {
   console.log(`· menú nativo: ${menu.items.map((item) => item.label).join(" · ")}`);
   const fromArgv = pathFromArgv(process.argv);
   createWindow();
+  configureUpdates();
   if (fromArgv) {
     // "Abrir con" en Windows y Linux: la ruta viene en los argumentos.
     window?.webContents.once("did-finish-load", () => void openTarget(fromArgv));

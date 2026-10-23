@@ -57,6 +57,8 @@ flowchart TD
 | [0041](0041-0050/0041-cada-version-una-vez.md) | Cada versión se declara una vez | 2026-10-23 | aceptado | se aplica en todo el repo |
 | [0042](0041-0050/0042-la-entrega-se-automatiza.md) | La entrega se automatiza | 2026-10-23 | aceptado | M25 |
 | [0043](0041-0050/0043-la-ui-compartida.md) | La UI se comparte por paquete | 2026-10-23 | aceptado | M26 |
+| [0044](0041-0050/0044-la-web-en-docker.md) | La app web en un contenedor local | 2026-10-23 | aceptado | M27 |
+| [0045](0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md) | El escritorio se instala y se actualiza mejor | 2026-10-23 | aceptado | M28 |
 
 ## Las carpetas
 
@@ -66,6 +68,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
-- **0041-0050**: 0041, 0042, 0043
+- **0041-0050**: 0041, 0042, 0043, 0044, 0045
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

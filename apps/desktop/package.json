@@ -3,6 +3,8 @@
   "version": "0.3.0-alpha.2",
   "description": "Mapa de arquitectura para equipos y agentes de IA",
   "homepage": "https://github.com/jaminsmoke/codarch",
+  "author": "jaminsmoke",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "main": "dist/main.cjs",
@@ -24,7 +26,8 @@
     "@codarch/schema": "*",
     "@codarch/ui": "*",
     "@codarch/versions": "*",
-    "@radix-ui/react-dialog": "^1.3.1"
+    "@radix-ui/react-dialog": "^1.3.1",
+    "electron-updater": "^6.7.3"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

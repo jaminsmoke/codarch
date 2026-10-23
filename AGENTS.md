@@ -55,6 +55,8 @@ npm run site:dev       # la web del proyecto (docs/adr/… en el 5175)
 npm run site:build     # la web del proyecto sale en apps/site/dist
 npm run web:build      # build estático en apps/web/dist
 npm run serve -- .     # analiza, sirve la web y reanaliza al guardar (SSE)
+docker compose up --build  # app web local en 127.0.0.1:4173 (ADR 0044)
+docker build -t codarch-web .  # imagen local sin Compose
 ```
 
 Antes de cada push: lint, typecheck, tests y `check:action`. Si el cambio toca la acción, ejecutar
@@ -147,6 +149,12 @@ también `npm run sync:action` y actualizar el repo público.
   inyectada, el mapa, el inspector, los paneles y las listas. La web y el escritorio siguen con su
   propia cáscara y no se importan entre sí; `App.tsx` conserva solo el estado y los hooks de
   plataforma.
+- M27 en curso: la app web en Docker (ADR 0044). La imagen multi-etapa arranca `codarch serve`
+  sobre `/workspace`, el Compose monta el repositorio en solo lectura y publica el puerto solo en
+  loopback; `docker.yml` construye en PR y publica en GHCR al entrar en `main`.
+- M28 en curso: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows,
+  DMG/ZIP en macOS y AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y
+  `electron-updater` actualiza Windows y Linux. macOS espera a la firma.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

@@ -50,12 +50,14 @@ y su **changelog** al lado—, el modelo en [`docs/model.md`](docs/model.md), el
 | **CLI** | [npm `codarch`](https://www.npmjs.com/package/codarch) | `npm install -g codarch@next` |
 | **Web del proyecto** | [GitHub Pages](https://jaminsmoke.github.io/codarch) | se publica sola con cada cambio de `main` |
 | **App web del mapa** | dentro del CLI | `codarch serve .` |
+| **App web en Docker** | GHCR | `docker compose up --build` |
 | **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores sin firmar |
 | **GitHub Action** | [`jaminsmoke/codarch-action@v1`](https://github.com/jaminsmoke/codarch-action) | `uses: jaminsmoke/codarch-action@v1` |
 
 El CLI se publica en **npmjs**, no en GitHub Packages. La web del proyecto es un **deployment** de
-Pages, no un release. La app web del mapa viaja dentro del CLI: su versión es la del CLI. El único
-release con instaladores es el del escritorio.
+Pages, no un release. La app web del mapa viaja dentro del CLI: su versión es la del CLI; la imagen
+de Docker es otra forma de instalar esa misma app. El único release con instaladores es el del
+escritorio.
 
 ---
 
@@ -109,6 +111,25 @@ npm run pack:cli
 npm run publish:cli
 npm run sync:action             # regenera el repo público codarch-action
 ```
+
+### La app web con Docker
+
+Si no quieres instalar Node, la app web se puede abrir desde un contenedor local:
+
+```bash
+docker compose up --build
+# abre http://127.0.0.1:4173
+```
+
+El repositorio actual se monta en `/workspace` en solo lectura. Para mirar otro repo:
+
+```bash
+CODARCH_REPO=/ruta/al/repo docker compose up --build
+```
+
+La imagen publicada es `ghcr.io/jaminsmoke/codarch-web:latest`; también se puede construir
+desde el repo con `docker build -t codarch-web .`. El contenedor no es un backend remoto: escucha
+solo en loopback y analiza el árbol montado (ADR 0044).
 
 `codarch analyze` escribe dos artefactos:
 

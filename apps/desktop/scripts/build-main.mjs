@@ -33,6 +33,7 @@ const shared = {
   minify: false,
   external: [
     "electron",
+    "electron-updater",
     "ignore",
     "minimatch",
     "tree-sitter",

@@ -97,9 +97,11 @@ jobs:
           path: |
             apps/desktop/release/*.exe
             apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
             apps/desktop/release/*.AppImage
             apps/desktop/release/*.deb
             apps/desktop/release/*.blockmap
+            apps/desktop/release/latest*.yml
           if-no-files-found: error
 
   release:
@@ -128,6 +130,10 @@ jobs:
             En Windows y macOS el sistema avisará de que el instalador no viene
             de un desarrollador identificado. Es lo esperado mientras no haya
             certificado de firma.
+
+            En Windows y Linux la app descarga la versión nueva y la instala al
+            cerrar. En macOS, hasta que haya firma y notarización, hay que
+            descargar el instalador desde esta release.
 
             El resto de CodArch, en su canal:
 
