@@ -50,6 +50,7 @@ flowchart TD
 | [0034](0031-0040/0034-la-web-del-proyecto.md) | La web del proyecto | 2026-10-22 | aceptado | M23 |
 | [0035](0031-0040/0035-la-guia-como-changelog.md) | La guía se lee como un changelog | 2026-10-22 | aceptado | M23.6–M23.9 |
 | [0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md) | El roadmap vive en el ADR y el changelog al lado | 2026-10-22 | aceptado | M23, M24 |
+| [0037](0031-0040/0037-los-ciclos-de-ejecucion.md) | Los ciclos: de ejecución, no de tipos | 2026-10-23 | aceptado | se aplica en M2, M9 |
 
 ## Las carpetas
 
@@ -58,6 +59,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0001-0010**: 0001, 0002, 0003, 0004, 0005, 0006, 0007, 0008, 0009, 0010
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
-- **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036
+- **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

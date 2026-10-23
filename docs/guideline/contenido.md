@@ -418,3 +418,18 @@ de Pages ni que un paquete de npm.
 [ADR 0034](../adr/0031-0040/0034-la-web-del-proyecto.md). No cambia el producto ni el checksum.
 
 **Veredicto**: **arreglo**, dentro de M23.
+
+## Los ciclos, de ejecución
+*fix · arreglo · 2026-10-23*
+
+**Qué era**: `sin-ciclos` contaba cualquier import, también `import type`. Un ciclo que el
+compilador borra se leía como un ciclo de arquitectura; en este repo, tres de los cinco ciclos
+eran solo de tipos.
+
+**Decisión**: [ADR 0037](../adr/0031-0040/0037-los-ciclos-de-ejecucion.md). Un ciclo es de
+ejecución: cuenta una arista con al menos un import de ejecución (`weight > typeOnly`). Las aristas
+de tipos siguen en la lente de dependencias, pero no son ciclos ni violan la regla. El checksum
+cambia donde había un ciclo de tipos; el formato `cc.json` no.
+
+**Veredicto**: **arreglo**, con ADR 0037; sin fase. La exclusión de los fixtures intencionados
+sigue siendo un arreglo aparte.
