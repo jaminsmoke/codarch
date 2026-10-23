@@ -145,6 +145,6 @@ la fuente del sitio.
 - [ ] Migrar la guía a entradas estructuradas; la portada ya está adaptada.
 - [x] Activar Pagefind, sitemap y búsqueda; un documento nuevo entra solo en la sidebar.
 - [x] Actualizar `web.yml`, `README` y `AGENTS.md`; retirar la app React/Vite de docs.
-- [ ] Validar el build y la publicación en GitHub Pages con un documento de prueba.
+- [x] Validar el build y la publicación en GitHub Pages (`web.yml` construye y publica con Node 24).
 
 El detalle de lo hecho está en el [changelog](0046-los-documentos-con-starlight.changelog.md).

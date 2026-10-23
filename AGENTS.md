@@ -164,8 +164,7 @@ también `npm run sync:action` y actualizar el repo público.
 - M29 en curso: los documentos con Starlight (ADR 0046). La web pasa a Astro + Starlight, con
   HTML estático por documento, Pagefind, sitemap y frontmatter validado. Los 99 documentos ya lo
   tienen, la sidebar sale de ese frontmatter, los enlaces `.md` se reescriben a `/docs/...` y la
-  portada y la guía se conservan como islas de React. Quedan la guía estructurada y la comprobación
-  en GitHub Pages.
+  portada y la guía se conservan como islas de React. Queda la guía estructurada.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

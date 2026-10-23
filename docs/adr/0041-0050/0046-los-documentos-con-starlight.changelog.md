@@ -35,3 +35,5 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0046-los-doc
 - Se retiraron la SPA de docs (`App`, `main`, `Docs`, `Documento`, `MenuDocs`, `lib/docs`), el
   `vite.config` antiguo y la migración de un solo uso.
 - Astro exige Node `>=22.23.4`: `engines` lo declara y el CI y `web.yml` construyen con Node 24.
+- La web se publica en GitHub Pages: 103 páginas, Pagefind, sitemap y Mermaid comprobados en
+  `jaminsmoke.github.io/codarch`.
