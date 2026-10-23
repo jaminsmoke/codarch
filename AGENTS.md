@@ -139,9 +139,9 @@ también `npm run sync:action` y actualizar el repo público.
   es `<adr>.changelog.md` y el índice de fases está en `docs/adr/roadmap.md`.
 - M24 sin empezar: el índice SQLite de los documentos. Será derivado del markdown, con FTS5, en
   `.codarch/docs.db` (ignorado); el markdown sigue siendo la verdad.
-- M25 en curso: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
+- M25 cerrada: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
   escritorio crea su release solo cuando `versions.json` supera la última `desktop-v*`; la acción
-  se actualiza después de publicar.
+  se actualiza después de publicar. El primer release automático fue `desktop-v0.3.0-alpha.2`.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

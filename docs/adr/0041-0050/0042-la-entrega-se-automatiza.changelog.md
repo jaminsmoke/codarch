@@ -16,3 +16,5 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entr
 - La acción de GitHub pasa a `0.3.0-alpha.2`; `npm run sync:action` actualiza
   `jaminsmoke/codarch-action` y `v1` apunta al commit nuevo.
 - El README del escritorio explica que el tag ya no se empuja a mano.
+- El primer release automático salió con `desktop-v0.3.0-alpha.2` (prerelease, 9 instaladores) desde
+  el push `0d1bf36`, sin tag manual.
