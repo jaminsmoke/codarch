@@ -61,8 +61,9 @@ export default defineConfig({
     plugins: [tailwindcss(), rutasDocs(root)],
     server: {
       fs: {
-        // El markdown y la imagen de portada viven fuera de `apps/site`.
-        allow: [root]
+        // El markdown, las imágenes y los paquetes del monorepo viven fuera
+        // de `apps/site`.
+        allow: [root, path.resolve(root, "..", "..")]
       }
     }
   },
