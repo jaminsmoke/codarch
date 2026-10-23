@@ -339,7 +339,7 @@ ipcMain.handle("codarch:history-snapshot", async (_event, name: string) => {
 ipcMain.handle("codarch:check-update", async () => {
   const resultado = await checkSource(
     VERSION,
-    { kind: "github", repo: UPDATE_REPO },
+    { kind: "github", repo: UPDATE_REPO, includePrereleases: true },
     fetch
   );
   return {

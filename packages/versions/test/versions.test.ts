@@ -124,6 +124,71 @@ describe("checkSource", () => {
     expect(resultado.url).toBe("https://github.com/x/releases/1");
   });
 
+  it("puede mirar la lista y ver las prereleases", async () => {
+    const { fetch, pedidos } = fakeFetch({
+      "https://api.github.com/repos/jaminsmoke/codarch-desktop/releases?per_page=100": {
+        body: [
+          {
+            tag_name: "desktop-v0.3.0-alpha.1",
+            html_url: "https://github.com/x/releases/alpha1"
+          },
+          {
+            tag_name: "desktop-v0.3.0-alpha.2",
+            html_url: "https://github.com/x/releases/alpha2"
+          },
+          {
+            tag_name: "desktop-v0.2.0",
+            html_url: "https://github.com/x/releases/020"
+          },
+          { tag_name: "sin-version", html_url: "https://github.com/x/releases/otra" },
+          {
+            tag_name: "desktop-v9.9.9",
+            html_url: "https://github.com/x/releases/borrador",
+            draft: true
+          }
+        ]
+      }
+    });
+
+    const resultado = await checkSource(
+      "0.3.0-alpha.1",
+      {
+        kind: "github",
+        repo: "jaminsmoke/codarch-desktop",
+        includePrereleases: true
+      },
+      fetch
+    );
+
+    expect(pedidos).toEqual([
+      "https://api.github.com/repos/jaminsmoke/codarch-desktop/releases?per_page=100"
+    ]);
+    expect(resultado.latest).toBe("0.3.0-alpha.2");
+    expect(resultado.outdated).toBe(true);
+    expect(resultado.url).toBe("https://github.com/x/releases/alpha2");
+  });
+
+  it("una lista sin versiones válidas es un error, no una versión", async () => {
+    const { fetch } = fakeFetch({
+      "https://api.github.com/repos/jaminsmoke/codarch-desktop/releases?per_page=100": {
+        body: [{ tag_name: "sin-version", draft: false }]
+      }
+    });
+
+    const resultado = await checkSource(
+      "0.3.0-alpha.1",
+      {
+        kind: "github",
+        repo: "jaminsmoke/codarch-desktop",
+        includePrereleases: true
+      },
+      fetch
+    );
+
+    expect(resultado.latest).toBeNull();
+    expect(resultado.error).toContain("no trae versiones");
+  });
+
   it("si ya está al día, no está atrasada", async () => {
     const { fetch } = fakeFetch({
       "https://registry.npmjs.org/codarch/latest": { body: { version: "0.2.0" } }

@@ -114,7 +114,7 @@ export function isOutdated(latest: string, current: string): boolean {
 /** De dónde se averigua la última versión. */
 export type VersionSource =
   | { kind: "npm"; package: string; registry?: string }
-  | { kind: "github"; repo: string };
+  | { kind: "github"; repo: string; includePrereleases?: boolean };
 
 /** Lo mínimo de `fetch` que hace falta: así los tests pueden inventarse uno. */
 export type FetchLike = (
@@ -196,7 +196,54 @@ export async function checkSource(
         url: `https://www.npmjs.com/package/${source.package}`
       };    }
 
-    const url = `${GITHUB_API}/repos/${source.repo}/releases/latest`;
+    const releasesUrl = `${GITHUB_API}/repos/${source.repo}/releases`;
+    if (source.includePrereleases) {
+      const url = `${releasesUrl}?per_page=100`;
+      const respuesta = await fetchImpl(url, {
+        headers: { accept: "application/vnd.github+json" }
+      });
+      if (!respuesta.ok) {
+        return { ...base, error: `${respuesta.status} en ${url}` };
+      }
+      const cuerpo = await respuesta.json();
+      if (!Array.isArray(cuerpo)) {
+        return { ...base, error: `la respuesta de ${url} no trae releases` };
+      }
+
+      let best: { version: string; url: string | null } | null = null;
+      for (const item of cuerpo) {
+        if (typeof item !== "object" || item === null) continue;
+        const release = item as {
+          tag_name?: unknown;
+          html_url?: unknown;
+          draft?: unknown;
+        };
+        if (release.draft === true || typeof release.tag_name !== "string") {
+          continue;
+        }
+        const version = versionInTag(release.tag_name);
+        if (!parseVersion(version)) continue;
+        if (!best || compareVersions(version, best.version) > 0) {
+          best = {
+            version,
+            url:
+              typeof release.html_url === "string" ? release.html_url : null
+          };
+        }
+      }
+
+      if (!best) {
+        return { ...base, error: `la respuesta de ${url} no trae versiones` };
+      }
+      return {
+        ...base,
+        latest: best.version,
+        outdated: isOutdated(best.version, current),
+        url: best.url ?? `https://github.com/${source.repo}/releases`
+      };
+    }
+
+    const url = `${releasesUrl}/latest`;
     const respuesta = await fetchImpl(url, {
       headers: { accept: "application/vnd.github+json" }
     });

@@ -52,6 +52,10 @@ El tag y la release los crea el workflow con `GITHUB_TOKEN`. Un tag creado así 
 disparar** el workflow, así que no hay bucle. Ya no se empuja `desktop-v*` a mano; el workflow es
 la única puerta. Si hay que reintentar, se relanza el workflow.
 
+El comprobador del escritorio no pregunta a `/releases/latest`, que excluye las prereleases: pide la
+lista de releases y elige la versión más alta, incluidas las prerelease. Si no, una alpha recién
+publicada sería invisible para la app que tiene que actualizarse a ella.
+
 ### 3. Una versión, una entrega
 
 Un cambio de `product` puede publicar CLI y escritorio a la vez aunque solo haya cambiado uno. Es
@@ -66,7 +70,9 @@ se pone una versión que todavía no está en npm.
 - Publicar deja de ser un ritual: se sube la versión, se empuja a `main` y el CI decide.
 - Un push que no sube versión no gasta tres builds de Electron.
 - Un build fallido no deja tag ni release a medias.
-- La release del escritorio queda marcada como prerelease cuando la versión lleva `-`.
+- La release del escritorio queda marcada como prerelease cuando la versión lleva `-`. La alpha.2
+  se marcó como `latest` una vez, como puente para los clientes que todavía tenían el comprobador
+  anterior; las siguientes vuelven a ser prerelease.
 - El CLI conserva el canal `next` mientras el producto sea alpha; `latest` no se mueve sin una
   versión estable.
 - La conexión de npm caduca si la primera publicación no llega en dos días. Es una condición de

@@ -18,3 +18,6 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entr
 - El README del escritorio explica que el tag ya no se empuja a mano.
 - El primer release automático salió con `desktop-v0.3.0-alpha.2` (prerelease, 9 instaladores) desde
   el push `0d1bf36`, sin tag manual.
+- El comprobador del escritorio pide la lista de releases, incluidas las prerelease, y elige la
+  versión más alta; `/releases/latest` no veía las alpha. La alpha.2 se marcó como `latest` una vez
+  para que los clientes con el comprobador anterior la pudieran instalar.
