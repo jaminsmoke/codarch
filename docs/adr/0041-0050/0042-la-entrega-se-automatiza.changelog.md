@@ -21,3 +21,6 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entr
 - El comprobador del escritorio pide la lista de releases, incluidas las prerelease, y elige la
   versión más alta; `/releases/latest` no veía las alpha. La alpha.2 se marcó como `latest` una vez
   para que los clientes con el comprobador anterior la pudieran instalar.
+- `0.3.1-alpha.1` se publicó en npm con el workflow manual de Trusted Publishing y la release
+  automática `desktop-v0.3.1-alpha.1` salió con 16 assets, incluidos `latest*.yml` y los `.zip` de
+  macOS. La acción pasa a `0.3.1-alpha.1` y `v1` apunta a `a8c0061`.

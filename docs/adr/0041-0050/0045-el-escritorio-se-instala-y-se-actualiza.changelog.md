@@ -11,4 +11,7 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escr
   `latest.yml`.
 - `electron-updater` comprueba y descarga en segundo plano en Windows y Linux; macOS espera a la
   firma. El workflow sube también los `.zip` de macOS y los metadatos.
+- El release automático `desktop-v0.3.1-alpha.1` salió con 16 assets: instaladores, `.zip` de
+  macOS, `.blockmap` y `latest.yml`, `latest-mac.yml` y `latest-linux.yml`.
 - La firma y la notarización quedan fuera de esta fase: primero se valida el canal y la instalación.
+  El ciclo completo de actualización se probará con la siguiente versión.
