@@ -1,15 +1,32 @@
-import { motion } from "motion/react";
-import { ArrowRight, ScrollText } from "lucide-react";
+import { ArrowUpRight, ScrollText } from "lucide-react";
 import { Link } from "react-router-dom";
-import { carpetasAdr, documentosProducto, indiceAdr } from "../lib/docs";
+import {
+  carpetasAdr,
+  documentosProducto,
+  indiceAdr,
+  type Documento
+} from "../lib/docs";
 import { useTitulo } from "../lib/titulo";
 
 /**
- * Los documentos ✓ ✅: el índice de lo que se lee ✓ ✅.
+ * Los documentos: un índice editorial, no un tablero.
  *
- * El producto arriba ✓ ✅ y las decisiones en sus carpetas de diez ✓ ✅: la
- * página no guarda texto ✓ ✗ ✅, solo ordena el markdown del repo ✅ ✅.
+ * El producto se lee como los capítulos de un libro y las decisiones como una
+ * línea de tiempo por bloques de diez. La página no guarda texto: ordena el
+ * markdown del repo y le pone la tipografía.
  */
+
+/** El número de un ADR, sacado de su clave (`0029-los-addons`). */
+function numeroDe(documento: Documento): string {
+  return documento.clave.match(/(?:^|\/)(\d{4})-/)?.[1] ?? "";
+}
+
+/** El título sin el «ADR 0001 —» ni las marcas de código inline. */
+function tituloDeAdr(documento: Documento): string {
+  return documento.titulo
+    .replace(/^ADR\s+\d{4}\s*[—–-]\s*/i, "")
+    .replace(/`([^`]+)`/g, "$1");
+}
 
 export default function Docs() {
   useTitulo(
@@ -19,66 +36,96 @@ export default function Docs() {
   const producto = documentosProducto();
   const carpetas = carpetasAdr();
   const indice = indiceAdr();
+  const totalAdr = carpetas.reduce(
+    (cuenta, carpeta) =>
+      cuenta + carpeta.documentos.filter((documento) => !documento.esChangelog).length,
+    0
+  );
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-12">
       <header className="max-w-3xl">
-        <p className="font-mono text-xs tracking-[0.22em] text-muted uppercase">
+        <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
           Documentación
         </p>
-        <h1 className="font-display mt-1 text-4xl font-bold tracking-tight">
+        <h1 className="font-display mt-2 text-5xl leading-none font-bold tracking-tight text-balance sm:text-6xl">
           Los documentos
         </h1>
-        <p className="mt-3 text-ink-soft">
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft text-pretty">
           Cómo funciona CodArch por dentro y por qué es así. Todo sale del
           markdown del repositorio: cada decisión lleva su ADR, con su hoja de
-          ruta dentro y su changelog al lado, y nada se copia a mano aquí.
+          ruta dentro y su changelog al lado.
         </p>
-      </header>
-
-      <section className="mt-10">
-        <h2 className="font-mono text-[0.68rem] tracking-[0.18em] text-muted uppercase">
-          El producto
-        </h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {producto.map((documento, indice) => (
-            <motion.div
-              key={documento.clave}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.4,
-                delay: indice * 0.04,
-                ease: [0.22, 0.61, 0.36, 1]
-              }}
-            >
-              <Link
-                to={documento.ruta}
-                className="group flex h-full flex-col rounded-card border border-line bg-panel p-5 no-underline transition-colors hover:border-line-strong"
-              >
-                <span className="font-display flex items-center gap-2 text-lg font-bold text-ink">
-                  {documento.titulo}
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="size-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-cobalt"
-                  />
-                </span>
-                <span className="mt-1.5 text-sm text-ink-soft">
-                  {documento.descripcion}
-                </span>
-              </Link>
-            </motion.div>
+        <div className="mt-7 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-4">
+          {[
+            ["producto", producto.length, "documentos"],
+            ["decisiones", totalAdr, "ADRs"],
+            ["bloques", carpetas.length, "décadas"]
+          ].map(([clave, cuenta, etiqueta]) => (
+            <div key={clave} className="flex items-baseline gap-2">
+              <span className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">
+                {clave}
+              </span>
+              <span className="font-display text-xl font-bold tabular-nums">
+                {cuenta}
+              </span>
+              <span className="text-xs text-muted">{etiqueta}</span>
+            </div>
           ))}
         </div>
+      </header>
+
+      <section className="mt-14" aria-labelledby="docs-producto">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h2
+            id="docs-producto"
+            className="font-mono text-[0.68rem] tracking-[0.18em] text-ink-soft uppercase"
+          >
+            El producto
+          </h2>
+          <p className="text-sm text-muted">
+            Lo que hay que entender antes de tocar una decisión.
+          </p>
+        </div>
+
+        <ul className="mt-4 border-y border-line">
+          {producto.map((documento, posicion) => (
+            <li key={documento.clave} className="border-b border-line last:border-b-0">
+              <Link
+                to={documento.ruta}
+                className="group grid gap-2 py-5 no-underline outline-offset-4 outline-cobalt focus-visible:outline-2 sm:grid-cols-[2.25rem_minmax(0,1fr)_auto] sm:items-center sm:gap-4"
+              >
+                <span className="font-mono text-[0.66rem] text-muted tabular-nums">
+                  {String(posicion + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">
+                  <span className="font-display block text-[1.15rem] font-bold tracking-tight text-ink transition-colors group-hover:text-cobalt">
+                    {documento.titulo}
+                  </span>
+                  <span className="mt-1 block max-w-2xl text-sm leading-relaxed text-ink-soft text-pretty">
+                    {documento.descripcion}
+                  </span>
+                </span>
+                <ArrowUpRight
+                  aria-hidden="true"
+                  className="size-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-cobalt"
+                />
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section className="mt-12">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h2 className="font-mono text-[0.68rem] tracking-[0.18em] text-muted uppercase">
+      <section className="mt-16" aria-labelledby="docs-decisiones">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h2
+            id="docs-decisiones"
+            className="font-mono text-[0.68rem] tracking-[0.18em] text-ink-soft uppercase"
+          >
             Las decisiones
           </h2>
           <p className="text-sm text-muted">
-            Un ADR por decisión, en carpetas de diez, con su changelog al lado.
+            Un ADR por decisión, en bloques de diez.
           </p>
           {indice ? (
             <Link
@@ -90,74 +137,86 @@ export default function Docs() {
           ) : null}
         </div>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {carpetas.map((carpeta, indice) => {
+        <div className="mt-6 space-y-10">
+          {carpetas.map((carpeta, posicion) => {
             const adrs = carpeta.documentos.filter(
               (documento) => !documento.esChangelog
             );
             return (
-              <motion.section
+              <section
                 key={carpeta.id}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{
-                  duration: 0.4,
-                  delay: indice * 0.04,
-                  ease: [0.22, 0.61, 0.36, 1]
-                }}
-                aria-labelledby={`carpeta-${carpeta.id}`}
-                className="rounded-card border border-line bg-panel p-4"
+                aria-labelledby={`bloque-${carpeta.id}`}
+                className="grid gap-5 border-t border-line pt-6 md:grid-cols-[10rem_minmax(0,1fr)]"
               >
-                <h3
-                  id={`carpeta-${carpeta.id}`}
-                  className="mb-2 flex items-baseline gap-2 font-mono text-xs tracking-[0.14em] text-ink-soft"
-                >
-                  {carpeta.etiqueta}
-                  <span className="ml-auto rounded-full bg-ink/6 px-1.5 py-0.5 text-[0.6rem] text-muted tabular-nums">
-                    {adrs.length}
-                  </span>
-                </h3>
-                <ul className="space-y-1">
+                <header>
+                  <p className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">
+                    Bloque {String(posicion + 1).padStart(2, "0")}
+                  </p>
+                  <h3
+                    id={`bloque-${carpeta.id}`}
+                    className="font-display mt-1 text-2xl font-bold tracking-tight tabular-nums"
+                  >
+                    {carpeta.etiqueta}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted">
+                    {adrs.length} {adrs.length === 1 ? "decisión" : "decisiones"}
+                  </p>
+                </header>
+
+                <ol>
                   {adrs.map((adr) => {
                     const changelog = carpeta.documentos.find(
                       (documento) => documento.clave === `${adr.clave}.changelog`
                     );
                     return (
-                      <li key={adr.clave} className="flex items-start gap-1.5">
-                        <Link
-                          to={adr.ruta}
-                          className="text-sm leading-snug text-ink-soft no-underline transition-colors hover:text-cobalt"
-                        >
-                          {adr.titulo}
-                        </Link>
-                        {changelog ? (
+                      <li
+                        key={adr.clave}
+                        className="group relative border-l border-line py-2.5 pl-5"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="absolute -left-[4.5px] top-[1.15rem] size-2 rounded-full border-2 border-paper bg-line-strong transition-colors group-hover:bg-cobalt"
+                        />
+                        <div className="flex items-baseline gap-3">
+                          <span className="w-9 shrink-0 font-mono text-[0.66rem] text-muted tabular-nums">
+                            {numeroDe(adr)}
+                          </span>
                           <Link
-                            to={changelog.ruta}
-                            title="Su changelog"
-                            aria-label={`El changelog de ${adr.titulo}`}
-                            className="mt-0.5 shrink-0 text-muted transition-colors hover:text-cobalt"
+                            to={adr.ruta}
+                            className="min-w-0 flex-1 text-[0.95rem] leading-snug text-ink-soft no-underline transition-colors outline-offset-4 outline-cobalt group-hover:text-cobalt focus-visible:outline-2"
                           >
-                            <ScrollText aria-hidden="true" className="size-3" />
+                            {tituloDeAdr(adr)}
                           </Link>
-                        ) : null}
+                          {changelog ? (
+                            <Link
+                              to={changelog.ruta}
+                              title="Su changelog"
+                              aria-label={`El changelog de ${adr.titulo}`}
+                              className="shrink-0 text-muted/70 transition-colors outline-offset-2 outline-cobalt hover:text-cobalt focus-visible:outline-2"
+                            >
+                              <ScrollText aria-hidden="true" className="size-3.5" />
+                            </Link>
+                          ) : null}
+                        </div>
                       </li>
                     );
                   })}
-                </ul>
-              </motion.section>
+                </ol>
+              </section>
             );
           })}
         </div>
       </section>
 
-      <p className="mt-10 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-        ¿Buscas lo que todavía no se ha hecho? Está en
-        <Link to="/guia/" className="text-cobalt">
-          la guía
-        </Link>
-        .
-      </p>
+      <aside className="mt-16 border-t border-line pt-6">
+        <p className="max-w-2xl text-sm leading-relaxed text-ink-soft">
+          ¿Buscas lo que todavía no se ha hecho? Está en{" "}
+          <Link to="/guia/" className="text-cobalt">
+            la guía
+          </Link>
+          , el registro cronológico de las ideas y sus veredictos.
+        </p>
+      </aside>
     </div>
   );
 }
