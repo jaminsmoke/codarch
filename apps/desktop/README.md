@@ -59,14 +59,13 @@ npm run package --workspace @codarch/desktop    # para la plataforma actual
 npm run package:dir --workspace @codarch/desktop  # sin instalador, solo la carpeta
 ```
 
-El workflow `.github/workflows/desktop.yml` los construye para los tres sistemas. Para publicar:
+El workflow `.github/workflows/desktop.yml` los construye para los tres sistemas. El release lo crea
+el propio workflow: al subir a `main` una versión nueva en `versions.json`, compara con el último
+release `desktop-v*`; si es mayor, empaqueta y crea el tag y el release en la misma ejecución. No se
+empuja `desktop-v*` a mano: el tag solo debe existir cuando los instaladores ya están construidos.
 
-```bash
-git tag desktop-v0.1.4
-git push --tags
-```
-
-El workflow sube los artefactos al release de GitHub.
+Un `workflow_dispatch` construye los instaladores para probarlos, pero solo publica si la versión es
+mayor que la del último release.
 
 En Windows hace falta la carga de trabajo de C++ de Visual Studio Build Tools: electron-builder
 recompila los módulos nativos (tree-sitter) para el ABI de Electron.
