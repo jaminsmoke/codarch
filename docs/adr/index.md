@@ -52,6 +52,7 @@ flowchart TD
 | [0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md) | El roadmap vive en el ADR y el changelog al lado | 2026-10-22 | aceptado | M23, M24 |
 | [0037](0031-0040/0037-los-ciclos-de-ejecucion.md) | Los ciclos: de ejecución, no de tipos | 2026-10-23 | aceptado | se aplica en M2, M9 |
 | [0038](0031-0040/0038-el-alcance-del-analisis.md) | El alcance del análisis se declara en `.codarch.yml` | 2026-10-23 | aceptado | se aplica en M2, M5 |
+| [0039](0031-0040/0039-la-busqueda-de-una-cadena.md) | La búsqueda de una cadena: símbolos, no nodos | 2026-10-23 | aceptado | se aplica en M12 |
 
 ## Las carpetas
 
