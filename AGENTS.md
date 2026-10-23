@@ -32,7 +32,7 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action �
   en carpetas de diez ✓ (`apps/site/docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
   ruta** dentro ✓ (`## Hoja de ruta` ✓): lo abierto y lo que está en curso ✓. El registro de lo
   hecho vive en el **feed de la guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, ADR 0047 ✓).
-- `apps/site/docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M30 ✓): una línea por fase ✓ con su decisión ✓.
+- `apps/site/docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M31 ✓): una línea por fase ✓ con su decisión ✓.
   Las ideas que no son fase viven en la **guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, un fichero por idea ✓
   con su fecha ✓), por orden cronológico ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓
   o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
