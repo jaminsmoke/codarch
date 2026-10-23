@@ -11,5 +11,5 @@ const datos = await cargarGuia();
   description="La leyenda, las categorías, los veredictos y las reglas de la guía de CodArch."
   canonical="https://jaminsmoke.github.io/codarch/guia/normas/"
 >
-  <GuiaApp client:only="react" datos={datos} />
+  <GuiaApp client:only="react" datos={datos} lang={Astro.currentLocale ?? "es"} />
 </Site>

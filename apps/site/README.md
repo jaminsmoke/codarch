@@ -45,6 +45,10 @@ npm run site:build   # sale en apps/site/dist
 - La **guía** es estructurada ✅ ✅: cada idea es un fichero en `docs/guideline/entradas/` con
   `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-carga.ts` la carga, `guia-servidor.ts` la ordena
   y la agrupa ✅ ✅ y `Guia.tsx` pinta un día ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
+- **Idiomas** ✅ ✅: el idioma por defecto es el español; las cadenas de la UI viven en
+  `src/lib/i18n.ts` y los componentes reciben `lang`. Los documentos se traducen por carpeta
+  (`docs/<idioma>/`) con fallback de Starlight (ADR 0046, §8). Añadir un idioma es copiar la
+  carpeta y añadirlo a `locales` e `i18n` ✅ ✅.
 - Se publica en **GitHub Pages** ✅ ✅ con el workflow `web.yml` ✅ ✅, en `/codarch/` ✅ ✅ ✅.
 
 ## Lo que no está aquí (todavía ✅ ✅)

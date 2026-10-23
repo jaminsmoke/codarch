@@ -21,6 +21,7 @@ import {
   type ResumenDia,
   type Veredicto
 } from "../lib/guia";
+import { idiomaDe, t } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
@@ -63,9 +64,11 @@ interface Props {
   dia: Dia;
   dias: ResumenDia[];
   esUltimo?: boolean;
+  lang?: string;
 }
 
-export default function Guia({ dia, dias, esUltimo }: Props) {
+export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
+  const idioma = idiomaDe(lang);
   const fecha = fechaPartida(dia.fecha);
   const ultima = dias.at(-1)?.fecha ?? dia.fecha;
   const indice = dias.findIndex((d) => d.fecha === dia.fecha);
@@ -100,9 +103,9 @@ export default function Guia({ dia, dias, esUltimo }: Props) {
             </div>
             <dl className="flex shrink-0 gap-6">
               {[
-                ["días", dias.length],
-                ["ideas", total],
-                ["categorías", categorias.size]
+                [t(idioma, "guia.dias"), dias.length],
+                [t(idioma, "guia.ideas"), total],
+                [t(idioma, "guia.categorias"), categorias.size]
               ].map(([etiqueta, cuenta]) => (
                 <div key={etiqueta}>
                   <dt className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">
@@ -246,7 +249,7 @@ export default function Guia({ dia, dias, esUltimo }: Props) {
           href={`${BASE}/guia/futuro/`}
           className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-cobalt"
         >
-          Futuro
+          {t(idioma, "guia.futuro")}
         </a>
         {siguiente ? (
           <a
@@ -266,7 +269,7 @@ export default function Guia({ dia, dias, esUltimo }: Props) {
           href={`${BASE}/guia/normas/`}
           className="text-cobalt no-underline hover:underline"
         >
-          Cómo se escribe esta guía
+          {t(idioma, "guia.normas")}
         </a>
         : la leyenda, las categorías y las reglas.
       </p>

@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { motion } from "motion/react";
 import type { ResumenDia } from "./lib/guia";
+import { idiomaDe, t } from "./lib/i18n";
 
 /**
  * El frame: lo que envuelve a todas las páginas ✓ ✓.
@@ -15,9 +16,9 @@ const LineaTiempo = lazy(() => import("./components/LineaTiempo"));
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const enlaces = [
-  { ruta: "/", texto: "Inicio" },
-  { ruta: "/guia/", texto: "Guía" },
-  { ruta: "/docs/", texto: "Documentos" }
+  { ruta: "/", clave: "nav.inicio" },
+  { ruta: "/guia/", clave: "nav.guia" },
+  { ruta: "/docs/", clave: "nav.documentos" }
 ];
 
 /** Si una ruta de la web es la actual. */
@@ -29,12 +30,15 @@ function esActiva(ruta: string, actual: string): boolean {
 export default function Marco({
   children,
   dias,
-  activo
+  activo,
+  lang = "es"
 }: {
   children: ReactNode;
   dias?: ResumenDia[];
   activo?: string;
+  lang?: string;
 }) {
+  const idioma = idiomaDe(lang);
   const actual =
     typeof window === "undefined" ? "/" : window.location.pathname;
 
@@ -57,6 +61,7 @@ export default function Marco({
           <nav className="ml-auto flex items-center gap-1">
             {enlaces.map((enlace) => {
               const activa = esActiva(enlace.ruta, actual);
+              const texto = t(idioma, enlace.clave);
               return (
                 <a
                   key={enlace.ruta}
@@ -69,7 +74,7 @@ export default function Marco({
                       : "text-ink-soft hover:bg-ink/6 hover:text-ink"
                   ].join(" ")}
                 >
-                  {enlace.texto}
+                  {texto}
                 </a>
               );
             })}
@@ -80,7 +85,7 @@ export default function Marco({
           <Suspense
             fallback={<div className="h-[3.05rem] border-t border-line/70" />}
           >
-            <LineaTiempo dias={dias} activo={activo ?? ""} />
+            <LineaTiempo dias={dias} activo={activo ?? ""} lang={lang} />
           </Suspense>
         ) : null}
       </header>
@@ -105,13 +110,13 @@ export default function Marco({
               href={`${BASE}/guia/`}
               className="text-muted no-underline hover:text-cobalt"
             >
-              La guía
+              {t(idioma, "nav.guia")}
             </a>
             <a
               href={`${BASE}/docs/`}
               className="text-muted no-underline hover:text-cobalt"
             >
-              Los documentos
+              {t(idioma, "nav.documentos")}
             </a>
             <a href="https://github.com/jaminsmoke/codarch">El repo</a>
             <a href="https://www.npmjs.com/package/codarch">En npm</a>

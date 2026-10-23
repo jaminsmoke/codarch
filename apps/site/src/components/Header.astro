@@ -1,5 +1,6 @@
 ---
 import DefaultHeader from "@astrojs/starlight/components/Header.astro";
+import { idiomaDe, t } from "../lib/i18n";
 
 /**
  * La cabecera de los documentos (ADR 0047).
@@ -8,23 +9,25 @@ import DefaultHeader from "@astrojs/starlight/components/Header.astro";
  * que ya tienen la portada y la guía, para no perder la navegación del sitio.
  */
 
+const lang = idiomaDe(Astro.currentLocale);
+
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const ruta = Astro.url.pathname;
 
 const enlaces = [
   {
     href: `${base}/`,
-    texto: "Inicio",
+    texto: t(lang, "nav.inicio"),
     activo: ruta === `${base}/` || ruta === base
   },
   {
     href: `${base}/guia/`,
-    texto: "Guía",
+    texto: t(lang, "nav.guia"),
     activo: ruta.startsWith(`${base}/guia`)
   },
   {
     href: `${base}/docs/`,
-    texto: "Documentos",
+    texto: t(lang, "nav.documentos"),
     activo: ruta.startsWith(`${base}/docs`)
   }
 ];

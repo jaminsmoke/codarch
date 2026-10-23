@@ -29,5 +29,5 @@ const canonical =
   description={`Las ideas del ${fecha.dia} de ${fecha.mes} de ${fecha.anio} en la guía de CodArch, con su veredicto.`}
   {canonical}
 >
-  <GuiaApp client:only="react" datos={datos} />
+  <GuiaApp client:only="react" datos={datos} lang={Astro.currentLocale ?? "es"} />
 </Site>

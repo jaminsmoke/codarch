@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { idiomaDe, t } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
@@ -9,10 +10,17 @@ import { useTitulo } from "../lib/titulo";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-export default function Normas({ normas }: { normas: string }) {
+export default function Normas({
+  normas,
+  lang = "es"
+}: {
+  normas: string;
+  lang?: string;
+}) {
+  const idioma = idiomaDe(lang);
   useTitulo(
-    "Cómo se escribe la guía",
-    "La leyenda, las categorías, los veredictos y las reglas de la guía de CodArch."
+    t(idioma, "guia.normas.titulo"),
+    t(idioma, "guia.normas.desc")
   );
 
   return (
@@ -21,7 +29,7 @@ export default function Normas({ normas }: { normas: string }) {
         El registro
       </p>
       <h1 className="font-display mt-2 text-5xl leading-none font-bold tracking-tight">
-        Cómo se escribe esta guía
+        {t(idioma, "guia.normas.titulo")}
       </h1>
       <p className="mt-4 mb-8 text-lg leading-relaxed text-ink-soft">
         La leyenda, las categorías, los veredictos y las reglas. La guía es el
@@ -37,7 +45,7 @@ export default function Normas({ normas }: { normas: string }) {
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />
-        Volver a la guía
+        {t(idioma, "guia.volver")}
       </a>
     </div>
   );

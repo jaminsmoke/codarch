@@ -8,5 +8,5 @@ import Site from "../layouts/Site.astro";
   description="CodArch analiza tu repositorio y lo dibuja: un treemap de ficheros y carpetas con el riesgo de cada bloque, la complejidad de cada función y la deuda de migración."
   canonical="https://jaminsmoke.github.io/codarch/"
 >
-  <ReactSite client:only="react" />
+  <ReactSite client:only="react" lang={Astro.currentLocale ?? "es"} />
 </Site>

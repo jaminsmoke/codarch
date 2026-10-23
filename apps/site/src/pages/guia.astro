@@ -11,5 +11,5 @@ const datos = await cargarGuia();
   description="Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
   canonical="https://jaminsmoke.github.io/codarch/guia/"
 >
-  <GuiaApp client:only="react" datos={datos} />
+  <GuiaApp client:only="react" datos={datos} lang={Astro.currentLocale ?? "es"} />
 </Site>

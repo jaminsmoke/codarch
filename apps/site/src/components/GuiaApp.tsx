@@ -50,7 +50,7 @@ function rutaDe(ruta: Ruta, ultima: string): string {
   return rutaDia(ruta.fecha, ultima);
 }
 
-export default function GuiaApp({ datos }: { datos: DatosGuia }) {
+export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang?: string }) {
   const dias = resumenDias(datos.dias);
   const ultima = datos.dias.at(-1)?.fecha ?? "";
   const [ruta, setRuta] = useState<Ruta>(() =>
@@ -132,7 +132,7 @@ export default function GuiaApp({ datos }: { datos: DatosGuia }) {
 
   return (
     <div onClick={alClick}>
-      <Marco dias={dias} activo={activo}>
+      <Marco dias={dias} activo={activo} lang={lang}>
         <motion.div
           key={visita}
           initial={{ opacity: 0, y: 10 }}
@@ -144,12 +144,13 @@ export default function GuiaApp({ datos }: { datos: DatosGuia }) {
               dia={dia}
               dias={dias}
               esUltimo={dia.fecha === ultima}
+              lang={lang}
             />
           ) : null}
           {ruta.tipo === "futuro" ? (
-            <Futuro futuras={datos.futuras} dias={dias} />
+            <Futuro futuras={datos.futuras} dias={dias} lang={lang} />
           ) : null}
-          {ruta.tipo === "normas" ? <Normas normas={datos.normas} /> : null}
+          {ruta.tipo === "normas" ? <Normas normas={datos.normas} lang={lang} /> : null}
         </motion.div>
       </Marco>
     </div>

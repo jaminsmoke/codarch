@@ -39,6 +39,8 @@ export default defineConfig({
         "El mapa vivo de la arquitectura de tu software: en el pull request, en el CI y en tu agente.",
       locales: {
         root: { label: "Español", lang: "es" }
+        // Para añadir inglés: crear apps/site/docs/en/ y descomentar.
+        // en: { label: "English", lang: "en" }
       },
       customCss: ["./src/styles/starlight.css"],
       components: {

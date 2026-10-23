@@ -136,6 +136,18 @@ Starlight conserva su cabecera (búsqueda, tema y GitHub) y se le añaden los en
 **Guía** y **Documentos** con un override de `Header`. Los documentos no pierden la navegación del
 resto del sitio; en móvil, el título lleva a Inicio y la barra lateral a la guía.
 
+### 8. Idiomas, preparados
+
+El idioma por defecto es el español. Starlight resuelve la traducción de los documentos con su
+propio `locales` y Astro la de la UI con `i18n`. Añadir un idioma es:
+
+1. Crearlo en `locales` (Starlight) y en `i18n` (Astro).
+2. Crear `docs/<idioma>/` con el contenido traducido (o dejar que caiga al español).
+3. Añadir sus cadenas a `src/lib/i18n.ts`.
+
+Los componentes React reciben `lang` y usan `t(lang, clave)`; las cadenas que falten caen al
+español. La portada y la guía no se traducen solas: se añaden cuando haya revisión.
+
 ## Consecuencias
 
 - La documentación gana HTML por página, SEO, búsqueda, sitemap y navegación automática.

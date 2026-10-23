@@ -89,6 +89,11 @@ también `npm run sync:action` y actualizar el repo público.
    `npm run publish:cli` ✓ (la etiqueta la decide la versión ✓: alpha → `next` ✓, estable →
    `latest` ✓ ✓; requiere OTP ✓), actualizar el input `version` de la acción ✓, sincronizar ✓ y
    mover `v1` ✓.
+10. **Idiomas.** El idioma por defecto es el español. Las cadenas de la UI viven en
+    `apps/site/src/lib/i18n.ts` y el contenido en `apps/site/docs/<idioma>/`. Añadir un idioma es
+    copiar la carpeta, traducirla y añadirlo a `locales` (Starlight) e `i18n` (Astro); los
+    componentes reciben `lang` y las cadenas que falten caen al español. No se generan
+    traducciones automáticamente.
 
 ## Estado y siguiente
 
@@ -171,6 +176,9 @@ también `npm run sync:action` y actualizar el repo público.
   `/guia/AAAA-MM-DD/`, `/guia/futuro/` y `/guia/normas/`, y la línea del tiempo enlaza a cada una.
   La cabecera y la línea del tiempo se montan una vez; solo cambia el contenido de abajo. Los
   documentos comparten **Inicio**, **Guía** y **Documentos** en su cabecera.
+- M31 en curso: i18n preparada (ADR 0046, §8). Un idioma ahora (español), estructura lista para
+  añadir otro copiando `apps/site/docs/` y traduciendo. Las cadenas de la UI están en
+  `src/lib/i18n.ts` y los componentes reciben `lang`.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

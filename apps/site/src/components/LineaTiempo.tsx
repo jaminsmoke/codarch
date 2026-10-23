@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { Fragment } from "react";
 import { fechaCorta, rutaDia, type ResumenDia } from "../lib/guia";
+import { idiomaDe, t } from "../lib/i18n";
 
 /**
  * La línea del tiempo de la guía (ADR 0047).
@@ -31,9 +32,11 @@ interface Paso {
 interface Props {
   dias: ResumenDia[];
   activo: string;
+  lang?: string;
 }
 
-export default function LineaTiempo({ dias, activo }: Props) {
+export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
+  const idioma = idiomaDe(lang);
   const ultima = dias.at(-1)?.fecha ?? "";
   const pasos: Paso[] = [
     ...dias.map((dia) => ({
@@ -47,7 +50,7 @@ export default function LineaTiempo({ dias, activo }: Props) {
     {
       clave: "futuro",
       ruta: "/guia/futuro/",
-      texto: "futuro",
+      texto: t(idioma, "guia.futuro"),
       corto: "futuro",
       cuantas: 0,
       futuro: true

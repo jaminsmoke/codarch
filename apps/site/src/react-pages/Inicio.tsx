@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import captura from "../../docs/images/atlas.png";
+import { idiomaDe, t } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
@@ -11,7 +12,8 @@ import { useTitulo } from "../lib/titulo";
 const atlas = captura as unknown as string | { src: string };
 const retrato = typeof atlas === "string" ? atlas : atlas.src;
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-export default function Inicio() {
+export default function Inicio({ lang = "es" }: { lang?: string }) {
+  const idioma = idiomaDe(lang);
   useTitulo(
     undefined,
     "CodArch analiza tu repositorio y lo dibuja: un treemap de ficheros y carpetas con el riesgo de cada bloque, la complejidad de cada función y la deuda de migración."
@@ -51,13 +53,13 @@ export default function Inicio() {
             className="rounded-full border border-cobalt bg-cobalt px-5 py-2.5 font-medium text-white no-underline transition-transform hover:-translate-y-0.5"
             href="https://www.npmjs.com/package/codarch"
           >
-            Instalar
+            {t(idioma, "home.instalar")}
           </a>
           <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
             href={`${BASE}/guia/`}
           >
-            La guía
+            {t(idioma, "home.guia")}
           </a>
           <code className="rounded-lg border border-line bg-panel px-3 py-2 font-mono text-sm text-ink-soft">
             npm i -g codarch@next
@@ -177,7 +179,7 @@ export default function Inicio() {
           href={`${BASE}/docs/`}
           className="ml-auto rounded-full border border-line-strong bg-paper px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
         >
-          Los documentos
+          {t(idioma, "home.docs")}
         </a>
       </motion.section>
     </div>

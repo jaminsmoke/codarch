@@ -7,6 +7,7 @@ import {
   type Entrada,
   type ResumenDia
 } from "../lib/guia";
+import { idiomaDe, t } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
@@ -21,11 +22,13 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 interface Props {
   futuras: Entrada[];
   dias: ResumenDia[];
+  lang?: string;
 }
 
-export default function Futuro({ futuras, dias }: Props) {
+export default function Futuro({ futuras, dias, lang = "es" }: Props) {
+  const idioma = idiomaDe(lang);
   useTitulo(
-    "Futuro — La guía",
+    `${t(idioma, "guia.futuro.titulo")} — ${t(idioma, "guia.titulo")}`,
     "Las ideas de la guía de CodArch que esperan su turno: lo que todavía no ha pasado."
   );
   const ultima = dias.at(-1)?.fecha ?? "";
@@ -37,7 +40,7 @@ export default function Futuro({ futuras, dias }: Props) {
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <h1 className="font-display text-5xl leading-none font-bold tracking-tight sm:text-6xl">
-          Futuro
+          {t(idioma, "guia.futuro.titulo")}
         </h1>
         <span className="guia-contador">
           {futuras.length} {futuras.length === 1 ? "idea" : "ideas"}
@@ -92,7 +95,7 @@ export default function Futuro({ futuras, dias }: Props) {
                 className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline"
               >
                 <ArrowDown aria-hidden="true" className="size-3" />
-                Leer la idea
+                {t(idioma, "guia.leer")}
               </a>
             </li>
           );
@@ -104,7 +107,7 @@ export default function Futuro({ futuras, dias }: Props) {
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />
-        Volver a la guía
+        {t(idioma, "guia.volver")}
       </a>
     </div>
   );
