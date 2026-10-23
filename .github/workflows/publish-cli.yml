@@ -1,0 +1,62 @@
+name: Publicar CLI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-cli
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publicar codarch en npm
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      # Trusted Publishing: npm cambia el token OIDC del workflow por un
+      # permiso de publicación efímero. No hay NPM_TOKEN ni OTP.
+      - name: Leer la versión
+        id: version
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('versions.json', 'utf8')).product)")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "codarch@$VERSION"
+
+      - name: Comprobar si ya está publicado
+        id: published
+        run: |
+          if npm view "codarch@${{ steps.version.outputs.version }}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "codarch@${{ steps.version.outputs.version }} ya está en npm; no se publica."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Instalar dependencias
+        if: steps.published.outputs.exists == 'false'
+        run: npm ci
+
+      - name: Construir la web que viaja con el CLI
+        if: steps.published.outputs.exists == 'false'
+        run: npm run web:build
+
+      - name: Empaquetar el CLI
+        if: steps.published.outputs.exists == 'false'
+        run: npm run build:cli
+
+      - name: Publicar en npm
+        if: steps.published.outputs.exists == 'false'
+        run: node scripts/publish-cli.mjs
