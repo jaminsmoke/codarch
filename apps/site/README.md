@@ -12,11 +12,12 @@ npm run site:build   # sale en apps/site/dist
 ## Qué hay ahora
 
 - **`/`** — la portada ✅ ✅.
-- **`/guia/`** — la guía ✅ ✅: sus ideas en una línea del tiempo ✅ ✅, cada día como un changelog
-  ✅ ✅ y lo que espera en **Futuro** ✅ ✅.
+- **`/guia/`** — el último día de la guía ✅ ✅, con su línea del tiempo y su changelog ✅ ✅.
+- **`/guia/AAAA-MM-DD/`** — un día ✅ ✅; **`/guia/futuro/`** — lo que espera ✅ ✅ y
+  **`/guia/normas/`** — cómo se escribe ✅ ✅.
 - **`/docs/`** — los **documentos** ✅ ✅: el producto ✅ (roadmap ✅, modelo ✅, reglas ✅, MCP ✅,
   migración ✅), el diseño del mapa ✅ y todas las **decisiones** ✅ en sus carpetas de diez ✅ ✅, cada
-  una con su hoja de ruta dentro y su changelog al lado ✅.
+  una con su hoja de ruta dentro ✅ ✅. El registro de lo hecho vive en la guía ✅ ✅.
 - **`/docs/<ruta>/`** — un documento ✅ ✅: su menú ✅, su índice ✅, los vecinos ✅ ✅, la búsqueda ✅
   y los diagramas **Mermaid** ✅ ✅.
 
@@ -27,8 +28,8 @@ npm run site:build   # sale en apps/site/dist
 - **`docs/` sigue siendo la verdad** ✅ ✅: un loader `glob` ✅ ✅ lee `../../docs` ✅ ✅ y le da ids
   `docs/...` ✅ ✅ (`docs/model.md` → `/docs/model/` ✅ ✅ ✅). No hay texto copiado ✅ ✅.
 - **El frontmatter es obligatorio** ✅ ✅ (`title` ✅, `description` ✅, `section` ✅, `sidebar` ✅;
-  en los ADR, `status` ✅ y `date` ✅; en los changelogs, `changelog` ✅ y `adr` ✅ ✅). El esquema está
-  en `src/content.config.ts` ✅ ✅: si falta o no cuadra ✅, **el build falla** ✅ ✅.
+  en los ADR, `status` ✅ y `date` ✅ ✅). El esquema está en `src/content.config.ts` ✅ ✅: si falta o
+  no cuadra ✅, **el build falla** ✅ ✅.
 - **La sidebar se genera del frontmatter** ✅ ✅ (`src/sidebar.mjs` ✅ ✅): no hay una lista de
   documentos en el código ✅ ✅. El producto va primero ✅ ✅ y los ADR se agrupan por su carpeta de
   diez ✅ ✅.
@@ -36,11 +37,12 @@ npm run site:build   # sale en apps/site/dist
   (`src/lib/rehype-doc-links.mjs` ✅ ✅): `../model.md` → `/codarch/docs/model/` ✅ ✅. Lo que no es un
   documento ✅ (una imagen ✅, un HTML ✅) sale al repo ✅ ✅.
 - **La portada y la guía** siguen en React ✅ ✅, montadas como islas desde Astro ✅ ✅
-  (`src/components/ReactSite.tsx` ✅ ✅). **motion** ✅ ✅ anima ✅ ✅ y la guía conserva su línea del
-  tiempo ✅ ✅. Cada página es su propia isla y sus enlaces son `<a>` normales ✅ ✅.
+  (`ReactSite.tsx` ✅ para la portada y `GuiaSite.tsx` ✅ para la guía). **motion** ✅ ✅ anima ✅ ✅ y
+  la guía conserva su línea del tiempo ✅ ✅. Cada página es su propia isla y sus enlaces son `<a>`
+  normales ✅ ✅.
 - La **guía** es estructurada ✅ ✅: cada idea es un fichero en `docs/guideline/entradas/` con
-  `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-servidor.ts` la ordena y la agrupa ✅ ✅ y
-  `src/react-pages/Guia.tsx` la pinta ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
+  `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-carga.ts` la carga, `guia-servidor.ts` la ordena
+  y la agrupa ✅ ✅ y `Guia.tsx` pinta un día ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
 - Se publica en **GitHub Pages** ✅ ✅ con el workflow `web.yml` ✅ ✅, en `/codarch/` ✅ ✅ ✅.
 
 ## Lo que no está aquí (todavía ✅ ✅)

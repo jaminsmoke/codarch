@@ -87,6 +87,18 @@ export interface Dia {
   grupos: Grupo[];
 }
 
+/** Un día, en corto: lo que necesita la línea del tiempo. */
+export interface ResumenDia {
+  fecha: string;
+  cuantas: number;
+  categorias: Categoria[];
+}
+
+/** La ruta de un día: el último vive en `/guia/`, los demás en su fecha. */
+export function rutaDia(fecha: string, ultima: string): string {
+  return fecha === ultima ? "/guia/" : `/guia/${fecha}/`;
+}
+
 /** La guía entera: la introducción, los días y lo que falta. */
 export interface DatosGuia {
   /** Lo que se lee antes del registro. */

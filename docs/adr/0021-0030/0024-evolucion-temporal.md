@@ -73,7 +73,6 @@ La evolución temporal tiene dos caras y conviene separarlas, porque no cuestan 
 
 Sin fases abiertas: M10 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0024-evolucion-temporal.changelog.md).
 
 ## Nota de estilo
 

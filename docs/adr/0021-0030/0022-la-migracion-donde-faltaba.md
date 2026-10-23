@@ -64,5 +64,3 @@ mapa a mano.
 ## Hoja de ruta
 
 Sin fases abiertas: M8 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0022-la-migracion-donde-faltaba.changelog.md).

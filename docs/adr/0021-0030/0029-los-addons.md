@@ -202,7 +202,6 @@ necesite una señal nueva la calcula **en su vista** ✓ (como hace el 3D ✓), 
 
 Sin fases abiertas: M16 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0029-los-addons.changelog.md).
 
 ## Nota de estilo
 

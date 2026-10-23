@@ -152,7 +152,6 @@ barras laterales siguen igual ✓, con los mismos datos ✓), con three.js ✓ c
 
 Sin fases abiertas: M14 y M15 están cerradas.
 
-El detalle de lo hecho está en el [changelog](0028-los-plugins.changelog.md).
 
 ## Nota de estilo
 

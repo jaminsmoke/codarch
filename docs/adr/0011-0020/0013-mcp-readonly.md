@@ -89,5 +89,3 @@ redactado. Ninguna de las dos cosas encaja con un producto determinista y verifi
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M3.
-
-El detalle de lo hecho está en el [changelog](0013-mcp-readonly.changelog.md).

@@ -79,5 +79,3 @@ Node.
 ## Hoja de ruta
 
 Sin fases abiertas: M3 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0014-distribucion-cli-npm.changelog.md).

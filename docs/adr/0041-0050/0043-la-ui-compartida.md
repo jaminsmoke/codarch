@@ -131,5 +131,3 @@ queda donde está; no se mueve a medias.
   paneles, leyenda, historial y listas) y dejar los hooks de plataforma en cada app.
 - [x] Revisar que ninguna pieza nueva de `@codarch/ui` importe plataforma de almacenamiento,
   Electron o `node:*`; el mapa solo mide el DOM para dibujarse.
-
-El detalle de lo hecho está en el [changelog](0043-la-ui-compartida.changelog.md).

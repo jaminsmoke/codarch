@@ -83,5 +83,3 @@ Eso deja tres huecos:
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
-
-El detalle de lo hecho está en el [changelog](0018-estado-vista-en-la-url.changelog.md).

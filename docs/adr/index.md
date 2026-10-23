@@ -1,20 +1,20 @@
 ---
 title: Las decisiones
-description: "Cada decisión tiene su ADR, su hoja de ruta dentro (## Hoja de ruta) y su changelog al lado (.changelog.md). Este es el índice: número, título, fecha, estado y fases."
+description: "Cada decisión tiene su ADR con su hoja de ruta dentro (## Hoja de ruta). El registro de lo hecho vive en la guía. Este es el índice: número, título, fecha, estado y fases."
 section: adr
 sidebar:
   label: Índice de decisiones
   order: 0
 ---
 
-Cada decisión tiene su ADR, su **hoja de ruta** dentro (`## Hoja de ruta`) y su **changelog** al lado
-(`<adr>.changelog.md`). Este es el índice: número, título, fecha, estado y fases.
+Cada decisión tiene su ADR con su **hoja de ruta** dentro (`## Hoja de ruta`). El **registro** de lo
+hecho y lo que llega vive en el [feed de la guía](/guia/). Este es el índice: número, título, fecha,
+estado y fases.
 
 ```mermaid
 flowchart TD
-  g["docs/guideline/<br/>las ideas y sus veredictos"] -->|"fase"| r["la hoja de ruta<br/>del ADR"]
+  g["/guia/<br/>el feed: ideas y hechos"] -->|"fase"| r["la hoja de ruta<br/>del ADR"]
   a["docs/adr/…<br/>el ADR"] --> r
-  a --> c["el changelog<br/>de la decisión"]
   r --> f["las fases abiertas"]
   f --> i["docs/adr/roadmap.md<br/>el índice de fases"]
 ```
@@ -56,7 +56,7 @@ flowchart TD
 | [0033](0031-0040/0033-abrir-el-repo.md) | Abrir el repo: lo que hay que tener antes | 2026-10-22 | aceptado | M22 |
 | [0034](0031-0040/0034-la-web-del-proyecto.md) | La web del proyecto | 2026-10-22 | aceptado | M23 |
 | [0035](0031-0040/0035-la-guia-como-changelog.md) | La guía se lee como un changelog | 2026-10-22 | aceptado | M23.6–M23.9 |
-| [0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md) | El roadmap vive en el ADR y el changelog al lado | 2026-10-22 | aceptado | M23, M24 |
+| [0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md) | El roadmap vive en el ADR y el changelog al lado | 2026-10-22 | aceptado · 0047 | M23, M24 |
 | [0037](0031-0040/0037-los-ciclos-de-ejecucion.md) | Los ciclos: de ejecución, no de tipos | 2026-10-23 | aceptado | se aplica en M2, M9 |
 | [0038](0031-0040/0038-el-alcance-del-analisis.md) | El alcance del análisis se declara en `.codarch.yml` | 2026-10-23 | aceptado | se aplica en M2, M5 |
 | [0039](0031-0040/0039-la-busqueda-de-una-cadena.md) | La búsqueda de una cadena: símbolos, no nodos | 2026-10-23 | aceptado | se aplica en M12 |
@@ -67,6 +67,7 @@ flowchart TD
 | [0044](0041-0050/0044-la-web-en-docker.md) | La app web en un contenedor local | 2026-10-23 | aceptado | M27 |
 | [0045](0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md) | El escritorio se instala y se actualiza mejor | 2026-10-23 | aceptado | M28 |
 | [0046](0041-0050/0046-los-documentos-con-starlight.md) | Los documentos se publican con Starlight | 2026-10-23 | aceptado | M29 |
+| [0047](0041-0050/0047-el-changelog-es-la-guia.md) | El changelog es la guía | 2026-10-23 | aceptado | M30 |
 
 ## Las carpetas
 
@@ -76,6 +77,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
-- **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046
+- **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

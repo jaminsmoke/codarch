@@ -28,12 +28,12 @@ El escritorio ya tiene menú nativo ✓ (ADR 0021 ✓), pero no tiene ajustes �
 1. **Un panel de ajustes, con secciones.** Se abre desde un botón en la barra lateral ✓ y, en el
    escritorio, también desde el menú nativo ✓ (que manda la orden por IPC ✓). Las secciones:
 
-   | sección | qué hay |
-   |---|---|
-   | **Vista** | la métrica de área ✓, el modo de color ✓, la carpeta enfocada ✓ |
-   | **Proyecto** | el proyecto guardado ✓, borrarlo ✓, si está persistido ✓ |
-   | **Plugins** | el store ✓ (ADR 0028 ✓) |
-   | **Diagnóstico** | la versión ✓, la versión del formato ✓, el checksum ✓, el estado del almacenamiento ✓ |
+  | sección | qué hay |
+  |---|---|
+  | **Vista** | la métrica de área ✓, el modo de color ✓, la carpeta enfocada ✓ |
+  | **Proyecto** | el proyecto guardado ✓, borrarlo ✓, si está persistido ✓ |
+  | **Plugins** | el store ✓ (ADR 0028 ✓) |
+  | **Diagnóstico** | la versión ✓, la versión del formato ✓, el checksum ✓, el estado del almacenamiento ✓ |
 
 2. **Lo que se ajusta se guarda donde estaba.** Las preferencias siguen en `localStorage` ✓ (la web ✓)
    o en el almacén del escritorio ✓. Los ajustes no inventan un sitio nuevo para lo que ya tenía
@@ -70,7 +70,6 @@ El escritorio ya tiene menú nativo ✓ (ADR 0021 ✓), pero no tiene ajustes �
 
 Sin fases abiertas: M13 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0027-los-ajustes.changelog.md).
 
 ## Nota de estilo
 

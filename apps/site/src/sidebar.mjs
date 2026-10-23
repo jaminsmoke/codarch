@@ -35,12 +35,7 @@ function leer(archivo) {
 }
 
 function etiqueta(clave, datos) {
-  if (datos.sidebar?.label) return datos.sidebar.label;
-  if (datos.changelog) {
-    const numero = (clave.split("/").pop() ?? "").match(/^(\d+)/)?.[1];
-    return numero ? `Changelog — ADR ${numero}` : "Changelog";
-  }
-  return datos.title ?? clave;
+  return datos.sidebar?.label ?? datos.title ?? clave;
 }
 
 function item(clave, datos) {

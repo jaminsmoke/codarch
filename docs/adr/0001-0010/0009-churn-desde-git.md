@@ -61,5 +61,3 @@ de ejecución, del locale o de la máquina.
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M2.
-
-El detalle de lo hecho está en el [changelog](0009-churn-desde-git.changelog.md).

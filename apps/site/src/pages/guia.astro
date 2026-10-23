@@ -1,17 +1,26 @@
 ---
-import { getCollection } from "astro:content";
-import entradilla from "../../../../docs/guideline/entradilla.md?raw";
-import normas from "../../../../docs/guideline/normas.md?raw";
-import ReactSite from "../components/ReactSite";
+import GuiaSite from "../components/GuiaSite";
 import Site from "../layouts/Site.astro";
-import { prepararGuia } from "../lib/guia-servidor";
+import { cargarGuia } from "../lib/guia-carga";
+import { resumenDias } from "../lib/guia-servidor";
 
-const datos = prepararGuia(await getCollection("guia"), entradilla, normas);
+const datos = await cargarGuia();
+const dia = datos.dias.at(-1);
+if (!dia) throw new Error("La guía no tiene días");
+const dias = resumenDias(datos.dias);
 ---
 
 <Site
   title="La guía — CodArch"
   description="Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
+  canonical="https://jaminsmoke.github.io/codarch/guia/"
 >
-  <ReactSite client:only="react" pagina="guia" guia={datos} />
+  <GuiaSite
+    client:only="react"
+    modo="dia"
+    dia={dia}
+    dias={dias}
+    activo={dia.fecha}
+    introduccion={datos.introduccion}
+  />
 </Site>

@@ -50,5 +50,3 @@ La UI web es un consumidor del modelo, no el producto.
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M2 y M3.
-
-El detalle de lo hecho está en el [changelog](0004-cuna-pr-ci-mcp.changelog.md).

@@ -23,8 +23,9 @@ verdict: fase
 
 - **El nombre** (`AAAA-MM-DD-NN-titulo.md`) fija el día y el orden: el `NN` ordena las entradas del
   mismo día. El título, en kebab-case, da el ancla.
-- **`category`** es una de las del changelog: `feature`, `fix`, `optimized`, `refactor`, `docs`,
-  `chore`, `security` o `removed`. El orden y su color, en el [ADR 0035](../adr/0031-0040/0035-la-guia-como-changelog.md).
+- **`category`** es una de las del changelog de la guía: `feature`, `fix`, `optimized`, `refactor`,
+  `docs`, `chore`, `security` o `removed`. El orden y su color, en el
+  [ADR 0035](../adr/0031-0040/0035-la-guia-como-changelog.md).
 - **`verdict`** es `idea`, `fase`, `adr`, `arreglo` o `esperar`.
 - **La fecha** va entre comillas: es un dato, no una fecha de YAML.
 - **El cuerpo** va sin iconos decorativos. Los estados se dicen con palabras.

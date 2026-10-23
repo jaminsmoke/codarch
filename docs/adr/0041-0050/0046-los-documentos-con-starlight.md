@@ -165,5 +165,3 @@ la fuente del sitio.
 - [x] Validar el build y la publicación en GitHub Pages (`web.yml` construye y publica con Node 24).
 
 M29 queda cerrada: los documentos y la guía se publican desde el markdown del repo.
-
-El detalle de lo hecho está en el [changelog](0046-los-documentos-con-starlight.changelog.md).

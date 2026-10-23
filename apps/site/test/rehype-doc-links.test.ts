@@ -43,7 +43,7 @@ describe("los enlaces del markdown", () => {
     expect(
       resolver(
         "adr/0041-0050/0046-los-documentos-con-starlight.md",
-        "../../guideline/contenido.md#futuro"
+        "../../guideline/entradilla.md#futuro"
       )
     ).toBe("/codarch/guia/#futuro");
   });

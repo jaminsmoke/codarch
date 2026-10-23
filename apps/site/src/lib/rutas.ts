@@ -6,7 +6,7 @@ import { REPO } from "./markdown";
  *
  * Solo las **rutas** ✓: el contenido pesa ✓ ✅ y se carga con su página ✓ ✅
  * (la lista sale del build ✓, en `vite.config.ts` ✓). Así la guía puede enlazar
- * a un ADR ✓ ✅ sin llevarse los 71 documentos en el mismo paquete ✅ ✅.
+ * a un ADR ✓ ✅ sin llevarse todos los documentos en el mismo paquete ✅ ✅.
  */
 
 /** Las claves que existen: `adr/0029-los-addons`, `model`, … */

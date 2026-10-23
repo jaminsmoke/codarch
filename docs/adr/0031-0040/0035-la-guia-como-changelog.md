@@ -1,6 +1,6 @@
 ---
 title: ADR 0035 — La guía se lee como un changelog
-description: "La guía (docs/guideline/contenido.md) guarda lo que se piensa y lo que se hace, día a día. Cada entrada dice qué se decidió —su veredicto: fase, arreglo, esperar— pero…"
+description: "La guía (`docs/guideline/`) guarda lo que se piensa y lo que se hace, día a día. Cada entrada dice qué se decidió —su veredicto: fase, arreglo, esperar— pero…"
 section: adr
 status: aceptado
 date: "2026-10-22"
@@ -13,7 +13,7 @@ sidebar:
 
 ## Contexto
 
-La guía (`docs/guideline/contenido.md`) guarda lo que se piensa y lo que se hace, **día a
+La guía (`docs/guideline/entradas/`) guarda lo que se piensa y lo que se hace, **día a
 día**. Cada entrada dice **qué se decidió** —su veredicto: fase, arreglo, esperar— pero no dice
 **qué clase de trabajo es**.
 
@@ -65,7 +65,8 @@ categoría a la vista y sin grupos: son una lista de lo que falta, no el changel
 
 ### 4. El markdown sigue siendo la verdad
 
-La categoría vive en `contenido.md`, no en los componentes: la web **agrupa**, no reescribe.
+La categoría vive en la entrada (`docs/guideline/entradas/`), no en los componentes: la web
+**agrupa**, no reescribe.
 Una entrada se declara, no se deduce: el veredicto `fase` no dice si fue feature o docs.
 
 Los nombres de las categorías van en **inglés técnico**, como los commits (`feat:`, `fix:`);
@@ -95,7 +96,6 @@ la web los muestra con su nombre corto y la descripción de cada uno va en espa�
 
 Sin fases abiertas: M23 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0035-la-guia-como-changelog.changelog.md).
 
 ## Nota de estilo
 

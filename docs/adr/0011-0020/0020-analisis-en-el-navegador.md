@@ -100,5 +100,3 @@ un poco y el checksum de los snapshots cambia; es el precio de que el navegador 
 ## Hoja de ruta
 
 Sin fases abiertas: M6 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0020-analisis-en-el-navegador.changelog.md).

@@ -52,5 +52,3 @@ y se mantiene compatibilidad de formato, que es lo que beneficia al usuario.
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M0.
-
-El detalle de lo hecho está en el [changelog](0001-clean-room-con-ccjson.changelog.md).

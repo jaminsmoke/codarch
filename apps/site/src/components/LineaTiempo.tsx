@@ -1,24 +1,23 @@
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { fechaCorta, type Dia } from "../lib/guia";
-import { bandaDeLectura, pasoEnBanda } from "../lib/linea";
+import { Fragment } from "react";
+import { fechaCorta, rutaDia, type ResumenDia } from "../lib/guia";
 
 /**
- * La línea del tiempo de la guía.
+ * La línea del tiempo de la guía (ADR 0047).
  *
- * Va **pegada al header**, así que flota con él: desde donde estés de la
- * página, siempre se ve dónde estás y puedes saltar a otro día. La pastilla se
- * desliza al día que toca.
+ * Va pegada al header y cada paso es un enlace: un día, el futuro. La página
+ * activa la marca la ruta, no el scroll; por eso no hay observadores.
  */
 
-/** Un paso de la línea: un día de trabajo, o el futuro. */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 interface Paso {
-  /** Lo que dice el observador: la fecha, o "futuro". */
+  /** El nombre del día, o `futuro`. */
   clave: string;
-  /** El ancla de la sección a la que salta. */
-  ancla: string;
+  /** Su ruta en el sitio, sin la base. */
+  ruta: string;
   /** El nombre largo: "21 oct". */
   texto: string;
   /** El nombre corto, para pantallas estrechas: "21". */
@@ -29,26 +28,25 @@ interface Paso {
   futuro: boolean;
 }
 
-export default function LineaTiempo({ dias }: { dias: Dia[] }) {
-  const [activo, setActivo] = useState(dias[0]?.fecha ?? "");
-  // Mientras un clic va de camino, manda el clic: el scroll intermedio no
-  // puede devolver la pastilla al día anterior.
-  const pendiente = useRef<string | null>(null);
-  const medirRef = useRef<() => void>(() => {});
-  const temporizador = useRef<number | null>(null);
+interface Props {
+  dias: ResumenDia[];
+  activo: string;
+}
 
+export default function LineaTiempo({ dias, activo }: Props) {
+  const ultima = dias.at(-1)?.fecha ?? "";
   const pasos: Paso[] = [
     ...dias.map((dia) => ({
       clave: dia.fecha,
-      ancla: `dia-${dia.fecha}`,
+      ruta: rutaDia(dia.fecha, ultima),
       texto: fechaCorta(dia.fecha),
       corto: String(Number(dia.fecha.slice(8, 10))),
-      cuantas: dia.entradas.length,
+      cuantas: dia.cuantas,
       futuro: false
     })),
     {
       clave: "futuro",
-      ancla: "futuro",
+      ruta: "/guia/futuro/",
       texto: "futuro",
       corto: "futuro",
       cuantas: 0,
@@ -56,85 +54,11 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
     }
   ];
 
-  const indice = Math.max(
-    0,
-    pasos.findIndex((paso) => paso.clave === activo)
-  );
-  const ideas = dias.reduce((total, dia) => total + dia.entradas.length, 0);
-
-  // El día que estás leyendo: el último que ya cruzó la banda de arriba.
-  // La banda sale del borde de la cabecera, que es lo que tapa el contenido.
-  useEffect(() => {
-    const medir = (): void => {
-      if (pendiente.current !== null) return;
-
-      const cabecera = document.querySelector("header");
-      const banda = bandaDeLectura(
-        cabecera?.getBoundingClientRect().bottom ?? null,
-        window.innerHeight
-      );
-      const posiciones = dias.map((dia) => ({
-        clave: dia.fecha,
-        top:
-          document.getElementById(`dia-${dia.fecha}`)?.getBoundingClientRect()
-            .top ?? Number.POSITIVE_INFINITY
-      }));
-      let actual = pasoEnBanda(posiciones, banda, dias[0]?.fecha ?? "");
-
-      const futuro = document.getElementById("futuro");
-      const alFinal =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 8;
-      if (futuro && (alFinal || futuro.getBoundingClientRect().top <= banda)) {
-        actual = "futuro";
-      }
-      if (actual) setActivo(actual);
-    };
-    medirRef.current = medir;
-    medir();
-    window.addEventListener("scroll", medir, { passive: true });
-    window.addEventListener("resize", medir);
-    return () => {
-      window.removeEventListener("scroll", medir);
-      window.removeEventListener("resize", medir);
-      if (temporizador.current !== null) {
-        window.clearTimeout(temporizador.current);
-        temporizador.current = null;
-      }
-    };
-  }, [dias]);
-
-  const ir = (destino: number): void => {
-    const paso = pasos[Math.min(Math.max(destino, 0), pasos.length - 1)];
-    const nodo = paso ? document.getElementById(paso.ancla) : null;
-    if (!paso || !nodo) return;
-
-    // El clic se ve al instante; la medición vuelve cuando termina el salto.
-    setActivo(paso.clave);
-    pendiente.current = paso.clave;
-    if (temporizador.current !== null) {
-      window.clearTimeout(temporizador.current);
-    }
-    temporizador.current = window.setTimeout(() => {
-      pendiente.current = null;
-      temporizador.current = null;
-      medirRef.current();
-    }, 1000);
-
-    const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const cabecera = document.querySelector("header");
-    const padding =
-      Number.parseFloat(
-        getComputedStyle(document.documentElement).scrollPaddingTop
-      ) || cabecera?.getBoundingClientRect().bottom || 0;
-    const top = window.scrollY + nodo.getBoundingClientRect().top - padding;
-    // `scrollIntoView` no mueve nada si el principio de la sección ya está
-    // visible; el clic tiene que dejar el día arriba, bajo la cabecera.
-    window.scrollTo({
-      top: Math.max(0, top),
-      behavior: suave ? "smooth" : "auto"
-    });
-  };
+  const indice = pasos.findIndex((paso) => paso.clave === activo);
+  const anterior = indice > 0 ? pasos[indice - 1] : undefined;
+  const siguiente =
+    indice >= 0 && indice < pasos.length - 1 ? pasos[indice + 1] : undefined;
+  const ideas = dias.reduce((total, dia) => total + dia.cuantas, 0);
 
   return (
     <nav
@@ -142,7 +66,6 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
       className="border-t border-line/70 bg-gradient-to-b from-ink/[0.04] to-ink/[0.01]"
     >
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-2.5">
-        {/* Lo que hay, de un vistazo. */}
         <p className="hidden shrink-0 items-center gap-1.5 font-mono text-[0.62rem] tracking-[0.16em] text-muted uppercase md:flex">
           {dias.length} {dias.length === 1 ? "día" : "días"}
           <span aria-hidden="true" className="text-line-strong">
@@ -151,7 +74,6 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
           {ideas} {ideas === 1 ? "idea" : "ideas"}
         </p>
 
-        {/* Los pasos, con la pastilla que va pasando. */}
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {pasos.map((paso, i) => {
             const esActivo = paso.clave === activo;
@@ -171,10 +93,9 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
                   />
                 ) : null}
 
-                <motion.button
-                  type="button"
-                  onClick={() => ir(i)}
-                  aria-current={esActivo ? "step" : undefined}
+                <motion.a
+                  href={`${BASE}${paso.ruta}`}
+                  aria-current={esActivo ? "page" : undefined}
                   aria-label={
                     paso.futuro
                       ? "El futuro: lo que todavía no ha pasado"
@@ -190,7 +111,7 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
                     ease: [0.22, 0.61, 0.36, 1]
                   }}
                   className={clsx(
-                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase transition-colors duration-300 outline-offset-2 outline-cobalt focus-visible:outline-2 sm:text-[0.75rem]",
+                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase no-underline transition-colors duration-300 outline-offset-2 outline-cobalt focus-visible:outline-2 sm:text-[0.75rem]",
                     esActivo
                       ? clsx(
                           "border-transparent",
@@ -202,14 +123,7 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
                   )}
                 >
                   {esActivo ? (
-                    <motion.span
-                      layoutId="guia-pastilla"
-                      transition={{
-                        type: "spring",
-                        stiffness: 420,
-                        damping: 34,
-                        mass: 0.7
-                      }}
+                    <span
                       style={{ borderRadius: 999 }}
                       className={clsx(
                         "absolute inset-0 rounded-full",
@@ -253,40 +167,55 @@ export default function LineaTiempo({ dias }: { dias: Dia[] }) {
                       {paso.cuantas}
                     </span>
                   )}
-                </motion.button>
+                </motion.a>
               </Fragment>
             );
           })}
         </div>
 
-        {/* Y los pasos, de uno en uno. */}
         <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
-          <button
-            type="button"
-            onClick={() => ir(indice - 1)}
-            disabled={indice <= 0}
-            aria-label="El paso anterior"
-            className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-30"
-          >
-            <ChevronLeft
-              aria-hidden="true"
-              className="size-3.5"
-              strokeWidth={2.5}
-            />
-          </button>
-          <button
-            type="button"
-            onClick={() => ir(indice + 1)}
-            disabled={indice >= pasos.length - 1}
-            aria-label="El paso siguiente"
-            className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2 disabled:pointer-events-none disabled:opacity-30"
-          >
-            <ChevronRight
-              aria-hidden="true"
-              className="size-3.5"
-              strokeWidth={2.5}
-            />
-          </button>
+          {anterior ? (
+            <a
+              href={`${BASE}${anterior.ruta}`}
+              aria-label="El paso anterior"
+              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
+            >
+              <ChevronLeft
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            </a>
+          ) : (
+            <span className="pointer-events-none rounded-md p-1 text-muted opacity-30">
+              <ChevronLeft
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            </span>
+          )}
+          {siguiente ? (
+            <a
+              href={`${BASE}${siguiente.ruta}`}
+              aria-label="El paso siguiente"
+              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
+            >
+              <ChevronRight
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            </a>
+          ) : (
+            <span className="pointer-events-none rounded-md p-1 text-muted opacity-30">
+              <ChevronRight
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.5}
+              />
+            </span>
+          )}
         </div>
       </div>
     </nav>

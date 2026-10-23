@@ -68,5 +68,3 @@ puede observar.
 ## Hoja de ruta
 
 Sin fases abiertas: M4 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0016-lente-migracion.changelog.md).

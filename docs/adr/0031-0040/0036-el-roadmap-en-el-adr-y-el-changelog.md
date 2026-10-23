@@ -1,6 +1,6 @@
 ---
 title: ADR 0036 — El roadmap vive en el ADR y el changelog al lado
-description: "El ADR 0031 dejó cada decisión con una hoja de ruta al lado (.roadmap.md) y el roadmap central como índice. Funcionó, pero el nombre mentía: esos ficheros guardaban,…"
+description: "El ADR 0031 dejó cada decisión con una hoja de ruta al lado y el roadmap central como índice. El ADR 0047 sustituye el sidecar `.changelog.md`: el registro vive en la guía."
 section: adr
 status: aceptado
 date: "2026-10-22"
@@ -10,6 +10,10 @@ sidebar:
 ---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
+
+**Sustituido en parte por:** [ADR 0047](../0041-0050/0047-el-changelog-es-la-guia.md). La hoja de
+ruta y el índice de fases siguen; el sidecar `.changelog.md` desaparece y su registro vive en la
+guía.
 
 ## Contexto
 
@@ -70,7 +74,7 @@ página del ADR; el ADR muestra su hoja de ruta en el cuerpo. No hay texto copia
 - El roadmap central deja de crecer con el detalle de cada fase: solo indexa.
 - Cambian las rutas de los sidecars (`.roadmap.md` → `.changelog.md`) y el roadmap se mueve a
   `docs/adr/roadmap.md`; los enlaces del repo, de la guía y del sitio se actualizan.
-- Las ideas que no son fase siguen en la [guía](../../guideline/contenido.md), por orden cronológico.
+- Las ideas que no son fase siguen en la [guía](/guia/), por orden cronológico.
 - La base SQLite no entra en git: si se implementa, se genera y se tira.
 
 ## Alternativas descartadas
@@ -101,5 +105,3 @@ de markdown y el sitio se genera sin base.
   sigue siendo la fuente.
 - [ ] **M24.5** Un test que genere la base dos veces y compruebe que sale igual, sin rutas absolutas ni
   timestamps.
-
-El detalle de lo hecho está en el [changelog](0036-el-roadmap-en-el-adr-y-el-changelog.changelog.md).

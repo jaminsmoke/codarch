@@ -40,7 +40,7 @@ Cada página de documentación ✓ sale del markdown del repo ✓ ✓, leído **
 Las páginas de los documentos ✓ ✅ —los ADR ✓ ✅, el roadmap ✓ ✅, el modelo ✓ ✅, las reglas ✓ ✅,
 el MCP ✓ ✅, la migración ✓ ✅ y el diseño del mapa ✓ ✅— **están publicadas** ✅ ✅: una página por
 documento ✅ ✅, con su menú ✅ ✅, su índice ✅ ✅ y sus vecinos ✅ ✅. La guía ✓ ✓ es el caso raro ✓ ✅:
-su contenido ✓ ✓ es un markdown ✓ ✅ (`docs/guideline/contenido.md` ✅ ✅) ✓ ✅ y la línea del tiempo
+su contenido ✓ ✓ son los markdown ✓ ✅ (`docs/guideline/entradas/` ✅ ✅) ✓ ✅ y la línea del tiempo
 ✓ ✅ se arma sola ✓ ✅ ✅.
 
 ### 3. La guía sigue siendo su propia página
@@ -107,11 +107,10 @@ lo que se decidió ese día ✅:
 
 ### Ideas abiertas
 
-- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
+- [La guía: el registro público de plugins](/guia/2026-10-21/#el-registro-publico-de-plugins)
   el registro necesita una **dirección estable**: con la web, el sitio puede ser el sitio
   del proyecto y el registro su índice.
 
-El detalle de lo hecho está en el [changelog](0034-la-web-del-proyecto.changelog.md).
 
 ## Nota de estilo
 

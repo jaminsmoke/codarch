@@ -88,5 +88,3 @@ Una app de escritorio sería un tercer camino para lo mismo.
 ## Hoja de ruta
 
 Sin fases abiertas: M7 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0021-app-de-escritorio.changelog.md).

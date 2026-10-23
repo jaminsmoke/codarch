@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { motion } from "motion/react";
-import type { Dia } from "./lib/guia";
+import type { ResumenDia } from "./lib/guia";
 
 /**
  * El frame: lo que envuelve a todas las páginas ✓ ✓.
@@ -28,10 +28,12 @@ function esActiva(ruta: string, actual: string): boolean {
 
 export default function Marco({
   children,
-  dias
+  dias,
+  activo
 }: {
   children: ReactNode;
-  dias?: Dia[];
+  dias?: ResumenDia[];
+  activo?: string;
 }) {
   const actual =
     typeof window === "undefined" ? "/" : window.location.pathname;
@@ -78,7 +80,7 @@ export default function Marco({
           <Suspense
             fallback={<div className="h-[3.05rem] border-t border-line/70" />}
           >
-            <LineaTiempo dias={dias} />
+            <LineaTiempo dias={dias} activo={activo ?? ""} />
           </Suspense>
         ) : null}
       </header>

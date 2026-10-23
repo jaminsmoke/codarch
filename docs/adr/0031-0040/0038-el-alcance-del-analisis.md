@@ -114,5 +114,3 @@ M5.
 - [x] **0038.5** Reanalizar el repo sin fixtures: 211 ficheros, 427 aristas, 0 ciclos y 0 imports
   sin resolver; lint, typecheck, tests, `check:action` y `site:build` en verde; changelog
   actualizado.
-
-El detalle de lo hecho estará en el [changelog](0038-el-alcance-del-analisis.changelog.md).

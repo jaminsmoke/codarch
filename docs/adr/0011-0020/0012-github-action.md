@@ -70,5 +70,3 @@ este repositorio y que no comprometa la arquitectura del producto.
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M2.
-
-El detalle de lo hecho está en el [changelog](0012-github-action.changelog.md).

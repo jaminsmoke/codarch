@@ -58,5 +58,3 @@ Núcleo en **TypeScript**, con arquitectura preparada para extraer piezas a Rust
 ## Hoja de ruta
 
 Sin fases abiertas: M1 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0003-typescript-first.changelog.md).

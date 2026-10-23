@@ -38,5 +38,3 @@ código con el treemap más allá del layout y las codificaciones.
 ## Hoja de ruta
 
 Sin fases abiertas: M0 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0005-2d-first.changelog.md).

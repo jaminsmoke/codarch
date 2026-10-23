@@ -36,8 +36,11 @@ describe("la sidebar de los documentos", () => {
     expect(bloque?.items?.some((item) => item.slug?.endsWith("0046-los-documentos-con-starlight"))).toBe(
       true
     );
-    expect(bloque?.items?.some((item) => item.slug?.endsWith("0046-los-documentos-con-starlight.changelog"))).toBe(
+    expect(bloque?.items?.some((item) => item.slug?.endsWith("0047-el-changelog-es-la-guia"))).toBe(
       true
+    );
+    expect(bloque?.items?.some((item) => item.slug?.includes(".changelog"))).toBe(
+      false
     );
   });
 });

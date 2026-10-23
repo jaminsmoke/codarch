@@ -130,10 +130,9 @@ Sin fases abiertas: M21 está cerrada.
 
 ### Ideas abiertas
 
-- [La guía: el registro público de plugins](../../guideline/contenido.md#el-registro-publico-de-plugins)
+- [La guía: el registro público de plugins](/guia/2026-10-21/#el-registro-publico-de-plugins)
   publicar el escritorio para que **los terceros** puedan actualizarlo.
 
-El detalle de lo hecho está en el [changelog](0032-las-versiones-y-las-actualizaciones.changelog.md).
 
 ## Nota de estilo
 

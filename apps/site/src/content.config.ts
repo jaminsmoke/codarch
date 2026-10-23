@@ -14,8 +14,6 @@ const metadata = z.object({
   section: z.enum(["producto", "adr"]),
   status: z.string().optional(),
   date: z.string().optional(),
-  changelog: z.boolean().default(false),
-  adr: z.string().optional(),
   tags: z.array(z.string()).default([])
 });
 

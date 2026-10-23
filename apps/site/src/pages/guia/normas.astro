@@ -1,0 +1,23 @@
+---
+import GuiaSite from "../../components/GuiaSite";
+import Site from "../../layouts/Site.astro";
+import { cargarGuia } from "../../lib/guia-carga";
+import { resumenDias } from "../../lib/guia-servidor";
+
+const datos = await cargarGuia();
+const dias = resumenDias(datos.dias);
+---
+
+<Site
+  title="Cómo se escribe la guía — CodArch"
+  description="La leyenda, las categorías, los veredictos y las reglas de la guía de CodArch."
+  canonical="https://jaminsmoke.github.io/codarch/guia/normas/"
+>
+  <GuiaSite
+    client:only="react"
+    modo="normas"
+    normas={datos.normas}
+    dias={dias}
+    activo="normas"
+  />
+</Site>

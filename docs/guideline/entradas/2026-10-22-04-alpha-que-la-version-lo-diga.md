@@ -15,4 +15,4 @@ que `latest` se quede con la última normal, y el README lo dice arriba.
 Lo que **sí** se promete: el modelo `cc.json` 2.x y su checksum.
 
 **Veredicto**: **fase M21**, en la hoja de
-[ADR 0032](../../adr/0031-0040/0032-las-versiones-y-las-actualizaciones.changelog.md). Hecho.
+[ADR 0032](../../adr/0031-0040/0032-las-versiones-y-las-actualizaciones.md). Hecho.

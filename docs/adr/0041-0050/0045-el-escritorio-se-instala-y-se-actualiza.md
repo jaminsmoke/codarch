@@ -116,5 +116,3 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Cambiar el tag a `v<versión>` para que `electron-updater` lo lea como semver.
 - [x] Probar el ciclo: `alpha.1` descargó `alpha.2`, la instaló al cerrar y arrancó como `alpha.2`.
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.
-
-El detalle de lo hecho está en el [changelog](0045-el-escritorio-se-instala-y-se-actualiza.changelog.md).

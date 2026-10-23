@@ -36,9 +36,9 @@ Si tocas la acción ✓, también `npm run sync:action` ✓ y el repo público �
 - Las **decisiones** ✓ van en un ADR ✓, con su contexto ✓, sus alternativas ✓ y sus
   consecuencias ✓.
 - Las **fases** ✓ viven en la hoja de ruta de su decisión ✓ ([`docs/adr/`](docs/adr/index.md) ✓) ✓,
-  y `docs/adr/roadmap.md` ✓ solo las indexa ✓. Lo hecho queda en su changelog ✓
-  (`<adr>.changelog.md` ✓).
-- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](docs/guideline/contenido.md) ✓, por
+  y `docs/adr/roadmap.md` ✓ solo las indexa ✓. Lo hecho queda en el **feed de la guía** ✓
+  (`docs/guideline/entradas/` ✓).
+- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](docs/guideline/README.md) ✓, por
   orden cronológico ✓ y con su veredicto ✓.
 
 ## La licencia

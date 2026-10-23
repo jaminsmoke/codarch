@@ -17,5 +17,5 @@ implementación está a la vista.
 `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y la nota de privacidad.
 
 **Veredicto**: **fase M22**, en la hoja de
-[ADR 0033](../../adr/0031-0040/0033-abrir-el-repo.changelog.md). Las medidas ya están y el repo es
+[ADR 0033](../../adr/0031-0040/0033-abrir-el-repo.md). Las medidas ya están y el repo es
 público.

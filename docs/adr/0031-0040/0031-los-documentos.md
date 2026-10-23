@@ -157,7 +157,6 @@ cronológica siguen como aquí.
 
 Sin fases abiertas: M18, M19 y M20 están cerradas.
 
-El detalle de lo hecho está en el [changelog](0031-los-documentos.changelog.md).
 
 ## Nota de estilo
 

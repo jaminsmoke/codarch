@@ -67,5 +67,3 @@ la política del repositorio y contra una política más estricta en una release
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M2 y M9.
-
-El detalle de lo hecho está en el [changelog](0011-reglas-de-arquitectura.changelog.md).

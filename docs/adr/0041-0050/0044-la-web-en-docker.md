@@ -95,5 +95,3 @@ por ejecutarla dentro de Docker.
 - [x] El workflow `docker.yml` construye en PR y publica en GHCR al entrar en `main`.
 - [x] Probar la imagen publicada contra el repo: el smoke test descarga la imagen de GHCR, la
   arranca con el repo montado y comprueba `/data/meta.json` con 230 ficheros y su checksum.
-
-El detalle de lo hecho está en el [changelog](0044-la-web-en-docker.changelog.md).

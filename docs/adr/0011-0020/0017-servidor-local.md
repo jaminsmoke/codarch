@@ -89,5 +89,3 @@ Esto no es un monitor de GitHub ni un servicio remoto. Los PR siguen en la GitHu
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
-
-El detalle de lo hecho está en el [changelog](0017-servidor-local.changelog.md).

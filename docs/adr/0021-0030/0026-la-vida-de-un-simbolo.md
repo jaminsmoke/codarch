@@ -169,7 +169,6 @@ simetría.
 
 Sin fases abiertas: M12 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0026-la-vida-de-un-simbolo.changelog.md).
 
 ## Nota de estilo
 

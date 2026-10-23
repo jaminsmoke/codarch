@@ -53,5 +53,3 @@ Lo que sí hacemos desde el principio:
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M0.
-
-El detalle de lo hecho está en el [changelog](0006-nodos-fichero.changelog.md).

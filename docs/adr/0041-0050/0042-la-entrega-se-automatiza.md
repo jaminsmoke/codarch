@@ -116,5 +116,3 @@ se pone una versión que todavía no está en npm.
 
 - Decidir si `publish-cli.yml` pasa de `workflow_dispatch` a `push`; hoy el manual sigue siendo
   la salida para reintentar y para no publicar sin querer.
-
-El detalle de lo hecho está en el [changelog](0042-la-entrega-se-automatiza.changelog.md).

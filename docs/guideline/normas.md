@@ -15,9 +15,9 @@ Los iconos son de categoría o de estado, no decoración: si una frase se entien
 ellos. Los ✓ y ✗ siguen significando **hecho** y **no hecho** cuando hagan falta.
 
 ## Las categorías
-Cada entrada dice **qué clase de trabajo es** además de qué se decidió. Las categorías son las de
-un **changelog** ([ADR 0035](../adr/0031-0040/0035-la-guia-como-changelog.md)) y son un **set
-cerrado**:
+Cada entrada dice **qué clase de trabajo es** además de qué se decidió. Las categorías son las del
+**changelog de la guía** ([ADR 0035](../adr/0031-0040/0035-la-guia-como-changelog.md) ·
+[ADR 0047](../adr/0041-0050/0047-el-changelog-es-la-guia.md)) y son un **set cerrado**:
 
 | Categoría | Qué es |
 |---|---|

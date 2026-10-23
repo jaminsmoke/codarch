@@ -14,4 +14,4 @@ de diez**, cada uno con su **hoja de ruta** dentro y su **changelog** al lado;
 `docs/adr/roadmap.md` queda como **índice** y esta guía como **registro cronológico**.
 
 **Veredicto**: **fase M18**, en la hoja de
-[ADR 0031](../../adr/0031-0040/0031-los-documentos.changelog.md). Hecho.
+[ADR 0031](../../adr/0031-0040/0031-los-documentos.md). Hecho.

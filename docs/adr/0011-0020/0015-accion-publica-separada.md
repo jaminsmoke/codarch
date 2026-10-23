@@ -63,5 +63,3 @@ El CLI que ejecuta se instala desde npm.
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M3.
-
-El detalle de lo hecho está en el [changelog](0015-accion-publica-separada.changelog.md).

@@ -72,5 +72,3 @@ generador (M9.2) es para los repos que no encajan en ningún perfil.
 ## Hoja de ruta
 
 Sin fases abiertas: M9 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0023-lente-de-dominio-por-pasos.changelog.md).

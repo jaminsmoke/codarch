@@ -61,5 +61,3 @@ apps/
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M0 y M1.
-
-El detalle de lo hecho está en el [changelog](0002-monorepo-core-first.changelog.md).

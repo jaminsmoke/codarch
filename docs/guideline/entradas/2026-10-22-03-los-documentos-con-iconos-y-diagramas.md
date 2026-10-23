@@ -13,4 +13,4 @@ como un muro: las decisiones quedan enterradas.
 diagrama ahorra un párrafo.
 
 **Veredicto**: **fase M19**, en la hoja de
-[ADR 0031](../../adr/0031-0040/0031-los-documentos.changelog.md). Hecho.
+[ADR 0031](../../adr/0031-0040/0031-los-documentos.md). Hecho.

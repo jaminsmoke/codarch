@@ -61,5 +61,3 @@ Verificado el 2026-10-20: `codarch` libre en npm, org de GitHub libre, y `codarc
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M0.
-
-El detalle de lo hecho está en el [changelog](0007-nombre-codarch.changelog.md).

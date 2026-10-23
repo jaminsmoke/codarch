@@ -68,5 +68,3 @@ JSON ni un tercer formato que haya que sincronizar: debe ser una consulta entre 
 ## Hoja de ruta
 
 Sin fases abiertas: M2 está cerrada.
-
-El detalle de lo hecho está en el [changelog](0010-diff-entre-snapshots.changelog.md).

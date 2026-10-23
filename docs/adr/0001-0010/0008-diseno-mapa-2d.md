@@ -49,5 +49,3 @@ con forma de CodeCharta. El diseño completo está en [`docs/design/map.md`](../
 ## Hoja de ruta
 
 Sin fases abiertas: M5 y M5.1 están cerradas.
-
-El detalle de lo hecho está en el [changelog](0008-diseno-mapa-2d.changelog.md).

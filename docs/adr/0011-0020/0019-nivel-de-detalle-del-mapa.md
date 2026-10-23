@@ -69,5 +69,3 @@ rectángulos diminutos no es un mapa, es ruido. A ese tamaño la lectura útil e
 ## Hoja de ruta
 
 Sin fases abiertas; esta decisión se aplica en M5 y M5.1.
-
-El detalle de lo hecho está en el [changelog](0019-nivel-de-detalle-del-mapa.changelog.md).

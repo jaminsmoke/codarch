@@ -145,7 +145,6 @@ La documentación lo dice con esas palabras ✓: es la diferencia que más se co
 
 Sin fases abiertas: M17 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0030-instalar-y-quitar.changelog.md).
 
 ## Nota de estilo
 

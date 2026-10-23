@@ -107,5 +107,3 @@ Sin fases abiertas: es una decisión de mantenimiento que se aplica en todo el r
 - Que `npm run version -- --report` avise si hay reportes antiguos que ya no se saben reconstruir.
   Hoy el lector conserva la lista de versiones conocidas; al subir el reporte hay que añadir la
   versión que se deja atrás.
-
-El detalle de lo hecho está en el [changelog](0041-cada-version-una-vez.changelog.md).

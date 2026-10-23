@@ -100,5 +100,3 @@ cualquier métrica que dependa del código. Una foto vieja se vuelve a analizar;
   nombres; test de un callback que no aparece como símbolo.
 - [x] **0040.3** Suite completa, lint, typecheck, `check:action`, `site:build` y `web:build`; changelog
   con la verificación.
-
-El detalle de lo hecho está en el [changelog](0040-la-complejidad-del-cuerpo-entero.changelog.md).

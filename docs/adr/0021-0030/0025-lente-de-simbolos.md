@@ -81,7 +81,6 @@ es un paso aparte, detrás.
 
 Sin fases abiertas: M11 está cerrada.
 
-El detalle de lo hecho está en el [changelog](0025-lente-de-simbolos.changelog.md).
 
 ## Nota de estilo
 

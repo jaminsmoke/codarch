@@ -104,5 +104,3 @@ versión 2 para que las cadenas calculadas antes de este arreglo se rehagan y no
   la descripción; tests de la herramienta y del helper compartido con la CLI.
 - [x] **0039.4** Documentos: `docs/mcp.md` y la guía describen la búsqueda; suite, lint, typecheck y
   builds en verde.
-
-El detalle de lo hecho está en el [changelog](0039-la-busqueda-de-una-cadena.changelog.md).

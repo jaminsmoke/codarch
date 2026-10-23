@@ -109,5 +109,3 @@ existen. Se aplica en M2 y M9.
   determinista; regenerar el snapshot de la auditoría.
 - [x] **0037.5** `docs/model.md` y `docs/rules.md`: decir que los ciclos son de ejecución y que las
   aristas de tipos siguen visibles. Pasar la suite completa y `check:action`.
-
-El detalle de lo hecho está en el [changelog](0037-los-ciclos-de-ejecucion.changelog.md).
