@@ -52,6 +52,14 @@ export default defineConfig({
       {
         find: /^@codarch\/layouts$/,
         replacement: resolve("packages/layouts/src/index.ts")
+      },
+      {
+        find: /^@codarch\/ui\/styles\.css$/,
+        replacement: resolve("packages/ui/src/styles.css")
+      },
+      {
+        find: /^@codarch\/ui$/,
+        replacement: resolve("packages/ui/src/index.ts")
       }
     ]
   },

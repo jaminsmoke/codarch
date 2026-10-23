@@ -1,10 +1,11 @@
 # CodArch Desktop
 
 App de escritorio de CodArch. Electron con su propia interfaz: **no importa nada de `apps/web`**.
-Las dos apps se desarrollan por separado y ninguna depende de la otra
-([ADR 0021](../../docs/adr/0021-0030/0021-app-de-escritorio.md)).
+Las dos apps no se importan la una a la otra ([ADR 0021](../../docs/adr/0021-0030/0021-app-de-escritorio.md));
+lo que comparten es el motor y la presentación pura de `packages/ui`
+([ADR 0043](../../docs/adr/0041-0050/0043-la-ui-compartida.md)).
 
-Lo que sí es el mismo en las dos: el motor, los `packages/`. El modelo, las métricas y el checksum
+Lo que es el mismo en las dos: el motor, los `packages/`. El modelo, las métricas y el checksum
 son la verdad del producto y llegan igual a la web y al escritorio.
 
 ## Qué aporta frente a la web
@@ -34,7 +35,7 @@ en la caché de Electron, así que repetirlo no cuesta nada.
 src/
 ├── main.ts        proceso principal: ventana, diálogos y análisis en proceso
 ├── preload.ts     puente: lo único que el renderer puede usar
-└── renderer/      la interfaz (React), copia propia de la de la web
+└── renderer/      la interfaz (React), con las piezas puras de `@codarch/ui`
 ```
 
 - El **proceso principal** hace el análisis con el mismo `analyzeRepository` que el CLI, así que el

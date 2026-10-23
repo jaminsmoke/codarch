@@ -1,0 +1,23 @@
+{
+  "name": "@codarch/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "La interfaz que comparten la web y el escritorio.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@codarch/metrics": "*",
+    "@codarch/render": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1"
+  }
+}

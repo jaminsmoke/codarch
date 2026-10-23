@@ -34,7 +34,7 @@ flowchart TD
 | [0018](0011-0020/0018-estado-vista-en-la-url.md) | Estado de vista en la URL y carga por URL | 2026-10-21 | aceptado | se aplica en M5, M5.1 |
 | [0019](0011-0020/0019-nivel-de-detalle-del-mapa.md) | Nivel de detalle del mapa | 2026-10-21 | aceptado | se aplica en M5, M5.1 |
 | [0020](0011-0020/0020-analisis-en-el-navegador.md) | Análisis en el navegador con la misma gramática que el CLI | 2026-10-21 | aceptado | M6 |
-| [0021](0021-0030/0021-app-de-escritorio.md) | App de escritorio (Electron) con código copiado, no compartido | 2026-10-21 | aceptado | M7 |
+| [0021](0021-0030/0021-app-de-escritorio.md) | App de escritorio (Electron) con su propia interfaz | 2026-10-21 | aceptado | M7 · UI compartida en 0043 |
 | [0022](0021-0030/0022-la-migracion-donde-faltaba.md) | La migración, donde ya faltaba | 2026-10-21 | aceptado | M8 |
 | [0023](0021-0030/0023-lente-de-dominio-por-pasos.md) | Lente de dominio, por pasos | 2026-10-21 | aceptado | M9 |
 | [0024](0021-0030/0024-evolucion-temporal.md) | La evolución temporal: el calor y la historia | 2026-10-21 | aceptado | M10 |
@@ -56,6 +56,7 @@ flowchart TD
 | [0040](0031-0040/0040-la-complejidad-del-cuerpo-entero.md) | La complejidad cuenta el cuerpo entero | 2026-10-23 | aceptado | se aplica en M0, M11 |
 | [0041](0041-0050/0041-cada-version-una-vez.md) | Cada versión se declara una vez | 2026-10-23 | aceptado | se aplica en todo el repo |
 | [0042](0041-0050/0042-la-entrega-se-automatiza.md) | La entrega se automatiza | 2026-10-23 | aceptado | M25 |
+| [0043](0041-0050/0043-la-ui-compartida.md) | La UI se comparte por paquete | 2026-10-23 | aceptado | M26 |
 
 ## Las carpetas
 
@@ -65,6 +66,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
-- **0041-0050**: 0041, 0042
+- **0041-0050**: 0041, 0042, 0043
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

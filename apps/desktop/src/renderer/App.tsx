@@ -45,9 +45,16 @@ import {
 } from "@codarch/render/browser";
 import Settings from "./Settings";
 import { usePlugins } from "./plugins";
-import { labelFor } from "./labels";
 import type { PluginContext } from "@codarch/plugin-api";
-import PrPanel from "./PrPanel";
+import {
+  DEFAULT_DETAIL_OPTIONS,
+  labelFor,
+  nextCell,
+  PrPanel,
+  pruneTree,
+  type CellBox,
+  type Direction
+} from "@codarch/ui";
 import {
   clearProject,
   readPreferences,
@@ -56,8 +63,6 @@ import {
   writeProject,
   type ViewPreferences
 } from "./storage";
-import { nextCell, type CellBox, type Direction } from "./navigation";
-import { DEFAULT_DETAIL_OPTIONS, pruneTree } from "./detail";
 import type { CodarchDesktop } from "../preload";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {

@@ -28,11 +28,14 @@
       "@codarch/metrics/browser": ["packages/metrics/src/browser.ts"],
       "@codarch/render": ["packages/render/src/index.ts"],
       "@codarch/render/browser": ["packages/render/src/browser.ts"],
-      "@codarch/plugin-api": ["packages/plugin-api/src/index.ts"]
+      "@codarch/plugin-api": ["packages/plugin-api/src/index.ts"],
+      "@codarch/ui": ["packages/ui/src/index.ts"],
+      "@codarch/ui/styles.css": ["packages/ui/src/styles.css"]
     }
   },
   "include": [
     "packages/*/src/**/*.ts",
+    "packages/*/src/**/*.tsx",
     "packages/*/test/**/*.ts",
     "plugins/*/src/**/*.ts",
     "plugins/*/src/**/*.tsx",

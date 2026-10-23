@@ -9,7 +9,7 @@ modelo, no la fuente de verdad. Implementación clean-room: `cc.json` solo como 
 Monorepo core-first:
 
 ```
-packages/   schema · parsers · metrics · layouts · render · plugin-api · addons
+packages/   schema · parsers · metrics · layouts · render · plugin-api · addons · ui
 apps/       cli · mcp · github-action · web (M5) · desktop (M7) · site (M23)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
 docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040, 0041-0050; roadmap.md dentro) · model.md · rules.md · mcp.md · migration.md · guideline/
@@ -32,7 +32,7 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action �
   en carpetas de diez ✓ (`docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
   ruta** dentro ✓ (`## Hoja de ruta` ✓): lo abierto y lo que está en curso ✓. El sidecar
   `<adr>.changelog.md` ✓ guarda lo hecho ✓, no lo que falta ✓ (ADR 0036 ✓).
-- `docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M25 ✓): una línea por fase ✓ con su decisión ✓.
+- `docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M26 ✓): una línea por fase ✓ con su decisión ✓.
   Las ideas que no son fase viven en la **guía** ✓ (`docs/guideline/` ✓, una página ✓ en HTML ✓ con su
   CSS ✓ y su JS ✓ ✓), por orden cronológico ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓
   o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
@@ -142,6 +142,8 @@ también `npm run sync:action` y actualizar el repo público.
 - M25 cerrada: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
   escritorio crea su release solo cuando `versions.json` supera la última `desktop-v*`; la acción
   se actualiza después de publicar. El primer release automático fue `desktop-v0.3.0-alpha.2`.
+- M26 en curso: la UI compartida (ADR 0043). `packages/ui` (`@codarch/ui`) guarda las piezas puras
+  y el CSS común; la web y el escritorio siguen con su propia cáscara y no se importan entre sí.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

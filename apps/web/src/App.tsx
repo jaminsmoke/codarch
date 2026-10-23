@@ -44,9 +44,16 @@ import {
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
 import { usePlugins } from "./plugins";
-import { labelFor } from "./labels";
 import type { PluginContext } from "@codarch/plugin-api";
-import PrPanel from "./PrPanel";
+import {
+  DEFAULT_DETAIL_OPTIONS,
+  labelFor,
+  nextCell,
+  PrPanel,
+  pruneTree,
+  type CellBox,
+  type Direction
+} from "@codarch/ui";
 import {
   readRepositoryFromFiles,
   readRepositoryFromPicker
@@ -67,8 +74,6 @@ import {
   type SourceRequest,
   type ViewState as UrlViewState
 } from "./viewState";
-import { nextCell, type CellBox, type Direction } from "./navigation";
-import { DEFAULT_DETAIL_OPTIONS, pruneTree } from "./detail";
 import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
 import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
