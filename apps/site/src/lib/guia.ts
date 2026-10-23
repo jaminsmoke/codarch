@@ -94,6 +94,15 @@ export interface ResumenDia {
   categorias: Categoria[];
 }
 
+/** Los días, en corto: fecha, cuántas ideas y sus categorías. */
+export function resumenDias(dias: Dia[]): ResumenDia[] {
+  return dias.map((dia) => ({
+    fecha: dia.fecha,
+    cuantas: dia.entradas.length,
+    categorias: [...new Set(dia.entradas.map((entrada) => entrada.categoria))]
+  }));
+}
+
 /** La ruta de un día: el último vive en `/guia/`, los demás en su fecha. */
 export function rutaDia(fecha: string, ultima: string): string {
   return fecha === ultima ? "/guia/" : `/guia/${fecha}/`;

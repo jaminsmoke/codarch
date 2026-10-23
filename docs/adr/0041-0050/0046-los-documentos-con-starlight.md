@@ -130,6 +130,12 @@ No se usa una base de datos como fuente: GitHub Pages es estático y la document
 poder revisarse en un PR. SQLite/FTS5 (M24) sigue siendo un **índice derivado** para CLI/MCP, no
 la fuente del sitio.
 
+### 7. La cabecera del sitio, también en los documentos
+
+Starlight conserva su cabecera (búsqueda, tema y GitHub) y se le añaden los enlaces **Inicio**,
+**Guía** y **Documentos** con un override de `Header`. Los documentos no pierden la navegación del
+resto del sitio; en móvil, el título lleva a Inicio y la barra lateral a la guía.
+
 ## Consecuencias
 
 - La documentación gana HTML por página, SEO, búsqueda, sitemap y navegación automática.

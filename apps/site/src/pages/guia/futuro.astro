@@ -1,11 +1,9 @@
 ---
-import GuiaSite from "../../components/GuiaSite";
+import GuiaApp from "../../components/GuiaApp";
 import Site from "../../layouts/Site.astro";
 import { cargarGuia } from "../../lib/guia-carga";
-import { resumenDias } from "../../lib/guia-servidor";
 
 const datos = await cargarGuia();
-const dias = resumenDias(datos.dias);
 ---
 
 <Site
@@ -13,11 +11,5 @@ const dias = resumenDias(datos.dias);
   description="Las ideas de la guía de CodArch que esperan su turno: lo que todavía no ha pasado."
   canonical="https://jaminsmoke.github.io/codarch/guia/futuro/"
 >
-  <GuiaSite
-    client:only="react"
-    modo="futuro"
-    futuras={datos.futuras}
-    dias={dias}
-    activo="futuro"
-  />
+  <GuiaApp client:only="react" datos={datos} />
 </Site>

@@ -169,6 +169,8 @@ también `npm run sync:action` y actualizar el repo público.
 - M30 cerrada: el changelog es la guía (ADR 0047). Los 46 sidecars `<adr>.changelog.md` desaparecen;
   el feed de la guía es el registro. La guía se parte en `/guia/` (el último día),
   `/guia/AAAA-MM-DD/`, `/guia/futuro/` y `/guia/normas/`, y la línea del tiempo enlaza a cada una.
+  La cabecera y la línea del tiempo se montan una vez; solo cambia el contenido de abajo. Los
+  documentos comparten **Inicio**, **Guía** y **Documentos** en su cabecera.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

@@ -43,7 +43,9 @@ sidecar.
 - `/guia/normas/` explica cómo se escribe.
 
 La línea del tiempo del header enlaza a esas páginas. Cada página pinta solo su día: la guía no
-crece con la historia entera.
+crece con la historia entera. La guía es una sola isla: la cabecera y la línea del tiempo se montan
+una vez y no se vuelven a montar al cambiar de día; solo cambia el contenido de abajo. La URL se
+mueve con `history.pushState`, así que cada día conserva su dirección.
 
 ### 4. El ADR 0036 queda sustituido en parte
 

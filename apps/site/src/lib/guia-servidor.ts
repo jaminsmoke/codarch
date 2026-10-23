@@ -4,7 +4,6 @@ import {
   type DatosGuia,
   type Dia,
   type Entrada,
-  type ResumenDia,
   type Veredicto
 } from "./guia";
 import { primerParrafo, recortar, renderizar, slug } from "./markdown";
@@ -61,15 +60,6 @@ function diasDe(entradas: Entrada[]): Dia[] {
       entradas: lista,
       grupos: agrupar(lista)
     }));
-}
-
-/** Los días, en corto: fecha, cuántas ideas y sus categorías. */
-export function resumenDias(dias: Dia[]): ResumenDia[] {
-  return dias.map((dia) => ({
-    fecha: dia.fecha,
-    cuantas: dia.entradas.length,
-    categorias: [...new Set(dia.entradas.map((entrada) => entrada.categoria))]
-  }));
 }
 
 /** La guía entera: la entradilla, las normas, los días y lo que espera. */

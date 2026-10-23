@@ -42,7 +42,8 @@ export default defineConfig({
       },
       customCss: ["./src/styles/starlight.css"],
       components: {
-        Head: "./src/components/Head.astro"
+        Head: "./src/components/Head.astro",
+        Header: "./src/components/Header.astro"
       },
       sidebar: sidebar(),
       social: [

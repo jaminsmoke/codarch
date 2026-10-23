@@ -37,9 +37,11 @@ npm run site:build   # sale en apps/site/dist
   (`src/lib/rehype-doc-links.mjs` ✅ ✅): `../model.md` → `/codarch/docs/model/` ✅ ✅. Lo que no es un
   documento ✅ (una imagen ✅, un HTML ✅) sale al repo ✅ ✅.
 - **La portada y la guía** siguen en React ✅ ✅, montadas como islas desde Astro ✅ ✅
-  (`ReactSite.tsx` ✅ para la portada y `GuiaSite.tsx` ✅ para la guía). **motion** ✅ ✅ anima ✅ ✅ y
-  la guía conserva su línea del tiempo ✅ ✅. Cada página es su propia isla y sus enlaces son `<a>`
-  normales ✅ ✅.
+  (`ReactSite.tsx` ✅ para la portada y `GuiaApp.tsx` ✅ para la guía). **motion** ✅ ✅ anima ✅ ✅ y
+  la guía conserva su línea del tiempo ✅ ✅. La guía es **una sola isla**: la cabecera y la línea del
+  tiempo se montan una vez y solo cambia el contenido de abajo al pasar de día ✅ ✅.
+- **La cabecera de los documentos** ✅ ✅ lleva **Inicio**, **Guía** y **Documentos**
+  (`src/components/Header.astro` ✅ ✅) y conserva la búsqueda, el tema y el GitHub de Starlight ✅ ✅.
 - La **guía** es estructurada ✅ ✅: cada idea es un fichero en `docs/guideline/entradas/` con
   `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-carga.ts` la carga, `guia-servidor.ts` la ordena
   y la agrupa ✅ ✅ y `Guia.tsx` pinta un día ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
