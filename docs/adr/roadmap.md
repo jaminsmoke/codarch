@@ -19,7 +19,7 @@ Hoy CodArch tiene:
   e instaladores sin firmar.
 
 Las fases M0–M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
-M27 en curso y M28 en curso.
+M27 cerrada y M28 en curso.
 
 ## Las fases
 
@@ -103,7 +103,7 @@ flowchart TD
 | M24 | El índice SQLite de los documentos | sin empezar | [ADR 0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
 | M25 | La entrega se automatiza | cerrada | [ADR 0042](0041-0050/0042-la-entrega-se-automatiza.md#hoja-de-ruta) · [changelog](0041-0050/0042-la-entrega-se-automatiza.changelog.md) |
 | M26 | La UI compartida | cerrada | [ADR 0043](0041-0050/0043-la-ui-compartida.md#hoja-de-ruta) · [changelog](0041-0050/0043-la-ui-compartida.changelog.md) |
-| M27 | La app web en Docker | en curso | [ADR 0044](0041-0050/0044-la-web-en-docker.md#hoja-de-ruta) · [changelog](0041-0050/0044-la-web-en-docker.changelog.md) |
+| M27 | La app web en Docker | cerrada | [ADR 0044](0041-0050/0044-la-web-en-docker.md#hoja-de-ruta) · [changelog](0041-0050/0044-la-web-en-docker.changelog.md) |
 | M28 | El escritorio se instala y se actualiza | en curso | [ADR 0045](0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md#hoja-de-ruta) · [changelog](0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.changelog.md) |
 
 ## Cómo se lee esto

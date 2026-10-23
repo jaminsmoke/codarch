@@ -149,9 +149,10 @@ también `npm run sync:action` y actualizar el repo público.
   inyectada, el mapa, el inspector, los paneles y las listas. La web y el escritorio siguen con su
   propia cáscara y no se importan entre sí; `App.tsx` conserva solo el estado y los hooks de
   plataforma.
-- M27 en curso: la app web en Docker (ADR 0044). La imagen multi-etapa arranca `codarch serve`
+- M27 cerrada: la app web en Docker (ADR 0044). La imagen multi-etapa arranca `codarch serve`
   sobre `/workspace`, el Compose monta el repositorio en solo lectura y publica el puerto solo en
-  loopback; `docker.yml` construye en PR y publica en GHCR al entrar en `main`.
+  loopback; `docker.yml` construye en PR, publica en GHCR al entrar en `main` y prueba la imagen
+  contra el repo.
 - M28 en curso: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows,
   DMG/ZIP en macOS y AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y
   `electron-updater` actualiza Windows y Linux. macOS espera a la firma.
