@@ -6,7 +6,7 @@ de arquitectura para PR/CI.
 
 > [!IMPORTANT]
 > **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
-> (`0.3.0-alpha.2` ✓) y **no hay soporte** ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓
+> (`0.3.1-alpha.1` ✓) y **no hay soporte** ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓
 > y su checksum ✓.
 
 ## Instalación
