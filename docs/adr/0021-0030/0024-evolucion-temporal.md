@@ -1,4 +1,13 @@
-# ADR 0024 — La evolución temporal: el calor y la historia
+---
+title: "ADR 0024 — La evolución temporal: el calor y la historia"
+description: "El snapshot ya trae el churn de git por fichero (numberofcommits y numberofauthors) y el riesgo lo usa. Pero no hay forma de ver la historia: ni qué zona se toca más (el…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: "La evolución temporal: el calor y la historia"
+  order: 24
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

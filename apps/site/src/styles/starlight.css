@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,750&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+/**
+ * Los tokens de la app, aplicados a Starlight (ADR 0046).
+ *
+ * La portada y la guía conservan su hoja; los documentos usan la misma paleta
+ * para que el cambio de página no parezca otro producto.
+ */
+
+:root {
+  --sl-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sl-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sl-color-accent-low: #dbe6ff;
+  --sl-color-accent: #2f6fed;
+  --sl-color-accent-high: #123f9e;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #35434c;
+  --sl-color-gray-2: #64727b;
+  --sl-color-gray-3: #9fadb4;
+  --sl-color-gray-4: #c8d1d5;
+  --sl-color-gray-5: #e2e8ea;
+  --sl-color-gray-6: #eef1f2;
+  --sl-color-black: #121a20;
+  --sl-color-bg: #eef1f2;
+  --sl-color-bg-nav: rgba(238, 241, 242, 0.92);
+  --sl-color-bg-sidebar: #eef1f2;
+  --sl-color-bg-inline-code: #e2e8ea;
+  --sl-color-text: #121a20;
+  --sl-color-text-accent: #2f6fed;
+  --sl-color-hairline: #c8d1d5;
+  --sl-color-hairline-light: #dce3e6;
+  --sl-color-hairline-shade: #c8d1d5;
+}
+
+:root[data-theme="dark"] {
+  --sl-color-accent-low: #1d315c;
+  --sl-color-accent: #7aa2ff;
+  --sl-color-accent-high: #c8d8ff;
+  --sl-color-gray-1: #c3ced4;
+  --sl-color-gray-2: #93a2ab;
+  --sl-color-gray-3: #64727b;
+  --sl-color-gray-4: #43525b;
+  --sl-color-gray-5: #2b363d;
+  --sl-color-gray-6: #161e24;
+  --sl-color-black: #e7edf0;
+  --sl-color-bg: #10161b;
+  --sl-color-bg-nav: rgba(16, 22, 27, 0.92);
+  --sl-color-bg-sidebar: #10161b;
+  --sl-color-bg-inline-code: #1f2a31;
+  --sl-color-text: #e7edf0;
+  --sl-color-text-accent: #7aa2ff;
+  --sl-color-hairline: #2b363d;
+  --sl-color-hairline-light: #34424a;
+  --sl-color-hairline-shade: #2b363d;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.site-title {
+  font-family: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.sl-markdown-content {
+  --sl-text-body: 1rem;
+  --sl-text-body-sm: 0.9rem;
+}
+
+.sl-markdown-content :is(h2, h3) {
+  scroll-margin-top: 6rem;
+}
+
+.sl-markdown-content table {
+  font-size: 0.9rem;
+}
+
+.sl-markdown-content code:not(:where(.not-content *)) {
+  border-radius: 0.35rem;
+}

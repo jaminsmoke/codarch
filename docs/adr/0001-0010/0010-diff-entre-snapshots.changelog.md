@@ -1,4 +1,13 @@
-# Changelog — ADR 0010 «Diff entre snapshots y reporte estable»
+---
+title: Changelog — ADR 0010 «Diff entre snapshots y reporte estable»
+description: Lo hecho del ADR 0010, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0010-diff-entre-snapshots
+sidebar:
+  label: Changelog
+  order: 10.5
+---
 
 **Decisión:** [el ADR](0010-diff-entre-snapshots.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

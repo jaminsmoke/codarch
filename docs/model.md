@@ -1,4 +1,11 @@
-# Modelo de datos
+---
+title: Modelo de datos
+description: Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir código, porque cambiarla después contamina el CLI, el mapa, el bot y…
+section: producto
+sidebar:
+  label: Modelo de datos
+  order: 1
+---
 
 **Estado:** M4 implementado. `packages/schema` valida `cc.json` 2.x, normaliza 1.x y comparte la
 identidad canónica; `packages/parsers` produce snapshots 2.0 con métricas, grafo y lente de

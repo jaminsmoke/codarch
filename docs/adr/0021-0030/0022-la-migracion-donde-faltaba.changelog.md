@@ -1,4 +1,13 @@
-# Changelog — ADR 0022 «La migración, donde ya faltaba»
+---
+title: Changelog — ADR 0022 «La migración, donde ya faltaba»
+description: Lo hecho del ADR 0022, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0022-la-migracion-donde-faltaba
+sidebar:
+  label: Changelog
+  order: 22.5
+---
 
 **Decisión:** [el ADR](0022-la-migracion-donde-faltaba.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

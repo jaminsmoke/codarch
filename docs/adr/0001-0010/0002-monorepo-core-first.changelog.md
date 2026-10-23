@@ -1,4 +1,13 @@
-# Changelog — ADR 0002 «Monorepo core-first»
+---
+title: Changelog — ADR 0002 «Monorepo core-first»
+description: Lo hecho del ADR 0002, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0002-monorepo-core-first
+sidebar:
+  label: Changelog
+  order: 2.5
+---
 
 **Decisión:** [el ADR](0002-monorepo-core-first.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

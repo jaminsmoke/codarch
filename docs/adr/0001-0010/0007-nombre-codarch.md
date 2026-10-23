@@ -1,4 +1,13 @@
-# ADR 0007 — El nombre: CodArch
+---
+title: "ADR 0007 — El nombre: CodArch"
+description: "El nombre propuesto inicialmente fue ArchCode. Antes de registrarlo se comprobó el ecosistema:"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: "El nombre: CodArch"
+  order: 7
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

@@ -1,4 +1,13 @@
-# Changelog — ADR 0039 «La búsqueda de una cadena: símbolos, no nodos»
+---
+title: "Changelog — ADR 0039 «La búsqueda de una cadena: símbolos, no nodos»"
+description: Lo hecho del ADR 0039, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0039-la-busqueda-de-una-cadena
+sidebar:
+  label: Changelog
+  order: 39.5
+---
 
 **Decisión:** [el ADR](0039-la-busqueda-de-una-cadena.md) · **Estado:** aceptado · **Fecha:** 2026-10-23
 

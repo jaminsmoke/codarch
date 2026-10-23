@@ -1,4 +1,13 @@
-# ADR 0030 — Instalar y quitar: plugins y addons
+---
+title: "ADR 0030 — Instalar y quitar: plugins y addons"
+description: "M14 y M15 dejaron los plugins ✓ (ADR 0028 ✓) y M16 los addons ✓ (ADR 0029 ✓). Los dos viven igual ✓:"
+section: adr
+status: aceptado ✅
+date: "2026-10-22"
+sidebar:
+  label: "Instalar y quitar: plugins y addons"
+  order: 30
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 

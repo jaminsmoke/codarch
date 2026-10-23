@@ -1,4 +1,13 @@
-# Changelog — ADR 0024 «La evolución temporal: el calor y la historia»
+---
+title: "Changelog — ADR 0024 «La evolución temporal: el calor y la historia»"
+description: Lo hecho del ADR 0024, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0024-evolucion-temporal
+sidebar:
+  label: Changelog
+  order: 24.5
+---
 
 **Decisión:** [el ADR](0024-evolucion-temporal.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

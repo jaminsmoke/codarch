@@ -1,4 +1,13 @@
-# ADR 0019 — Nivel de detalle del mapa
+---
+title: ADR 0019 — Nivel de detalle del mapa
+description: "El mapa es un treemap SVG: un nodo por fichero. En un repositorio de 20.000 ficheros eso son 60.000 nodos DOM y diez segundos de JavaScript antes de que se vea nada.…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: Nivel de detalle del mapa
+  order: 19
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

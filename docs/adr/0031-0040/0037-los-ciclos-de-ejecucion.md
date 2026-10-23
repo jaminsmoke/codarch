@@ -1,4 +1,13 @@
-# ADR 0037 — Los ciclos: de ejecución, no de tipos
+---
+title: "ADR 0037 — Los ciclos: de ejecución, no de tipos"
+description: La regla sin-ciclos y el resto de la lente de dependencias cuentan hoy todas las aristas del grafo. Una arista se crea con cualquier import, también con import type y…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: "Los ciclos: de ejecución, no de tipos"
+  order: 37
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

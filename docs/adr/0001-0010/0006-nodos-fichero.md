@@ -1,4 +1,13 @@
-# ADR 0006 — Nodos = ficheros, preparados para símbolos
+---
+title: ADR 0006 — Nodos = ficheros, preparados para símbolos
+description: Modelar clases y funciones como nodos da hotspots por función y aristas reales de uso. También multiplica el grafo (10x), exige un parser semántico por lenguaje y hace…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Nodos = ficheros, preparados para símbolos
+  order: 6
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

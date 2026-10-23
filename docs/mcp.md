@@ -1,4 +1,11 @@
-# MCP: arquitectura para agentes
+---
+title: "MCP: arquitectura para agentes"
+description: "CodArch expone su modelo a agentes mediante un servidor MCP local, de solo lectura y por stdio. No analiza código dentro de MCP: lee un snapshot cc.json ya generado y,…"
+section: producto
+sidebar:
+  label: "MCP: arquitectura para agentes"
+  order: 3
+---
 
 CodArch expone su modelo a agentes mediante un servidor **MCP local, de solo lectura y por stdio**.
 No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existe, el

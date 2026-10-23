@@ -1,4 +1,13 @@
-# ADR 0012 — GitHub Action para PRs
+---
+title: ADR 0012 — GitHub Action para PRs
+description: El diff y las reglas ya existen en el CLI. La cuña del producto es que ese análisis aparezca en el pull request sin que nadie abra un dashboard. Necesitamos una primera…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: GitHub Action para PRs
+  order: 12
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

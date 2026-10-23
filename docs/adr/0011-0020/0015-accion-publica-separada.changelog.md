@@ -1,4 +1,13 @@
-# Changelog — ADR 0015 «Acción pública separada»
+---
+title: Changelog — ADR 0015 «Acción pública separada»
+description: Lo hecho del ADR 0015, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0015-accion-publica-separada
+sidebar:
+  label: Changelog
+  order: 15.5
+---
 
 **Decisión:** [el ADR](0015-accion-publica-separada.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

@@ -1,4 +1,13 @@
-# ADR 0029 — Los addons: conocimiento declarativo
+---
+title: "ADR 0029 — Los addons: conocimiento declarativo"
+description: "El producto ya se extiende por un camino ✓: los plugins ✓ (ADR 0028 ✓). Un plugin es código del repo ✓ que se compila ✓ y se activa ✓, y que puede pintar una vista nueva…"
+section: adr
+status: aceptado ✅
+date: "2026-10-22"
+sidebar:
+  label: "Los addons: conocimiento declarativo"
+  order: 29
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 

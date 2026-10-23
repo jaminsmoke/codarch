@@ -1,4 +1,13 @@
-# Changelog — ADR 0031 «Los documentos: cada decisión con su hoja de ruta»
+---
+title: "Changelog — ADR 0031 «Los documentos: cada decisión con su hoja de ruta»"
+description: Lo hecho del ADR 0031, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0031-los-documentos
+sidebar:
+  label: Changelog
+  order: 31.5
+---
 
 **Decisión:** [el ADR](0031-los-documentos.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 

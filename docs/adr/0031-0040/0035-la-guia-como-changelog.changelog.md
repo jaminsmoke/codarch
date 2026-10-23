@@ -1,4 +1,13 @@
-# Changelog — ADR 0035 «La guía se lee como un changelog»
+---
+title: Changelog — ADR 0035 «La guía se lee como un changelog»
+description: Lo hecho del ADR 0035, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0035-la-guia-como-changelog
+sidebar:
+  label: Changelog
+  order: 35.5
+---
 
 **Decisión:** [el ADR](0035-la-guia-como-changelog.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 

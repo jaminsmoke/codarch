@@ -1,4 +1,13 @@
-# ADR 0040 — La complejidad cuenta el cuerpo entero
+---
+title: ADR 0040 — La complejidad cuenta el cuerpo entero
+description: La auditoría de este repositorio (2026-10-23) dejó a la vista que el mapa y la lente de símbolos no dan las mismas cifras de complejidad. En la foto de audit-0038, 45 de…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: La complejidad cuenta el cuerpo entero
+  order: 40
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

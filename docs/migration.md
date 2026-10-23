@@ -1,4 +1,11 @@
-# Plan de migración a Rust (M4)
+---
+title: Plan de migración a Rust (M4)
+description: Este documento valida la lente de migración sobre el propio CodArch. Los números salen de codarch analyze . y cambian con el código; no son un compromiso, son una foto…
+section: producto
+sidebar:
+  label: Plan de migración a Rust (M4)
+  order: 4
+---
 
 Este documento valida la lente de migración sobre el propio CodArch. Los números salen de
 `codarch analyze .` y cambian con el código; no son un compromiso, son una foto para priorizar.

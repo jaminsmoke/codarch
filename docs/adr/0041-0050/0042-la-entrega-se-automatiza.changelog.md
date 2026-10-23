@@ -1,4 +1,13 @@
-# Changelog — ADR 0042
+---
+title: Changelog — ADR 0042
+description: Lo hecho del ADR 0042, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0041-0050/0042-la-entrega-se-automatiza
+sidebar:
+  label: Changelog
+  order: 42.5
+---
 
 Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entrega-se-automatiza.md).
 

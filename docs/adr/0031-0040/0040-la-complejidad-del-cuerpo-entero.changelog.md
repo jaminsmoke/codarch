@@ -1,4 +1,13 @@
-# Changelog — ADR 0040 «La complejidad cuenta el cuerpo entero»
+---
+title: Changelog — ADR 0040 «La complejidad cuenta el cuerpo entero»
+description: Lo hecho del ADR 0040, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0040-la-complejidad-del-cuerpo-entero
+sidebar:
+  label: Changelog
+  order: 40.5
+---
 
 **Decisión:** [el ADR](0040-la-complejidad-del-cuerpo-entero.md) · **Estado:** aceptado · **Fecha:** 2026-10-23
 

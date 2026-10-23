@@ -1,4 +1,13 @@
-# Changelog — ADR 0027 «Los ajustes: un sitio donde se configura todo»
+---
+title: "Changelog — ADR 0027 «Los ajustes: un sitio donde se configura todo»"
+description: Lo hecho del ADR 0027, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0027-los-ajustes
+sidebar:
+  label: Changelog
+  order: 27.5
+---
 
 **Decisión:** [el ADR](0027-los-ajustes.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

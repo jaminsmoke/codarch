@@ -1,4 +1,13 @@
-# ADR 0010 — Diff entre snapshots y reporte estable
+---
+title: ADR 0010 — Diff entre snapshots y reporte estable
+description: "M2 necesita responder a la pregunta del PR: ¿qué ha cambiado en la arquitectura entre estos dos commits? Ya tenemos snapshots inmutables y deterministas. El diff no debe…"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Diff entre snapshots y reporte estable
+  order: 10
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

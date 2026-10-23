@@ -1,4 +1,13 @@
-# Changelog — ADR 0014 «Distribución del CLI como paquete npm único»
+---
+title: Changelog — ADR 0014 «Distribución del CLI como paquete npm único»
+description: Lo hecho del ADR 0014, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0014-distribucion-cli-npm
+sidebar:
+  label: Changelog
+  order: 14.5
+---
 
 **Decisión:** [el ADR](0014-distribucion-cli-npm.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

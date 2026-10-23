@@ -1,4 +1,13 @@
-# Changelog — ADR 0038 «El alcance del análisis se declara en `.codarch.yml`»
+---
+title: Changelog — ADR 0038 «El alcance del análisis se declara en `.codarch.yml`»
+description: Lo hecho del ADR 0038, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0038-el-alcance-del-analisis
+sidebar:
+  label: Changelog
+  order: 38.5
+---
 
 **Decisión:** [el ADR](0038-el-alcance-del-analisis.md) · **Estado:** aceptado · **Fecha:** 2026-10-23
 

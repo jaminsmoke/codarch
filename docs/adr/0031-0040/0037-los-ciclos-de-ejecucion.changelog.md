@@ -1,4 +1,13 @@
-# Changelog — ADR 0037 «Los ciclos: de ejecución, no de tipos»
+---
+title: "Changelog — ADR 0037 «Los ciclos: de ejecución, no de tipos»"
+description: Lo hecho del ADR 0037, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0037-los-ciclos-de-ejecucion
+sidebar:
+  label: Changelog
+  order: 37.5
+---
 
 **Decisión:** [el ADR](0037-los-ciclos-de-ejecucion.md) · **Estado:** aceptado · **Fecha:** 2026-10-23
 

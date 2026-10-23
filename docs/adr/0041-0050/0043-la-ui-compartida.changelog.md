@@ -1,4 +1,13 @@
-# Changelog — ADR 0043
+---
+title: Changelog — ADR 0043
+description: Lo hecho del ADR 0043, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0041-0050/0043-la-ui-compartida
+sidebar:
+  label: Changelog
+  order: 43.5
+---
 
 Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0043-la-ui-compartida.md).
 

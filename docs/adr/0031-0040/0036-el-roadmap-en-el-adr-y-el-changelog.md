@@ -1,4 +1,13 @@
-# ADR 0036 — El roadmap vive en el ADR y el changelog al lado
+---
+title: ADR 0036 — El roadmap vive en el ADR y el changelog al lado
+description: "El ADR 0031 dejó cada decisión con una hoja de ruta al lado (.roadmap.md) y el roadmap central como índice. Funcionó, pero el nombre mentía: esos ficheros guardaban,…"
+section: adr
+status: aceptado
+date: "2026-10-22"
+sidebar:
+  label: El roadmap vive en el ADR y el changelog al lado
+  order: 36
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 

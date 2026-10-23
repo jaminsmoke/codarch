@@ -1,4 +1,13 @@
-# Changelog — ADR 0004 «La cuña: PR/CI + MCP»
+---
+title: "Changelog — ADR 0004 «La cuña: PR/CI + MCP»"
+description: Lo hecho del ADR 0004, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0004-cuna-pr-ci-mcp
+sidebar:
+  label: Changelog
+  order: 4.5
+---
 
 **Decisión:** [el ADR](0004-cuna-pr-ci-mcp.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

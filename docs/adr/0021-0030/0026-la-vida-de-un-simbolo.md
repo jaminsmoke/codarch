@@ -1,4 +1,13 @@
-# ADR 0026 — La vida de un símbolo: la cadena que sobrevive al renombrado
+---
+title: "ADR 0026 — La vida de un símbolo: la cadena que sobrevive al renombrado"
+description: 'M11 dio la lente de símbolos: el mapa sabe qué hay dentro de cada fichero. Lo que no sabe todavía es qué cambió dentro, y por eso el diff sigue siendo de ficheros: "has…'
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: "La vida de un símbolo: la cadena que sobrevive al renombrado"
+  order: 26
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

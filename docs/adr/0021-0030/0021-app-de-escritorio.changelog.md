@@ -1,4 +1,13 @@
-# Changelog — ADR 0021 «App de escritorio (Electron) con código copiado, no compartido»
+---
+title: Changelog — ADR 0021 «App de escritorio (Electron) con código copiado, no compartido»
+description: Lo hecho del ADR 0021, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0021-app-de-escritorio
+sidebar:
+  label: Changelog
+  order: 21.5
+---
 
 **Decisión:** [el ADR](0021-app-de-escritorio.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

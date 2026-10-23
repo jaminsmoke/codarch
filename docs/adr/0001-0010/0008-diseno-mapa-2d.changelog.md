@@ -1,4 +1,13 @@
-# Changelog — ADR 0008 «Diseño del mapa 2D»
+---
+title: Changelog — ADR 0008 «Diseño del mapa 2D»
+description: Lo hecho del ADR 0008, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0008-diseno-mapa-2d
+sidebar:
+  label: Changelog
+  order: 8.5
+---
 
 **Decisión:** [el ADR](0008-diseno-mapa-2d.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

@@ -1,4 +1,13 @@
-# ADR 0015 — Acción pública separada
+---
+title: ADR 0015 — Acción pública separada
+description: El CLI ya se publica como codarch@0.1.1 y la acción compuesta vive en apps/github-action. La primera prueba desde un repositorio externo falló al resolver…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Acción pública separada
+  order: 15
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

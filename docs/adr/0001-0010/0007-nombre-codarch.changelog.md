@@ -1,4 +1,13 @@
-# Changelog — ADR 0007 «El nombre: CodArch»
+---
+title: "Changelog — ADR 0007 «El nombre: CodArch»"
+description: Lo hecho del ADR 0007, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0007-nombre-codarch
+sidebar:
+  label: Changelog
+  order: 7.5
+---
 
 **Decisión:** [el ADR](0007-nombre-codarch.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

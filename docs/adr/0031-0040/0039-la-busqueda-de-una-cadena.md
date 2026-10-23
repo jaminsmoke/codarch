@@ -1,4 +1,13 @@
-# ADR 0039 — La búsqueda de una cadena: símbolos, no nodos
+---
+title: "ADR 0039 — La búsqueda de una cadena: símbolos, no nodos"
+description: getsymbolchain promete «la vida de un símbolo» y, en la misma frase, el calor del repo. La auditoría de este repositorio (2026-10-23) encontró cuatro cosas que no…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: "La búsqueda de una cadena: símbolos, no nodos"
+  order: 39
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

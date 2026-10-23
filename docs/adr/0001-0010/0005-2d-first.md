@@ -1,4 +1,13 @@
-# ADR 0005 — 2D primero, 3D como lente
+---
+title: ADR 0005 — 2D primero, 3D como lente
+description: "La ciudad 3D es la firma visual de CodeCharta. También es su coste: navegación difícil, oclusión, y una captura de pantalla que no cabe en la revisión de un PR."
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: 2D primero, 3D como lente
+  order: 5
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

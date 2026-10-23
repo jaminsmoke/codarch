@@ -1,4 +1,13 @@
-# ADR 0044 — La app web en un contenedor local
+---
+title: ADR 0044 — La app web en un contenedor local
+description: "La app web del mapa ya viaja dentro del CLI: codarch serve . analiza el repositorio, sirve la web y la reanaliza al guardar. Para usarla hay que tener Node 22, npm y el…"
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: La app web en un contenedor local
+  order: 44
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

@@ -1,4 +1,13 @@
-# Changelog — ADR 0011 «Reglas de arquitectura en `.codarch.yml`»
+---
+title: Changelog — ADR 0011 «Reglas de arquitectura en `.codarch.yml`»
+description: Lo hecho del ADR 0011, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0011-reglas-de-arquitectura
+sidebar:
+  label: Changelog
+  order: 11.5
+---
 
 **Decisión:** [el ADR](0011-reglas-de-arquitectura.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

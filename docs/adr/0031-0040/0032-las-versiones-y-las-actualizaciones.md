@@ -1,4 +1,13 @@
-# ADR 0032 — Las versiones y las actualizaciones
+---
+title: ADR 0032 — Las versiones y las actualizaciones
+description: "El producto ya tiene versiones ✓, pero cada una por su cuenta ✓ y sin regla ✓:"
+section: adr
+status: aceptado
+date: "2026-10-22"
+sidebar:
+  label: Las versiones y las actualizaciones
+  order: 32
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 

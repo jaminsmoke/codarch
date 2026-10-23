@@ -1,4 +1,13 @@
-# Changelog — ADR 0041
+---
+title: Changelog — ADR 0041
+description: Lo hecho del ADR 0041, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0041-0050/0041-cada-version-una-vez
+sidebar:
+  label: Changelog
+  order: 41.5
+---
 
 Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0041-cada-version-una-vez.md).
 

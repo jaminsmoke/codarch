@@ -1,4 +1,13 @@
-# ADR 0034 — La web del proyecto
+---
+title: ADR 0034 — La web del proyecto
+description: "El repo es público ✓ desde el 2026-10-22 ✓, pero no tiene puerta ✓: quien llega ve un README ✓ y tiene que instalar desde el principio ✓. Y el material que explica el…"
+section: adr
+status: aceptado
+date: "2026-10-22"
+sidebar:
+  label: La web del proyecto
+  order: 34
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 

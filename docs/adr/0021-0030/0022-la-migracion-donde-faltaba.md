@@ -1,4 +1,13 @@
-# ADR 0022 — La migración, donde ya faltaba
+---
+title: ADR 0022 — La migración, donde ya faltaba
+description: La lente de migración es la feature de cabecera de la v1 (ADR 0016). El producto existe, en parte, para que un equipo pueda ver cuánto le cuesta migrar su TypeScript a…
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: La migración, donde ya faltaba
+  order: 22
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

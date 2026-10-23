@@ -1,4 +1,13 @@
-# ADR 0028 — Los plugins: piezas del repo que se activan
+---
+title: "ADR 0028 — Los plugins: piezas del repo que se activan"
+description: "El producto va a crecer en direcciones que no conocemos todavía. La primera de ellas es la vista 3D ✓: un mapa en tres dimensiones que comparte modelo ✓ pero que tiene…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: "Los plugins: piezas del repo que se activan"
+  order: 28
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

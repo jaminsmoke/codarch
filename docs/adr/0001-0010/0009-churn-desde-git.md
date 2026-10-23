@@ -1,4 +1,13 @@
-# ADR 0009 — Churn desde git, sin romper el determinismo
+---
+title: ADR 0009 — Churn desde git, sin romper el determinismo
+description: "La lente de riesgo de M0 usa 0,5·complejidad + 0,32·churn + 0,18·tamaño. Hasta M1 no había churn: el render renormalizaba los pesos y el mapa seguía siendo útil, pero…"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Churn desde git, sin romper el determinismo
+  order: 9
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

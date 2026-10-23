@@ -1,4 +1,13 @@
-# Changelog — ADR 0012 «GitHub Action para PRs»
+---
+title: Changelog — ADR 0012 «GitHub Action para PRs»
+description: Lo hecho del ADR 0012, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0012-github-action
+sidebar:
+  label: Changelog
+  order: 12.5
+---
 
 **Decisión:** [el ADR](0012-github-action.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

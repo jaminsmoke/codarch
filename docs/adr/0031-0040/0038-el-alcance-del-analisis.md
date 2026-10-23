@@ -1,4 +1,13 @@
-# ADR 0038 — El alcance del análisis se declara en `.codarch.yml`
+---
+title: ADR 0038 — El alcance del análisis se declara en `.codarch.yml`
+description: El analizador recorre los ficheros de código que no están en .gitignore ni en la lista de directorios internos (nodemodules, .git, .codarch). Eso es un buen defecto para…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: El alcance del análisis se declara en .codarch.yml
+  order: 38
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

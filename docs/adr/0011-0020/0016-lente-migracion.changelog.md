@@ -1,4 +1,13 @@
-# Changelog — ADR 0016 «Lente de migración v1»
+---
+title: Changelog — ADR 0016 «Lente de migración v1»
+description: Lo hecho del ADR 0016, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0016-lente-migracion
+sidebar:
+  label: Changelog
+  order: 16.5
+---
 
 **Decisión:** [el ADR](0016-lente-migracion.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

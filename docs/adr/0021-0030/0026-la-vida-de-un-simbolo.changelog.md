@@ -1,4 +1,13 @@
-# Changelog — ADR 0026 «La vida de un símbolo: la cadena que sobrevive al renombrado»
+---
+title: "Changelog — ADR 0026 «La vida de un símbolo: la cadena que sobrevive al renombrado»"
+description: Lo hecho del ADR 0026, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0026-la-vida-de-un-simbolo
+sidebar:
+  label: Changelog
+  order: 26.5
+---
 
 **Decisión:** [el ADR](0026-la-vida-de-un-simbolo.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

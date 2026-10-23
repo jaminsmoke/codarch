@@ -1,4 +1,13 @@
-# ADR 0017 — Servidor local `codarch serve`
+---
+title: ADR 0017 — Servidor local `codarch serve`
+description: La app web carga snapshots y reportes ya generados. Eso es rápido y determinista, pero obliga a ejecutar codarch analyze a mano y refrescar el navegador. También deja…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Servidor local codarch serve
+  order: 17
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

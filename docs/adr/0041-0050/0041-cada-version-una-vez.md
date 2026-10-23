@@ -1,4 +1,13 @@
-# ADR 0041 — Cada versión se declara una vez
+---
+title: ADR 0041 — Cada versión se declara una vez
+description: ADR 0032 dejó una versión para el producto ✓ y un comando que la escribe en el CLI y en el escritorio ✓. Funciona para el número de release ✓, pero no para las versiones…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: Cada versión se declara una vez
+  order: 41
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

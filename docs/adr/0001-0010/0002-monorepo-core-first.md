@@ -1,4 +1,13 @@
-# ADR 0002 — Monorepo core-first
+---
+title: ADR 0002 — Monorepo core-first
+description: "La pregunta de partida era: ¿package, web app o framework? La respuesta importa porque determina qué se puede reutilizar y qué se puede vender."
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Monorepo core-first
+  order: 2
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

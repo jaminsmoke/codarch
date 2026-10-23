@@ -40,7 +40,7 @@
     "lint": "oxlint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run sync --workspace @codarch/site && tsc --noEmit",
     "samples": "node scripts/fetch-samples.mjs"
   },
   "devDependencies": {

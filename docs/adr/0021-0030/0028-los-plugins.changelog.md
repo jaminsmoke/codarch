@@ -1,4 +1,13 @@
-# Changelog — ADR 0028 «Los plugins: piezas del repo que se activan»
+---
+title: "Changelog — ADR 0028 «Los plugins: piezas del repo que se activan»"
+description: Lo hecho del ADR 0028, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0028-los-plugins
+sidebar:
+  label: Changelog
+  order: 28.5
+---
 
 **Decisión:** [el ADR](0028-los-plugins.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

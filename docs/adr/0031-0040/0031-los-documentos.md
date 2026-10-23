@@ -1,4 +1,13 @@
-# ADR 0031 — Los documentos: cada decisión con su hoja de ruta
+---
+title: "ADR 0031 — Los documentos: cada decisión con su hoja de ruta"
+description: "Los documentos del repo han crecido sin un plan ✓: treinta ADR ✓ en una carpeta plana ✓, un roadmap.md ✓ de casi 400 líneas ✓ con 18 fases ✓ mezcladas ✓, y una…"
+section: adr
+status: aceptado ✅
+date: "2026-10-22"
+sidebar:
+  label: "Los documentos: cada decisión con su hoja de ruta"
+  order: 31
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-22
 

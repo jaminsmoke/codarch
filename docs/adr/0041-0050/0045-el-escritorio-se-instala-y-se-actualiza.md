@@ -1,4 +1,13 @@
-# ADR 0045 — El escritorio se instala y se actualiza mejor
+---
+title: ADR 0045 — El escritorio se instala y se actualiza mejor
+description: El escritorio ya tiene instaladores (NSIS en Windows y deb en Linux) y una release automática cuando sube versions.json. También sabe comprobar si hay una versión nueva,…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: El escritorio se instala y se actualiza mejor
+  order: 45
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

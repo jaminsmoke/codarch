@@ -1,4 +1,13 @@
-# Changelog — ADR 0020 «Análisis en el navegador con la misma gramática que el CLI»
+---
+title: Changelog — ADR 0020 «Análisis en el navegador con la misma gramática que el CLI»
+description: Lo hecho del ADR 0020, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0020-analisis-en-el-navegador
+sidebar:
+  label: Changelog
+  order: 20.5
+---
 
 **Decisión:** [el ADR](0020-analisis-en-el-navegador.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

@@ -1,4 +1,13 @@
-# ADR 0013 — Servidor MCP de solo lectura
+---
+title: ADR 0013 — Servidor MCP de solo lectura
+description: "El snapshot y el reporte ya contienen los hechos que necesita un agente: ficheros, métricas, dependencias, ciclos, cambios y violaciones. La cuña del producto incluye…"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Servidor MCP de solo lectura
+  order: 13
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

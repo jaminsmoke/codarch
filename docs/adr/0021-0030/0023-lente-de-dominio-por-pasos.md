@@ -1,4 +1,13 @@
-# ADR 0023 — Lente de dominio, por pasos
+---
+title: ADR 0023 — Lente de dominio, por pasos
+description: "Las reglas de arquitectura actuales (.codarch.yml) las escribe el equipo: capas, prohibiciones, umbrales y ciclos. Es potente, pero exige saber qué se quiere y…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: Lente de dominio, por pasos
+  order: 23
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

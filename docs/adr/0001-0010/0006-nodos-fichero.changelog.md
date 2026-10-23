@@ -1,4 +1,13 @@
-# Changelog — ADR 0006 «Nodos = ficheros, preparados para símbolos»
+---
+title: Changelog — ADR 0006 «Nodos = ficheros, preparados para símbolos»
+description: Lo hecho del ADR 0006, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0006-nodos-fichero
+sidebar:
+  label: Changelog
+  order: 6.5
+---
 
 **Decisión:** [el ADR](0006-nodos-fichero.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

@@ -1,4 +1,13 @@
-# Changelog — ADR 0003 «TypeScript primero, Rust cuando un benchmark lo exija»
+---
+title: Changelog — ADR 0003 «TypeScript primero, Rust cuando un benchmark lo exija»
+description: Lo hecho del ADR 0003, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0003-typescript-first
+sidebar:
+  label: Changelog
+  order: 3.5
+---
 
 **Decisión:** [el ADR](0003-typescript-first.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

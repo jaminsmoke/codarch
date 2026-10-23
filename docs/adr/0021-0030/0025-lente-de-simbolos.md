@@ -1,4 +1,13 @@
-# ADR 0025 — La lente de símbolos: mirar dentro del fichero
+---
+title: "ADR 0025 — La lente de símbolos: mirar dentro del fichero"
+description: "El modelo de CodArch tiene tres escalas (ADR 0006): la estructura de directorios, los ficheros y los símbolos. La v1 solo mide las dos primeras. El resultado es que un…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: "La lente de símbolos: mirar dentro del fichero"
+  order: 25
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

@@ -1,4 +1,13 @@
-# Changelog — ADR 0033 «Abrir el repo: lo que hay que tener antes»
+---
+title: "Changelog — ADR 0033 «Abrir el repo: lo que hay que tener antes»"
+description: Lo hecho del ADR 0033, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0033-abrir-el-repo
+sidebar:
+  label: Changelog
+  order: 33.5
+---
 
 **Decisión:** [el ADR](0033-abrir-el-repo.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 

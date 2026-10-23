@@ -1,4 +1,13 @@
-# Changelog — ADR 0029 «Los addons: conocimiento declarativo»
+---
+title: "Changelog — ADR 0029 «Los addons: conocimiento declarativo»"
+description: Lo hecho del ADR 0029, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0029-los-addons
+sidebar:
+  label: Changelog
+  order: 29.5
+---
 
 **Decisión:** [el ADR](0029-los-addons.md) · **Estado:** aceptado · **Fecha:** 2026-10-22
 

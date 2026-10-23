@@ -1,4 +1,13 @@
-# Changelog — ADR 0045
+---
+title: Changelog — ADR 0045
+description: Lo hecho del ADR 0045, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0041-0050/0045-el-escritorio-se-instala-y-se-actualiza
+sidebar:
+  label: Changelog
+  order: 45.5
+---
 
 Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escritorio-se-instala-y-se-actualiza.md).
 

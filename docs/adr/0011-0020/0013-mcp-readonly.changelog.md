@@ -1,4 +1,13 @@
-# Changelog — ADR 0013 «Servidor MCP de solo lectura»
+---
+title: Changelog — ADR 0013 «Servidor MCP de solo lectura»
+description: Lo hecho del ADR 0013, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0011-0020/0013-mcp-readonly
+sidebar:
+  label: Changelog
+  order: 13.5
+---
 
 **Decisión:** [el ADR](0013-mcp-readonly.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

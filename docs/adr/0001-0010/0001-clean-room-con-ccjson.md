@@ -1,4 +1,13 @@
-# ADR 0001 — Clean-room, con `cc.json` como frontera
+---
+title: ADR 0001 — Clean-room, con `cc.json` como frontera
+description: CodeCharta (MaibornWolff, BSD-3-Clause) lleva nueve años resolviendo este problema. Su repositorio está activo, su analizador está en Kotlin y su visor en Angular. Su…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Clean-room, con cc.json como frontera
+  order: 1
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

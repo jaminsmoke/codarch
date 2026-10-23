@@ -1,4 +1,13 @@
-# ADR 0014 — Distribución del CLI como paquete npm único
+---
+title: ADR 0014 — Distribución del CLI como paquete npm único
+description: El CLI vive en un monorepo TypeScript con paquetes internos (schema, parsers, metrics, layouts, render) que se consumen como fuente mediante los paths de tsconfig. Eso…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Distribución del CLI como paquete npm único
+  order: 14
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

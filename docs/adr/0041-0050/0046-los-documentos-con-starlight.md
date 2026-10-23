@@ -1,4 +1,13 @@
-# ADR 0046 — Los documentos se publican con Starlight
+---
+title: ADR 0046 — Los documentos se publican con Starlight
+description: "La web deja de ser una SPA y pasa a Astro con Starlight: HTML por documento, búsqueda y frontmatter validado."
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: Los documentos se publican con Starlight
+  order: 46
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 
@@ -66,7 +75,7 @@ description: Qué es un cc.json y qué garantiza.
 section: producto # producto | adr | guia
 order: 20
 status: aceptado # en los ADR
-date: 2026-10-23
+date: "2026-10-23"
 adr: adr/0041-0050/0045-... # en un changelog
 changelog: true # en un changelog
 tags: [modelo, checksum]
@@ -128,13 +137,14 @@ la fuente del sitio.
 
 ### M29 — Los documentos con Starlight
 
-- [ ] Crear `apps/site` con Astro + Starlight y el loader que lee `docs/`.
-- [ ] Definir el esquema de frontmatter y migrar los 99 documentos (título, descripción, sección,
+- [x] Crear `apps/site` con Astro + Starlight y el loader que lee `docs/`.
+- [x] Definir el esquema de frontmatter y migrar los 99 documentos (título, descripción, sección,
   orden, estado, fecha, ADR/changelog).
-- [ ] Conservar `/docs/`, `/guia/` y `/` con redirecciones y validar enlaces internos.
-- [ ] Migrar la guía a entradas estructuradas y adaptar la portada.
-- [ ] Activar Pagefind, sitemap y búsqueda; comprobar que un documento nuevo aparece solo.
-- [ ] Actualizar `web.yml`, `README` y `AGENTS.md`; retirar la app React/Vite de docs.
+- [x] Conservar `/docs/`, `/guia/` y `/` y validar los enlaces internos (las rutas no cambian, así
+  que no hacen falta redirecciones).
+- [ ] Migrar la guía a entradas estructuradas; la portada ya está adaptada.
+- [x] Activar Pagefind, sitemap y búsqueda; un documento nuevo entra solo en la sidebar.
+- [x] Actualizar `web.yml`, `README` y `AGENTS.md`; retirar la app React/Vite de docs.
 - [ ] Validar el build y la publicación en GitHub Pages con un documento de prueba.
 
 El detalle de lo hecho está en el [changelog](0046-los-documentos-con-starlight.changelog.md).

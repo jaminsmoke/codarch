@@ -1,4 +1,13 @@
-# ADR 0003 — TypeScript primero, Rust cuando un benchmark lo exija
+---
+title: ADR 0003 — TypeScript primero, Rust cuando un benchmark lo exija
+description: Rust ofrece rendimiento y un único motor nativo + WASM para CLI, CI y navegador. Es la arquitectura "definitiva". También es la forma más común de no llegar nunca al…
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: TypeScript primero, Rust cuando un benchmark lo exija
+  order: 3
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

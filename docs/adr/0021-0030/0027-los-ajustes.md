@@ -1,4 +1,13 @@
-# ADR 0027 — Los ajustes: un sitio donde se configura todo
+---
+title: "ADR 0027 — Los ajustes: un sitio donde se configura todo"
+description: "Hoy las preferencias están dispersas: la métrica de área y el modo de color se guardan en localStorage ✓, el proyecto guardado también ✓, y no hay ningún sitio donde se…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: "Los ajustes: un sitio donde se configura todo"
+  order: 27
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

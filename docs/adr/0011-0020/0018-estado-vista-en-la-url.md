@@ -1,4 +1,13 @@
-# ADR 0018 — Estado de vista en la URL y carga por URL
+---
+title: ADR 0018 — Estado de vista en la URL y carga por URL
+description: "La app web (M5) sabe cargar un snapshot de tres maneras: el servidor local (codarch serve), un fichero o carpeta local, y la demo. El estado de la vista —métrica de…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: Estado de vista en la URL y carga por URL
+  order: 18
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

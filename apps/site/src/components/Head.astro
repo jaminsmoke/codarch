@@ -1,0 +1,19 @@
+---
+import DefaultHead from "@astrojs/starlight/components/Head.astro";
+---
+
+<DefaultHead />
+
+<script>
+  import { pintarDiagramas } from "../lib/mermaid";
+
+  const pintar = (): void => {
+    void pintarDiagramas(document.body);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", pintar, { once: true });
+  } else {
+    pintar();
+  }
+</script>

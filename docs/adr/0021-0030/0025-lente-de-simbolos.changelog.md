@@ -1,4 +1,13 @@
-# Changelog — ADR 0025 «La lente de símbolos: mirar dentro del fichero»
+---
+title: "Changelog — ADR 0025 «La lente de símbolos: mirar dentro del fichero»"
+description: Lo hecho del ADR 0025, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0025-lente-de-simbolos
+sidebar:
+  label: Changelog
+  order: 25.5
+---
 
 **Decisión:** [el ADR](0025-lente-de-simbolos.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

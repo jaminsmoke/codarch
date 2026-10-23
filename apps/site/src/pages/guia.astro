@@ -1,0 +1,11 @@
+---
+import ReactSite from "../components/ReactSite";
+import Site from "../layouts/Site.astro";
+---
+
+<Site
+  title="La guía — CodArch"
+  description="Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
+>
+  <ReactSite client:only="react" />
+</Site>

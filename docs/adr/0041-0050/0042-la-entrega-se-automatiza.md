@@ -1,4 +1,13 @@
-# ADR 0042 — La entrega se automatiza
+---
+title: ADR 0042 — La entrega se automatiza
+description: La entrega dependía de una persona y de su memoria. El CLI se publicaba a mano con npm publish, OTP mediante; el escritorio se publicaba empujando un tag desktop-v. Las…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: La entrega se automatiza
+  order: 42
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 

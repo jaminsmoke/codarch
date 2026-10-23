@@ -1,4 +1,13 @@
-# ADR 0021 — App de escritorio (Electron) con código copiado, no compartido
+---
+title: ADR 0021 — App de escritorio (Electron) con código copiado, no compartido
+description: La app web (M5/M6) ya sabe analizar un repositorio en el navegador, con la misma gramática y el mismo checksum que el CLI. Funciona bien en un navegador de escritorio,…
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: App de escritorio (Electron) con código copiado, no compartido
+  order: 21
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

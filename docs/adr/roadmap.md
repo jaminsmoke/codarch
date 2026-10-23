@@ -1,4 +1,11 @@
-# Roadmap
+---
+title: Roadmap
+description: Cada milestone deja el producto funcionando y verificable. Nada de big-bang.
+section: producto
+sidebar:
+  label: Roadmap
+  order: 0
+---
 
 Cada milestone deja el producto funcionando y verificable. Nada de big-bang.
 

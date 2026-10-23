@@ -6,6 +6,11 @@ import { useTitulo } from "../lib/titulo";
 /**
  * La portada: qué es CodArch ✓, cómo se ve ✓ y cómo se instala ✓ ✅.
  */
+
+// Astro devuelve la imagen importada como `{ src, width, height }`; Vite, como
+// una cadena. Se aceptan las dos formas para que el build y el dev coincidan.
+const atlas = captura as unknown as string | { src: string };
+const retrato = typeof atlas === "string" ? atlas : atlas.src;
 export default function Inicio() {
   useTitulo(
     undefined,
@@ -81,7 +86,7 @@ export default function Inicio() {
         className="mt-12 overflow-hidden rounded-card border border-line bg-panel shadow-sm"
       >
         <img
-          src={captura}
+          src={retrato}
           alt="El atlas de CodArch sobre su propio repositorio: cada bloque es una carpeta o un fichero, el color es el riesgo y el inspector cuenta los símbolos del fichero."
           className="block w-full"
         />

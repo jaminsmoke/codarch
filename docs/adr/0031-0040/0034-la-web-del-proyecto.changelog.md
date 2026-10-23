@@ -1,4 +1,13 @@
-# Changelog — ADR 0034 «La web del proyecto»
+---
+title: Changelog — ADR 0034 «La web del proyecto»
+description: Lo hecho del ADR 0034, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0034-la-web-del-proyecto
+sidebar:
+  label: Changelog
+  order: 34.5
+---
 
 **Decisión:** [el ADR](0034-la-web-del-proyecto.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 

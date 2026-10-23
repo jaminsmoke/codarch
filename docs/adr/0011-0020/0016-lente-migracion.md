@@ -1,4 +1,13 @@
-# ADR 0016 — Lente de migración v1
+---
+title: ADR 0016 — Lente de migración v1
+description: "M4 nace de un caso real: CodArch migrará de TypeScript a Rust. La pregunta útil no es cuántas líneas quedan, sino qué piezas son caras de mover, dónde está la frontera…"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Lente de migración v1
+  order: 16
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

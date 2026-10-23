@@ -1,4 +1,13 @@
-# ADR 0033 — Abrir el repo: lo que hay que tener antes
+---
+title: "ADR 0033 — Abrir el repo: lo que hay que tener antes"
+description: "Lo único que sigue privado ✓ es el código fuente ✓ y los documentos ✓. Y el plan de la guía —el registro público de plugins ✓— necesita que el repo sea público ✓: nadie…"
+section: adr
+status: aceptado
+date: "2026-10-22"
+sidebar:
+  label: "Abrir el repo: lo que hay que tener antes"
+  order: 33
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 

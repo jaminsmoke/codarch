@@ -1,4 +1,13 @@
-# Changelog — ADR 0023 «Lente de dominio, por pasos»
+---
+title: Changelog — ADR 0023 «Lente de dominio, por pasos»
+description: Lo hecho del ADR 0023, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0023-lente-de-dominio-por-pasos
+sidebar:
+  label: Changelog
+  order: 23.5
+---
 
 **Decisión:** [el ADR](0023-lente-de-dominio-por-pasos.md) · **Estado:** aceptado · **Fecha:** 2026-10-21
 

@@ -1,4 +1,11 @@
-# Las decisiones
+---
+title: Las decisiones
+description: "Cada decisión tiene su ADR, su hoja de ruta dentro (## Hoja de ruta) y su changelog al lado (.changelog.md). Este es el índice: número, título, fecha, estado y fases."
+section: adr
+sidebar:
+  label: Índice de decisiones
+  order: 0
+---
 
 Cada decisión tiene su ADR, su **hoja de ruta** dentro (`## Hoja de ruta`) y su **changelog** al lado
 (`<adr>.changelog.md`). Este es el índice: número, título, fecha, estado y fases.

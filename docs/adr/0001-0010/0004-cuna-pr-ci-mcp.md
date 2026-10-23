@@ -1,4 +1,13 @@
-# ADR 0004 — La cuña: PR/CI + MCP
+---
+title: "ADR 0004 — La cuña: PR/CI + MCP"
+description: '"Un visualizador mejor que CodeCharta" es una carrera contra nueve años de ventaja. Y el formato visual —ciudad 3D— es el mejor escaparate y la peor herramienta diaria:…'
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: "La cuña: PR/CI + MCP"
+  order: 4
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

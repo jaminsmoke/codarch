@@ -1,4 +1,13 @@
-# Changelog — ADR 0030 «Instalar y quitar: plugins y addons»
+---
+title: "Changelog — ADR 0030 «Instalar y quitar: plugins y addons»"
+description: Lo hecho del ADR 0030, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0021-0030/0030-instalar-y-quitar
+sidebar:
+  label: Changelog
+  order: 30.5
+---
 
 **Decisión:** [el ADR](0030-instalar-y-quitar.md) · **Estado:** aceptado · **Fecha:** 2026-10-22
 

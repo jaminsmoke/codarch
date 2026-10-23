@@ -1,4 +1,13 @@
-# Changelog — ADR 0036 «El roadmap vive en el ADR y el changelog al lado»
+---
+title: Changelog — ADR 0036 «El roadmap vive en el ADR y el changelog al lado»
+description: Lo hecho del ADR 0036, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog
+sidebar:
+  label: Changelog
+  order: 36.5
+---
 
 **Decisión:** [el ADR](0036-el-roadmap-en-el-adr-y-el-changelog.md) · **Estado:** aceptado · **Fecha:** 2026-10-22
 

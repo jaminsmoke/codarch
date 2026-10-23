@@ -43,6 +43,7 @@
     "plugins/*/src/**/*.tsx",
     "apps/*/src/**/*.ts",
     "apps/*/src/**/*.tsx",
+    "apps/*/.astro/**/*.d.ts",
     "apps/*/test/**/*.ts",
     "apps/*/vite.config.ts",
     "apps/*/vite-server.ts",

@@ -1,4 +1,13 @@
-# Changelog — ADR 0005 «2D primero, 3D como lente»
+---
+title: Changelog — ADR 0005 «2D primero, 3D como lente»
+description: Lo hecho del ADR 0005, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0001-0010/0005-2d-first
+sidebar:
+  label: Changelog
+  order: 5.5
+---
 
 **Decisión:** [el ADR](0005-2d-first.md) · **Estado:** aceptado · **Fecha:** 2026-10-20
 

@@ -1,4 +1,13 @@
-# Changelog — ADR 0032 «Las versiones y las actualizaciones»
+---
+title: Changelog — ADR 0032 «Las versiones y las actualizaciones»
+description: Lo hecho del ADR 0032, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0031-0040/0032-las-versiones-y-las-actualizaciones
+sidebar:
+  label: Changelog
+  order: 32.5
+---
 
 **Decisión:** [el ADR](0032-las-versiones-y-las-actualizaciones.md) · **Estado:** aceptada · **Fecha:** 2026-10-22
 

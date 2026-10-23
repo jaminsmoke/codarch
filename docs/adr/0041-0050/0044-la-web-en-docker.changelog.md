@@ -1,4 +1,13 @@
-# Changelog — ADR 0044
+---
+title: Changelog — ADR 0044
+description: Lo hecho del ADR 0044, por orden. La hoja de ruta y lo abierto viven en el ADR.
+section: adr
+changelog: true
+adr: adr/0041-0050/0044-la-web-en-docker
+sidebar:
+  label: Changelog
+  order: 44.5
+---
 
 Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0044-la-web-en-docker.md).
 

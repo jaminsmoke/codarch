@@ -1,4 +1,13 @@
-# ADR 0035 — La guía se lee como un changelog
+---
+title: ADR 0035 — La guía se lee como un changelog
+description: "La guía (docs/guideline/contenido.md) guarda lo que se piensa y lo que se hace, día a día. Cada entrada dice qué se decidió —su veredicto: fase, arreglo, esperar— pero…"
+section: adr
+status: aceptado
+date: "2026-10-22"
+sidebar:
+  label: La guía se lee como un changelog
+  order: 35
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 

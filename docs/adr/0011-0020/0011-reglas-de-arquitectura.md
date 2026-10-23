@@ -1,4 +1,13 @@
-# ADR 0011 — Reglas de arquitectura en `.codarch.yml`
+---
+title: ADR 0011 — Reglas de arquitectura en `.codarch.yml`
+description: "El diff ya responde a qué cambió. Falta responder a si el cambio rompe una decisión de arquitectura. Esa política no pertenece al snapshot: el mismo commit debe poder…"
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Reglas de arquitectura en .codarch.yml
+  order: 11
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

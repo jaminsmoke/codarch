@@ -1,4 +1,13 @@
-# ADR 0020 — Análisis en el navegador con la misma gramática que el CLI
+---
+title: ADR 0020 — Análisis en el navegador con la misma gramática que el CLI
+description: "M6 pide analizar un repositorio desde el navegador. La condición es dura: el snapshot del navegador tiene que tener el mismo modelo, las mismas métricas y el mismo…"
+section: adr
+status: aceptado ✅
+date: "2026-10-21"
+sidebar:
+  label: Análisis en el navegador con la misma gramática que el CLI
+  order: 20
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-21
 

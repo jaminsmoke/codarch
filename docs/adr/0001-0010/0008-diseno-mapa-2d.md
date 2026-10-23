@@ -1,4 +1,13 @@
-# ADR 0008 — Diseño del mapa 2D
+---
+title: ADR 0008 — Diseño del mapa 2D
+description: El mapa es la interfaz principal del producto. Había que decidir la geometría, la codificación del color y el orden de las vistas antes de escribir el renderer.
+section: adr
+status: aceptado ✅
+date: "2026-10-20"
+sidebar:
+  label: Diseño del mapa 2D
+  order: 8
+---
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 

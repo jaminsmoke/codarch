@@ -74,12 +74,15 @@ también `npm run sync:action` y actualizar el repo público.
    No usar `npm audit fix --force`; actualizar de forma controlada y repetir la suite.
 5. **Scripts nativos.** npm 12 bloquea install scripts no aprobados. Si añades esbuild/tree-sitter u
    otro addon, actualiza `allowScripts` con la versión exacta.
-6. **MCP.** El cliente debe lanzar `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
+6. **Documentos.** Cada `.md` de `docs/` lleva frontmatter (`title`, `description`, `section` y
+   `sidebar`; en los ADR, `status` y `date`; en los changelogs, `changelog` y `adr`). Añadir el
+   fichero basta para que salga en la web (ADR 0046); el build falla si el esquema no cuadra.
+7. **MCP.** El cliente debe lanzar `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
-7. **Acción.** La fuente es `apps/github-action`. El repo público
+8. **Acción.** La fuente es `apps/github-action`. El repo público
    [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action) se genera con
    `npm run sync:action`; no editar allí. Tras sincronizar, mover el tag mayor `v1`.
-8. **Release del CLI.** Subir la versión ✓ (`npm run version -- <x>` ✓ ✓), `npm run web:build` ✓,
+9. **Release del CLI.** Subir la versión ✓ (`npm run version -- <x>` ✓ ✓), `npm run web:build` ✓,
    `npm run build:cli` ✓, `npm run pack:cli` ✓, probar el tarball en un proyecto limpio ✓,
    `npm run publish:cli` ✓ (la etiqueta la decide la versión ✓: alpha → `next` ✓, estable →
    `latest` ✓ ✓; requiere OTP ✓), actualizar el input `version` de la acción ✓, sincronizar ✓ y
@@ -159,8 +162,10 @@ también `npm run sync:action` y actualizar el repo público.
   `.blockmap`, y `electron-updater` actualiza Windows y Linux. El tag es `v<versión>` desde
   `0.3.1-alpha.2`; macOS no se publica hasta que haya firma y notarización.
 - M29 en curso: los documentos con Starlight (ADR 0046). La web pasa a Astro + Starlight, con
-  HTML estático por documento, Pagefind, sitemap y frontmatter validado. `docs/` sigue siendo la
-  fuente; la portada y la guía se conservan como páginas propias.
+  HTML estático por documento, Pagefind, sitemap y frontmatter validado. Los 99 documentos ya lo
+  tienen, la sidebar sale de ese frontmatter, los enlaces `.md` se reescriben a `/docs/...` y la
+  portada y la guía se conservan como islas de React. Quedan la guía estructurada y la comprobación
+  en GitHub Pages.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

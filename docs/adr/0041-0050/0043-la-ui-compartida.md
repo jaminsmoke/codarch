@@ -1,4 +1,13 @@
-# ADR 0043 — La UI se comparte por paquete
+---
+title: ADR 0043 — La UI se comparte por paquete
+description: ADR 0021 decidió que el escritorio tuviera su propia interfaz, con el código copiado y sin importar apps/web; las dos apps solo compartían el motor. La decisión protegía…
+section: adr
+status: aceptado
+date: "2026-10-23"
+sidebar:
+  label: La UI se comparte por paquete
+  order: 43
+---
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 
