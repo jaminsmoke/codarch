@@ -62,8 +62,32 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/codarch-web:latest
             ghcr.io/${{ github.repository_owner }}/codarch-web:${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Descargar la imagen publicada
+        if: github.event_name != 'pull_request'
+        run: docker pull "ghcr.io/${{ github.repository_owner }}/codarch-web:${{ steps.version.outputs.version }}"
+
+      - name: Probar la imagen contra el repo
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/codarch-web:${{ steps.version.outputs.version }}"
+          docker run --rm -d --name codarch-smoke \
+            -p 127.0.0.1:4173:4173 \
+            -v "$PWD:/workspace:ro" \
+            "$IMAGE"
+          for intento in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/data/meta.json > /tmp/meta.json; then
+              cat /tmp/meta.json
+              docker stop codarch-smoke
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs codarch-smoke
+          docker stop codarch-smoke
+          exit 1
