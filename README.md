@@ -43,6 +43,20 @@ y su **changelog** al lado—, el modelo en [`docs/model.md`](docs/model.md), el
 [`docs/adr/roadmap.md`](docs/adr/roadmap.md) y las ideas que faltan en
 [`la guía`](docs/guideline/).
 
+## 🧭 Dónde está cada pieza
+
+| Pieza | Canal | Cómo se usa |
+|---|---|---|
+| **CLI** | [npm `codarch`](https://www.npmjs.com/package/codarch) | `npm install -g codarch@next` |
+| **Web del proyecto** | [GitHub Pages](https://jaminsmoke.github.io/codarch) | se publica sola con cada cambio de `main` |
+| **App web del mapa** | dentro del CLI | `codarch serve .` |
+| **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores sin firmar |
+| **GitHub Action** | [`jaminsmoke/codarch-action@v1`](https://github.com/jaminsmoke/codarch-action) | `uses: jaminsmoke/codarch-action@v1` |
+
+El CLI se publica en **npmjs**, no en GitHub Packages. La web del proyecto es un **deployment** de
+Pages, no un release. La app web del mapa viaja dentro del CLI: su versión es la del CLI. El único
+release con instaladores es el del escritorio.
+
 ---
 
 ## 🚀 Quickstart

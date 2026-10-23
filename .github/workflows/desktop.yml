@@ -76,3 +76,9 @@ jobs:
             En Windows y macOS el sistema avisará de que el instalador no viene
             de un desarrollador identificado. Es lo esperado mientras no haya
             certificado de firma.
+
+            El resto de CodArch, en su canal:
+
+            - **Web del proyecto:** https://jaminsmoke.github.io/codarch
+            - **CLI:** `npm install -g codarch@next` · https://www.npmjs.com/package/codarch
+            - **GitHub Action:** https://github.com/jaminsmoke/codarch-action
