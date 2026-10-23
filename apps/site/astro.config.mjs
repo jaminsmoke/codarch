@@ -16,7 +16,7 @@ import { rutasDocs } from "./vite-plugin-rutas.ts";
  * la guía son páginas propias para conservar la identidad de CodArch.
  */
 
-const root = fileURLToPath(new URL("../..", import.meta.url));
+const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   site: "https://jaminsmoke.github.io",

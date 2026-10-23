@@ -70,5 +70,5 @@ export function resolver(desdeClave: string, destino: string): string {
     if (conocidas.has(clave)) return `${conBase(rutaDe(clave))}${ancla}`;
   }
 
-  return `${REPO}/docs/${relativa}${ancla}`;
+  return `${REPO}/${relativa}${ancla}`;
 }

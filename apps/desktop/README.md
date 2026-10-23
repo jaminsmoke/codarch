@@ -1,9 +1,9 @@
 # CodArch Desktop
 
 App de escritorio de CodArch. Electron con su propia interfaz: **no importa nada de `apps/web`**.
-Las dos apps no se importan la una a la otra ([ADR 0021](../../docs/adr/0021-0030/0021-app-de-escritorio.md));
+Las dos apps no se importan la una a la otra ([ADR 0021](../site/docs/adr/0021-0030/0021-app-de-escritorio.md));
 lo que comparten es el motor y la presentación pura de `packages/ui`
-([ADR 0043](../../docs/adr/0041-0050/0043-la-ui-compartida.md)).
+([ADR 0043](../site/docs/adr/0041-0050/0043-la-ui-compartida.md)).
 
 Lo que es el mismo en las dos: el motor, los `packages/`. El modelo, las métricas y el checksum
 son la verdad del producto y llegan igual a la web y al escritorio.

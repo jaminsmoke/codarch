@@ -49,7 +49,7 @@ es una hoja de ruta y no promete trabajo futuro.
 
 ### 3. El índice de fases, dentro de `docs/adr`
 
-`docs/roadmap.md` pasa a [`docs/adr/roadmap.md`](../roadmap.md). Sigue siendo un **índice** —una línea
+`apps/site/docs/adr/roadmap.md` pasa a [`apps/site/docs/adr/roadmap.md`](../roadmap.md). Sigue siendo un **índice** —una línea
 por fase, con su estado y su decisión—, pero vive junto a las decisiones que indexa. Cada línea lleva
 al `## Hoja de ruta` del ADR o a su changelog.
 

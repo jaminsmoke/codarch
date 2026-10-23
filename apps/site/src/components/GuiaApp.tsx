@@ -143,7 +143,7 @@ export default function GuiaApp({ datos }: { datos: DatosGuia }) {
             <Guia
               dia={dia}
               dias={dias}
-              introduccion={dia.fecha === ultima ? datos.introduccion : undefined}
+              esUltimo={dia.fecha === ultima}
             />
           ) : null}
           {ruta.tipo === "futuro" ? (

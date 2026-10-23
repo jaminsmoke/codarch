@@ -62,10 +62,9 @@ function diasDe(entradas: Entrada[]): Dia[] {
     }));
 }
 
-/** La guía entera: la entradilla, las normas, los días y lo que espera. */
+/** La guía entera: las normas, los días y lo que espera. */
 export function prepararGuia(
   fuentes: FuenteGuia[],
-  entradilla: string,
   normas: string
 ): DatosGuia {
   const entradas = [...fuentes]
@@ -73,9 +72,6 @@ export function prepararGuia(
     .map(prepararEntrada);
 
   return {
-    introduccion: renderizar(entradilla, (destino) =>
-      resolver("guideline/entradilla.md", destino)
-    ).html,
     normas: renderizar(normas, (destino) =>
       resolver("guideline/normas.md", destino)
     ).html,

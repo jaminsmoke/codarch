@@ -9,7 +9,7 @@ import { Marked, Parser, Renderer } from "marked";
  */
 
 /** Dónde vive el repo, para lo que no está en el sitio. */
-export const REPO = "https://github.com/jaminsmoke/codarch/blob/main";
+export const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
 
 /** Un encabezado de la página, para el índice de la derecha. */
 export interface Encabezado {

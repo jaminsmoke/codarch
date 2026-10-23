@@ -40,7 +40,7 @@ Cada página de documentación ✓ sale del markdown del repo ✓ ✓, leído **
 Las páginas de los documentos ✓ ✅ —los ADR ✓ ✅, el roadmap ✓ ✅, el modelo ✓ ✅, las reglas ✓ ✅,
 el MCP ✓ ✅, la migración ✓ ✅ y el diseño del mapa ✓ ✅— **están publicadas** ✅ ✅: una página por
 documento ✅ ✅, con su menú ✅ ✅, su índice ✅ ✅ y sus vecinos ✅ ✅. La guía ✓ ✓ es el caso raro ✓ ✅:
-su contenido ✓ ✓ son los markdown ✓ ✅ (`docs/guideline/entradas/` ✅ ✅) ✓ ✅ y la línea del tiempo
+su contenido ✓ ✓ son los markdown ✓ ✅ (`apps/site/docs/guideline/entradas/` ✅ ✅) ✓ ✅ y la línea del tiempo
 ✓ ✅ se arma sola ✓ ✅ ✅.
 
 ### 3. La guía sigue siendo su propia página

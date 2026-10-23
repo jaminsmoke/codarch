@@ -1,8 +1,8 @@
 # La web del proyecto
 
 La puerta de CodArch ✅, la guía ✅ ✅ y los documentos ✅ ✅
-([ADR 0034](../../docs/adr/0031-0040/0034-la-web-del-proyecto.md) ✅ ·
-[ADR 0046](../../docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
+([ADR 0034](./docs/adr/0031-0040/0034-la-web-del-proyecto.md) ✅ ·
+[ADR 0046](./docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
 
 ```bash
 npm run site:dev     # en el 5175
@@ -24,8 +24,8 @@ npm run site:build   # sale en apps/site/dist
 ## Cómo funciona
 
 - **Astro + Starlight** ✅ ✅ para los documentos ✅ ✅: cada uno sale como **HTML estático** en su ruta
-  ✅ ✅, con **Pagefind** ✅ ✅, **sitemap** ✅ ✅ y metadatos ✅ ✅ ([ADR 0046](../../docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
-- **`docs/` sigue siendo la verdad** ✅ ✅: un loader `glob` ✅ ✅ lee `../../docs` ✅ ✅ y le da ids
+  ✅ ✅, con **Pagefind** ✅ ✅, **sitemap** ✅ ✅ y metadatos ✅ ✅ ([ADR 0046](./docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
+- **`docs/` sigue siendo la verdad** ✅ ✅: un loader `glob` ✅ ✅ lee `./docs` ✅ ✅ y le da ids
   `docs/...` ✅ ✅ (`docs/model.md` → `/docs/model/` ✅ ✅ ✅). No hay texto copiado ✅ ✅.
 - **El frontmatter es obligatorio** ✅ ✅ (`title` ✅, `description` ✅, `section` ✅, `sidebar` ✅;
   en los ADR, `status` ✅ y `date` ✅ ✅). El esquema está en `src/content.config.ts` ✅ ✅: si falta o

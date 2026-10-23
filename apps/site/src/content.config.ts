@@ -37,14 +37,14 @@ const entradaGuia = z.object({
 export const collections = {
   docs: defineCollection({
     loader: glob({
-      base: "../../docs",
+      base: "./docs",
       pattern: ["**/*.md", "!guideline/**"],
       generateId: ({ entry }) => `docs/${entry.replace(/\.md$/, "")}`
     }),
     schema: docsSchema({ extend: metadata })
   }),
   guia: defineCollection({
-    loader: glob({ base: "../../docs/guideline/entradas", pattern: "**/*.md" }),
+    loader: glob({ base: "./docs/guideline/entradas", pattern: "**/*.md" }),
     schema: entradaGuia
   })
 };

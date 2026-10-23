@@ -2,8 +2,7 @@
 
 La guía de CodArch: las ideas que todavía no son fase, con su veredicto.
 
-- `entradilla.md` — lo que se lee antes del registro.
-- `normas.md` — los iconos, las categorías, los veredictos y las reglas.
+- `normas.md` — la leyenda, las categorías, los veredictos y las reglas.
 - `entradas/` — **la verdad**: una idea por fichero (ADR 0046).
 
 ## Cómo se edita

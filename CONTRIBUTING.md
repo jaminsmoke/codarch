@@ -14,7 +14,7 @@ Antes de escribir código, lee el [`AGENTS.md`](AGENTS.md) ✓: ahí están las 
   ficheros ✓ en los snapshots ✓. El checksum depende del código ✓, no de lo que tengas instalado ✓.
 - **Documentación en español** ✓, código ✓, nombres de API ✓ y tests ✓ en inglés técnico ✓.
 - **Un cambio de modelo o de producto** ✓ lleva un **ADR** ✓ antes de codificar ✓
-  ([`docs/adr/`](docs/adr/index.md) ✓).
+  ([`apps/site/docs/adr/`](apps/site/docs/adr/index.md) ✓).
 - **Nada de artefactos** ✓: `node_modules/` ✓, `dist/` ✓, `.codarch/` ✓ y `samples/` ✓ están
   ignorados ✓ y no se commitean ✓.
 
@@ -35,10 +35,10 @@ Si tocas la acción ✓, también `npm run sync:action` ✓ y el repo público �
 
 - Las **decisiones** ✓ van en un ADR ✓, con su contexto ✓, sus alternativas ✓ y sus
   consecuencias ✓.
-- Las **fases** ✓ viven en la hoja de ruta de su decisión ✓ ([`docs/adr/`](docs/adr/index.md) ✓) ✓,
-  y `docs/adr/roadmap.md` ✓ solo las indexa ✓. Lo hecho queda en el **feed de la guía** ✓
-  (`docs/guideline/entradas/` ✓).
-- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](docs/guideline/README.md) ✓, por
+- Las **fases** ✓ viven en la hoja de ruta de su decisión ✓ ([`apps/site/docs/adr/`](apps/site/docs/adr/index.md) ✓) ✓,
+  y `apps/site/docs/adr/roadmap.md` ✓ solo las indexa ✓. Lo hecho queda en el **feed de la guía** ✓
+  (`apps/site/docs/guideline/entradas/` ✓).
+- Las **ideas** ✓ que todavía no son fase ✓ viven en la [guía](apps/site/docs/guideline/README.md) ✓, por
   orden cronológico ✓ y con su veredicto ✓.
 
 ## La licencia

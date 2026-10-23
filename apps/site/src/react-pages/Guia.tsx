@@ -27,7 +27,7 @@ import { useTitulo } from "../lib/titulo";
  * Un día de la guía, con su changelog (ADR 0035 · ADR 0047).
  *
  * La página del día pinta solo sus entradas; la línea del tiempo del header
- * lleva a los demás días. La entradilla solo se lee en `/guia/`.
+ * lleva a los demás días. La cabecera solo se lee en `/guia/`.
  */
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -62,10 +62,10 @@ function Etiqueta({ veredicto }: { veredicto: Veredicto }) {
 interface Props {
   dia: Dia;
   dias: ResumenDia[];
-  introduccion?: string;
+  esUltimo?: boolean;
 }
 
-export default function Guia({ dia, dias, introduccion }: Props) {
+export default function Guia({ dia, dias, esUltimo }: Props) {
   const fecha = fechaPartida(dia.fecha);
   const ultima = dias.at(-1)?.fecha ?? dia.fecha;
   const indice = dias.findIndex((d) => d.fecha === dia.fecha);
@@ -82,7 +82,7 @@ export default function Guia({ dia, dias, introduccion }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
-      {introduccion ? (
+      {esUltimo ? (
         <header className="mb-10">
           <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
             El registro
@@ -130,13 +130,6 @@ export default function Guia({ dia, dias, introduccion }: Props) {
           {fechaCorta(dia.fecha)}
         </p>
       )}
-
-      {introduccion ? (
-        <div
-          className="prosa prosa-guia guia-entradilla"
-          dangerouslySetInnerHTML={{ __html: introduccion }}
-        />
-      ) : null}
 
       <motion.section
         id={`dia-${dia.fecha}`}

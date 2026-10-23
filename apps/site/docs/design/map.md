@@ -8,11 +8,11 @@ sidebar:
 ---
 
 **Estado:** implementado en M0; desde M1 consume snapshots generados por `codarch analyze`.
-**Prototipo:** [`design/map-mockup.html`](../../design/map-mockup.html).
+**Prototipo:** [`design/map-mockup.html`](./map-mockup.html).
 **Render:** `codarch render` / `codarch analyze`.
 
-Capturas: [riesgo](../../design/preview-riesgo.png) · [estructura](../../design/preview-estructura.png) ·
-[cambios](../../design/preview-cambios.png) · [migración](../../design/preview-migracion.png)
+Capturas: [riesgo](./preview-riesgo.png) · [estructura](./preview-estructura.png) ·
+[cambios](./preview-cambios.png) · [migración](./preview-migracion.png)
 
 Implementado: treemap 2D server-side (`viewBox 1400×900`), lentes **Estructura / Riesgo / Métrica**,
 búsqueda, inspector, selección de fichero y carpeta, y aristas salientes/entrantes del nodo

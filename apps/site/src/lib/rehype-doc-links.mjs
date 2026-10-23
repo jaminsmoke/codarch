@@ -1,7 +1,7 @@
 import path from "node:path";
 import { visit } from "unist-util-visit";
 
-const REPO = "https://github.com/jaminsmoke/codarch/blob/main";
+const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
 
 /**
  * Convierte los enlaces relativos de `docs/` en rutas de Starlight.
@@ -42,7 +42,7 @@ export function rehypeDocLinks({ docsRoot, base }) {
 
       // Lo que no es un documento vive en el repositorio, no en la web.
       if (!ruta.endsWith(".md") || fuera) {
-        const enRepo = fuera ? destino.replace(/^(\.\.\/)+/, "") : `docs/${destino}`;
+        const enRepo = fuera ? destino.replace(/^(\.\.\/)+/, "") : destino;
         node.properties.href = `${REPO}/${enRepo}${ancla}`;
         return;
       }

@@ -1,6 +1,5 @@
 import { getCollection } from "astro:content";
-import entradilla from "../../../../docs/guideline/entradilla.md?raw";
-import normas from "../../../../docs/guideline/normas.md?raw";
+import normas from "../../docs/guideline/normas.md?raw";
 import { prepararGuia } from "./guia-servidor";
 
 /**
@@ -10,5 +9,5 @@ import { prepararGuia } from "./guia-servidor";
  * preparación sin depender de `astro:content` ni de los imports `?raw`.
  */
 export async function cargarGuia() {
-  return prepararGuia(await getCollection("guia"), entradilla, normas);
+  return prepararGuia(await getCollection("guia"), normas);
 }

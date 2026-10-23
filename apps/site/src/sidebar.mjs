@@ -11,7 +11,7 @@ import { parse as parseYaml } from "yaml";
  * por su carpeta de diez.
  */
 
-const DOCS = fileURLToPath(new URL("../../../docs", import.meta.url));
+const DOCS = fileURLToPath(new URL("../docs", import.meta.url));
 
 function andar(carpeta) {
   return fs.readdirSync(carpeta, { withFileTypes: true }).flatMap((entrada) => {

@@ -12,7 +12,7 @@ Monorepo core-first:
 packages/   schema · parsers · metrics · layouts · render · plugin-api · addons · ui
 apps/       cli · mcp · github-action · web (M5) · desktop (M7) · site (M23)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
-docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040, 0041-0050; roadmap.md dentro) · model.md · rules.md · mcp.md · migration.md · guideline/
+apps/site/docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040, 0041-0050; roadmap.md dentro) · model.md · rules.md · mcp.md · migration.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action · check-action
 ```
 
@@ -28,12 +28,12 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action �
   `docs:`, `chore:`).
 - Preferir cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de
   filesystem en snapshots.
-- Cambios de modelo o decisiones de producto: ADR en `docs/adr/` antes de codificar ✓. Los ADR van
-  en carpetas de diez ✓ (`docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
+- Cambios de modelo o decisiones de producto: ADR en `apps/site/docs/adr/` antes de codificar ✓. Los ADR van
+  en carpetas de diez ✓ (`apps/site/docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
   ruta** dentro ✓ (`## Hoja de ruta` ✓): lo abierto y lo que está en curso ✓. El registro de lo
-  hecho vive en el **feed de la guía** ✓ (`docs/guideline/entradas/` ✓, ADR 0047 ✓).
-- `docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M30 ✓): una línea por fase ✓ con su decisión ✓.
-  Las ideas que no son fase viven en la **guía** ✓ (`docs/guideline/entradas/` ✓, un fichero por idea ✓
+  hecho vive en el **feed de la guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, ADR 0047 ✓).
+- `apps/site/docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M30 ✓): una línea por fase ✓ con su decisión ✓.
+  Las ideas que no son fase viven en la **guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, un fichero por idea ✓
   con su fecha ✓), por orden cronológico ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓
   o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
 
@@ -51,7 +51,7 @@ npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
 npm run docs           # abre la guía en el navegador (la del sitio, en el 5175)
 npm run web:dev        # app web + codarch serve automático, se para con Vite
-npm run site:dev       # la web del proyecto (docs/adr/… en el 5175)
+npm run site:dev       # la web del proyecto (apps/site/docs/adr/… en el 5175)
 npm run site:build     # la web del proyecto sale en apps/site/dist
 npm run web:build      # build estático en apps/web/dist
 npm run serve -- .     # analiza, sirve la web y reanaliza al guardar (SSE)
@@ -74,10 +74,10 @@ también `npm run sync:action` y actualizar el repo público.
    No usar `npm audit fix --force`; actualizar de forma controlada y repetir la suite.
 5. **Scripts nativos.** npm 12 bloquea install scripts no aprobados. Si añades esbuild/tree-sitter u
    otro addon, actualiza `allowScripts` con la versión exacta.
-6. **Documentos.** Cada `.md` de `docs/` (salvo `guideline/`) lleva frontmatter (`title`,
+6. **Documentos.** Cada `.md` de `apps/site/docs/` (salvo `guideline/`) lleva frontmatter (`title`,
    `description`, `section` y `sidebar`; en los ADR, `status` y `date`). Añadir el fichero basta
    para que salga en la web (ADR 0046); el build falla si el esquema no cuadra. La guía es otra
-   colección: cada idea en `docs/guideline/entradas/` con `title`, `date`, `category` y `verdict`;
+   colección: cada idea en `apps/site/docs/guideline/entradas/` con `title`, `date`, `category` y `verdict`;
    es el changelog y no hay sidecars (ADR 0047).
 7. **MCP.** El cliente debe lanzar `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
@@ -128,8 +128,8 @@ también `npm run sync:action` y actualizar el repo público.
   cuadran (`--json` para el CI). Los ejemplos de plugin y addon salieron del repo con los comandos
   nuevos.
 - M18 cerrada: los documentos ordenados (ADR 0031). Los ADR van en carpetas de diez y cada uno lleva
-  su hoja de ruta dentro (`## Hoja de ruta`). `docs/adr/roadmap.md` queda como índice.
-- M20 cerrada: la guía, en HTML (ADR 0031, §7). La guía vive en `docs/guideline/`: `entradilla.md`,
+  su hoja de ruta dentro (`## Hoja de ruta`). `apps/site/docs/adr/roadmap.md` queda como índice.
+- M20 cerrada: la guía, en HTML (ADR 0031, §7). La guía vive en `apps/site/docs/guideline/`: `entradilla.md`,
   `normas.md` y una entrada por idea en `entradas/`. `npm run docs` la abre.
 - M21 cerrada: las versiones y las actualizaciones (ADR 0032). Una versión para el producto (la de
   la raíz, con `npm run version -- <x>` y comprobada por el CI), `codarch version [--check]` (npm) y
@@ -141,7 +141,7 @@ también `npm run sync:action` y actualizar el repo público.
   documentos ✅ ✅ (una página por documento, con menú, índice, vecinos y Mermaid). Está en
   `jaminsmoke.github.io/codarch` ✅ ✅ y se publica sola ✅ ✅ con el workflow `web.yml` ✅ ✅.
 - M23.10 cerrada: la documentación ordenada (ADR 0036). La hoja de ruta vive en el ADR y el índice
-  de fases está en `docs/adr/roadmap.md`; el sidecar de changelog desapareció con el ADR 0047.
+  de fases está en `apps/site/docs/adr/roadmap.md`; el sidecar de changelog desapareció con el ADR 0047.
 - M24 sin empezar: el índice SQLite de los documentos. Será derivado del markdown, con FTS5, en
   `.codarch/docs.db` (ignorado); el markdown sigue siendo la verdad.
 - M25 cerrada: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
@@ -165,7 +165,7 @@ también `npm run sync:action` y actualizar el repo público.
   HTML estático por documento, Pagefind, sitemap y frontmatter validado. Los documentos ya lo
   tienen, la sidebar sale de ese frontmatter, los enlaces `.md` se reescriben a `/docs/...` y la
   portada y la guía se conservan como islas de React. La guía también es estructurada: una idea por
-  fichero en `docs/guideline/entradas/` con `date`, `category` y `verdict`.
+  fichero en `apps/site/docs/guideline/entradas/` con `date`, `category` y `verdict`.
 - M30 cerrada: el changelog es la guía (ADR 0047). Los 46 sidecars `<adr>.changelog.md` desaparecen;
   el feed de la guía es el registro. La guía se parte en `/guia/` (el último día),
   `/guia/AAAA-MM-DD/`, `/guia/futuro/` y `/guia/normas/`, y la línea del tiempo enlaza a cada una.

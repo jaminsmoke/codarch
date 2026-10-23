@@ -47,12 +47,12 @@ como isla) para conservar la identidad visual. No se obliga a que todo el sitio 
 ### 2. `docs/` sigue siendo la fuente de verdad
 
 No se copia el contenido a `apps/site` ni se mantiene un espejo a mano. El proyecto define una
-colección `docs` con un loader `glob` que lee `../../docs` y genera ids con el prefijo `docs/`:
+colección `docs` con un loader `glob` que lee `./docs` y genera ids con el prefijo `docs/`:
 
 ```ts
 docs: defineCollection({
   loader: glob({
-    base: "../../docs",
+    base: "./docs",
     pattern: "**/*.md",
     generateId: ({ entry }) => `docs/${entry.replace(/\.md$/, "")}`
   }),
@@ -116,14 +116,14 @@ verdict: idea
 ---
 ```
 
-La entradilla y las normas son `entradilla.md` y `normas.md`. La página `/guia/` agrupa las
+Las normas son `normas.md`; las entradas viven en `entradas/`. La página `/guia/` agrupa las
 entradas por día y categoría, como antes, pero sin partir un único Markdown con expresiones
 regulares. Añadir una idea es añadir un fichero, no tocar el parser.
 
 ### 6. Búsqueda, SEO y publicación
 
 Pagefind genera el índice de búsqueda en el build y Starlight genera el sitemap. El workflow
-`web.yml` construye y publica en GitHub Pages cuando cambia `docs/` o `apps/site/`. Añadir un
+`web.yml` construye y publica en GitHub Pages cuando cambia `apps/site/docs/` o `apps/site/`. Añadir un
 documento con su frontmatter es suficiente: aparece en su ruta, en la sidebar y en la búsqueda.
 
 No se usa una base de datos como fuente: GitHub Pages es estático y la documentación tiene que

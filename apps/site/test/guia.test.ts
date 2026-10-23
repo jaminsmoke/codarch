@@ -48,20 +48,17 @@ const fuentes: FuenteGuia[] = [
   }
 ];
 
-const entradilla = "> La verdad\n\nUna introducción sin metadatos.";
 const normas = "## La leyenda\n\nCómo se escribe.";
 
 describe("prepararGuia", () => {
-  it("separa la entradilla de las normas", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
-    expect(guia.introduccion).toContain("Una introducción sin metadatos");
-    expect(guia.introduccion).not.toContain("La leyenda");
+  it("renderiza las normas", () => {
+    const guia = prepararGuia(fuentes, normas);
     expect(guia.normas).toContain("La leyenda");
     expect(guia.normas).not.toContain("Una feature");
   });
 
   it("agrupa cada día por categoría, en el orden del changelog", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
+    const guia = prepararGuia(fuentes, normas);
     const dia = guia.dias.find((d) => d.fecha === "2026-10-22");
     expect(dia).toBeDefined();
     expect(dia?.grupos.map((grupo) => grupo.categoria)).toEqual([
@@ -75,7 +72,7 @@ describe("prepararGuia", () => {
   });
 
   it("baja los apartados de una entrada por debajo de su título", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
+    const guia = prepararGuia(fuentes, normas);
     const entrada = guia.dias.find((d) => d.fecha === "2026-10-22")?.entradas[0];
     expect(entrada?.html).toContain("<h5");
     expect(entrada?.html).toContain('id="un-apartado"');
@@ -83,21 +80,21 @@ describe("prepararGuia", () => {
   });
 
   it("ordena los días y no pierde ninguna entrada", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
+    const guia = prepararGuia(fuentes, normas);
     expect(guia.dias.map((d) => d.fecha)).toEqual(["2026-10-21", "2026-10-22"]);
     const total = guia.dias.reduce((n, d) => n + d.entradas.length, 0);
     expect(total).toBe(3);
   });
 
   it("deja en Futuro las que esperan", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
+    const guia = prepararGuia(fuentes, normas);
     expect(guia.futuras.map((entrada) => entrada.titulo)).toEqual([
       "Otra feature, la primera del día anterior"
     ]);
   });
 
   it("reescribe los enlaces de una entrada a su documento", () => {
-    const guia = prepararGuia(fuentes, entradilla, normas);
+    const guia = prepararGuia(fuentes, normas);
     const entrada = guia.dias
       .find((d) => d.fecha === "2026-10-22")
       ?.entradas.find((e) => e.titulo === "Un fix");
@@ -107,8 +104,8 @@ describe("prepararGuia", () => {
   });
 
   it("da el mismo resultado dos veces", () => {
-    expect(prepararGuia(fuentes, entradilla, normas)).toEqual(
-      prepararGuia(fuentes, entradilla, normas)
+    expect(prepararGuia(fuentes, normas)).toEqual(
+      prepararGuia(fuentes, normas)
     );
   });
 
@@ -124,7 +121,7 @@ describe("prepararGuia", () => {
 describe("la guía del repo", () => {
   const guideline = path.resolve(
     import.meta.dirname,
-    "../../../docs/guideline"
+    "../docs/guideline"
   );
   const entradas = fs
     .readdirSync(path.join(guideline, "entradas"))
@@ -152,7 +149,6 @@ describe("la guía del repo", () => {
 
   const guia = prepararGuia(
     entradas,
-    fs.readFileSync(path.join(guideline, "entradilla.md"), "utf8"),
     fs.readFileSync(path.join(guideline, "normas.md"), "utf8")
   );
 

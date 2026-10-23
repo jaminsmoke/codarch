@@ -108,10 +108,8 @@ export function rutaDia(fecha: string, ultima: string): string {
   return fecha === ultima ? "/guia/" : `/guia/${fecha}/`;
 }
 
-/** La guía entera: la introducción, los días y lo que falta. */
+/** La guía entera: las normas, los días y lo que falta. */
 export interface DatosGuia {
-  /** Lo que se lee antes del registro. */
-  introduccion: string;
   /** Cómo se escribe la guía: la leyenda, las categorías y las reglas. */
   normas: string;
   dias: Dia[];

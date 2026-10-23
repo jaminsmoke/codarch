@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import captura from "../../../../docs/images/atlas.png";
+import captura from "../../docs/images/atlas.png";
 import { useTitulo } from "../lib/titulo";
 
 /**

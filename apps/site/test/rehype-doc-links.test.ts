@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { rehypeDocLinks } from "../src/lib/rehype-doc-links.mjs";
 
-const docs = path.resolve(import.meta.dirname, "../../../docs");
+const docs = path.resolve(import.meta.dirname, "../docs");
 
 function enlace(href: string): any {
   return {
@@ -54,13 +54,13 @@ describe("los enlaces del markdown", () => {
 
   it("manda al repo lo que no es un documento", () => {
     expect(resolver("model.md", "images/atlas.png")).toBe(
-      "https://github.com/jaminsmoke/codarch/blob/main/docs/images/atlas.png"
+      "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/images/atlas.png"
     );
     expect(resolver("design/map.md", "../../design/preview-riesgo.png")).toBe(
-      "https://github.com/jaminsmoke/codarch/blob/main/design/preview-riesgo.png"
+      "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/design/preview-riesgo.png"
     );
     expect(resolver("model.md", "../README.md")).toBe(
-      "https://github.com/jaminsmoke/codarch/blob/main/README.md"
+      "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/README.md"
     );
   });
 });
