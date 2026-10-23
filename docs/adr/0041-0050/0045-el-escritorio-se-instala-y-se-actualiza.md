@@ -4,8 +4,8 @@
 
 ## Contexto
 
-El escritorio ya tiene instaladores (NSIS en Windows, AppImage y deb en Linux) y una release
-automática cuando sube `versions.json`. También sabe **comprobar** si hay una versión nueva, pero no
+El escritorio ya tiene instaladores (NSIS en Windows y deb en Linux) y una release automática
+cuando sube `versions.json`. También sabe **comprobar** si hay una versión nueva, pero no
 instalarla: abre la release en el navegador y el usuario vuelve a bajar el instalador.
 
 Eso deja dos huecos:
@@ -28,13 +28,16 @@ No se va a pedir una cuenta de Apple para mantener un instalador que el sistema 
 - **Windows:** NSIS por usuario (`perMachine: false`), instalación en
   `%LOCALAPPDATA%\Programs\CodArch`, con opción de cambiar la carpeta, accesos directos y
   desinstalador. Es la ruta propia de la app, sin pedir administrador.
-- **Linux:** AppImage para ejecutarla desde cualquier carpeta y `.deb` para quien prefiera el
-  paquete del sistema.
+- **Linux:** `.deb`, que instala la app en el sistema y deja su entrada de menú; no se publica un
+  AppImage portable.
 - **macOS:** fuera de la matriz de builds y de la release. Sin firma ni notarización, Gatekeeper
   bloquea la app y el actualizador no puede aplicarla; no se publica una experiencia que no
   funciona.
 
-Los nombres de los artefactos siguen la versión del producto y la arquitectura.
+**El release no lleva ejecutables portables.** El `codarch-<versión>-x64.exe` anterior era un
+portable que no se instalaba y no podía actualizarse como la app; se elimina. El AppImage tampoco
+se publica: es un ejecutable, no un instalador. Lo que se descarga es `codarch-<versión>-setup.exe`
+en Windows y `codarch-<versión>-amd64.deb` en Linux.
 
 ### 2. La release trae metadatos de actualización
 
@@ -58,9 +61,10 @@ La app usa `electron-updater` cuando está empaquetada:
 - la instala al cerrar, o cuando el usuario acepte el aviso;
 - si no hay red o la comprobación falla, la app sigue funcionando y no molesta.
 
-En Windows el instalador es por usuario y no necesita administrador; en Linux la actualización
-automática aplica al AppImage. La sección **Actualizaciones** de los ajustes sigue enseñando la
-versión y el enlace; la actualización en segundo plano no la sustituye.
+En Windows el instalador es por usuario y no necesita administrador. En Linux la actualización del
+`.deb` la aplica `electron-updater` con `dpkg`/`apt`; si la app no corre como root, el sistema pide
+permiso de administrador. La sección **Actualizaciones** de los ajustes sigue enseñando la versión
+y el enlace; la actualización en segundo plano no la sustituye.
 
 macOS queda fuera hasta que haya firma y notarización. No se compila, no se sube y no se ofrece un
 DMG que el sistema vaya a bloquear.
@@ -75,7 +79,8 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - Windows y Linux reciben las versiones nuevas sin volver a la página de releases.
 - macOS no se publica hasta que se firme; es una limitación del sistema y una decisión explícita.
 - Los releases incluyen más artefactos (`latest*.yml` y `.blockmap`), pero siguen siendo ligeros.
-- El instalador de Windows no pide administrador y queda en la carpeta del usuario.
+- El instalador de Windows no pide administrador y queda en la carpeta del usuario; el `.deb` de
+  Linux sí pide permiso al actualizarse, como cualquier paquete del sistema.
 - Una actualización fallida no borra la versión que funciona: electron-updater solo instala después
   de descargar y verificar el paquete.
 
@@ -87,8 +92,10 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
   prometerlo sería peor. Se reevaluará si algún día hay firma.
 - **Publicar desde electron-builder en vez de dejar que el workflow suba los assets:** el workflow
   ya decide cuándo hay release y espera a los dos sistemas; duplicar esa decisión crearía carreras.
-- **Un instalador propio para cada Linux:** AppImage y deb cubren el caso sin multiplicar el
-  mantenimiento.
+- **Publicar AppImage y el portable de Windows:** son ejecutables que no se instalan; la app
+  instalada no puede actualizarlos. Se dejan fuera para que el release sea solo instaladores.
+- **Un paquete propio para cada Linux:** `.deb` cubre el caso de Debian/Ubuntu; rpm o pacman
+  entrarán si se piden, con su decisión aparte.
 
 ## Hoja de ruta
 

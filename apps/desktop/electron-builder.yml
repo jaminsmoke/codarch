@@ -36,10 +36,10 @@ asarUnpack:
   - "**/node_modules/tree-sitter-typescript/**"
 
 win:
+  # Solo el instalador NSIS: el portable es un ejecutable que no se instala ni
+  # se actualiza como la app (ADR 0045).
   target:
     - target: nsis
-      arch: [x64]
-    - target: portable
       arch: [x64]
   artifactName: "codarch-${version}-${arch}.${ext}"
 
@@ -59,9 +59,9 @@ nsis:
 # notarización no es una experiencia que se pueda prometer (ADR 0045).
 
 linux:
+  # El .deb instala la app en el sistema; el AppImage es un ejecutable portable
+  # y no se publica como instalador (ADR 0045).
   target:
-    - target: AppImage
-      arch: [x64]
     - target: deb
       arch: [x64]
   category: Development

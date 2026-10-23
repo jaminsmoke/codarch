@@ -24,4 +24,7 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escr
   descarga completa; es el comportamiento esperado del puente entre etiquetas.
 - `desktop-v0.3.1-alpha.2` se renombró a `v0.3.1-alpha.2`; la release de `alpha.1` conserva su
   etiqueta histórica. macOS queda fuera de la matriz y de los assets.
+- El release deja de llevar ejecutables portables: se quita el `.exe` portable de Windows y el
+  AppImage de Linux. Windows publica `setup.exe` (NSIS) y Linux `.deb`; son instaladores, y son
+  los que `electron-updater` puede reemplazar.
 - La firma y la notarización quedan fuera de esta fase: Windows y Linux son los canales publicados.

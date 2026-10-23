@@ -96,10 +96,9 @@ jobs:
         with:
           name: codarch-desktop-${{ matrix.os }}
           path: |
-            apps/desktop/release/*.exe
-            apps/desktop/release/*.AppImage
+            apps/desktop/release/*-setup.exe
+            apps/desktop/release/*-setup.exe.blockmap
             apps/desktop/release/*.deb
-            apps/desktop/release/*.blockmap
             apps/desktop/release/latest*.yml
           if-no-files-found: error
 

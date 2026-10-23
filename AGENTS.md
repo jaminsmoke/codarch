@@ -155,9 +155,9 @@ también `npm run sync:action` y actualizar el repo público.
   loopback; `docker.yml` construye en PR, publica en GHCR al entrar en `main` y prueba la imagen
   contra el repo.
 - M28 cerrada: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows y
-  AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y `electron-updater`
-  actualiza Windows y Linux. El tag es `v<versión>` desde `0.3.1-alpha.2`; macOS no se publica
-  hasta que haya firma y notarización.
+  `.deb` en Linux; no se publican ejecutables portables. La release lleva `latest*.yml` y
+  `.blockmap`, y `electron-updater` actualiza Windows y Linux. El tag es `v<versión>` desde
+  `0.3.1-alpha.2`; macOS no se publica hasta que haya firma y notarización.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
