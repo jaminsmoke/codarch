@@ -10,13 +10,14 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { motion } from "motion/react";
-import { type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import {
   CATEGORIAS,
   VEREDICTOS,
   fechaCorta,
   fechaPartida,
   rutaDia,
+  type Categoria,
   type Dia,
   type ResumenDia,
   type Veredicto
@@ -77,6 +78,20 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
     indice >= 0 && indice < dias.length - 1 ? dias[indice + 1] : undefined;
   const total = dias.reduce((cuenta, d) => cuenta + d.cuantas, 0);
   const categorias = new Set(dias.flatMap((d) => d.categorias));
+  const [visibles, setVisibles] = useState<Set<Categoria>>(
+    () => new Set(dia.grupos.map((grupo) => grupo.categoria))
+  );
+  const alternar = (categoria: Categoria) => {
+    setVisibles((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(categoria)) siguiente.delete(categoria);
+      else siguiente.add(categoria);
+      return siguiente;
+    });
+  };
+  const gruposVisibles = dia.grupos.filter((grupo) =>
+    visibles.has(grupo.categoria)
+  );
 
   useTitulo(
     `La guía — ${fecha.dia} de ${fecha.mes} de ${fecha.anio}`,
@@ -162,26 +177,46 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {dia.grupos.map((grupo) => {
                 const categoria = CATEGORIAS[grupo.categoria];
+                const activa = visibles.has(grupo.categoria);
                 return (
-                  <li
-                    key={grupo.categoria}
-                    style={tono(categoria.color)}
-                    className="guia-chip"
-                  >
-                    <span aria-hidden="true" className="guia-chip-punto" />
-                    {categoria.texto}
-                    <span className="guia-chip-cuenta">
-                      {grupo.entradas.length}
-                    </span>
+                  <li key={grupo.categoria}>
+                    <button
+                      type="button"
+                      onClick={() => alternar(grupo.categoria)}
+                      aria-pressed={activa}
+                      style={tono(categoria.color)}
+                      className={
+                        activa ? "guia-chip" : "guia-chip guia-chip--inactivo"
+                      }
+                    >
+                      <span aria-hidden="true" className="guia-chip-punto" />
+                      {categoria.texto}
+                      <span className="guia-chip-cuenta">
+                        {grupo.entradas.length}
+                      </span>
+                    </button>
                   </li>
                 );
               })}
+              {!gruposVisibles.length ? (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibles(new Set(dia.grupos.map((g) => g.categoria)))
+                    }
+                    className="guia-chip"
+                  >
+                    Mostrar todas
+                  </button>
+                </li>
+              ) : null}
             </ul>
           </div>
         </header>
 
         <div className="guia-grupos">
-          {dia.grupos.map((grupo) => {
+          {gruposVisibles.map((grupo) => {
             const categoria = CATEGORIAS[grupo.categoria];
             return (
               <section

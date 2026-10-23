@@ -352,6 +352,11 @@ body {
   font-size: 0.56rem;
 }
 
+.guia-chip--inactivo {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
 .guia-grupos {
   display: grid;
   gap: 1rem;
@@ -359,22 +364,19 @@ body {
 }
 
 .guia-grupo {
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--tono) 22%, var(--color-line));
-  border-radius: 14px;
-  background: var(--color-panel);
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-ink) 4%, transparent);
+  border-left: 3px solid var(--tono);
+  padding-left: 0.9rem;
+  margin-bottom: 1.5rem;
 }
 
 .guia-grupo-cabecera {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin: 0;
-  padding: 0.55rem 0.85rem;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--tono) 28%, var(--color-line));
-  background: color-mix(in srgb, var(--tono) 12%, var(--color-panel));
+  margin: 0 0 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-weight: 400;
 }
 
@@ -412,7 +414,7 @@ body {
 }
 
 .guia-entrada {
-  padding: 1.25rem 1.35rem 1.45rem;
+  padding: 0.85rem 0 0.95rem;
   border-left: 0 solid var(--tono);
   transition:
     border-color 0.18s ease,
