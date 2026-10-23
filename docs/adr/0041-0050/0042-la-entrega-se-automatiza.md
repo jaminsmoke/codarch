@@ -38,19 +38,22 @@ equipo quiera; el `workflow_dispatch` sigue siendo la salida para reintentar.
 
 `.github/workflows/desktop.yml` tiene tres trabajos:
 
-1. **`prepare`** lee `versions.json` y las releases `desktop-v*`, y compara las versiones con
+1. **`prepare`** lee `versions.json` y las releases del escritorio, y compara las versiones con
    `packages/versions`. Si la versión del producto no es mayor que la última publicada, no se
    construye nada.
-2. **`build`** empaqueta Windows, macOS y Linux solo si `prepare` dice que hay algo que construir.
-   Un PR y un `workflow_dispatch` construyen siempre para poder probar; un push solo construye
-   cuando hay versión nueva.
-3. **`release`** espera a que los tres builds terminen y crea el tag `desktop-v<versión>` y la
-   release de GitHub con los instaladores. El tag se crea **después** del build: si un instalador
-   falla, no queda un tag sin artefactos.
+2. **`build`** empaqueta Windows y Linux solo si `prepare` dice que hay algo que construir. Un PR y
+   un `workflow_dispatch` construyen siempre para poder probar; un push solo construye cuando hay
+   versión nueva.
+3. **`release`** espera a que los dos builds terminen y crea el tag `v<versión>` y la release de
+   GitHub con los instaladores. El tag se crea **después** del build: si un instalador falla, no
+   queda un tag sin artefactos.
 
 El tag y la release los crea el workflow con `GITHUB_TOKEN`. Un tag creado así **no vuelve a
-disparar** el workflow, así que no hay bucle. Ya no se empuja `desktop-v*` a mano; el workflow es
-la única puerta. Si hay que reintentar, se relanza el workflow.
+disparar** el workflow, así que no hay bucle. Ya no se empuja el tag a mano; el workflow es la
+única puerta. Si hay que reintentar, se relanza el workflow.
+
+Desde `0.3.1-alpha.2` el tag es `v<versión>` porque `electron-updater` lee las etiquetas de GitHub
+como versiones semver; `desktop-v*` queda para las releases anteriores (ADR 0045).
 
 El comprobador del escritorio no pregunta a `/releases/latest`, que excluye las prereleases: pide la
 lista de releases y elige la versión más alta, incluidas las prerelease. Si no, una alpha recién
@@ -68,7 +71,7 @@ se pone una versión que todavía no está en npm.
 ## Consecuencias
 
 - Publicar deja de ser un ritual: se sube la versión, se empuja a `main` y el CI decide.
-- Un push que no sube versión no gasta tres builds de Electron.
+- Un push que no sube versión no gasta dos builds de Electron.
 - Un build fallido no deja tag ni release a medias.
 - La release del escritorio queda marcada como prerelease cuando la versión lleva `-`. La alpha.2
   se marcó como `latest` una vez, como puente para los clientes que todavía tenían el comprobador
@@ -94,7 +97,8 @@ se pone una versión que todavía no está en npm.
 
 - [x] El CLI se publica con Trusted Publishing (`publish-cli.yml`), sin token permanente.
 - [x] La conexión de npm está creada y validada con `0.3.0-alpha.2`.
-- [x] El escritorio compara `versions.json` con la última release `desktop-v*`.
+- [x] El escritorio compara `versions.json` con la última release del escritorio; desde
+  `0.3.1-alpha.2` el tag es `v<versión>`.
 - [x] El workflow construye y crea el tag y la release en la misma ejecución.
 - [x] La acción de GitHub se actualiza después de publicar; `codarch-action@v1` apunta al pin nuevo.
 - [x] Validar el primer release automático del escritorio con `desktop-v0.3.0-alpha.2`.
