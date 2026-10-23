@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import type { DatosGuia } from "../lib/guia";
 import Marco from "../Marco";
 import Guia from "../react-pages/Guia";
 import Inicio from "../react-pages/Inicio";
@@ -8,49 +7,19 @@ import Inicio from "../react-pages/Inicio";
  * La portada y la guía siguen en React (ADR 0046).
  *
  * Starlight se queda con los documentos; estas dos páginas conservan el marco
- * y la identidad que ya tenía la web. Los enlaces a `/docs/` salen del SPA y
- * cargan la página estática de Starlight.
+ * y la identidad que ya tenía la web. La guía recibe sus entradas ya
+ * preparadas desde Astro: el navegador no parte ningún markdown.
  */
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-function Docs() {
-  useEffect(() => {
-    window.location.reload();
-  }, []);
-  return null;
+interface Props {
+  pagina: "inicio" | "guia";
+  guia?: DatosGuia;
 }
 
-function InicioODocumentos() {
-  useEffect(() => {
-    window.location.assign(`${import.meta.env.BASE_URL}docs/`);
-  }, []);
-  return null;
-}
-
-export default function ReactSite() {
+export default function ReactSite({ pagina, guia }: Props) {
   return (
-    <BrowserRouter basename={BASE}>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Marco>
-              <Inicio />
-            </Marco>
-          }
-        />
-        <Route
-          path="/guia/"
-          element={
-            <Marco>
-              <Guia />
-            </Marco>
-          }
-        />
-        <Route path="/docs/*" element={<Docs />} />
-        <Route path="*" element={<InicioODocumentos />} />
-      </Routes>
-    </BrowserRouter>
+    <Marco dias={pagina === "guia" && guia ? guia.dias : undefined}>
+      {pagina === "guia" && guia ? <Guia datos={guia} /> : <Inicio />}
+    </Marco>
   );
 }

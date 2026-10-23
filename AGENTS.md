@@ -74,9 +74,11 @@ también `npm run sync:action` y actualizar el repo público.
    No usar `npm audit fix --force`; actualizar de forma controlada y repetir la suite.
 5. **Scripts nativos.** npm 12 bloquea install scripts no aprobados. Si añades esbuild/tree-sitter u
    otro addon, actualiza `allowScripts` con la versión exacta.
-6. **Documentos.** Cada `.md` de `docs/` lleva frontmatter (`title`, `description`, `section` y
-   `sidebar`; en los ADR, `status` y `date`; en los changelogs, `changelog` y `adr`). Añadir el
-   fichero basta para que salga en la web (ADR 0046); el build falla si el esquema no cuadra.
+6. **Documentos.** Cada `.md` de `docs/` (salvo `guideline/`) lleva frontmatter (`title`,
+   `description`, `section` y `sidebar`; en los ADR, `status` y `date`; en los changelogs,
+   `changelog` y `adr`). Añadir el fichero basta para que salga en la web (ADR 0046); el build falla
+   si el esquema no cuadra. La guía es otra colección: cada idea en `docs/guideline/entradas/` con
+   `title`, `date`, `category` y `verdict`.
 7. **MCP.** El cliente debe lanzar `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
 8. **Acción.** La fuente es `apps/github-action`. El repo público
@@ -161,10 +163,11 @@ también `npm run sync:action` y actualizar el repo público.
   `.deb` en Linux; no se publican ejecutables portables. La release lleva `latest*.yml` y
   `.blockmap`, y `electron-updater` actualiza Windows y Linux. El tag es `v<versión>` desde
   `0.3.1-alpha.2`; macOS no se publica hasta que haya firma y notarización.
-- M29 en curso: los documentos con Starlight (ADR 0046). La web pasa a Astro + Starlight, con
+- M29 cerrada: los documentos con Starlight (ADR 0046). La web pasa a Astro + Starlight, con
   HTML estático por documento, Pagefind, sitemap y frontmatter validado. Los 99 documentos ya lo
   tienen, la sidebar sale de ese frontmatter, los enlaces `.md` se reescriben a `/docs/...` y la
-  portada y la guía se conservan como islas de React. Queda la guía estructurada.
+  portada y la guía se conservan como islas de React. La guía también es estructurada: una idea por
+  fichero en `docs/guideline/entradas/` con `date`, `category` y `verdict`.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

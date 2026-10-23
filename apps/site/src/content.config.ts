@@ -11,12 +11,29 @@ import { docsSchema } from "@astrojs/starlight/schema";
  */
 
 const metadata = z.object({
-  section: z.enum(["producto", "adr", "guia"]),
+  section: z.enum(["producto", "adr"]),
   status: z.string().optional(),
   date: z.string().optional(),
   changelog: z.boolean().default(false),
   adr: z.string().optional(),
   tags: z.array(z.string()).default([])
+});
+
+/** Una entrada de la guía: una idea, con su fecha, su categoría y su veredicto. */
+const entradaGuia = z.object({
+  title: z.string(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  category: z.enum([
+    "feature",
+    "fix",
+    "optimized",
+    "refactor",
+    "docs",
+    "chore",
+    "security",
+    "removed"
+  ]),
+  verdict: z.enum(["idea", "fase", "adr", "arreglo", "esperar"])
 });
 
 export const collections = {
@@ -27,5 +44,9 @@ export const collections = {
       generateId: ({ entry }) => `docs/${entry.replace(/\.md$/, "")}`
     }),
     schema: docsSchema({ extend: metadata })
+  }),
+  guia: defineCollection({
+    loader: glob({ base: "../../docs/guideline/entradas", pattern: "**/*.md" }),
+    schema: entradaGuia
   })
 };

@@ -1,11 +1,17 @@
 ---
+import { getCollection } from "astro:content";
+import entradilla from "../../../../docs/guideline/entradilla.md?raw";
+import normas from "../../../../docs/guideline/normas.md?raw";
 import ReactSite from "../components/ReactSite";
 import Site from "../layouts/Site.astro";
+import { prepararGuia } from "../lib/guia-servidor";
+
+const datos = prepararGuia(await getCollection("guia"), entradilla, normas);
 ---
 
 <Site
   title="La guía — CodArch"
   description="Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
 >
-  <ReactSite client:only="react" />
+  <ReactSite client:only="react" pagina="guia" guia={datos} />
 </Site>

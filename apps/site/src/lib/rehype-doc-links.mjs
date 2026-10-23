@@ -47,7 +47,7 @@ export function rehypeDocLinks({ docsRoot, base }) {
         return;
       }
 
-      if (destino === "guideline/contenido.md") {
+      if (destino.startsWith("guideline/")) {
         node.properties.href = `${base}/guia/${ancla}`.replace(/\/\/+/g, "/");
         return;
       }

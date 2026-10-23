@@ -1,18 +1,19 @@
-import { primerParrafo, recortar, renderizar, slug } from "./markdown";
-import { resolver } from "./rutas";
-
 /**
- * La guía: su contenido, que vive en `docs/guideline/contenido.md`.
+ * La guía: sus tipos, sus categorías y sus veredictos (ADR 0035 · ADR 0046).
  *
- * Es la **verdad**: la web la genera (ADR 0034). Una entrada empieza con un
- * `##` y su línea siguiente dice el veredicto y la fecha.
+ * El contenido ya no se parte aquí: cada idea es un fichero en
+ * `docs/guideline/entradas/` y `lib/guia-servidor.ts` lo convierte en datos
+ * para la página. Este módulo es puro: lo usan el build y los tests.
  */
 
-/** Dónde vive el contenido, dentro de `docs/`, para resolver sus enlaces. */
-const ORIGEN = "guideline/contenido";
-
 /** Los veredictos, con su color. */
-export type Veredicto = "idea" | "fase" | "arreglo" | "esperar" | "otro";
+export type Veredicto =
+  | "idea"
+  | "fase"
+  | "adr"
+  | "arreglo"
+  | "esperar"
+  | "otro";
 
 export const VEREDICTOS: Record<
   Veredicto,
@@ -20,6 +21,7 @@ export const VEREDICTOS: Record<
 > = {
   idea: { texto: "idea", color: "var(--color-violet)" },
   fase: { texto: "fase", color: "var(--color-patina)" },
+  adr: { texto: "ADR", color: "var(--color-cobalt)" },
   arreglo: { texto: "arreglo", color: "var(--color-ochre)" },
   esperar: { texto: "esperar", color: "var(--color-muted)" },
   otro: { texto: "nota", color: "var(--color-ink-soft)" }
@@ -57,7 +59,7 @@ export const CATEGORIAS: Record<
   otro: { texto: "Otros", color: "var(--color-line-strong)", orden: 8 }
 };
 
-/** Una entrada de la guía. */
+/** Una entrada de la guía, ya lista para pintar. */
 export interface Entrada {
   /** El ancla: el nombre del título, en kebab-case. */
   id: string;
@@ -86,7 +88,7 @@ export interface Dia {
 }
 
 /** La guía entera: la introducción, los días y lo que falta. */
-export interface Guia {
+export interface DatosGuia {
   /** Lo que se lee antes del registro. */
   introduccion: string;
   /** Cómo se escribe la guía: la leyenda, las categorías y las reglas. */
@@ -95,15 +97,6 @@ export interface Guia {
   /** Las ideas que esperan: lo que todavía no ha pasado. */
   futuras: Entrada[];
 }
-
-/** El contenido de la guía, del repo, en el build. */
-const modulos = import.meta.glob("../../../../docs/guideline/contenido.md", {
-  query: "?raw",
-  import: "default",
-  eager: true
-}) as Record<string, string>;
-
-export { slug };
 
 /** Los meses, cortos y largos. */
 const MESES_CORTOS = [
@@ -158,16 +151,8 @@ export function fechaPartida(fecha: string): {
   };
 }
 
-/** Le pone a un markdown sus enlaces: los documentos, dentro del sitio. */
-function conEnlaces(markdown: string): string {
-  return renderizar(markdown, (destino) => resolver(ORIGEN, destino)).html;
-}
-
-/** La línea de metadatos: `*feature · fase · 2026-10-22*`. */
-const METADATOS = /^\*([a-z]+) · ([a-záéíóúñ]+) · (\d{4}-\d{2}-\d{2})\*$/;
-
 /** Agrupa las entradas de un día por categoría, en el orden del changelog. */
-function agrupar(entradas: Entrada[]): Grupo[] {
+export function agrupar(entradas: Entrada[]): Grupo[] {
   const porCategoria = new Map<Categoria, Entrada[]>();
   for (const entrada of entradas) {
     const lista = porCategoria.get(entrada.categoria) ?? [];
@@ -177,84 +162,4 @@ function agrupar(entradas: Entrada[]): Grupo[] {
   return [...porCategoria.entries()]
     .sort(([a], [b]) => CATEGORIAS[a].orden - CATEGORIAS[b].orden)
     .map(([categoria, lista]) => ({ categoria, entradas: lista }));
-}
-
-/** Parte la guía: la introducción, las normas, las entradas y los días. */
-export function partir(markdown: string): Guia {
-  const secciones = markdown.split(/^## /m);
-  const primera = secciones.shift() ?? "";
-
-  const introduccion: string[] = [primera.replace(/^#\s+.+$/m, "").trim()];
-  const normas: string[] = [];
-  const entradas: Entrada[] = [];
-
-  for (const seccion of secciones) {
-    const lineas = seccion.split("\n");
-    const titulo = (lineas.shift() ?? "").trim();
-    const meta = METADATOS.exec((lineas[0] ?? "").trim());
-
-    if (!meta) {
-      // Después de la entradilla, lo que no es una entrada son las normas.
-      normas.push(`## ${titulo}\n${lineas.join("\n").trim()}`);
-      continue;
-    }
-
-    lineas.shift();
-    const cuerpo = lineas.join("\n").trim();
-    // Los `###` de una entrada son sus apartados: van dos niveles por debajo.
-    const apartados = cuerpo.replace(/^### /gm, "##### ");
-    const categoria = (meta[1] ?? "otro") as Categoria;
-    const veredicto = (meta[2] ?? "otro") as Veredicto;
-    entradas.push({
-      id: slug(titulo),
-      titulo,
-      categoria: categoria in CATEGORIAS ? categoria : "otro",
-      veredicto: veredicto in VEREDICTOS ? veredicto : "otro",
-      fecha: meta[3] ?? "",
-      resumen: recortar(primerParrafo(cuerpo), 220),
-      html: conEnlaces(apartados)
-    });
-  }
-
-  // Los días: una entrada por día, agrupadas.
-  const porDia = new Map<string, Entrada[]>();
-  for (const entrada of entradas) {
-    const lista = porDia.get(entrada.fecha) ?? [];
-    lista.push(entrada);
-    porDia.set(entrada.fecha, lista);
-  }
-
-  const dias: Dia[] = [...porDia.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([fecha, lista]) => ({
-      fecha,
-      entradas: lista,
-      grupos: agrupar(lista)
-    }));
-
-  // Lo que espera: las ideas sin decidir todavía.
-  const futuras = entradas.filter((entrada) => entrada.veredicto === "esperar");
-
-  return {
-    introduccion: conEnlaces(introduccion.join("\n\n")),
-    normas: conEnlaces(normas.join("\n\n")),
-    dias,
-    futuras
-  };
-}
-
-/**
- * La guía, tal cual está en el repo.
- *
- * Se lee **una vez**: el markdown no cambia en el build, y la web se vuelve a
- * pintar al hacer scroll (el mismo objeto).
- */
-let cache: Guia | null = null;
-
-export function guia(): Guia {
-  if (!cache) {
-    const markdown = Object.values(modulos)[0] ?? "";
-    cache = partir(markdown);
-  }
-  return cache;
 }

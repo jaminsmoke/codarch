@@ -1,66 +1,84 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { useLocation } from "react-router-dom";
-import { Link, NavLink } from "react-router-dom";
+import type { Dia } from "./lib/guia";
 
 /**
  * El frame: lo que envuelve a todas las páginas ✓ ✓.
  *
  * La cabecera ✓, la navegación ✓ y el pie ✓ son de aquí ✓ ✓; dentro va la
- * página ✓ ✓. Si mañana hay más vistas ✓ ✅, todas caben en este marco ✅ ✅.
+ * página ✓ ✓. La guía le pasa sus días para la línea del tiempo ✓ ✅.
  */
 
 // La línea del tiempo lleva la guía ✓: se carga solo en su página ✓ ✅.
 const LineaTiempo = lazy(() => import("./components/LineaTiempo"));
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 const enlaces = [
-  { to: "/", texto: "Inicio", fin: true },
-  { to: "/guia/", texto: "Guía", fin: false },
-  { to: "/docs/", texto: "Documentos", fin: false }
+  { ruta: "/", texto: "Inicio" },
+  { ruta: "/guia/", texto: "Guía" },
+  { ruta: "/docs/", texto: "Documentos" }
 ];
 
-export default function Marco({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation();
-  // La línea del tiempo es de la guía ✓ ✅: solo sale en su página ✓ ✅ ✅.
-  const enGuia = pathname.startsWith("/guia");
+/** Si una ruta de la web es la actual. */
+function esActiva(ruta: string, actual: string): boolean {
+  if (ruta === "/") return actual === `${BASE}/` || actual === BASE;
+  return actual.startsWith(`${BASE}${ruta}`);
+}
+
+export default function Marco({
+  children,
+  dias
+}: {
+  children: ReactNode;
+  dias?: Dia[];
+}) {
+  const actual =
+    typeof window === "undefined" ? "/" : window.location.pathname;
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">
       <header className="sticky top-0 z-20 border-b border-line bg-paper/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center gap-6 px-5 py-3">
-          <Link to="/" className="flex items-baseline gap-2.5 no-underline">
+          <a
+            href={`${BASE}/`}
+            className="flex items-baseline gap-2.5 no-underline"
+          >
             <span className="font-display text-xl font-bold tracking-tight text-ink">
               CodArch
             </span>
             <span className="hidden text-sm text-muted sm:inline">
               el mapa vivo de la arquitectura
             </span>
-          </Link>
+          </a>
 
           <nav className="ml-auto flex items-center gap-1">
-            {enlaces.map((enlace) => (
-              <NavLink
-                key={enlace.to}
-                to={enlace.to}
-                end={enlace.fin}
-                className={({ isActive }) =>
-                  [
+            {enlaces.map((enlace) => {
+              const activa = esActiva(enlace.ruta, actual);
+              return (
+                <a
+                  key={enlace.ruta}
+                  href={`${BASE}${enlace.ruta}`}
+                  aria-current={activa ? "page" : undefined}
+                  className={[
                     "rounded-lg px-3 py-1.5 text-sm no-underline transition-colors",
-                    isActive
+                    activa
                       ? "bg-cobalt/12 font-semibold text-cobalt"
                       : "text-ink-soft hover:bg-ink/6 hover:text-ink"
-                  ].join(" ")
-                }
-              >
-                {enlace.texto}
-              </NavLink>
-            ))}
+                  ].join(" ")}
+                >
+                  {enlace.texto}
+                </a>
+              );
+            })}
           </nav>
         </div>
 
-        {enGuia ? (
-          <Suspense fallback={<div className="h-[3.05rem] border-t border-line/70" />}>
-            <LineaTiempo />
+        {dias ? (
+          <Suspense
+            fallback={<div className="h-[3.05rem] border-t border-line/70" />}
+          >
+            <LineaTiempo dias={dias} />
           </Suspense>
         ) : null}
       </header>
@@ -81,12 +99,18 @@ export default function Marco({ children }: { children: ReactNode }) {
             licencia.
           </span>
           <span className="ml-auto flex gap-3">
-            <Link to="/guia/" className="text-muted no-underline hover:text-cobalt">
+            <a
+              href={`${BASE}/guia/`}
+              className="text-muted no-underline hover:text-cobalt"
+            >
               La guía
-            </Link>
-            <Link to="/docs/" className="text-muted no-underline hover:text-cobalt">
+            </a>
+            <a
+              href={`${BASE}/docs/`}
+              className="text-muted no-underline hover:text-cobalt"
+            >
               Los documentos
-            </Link>
+            </a>
             <a href="https://github.com/jaminsmoke/codarch">El repo</a>
             <a href="https://www.npmjs.com/package/codarch">En npm</a>
             <a href="https://github.com/jaminsmoke/codarch-action">La acción</a>

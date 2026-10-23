@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { fechaCorta, guia } from "../lib/guia";
+import { fechaCorta, type Dia } from "../lib/guia";
 import { bandaDeLectura, pasoEnBanda } from "../lib/linea";
 
 /**
@@ -29,8 +29,7 @@ interface Paso {
   futuro: boolean;
 }
 
-export default function LineaTiempo() {
-  const { dias } = guia();
+export default function LineaTiempo({ dias }: { dias: Dia[] }) {
   const [activo, setActivo] = useState(dias[0]?.fecha ?? "");
   // Mientras un clic va de camino, manda el clic: el scroll intermedio no
   // puede devolver la pastilla al día anterior.

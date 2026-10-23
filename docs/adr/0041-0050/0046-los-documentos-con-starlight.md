@@ -64,6 +64,8 @@ Así una carpeta de `docs/` sigue siendo una ruta del sitio (`docs/model.md` →
 los ADR/changelogs se revisan donde siempre. Si una versión futura de Starlight no permite leer
 fuera de `src/content/docs`, se generará un espejo **en el build**, nunca a mano.
 
+La guía no entra en esa colección: tiene la suya, sobre `docs/guideline/entradas/` (apartado 5).
+
 ### 3. El frontmatter es obligatorio y validado
 
 Cada documento declara lo que el sitio necesita:
@@ -94,14 +96,29 @@ frontmatter. La descripción no se calcula del primer párrafo.
 - `/guia/` para la guía.
 - `/` para la portada.
 
-La migración añade redirecciones para las rutas antiguas que puedan cambiar. Los enlaces internos
-del Markdown se validan en el build; una ruta rota no se publica.
+Las rutas no cambian, así que no hacen falta redirecciones. Los enlaces internos del Markdown se
+validan en el build; una ruta rota no se publica.
 
 ### 5. La guía deja de ser un bloque parseado a mano
 
-La guía pasa a entradas estructuradas: cada idea con `fecha`, `categoria`, `veredicto` y su cuerpo.
-La página `/guia/` las agrupa por día y categoría, como ahora, pero sin partir un único Markdown
-con expresiones regulares. Añadir una idea es añadir una entrada, no tocar el parser.
+Cada idea es un fichero en `docs/guideline/entradas/`:
+
+```
+entradas/2026-10-21-01-el-registro-publico-de-plugins.md
+```
+
+```yaml
+---
+title: El registro público de plugins
+date: "2026-10-21"
+category: feature
+verdict: idea
+---
+```
+
+La entradilla y las normas son `entradilla.md` y `normas.md`. La página `/guia/` agrupa las
+entradas por día y categoría, como antes, pero sin partir un único Markdown con expresiones
+regulares. Añadir una idea es añadir un fichero, no tocar el parser.
 
 ### 6. Búsqueda, SEO y publicación
 
@@ -142,9 +159,11 @@ la fuente del sitio.
   orden, estado, fecha, ADR/changelog).
 - [x] Conservar `/docs/`, `/guia/` y `/` y validar los enlaces internos (las rutas no cambian, así
   que no hacen falta redirecciones).
-- [ ] Migrar la guía a entradas estructuradas; la portada ya está adaptada.
+- [x] Migrar la guía a entradas estructuradas; la portada ya está adaptada.
 - [x] Activar Pagefind, sitemap y búsqueda; un documento nuevo entra solo en la sidebar.
 - [x] Actualizar `web.yml`, `README` y `AGENTS.md`; retirar la app React/Vite de docs.
 - [x] Validar el build y la publicación en GitHub Pages (`web.yml` construye y publica con Node 24).
+
+M29 queda cerrada: los documentos y la guía se publican desde el markdown del repo.
 
 El detalle de lo hecho está en el [changelog](0046-los-documentos-con-starlight.changelog.md).

@@ -37,3 +37,16 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0046-los-doc
 - Astro exige Node `>=22.23.4`: `engines` lo declara y el CI y `web.yml` construyen con Node 24.
 - La web se publica en GitHub Pages: 103 páginas, Pagefind, sitemap y Mermaid comprobados en
   `jaminsmoke.github.io/codarch`.
+
+### La guía estructurada
+
+- `contenido.md` se partió en `entradilla.md`, `normas.md` y 20 ficheros en
+  `docs/guideline/entradas/` (`AAAA-MM-DD-NN-titulo.md`), cada uno con `title`, `date`, `category`
+  y `verdict`.
+- La colección `guia` valida ese frontmatter; `lib/guia-servidor.ts` ordena, agrupa, resume y
+  convierte el cuerpo a HTML. La página ya no parte ningún markdown en el navegador.
+- Se añadió el veredicto `adr`, que la guía ya usaba en «El alcance del análisis»; esa entrada
+  pasa de `config · ADR` a `feature · adr`.
+- La entradilla y las normas explican el nuevo formato: añadir una idea es añadir un fichero.
+- La portada y la guía dejan el router: sus enlaces son `<a>` normales y cada página carga su
+  propia isla. `react-router-dom` y `lib/enlaces.ts` salen del sitio.

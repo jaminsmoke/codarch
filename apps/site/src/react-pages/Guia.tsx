@@ -5,35 +5,35 @@ import {
   ChevronDown,
   Hourglass,
   Pin,
+  ScrollText,
   Wrench,
   type LucideIcon
 } from "lucide-react";
 import { motion } from "motion/react";
 import { type CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
-import { enlaceInterno } from "../lib/enlaces";
 import {
   CATEGORIAS,
   VEREDICTOS,
   fechaCorta,
   fechaPartida,
-  guia,
+  type DatosGuia,
   type Veredicto
 } from "../lib/guia";
 import { useTitulo } from "../lib/titulo";
 
 /**
- * La guía: sus días, cada uno como un changelog (ADR 0035).
+ * La guía: sus días, cada uno como un changelog (ADR 0035 · ADR 0046).
  *
- * El contenido sale del repo (ADR 0034): el markdown es la verdad y aquí solo
- * se agrupa, se le pone color y movimiento. La línea del tiempo vive en el
- * header (el componente `LineaTiempo`).
+ * El contenido sale del repo: cada idea es un fichero con su frontmatter y
+ * Astro lo convierte en datos. Aquí solo se agrupa, se le pone color y
+ * movimiento. La línea del tiempo vive en el header (`LineaTiempo`).
  */
 
 /** El icono de cada veredicto. */
 const ICONOS: Record<Veredicto, LucideIcon> = {
   idea: Beaker,
   fase: Check,
+  adr: ScrollText,
   arreglo: Wrench,
   esperar: Hourglass,
   otro: Pin
@@ -56,23 +56,19 @@ function Etiqueta({ veredicto }: { veredicto: Veredicto }) {
   );
 }
 
-export default function Guia() {
+export default function Guia({ datos }: { datos: DatosGuia }) {
   useTitulo(
     "La guía",
     "Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea."
   );
-  const { introduccion, normas, dias, futuras } = guia();
-  const navegar = useNavigate();
+  const { introduccion, normas, dias, futuras } = datos;
   const total = dias.reduce((cuenta, dia) => cuenta + dia.entradas.length, 0);
   const categorias = new Set(
     dias.flatMap((dia) => dia.grupos.map((grupo) => grupo.categoria))
   );
 
   return (
-    <div
-      className="mx-auto w-full max-w-5xl px-5 py-10"
-      onClick={(evento) => enlaceInterno(evento, navegar)}
-    >
+    <div className="mx-auto w-full max-w-5xl px-5 py-10">
       <header className="mb-10">
         <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
           El registro

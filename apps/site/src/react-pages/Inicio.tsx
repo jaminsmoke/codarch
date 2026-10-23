@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
 import captura from "../../../../docs/images/atlas.png";
 import { useTitulo } from "../lib/titulo";
 
@@ -11,6 +10,7 @@ import { useTitulo } from "../lib/titulo";
 // una cadena. Se aceptan las dos formas para que el build y el dev coincidan.
 const atlas = captura as unknown as string | { src: string };
 const retrato = typeof atlas === "string" ? atlas : atlas.src;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 export default function Inicio() {
   useTitulo(
     undefined,
@@ -53,12 +53,12 @@ export default function Inicio() {
           >
             Instalar
           </a>
-          <Link
+          <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
-            to="/guia/"
+            href={`${BASE}/guia/`}
           >
             La guía
-          </Link>
+          </a>
           <code className="rounded-lg border border-line bg-panel px-3 py-2 font-mono text-sm text-ink-soft">
             npm i -g codarch@next
           </code>
@@ -173,12 +173,12 @@ export default function Inicio() {
             hoja de ruta dentro y su changelog al lado, salidos del repositorio.
           </p>
         </div>
-        <Link
-          to="/docs/"
+        <a
+          href={`${BASE}/docs/`}
           className="ml-auto rounded-full border border-line-strong bg-paper px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
         >
           Los documentos
-        </Link>
+        </a>
       </motion.section>
     </div>
   );

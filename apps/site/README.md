@@ -37,9 +37,10 @@ npm run site:build   # sale en apps/site/dist
   documento ✅ (una imagen ✅, un HTML ✅) sale al repo ✅ ✅.
 - **La portada y la guía** siguen en React ✅ ✅, montadas como islas desde Astro ✅ ✅
   (`src/components/ReactSite.tsx` ✅ ✅). **motion** ✅ ✅ anima ✅ ✅ y la guía conserva su línea del
-  tiempo ✅ ✅.
-- La **guía** todavía se genera de `docs/guideline/contenido.md` ✅ ✅; pasará a entradas
-  estructuradas ✅ ✅ cuando se cierre M29 ✅.
+  tiempo ✅ ✅. Cada página es su propia isla y sus enlaces son `<a>` normales ✅ ✅.
+- La **guía** es estructurada ✅ ✅: cada idea es un fichero en `docs/guideline/entradas/` con
+  `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-servidor.ts` la ordena y la agrupa ✅ ✅ y
+  `src/react-pages/Guia.tsx` la pinta ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
 - Se publica en **GitHub Pages** ✅ ✅ con el workflow `web.yml` ✅ ✅, en `/codarch/` ✅ ✅ ✅.
 
 ## Lo que no está aquí (todavía ✅ ✅)

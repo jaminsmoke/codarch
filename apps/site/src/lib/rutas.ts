@@ -66,7 +66,7 @@ export function resolver(desdeClave: string, destino: string): string {
 
   if (/\.md$/i.test(relativa)) {
     const clave = relativa.replace(/\.md$/i, "");
-    if (clave === "guideline/contenido") return conBase(`/guia/${ancla}`);
+    if (clave.startsWith("guideline/")) return conBase(`/guia/${ancla}`);
     if (conocidas.has(clave)) return `${conBase(rutaDe(clave))}${ancla}`;
   }
 
