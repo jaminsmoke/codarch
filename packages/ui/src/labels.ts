@@ -1,3 +1,9 @@
+import type {
+  CcMigrationStatus,
+  CcSymbol,
+  SymbolEvent
+} from "@codarch/schema/browser";
+
 /**
  * El label de un bloque.
  *
@@ -20,6 +26,54 @@ export interface BlockLabel {
 
 /** El tamaño máximo del label ✓. */
 const MAX_SIZE = 11;
+
+/** Cómo se lee cada estado de la lente de migración ✓. */
+export const STATUS_LABEL: Record<CcMigrationStatus, string> = {
+  js: "JS / TS",
+  rust: "Rust",
+  bridge: "Puente",
+  native: "Nativo"
+};
+
+/** El color de cada estado de migración ✓. */
+export const STATUS_COLOR: Record<CcMigrationStatus, string> = {
+  js: "#2f6fed",
+  rust: "#d95d39",
+  bridge: "#7b61ff",
+  native: "#3f8f7a"
+};
+
+/** El color de cada lenguaje en los estratos ✓. */
+export const LANGUAGE_COLOR: Record<string, string> = {
+  ts: "#2f6fed",
+  js: "#d9a21b",
+  rust: "#d95d39",
+  wasm: "#7b61ff",
+  node: "#3f8f7a"
+};
+
+/** Cómo se lee cada evento de la vida de un símbolo ✓. */
+export const EVENT_LABEL: Record<SymbolEvent["type"], string> = {
+  created: "nació",
+  changed: "cambió",
+  unchanged: "igual",
+  renamed: "renombrada",
+  moved: "mudada",
+  removed: "eliminada"
+};
+
+/** Cómo se lee cada tipo de símbolo en el inspector ✓. */
+export const SYMBOL_LABEL: Record<CcSymbol["kind"], string> = {
+  function: "fn",
+  class: "cls",
+  interface: "int",
+  type: "typ",
+  enum: "enum",
+  variable: "var"
+};
+
+/** La métrica del calor: cuántas veces se ha tocado el fichero ✓. */
+export const CHURN_METRIC = "number_of_commits";
 
 /**
  * El label de un bloque, o `null` si el bloque es demasiado pequeño ✓.

@@ -1,14 +1,11 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type ChangeEvent,
-  type DragEvent,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode
+  type DragEvent
 } from "react";
 import {
   defaultMetric,
@@ -16,43 +13,41 @@ import {
   parseCcJson,
   symbolsOf,
   type CcJson,
-  type CcMigrationLanguageStats,
-  type CcMigrationLens,
-  type CcMigrationNode,
-  type CcMigrationStatus,
-  type CcSymbol
+  type CcMigrationLens
 } from "@codarch/schema/browser";
-import { parseReport, type DiffReport } from "@codarch/metrics/browser";
+import type { DiffReport } from "@codarch/metrics/browser";
 import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
-import type { SymbolChain, SymbolEvent, SymbolHeat } from "@codarch/schema/browser";
+import type { SymbolChain, SymbolHeat } from "@codarch/schema/browser";
 import {
   buildRenderModel,
-  formatCompact,
-  inkFor,
-  layoutMap,
-  metricColor,
-  riskColor,
-  sectionColor,
-  VIEW_HEIGHT,
-  VIEW_WIDTH,
-  type PlacedNode,
-  type RenderFile,
-  type RenderModel,
-  type TreeNode
+  type RenderModel
 } from "@codarch/render/browser";
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
 import { usePlugins } from "./plugins";
 import type { PluginContext } from "@codarch/plugin-api";
 import {
+  CHURN_METRIC,
+  DebtList,
   DEFAULT_DETAIL_OPTIONS,
-  labelFor,
-  nextCell,
+  findFolder,
+  HeatList,
+  HistoryPanel,
+  historyFileName,
+  HotList,
+  Inspector,
+  Kpi,
+  LanguageSample,
+  Legend,
+  MapCanvas,
+  mapColorFor,
+  metricIndexOf,
+  orderedMetrics,
   PrPanel,
   pruneTree,
-  type CellBox,
-  type Direction
+  readMigration,
+  readReport
 } from "@codarch/ui";
 import {
   readRepositoryFromFiles,
@@ -78,72 +73,6 @@ import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
 import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
-
-const STATUS_LABEL: Record<CcMigrationStatus, string> = {
-  js: "JS / TS",
-  rust: "Rust",
-  bridge: "Puente",
-  native: "Nativo"
-};
-
-/** Cómo se lee cada evento de la vida de un símbolo. */
-const EVENT_LABEL: Record<SymbolEvent["type"], string> = {
-  created: "nació",
-  changed: "cambió",
-  unchanged: "igual",
-  renamed: "renombrada",
-  moved: "mudada",
-  removed: "eliminada"
-};
-
-/** Cómo se lee cada tipo de símbolo en el inspector. */
-const SYMBOL_LABEL: Record<CcSymbol["kind"], string> = {
-  function: "fn",
-  class: "cls",
-  interface: "int",
-  type: "typ",
-  enum: "enum",
-  variable: "var"
-};
-
-const STATUS_COLOR: Record<CcMigrationStatus, string> = {
-  js: "#2f6fed",
-  rust: "#d95d39",
-  bridge: "#7b61ff",
-  native: "#3f8f7a"
-};
-
-const LANGUAGE_COLOR: Record<string, string> = {
-  ts: "#2f6fed",
-  js: "#d9a21b",
-  rust: "#d95d39",
-  wasm: "#7b61ff",
-  node: "#3f8f7a"
-};
-
-const PREFERRED_METRICS = [
-  "rloc",
-  "loc",
-  "migrationDebt",
-  "ffiCrossings",
-  "maxComplexity",
-  "maxFunctionLength",
-  "functions",
-  "fanIn",
-  "fanOut",
-  "number_of_commits",
-  "number_of_authors"
-];
-
-const ARROW_DIRECTIONS: Record<string, Direction> = {
-  ArrowLeft: "left",
-  ArrowRight: "right",
-  ArrowUp: "up",
-  ArrowDown: "down"
-};
-
-/** La métrica del calor: cuántas veces se ha tocado el fichero. */
-const CHURN_METRIC = "number_of_commits";
 
 interface ViewState {
   model: RenderModel | null;
@@ -711,15 +640,10 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const metricOptions = useMemo(() => {
-    if (!stats) return [];
-    const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
-    const preferred = PREFERRED_METRICS.filter((key) => coverage.has(key));
-    const rest = [...coverage]
-      .filter((key) => !preferred.includes(key))
-      .sort((left, right) => left.localeCompare(right));
-    return [...preferred, ...rest];
-  }, [stats]);
+  const metricOptions = useMemo(
+    () => (stats ? orderedMetrics(stats.metricCoverage.map((entry) => entry.name)) : []),
+    [stats]
+  );
 
   /** Las preferencias guardadas, para los ajustes. */
   const savedProjectLabel = useMemo(() => {
@@ -1538,8 +1462,12 @@ export default function App() {
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
 
           <HistoryPanel
-            onOpenSnapshot={(url, label) => {
-              void openHistorySnapshot(url, label);
+            load={loadHistory}
+            onOpenSnapshot={(entry) => {
+              void openHistorySnapshot(
+                `data/history/${historyFileName(entry)}`,
+                entry.date
+              );
             }}
           />
 
@@ -1550,6 +1478,7 @@ export default function App() {
           />
 
           <HeatList
+            load={loadHeat}
             onSelectSymbol={(name, path) => {
               void openSymbolChain(name, path);
             }}
@@ -1823,11 +1752,6 @@ export default function App() {
 }
 
 /** El almacenamiento local, si el navegador lo deja. */
-/** El índice de las métricas por clave ✓. */
-function metricIndexOf(model: RenderModel): Map<string, number> {
-  return new Map(model.metrics.map((metric, index) => [metric.key, index]));
-}
-
 function readStorage(): Storage | null {
   try {
     return typeof window === "undefined" ? null : window.localStorage;
@@ -1868,6 +1792,22 @@ async function fetchJsonStrict(url: string): Promise<unknown> {
   }
 }
 
+/** La línea del tiempo que sirve el CLI junto a la app ✓. */
+async function loadHistory(): Promise<HistoryEntry[] | null> {
+  const raw = await fetchJson("data/history.json");
+  if (!raw || typeof raw !== "object") return null;
+  const list = (raw as { entries?: unknown }).entries;
+  return Array.isArray(list) ? (list as HistoryEntry[]) : null;
+}
+
+/** El calor de los símbolos que sirve el CLI junto a la app ✓. */
+async function loadHeat(): Promise<SymbolHeat[] | null> {
+  const raw = await fetchJson("data/chains.json");
+  if (!raw || typeof raw !== "object") return null;
+  const list = (raw as { heat?: unknown }).heat;
+  return Array.isArray(list) ? (list as SymbolHeat[]) : null;
+}
+
 /** Un color es válido si es una lente fija o una métrica presente en el snapshot. */
 function isValidColorMode(
   colorMode: string,
@@ -1877,1013 +1817,5 @@ function isValidColorMode(
   if (colorMode === "risk" || colorMode === "structure") return true;
   if (colorMode === "status") return Boolean(migration);
   return coverage.has(colorMode);
-}
-
-function findFolder(nodes: readonly TreeNode[], path: string): TreeNode | null {
-  for (const node of nodes) {
-    if (node.kind === "folder" && node.path === path) return node;
-    if (node.children) {
-      const found = findFolder(node.children, path);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function readReport(value: unknown): DiffReport | null {
-  return parseReport(value);
-}
-
-function readMigration(cc: CcJson | null): CcMigrationLens | null {
-  const value = cc?.lenses?.migration;
-  if (!value || typeof value !== "object") return null;
-  const lens = value as Partial<CcMigrationLens>;
-  if (!lens.nodes || !lens.summary) return null;
-  return lens as CcMigrationLens;
-}
-
-function Kpi({
-  label,
-  value,
-  accent
-}: {
-  label: string;
-  value: number;
-  accent?: "debt";
-}) {
-  return (
-    <div className={`kpi${accent ? ` kpi-${accent}` : ""}`}>
-      <span>{label}</span>
-      <b>{formatCompact(value)}</b>
-    </div>
-  );
-}
-
-function LanguageSample({
-  model,
-  migration
-}: {
-  model: RenderModel | null;
-  migration: CcMigrationLens | null;
-}) {
-  if (!migration) {
-    return (
-      <section className="panel-block">
-        <div className="eyebrow">Estratos</div>
-        <p className="muted small">Este snapshot no trae lente de migración.</p>
-      </section>
-    );
-  }
-
-  const languages = Object.entries(migration.summary.languages).filter(
-    (entry): entry is [string, CcMigrationLanguageStats] => entry[1] !== undefined
-  );
-  const total = languages.reduce((sum, [, stats]) => sum + stats.rloc, 0);
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Estratos</div>
-      <div className="strata" aria-label="Reparto por lenguaje">
-        {languages.map(([language, stats]) => {
-          if (stats.rloc === 0) return null;
-          return (
-            <i
-              key={language}
-              title={`${language}: ${formatCompact(stats.rloc)} rloc`}
-              style={{
-                width: `${(stats.rloc / total) * 100}%`,
-                background: LANGUAGE_COLOR[language] ?? "#7b8790"
-              }}
-            />
-          );
-        })}
-      </div>
-      <div className="strata-legend">
-        {languages.map(([language, stats]) => (
-          <div key={language} className="strata-row">
-            <i style={{ background: LANGUAGE_COLOR[language] ?? "#7b8790" }} />
-            <span>{language}</span>
-            <span className="mono">{formatCompact(stats.rloc)}</span>
-          </div>
-        ))}
-      </div>
-      <div className="status-row">
-        {(["js", "rust", "bridge", "native"] as CcMigrationStatus[]).map((status) => (
-          <span key={status} className="status-chip">
-            <i style={{ background: STATUS_COLOR[status] }} />
-            {STATUS_LABEL[status]} <b>{migration.summary.status[status]}</b>
-          </span>
-        ))}
-      </div>
-      <div className="muted tiny">
-        {migration.summary.ffiEdges} aristas FFI · {migration.summary.bridgeFiles} puentes ·{" "}
-        {model ? `${formatCompact(model.fileCount)} ficheros` : ""}
-      </div>
-    </section>
-  );
-}
-
-function Legend({
-  colorMode,
-  migration,
-  model
-}: {
-  colorMode: string;
-  migration: CcMigrationLens | null;
-  model: RenderModel | null;
-}) {
-  if (colorMode === "status" && migration) {
-    return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda</div>
-        <div className="legend">
-          {(["js", "rust", "bridge", "native"] as CcMigrationStatus[]).map((status) => (
-            <div key={status}>
-              <i style={{ background: STATUS_COLOR[status] }} />
-              <span>{STATUS_LABEL[status]}</span>
-              <span className="mono">{migration.summary.status[status]}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (colorMode === "structure" && model) {
-    return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda</div>
-        <div className="legend">
-          {model.sections.slice(0, 8).map((section) => (
-            <div key={section.key}>
-              <i style={{ background: section.color }} />
-              <span className="ellipsis" title={section.label}>
-                {section.label}
-              </span>
-              <span className="mono">{section.files}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (colorMode === "risk") {
-    return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda · riesgo</div>
-        <div className="gradient risk" />
-        <div className="gradient-labels">
-          <span>bajo</span>
-          <span>alto</span>
-        </div>
-      </section>
-    );
-  }
-
-  const metric = model?.metrics.find((entry) => entry.key === colorMode);
-  if (!metric) return null;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Leyenda · {metric.title}</div>
-      <div className="gradient metric" />
-      <div className="gradient-labels">
-        <span>{formatCompact(metric.min)}</span>
-        <span>{formatCompact(metric.max)}</span>
-      </div>
-      <div className="muted tiny">
-        {metric.coverage} ficheros · {metric.mode === "log" ? "escala log" : "escala lineal"}
-        {metric.actualMax > metric.max
-          ? ` · máx real ${formatCompact(metric.actualMax)}`
-          : ""}
-      </div>
-    </section>
-  );
-}
-
-function HistoryPanel({
-  onOpenSnapshot
-}: {
-  onOpenSnapshot: (url: string, label: string) => void;
-}) {
-  const [entries, setEntries] = useState<HistoryEntry[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const raw = await fetchJson("data/history.json");
-      if (cancelled) return;
-      if (!raw || typeof raw !== "object") return;
-      const list = (raw as { entries?: unknown }).entries;
-      if (!Array.isArray(list)) return;
-      setEntries(list as HistoryEntry[]);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (!entries || entries.length === 0) return null;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Historia</div>
-      <div className="history-list">
-        {entries
-          .slice()
-          .reverse()
-          .map((entry) => (
-            <button
-              key={entry.checksum}
-              type="button"
-              className="history-row"
-              onClick={() =>
-                onOpenSnapshot(
-                  `data/history/${fileNameFor(entry)}`,
-                  entry.date
-                )
-              }
-              title={`${entry.files} ficheros · ${entry.rloc} rloc`}
-            >
-              <span className="mono history-date">{entry.date.slice(0, 16).replace("T", " ")}</span>
-              <span className="mono history-count">{entry.files} f.</span>
-            </button>
-          ))}
-        </div>
-    </section>
-  );
-}
-
-/** El nombre del fichero de una foto del historial. */
-function fileNameFor(entry: { date: string; checksum: string }): string {
-  const stamp = entry.date.replace(/[:.]/g, "-").replace("Z", "");
-  return `${stamp}-${entry.checksum.slice(0, 8)}.cc.json`;
-}
-
-function HotList({
-  model,
-  selectedIndex,
-  onSelect
-}: {
-  model: RenderModel | null;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-}) {
-  const index = model
-    ? model.metrics.findIndex((metric) => metric.key === CHURN_METRIC)
-    : -1;
-  if (!model || index < 0) return null;
-
-  const rows = model.files
-    .map((file) => ({ file, commits: file.values[index] ?? 0 }))
-    .filter((row) => row.commits > 0)
-    .sort((left, right) => right.commits - left.commits)
-    .slice(0, 8);
-  if (rows.length === 0) return null;
-
-  const max = rows[0]?.commits ?? 1;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Más tocados</div>
-      <div className="debt-list">
-        {rows.map(({ file, commits }) => (
-          <button
-            key={file.nodeId}
-            type="button"
-            className={`debt-row${selectedIndex === file.index ? " is-selected" : ""}`}
-            onClick={() => onSelect(file.index)}
-            title={file.path}
-          >
-            <span className="debt-name">{file.path}</span>
-            <span className="debt-track">
-              <i
-                style={{
-                  width: `${Math.max(4, (commits / max) * 100)}%`,
-                  background: "var(--rust)"
-                }}
-              />
-            </span>
-            <span className="mono">{commits}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
- * Los símbolos más reescritos.
- *
- * A nivel de fichero no existe esta señal: un fichero con veinte funciones
- * quietas y otro con una que se reescribe cada semana pesan igual ✓. Aquí
- * no ✓.
- */
-function HeatList({
-  onSelectSymbol
-}: {
-  onSelectSymbol: (name: string, path: string) => void;
-}) {
-  const [heat, setHeat] = useState<SymbolHeat[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const raw = await fetchJson("data/chains.json");
-      if (cancelled) return;
-      if (!raw || typeof raw !== "object") return;
-      const list = (raw as { heat?: unknown }).heat;
-      if (!Array.isArray(list)) return;
-      setHeat(list as SymbolHeat[]);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (!heat || heat.length === 0) return null;
-
-  const max = Math.max(1, heat[0]?.churn ?? 1);
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Más reescritos</div>
-      <div className="debt-list">
-        {heat.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            className="debt-row"
-            onClick={() => onSelectSymbol(entry.name, entry.path)}
-            title={`${entry.path} · ${entry.changes} cambios · ${entry.moves} mudanzas`}
-          >
-            <span className="debt-name">{entry.name}</span>
-            <span className="debt-track">
-              <i
-                style={{
-                  width: `${Math.max(4, (entry.churn / max) * 100)}%`,
-                  background: "var(--rust)"
-                }}
-              />
-            </span>
-            <span className="mono">{entry.churn}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function DebtList({
-  model,
-  migration,
-  selectedIndex,
-  onSelect
-}: {
-  model: RenderModel | null;
-  migration: CcMigrationLens | null;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-}) {
-  if (!model || !migration) return null;
-
-  const rows = model.files
-    .map((file) => ({
-      file,
-      node: migration.nodes[file.nodeId]
-    }))
-    .filter((row): row is { file: RenderFile; node: CcMigrationNode } =>
-      Boolean(row.node?.debt)
-    )
-    .sort((left, right) => (right.node.debt ?? 0) - (left.node.debt ?? 0))
-    .slice(0, 8);
-  const max = rows[0]?.node.debt ?? 1;
-
-  if (rows.length === 0) return null;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Deuda de migración</div>
-      <div className="debt-list">
-        {rows.map(({ file, node }) => (
-          <button
-            key={file.nodeId}
-            type="button"
-            className={`debt-row${selectedIndex === file.index ? " is-selected" : ""}`}
-            onClick={() => onSelect(file.index)}
-            title={file.path}
-          >
-            <span className="debt-name">{file.path}</span>
-            <span className="debt-track">
-              <i
-                style={{
-                  width: `${Math.max(4, ((node.debt ?? 0) / max) * 100)}%`,
-                  background: STATUS_COLOR[node.status]
-                }}
-              />
-            </span>
-            <span className="mono">{formatCompact(node.debt ?? 0)}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MapCanvas({
-  model,
-  roots,
-  colorMode,
-  migration,
-  query,
-  selectedIndex,
-  onSelect,
-  onFocusFolder,
-  zoom,
-  center,
-  onZoomAt,
-  showLabels,
-  onPan
-}: {
-  model: RenderModel;
-  roots: TreeNode[];
-  colorMode: string;
-  migration: CcMigrationLens | null;
-  query: string;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-  onFocusFolder: (path: string) => void;
-  /** El zoom del mapa (1 = el mapa entero) ✓. */
-  zoom: number;
-  /** El centro del rectángulo visible (0..1) ✓. */
-  center: { x: number; y: number };
-  /** Acercar o alejar, centrado en un punto (0..1) ✓. */
-  onZoomAt: (factor: number, at?: { x: number; y: number }) => void;
-  /** Si los bloques muestran su nombre aunque no quepa entero ✓. */
-  showLabels: boolean;
-  /** Mover el mapa, en fracciones de su tamaño ✓. */
-  onPan: (dx: number, dy: number) => void;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
-  /**
-   * El rectángulo visible, en coordenadas del mapa ✓.
-   *
-   * La distribución no cambia ✓ (sigue siendo la del marco ✓): lo que cambia
-   * es el rectángulo visible ✓. Así el mapa se puede acercar sin recalcular
-   * nada ✓.
-   */
-  // El pan: con el botón derecho apretado ✓.
-  const panRef = useRef<{ x: number; y: number } | null>(null);
-
-  const viewBox = useMemo(() => {
-    const width = size.width / zoom;
-    const height = size.height / zoom;
-    return {
-      x: (size.width - width) * center.x,
-      y: (size.height - height) * center.y,
-      width,
-      height
-    };
-  }, [size, zoom, center]);
-  const placed = useMemo(
-    () => layoutMap(roots, size.width, size.height),
-    [roots, size.width, size.height]
-  );
-
-  /**
-   * Celdas navegables: ficheros y carpetas sin contenido dibujado.
-   *
-   * Una carpeta con hijos es un contenedor, no una celda: ocupa el área de sus
-   * hijos y no se puede "entrar" moviéndose a un lado. Las carpetas hoja sí:
-   * en un repositorio grande el mapa se dibuja a nivel de carpeta.
-   */
-  const { targets, targetMeta } = useMemo(() => {
-    const boxes: CellBox[] = [];
-    const meta = new Map<
-      string,
-      { kind: "file" | "folder"; fileIndex?: number; path?: string }
-    >();
-    const walk = (nodes: PlacedNode[]): void => {
-      for (const placedNode of nodes) {
-        const { node, rect } = placedNode;
-        if (node.kind === "file") {
-          if (node.fileIndex === undefined) continue;
-          const key = `f:${node.fileIndex}`;
-          boxes.push({ key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
-          meta.set(key, { kind: "file", fileIndex: node.fileIndex });
-          continue;
-        }
-        const children = placedNode.children ?? [];
-        if (children.length === 0) {
-          boxes.push({ key: node.key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
-          meta.set(node.key, { kind: "folder", path: node.path });
-          continue;
-        }
-        walk(children);
-      }
-    };
-    walk(placed);
-    return { targets: boxes, targetMeta: meta };
-  }, [placed]);
-
-  /** Cursor de teclado: por dónde va el usuario, al margen de la selección. */
-  const [cursor, setCursor] = useState<string | null>(null);
-  const selectedKey = selectedIndex !== null ? `f:${selectedIndex}` : null;
-  // El fichero seleccionado puede no estar dibujado (nivel de carpeta), así que
-  // el tab stop cae en la primera celda visible.
-  const activeKey =
-    cursor ??
-    (selectedKey && targetMeta.has(selectedKey)
-      ? selectedKey
-      : targets[0]?.key ?? null);
-
-  /**
-   * El foco solo se mueve si el cambio vino de las flechas. Con el ratón no se
-   * roba el foco: el clic ya lo dejó donde toca.
-   */
-  const pendingFocusRef = useRef(false);
-
-  useEffect(() => {
-    if (!pendingFocusRef.current || !cursor) return;
-    pendingFocusRef.current = false;
-    const node = containerRef.current?.querySelector(`[data-cell-key="${cursor}"]`);
-    // Las celdas son elementos SVG: no son HTMLElement.
-    if (node instanceof SVGElement) node.focus();
-  }, [cursor, targets]);
-
-  const onKeyDown = useCallback(
-    (event: ReactKeyboardEvent<SVGSVGElement>) => {
-      const direction = ARROW_DIRECTIONS[event.key];
-      if (direction) {
-        // Si el cursor todavía no existe, se sale de la celda que tiene el foco.
-        const from =
-          cursor ??
-          (event.target as Element | null)?.getAttribute?.("data-cell-key") ??
-          null;
-        const next = nextCell(targets, from, direction);
-        if (next === null || next === from) return;
-        event.preventDefault();
-        pendingFocusRef.current = true;
-        setCursor(next);
-        return;
-      }
-      if (event.key !== "Enter" && event.key !== " ") return;
-      const target = cursor ? targetMeta.get(cursor) : undefined;
-      if (!target) return;
-      event.preventDefault();
-      if (target.kind === "file" && target.fileIndex !== undefined) {
-        onSelect(target.fileIndex);
-        return;
-      }
-      if (target.path) onFocusFolder(target.path);
-    },
-    [cursor, onFocusFolder, onSelect, targetMeta, targets]
-  );
-
-  // El tamaño del marco, medido.
-  //
-  // Se mide al montar (para que el primer dibujado ya sea del tamaño
-  // correcto ✓), se observa el marco ✓ y se mide también al redimensionar la
-  // ventana ✓. Con las tres, el mapa nunca se dibuja a la escala equivocada ✓.
-  useLayoutEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
-
-    const measure = (): void => {
-      const rect = element.getBoundingClientRect();
-      const width = Math.round(rect.width);
-      const height = Math.round(rect.height);
-      if (width > 0 && height > 0) setSize({ width, height });
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    window.addEventListener("resize", measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
-
-  const metricIndex = useMemo(
-    () => new Map(model.metrics.map((metric, index) => [metric.key, index])),
-    [model.metrics]
-  );
-
-  const fillFor = (file: RenderFile): string =>
-    mapColorFor(
-      file,
-      colorMode,
-      model,
-      migration,
-      metricIndex
-    );
-
-  const renderNode = (placedNode: PlacedNode): ReactNode => {
-    const { node, rect } = placedNode;
-
-    if (node.kind === "file") {
-      const file = node.fileIndex === undefined ? null : model.files[node.fileIndex];
-      if (!file) return null;
-      const fill = fillFor(file);
-      const selected = selectedIndex === file.index;
-      const matched = query === "" || file.path.toLowerCase().includes(query);
-      // El nombre va DENTRO del bloque: el SVG envuelve y recorta ✓ y no
-      // puede salirse por diseño ✓.
-      const label = showLabels ? labelFor(rect.w, rect.h) : null;
-      const migrationNode = migration?.nodes[file.nodeId];
-      // El tooltip solo en las celdas con área legible: en un mapa grande cada
-      // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
-      const withTitle = rect.w > 24 && rect.h > 10;
-
-      // El texto va FUERA del rect: en SVG un <rect> no admite hijos, y
-      // dentro se dibuja con tamaño cero (o sea: nunca se ve).
-      return (
-        <g key={node.key}>
-          <rect
-            className={`cell${activeKey === `f:${file.index}` ? " is-cursor" : ""}`}
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={Math.max(1, rect.h)}
-            fill={fill}
-            stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
-            strokeWidth={selected ? 2 : 0.55}
-            opacity={matched ? 1 : 0.13}
-            role="button"
-            data-cell-key={`f:${file.index}`}
-            data-file-index={file.index}
-            tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
-            aria-label={file.path}
-            onFocus={() => setCursor(`f:${file.index}`)}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(file.index);
-            }}
-          >
-            {withTitle ? (
-              <title>
-                {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
-                  (migrationNode
-                    ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
-                    : "")}
-              </title>
-            ) : null}
-          </rect>
-          {label ? (
-            <foreignObject
-              x={rect.x}
-              y={rect.y}
-              width={Math.max(1, rect.w)}
-              height={Math.max(1, rect.h)}
-              pointerEvents="none"
-            >
-              <div
-                className={`map-label${label.vertical ? " is-vertical" : ""}`}
-                style={{ fontSize: label.size, color: inkFor(fill) }}
-              >
-                {file.name}
-              </div>
-            </foreignObject>
-          ) : null}
-        </g>
-      );
-    }
-
-    // El nombre de la carpeta va dentro de su bloque, como el de un fichero.
-    const folderLabel =
-      placedNode.headerHeight > 0 || showLabels
-        ? labelFor(rect.w, rect.h)
-        : null;
-
-    return (
-      <g key={node.key}>
-        <rect
-          className={`folder-block${activeKey === node.key ? " is-cursor" : ""}`}
-          x={rect.x}
-          y={rect.y}
-          width={Math.max(1, rect.w)}
-          height={Math.max(1, rect.h)}
-          fill="rgba(18,26,32,.022)"
-          stroke="rgba(18,26,32,.25)"
-          strokeWidth={0.7}
-          role="button"
-          data-cell-key={node.key}
-          tabIndex={activeKey === node.key ? 0 : -1}
-          aria-label={`Enfocar ${node.path}`}
-          onFocus={() => setCursor(node.key)}
-          onClick={(event) => {
-            event.stopPropagation();
-            onFocusFolder(node.path);
-          }}
-        />
-        {folderLabel ? (
-          <foreignObject
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={Math.max(1, rect.h)}
-            pointerEvents="none"
-          >
-            <div
-              className={`map-label is-folder${folderLabel.vertical ? " is-vertical" : ""}`}
-              style={{ fontSize: folderLabel.size }}
-            >
-              {node.name.toUpperCase()}
-            </div>
-          </foreignObject>
-        ) : null}
-        {placedNode.headerHeight > 0 && rect.w > 34 ? (
-          <rect
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={placedNode.headerHeight}
-            fill="transparent"
-            className="folder-hit"
-            aria-label={`Enfocar ${node.path}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onFocusFolder(node.path);
-            }}
-          />
-        ) : null}
-        {placedNode.children.map(renderNode)}
-      </g>
-    );
-  };
-
-  return (
-    <div
-      className="map-inner"
-      ref={containerRef}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          pendingFocusRef.current = false;
-        }
-      }}
-    >
-      <svg
-        className="map"
-        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        role="group"
-        aria-label={`Mapa de arquitectura de ${model.meta.project}`}
-        onKeyDown={onKeyDown}
-        onContextMenu={(event) => event.preventDefault()}
-        onPointerDown={(event) => {
-          if (event.button !== 2) return;
-          event.preventDefault();
-          panRef.current = { x: event.clientX, y: event.clientY };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const start = panRef.current;
-          if (!start) return;
-          const dx = (event.clientX - start.x) / (event.currentTarget.clientWidth || 1);
-          const dy = (event.clientY - start.y) / (event.currentTarget.clientHeight || 1);
-          start.x = event.clientX;
-          start.y = event.clientY;
-          onPan(dx, dy);
-        }}
-        onPointerUp={(event) => {
-          panRef.current = null;
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          }
-        }}
-        onWheel={(event) => {
-          // La rueda acerca el mapa ✓ (la página ya no scrollea ✓).
-          event.preventDefault();
-          const bounds = event.currentTarget.getBoundingClientRect();
-          onZoomAt(
-            event.deltaY < 0 ? 1.12 : 1 / 1.12,
-            {
-              x: (event.clientX - bounds.left) / bounds.width,
-              y: (event.clientY - bounds.top) / bounds.height
-            }
-          );
-        }}
-      >
-        <defs>
-          <pattern id="map-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path
-              d="M 48 0 L 0 0 0 48"
-              fill="none"
-              stroke="rgba(18,26,32,.045)"
-              strokeWidth="1"
-            />
-          </pattern>
-        </defs>
-        <rect width={size.width} height={size.height} fill="url(#map-grid)" />
-        {placed.map(renderNode)}
-      </svg>
-    </div>
-  );
-}
-
-/**
- * El color de un fichero, el mismo que en el mapa ✓.
- *
- * Vive aquí para que los plugins dibujen **lo mismo** que el mapa ✓ (ADR 0028 ✓).
- */
-function mapColorFor(
-  file: RenderFile,
-  colorMode: string,
-  model: RenderModel,
-  migration: CcMigrationLens | null,
-  metricIndex: Map<string, number>
-): string {
-  if (colorMode === "status") {
-    const status = migration?.nodes[file.nodeId]?.status ?? "js";
-    return STATUS_COLOR[status];
-  }
-  if (colorMode === "structure") {
-    const section = model.sections[file.section];
-    return section ? sectionColor(section) : "#d5d2ca";
-  }
-  if (colorMode === "churn") {
-    // El calor: cuántas veces se ha tocado el fichero.
-    const index = metricIndex.get(CHURN_METRIC);
-    if (index === undefined) return riskColor(file.risk);
-    const metric = model.metrics[index];
-    if (!metric) return riskColor(file.risk);
-    return metricColor(file.values[index] ?? null, metric);
-  }
-  if (colorMode === "risk") return riskColor(file.risk);
-  const index = metricIndex.get(colorMode);
-  if (index === undefined) return riskColor(file.risk);
-  const metric = model.metrics[index];
-  if (!metric) return riskColor(file.risk);
-  return metricColor(file.values[index] ?? null, metric);
-}
-
-function Inspector({
-  model,
-  file,
-  migrationNode,
-  areaMetric,
-  metricTitle,
-  symbols,
-  chain,
-  onSelectSymbol
-}: {
-  model: RenderModel | null;
-  file: RenderFile | null;
-  migrationNode: CcMigrationNode | null;
-  areaMetric: string | null;
-  metricTitle: (key: string) => string;
-  symbols: CcSymbol[];
-  chain: SymbolChain | null;
-  onSelectSymbol: (name: string) => void;
-}) {
-  if (!file) {
-    return (
-      <section className="inspector-empty">
-        <h2>Selecciona una celda</h2>
-        <p className="muted small">
-          El mapa conserva la jerarquía de carpetas. Pasa el cursor para ver la ruta y haz
-          clic para abrir las métricas del fichero.
-        </p>
-        {model ? (
-          <div className="inspector-note">
-            <span className="mono">{model.meta.apiVersion}</span>
-            <span>{model.meta.checksum.slice(0, 8) || "sin checksum"}</span>
-          </div>
-        ) : null}
-      </section>
-    );
-  }
-
-  const areaMetricIndex = areaMetric
-    ? model?.metrics.findIndex((metric) => metric.key === areaMetric) ?? -1
-    : -1;
-  const areaValue =
-    areaMetricIndex >= 0 ? file.values[areaMetricIndex] ?? file.actualArea : file.actualArea;
-
-  const rows = model
-    ? model.metrics
-        .map((metric, index) => ({
-          key: metric.key,
-          title: metricTitle(metric.key),
-          value: file.values[index]
-        }))
-        .filter((row): row is { key: string; title: string; value: number } =>
-          row.value !== null && row.value !== undefined
-        )
-        .slice(0, 10)
-    : [];
-
-  return (
-    <section className="inspector-file">
-      <div className="inspector-path" title={file.path}>
-        {file.path}
-      </div>
-      <h2>{file.name}</h2>
-
-      {migrationNode ? (
-        <div className="inspector-status">
-          <span
-            className="status-dot"
-            style={{ background: STATUS_COLOR[migrationNode.status] }}
-          />
-          <span>{STATUS_LABEL[migrationNode.status]}</span>
-          <span className="mono">{migrationNode.language}</span>
-        </div>
-      ) : null}
-
-      <div className="metric-grid">
-        <Metric label={areaMetric ? metricTitle(areaMetric) : "Área"} value={formatCompact(areaValue)} />
-        <Metric label="Riesgo" value={formatCompact(file.risk * 100)} />
-        <Metric label="Complejidad" value={formatCompact(file.complexity)} />
-        <Metric label="Churn" value={formatCompact(file.churn)} />
-        {migrationNode ? (
-          <>
-            <Metric label="Deuda" value={formatCompact(migrationNode.debt ?? 0)} />
-            <Metric label="Cruces FFI" value={formatCompact(migrationNode.crossings)} />
-          </>
-        ) : null}
-      </div>
-
-      {rows.length > 0 ? (
-        <div className="metric-table">
-          <div className="eyebrow">Métricas</div>
-          {rows.map((row) => (
-            <div key={row.key}>
-              <span>{row.title}</span>
-              <span className="mono">{formatCompact(row.value)}</span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {symbols.length > 0 ? (
-        <div className="symbol-list">
-          <div className="eyebrow">Símbolos</div>
-          {symbols.slice(0, 12).map((symbol) => (
-            <button
-              key={`${symbol.name}-${symbol.line}`}
-              type="button"
-              className={`symbol-row${chain?.name === symbol.name ? " is-selected" : ""}`}
-              onClick={() => onSelectSymbol(symbol.name)}
-              title="Ver la vida de este símbolo"
-            >
-              <span className={`symbol-kind symbol-${symbol.kind}`}>
-                {SYMBOL_LABEL[symbol.kind]}
-              </span>
-              <span className="symbol-name" title={symbol.name}>
-                {symbol.name}
-              </span>
-              {symbol.complexity !== undefined ? (
-                <span
-                  className="mono symbol-complexity"
-                  title="Complejidad ciclomática"
-                >
-                  {symbol.complexity}
-                </span>
-              ) : null}
-            </button>
-          ))}
-          {symbols.length > 12 ? (
-            <div className="symbol-more">y {symbols.length - 12} más</div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {chain ? (
-        <div className="chain-list">
-          <div className="eyebrow">La vida de {chain.name}</div>
-          {chain.versions.map((version) => (
-            <div key={version.entry} className="chain-row">
-              <span className="mono chain-date">
-                {version.date.slice(0, 10)}
-              </span>
-              <span className="chain-events">
-                {version.events.map((event) => (
-                  <span key={event.type} className={`chain-event chain-${event.type}`}>
-                    {EVENT_LABEL[event.type]}
-                  </span>
-                ))}
-              </span>
-              <span className="chain-path" title={version.path}>
-                {version.path}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="metric">
-      <span>{label}</span>
-      <b>{value}</b>
-    </div>
-  );
 }
 

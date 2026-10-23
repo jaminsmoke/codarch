@@ -142,10 +142,11 @@ también `npm run sync:action` y actualizar el repo público.
 - M25 cerrada: la entrega se automatiza (ADR 0042). El CLI se publica con Trusted Publishing y el
   escritorio crea su release solo cuando `versions.json` supera la última `desktop-v*`; la acción
   se actualiza después de publicar. El primer release automático fue `desktop-v0.3.0-alpha.2`.
-- M26 en curso: la UI compartida (ADR 0043). `packages/ui` (`@codarch/ui`) guarda las piezas puras,
-  el CSS común, los plugins con el almacenamiento inyectado y los ajustes con su actualización
-  inyectada. La web y el escritorio siguen con su propia cáscara y no se importan entre sí; la
-  etapa 3 (sacar de `App.tsx` las piezas duplicadas) sigue abierta.
+- M26 cerrada: la UI compartida (ADR 0043). `packages/ui` (`@codarch/ui`) guarda las piezas puras,
+  el CSS común, los plugins con el almacenamiento inyectado, los ajustes con su actualización
+  inyectada, el mapa, el inspector, los paneles y las listas. La web y el escritorio siguen con su
+  propia cáscara y no se importan entre sí; `App.tsx` conserva solo el estado y los hooks de
+  plataforma.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

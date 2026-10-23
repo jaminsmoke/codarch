@@ -25,13 +25,19 @@ Nace `@codarch/ui`, privado, en `packages/ui`:
 ```text
 packages/ui/src/
 ├── index.ts        las exportaciones públicas
+├── data.ts         leer reporte y lente de migración
 ├── detail.ts       el nivel de detalle del mapa
-├── labels.ts       la etiqueta de un bloque
+├── labels.ts       etiquetas y colores del dominio
+├── map.ts          el color de un fichero y su índice de métricas
+├── MapCanvas.tsx   el mapa, con zoom, teclado y pan
+├── metrics.ts      el orden de las métricas
 ├── navigation.ts   la navegación por celdas
+├── panels.tsx      KPIs, leyenda, historial, listas e inspector
 ├── PrPanel.tsx     el panel de un report.json
 ├── pluginState.ts  qué plugins quedan activados
 ├── plugins.ts      el registro y la carga perezosa
 ├── Settings.tsx    los ajustes, con la actualización inyectada
+├── tree.ts         buscar una carpeta en el árbol
 └── styles.css      los tokens y las clases de las dos apps
 ```
 
@@ -44,8 +50,10 @@ producto.
 Una pieza de `@codarch/ui`:
 
 - recibe datos y devuelve llamadas por props; no lee un fichero, no analiza, no guarda;
-- no importa `apps/*`, Electron, `node:*`, `localStorage` ni `window`;
-- puede depender de `@codarch/render`, `@codarch/metrics`, `@codarch/addons`,
+- no importa `apps/*`, Electron, `node:*`, `localStorage` ni el puente del escritorio;
+- puede medir el DOM para dibujar el mapa (`ResizeObserver` y el evento `resize`): es una pieza de
+  interfaz, no una fuente de datos;
+- puede depender de `@codarch/render`, `@codarch/metrics`, `@codarch/schema`, `@codarch/addons`,
   `@codarch/plugin-api`, Radix Dialog y React (peer).
 
 El CSS común vive aquí. Si una app necesita un ajuste propio, lo pone en su hoja; no copia la común.
@@ -61,8 +69,9 @@ Siguen en cada app, porque son plataforma:
 | Persistencia | `storage.ts` de la web | `storage.ts` del escritorio |
 | Arranque y URL | `App.tsx`, `viewState.ts` | `App.tsx`, preload |
 
-`App.tsx` sigue siendo el shell de cada app. Las etapas 1 y 2 no lo tocan: compartir su estado y
-sus efectos sin separar antes las dependencias de plataforma sería un big-bang disfrazado.
+`App.tsx` sigue siendo el shell de cada app. La etapa 3 le quita las piezas presentacionales, pero
+no su estado ni sus efectos: compartir eso sin separar antes las dependencias de plataforma sería
+un big-bang disfrazado.
 
 ### 4. La migración va por etapas
 
@@ -72,8 +81,10 @@ sus efectos sin separar antes las dependencias de plataforma sería un big-bang 
    importa el `storage` de cada app; se comparte inyectando el almacenamiento, no copiando el
    módulo. Los ajustes comparten el diálogo y sus secciones; cada app inyecta su fuente de
    actualización y su forma de abrirla.
-3. **Etapa 3:** sacar de `App.tsx` las piezas presentacionales que hoy están duplicadas (mapa,
-   inspector y paneles) y dejar en cada app los hooks de plataforma.
+3. **Etapa 3 (hecha):** sacar de `App.tsx` las piezas presentacionales que estaban duplicadas
+   (mapa, inspector, paneles, leyenda, historial y listas) y dejar en cada app los hooks de
+   plataforma. El historial y el calor reciben su cargador por props; la web lee del servidor y el
+   escritorio del proceso principal.
 
 Cada etapa deja las dos apps funcionando y con sus builds verdes. Lo que no se comparta todavía se
 queda donde está; no se mueve a medias.
@@ -83,8 +94,7 @@ queda donde está; no se mueve a medias.
 - Un cambio de estilo o de una etiqueta se hace una vez.
 - El escritorio deja de ser una copia de la web sin perder su interfaz ni sus funciones nativas.
 - Las dos apps siguen sin importarse la una a la otra; comparten un paquete, no una app.
-- Hay dos sitios que mantener en `App.tsx` hasta la etapa 3; es deuda visible, no una decisión
-  permanente.
+- El shell de `App.tsx` sigue en cada app, pero las piezas que se pintan ya se mantienen una vez.
 - `npm install` crea el workspace nuevo y los dos Vite lo resuelven. El paquete no entra en el
   checksum: no cambia el modelo.
 
@@ -108,8 +118,9 @@ queda donde está; no se mueve a medias.
   builds pasan.
 - [x] Etapa 2: compartir `plugins.ts` con el almacenamiento inyectado y la parte común de los
   ajustes.
-- [ ] Etapa 3: sacar de `App.tsx` las piezas presentacionales duplicadas y dejar los hooks de
-  plataforma en cada app.
-- [ ] Revisar que ninguna pieza nueva de `@codarch/ui` importe plataforma.
+- [x] Etapa 3: sacar de `App.tsx` las piezas presentacionales duplicadas (mapa, inspector,
+  paneles, leyenda, historial y listas) y dejar los hooks de plataforma en cada app.
+- [x] Revisar que ninguna pieza nueva de `@codarch/ui` importe plataforma de almacenamiento,
+  Electron o `node:*`; el mapa solo mide el DOM para dibujarse.
 
 El detalle de lo hecho está en el [changelog](0043-la-ui-compartida.changelog.md).

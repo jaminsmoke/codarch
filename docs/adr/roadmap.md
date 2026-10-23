@@ -18,7 +18,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada y M26 en curso.
+Las fases M0–M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada y M26 cerrada.
 
 ## Las fases
 
@@ -99,7 +99,7 @@ flowchart TD
 | M23 | La web del proyecto | en curso | [ADR 0034](0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta) · [changelog](0031-0040/0034-la-web-del-proyecto.changelog.md) |
 | M24 | El índice SQLite de los documentos | sin empezar | [ADR 0036](0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
 | M25 | La entrega se automatiza | cerrada | [ADR 0042](0041-0050/0042-la-entrega-se-automatiza.md#hoja-de-ruta) · [changelog](0041-0050/0042-la-entrega-se-automatiza.changelog.md) |
-| M26 | La UI compartida | en curso | [ADR 0043](0041-0050/0043-la-ui-compartida.md#hoja-de-ruta) · [changelog](0041-0050/0043-la-ui-compartida.changelog.md) |
+| M26 | La UI compartida | cerrada | [ADR 0043](0041-0050/0043-la-ui-compartida.md#hoja-de-ruta) · [changelog](0041-0050/0043-la-ui-compartida.changelog.md) |
 
 ## Cómo se lee esto
 

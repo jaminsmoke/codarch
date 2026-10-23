@@ -21,3 +21,11 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0043-la-ui-c
   duplicados.
 - La declaración de `virtual:codarch-plugins` se muda a `@codarch/plugin-api`; las dos copias de
   `virtual.d.ts` desaparecen.
+- Etapa 3: `MapCanvas`, el inspector, los KPIs, la leyenda, el historial y las listas de deuda,
+  calor y ficheros tocados viven en `@codarch/ui`; `App.tsx` baja más de mil líneas en cada app.
+- El historial y el calor comparten la vista y reciben su cargador por props: la web lee del
+  servidor y el escritorio del proceso principal.
+- También se comparten `findFolder`, `mapColorFor`, `metricIndexOf`, la lectura del reporte y de la
+  lente de migración, y el orden de las métricas, con sus tests.
+- `@codarch/ui` puede medir el DOM para pintar el mapa; sigue sin tocar almacenamiento, Electron ni
+  `node:*`.
