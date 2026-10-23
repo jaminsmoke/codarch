@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   resumenDias,
@@ -133,12 +133,14 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
   return (
     <div onClick={alClick}>
       <Marco dias={dias} activo={activo} lang={lang}>
-        <motion.div
-          key={visita}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 0.61, 0.36, 1] }}
-        >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={visita}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
+          >
           {ruta.tipo === "dia" && dia ? (
             <Guia
               dia={dia}
@@ -152,6 +154,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
           ) : null}
           {ruta.tipo === "normas" ? <Normas normas={datos.normas} lang={lang} /> : null}
         </motion.div>
+      </AnimatePresence>
       </Marco>
     </div>
   );

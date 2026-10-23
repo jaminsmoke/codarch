@@ -1,16 +1,7 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  Beaker,
-  Check,
-  Hourglass,
-  Pin,
-  ScrollText,
-  Wrench,
-  type LucideIcon
-} from "lucide-react";
-import { motion } from "motion/react";
-import { useState, type CSSProperties } from "react";
+import { ArrowLeft, ArrowRight, Beaker, Check, ChevronDown, Hourglass, Pin, ScrollText, Wrench, type LucideIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useState, useEffect, type CSSProperties } from "react";
+import clsx from "clsx";
 import {
   CATEGORIAS,
   VEREDICTOS,
@@ -92,6 +83,22 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
   const gruposVisibles = dia.grupos.filter((grupo) =>
     visibles.has(grupo.categoria)
   );
+
+  const [abiertos, setAbiertos] = useState<Set<string>>(() => new Set());
+  const alternarEntrada = (id: string) => {
+    setAbiertos((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(id)) siguiente.delete(id);
+      else siguiente.add(id);
+      return siguiente;
+    });
+  };
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (id && dia.entradas.some((entrada) => entrada.id === id)) {
+      setAbiertos(new Set([id]));
+    }
+  }, [dia]);
 
   useTitulo(
     `La guía — ${fecha.dia} de ${fecha.mes} de ${fecha.anio}`,
@@ -234,31 +241,66 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                   <span aria-hidden="true" className="guia-grupo-linea" />
                 </h3>
 
-                {grupo.entradas.map((entrada) => (
-                  <article
-                    key={entrada.id}
-                    id={entrada.id}
-                    className="guia-entrada"
-                  >
-                    <div className="guia-entrada-cabecera">
-                      <h4 className="guia-entrada-titulo">{entrada.titulo}</h4>
-                      <a
-                        href={`#${entrada.id}`}
-                        aria-label={`Enlace a ${entrada.titulo}`}
-                        className="guia-ancla"
-                      >
-                        #
-                      </a>
-                    </div>
-                    <div className="guia-entrada-meta">
-                      <Etiqueta veredicto={entrada.veredicto} />
-                    </div>
-                    <div
-                      className="prosa prosa-guia"
-                      dangerouslySetInnerHTML={{ __html: entrada.html }}
-                    />
-                  </article>
-                ))}
+                {grupo.entradas.map((entrada) => {
+                  const abierto = abiertos.has(entrada.id);
+                  return (
+                    <article
+                      key={entrada.id}
+                      id={entrada.id}
+                      className="guia-entrada"
+                    >
+                      <div className="guia-entrada-fila">
+                        <button
+                          type="button"
+                          onClick={() => alternarEntrada(entrada.id)}
+                          aria-expanded={abierto}
+                          className="guia-entrada-disparador"
+                        >
+                          <h4 className="guia-entrada-titulo">
+                            {entrada.titulo}
+                          </h4>
+                          <span className="guia-entrada-meta">
+                            <Etiqueta veredicto={entrada.veredicto} />
+                          </span>
+                          <ChevronDown
+                            aria-hidden="true"
+                            className={clsx(
+                              "guia-entrada-chevron",
+                              abierto && "guia-entrada-chevron--abierto"
+                            )}
+                          />
+                        </button>
+                        <a
+                          href={`#${entrada.id}`}
+                          aria-label={`Enlace a ${entrada.titulo}`}
+                          className="guia-ancla"
+                        >
+                          #
+                        </a>
+                      </div>
+                      <AnimatePresence initial={false}>
+                        {abierto ? (
+                          <motion.div
+                            key="cuerpo"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{
+                              duration: 0.28,
+                              ease: [0.22, 0.61, 0.36, 1]
+                            }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            <div
+                              className="prosa prosa-guia guia-entrada-cuerpo"
+                              dangerouslySetInnerHTML={{ __html: entrada.html }}
+                            />
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </article>
+                  );
+                })}
               </section>
             );
           })}

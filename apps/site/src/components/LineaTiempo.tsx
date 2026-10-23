@@ -126,7 +126,14 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                   )}
                 >
                   {esActivo ? (
-                    <span
+                    <motion.span
+                      layoutId="guia-pastilla"
+                      transition={{
+                        type: "spring",
+                        stiffness: 420,
+                        damping: 34,
+                        mass: 0.7
+                      }}
                       style={{ borderRadius: 999 }}
                       className={clsx(
                         "absolute inset-0 rounded-full",

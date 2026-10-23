@@ -425,6 +425,64 @@ body {
   border-top: 1px solid var(--color-line);
 }
 
+.guia-entrada-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guia-entrada-disparador {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.55rem 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.guia-entrada-disparador:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.guia-entrada-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.guia-entrada-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.guia-entrada-chevron {
+  margin-left: auto;
+  color: var(--color-muted);
+  transition: transform 0.2s ease;
+}
+
+.guia-entrada-chevron--abierto {
+  transform: rotate(180deg);
+}
+
+.guia-entrada-cuerpo {
+  padding: 0.6rem 0 0.9rem 0.1rem;
+}
+
 .guia-entrada:hover {
   background: color-mix(in srgb, var(--tono) 3%, var(--color-panel));
 }
@@ -451,7 +509,7 @@ body {
 }
 
 .guia-ancla {
-  margin-left: auto;
+  margin-left: 0.25rem;
   color: var(--color-line-strong);
   font-family: var(--font-mono);
   font-size: 0.9rem;
