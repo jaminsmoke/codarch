@@ -30,6 +30,8 @@
       "@codarch/render/browser": ["packages/render/src/browser.ts"],
       "@codarch/plugin-api": ["packages/plugin-api/src/index.ts"],
       "@codarch/ui": ["packages/ui/src/index.ts"],
+      "@codarch/ui/plugins": ["packages/ui/src/plugins.ts"],
+      "@codarch/ui/Settings": ["packages/ui/src/Settings.tsx"],
       "@codarch/ui/styles.css": ["packages/ui/src/styles.css"]
     }
   },

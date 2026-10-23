@@ -82,6 +82,14 @@ export default defineConfig(async ({ command }) => {
           replacement: resolve("packages/ui/src/styles.css")
         },
         {
+          find: /^@codarch\/ui\/plugins$/,
+          replacement: resolve("packages/ui/src/plugins.ts")
+        },
+        {
+          find: /^@codarch\/ui\/Settings$/,
+          replacement: resolve("packages/ui/src/Settings.tsx")
+        },
+        {
           find: /^@codarch\/ui$/,
           replacement: resolve("packages/ui/src/index.ts")
         }

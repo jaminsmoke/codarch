@@ -63,6 +63,7 @@ import {
   writeProject,
   type ViewPreferences
 } from "./storage";
+import { desktop } from "./bridge";
 import type { CodarchDesktop } from "../preload";
 
 const STATUS_LABEL: Record<CcMigrationStatus, string> = {
@@ -134,15 +135,6 @@ const CHURN_METRIC = "number_of_commits";
 interface ViewState {
   model: RenderModel | null;
   error: string | null;
-}
-
-/** El puente con el proceso principal, expuesto por el preload. */
-function desktop(): CodarchDesktop {
-  const api = (window as unknown as { codarch?: CodarchDesktop }).codarch;
-  if (!api) {
-    throw new Error("El puente del escritorio no está disponible.");
-  }
-  return api;
 }
 
 export default function App() {
@@ -1149,8 +1141,6 @@ export default function App() {
         onClearProject={() => setSettingsOpen(false)}
         storageAvailable={true}
         version={desktop().version}
-        onCheckUpdate={() => desktop().checkUpdate()}
-        onOpenExternal={(url) => void desktop().openExternal(url)}
         plugins={plugins.descriptors}
         enabledPlugins={plugins.enabled}
         onTogglePlugin={plugins.toggle}

@@ -29,11 +29,15 @@ packages/ui/src/
 ├── labels.ts       la etiqueta de un bloque
 ├── navigation.ts   la navegación por celdas
 ├── PrPanel.tsx     el panel de un report.json
+├── pluginState.ts  qué plugins quedan activados
+├── plugins.ts      el registro y la carga perezosa
+├── Settings.tsx    los ajustes, con la actualización inyectada
 └── styles.css      los tokens y las clases de las dos apps
 ```
 
-El paquete exporta `.` y `./styles.css`. Las dos apps lo resuelven con Vite y con `tsconfig`; no se
-publica en npm y su versión sigue siendo `0.0.0` porque no es un producto.
+El paquete exporta `.`, `./plugins`, `./Settings` y `./styles.css`. Las dos apps lo resuelven con
+Vite y con `tsconfig`; no se publica en npm y su versión sigue siendo `0.0.0` porque no es un
+producto.
 
 ### 2. Lo compartido es puro
 
@@ -41,7 +45,8 @@ Una pieza de `@codarch/ui`:
 
 - recibe datos y devuelve llamadas por props; no lee un fichero, no analiza, no guarda;
 - no importa `apps/*`, Electron, `node:*`, `localStorage` ni `window`;
-- solo puede depender de `@codarch/render`, `@codarch/metrics` y React (peer).
+- puede depender de `@codarch/render`, `@codarch/metrics`, `@codarch/addons`,
+  `@codarch/plugin-api`, Radix Dialog y React (peer).
 
 El CSS común vive aquí. Si una app necesita un ajuste propio, lo pone en su hoja; no copia la común.
 
@@ -56,15 +61,17 @@ Siguen en cada app, porque son plataforma:
 | Persistencia | `storage.ts` de la web | `storage.ts` del escritorio |
 | Arranque y URL | `App.tsx`, `viewState.ts` | `App.tsx`, preload |
 
-`App.tsx` sigue siendo el shell de cada app. La etapa 1 no lo toca: compartir su estado y sus
-efectos sin separar antes las dependencias de plataforma sería un big-bang disfrazado.
+`App.tsx` sigue siendo el shell de cada app. Las etapas 1 y 2 no lo tocan: compartir su estado y
+sus efectos sin separar antes las dependencias de plataforma sería un big-bang disfrazado.
 
 ### 4. La migración va por etapas
 
 1. **Etapa 1 (hecha):** `styles.css`, `detail`, `labels`, `navigation` y `PrPanel`, con sus tests
    movidos a `packages/ui/test`.
-2. **Etapa 2:** `plugins.ts` y la parte común de los ajustes. `plugins.ts` es igual, pero importa el
-   `storage` de cada app; se comparte inyectando el almacenamiento, no copiando el módulo.
+2. **Etapa 2 (hecha):** `plugins.ts` y la parte común de los ajustes. `plugins.ts` es igual, pero
+   importa el `storage` de cada app; se comparte inyectando el almacenamiento, no copiando el
+   módulo. Los ajustes comparten el diálogo y sus secciones; cada app inyecta su fuente de
+   actualización y su forma de abrirla.
 3. **Etapa 3:** sacar de `App.tsx` las piezas presentacionales que hoy están duplicadas (mapa,
    inspector y paneles) y dejar en cada app los hooks de plataforma.
 
@@ -99,7 +106,7 @@ queda donde está; no se mueve a medias.
 - [x] Las dos apps importan `@codarch/ui` y `@codarch/ui/styles.css`; las copias se borraron.
 - [x] Los tests de las piezas compartidas viven en `packages/ui/test`; typecheck, suite y los dos
   builds pasan.
-- [ ] Etapa 2: compartir `plugins.ts` con el almacenamiento inyectado y la parte común de los
+- [x] Etapa 2: compartir `plugins.ts` con el almacenamiento inyectado y la parte común de los
   ajustes.
 - [ ] Etapa 3: sacar de `App.tsx` las piezas presentacionales duplicadas y dejar los hooks de
   plataforma en cada app.
