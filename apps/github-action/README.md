@@ -5,7 +5,7 @@ Repositorio público: [`jaminsmoke/codarch-action`](https://github.com/jaminsmok
 Analiza el commit base y el head de un pull request, escribe un `report.json` determinista, publica el
 mapa como artefacto y actualiza un comentario en el PR.
 
-La acción instala el CLI publicado en npm (`codarch@0.2.0` por defecto), así que no necesita el
+La acción instala el CLI publicado en npm (`codarch@0.3.0-alpha.2` por defecto), así que no necesita el
 código de CodArch en el workspace ni ejecuta `npm ci` sobre el proyecto analizado. La decisión está en
 [ADR 0012](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0011-0020/0012-github-action.md) y
 [ADR 0014](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0011-0020/0014-distribucion-cli-npm.md).
@@ -13,12 +13,12 @@ código de CodArch en el workspace ni ejecuta `npm ci` sobre el proyecto analiza
 > [!NOTE]
 > El producto está en **alpha** ✓ ([ADR 0032](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0031-0040/0032-las-versiones-y-las-actualizaciones.md)):
 > las alphas se publican en npm con la etiqueta `next` ✓, así que la acción instala por defecto la
-> última versión normal ✓. Para instalar la alpha:
+> alpha actual ✓. Para instalar la última versión normal:
 >
 > ```yaml
 > - uses: jaminsmoke/codarch-action@v1
 >   with:
->     version: 0.3.0-alpha.1
+>     version: 0.2.0
 > ```
 
 ## Uso
