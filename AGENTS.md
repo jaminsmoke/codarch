@@ -158,6 +158,9 @@ también `npm run sync:action` y actualizar el repo público.
   `.deb` en Linux; no se publican ejecutables portables. La release lleva `latest*.yml` y
   `.blockmap`, y `electron-updater` actualiza Windows y Linux. El tag es `v<versión>` desde
   `0.3.1-alpha.2`; macOS no se publica hasta que haya firma y notarización.
+- M29 en curso: los documentos con Starlight (ADR 0046). La web pasa a Astro + Starlight, con
+  HTML estático por documento, Pagefind, sitemap y frontmatter validado. `docs/` sigue siendo la
+  fuente; la portada y la guía se conservan como páginas propias.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

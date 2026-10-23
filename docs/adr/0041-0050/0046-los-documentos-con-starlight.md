@@ -1,0 +1,140 @@
+# ADR 0046 — Los documentos se publican con Starlight
+
+**Estado:** aceptado · **Fecha:** 2026-10-23
+
+## Contexto
+
+La web del proyecto ya publica los documentos, pero lo hace con una app React/Vite propia:
+
+- `docs/**/*.md` se importa entero con `import.meta.glob(..., { eager: true })`;
+- el título y la descripción se adivinan del primer `#` y del primer párrafo;
+- el orden del producto está en una lista `PRODUCTO` dentro del código;
+- los ADR, sus changelogs y la guía dependen de convenciones de nombre;
+- la web es una SPA: hay un `index.html` y el router pinta el documento. No hay un HTML por
+  documento, SEO real ni búsqueda;
+- añadir una sección puede obligar a tocar el código de la web.
+
+Hay 99 documentos. La documentación va a crecer y tiene que seguir siendo revisable en PR, con
+historial y sin un backend que mantener. La pregunta no es «Markdown sí o no»: Markdown es el
+mejor formato para escribir prosa. Lo que falta es un **modelo de contenido** y un build que lo
+valide.
+
+## Decisión
+
+### 1. Astro + Starlight para la documentación
+
+La web de documentos pasa a Astro con Starlight. Cada documento se genera como **HTML estático**
+en su ruta, con:
+
+- sidebar generada desde el contenido;
+- búsqueda **Pagefind** en el build;
+- índice de la página y navegación anterior/siguiente;
+- sitemap y metadatos por documento;
+- contenido Markdown/MDX con frontmatter validado.
+
+La portada y la guía pueden seguir siendo páginas propias (Astro, o un componente React montado
+como isla) para conservar la identidad visual. No se obliga a que todo el sitio sea Starlight.
+
+### 2. `docs/` sigue siendo la fuente de verdad
+
+No se copia el contenido a `apps/site` ni se mantiene un espejo a mano. El proyecto define una
+colección `docs` con un loader `glob` que lee `../../docs` y genera ids con el prefijo `docs/`:
+
+```ts
+docs: defineCollection({
+  loader: glob({
+    base: "../../docs",
+    pattern: "**/*.md",
+    generateId: ({ entry }) => `docs/${entry.replace(/\.md$/, "")}`
+  }),
+  schema: docsSchema({ extend: ... })
+})
+```
+
+Así una carpeta de `docs/` sigue siendo una ruta del sitio (`docs/model.md` → `/docs/model/`) y
+los ADR/changelogs se revisan donde siempre. Si una versión futura de Starlight no permite leer
+fuera de `src/content/docs`, se generará un espejo **en el build**, nunca a mano.
+
+### 3. El frontmatter es obligatorio y validado
+
+Cada documento declara lo que el sitio necesita:
+
+```yaml
+---
+title: El modelo
+description: Qué es un cc.json y qué garantiza.
+section: producto # producto | adr | guia
+order: 20
+status: aceptado # en los ADR
+date: 2026-10-23
+adr: adr/0041-0050/0045-... # en un changelog
+changelog: true # en un changelog
+tags: [modelo, checksum]
+---
+```
+
+El esquema extiende `docsSchema()` con Zod. Si falta `title`, el `section` no es válido o un
+changelog no apunta a su ADR, **el build falla**. No hay metadatos adivinados.
+
+La primera línea `#` del documento se elimina del cuerpo: Starlight pinta el título con el
+frontmatter. La descripción no se calcula del primer párrafo.
+
+### 4. Las URLs actuales se conservan
+
+- `/docs/<ruta>/` para los documentos.
+- `/guia/` para la guía.
+- `/` para la portada.
+
+La migración añade redirecciones para las rutas antiguas que puedan cambiar. Los enlaces internos
+del Markdown se validan en el build; una ruta rota no se publica.
+
+### 5. La guía deja de ser un bloque parseado a mano
+
+La guía pasa a entradas estructuradas: cada idea con `fecha`, `categoria`, `veredicto` y su cuerpo.
+La página `/guia/` las agrupa por día y categoría, como ahora, pero sin partir un único Markdown
+con expresiones regulares. Añadir una idea es añadir una entrada, no tocar el parser.
+
+### 6. Búsqueda, SEO y publicación
+
+Pagefind genera el índice de búsqueda en el build y Starlight genera el sitemap. El workflow
+`web.yml` construye y publica en GitHub Pages cuando cambia `docs/` o `apps/site/`. Añadir un
+documento con su frontmatter es suficiente: aparece en su ruta, en la sidebar y en la búsqueda.
+
+No se usa una base de datos como fuente: GitHub Pages es estático y la documentación tiene que
+poder revisarse en un PR. SQLite/FTS5 (M24) sigue siendo un **índice derivado** para CLI/MCP, no
+la fuente del sitio.
+
+## Consecuencias
+
+- La documentación gana HTML por página, SEO, búsqueda, sitemap y navegación automática.
+- El contenido sigue en `docs/`, versionado y revisable; no se muda a una base de datos ni a PHP.
+- Hay una migración única: añadir frontmatter a 99 documentos y quitar su `#` inicial.
+- Starlight trae su propio layout; la portada y la guía se adaptan para conservar la identidad.
+- El bundle deja de cargar todo el markdown de golpe: cada página lleva su contenido.
+- El CI valida el esquema, los enlaces y el build; un documento mal formado no se publica.
+
+## Alternativas descartadas
+
+- **Base de datos como fuente:** GitHub Pages no ejecuta consultas; haría falta un backend, auth y
+  perderíamos el diff/PR de la documentación.
+- **PHP:** necesita un servidor; no encaja con Pages ni con el repo.
+- **XML:** sirve para datos, no para prosa; el diff y la escritura son peores que Markdown.
+- **CMS externo:** solo si se quiere editar sin tocar git; añade dependencia, coste y secretos.
+- **Docusaurus:** también válido, pero más pesado y con más trabajo para conservar el diseño actual.
+- **Capa de contenido sobre la web React/Vite actual:** menos migración, pero tendríamos que
+  construir prerender, búsqueda, sitemap y SEO; más mantenimiento a largo plazo.
+
+## Hoja de ruta
+
+### M29 — Los documentos con Starlight
+
+- [ ] Crear `apps/site` con Astro + Starlight y el loader que lee `docs/`.
+- [ ] Definir el esquema de frontmatter y migrar los 99 documentos (título, descripción, sección,
+  orden, estado, fecha, ADR/changelog).
+- [ ] Conservar `/docs/`, `/guia/` y `/` con redirecciones y validar enlaces internos.
+- [ ] Migrar la guía a entradas estructuradas y adaptar la portada.
+- [ ] Activar Pagefind, sitemap y búsqueda; comprobar que un documento nuevo aparece solo.
+- [ ] Actualizar `web.yml`, `README` y `AGENTS.md`; retirar la app React/Vite de docs.
+- [ ] Validar el build y la publicación en GitHub Pages con un documento de prueba.
+
+El detalle de lo hecho está en el [changelog](0046-los-documentos-con-starlight.changelog.md).
