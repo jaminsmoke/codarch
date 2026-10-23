@@ -443,7 +443,8 @@ en `sin-ciclos`; el `--ignore` del CLI era efímero y `serve` y la acción no lo
 **Decisión**: [ADR 0038](../adr/0031-0040/0038-el-alcance-del-analisis.md). El `.codarch.yml` gana
 `ignore`, una lista de patrones de `.gitignore` que se aplica **antes** de crear el snapshot. No
 hay una exclusión por defecto de tests ni fixtures: cada repo declara su alcance. `analyze`,
-`serve` y la acción lo usan; `diff`, `render`, `inspect` y el MCP consumen el snapshot sin volver a
-filtrar.
+`serve`, la acción y el análisis en navegador lo usan; `diff`, `render`, `inspect` y el MCP consumen
+el snapshot sin volver a filtrar.
 
-**Veredicto**: **ADR 0038**, con implementación en M2 y M5; no es una fase nueva.
+**Veredicto**: **ADR 0038**, hecho; se aplica en M2 y M5 y no abre una fase nueva. El alcance lo
+comparten CLI, servidor, acción y análisis en navegador.

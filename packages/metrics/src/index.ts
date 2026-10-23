@@ -1,6 +1,7 @@
+export { ConfigError, parseIgnoreConfig } from "./scope";
 export {
   ADDON_NAME,
-  ConfigError,
+  loadIgnoreConfig,
   loadRuleConfig,
   parseLayerList,
   parseProfileEntry,

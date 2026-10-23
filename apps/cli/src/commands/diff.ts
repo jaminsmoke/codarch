@@ -1,9 +1,9 @@
 import path from "node:path";
-import { existsSync } from "node:fs";
 import { ConfigError, loadRuleConfig, type RuleConfig } from "@codarch/metrics";
 import { ruleConfigAddon } from "@codarch/addons";
 import { loadAddons } from "@codarch/addons/node";
 import { CcJsonError, parseCcJson, type CcJson } from "@codarch/schema";
+import { defaultConfigPath } from "../config";
 import { readJsonFile } from "../io";
 import { compareSnapshots } from "./compare";
 
@@ -94,12 +94,4 @@ function loadSnapshot(file: string): CcJson | null {
     }
     throw error;
   }
-}
-
-function defaultConfigPath(): string | undefined {
-  for (const file of [".codarch.yml", ".codarch.yaml"]) {
-    const candidate = path.resolve(file);
-    if (existsSync(candidate)) return candidate;
-  }
-  return undefined;
 }

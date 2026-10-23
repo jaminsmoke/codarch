@@ -36,7 +36,9 @@ Uso:
 
 Opciones de analyze:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
-  --ignore <patrón>  excluir rutas (repetible)
+  --ignore <patrón>  sumar una exclusión al alcance (repetible)
+  --config <file>    alcance YAML (por defecto .codarch.yml si existe)
+  --no-config        no leer el alcance del YAML
   --project <nombre> nombre del proyecto en el snapshot
   --title <texto>    título del mapa
   --no-git           no leer churn del historial git
@@ -159,6 +161,17 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
       options.ignore?.push(value);
     } else if (arg.startsWith("--ignore=")) {
       options.ignore?.push(arg.slice("--ignore=".length));
+    } else if (arg === "--config") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--config necesita una ruta");
+        return 1;
+      }
+      options.config = value;
+    } else if (arg.startsWith("--config=")) {
+      options.config = arg.slice("--config=".length);
+    } else if (arg === "--no-config") {
+      options.noConfig = true;
     } else if (arg === "--project") {
       const value = args[++index];
       if (!value) {

@@ -359,6 +359,8 @@ describe("getProjectConfig", () => {
       ".codarch.yml": `version: 1
 addons:
   - demo
+ignore:
+  - packages/*/test/fixtures/**
 rules:
   - type: threshold
     name: complejidad
@@ -381,6 +383,7 @@ rules:
     expect(config.profile).toBeNull();
     expect(config.rules.map((rule) => rule.name)).toEqual(["complejidad"]);
     expect(config.rules[0]?.source).toBe("config");
+    expect(config.ignore).toEqual(["packages/*/test/fixtures/**"]);
     expect(config.addons.map((addon) => addon.name)).toEqual(["demo"]);
     expect(config.addons[0]?.views[0]?.id).toBe("capas");
     expect(config.addons[0]?.views[0]?.state.focus).toBe("src/domain");
@@ -393,12 +396,15 @@ rules:
       ".codarch.yml": `version: 1
 addons:
   - fantasma
+ignore:
+  - vendor/**
 `
     });
 
     const config = getProjectConfig(makeStore(null, root));
     expect(config.available).toBe(true);
     expect(config.rules).toEqual([]);
+    expect(config.ignore).toEqual(["vendor/**"]);
     expect(config.addons).toEqual([]);
     expect(config.reason).toMatch(/fantasma/);
   });
@@ -409,6 +415,7 @@ addons:
     const config = getProjectConfig(makeStore(null, root));
     expect(config.available).toBe(false);
     expect(config.file).toBeNull();
+    expect(config.ignore).toEqual([]);
     expect(config.addons).toEqual([]);
     expect(config.reason).toMatch(/\.codarch\.yml/);
   });

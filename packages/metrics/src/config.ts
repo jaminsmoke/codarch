@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import { parse as parseYaml } from "yaml";
 import { findDomainProfile, domainProfileIds, type DomainProfile } from "./profiles";
+import {
+  ConfigError,
+  asObject,
+  asString,
+  parseIgnoreConfig,
+  parseIgnoreList
+} from "./scope";
 
 export type Severity = "info" | "warn" | "error";
 
@@ -76,13 +83,8 @@ export interface RuleConfig {
   addons: string[];
   layers: LayerConfig[];
   rules: RuleConfigEntry[];
-}
-
-export class ConfigError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ConfigError";
-  }
+  /** Patrones de exclusión del análisis, con sintaxis de `.gitignore`. */
+  ignore: string[];
 }
 
 const SEVERITIES = new Set<Severity>(["info", "warn", "error"]);
@@ -123,7 +125,8 @@ export function parseRuleConfig(
     profile: profile?.id ?? null,
     addons: addons.map((addon) => addon.name),
     layers,
-    rules
+    rules,
+    ignore: parseIgnoreList(root.ignore)
   };
 }
 
@@ -347,6 +350,15 @@ export function loadRuleConfig(
   file: string,
   available: readonly RuleConfigAddon[] = []
 ): RuleConfig {
+  return withFile(file, (value) => parseRuleConfig(value, available));
+}
+
+/** Solo el alcance: para quien analiza antes de tener reglas o addons. */
+export function loadIgnoreConfig(file: string): string[] {
+  return withFile(file, parseIgnoreConfig);
+}
+
+function withFile<T>(file: string, read: (value: unknown) => T): T {
   let text: string;
   try {
     text = fs.readFileSync(file, "utf8");
@@ -366,7 +378,7 @@ export function loadRuleConfig(
   }
 
   try {
-    return parseRuleConfig(value, available);
+    return read(value);
   } catch (error) {
     if (error instanceof ConfigError) {
       throw new ConfigError(`${file}: ${error.message}`);
@@ -509,18 +521,4 @@ function optionalNumber(value: unknown, path: string): number | undefined {
     throw new ConfigError(`${path} debe ser un número`);
   }
   return value;
-}
-
-function asObject(value: unknown, path: string): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new ConfigError(`${path} debe ser un objeto`);
-  }
-  return value as Record<string, unknown>;
-}
-
-function asString(value: unknown, path: string): string {
-  if (typeof value !== "string" || value.trim() === "") {
-    throw new ConfigError(`${path} debe ser un texto no vacío`);
-  }
-  return value.trim();
 }

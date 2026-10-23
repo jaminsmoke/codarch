@@ -268,9 +268,25 @@ Esto permite adoptar reglas en un repo con deuda sin congelar todos los PRs.
 La configuración no se copia al snapshot ni al mapa. El reporte incluye un bloque `rules` con el
 resumen y las violaciones; ver [modelo](model.md#delta).
 
+## Alcance
+
+`ignore` es una lista de patrones con sintaxis de `.gitignore`, relativa a la raíz del proyecto. No
+es una regla: se aplica **antes** de recorrer ([ADR 0038](adr/0031-0040/0038-el-alcance-del-analisis.md)),
+así que un fichero excluido no entra en el snapshot, las métricas, los ciclos ni el checksum.
+
+- `codarch analyze` y `codarch serve` leen el `.codarch.yml` de la raíz; el análisis en navegador
+  lee el mismo archivo al abrir el repositorio.
+- `codarch analyze --config <file>` usa otro archivo; `--no-config` no lee ninguno.
+- `--ignore <patrón>` suma una exclusión para esa ejecución; no reemplaza la lista del repo.
+- `diff`, `render` e `inspect` consumen el snapshot y no vuelven a filtrar.
+- `get_project_config` del MCP devuelve `ignore` para que un agente explique el alcance.
+
+No hay una exclusión por defecto de tests ni de fixtures: cada repo decide qué es arquitectura.
+
 ## Límites actuales
 
 - No hay reglas a nivel de símbolo ni de carpeta agregada.
-- No hay `ignore` por línea ni baseline separado; la deuda se reconoce por comparación con base.
+- No hay `ignore` por línea en las reglas ni baseline separado; la deuda se reconoce por comparación
+  con base. El `ignore` del `.codarch.yml` es de alcance, no de reglas.
 - Los globs no entienden el alias `@/` de TypeScript: se aplican a rutas ya resueltas del árbol.
 - Las reglas no modifican el código ni generan arreglos.

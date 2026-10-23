@@ -166,6 +166,8 @@ La configuración del repo, leída igual que la lee el CLI: el `.codarch.yml` y 
 - `layers`: las capas efectivas con sus patrones glob;
 - `rules`: las reglas efectivas, cada una con su `source` (`config`, `profile` o
   `addon:<nombre>`; manda el equipo);
+- `ignore`: los patrones que el repo excluye del análisis
+  ([ADR 0038](adr/0031-0040/0038-el-alcance-del-analisis.md));
 - `addons`: los addons declarados con sus perfiles y sus **vistas guardadas** (el mismo estado corto
   que usa la URL de la app);
 - `errors`: los addons que no se pudieron cargar.

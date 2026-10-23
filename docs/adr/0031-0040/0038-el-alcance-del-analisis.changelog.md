@@ -7,8 +7,34 @@ Este changelog guarda lo que se hizo para esta decisión. La hoja de ruta vive e
 
 ## Lo que se hizo
 
-Todavía no hay cambios de código. Esta decisión abre el trabajo de la hoja de ruta; el primer
-commit es solo documentación.
+- **Configuración.** `RuleConfig` gana `ignore`; `parseRuleConfig` valida y normaliza los patrones
+  (lista, no vacíos, `/`), y `loadIgnoreConfig` lee solo el alcance para no exigir addons al
+  analizar. Tests en `packages/metrics/test/config.test.ts`.
+- **CLI.** `analyze` busca `.codarch.yml` o `.codarch.yaml` en la raíz analizada, acepta
+  `--config`/`--no-config` y suma `--ignore` al alcance del repo. `serve` relee el archivo en cada
+  análisis, así que guardar la configuración refresca el mapa. Tests en
+  `apps/cli/test/analyze.test.ts` y `apps/cli/test/serve.test.ts`.
+- **Acción y MCP.** La acción pasa su `config` a los análisis base/head cuando no es el
+  `.codarch.yml` por defecto y usa `--no-config` para `none`; `get_project_config` devuelve
+  `ignore`, incluso si el config tiene un addon que falta. `check:action` y los tests del MCP en
+  verde.
+- **Web.** El lector del navegador incluye `.codarch.yml`/`.codarch.yaml` y `runAnalysis` aplica
+  `parseIgnoreYaml` antes de analizar; el mismo alcance que el CLI. Test en
+  `apps/web/test/analysis.test.ts`.
+- **Documentos.** `.codarch.yml` excluye `packages/*/test/fixtures/**`; `.codarch.example.yml`
+  explica la clave; `docs/model.md`, `docs/rules.md` y `docs/mcp.md` describen el alcance; y
+  `docs/migration.md` se actualiza con la foto sin fixtures.
+
+## Verificación
+
+- Análisis del repo con `--no-git`: **211 ficheros · 53 carpetas · 427 aristas · 0 ciclos · 0
+  imports sin resolver**. Checksum: `fa6ad81fa35b246e115fb3b71543499d`.
+- `npx vitest run`: 49 ficheros, 360 tests.
+- `npm run lint`, `npm run typecheck`, `npm run check:action` y `npm run site:build`: en verde.
+- La acción publicada recogerá la lectura de `ignore` al publicar la versión del CLI que incluye
+  esta decisión; el `.codarch.yml` por defecto ya es el que usan base y head.
+- La app web lee el `.codarch.yml` al analizar un repositorio en el navegador; el servidor y el CLI
+  comparten el mismo alcance.
 
 ## Decisiones relacionadas
 

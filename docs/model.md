@@ -343,7 +343,7 @@ Reglas:
 
 ```
 walkSourceFiles(root)
-  → .gitignore raíz + anidados, TS/JS + Rust/WASM/Node, orden estable
+  → .gitignore raíz + anidados, `ignore` del .codarch.yml, TS/JS + Rust/WASM/Node, orden estable
 ImportResolver(root, files)
   → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins, .wasm/.node
 TypeScriptParser.parse(source, path)
@@ -368,6 +368,13 @@ MCP tools
 
 Cada fase es pura o casi pura y tiene tests propios. El analizador no guarda árboles de tree-sitter:
 procesa un fichero, extrae agregados y sigue.
+
+El alcance no se adivina: además de `.gitignore`, `codarch analyze`, `codarch serve` y el análisis en
+navegador leen la lista `ignore` del `.codarch.yml` de la raíz
+([ADR 0038](adr/0031-0040/0038-el-alcance-del-analisis.md)). Un fichero excluido no llega al
+pipeline, así que tampoco aparece en el snapshot, las métricas, los ciclos ni el checksum.
+`--ignore` suma patrones para una ejecución y `--no-config` desactiva la lectura del archivo;
+`diff`, `render` e `inspect` no vuelven a filtrar porque ya consumen el snapshot.
 
 ## Determinismo
 

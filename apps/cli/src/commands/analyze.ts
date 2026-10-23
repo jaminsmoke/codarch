@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import { ConfigError } from "@codarch/metrics";
 import { analyzeRepository } from "@codarch/parsers";
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
+import { loadProjectIgnore } from "../config";
 import { formatBytes } from "../io";
 import { saveHistory } from "@codarch/schema";
 
@@ -10,6 +12,9 @@ export interface AnalyzeCommandOptions {
   root?: string;
   out?: string;
   ignore?: string[];
+  /** Fichero de alcance; si falta, se busca `.codarch.yml` en la raíz. */
+  config?: string;
+  noConfig?: boolean;
   projectName?: string;
   title?: string;
   /** `false` desactiva churn de git. */
@@ -31,11 +36,28 @@ function field(label: string, value: string): string {
 
 export function runAnalyze(options: AnalyzeCommandOptions): number {
   const root = options.root ?? ".";
+  let ignore = options.ignore ?? [];
+
+  try {
+    const fromConfig = loadProjectIgnore(root, {
+      config: options.config,
+      noConfig: options.noConfig
+    });
+    // El `--ignore` puntual suma; no reemplaza la política del repo.
+    ignore = [...fromConfig, ...ignore];
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      console.error(`configuración inválida: ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
+
   let result;
 
   try {
     result = analyzeRepository(root, {
-      ignore: options.ignore,
+      ignore,
       projectName: options.projectName,
       git: options.git
     });

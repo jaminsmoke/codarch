@@ -27,7 +27,9 @@ const SOURCE_EXTENSIONS = [
 const CONFIG_FILES = new Set([
   "package.json",
   "tsconfig.json",
-  "jsconfig.json"
+  "jsconfig.json",
+  ".codarch.yml",
+  ".codarch.yaml"
 ]);
 
 /** Directorios que no se leen: ruido y peso. */

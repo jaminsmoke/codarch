@@ -126,4 +126,23 @@ describe("análisis en el navegador", () => {
     expect(progress[0]).toEqual({ done: 1, total: 3, current: "src/a.ts" });
     expect(progress[2]).toEqual({ done: 3, total: 3, current: "src/c.ts" });
   }, 60_000);
+
+  it("respeta el ignore del .codarch.yml", async () => {
+    const files: Array<[string, string]> = [
+      ["/.codarch.yml", "version: 1\nignore:\n  - src/skip/**\n"],
+      ["/src/keep.ts", "export const keep = 1;\n"],
+      ["/src/skip/a.ts", "export const a = 1;\n"]
+    ];
+    const response = await runAnalysis(
+      { type: "analyze", files },
+      {
+        typescript: readGrammar("tree-sitter-typescript.wasm"),
+        tsx: readGrammar("tree-sitter-tsx.wasm")
+      }
+    );
+
+    expect(response.type).toBe("done");
+    if (response.type !== "done") return;
+    expect(response.files).toBe(1);
+  }, 60_000);
 });

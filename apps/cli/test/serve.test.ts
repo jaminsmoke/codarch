@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { browseDirectories } from "../src/commands/serve";
+import { analyzeState, browseDirectories } from "../src/commands/serve";
 
 const tempDirs: string[] = [];
 
@@ -53,5 +53,27 @@ describe("browseDirectories", () => {
     fs.writeFileSync(file, "x");
 
     expect(() => browseDirectories(root, file)).toThrow("no es un directorio");
+  });
+});
+
+describe("analyzeState", () => {
+  it("relee el alcance del .codarch.yml en cada análisis", () => {
+    const root = tempDir();
+    fs.mkdirSync(path.join(root, "src", "skip"), { recursive: true });
+    fs.writeFileSync(
+      path.join(root, "src", "keep.ts"),
+      "export const keep = 1;\n"
+    );
+    fs.writeFileSync(
+      path.join(root, "src", "skip", "a.ts"),
+      "export const a = 1;\n"
+    );
+    const config = path.join(root, ".codarch.yml");
+    fs.writeFileSync(config, "version: 1\nignore:\n  - src/skip/**\n");
+
+    expect(analyzeState(root, false).files).toBe(1);
+
+    fs.writeFileSync(config, "version: 1\nignore: []\n");
+    expect(analyzeState(root, false).files).toBe(2);
   });
 });

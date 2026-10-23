@@ -3,6 +3,7 @@ import {
   WasmTypeScriptParser,
   analyzeFiles
 } from "@codarch/parsers/browser";
+import { parseIgnoreYaml } from "@codarch/metrics/browser";
 
 /**
  * Análisis en el navegador, sin depender del worker.
@@ -59,10 +60,17 @@ export async function runAnalysis(
     );
 
     const started = Date.now();
+    // El navegador comparte el alcance del CLI (ADR 0038): si el repo trae
+    // `.codarch.yml`, sus patrones `ignore` se aplican antes de recorrer.
+    const config = request.files.find(([file]) =>
+      /^\/?\.codarch\.ya?ml$/.test(file)
+    );
+    const ignore = config ? parseIgnoreYaml(config[1]) : [];
     const result = analyzeFiles({
       fileSystem: new MemoryFileSystem(request.files),
       root: "/",
       projectName: request.projectName,
+      ignore,
       parser,
       onProgress: (progress) => report({ type: "progress-file", ...progress })
     });

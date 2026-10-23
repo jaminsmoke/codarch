@@ -4,7 +4,9 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   ConfigError,
+  loadIgnoreConfig,
   loadRuleConfig,
+  parseIgnoreConfig,
   parseRuleConfig
 } from "../src/index";
 
@@ -187,6 +189,43 @@ describe("parseRuleConfig", () => {
     });
   });
 
+  it("normaliza los patrones de alcance", () => {
+    const config = parseRuleConfig({
+      version: 1,
+      ignore: [".\\packages\\parsers\\test\\fixtures\\**", "vendor/**"]
+    });
+
+    expect(config.ignore).toEqual([
+      "packages/parsers/test/fixtures/**",
+      "vendor/**"
+    ]);
+  });
+
+  it("parsea el alcance sin resolver reglas ni addons", () => {
+    expect(
+      parseIgnoreConfig({
+        version: 1,
+        addons: ["fantasma"],
+        ignore: ["fixtures/**"]
+      })
+    ).toEqual(["fixtures/**"]);
+  });
+
+  it("rechaza un alcance que no es una lista de patrones", () => {
+    expect(() => parseRuleConfig({ version: 1, ignore: "fixtures/**" })).toThrow(
+      "config.ignore debe ser una lista"
+    );
+    expect(() => parseRuleConfig({ version: 1, ignore: [""] })).toThrow(
+      "texto no vacío"
+    );
+    expect(() => parseRuleConfig({ version: 1, ignore: ["./"] })).toThrow(
+      "no puede quedar vacío"
+    );
+    expect(() => parseIgnoreConfig({ version: 2, ignore: [] })).toThrow(
+      "version debe ser 1"
+    );
+  });
+
   it("rechaza configuraciones ambiguas", () => {
     expect(() =>
       parseRuleConfig({ version: 2, layers: [], rules: [] })
@@ -276,5 +315,27 @@ describe("loadRuleConfig", () => {
 
     expect(() => loadRuleConfig(file)).toThrow(ConfigError);
     expect(() => loadRuleConfig(file)).toThrow("YAML inválido");
+  });
+});
+
+describe("loadIgnoreConfig", () => {
+  it("lee solo el alcance y no exige que los addons estén instalados", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-config-"));
+    tempRoots.push(root);
+    const file = path.join(root, ".codarch.yml");
+    fs.writeFileSync(
+      file,
+      [
+        "version: 1",
+        "addons:",
+        "  - fantasma",
+        "ignore:",
+        "  - packages/*/test/fixtures/**"
+      ].join("\n"),
+      "utf8"
+    );
+
+    expect(loadIgnoreConfig(file)).toEqual(["packages/*/test/fixtures/**"]);
+    expect(() => loadRuleConfig(file)).toThrow("fantasma");
   });
 });

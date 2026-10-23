@@ -7,38 +7,39 @@ Este documento valida la lente de migración sobre el propio CodArch. Los númer
 
 | Señal | Valor |
 |---|---|
-| Ficheros analizados | 104 |
-| TS/JS | 101 ficheros · 13.159 rloc |
-| Rust | 1 fichero · 5 rloc (fixture de test) |
-| WASM/Node | 2 artefactos (fixture de test) |
-| Puentes | 3 (2 por imports nativos del fixture, 1 por `#[napi]`) |
-| Aristas FFI | 2 |
-| Deuda de migración | 2.330 |
+| Ficheros analizados | 211 |
+| TS/JS | 211 ficheros · 33.621 rloc |
+| Rust | 0 |
+| WASM/Node | 0 |
+| Puentes | 2 |
+| Aristas FFI | 0 |
+| Deuda de migración | 5.871 |
 
 La deuda es `(maxComplexity + 1) × (1 + fanIn)` por fichero TS/JS. No cuenta líneas: un fichero
-grande y trivial pesa menos que uno complejo con muchos consumidores. Los fixtures de test entran en
-el análisis y contaminan el reparto; para planificar de verdad habría que excluirlos con
-`--ignore 'packages/*/test/fixtures/**'`.
+grande y trivial pesa menos que uno complejo con muchos consumidores. Los fixtures de test ya no
+entran: el `.codarch.yml` de este repo los excluye con `ignore`
+([ADR 0038](adr/0031-0040/0038-el-alcance-del-analisis.md)), así que la foto mide solo código de
+producción.
 
 ## Prioridad por deuda
 
 | Deuda | RLOC | Fichero |
 |---:|---:|---|
-| 312 | 512 | `packages/render/src/model.ts` |
+| 357 | 499 | `packages/render/src/model.ts` |
 | 210 | 281 | `packages/parsers/src/migration.ts` |
-| 133 | 762 | `apps/mcp/src/store.ts` |
-| 129 | 240 | `apps/cli/src/commands/diff.ts` |
+| 195 | 682 | `packages/metrics/src/diff.ts` |
+| 185 | 313 | `packages/parsers/src/analyze-core.ts` |
+| 132 | 234 | `apps/cli/src/commands/compare.ts` |
+| 126 | 2.588 | `apps/web/src/App.tsx` |
 | 117 | 359 | `packages/schema/src/legacy.ts` |
-| 92 | 225 | `packages/parsers/src/graph.ts` |
-| 76 | 134 | `packages/parsers/src/walk.ts` |
-| 75 | 187 | `packages/parsers/src/git.ts` |
-| 68 | 298 | `packages/parsers/src/analyze.ts` |
-| 64 | 869 | `apps/mcp/src/tools.ts` |
-| 56 | 224 | `packages/metrics/src/config.ts` |
-| 54 | 136 | `apps/cli/src/commands/render.ts` |
-| 54 | 541 | `packages/parsers/src/resolve.ts` |
-| 48 | 145 | `apps/cli/src/commands/inspect.ts` |
-| 46 | 524 | `packages/metrics/src/diff.ts` |
+| 112 | 732 | `apps/mcp/src/store.ts` |
+| 108 | 237 | `packages/parsers/src/graph.ts` |
+| 105 | 147 | `packages/versions/src/index.ts` |
+| 104 | 256 | `packages/addons/src/index.ts` |
+| 102 | 535 | `apps/cli/src/commands/serve.ts` |
+| 90 | 1.910 | `apps/desktop/src/renderer/App.tsx` |
+| 90 | 95 | `packages/metrics/src/report.ts` |
+| 90 | 124 | `packages/parsers/src/walk.ts` |
 
 ## Fases propuestas
 
@@ -73,5 +74,5 @@ npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o
 
 - Rust se mide, no se parsea: no hay imports ni complejidad Rust en v1.
 - Las aristas napi no son observables sin el glue generado; solo se marca el puente.
-- Los fixtures de test falsean la deuda del propio repo. Excluirlos antes de decidir.
+- Los fixtures de test de este repo se excluyen en `.codarch.yml`; no son deuda de producción.
 - La deuda prioriza; no estima semanas ni personas.

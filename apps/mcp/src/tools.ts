@@ -16,6 +16,7 @@ import { basename, join } from "node:path";
 import { symbolRanking, symbolsOf } from "@codarch/schema";
 import {
   ConfigError,
+  loadIgnoreConfig,
   loadRuleConfig,
   type LayerConfig,
   type RuleConfigEntry
@@ -598,6 +599,8 @@ export interface ProjectConfigResult {
   layers: LayerConfig[];
   /** Las reglas efectivas; su `source` dice de dónde sale cada una. */
   rules: RuleConfigEntry[];
+  /** Patrones que el repo excluye del análisis (ADR 0038). */
+  ignore: string[];
   /** Los addons declarados, con sus perfiles y sus vistas guardadas. */
   addons: RepoAddon[];
   /** Los addons que no se pudieron cargar, con su motivo. */
@@ -618,10 +621,11 @@ export function getProjectConfig(store: ArchitectureStore): ProjectConfigResult 
       profile: null,
       layers: [],
       rules: [],
+      ignore: [],
       addons: [],
       errors,
       reason:
-        "no hay .codarch.yml en el repo: no hay perfiles, reglas ni addons que enseñar"
+        "no hay .codarch.yml en el repo: no hay perfiles, reglas, alcance ni addons que enseñar"
     };
   }
 
@@ -635,17 +639,25 @@ export function getProjectConfig(store: ArchitectureStore): ProjectConfigResult 
       profile: config.profile,
       layers: config.layers,
       rules: config.rules,
+      ignore: config.ignore,
       addons: summary.addons,
       errors
     };
   } catch (error) {
     if (!(error instanceof ConfigError)) throw error;
+    let ignore: string[] = [];
+    try {
+      ignore = loadIgnoreConfig(file);
+    } catch {
+      // El alcance tampoco se pudo leer; se devuelve vacío con el motivo.
+    }
     return {
       available: true,
       file: basename(file),
       profile: null,
       layers: [],
       rules: [],
+      ignore,
       addons: summary.addons,
       errors,
       reason: error.message

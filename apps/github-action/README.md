@@ -60,7 +60,7 @@ el análisis y el artefacto funcionan, pero el comentario se omite con un warnin
 | `base-ref` | `GITHUB_BASE_REF` | Rama base si no se pasa `base-sha`. |
 | `base-sha` | `""` | Commit base explícito; evita calcular el merge-base. |
 | `fail-on` | `none` | `none`, `cycles`, `violations`, `hotspots` o `any`. |
-| `config` | `.codarch.yml` | Política relativa al root; vacío o `none` la desactiva. |
+| `config` | `.codarch.yml` | Política y alcance relativos al root; vacío o `none` los desactiva. |
 | `comment` | `true` | Publica o actualiza el comentario del PR. |
 | `artifact-name` | `codarch` | Nombre del artefacto. |
 | `node-version` | `22` | Versión de Node. |
@@ -68,6 +68,10 @@ el análisis y el artefacto funcionan, pero el comentario se omite con un warnin
 | `working-directory` | `.` | Directorio del proyecto. |
 | `title` | `CodArch` | Título del mapa. |
 | `top` | `10` | Hotspots incluidos en el reporte. |
+
+El `config` también fija el alcance: base y head leen su propio `ignore` antes de analizar, y `none`
+desactiva tanto las reglas del diff como la lectura del archivo en los análisis. Si el alcance cambia
+en el PR, el diff muestra los ficheros que entran o salen.
 
 ## Salidas
 

@@ -37,11 +37,11 @@ ignore:
 
 ### 2. Se aplica antes de crear el snapshot
 
-El alcance se decide al recorrer, no al pintar. `codarch analyze`, `codarch serve` y la acción de
-GitHub leen el `ignore` del `.codarch.yml` de su raíz antes de analizar. Un fichero excluido no
-entra en el árbol, ni en las métricas, ni en las aristas, ni en los ciclos, ni en el checksum. El
-`--ignore` del CLI sigue existiendo y **suma** patrones para una ejecución concreta; `--no-config`
-desactiva la lectura del archivo.
+El alcance se decide al recorrer, no al pintar. `codarch analyze`, `codarch serve`, el análisis en el
+navegador y la acción de GitHub leen el `ignore` del `.codarch.yml` de su raíz antes de analizar. Un
+fichero excluido no entra en el árbol, ni en las métricas, ni en las aristas, ni en los ciclos, ni en
+el checksum. El `--ignore` del CLI sigue existiendo y **suma** patrones para una ejecución concreta;
+`--no-config` desactiva la lectura del archivo.
 
 La acción analiza base y head con **su** configuración: si el `ignore` cambia en un PR, el diff ve
 entrar o salir ficheros, que es exactamente lo que cambió el alcance.
@@ -68,11 +68,10 @@ snapshot: dos configuraciones que produzcan los mismos ficheros dan el mismo che
   ejecutándose.
 - Un repo sin `ignore` analiza lo mismo que antes. No hay una exclusión silenciosa de tests.
 - La acción y el servidor comparten el alcance con el CLI; el PR, el mapa y el MCP hablan del mismo
-  conjunto de ficheros.
+  conjunto de ficheros. La app web lee el `.codarch.yml` al abrir un repositorio en el navegador, así
+  que el análisis local no abre una segunda verdad.
 - Cambiar `ignore` cambia el checksum y el diff muestra el alta o la baja de los ficheros. Es un
   cambio de alcance, no de reglas.
-- El análisis en el navegador (M6) tendrá que leer el mismo `.codarch.yml` para mantener la
-  paridad; queda como tarea de esa lente, no se resuelve aquí.
 
 ## Alternativas descartadas
 
@@ -87,21 +86,24 @@ snapshot: dos configuraciones que produzcan los mismos ficheros dan el mismo che
 
 ## Hoja de ruta
 
-**Estado:** abierto. No abre una fase: extiende la configuración que ya existe. Se aplica en M2 y
+**Estado:** cerrado. No abre una fase: extiende la configuración que ya existe. Se aplica en M2 y
 M5.
 
-- [ ] **0038.1** `packages/metrics`: añadir `ignore` a `RuleConfig` y a `parseRuleConfig`; validar
-  que es una lista de patrones no vacíos; `loadIgnoreConfig` para quien solo necesita el alcance.
-  Tests de configuración válida e inválida.
-- [ ] **0038.2** `apps/cli`: `analyze` lee `.codarch.yml` de la raíz (o `--config`), suma
+- [x] **0038.1** `packages/metrics`: `ignore` en `RuleConfig` y en `parseRuleConfig`; lista de
+  patrones no vacíos; `loadIgnoreConfig` para quien solo necesita el alcance. Tests de
+  configuración válida e inválida.
+- [x] **0038.2** `apps/cli`: `analyze` lee `.codarch.yml` de la raíz (o `--config`), suma
   `--ignore` y respeta `--no-config`; `serve` recalcula con el mismo alcance y lo recarga al
   guardar. Tests del comando y del servidor.
-- [ ] **0038.3** Acción y MCP: la acción pasa su `config` a los dos análisis; `get_project_config`
-  devuelve `ignore`. Tests de la herramienta y `check:action`.
-- [ ] **0038.4** Configuración y documentos: `.codarch.yml` excluye los fixtures de este repo,
+- [x] **0038.3** Acción y MCP: la acción pasa su `config` a los dos análisis cuando no es el
+  `.codarch.yml` por defecto; `get_project_config` devuelve `ignore`. Tests de la herramienta y
+  `check:action`.
+- [x] **0038.4** Configuración y documentos: `.codarch.yml` excluye los fixtures de este repo,
   `.codarch.example.yml` explica la clave, `docs/model.md`/`docs/rules.md`/`docs/mcp.md` la
-  describen y `docs/migration.md` deja de decir que los fixtures contaminan la foto.
-- [ ] **0038.5** Reanalizar el repo sin fixtures, comprobar que quedan 0 ciclos y 0 imports sin
-  resolver, pasar lint, typecheck, tests, `check:action` y `site:build`; actualizar el changelog.
+  describen y `docs/migration.md` deja de decir que los fixtures contaminan la foto. El análisis en
+  navegador lee el mismo `.codarch.yml`.
+- [x] **0038.5** Reanalizar el repo sin fixtures: 211 ficheros, 427 aristas, 0 ciclos y 0 imports
+  sin resolver; lint, typecheck, tests, `check:action` y `site:build` en verde; changelog
+  actualizado.
 
 El detalle de lo hecho estará en el [changelog](0038-el-alcance-del-analisis.changelog.md).

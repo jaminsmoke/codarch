@@ -2,9 +2,11 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ConfigError } from "@codarch/metrics";
 import { analyzeRepository } from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
+import { loadProjectIgnore } from "../config";
 import { chainsPayload } from "./chains-payload";
 import { VERSION } from "../version";
 
@@ -45,7 +47,7 @@ const IGNORED_BROWSE = new Set([
   "target"
 ]);
 
-interface AnalysisState {
+export interface AnalysisState {
   root: string;
   snapshot: ReturnType<typeof analyzeRepository>["snapshot"];
   files: number;
@@ -78,7 +80,16 @@ export function runServe(options: ServeOptions): number {
     return 1;
   }
 
-  let state = analyzeState(root, options.watch);
+  let state: AnalysisState;
+  try {
+    state = analyzeState(root, options.watch);
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      console.error(`configuración inválida: ${error.message}`);
+      return 1;
+    }
+    throw error;
+  }
   let watcher: fs.FSWatcher | null = null;
   let timer: NodeJS.Timeout | undefined;
   const clients = new Set<http.ServerResponse>();
@@ -403,8 +414,11 @@ export function runServe(options: ServeOptions): number {
   return 0;
 }
 
-function analyzeState(root: string, watch: boolean): AnalysisState {
-  const result = analyzeRepository(root, { git: true });
+export function analyzeState(root: string, watch: boolean): AnalysisState {
+  // El servidor comparte el alcance con el CLI (ADR 0038): se relee en cada
+  // análisis, así que guardar `.codarch.yml` también refresca el mapa.
+  const ignore = loadProjectIgnore(root);
+  const result = analyzeRepository(root, { git: true, ignore });
   return {
     root,
     snapshot: result.snapshot,

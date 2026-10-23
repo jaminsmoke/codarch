@@ -1,4 +1,9 @@
 export {
+  ConfigError,
+  parseIgnoreConfig,
+  parseIgnoreYaml
+} from "./scope";
+export {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   RISK_GAMMA,

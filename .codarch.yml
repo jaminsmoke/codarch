@@ -2,6 +2,11 @@
 # Las reglas se evalúan en `codarch diff`; solo bloquean las violaciones introducidas.
 version: 1
 
+# Alcance del análisis (ADR 0038). Los fixtures del parser son código de
+# prueba a propósito; no son arquitectura de producción.
+ignore:
+  - packages/*/test/fixtures/**
+
 layers:
   - name: packages
     paths:
