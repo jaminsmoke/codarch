@@ -1,8 +1,8 @@
 # Empaquetado de la app de escritorio.
 #
-# Sin firma: los instaladores se generan sin firmar, que en Windows y macOS
-# avisan al usuario. Firmar cuesta dinero (certificado de firma de código y
-# Apple Developer ID), así que queda para cuando el producto lo justifique.
+# Sin firma: los instaladores de Windows y Linux se generan sin firmar; Windows
+# puede avisar al usuario. macOS queda fuera hasta tener firma y notarización,
+# que cuestan dinero (ADR 0045).
 
 appId: dev.codarch.desktop
 productName: CodArch
@@ -55,18 +55,8 @@ nsis:
   shortcutName: CodArch
   artifactName: "codarch-${version}-setup.${ext}"
 
-mac:
-  target:
-    - target: dmg
-      arch: [x64, arm64]
-    # El ZIP es el formato que usa electron-updater en macOS.
-    - target: zip
-      arch: [x64, arm64]
-  category: public.app-category.developer-tools
-  artifactName: "codarch-${version}-${arch}.${ext}"
-
-dmg:
-  title: "CodArch ${version}"
+# macOS no se empaqueta todavía: instalar y actualizar sin firma ni
+# notarización no es una experiencia que se pueda prometer (ADR 0045).
 
 linux:
   target:

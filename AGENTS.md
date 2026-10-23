@@ -153,9 +153,9 @@ también `npm run sync:action` y actualizar el repo público.
   sobre `/workspace`, el Compose monta el repositorio en solo lectura y publica el puerto solo en
   loopback; `docker.yml` construye en PR, publica en GHCR al entrar en `main` y prueba la imagen
   contra el repo.
-- M28 en curso: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows,
-  DMG/ZIP en macOS y AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y
-  `electron-updater` actualiza Windows y Linux. macOS espera a la firma.
+- M28 en curso: el escritorio se instala y se actualiza (ADR 0045). NSIS por usuario en Windows y
+  AppImage/deb en Linux; la release lleva `latest*.yml` y `.blockmap`, y `electron-updater`
+  actualiza Windows y Linux. macOS no se publica hasta que haya firma y notarización.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

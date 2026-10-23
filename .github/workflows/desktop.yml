@@ -68,8 +68,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # macOS queda fuera hasta tener firma y notarización (ADR 0045).
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@v7
 
@@ -96,8 +97,6 @@ jobs:
           name: codarch-desktop-${{ matrix.os }}
           path: |
             apps/desktop/release/*.exe
-            apps/desktop/release/*.dmg
-            apps/desktop/release/*.zip
             apps/desktop/release/*.AppImage
             apps/desktop/release/*.deb
             apps/desktop/release/*.blockmap
@@ -125,15 +124,16 @@ jobs:
           files: instaladores/**
           generate_release_notes: true
           body: |
-            Instaladores de CodArch Desktop **${{ needs.prepare.outputs.version }}**, **sin firmar**.
+            Instaladores de CodArch Desktop **${{ needs.prepare.outputs.version }}** para Windows y
+            Linux, **sin firmar**.
 
-            En Windows y macOS el sistema avisará de que el instalador no viene
-            de un desarrollador identificado. Es lo esperado mientras no haya
+            En Windows el sistema puede avisar de que el instalador no viene de
+            un desarrollador identificado. Es lo esperado mientras no haya
             certificado de firma.
 
             En Windows y Linux la app descarga la versión nueva y la instala al
-            cerrar. En macOS, hasta que haya firma y notarización, hay que
-            descargar el instalador desde esta release.
+            cerrar. macOS no se publica todavía: su instalación y actualización
+            necesitan firma y notarización, que no son gratuitas.
 
             El resto de CodArch, en su canal:
 

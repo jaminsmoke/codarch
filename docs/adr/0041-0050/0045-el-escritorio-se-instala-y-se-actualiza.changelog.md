@@ -11,7 +11,9 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escr
   `latest.yml`.
 - `electron-updater` comprueba y descarga en segundo plano en Windows y Linux; macOS espera a la
   firma. El workflow sube también los `.zip` de macOS y los metadatos.
-- El release automático `desktop-v0.3.1-alpha.1` salió con 16 assets: instaladores, `.zip` de
-  macOS, `.blockmap` y `latest.yml`, `latest-mac.yml` y `latest-linux.yml`.
-- La firma y la notarización quedan fuera de esta fase: primero se valida el canal y la instalación.
-  El ciclo completo de actualización se probará con la siguiente versión.
+- El release automático `desktop-v0.3.1-alpha.1` salió con instaladores, `.blockmap` y los
+  metadatos `latest*.yml`.
+- macOS sale de la matriz de builds y de la release: sin firma ni notarización, Gatekeeper bloquea
+  la app y el actualizador no puede aplicarla. No se mantiene un DMG que no funciona.
+- La firma y la notarización quedan fuera de esta fase: primero se valida el canal y la instalación
+  en Windows y Linux. El ciclo completo de actualización se probará con la siguiente versión.

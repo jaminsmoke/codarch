@@ -5,7 +5,7 @@
 
 > [!IMPORTANT]
 > **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
-> (`0.3.1-alpha.1` ✓), el CLI ✓ y las apps ✓ pueden cambiar ✓ de una versión a otra ✓, y **no hay
+> (`0.3.1-alpha.2` ✓), el CLI ✓ y las apps ✓ pueden cambiar ✓ de una versión a otra ✓, y **no hay
 > soporte** ✓. Úsalo si te sirve **mirar** ✓ —un mapa ✓, un diff ✓, un comentario de PR ✓—; no si
 > necesitas que no se rompa ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓ y su checksum ✓.
 
@@ -51,7 +51,7 @@ y su **changelog** al lado—, el modelo en [`docs/model.md`](docs/model.md), el
 | **Web del proyecto** | [GitHub Pages](https://jaminsmoke.github.io/codarch) | se publica sola con cada cambio de `main` |
 | **App web del mapa** | dentro del CLI | `codarch serve .` |
 | **App web en Docker** | GHCR | `docker compose up --build` |
-| **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores sin firmar |
+| **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores Windows/Linux sin firmar |
 | **GitHub Action** | [`jaminsmoke/codarch-action@v1`](https://github.com/jaminsmoke/codarch-action) | `uses: jaminsmoke/codarch-action@v1` |
 
 El CLI se publica en **npmjs**, no en GitHub Packages. La web del proyecto es un **deployment** de
