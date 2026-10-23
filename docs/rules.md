@@ -216,6 +216,10 @@ Evalúa la métrica por fichero. Se puede usar `max`, `min` o ambos; al menos un
 la métrica no existe en un fichero, no se evalúa. Un fichero nuevo que ya nace fuera de rango cuenta
 como violación introducida.
 
+`maxComplexity` incluye todas las funciones implementadas, también los callbacks anónimos. La lente
+de símbolos solo lista las declaraciones con nombre; las dos cifras pueden no coincidir
+([ADR 0040](adr/0031-0040/0040-la-complejidad-del-cuerpo-entero.md)).
+
 ### `cycles`
 
 ```yaml

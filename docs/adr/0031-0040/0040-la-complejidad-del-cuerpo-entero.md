@@ -82,14 +82,14 @@ cualquier métrica que dependa del código. Una foto vieja se vuelve a analizar;
 
 ## Hoja de ruta
 
-**Estado:** en curso. No abre una fase: corrige la medición de M0 y la lente de M11.
+**Estado:** cerrado. No abre una fase: corrige la medición de M0 y la lente de M11.
 
-- [ ] **0040.1** `packages/parsers`: `functionComplexity` incluye el nodo del cuerpo; tests de arrow
+- [x] **0040.1** `packages/parsers`: `functionComplexity` incluye el nodo del cuerpo; tests de arrow
   con `?:`, con `&&`, con bloque y con función anidada.
-- [ ] **0040.2** Los documentos y las descripciones de métricas explican que `functions` y
+- [x] **0040.2** Los documentos y las descripciones de métricas explican que `functions` y
   `maxComplexity` incluyen callbacks anónimos, mientras que la lente de símbolos solo lista los
   nombres; test de un callback que no aparece como símbolo.
-- [ ] **0040.3** Suite completa, lint, typecheck, `check:action`, `site:build` y `web:build`; changelog
+- [x] **0040.3** Suite completa, lint, typecheck, `check:action`, `site:build` y `web:build`; changelog
   con la verificación.
 
-El detalle de lo hecho estará en el [changelog](0040-la-complejidad-del-cuerpo-entero.changelog.md).
+El detalle de lo hecho está en el [changelog](0040-la-complejidad-del-cuerpo-entero.changelog.md).

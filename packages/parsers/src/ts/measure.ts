@@ -126,10 +126,16 @@ export function measureSource(source: string, root: SyntaxNodeLike): Metrics {
  */
 export function functionComplexity(fn: SyntaxNodeLike): number {
   let complexity = 1;
-  const body = fn.childForFieldName("body") ?? fn;
+  const body = fn.childForFieldName("body");
   const stack: SyntaxNodeLike[] = [];
 
-  for (const child of body.children) stack.push(child);
+  // El cuerpo también se visita: en una arrow de expresión, el `?:`, el `&&`
+  // o el `??` está en el propio nodo del cuerpo, no en sus hijos (ADR 0040).
+  if (body) {
+    stack.push(body);
+  } else {
+    for (const child of fn.children) stack.push(child);
+  }
 
   while (stack.length > 0) {
     const node = stack.pop() as SyntaxNodeLike;

@@ -122,6 +122,11 @@ Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símb
 lente posterior. Las dos métricas de historial solo aparecen si `git` está disponible y el análisis
 no se ejecuta con `--no-git`.
 
+`functions` y `maxComplexity` cuentan **todas** las funciones implementadas, también las anónimas y
+las anidadas. La lente de símbolos lista solo las declaraciones con nombre; un callback no aparece
+en el inspector. Las dos cifras no tienen por qué coincidir
+([ADR 0040](adr/0031-0040/0040-la-complejidad-del-cuerpo-entero.md)).
+
 `rloc` cuenta las líneas con al menos un token de código. Los comentarios se detectan **por su
 texto**, no por el tipo de nodo del árbol: dentro de un `interface`, el binding nativo de tree-sitter
 tipa el comentario como `interface_body` y el WASM como `comment`. Con la regla por texto, el CLI y

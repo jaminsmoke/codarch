@@ -49,6 +49,22 @@ const arrow = (x: number) => {
     });
   });
 
+  it("mide el cuerpo de expresión de una arrow", () => {
+    const source = [
+      "const pick = (x: number) => x ? 1 : 0;",
+      "const both = (a: boolean, b: boolean) => a && b;",
+      "const block = (x: number) => { return x ? 1 : 0; };"
+    ].join("\n");
+
+    expect(parser.parse(source, "src/expresion.ts").metrics).toEqual({
+      loc: 3,
+      rloc: 3,
+      functions: 3,
+      maxComplexity: 2,
+      maxFunctionLength: 1
+    });
+  });
+
   it("excluye comentarios y líneas en blanco del sloc", () => {
     const source = `/* block
  comment */

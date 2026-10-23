@@ -68,6 +68,41 @@ describe("TypeScriptParser · símbolos", () => {
     expect(symbols.map((symbol) => symbol.complexity)).toEqual([1, 3]);
   });
 
+  it("mide el cuerpo de expresión de una arrow como una función", () => {
+    const source = [
+      "const pick = (x: number) => x ? 1 : 0;",
+      "const both = (a: boolean, b: boolean) => a && b;",
+      "const block = (x: number) => { return x ? 1 : 0; };"
+    ].join("\n");
+
+    const symbols = parser.parse(source, "src/expresion.ts").symbols ?? [];
+
+    expect(symbols.map((symbol) => symbol.complexity)).toEqual([2, 2, 2]);
+  });
+
+  it("un callback anónimo suma en el fichero pero no es un símbolo", () => {
+    const source =
+      "function outer() { [1].map((x) => x > 0 ? x : 0); }";
+
+    const result = parser.parse(source, "src/callback.ts");
+
+    expect(result.metrics.functions).toBe(2);
+    expect(result.metrics.maxComplexity).toBe(2);
+    expect(result.symbols?.map((symbol) => symbol.name)).toEqual(["outer"]);
+  });
+
+  it("una arrow que devuelve otra no hereda sus decisiones", () => {
+    const source =
+      "const outer = () => { const inner = (a: boolean, b: boolean) => a && b; return 1; };";
+
+    const symbols = parser.parse(source, "src/anidada.ts").symbols ?? [];
+
+    expect(symbols.map((symbol) => `${symbol.name}:${symbol.complexity}`)).toEqual([
+      "outer:1",
+      "inner:2"
+    ]);
+  });
+
   it("trata una constante que guarda una función como función", () => {
     const source = [
       "const doblar = (x: number) => x * 2;",

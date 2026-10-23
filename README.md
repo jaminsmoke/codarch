@@ -348,8 +348,8 @@ Métricas de parser:
 |---|---|
 | `loc` | Líneas físicas |
 | `rloc` | Líneas con al menos un token de código |
-| `functions` | Funciones, métodos y arrows implementados |
-| `maxComplexity` | Complejidad ciclomática de la función más compleja |
+| `functions` | Funciones, métodos, arrows y callbacks implementados (con o sin nombre) |
+| `maxComplexity` | Complejidad ciclomática de la función más compleja (también las anónimas) |
 | `maxFunctionLength` | Líneas de la función más larga |
 
 Métricas de imports y grafo:
