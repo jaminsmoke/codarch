@@ -27,4 +27,6 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0045-el-escr
 - El release deja de llevar ejecutables portables: se quita el `.exe` portable de Windows y el
   AppImage de Linux. Windows publica `setup.exe` (NSIS) y Linux `.deb`; son instaladores, y son
   los que `electron-updater` puede reemplazar.
+- `v0.3.1-alpha.3` sale solo con instaladores: `setup.exe`, su `.blockmap`, `.deb`, `latest.yml` y
+  `latest-linux.yml`. Ya no hay `x64.exe` portable ni AppImage.
 - La firma y la notarización quedan fuera de esta fase: Windows y Linux son los canales publicados.

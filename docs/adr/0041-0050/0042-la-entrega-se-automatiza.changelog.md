@@ -28,3 +28,5 @@ Lo hecho, por orden. La hoja de ruta y lo abierto viven en el [ADR](0042-la-entr
   `electron-updater` exige una etiqueta semver para encontrar la release. `desktop-v*` se sigue
   aceptando al calcular la última versión, para no romper el historial. macOS sale de la matriz y
   solo se publican Windows y Linux.
+- `0.3.1-alpha.3` publica solo instaladores (`setup.exe` y `.deb`); el portable y el AppImage
+  salen del release. La acción pasa a `0.3.1-alpha.3` y `v1` apunta a `7255523`.
