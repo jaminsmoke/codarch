@@ -1,57 +1,52 @@
-# La web del proyecto
+# La web del proyecto CodArch
 
-La puerta de CodArch ✅, la guía ✅ ✅ y los documentos ✅ ✅
-([ADR 0034](./docs/adr/0031-0040/0034-la-web-del-proyecto.md) ✅ ·
-[ADR 0046](./docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
+La puerta de CodArch, la guía y los documentos.
 
-```bash
-npm run site:dev     # en el 5175
-npm run site:build   # sale en apps/site/dist
-```
+## Available scripts
 
-## Qué hay ahora
+| Script | Description |
+|--------|-------------|
+| `npm run site:dev` | Levanta el servidor de desarrollo en el puerto 5175 |
+| `npm run site:build` | Genera el build estático en `apps/site/dist` |
+| `npm run docs` | Abre la guía en el navegador |
 
-- **`/`** — la portada ✅ ✅.
-- **`/guia/`** — el último día de la guía ✅ ✅, con su línea del tiempo y su changelog ✅ ✅.
-- **`/guia/AAAA-MM-DD/`** — un día ✅ ✅; **`/guia/futuro/`** — lo que espera ✅ ✅ y
-  **`/guia/normas/`** — cómo se escribe ✅ ✅.
-- **`/docs/`** — los **documentos** ✅ ✅: el producto ✅ (roadmap ✅, modelo ✅, reglas ✅, MCP ✅,
-  migración ✅), el diseño del mapa ✅ y todas las **decisiones** ✅ en sus carpetas de diez ✅ ✅, cada
-  una con su hoja de ruta dentro ✅ ✅. El registro de lo hecho vive en la guía ✅ ✅.
-- **`/docs/<ruta>/`** — un documento ✅ ✅: su menú ✅, su índice ✅, los vecinos ✅ ✅, la búsqueda ✅
-  y los diagramas **Mermaid** ✅ ✅.
+## Estructura actual
 
-## Cómo funciona
+La web se organiza en tres áreas principales:
 
-- **Astro + Starlight** ✅ ✅ para los documentos ✅ ✅: cada uno sale como **HTML estático** en su ruta
-  ✅ ✅, con **Pagefind** ✅ ✅, **sitemap** ✅ ✅ y metadatos ✅ ✅ ([ADR 0046](./docs/adr/0041-0050/0046-los-documentos-con-starlight.md) ✅).
-- **`docs/` sigue siendo la verdad** ✅ ✅: un loader `glob` ✅ ✅ lee `./docs` ✅ ✅ y le da ids
-  `docs/...` ✅ ✅ (`docs/model.md` → `/docs/model/` ✅ ✅ ✅). No hay texto copiado ✅ ✅.
-- **El frontmatter es obligatorio** ✅ ✅ (`title` ✅, `description` ✅, `section` ✅, `sidebar` ✅;
-  en los ADR, `status` ✅ y `date` ✅ ✅). El esquema está en `src/content.config.ts` ✅ ✅: si falta o
-  no cuadra ✅, **el build falla** ✅ ✅.
-- **La sidebar se genera del frontmatter** ✅ ✅ (`src/sidebar.mjs` ✅ ✅): no hay una lista de
-  documentos en el código ✅ ✅. El producto va primero ✅ ✅ y los ADR se agrupan por su carpeta de
-  diez ✅ ✅.
-- **Los enlaces** entre documentos ✅ ✅ se reescriben en el build ✅ ✅
-  (`src/lib/rehype-doc-links.mjs` ✅ ✅): `../model.md` → `/codarch/docs/model/` ✅ ✅. Lo que no es un
-  documento ✅ (una imagen ✅, un HTML ✅) sale al repo ✅ ✅.
-- **La portada y la guía** siguen en React ✅ ✅, montadas como islas desde Astro ✅ ✅
-  (`ReactSite.tsx` ✅ para la portada y `GuiaApp.tsx` ✅ para la guía). **motion** ✅ ✅ anima ✅ ✅ y
-  la guía conserva su línea del tiempo ✅ ✅. La guía es **una sola isla**: la cabecera y la línea del
-  tiempo se montan una vez y solo cambia el contenido de abajo al pasar de día ✅ ✅.
-- **La cabecera de los documentos** ✅ ✅ lleva **Inicio**, **Guía** y **Documentos**
-  (`src/components/Header.astro` ✅ ✅) y conserva la búsqueda, el tema y el GitHub de Starlight ✅ ✅.
-- La **guía** es estructurada ✅ ✅: cada idea es un fichero en `docs/guideline/entradas/` con
-  `date`, `category` y `verdict` ✅ ✅; `src/lib/guia-carga.ts` la carga, `guia-servidor.ts` la ordena
-  y la agrupa ✅ ✅ y `Guia.tsx` pinta un día ✅ ✅. Añadir una idea es añadir un fichero ✅ ✅.
-- **Idiomas** ✅ ✅: el idioma por defecto es el español; las cadenas de la UI viven en
-  `src/lib/i18n.ts` y los componentes reciben `lang`. Los documentos se traducen por carpeta
-  (`docs/<idioma>/`) con fallback de Starlight (ADR 0046, §8). Añadir un idioma es copiar la
-  carpeta y añadirlo a `locales` e `i18n` ✅ ✅.
-- Se publica en **GitHub Pages** ✅ ✅ con el workflow `web.yml` ✅ ✅, en `/codarch/` ✅ ✅ ✅.
+- **Portada** (`/`): La entrada principal al proyecto, construida con islas de React usando `motion` para animaciones. Conserva la cabecera, la búsqueda y el tema de Starlight.
 
-## Lo que no está aquí (todavía ✅ ✅)
+- **Guía** (`/guia/`): Contiene el feed de decisiones, normas y futuro, estructurado cronológicamente. Cada idea vive en un fichero en `apps/site/docs/guideline/entradas/` con sus campos `date`, `category` y `verdict`. La línea del tiempo y la cabecera se montan una vez; solo cambia el contenido diario.
 
-- La **app del mapa** ✅ ✅: es el producto ✅ ✅ y tiene su propia app ✅ ✅.
-- El **dominio propio** ✅ ✅: cuando haga falta ✅ ✅, y no antes ✅ ✅.
+- **Documentos** (`/docs/`): Cada documento genera una página HTML estática con su propio menú, índice, vecinos y búsqueda Mermaid. El frontmatter es obligatorio (`title`, `description`, `section`, `sidebar`) y el esquema vive en `src/content.config.ts`. Si el frontmatter no cuadra, el build falla. La sidebar se genera automáticamente del frontmatter, sin listas codificadas en el código.
+
+## Cómo funciona técnicamente
+
+- **Astro + Starlight** para los documentos: cada uno sale como HTML estático en su ruta `/docs/...`, con Pagefind, sitemap y metadatos validados (ADR 0046).
+
+- **`docs/` sigue siendo la verdad**: un loader `glob` lee `./docs` y asigna ids `docs/...` → `/docs/...`. No hay texto copiado.
+
+- **Frontmatter obligatorio**: `title`, `description`, `section`, `sidebar`. En los ADR, también `status` y `date`. El esquema está en `src/content.config.ts`; si falta, el build falla.
+
+- **Sidebar generada del frontmatter**: (`src/sidebar.mjs`). No hay una lista de documentos en el código. Los ADR se agrupan por su carpeta de diez.
+
+- **Enlaces reescritos en el build**: (`src/lib/rehype-doc-links.mjs`). `../model.md` → `/codarch/docs/model/`. Lo que no es un documento (imágenes, HTML) sale al repo.
+
+- **Portada y guía en React**: Montadas como islas desde Astro. `ReactSite.tsx` para la portada y `GuiaApp.tsx` para la guía. La guía es una sola isla: la cabecera y la línea del tiempo se montan una vez y solo cambia el contenido de abajo al pasar de día.
+
+- **Cabecera de documentos**: Lleva **Inicio**, **Guía** y **Documentos** (`src/components/Header.astro`). Conserva la búsqueda, el tema y el GitHub de Starlight.
+
+- **Idiomas**: El idioma por defecto es el español. Las cadenas de la UI viven en `src/lib/i18n.ts` y los componentes reciben `lang`. Los documentos se traducen por carpeta (`docs/<idioma>/`) con fallback de Starlight. Añadir un idioma es copiar la carpeta, traducirla y añadirlo a `locales` e `i18n`.
+
+- **Publicación**: Se publica en GitHub Pages con el workflow `web.yml`, en la ruta `/codarch/`.
+
+## Lo que no está aquí (todavía)
+
+- La app del mapa: es el producto y tiene su propia app independiente.
+- Dominio propio: cuando haga falta, y no antes.
+
+## Referencias
+
+- [Roadmap de fases](docs/adr/roadmap.md): índice de fases M0-M33.
+- [Índice de ADRs](docs/adr/index.md): todas las decisiones con su fecha y estado.
+- [Guía](/guia/): feed de ideas y hechos.
