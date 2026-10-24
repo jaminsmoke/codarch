@@ -2,7 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { checkRequirements, hasWebgl2 } from "../src/index";
+import {
+  checkRequirements,
+  hasWebgl2,
+  hasWebgpu,
+  pluginBackend
+} from "../src/index";
 import { compiledPlugins, pluginManifests } from "../src/build";
 
 const temporales: string[] = [];
@@ -39,22 +44,89 @@ describe("el contrato de los plugins", () => {
       requires: { webgl2: true }
     };
 
-    const sinWebgl = checkRequirements(manifest, { webgl2: false });
+    const sinWebgl = checkRequirements(manifest, { webgl2: false, webgpu: false });
     expect(sinWebgl.ok).toBe(false);
     expect(sinWebgl.missing).toEqual(["WebGL2"]);
 
-    const conWebgl = checkRequirements(manifest, { webgl2: true });
+    const conWebgl = checkRequirements(manifest, { webgl2: true, webgpu: false });
     expect(conWebgl.ok).toBe(true);
     expect(conWebgl.missing).toEqual([]);
   });
 
-  it("un plugin sin requisitos no pide nada", () => {
-    const manifest = { name: "ejemplo", version: "0.1.0", title: "Ejemplo" };
-    expect(checkRequirements(manifest, { webgl2: false }).ok).toBe(true);
+  it("un plugin que exige WebGPU no vale en una máquina con WebGL2", () => {
+    const manifest = {
+      name: "compute",
+      version: "0.1.0",
+      title: "Compute",
+      requires: { webgpu: true }
+    };
+
+    const sinWebgpu = checkRequirements(manifest, { webgl2: true, webgpu: false });
+    expect(sinWebgpu.ok).toBe(false);
+    expect(sinWebgpu.missing).toEqual(["WebGPU"]);
+    expect(checkRequirements(manifest, { webgl2: false, webgpu: true }).ok).toBe(
+      true
+    );
   });
 
-  it("la comprobación de WebGL2 no revienta si no hay navegador", () => {
+  it("pedir GPU vale con cualquiera de los dos runtimes", () => {
+    const manifest = {
+      name: "vista-3d",
+      version: "0.1.0",
+      title: "Vista 3D",
+      requires: { gpu: true }
+    };
+
+    expect(checkRequirements(manifest, { webgl2: false, webgpu: true }).ok).toBe(
+      true
+    );
+    expect(checkRequirements(manifest, { webgl2: true, webgpu: false }).ok).toBe(
+      true
+    );
+
+    const sinGpu = checkRequirements(manifest, { webgl2: false, webgpu: false });
+    expect(sinGpu.ok).toBe(false);
+    expect(sinGpu.missing).toEqual(["GPU"]);
+  });
+
+  it("dice con qué backend dibujará aquí: el que exige, o el mejor que haya", () => {
+    const ambos = { webgl2: true, webgpu: true };
+    const soloWebgl = { webgl2: true, webgpu: false };
+    const ninguno = { webgl2: false, webgpu: false };
+    const base = { name: "p", version: "0.1.0", title: "P" };
+
+    expect(pluginBackend({ ...base, requires: { gpu: true } }, ambos)).toBe(
+      "webgpu"
+    );
+    expect(
+      pluginBackend({ ...base, requires: { gpu: true } }, soloWebgl)
+    ).toBe("webgl2");
+    expect(pluginBackend({ ...base, requires: { gpu: true } }, ninguno)).toBe(
+      null
+    );
+
+    // Lo que exige manda sobre lo que hay.
+    expect(
+      pluginBackend({ ...base, requires: { webgl2: true } }, ambos)
+    ).toBe("webgl2");
+    expect(
+      pluginBackend({ ...base, requires: { webgpu: true } }, soloWebgl)
+    ).toBe(null);
+
+    // Un plugin sin requisitos de dibujo no tiene backend.
+    expect(pluginBackend(base, ambos)).toBe(null);
+  });
+
+  it("un plugin sin requisitos no pide nada", () => {
+    const manifest = { name: "ejemplo", version: "0.1.0", title: "Ejemplo" };
+    expect(checkRequirements(manifest, { webgl2: false, webgpu: false }).ok).toBe(
+      true
+    );
+  });
+
+  it("las comprobaciones de capacidades no revientan sin navegador", () => {
     expect(typeof hasWebgl2()).toBe("boolean");
+    expect(typeof hasWebgpu()).toBe("boolean");
   });
 });
 
