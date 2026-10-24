@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextEnabledPlugins } from "../src/pluginState";
+import { nextEnabledPlugins, summarizePlugins } from "../src/pluginState";
 
 describe("plugins activados", () => {
   it("activa uno nuevo al final", () => {
@@ -26,5 +26,23 @@ describe("plugins activados", () => {
     expect(nextEnabledPlugins(["vista-3d"], "panel", false)).toEqual([
       "vista-3d"
     ]);
+  });
+});
+
+describe("el resumen de la tienda", () => {
+  it("cuenta instalados, activos y caídos", () => {
+    expect(
+      summarizePlugins(
+        ["vista-3d", "panel", "grafo"],
+        ["vista-3d", "grafo"],
+        ["grafo"]
+      )
+    ).toEqual({ installed: 3, enabled: 2, failed: 1 });
+  });
+
+  it("no cuenta un activado que ya no está instalado", () => {
+    expect(
+      summarizePlugins(["vista-3d"], ["vista-3d", "fantasma"], [])
+    ).toEqual({ installed: 1, enabled: 1, failed: 0 });
   });
 });

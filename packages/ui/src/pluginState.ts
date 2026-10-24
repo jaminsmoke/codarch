@@ -13,3 +13,31 @@ export function nextEnabledPlugins(
     ? [...new Set([...current, name])]
     : current.filter((item) => item !== name);
 }
+
+/** Lo que la tienda de plugins resume en una línea. */
+export interface PluginSummary {
+  /** Los compilados en esta app. */
+  installed: number;
+  /** Los activados en esta máquina. */
+  enabled: number;
+  /** Los que fallaron al cargar. */
+  failed: number;
+}
+
+/**
+ * El resumen de la tienda: instalados, activos y caídos.
+ *
+ * Cuenta solo los que la app conoce; un nombre activado que ya no está
+ * compilado no suma.
+ */
+export function summarizePlugins(
+  installed: readonly string[],
+  enabled: readonly string[],
+  failed: readonly string[]
+): PluginSummary {
+  return {
+    installed: installed.length,
+    enabled: installed.filter((name) => enabled.includes(name)).length,
+    failed: installed.filter((name) => failed.includes(name)).length
+  };
+}

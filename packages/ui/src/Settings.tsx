@@ -1,11 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { RenderModel } from "@codarch/render/browser";
-import {
-  checkRequirements,
-  type PluginDescriptor
-} from "@codarch/plugin-api";
+import { checkRequirements, type PluginDescriptor } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
+import { summarizePlugins } from "./pluginState";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -145,6 +143,12 @@ export default function Settings({
   const [update, setUpdate] = useState<SettingsUpdateInfo | null>(null);
   const [checking, setChecking] = useState(false);
 
+  const pluginSummary = summarizePlugins(
+    plugins.map((descriptor) => descriptor.manifest.name),
+    enabledPlugins,
+    failedPlugins
+  );
+
   /**
    * Pregunta a la fuente de la app si hay una versión más nueva (ADR 0032).
    *
@@ -280,6 +284,19 @@ export default function Settings({
 
               {section === "plugins" ? (
                 <>
+                  <p className="plugin-summary">
+                    <b>{pluginSummary.installed}</b>{" "}
+                    {pluginSummary.installed === 1
+                      ? "plugin instalado"
+                      : "plugins instalados"}
+                    {" · "}
+                    <b>{pluginSummary.enabled}</b>{" "}
+                    {pluginSummary.enabled === 1 ? "activo" : "activos"} en esta
+                    máquina
+                    {pluginSummary.failed > 0
+                      ? ` · ${pluginSummary.failed} con error`
+                      : ""}
+                  </p>
                   {plugins.length === 0 ? (
                     <p className="muted small">
                       Este repositorio no tiene plugins instalados. Instala uno
@@ -294,6 +311,7 @@ export default function Settings({
                         const on = enabledPlugins.includes(manifest.name);
                         const needs = checkRequirements(manifest, { webgl2 });
                         const broken = failedPlugins.includes(manifest.name);
+                        const views = manifest.contributes?.views?.length ?? 0;
                         return (
                           <div key={manifest.name} className="plugin-row">
                             <div className="plugin-text">
@@ -308,6 +326,11 @@ export default function Settings({
                                   {manifest.description}
                                 </span>
                               ) : null}
+                              <span className="plugin-meta">
+                                {views === 1 ? "1 vista" : `${views} vistas`}
+                                {manifest.requires?.webgl2 ? " · WebGL2" : ""}
+                                {manifest.requires?.gpu ? " · GPU" : ""}
+                              </span>
                               {!needs.ok ? (
                                 <span className="plugin-warning">
                                   Falta: {needs.missing.join(", ")}
@@ -318,6 +341,17 @@ export default function Settings({
                                   No se pudo cargar
                                 </span>
                               ) : null}
+                              <details className="plugin-more">
+                                <summary>Detalles</summary>
+                                <p>
+                                  Va compilado en la app y se activa en esta
+                                  máquina. Para quitarlo del repositorio:{" "}
+                                  <code className="mono">
+                                    codarch plugins remove {manifest.name}
+                                  </code>
+                                  .
+                                </p>
+                              </details>
                             </div>
                             <button
                               type="button"
