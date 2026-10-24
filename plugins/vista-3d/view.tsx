@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { layoutMap } from "@codarch/render/browser";
 import type { PluginContext } from "@codarch/plugin-api";
-import { mountScene, type BoxCell } from "./scene";
+import { mountScene, type BoxCell, type SceneBackend } from "./scene";
 
 /**
  * La vista 3D.
@@ -9,6 +9,9 @@ import { mountScene, type BoxCell } from "./scene";
  * Usa el `RenderModel` tal cual ✓ (la misma distribución 2D ✓) y levanta cada
  * fichero a una caja ✓. La altura dice cuánto pesa el fichero ✓ (el riesgo ✓)
  * y el color es el del mapa ✓.
+ *
+ * El aviso dice con qué runtime se está dibujando ✓: WebGPU cuando la máquina
+ * lo tiene ✓ y WebGL2 cuando no ✓ (three lo decide solo ✓).
  */
 
 const VIEW_WIDTH = 1000;
@@ -23,8 +26,19 @@ function themeColor(name: string, fallback: string): string {
   return value === "" ? fallback : value;
 }
 
+/** Lo que dice el aviso del runtime ✓. */
+type Runtime = SceneBackend | "pending" | "error";
+
+function runtimeLabel(runtime: Runtime): string {
+  if (runtime === "webgpu") return "WebGPU";
+  if (runtime === "webgl2") return "WebGL2";
+  if (runtime === "error") return "sin GPU";
+  return "arrancando la GPU";
+}
+
 export function Vista3D({ context }: { context: PluginContext }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [runtime, setRuntime] = useState<Runtime>("pending");
   const model = context.model;
 
   const cells = useMemo<BoxCell[]>(() => {
@@ -65,11 +79,14 @@ export function Vista3D({ context }: { context: PluginContext }) {
     const canvas = canvasRef.current;
     if (!canvas || cells.length === 0) return;
 
+    setRuntime("pending");
     return mountScene(canvas, {
       cells,
       selected: selection,
       background: themeColor("--paper", "#eef1f2"),
-      onSelect: (path) => context.actions.select(path)
+      onSelect: (path) => context.actions.select(path),
+      onBackend: (backend) => setRuntime(backend),
+      onError: () => setRuntime("error")
     });
   }, [cells, selection, context]);
 
@@ -81,8 +98,9 @@ export function Vista3D({ context }: { context: PluginContext }) {
     <div className="vista3d">
       <canvas ref={canvasRef} className="vista3d-canvas" />
       <div className="vista3d-hud">
-        <strong>{cells.length}</strong> cajas · orbita con el ratón · pulsa una
-        para seleccionar
+        <strong>{cells.length}</strong> cajas ·{" "}
+        <span className="vista3d-runtime">{runtimeLabel(runtime)}</span> · orbita
+        con el ratón · pulsa una caja para seleccionar
       </div>
     </div>
   );

@@ -50,5 +50,16 @@ primera opción no toca el motor ✓; la segunda factura mejor ✓ (el motor ya 
   el modelo 3D acaba siendo otro ✓, solo cambia este plugin ✓.
 - **La GPU manda** ✓: todo lo que se pueda, en la GPU ✓. El plugin declara sus requisitos ✓
   (`webgl2` ✓, `gpu` ✓) y la app avisa si no se pueden cumplir ✓.
+- **WebGPU primero, WebGL2 de suelo** ✓ (2026-10-24 ✓). Se dibuja con `three/webgpu` ✓: va por el
+  driver de la tarjeta ✓ (D3D12 ✓, Vulkan ✓, Metal ✓), pide la GPU dedicada ✓ y three cae solo a
+  WebGL2 cuando no hay WebGPU ✓, así que hay **una sola ruta de código** ✓. Cuesta ~164 KB más en el
+  chunk del plugin ✓ (506 → 670 KB ✓), que se descarga solo al abrir la vista ✓.
+- **La cámara es del plugin** ✓ (`orbit.ts` ✓). `OrbitControls` importa el build de WebGL de three ✓
+  y, con los dos builds, el chunk llevaba three **dos veces** ✓ (836 KB ✓). La nuestra añade pinza en
+  táctil ✓ y no selecciona al arrastrar ✓.
+- **CUDA no está al alcance** ✓ (2026-10-24 ✓). Un plugin corre en el renderer ✓, sin APIs nativas de
+  GPU ✓: el equivalente moderno es WebGPU ✓ (compute en WGSL ✓) y el driver ya manda en la RTX ✓.
+  Un backend CUDA u OptiX pediría un proceso nativo en el escritorio ✓, su empaquetado por plataforma
+  ✓ y tocar el núcleo ✓: fuera de un plugin ✓. Si algún día entra ✓, entra por un ADR ✓.
 - **No toca el snapshot** ✓: la vista 3D es una **vista** ✓, no una lente ✓. El análisis no depende
   de que esté activa ✓.

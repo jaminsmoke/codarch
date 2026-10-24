@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import * as THREE from "three/webgpu";
+import { createOrbitControls, orbitPosition, ORBIT_START } from "./orbit";
 
 /**
  * La escena: las cajas del mapa en tres dimensiones.
@@ -9,9 +9,17 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
  * defecto ✓). El color es el del mapa ✓, para que las dos vistas digan lo
  * mismo ✓.
  *
+ * La GPU se usa con **WebGPU** ✓ (`three/webgpu` ✓): es el runtime moderno del
+ * navegador ✓, va por el driver de la tarjeta ✓ (D3D12 en Windows ✓, Vulkan ✓,
+ * Metal ✓) y elige la GPU dedicada con `powerPreference` ✓. Si la máquina no
+ * lo tiene ✓, three cae solo a WebGL2 ✓: una sola ruta de código ✓.
+ *
  * La cámara se mueve con el ratón ✓ (orbitar ✓, zoom ✓) y al pulsar una caja
  * se selecciona el fichero ✓.
  */
+
+/** El runtime que acabó dibujando ✓. */
+export type SceneBackend = "webgpu" | "webgl2";
 
 export interface BoxCell {
   /** La ruta del fichero. */
@@ -34,8 +42,16 @@ export interface SceneOptions {
   selected: string | null;
   /** Se llama al pulsar una caja. */
   onSelect: (path: string) => void;
-  /** Las capacidades del navegador. */
-  webgl2: boolean;
+  /** El runtime que ha arrancado ✓ (para decirlo en el aviso ✓). */
+  onBackend?: (backend: SceneBackend) => void;
+  /** La GPU no arrancó ✓. */
+  onError?: () => void;
+}
+
+/** El backend que three eligió de verdad ✓ (WebGPU o su caída a WebGL2 ✓). */
+function backendOf(renderer: THREE.WebGPURenderer): SceneBackend {
+  const backend = renderer.backend as { isWebGPUBackend?: boolean };
+  return backend.isWebGPUBackend === true ? "webgpu" : "webgl2";
 }
 
 /** Monta la escena en un canvas y devuelve cómo destruirla. */
@@ -43,10 +59,13 @@ export function mountScene(
   canvas: HTMLCanvasElement,
   options: SceneOptions
 ): () => void {
-  const renderer = new THREE.WebGLRenderer({
+  const renderer = new THREE.WebGPURenderer({
     canvas,
     antialias: true,
-    alpha: false
+    alpha: false,
+    // La tarjeta dedicada manda ✓: en un portátil con dos GPUs ✓, la integrada
+    // dibujaría el mapa a tirones ✓.
+    powerPreference: "high-performance"
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -57,13 +76,8 @@ export function mountScene(
   scene.fog = new THREE.Fog(options.background, 400, 1600);
 
   const camera = new THREE.PerspectiveCamera(50, 1, 1, 4000);
-  camera.position.set(-220, 260, 320);
-
-  const controls = new OrbitControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.maxPolarAngle = Math.PI / 2.05;
-  controls.target.set(0, 0, 0);
+  const start = orbitPosition(ORBIT_START, { x: 0, y: 0, z: 0 });
+  camera.position.set(start.x, start.y, start.z);
 
   scene.add(new THREE.AmbientLight(0xffffff, 1.1));
   const key = new THREE.DirectionalLight(0xffffff, 1.35);
@@ -138,34 +152,52 @@ export function mountScene(
   observer.observe(canvas);
   resize();
 
-  let frame = 0;
-  const animate = (): void => {
-    frame = requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-  };
-  animate();
-
-  const onPointerDown = (event: PointerEvent): void => {
+  const onTap = (clientX: number, clientY: number): void => {
     const bounds = canvas.getBoundingClientRect();
-    pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
-    pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+    pointer.x = ((clientX - bounds.left) / bounds.width) * 2 - 1;
+    pointer.y = -((clientY - bounds.top) / bounds.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
     const hits = raycaster.intersectObjects(group.children, false);
     const path = hits[0]?.object.userData.path;
     if (typeof path === "string") options.onSelect(path);
   };
-  canvas.addEventListener("pointerdown", onPointerDown);
+
+  const controls = createOrbitControls(camera, canvas, { onTap });
+
+  let frame = 0;
+  let disposed = false;
+  const animate = (): void => {
+    frame = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  };
+
+  // El backend arranca de forma asíncrona ✓: hasta que hay dispositivo no
+  // hay primer fotograma ✓, y `render()` antes de tiempo solo avisaría por
+  // consola en cada fotograma ✓.
+  void renderer
+    .init()
+    .then(() => {
+      if (disposed) return;
+      resize();
+      options.onBackend?.(backendOf(renderer));
+      animate();
+    })
+    .catch(() => {
+      if (!disposed) options.onError?.();
+    });
 
   return () => {
+    disposed = true;
     cancelAnimationFrame(frame);
     observer.disconnect();
-    canvas.removeEventListener("pointerdown", onPointerDown);
     controls.dispose();
     for (const mesh of meshes.values()) {
       (mesh.material as THREE.Material).dispose();
     }
     geometry.dispose();
+    (ground.material as THREE.Material).dispose();
+    ground.geometry.dispose();
     renderer.dispose();
   };
 }
