@@ -122,6 +122,8 @@ export function dampOrbit(
 export interface OrbitControlsOptions {
   /** Se llama al pulsar sin arrastrar ✓: ahí se selecciona ✓. */
   onTap?: (clientX: number, clientY: number) => void;
+  /** Se llama cuando la cámara tiene algo nuevo que dibujar ✓. */
+  onChange?: () => void;
   /** El amortiguado por fotograma ✓ (0,18 por defecto ✓). */
   damping?: number;
   /** Con qué vista abre ✓ (por defecto, `ORBIT_START` ✓). */
@@ -133,8 +135,8 @@ export interface OrbitControlsOptions {
 }
 
 export interface OrbitControls {
-  /** Mueve la cámara un paso ✓: se llama en cada fotograma ✓. */
-  update(): void;
+  /** Mueve la cámara un paso ✓: dice si ha cambiado algo ✓. */
+  update(): boolean;
   /** Suelta los eventos ✓. */
   dispose(): void;
 }
@@ -204,6 +206,7 @@ export function createOrbitControls(
         limits
       ).polar;
       travel += Math.abs(dx) + Math.abs(dy);
+      options.onChange?.();
       return;
     }
 
@@ -216,6 +219,7 @@ export function createOrbitControls(
         ).distance;
       }
       pinchSpan = next;
+      options.onChange?.();
     }
   };
 
@@ -244,6 +248,7 @@ export function createOrbitControls(
       { ...desired, distance: desired.distance * Math.exp(delta * ZOOM_SPEED) },
       limits
     ).distance;
+    options.onChange?.();
   };
 
   canvas.addEventListener("pointerdown", onPointerDown);
@@ -253,11 +258,18 @@ export function createOrbitControls(
   canvas.addEventListener("wheel", onWheel, { passive: false });
 
   return {
-    update(): void {
+    update(): boolean {
+      const previous = current;
       current = dampOrbit(current, desired, damping);
       const position = orbitPosition(current, target);
       camera.position.set(position.x, position.y, position.z);
       camera.lookAt(target.x, target.y, target.z);
+      // Quieto no hay fotograma: solo se sigue dibujando mientras la cámara se mueve.
+      return (
+        Math.abs(current.azimuth - previous.azimuth) > 1e-5 ||
+        Math.abs(current.polar - previous.polar) > 1e-5 ||
+        Math.abs(current.distance - previous.distance) > 1e-4
+      );
     },
     dispose(): void {
       canvas.removeEventListener("pointerdown", onPointerDown);

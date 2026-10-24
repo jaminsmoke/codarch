@@ -211,6 +211,7 @@ export function mountScene(
       paint(index, visible[index] as DrawnBox);
     }
     mesh.instanceColor!.needsUpdate = true;
+    requestRender();
   };
 
   let lastCamera: { x: number; y: number; z: number } | null = null;
@@ -245,6 +246,22 @@ export function mountScene(
     draw(boxes);
   };
 
+  let frame = 0;
+  let disposed = false;
+  let ready = false;
+  let lastRefresh = 0;
+
+  /**
+   * Un fotograma solo cuando hay algo que dibujar.
+   *
+   * Antes la escena dibujaba a 60 fps para siempre, aunque estuviera quieta:
+   * con la vista 3D abierta, eso dejaba la app entera sin aire.
+   */
+  function requestRender(): void {
+    if (disposed || !ready || frame) return;
+    frame = requestAnimationFrame(render);
+  }
+
   const resize = (): void => {
     const width = canvas.clientWidth || 1;
     const height = canvas.clientHeight || 1;
@@ -252,6 +269,7 @@ export function mountScene(
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     refresh(true);
+    requestRender();
   };
 
   const observer = new ResizeObserver(resize);
@@ -276,6 +294,8 @@ export function mountScene(
     onTap,
     start,
     target,
+    // La cámara avisa cuando hay algo nuevo que dibujar: quieta no hay fotograma.
+    onChange: () => requestRender(),
     // Los límites van con el mapa ✓: con la escena encuadrada entera, el tope
     // de siempre dejaba la cámara sin sitio para alejarse ✓.
     limits: {
@@ -285,17 +305,15 @@ export function mountScene(
     }
   });
 
-  let frame = 0;
-  let disposed = false;
-  let lastRefresh = 0;
-  const animate = (time = 0): void => {
-    frame = requestAnimationFrame(animate);
-    controls.update();
-    if (time - lastRefresh >= REFRESH_MS) {
+  const render = (time = 0): void => {
+    frame = 0;
+    const moved = controls.update();
+    if (moved && time - lastRefresh >= REFRESH_MS) {
       lastRefresh = time;
       refresh();
     }
     renderer.render(scene, camera);
+    if (moved) requestRender();
   };
 
   // El backend arranca de forma asíncrona ✓: hasta que hay dispositivo no
@@ -305,9 +323,12 @@ export function mountScene(
     .init()
     .then(() => {
       if (disposed) return;
+      // La cámara abre encuadrada: se aplica antes de medir el nivel de detalle.
+      controls.update();
       resize();
       options.onBackend?.(backendOf(renderer));
-      animate();
+      ready = true;
+      requestRender();
     })
     .catch(() => {
       if (!disposed) options.onError?.();
