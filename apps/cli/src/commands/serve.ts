@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ConfigError } from "@codarch/metrics";
 import {
   analyzeRepository,
+  protectedRootReason,
   watchRepository,
   type RepositoryWatcher
 } from "@codarch/parsers";
@@ -73,6 +74,13 @@ interface BrowseEntry {
  */
 export function runServe(options: ServeOptions): number {
   const root = path.resolve(options.root ?? ".");
+  const denied = protectedRootReason(root);
+  if (denied) {
+    console.error(
+      `codarch no analiza ${denied}: elige la carpeta de un proyecto`
+    );
+    return 1;
+  }
   const webRoot = options.web === false ? null : findWebRoot();
   if (options.web !== false && !webRoot) {
     console.error(

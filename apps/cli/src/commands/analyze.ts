@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ConfigError } from "@codarch/metrics";
-import { analyzeRepository, ensureGitignoreEntry } from "@codarch/parsers";
+import {
+  analyzeRepository,
+  ensureGitignoreEntry,
+  protectedRootReason
+} from "@codarch/parsers";
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
@@ -36,6 +40,14 @@ function field(label: string, value: string): string {
 
 export function runAnalyze(options: AnalyzeCommandOptions): number {
   const root = options.root ?? ".";
+  const denied = protectedRootReason(root);
+  if (denied) {
+    console.error(
+      `codarch no analiza ${denied}: elige la carpeta de un proyecto`
+    );
+    return 1;
+  }
+
   let ignore = options.ignore ?? [];
 
   try {

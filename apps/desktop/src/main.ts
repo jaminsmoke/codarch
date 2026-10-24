@@ -10,7 +10,12 @@ import {
 import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
-import { analyzeRepository, ensureGitignoreEntry, watchRepository } from "@codarch/parsers";
+import {
+  analyzeRepository,
+  ensureGitignoreEntry,
+  protectedRootReason,
+  watchRepository
+} from "@codarch/parsers";
 import type { RepositoryWatcher } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import type { RepoAddons } from "@codarch/addons";
@@ -98,6 +103,12 @@ function sendWatch(live: boolean): void {
  * nuevo por el mismo canal que «abrir con» (ADR 0050).
  */
 function watchRoot(root: string): void {
+  const denied = protectedRootReason(root);
+  if (denied) {
+    console.error(`no se vigila ${denied}`);
+    sendWatch(false);
+    return;
+  }
   if (watchingRoot === root && repositoryWatcher) {
     sendWatch(true);
     return;
@@ -190,6 +201,12 @@ async function openTarget(target: string): Promise<void> {
   }
 
   if (statSync(target).isDirectory()) {
+    const denied = protectedRootReason(target);
+    if (denied) {
+      console.error(`no se analiza ${denied}`);
+      send({ kind: "report", report: null, label: target });
+      return;
+    }
     const persisted = readPersistedSnapshot(target);
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
@@ -500,6 +517,7 @@ ipcMain.handle("codarch:pick-file", async () => pickFile());
 /** Restaura snapshot, reporte y addons de `.codarch/` (ADR 0048). */
 ipcMain.handle("codarch:restore-project", async (_event, root: string) => {
   if (typeof root !== "string" || !root) return null;
+  if (protectedRootReason(root)) return null;
   const restored = restoreProject(root);
   if (restored) {
     lastRoot = root;
@@ -526,6 +544,10 @@ ipcMain.handle(
 );
 
 ipcMain.handle("codarch:analyze", async (_event, root: string) => {
+  const denied = protectedRootReason(root);
+  if (denied) {
+    throw new Error(`CodArch no analiza ${denied}; abre la carpeta de un proyecto`);
+  }
   const started = Date.now();
   const result = analyzeRepository(root, { git: true });
   lastRoot = root;

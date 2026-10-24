@@ -45,6 +45,7 @@ export type {
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
 export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
+export { protectedRootReason, type RootGuardOptions } from "./safety";
 export {
   watchRepository,
   type RepositoryWatcher,
