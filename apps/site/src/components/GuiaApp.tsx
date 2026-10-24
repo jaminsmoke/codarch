@@ -1,10 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import {
-  resumenDias,
-  rutaDia,
-  type DatosGuia
-} from "../lib/guia";
+import { resumenDias, rutaDia, type DatosGuia } from "../lib/guia";
+import { idiomaDe, t } from "../lib/i18n";
 import Marco from "../Marco";
 import Futuro from "../react-pages/Futuro";
 import Guia from "../react-pages/Guia";
@@ -27,9 +24,17 @@ type Ruta =
   | { tipo: "normas" };
 
 /** La ruta de la guía que dice el navegador. */
-function parseRuta(pathname: string, datos: DatosGuia): Ruta {
-  const limpio = pathname.startsWith(BASE) ? pathname.slice(BASE.length) : pathname;
-  const partes = limpio.split("/").filter(Boolean);
+function parseRuta(
+  pathname: string,
+  datos: DatosGuia,
+  idioma: string
+): Ruta {
+  const limpio = pathname.startsWith(BASE)
+    ? pathname.slice(BASE.length)
+    : pathname;
+  const crudo = limpio.split("/").filter(Boolean);
+  const partes =
+    idioma === "en" && crudo[0] === "en" ? crudo.slice(1) : crudo;
   const ultima = datos.dias.at(-1)?.fecha ?? "";
 
   if (partes[0] !== "guia") return { tipo: "dia", fecha: ultima };
@@ -44,19 +49,22 @@ function parseRuta(pathname: string, datos: DatosGuia): Ruta {
 }
 
 /** La ruta canónica de una vista. */
-function rutaDe(ruta: Ruta, ultima: string): string {
-  if (ruta.tipo === "futuro") return "/guia/futuro/";
-  if (ruta.tipo === "normas") return "/guia/normas/";
-  return rutaDia(ruta.fecha, ultima);
+function rutaDe(ruta: Ruta, ultima: string, idioma: string): string {
+  const prefijo = idioma === "en" ? "/en" : "";
+  if (ruta.tipo === "futuro") return `${prefijo}/guia/futuro/`;
+  if (ruta.tipo === "normas") return `${prefijo}/guia/normas/`;
+  return rutaDia(ruta.fecha, ultima, idioma);
 }
 
 export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang?: string }) {
+  const idioma = idiomaDe(lang);
   const dias = resumenDias(datos.dias);
   const ultima = datos.dias.at(-1)?.fecha ?? "";
   const [ruta, setRuta] = useState<Ruta>(() =>
     parseRuta(
       typeof window === "undefined" ? "/guia/" : window.location.pathname,
-      datos
+      datos,
+      idioma
     )
   );
   const [visita, setVisita] = useState(0);
@@ -68,7 +76,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
   useEffect(() => {
     const alVolver = (): void => {
-      setRuta(parseRuta(window.location.pathname, datos));
+      setRuta(parseRuta(window.location.pathname, datos, idioma));
       pendiente.current = window.location.hash
         ? decodeURIComponent(window.location.hash.slice(1))
         : null;
@@ -76,7 +84,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
     };
     window.addEventListener("popstate", alVolver);
     return () => window.removeEventListener("popstate", alVolver);
-  }, [datos]);
+  }, [datos, idioma]);
 
   useEffect(() => {
     const id = pendiente.current;
@@ -91,9 +99,9 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       'link[rel="canonical"]'
     );
     if (canonical) {
-      canonical.href = `${SITIO}${BASE}${rutaDe(ruta, ultima)}`;
+      canonical.href = `${SITIO}${BASE}${rutaDe(ruta, ultima, idioma)}`;
     }
-  }, [visita, ruta, ultima]);
+  }, [visita, ruta, ultima, idioma]);
 
   const navegar = (destino: string): void => {
     const url = new URL(destino, window.location.href);
@@ -101,7 +109,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       ? decodeURIComponent(url.hash.slice(1))
       : null;
     history.pushState({}, "", `${url.pathname}${url.hash}`);
-    setRuta(parseRuta(url.pathname, datos));
+    setRuta(parseRuta(url.pathname, datos, idioma));
     setVisita((n) => n + 1);
   };
 
@@ -118,7 +126,9 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
     const href = ancla.getAttribute("href");
     if (!href || href.startsWith("#")) return;
-    if (!href.startsWith(`${BASE}/guia`)) return;
+    if (!href.startsWith(`${BASE}${idioma === "en" ? "/en" : ""}/guia`)) {
+      return;
+    }
 
     evento.preventDefault();
     navegar(href);
@@ -133,6 +143,13 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
   return (
     <div onClick={alClick}>
       <Marco dias={dias} activo={activo} lang={lang}>
+        {idioma === "en" ? (
+          <div className="mx-auto w-full max-w-5xl px-5 pt-6">
+            <p className="rounded-card border border-line bg-panel px-4 py-2 text-sm text-muted">
+              {t(idioma, "guia.aviso")}
+            </p>
+          </div>
+        ) : null}
         <AnimatePresence mode="wait">
           <motion.div
             key={visita}

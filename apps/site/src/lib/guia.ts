@@ -27,6 +27,24 @@ export const VEREDICTOS: Record<
   otro: { texto: "nota", color: "var(--color-ink-soft)" }
 };
 
+/** Los mismos veredictos, en inglés. */
+const VEREDICTOS_EN: Record<Veredicto, string> = {
+  idea: "idea",
+  fase: "phase",
+  adr: "ADR",
+  arreglo: "fix",
+  esperar: "waiting",
+  otro: "note"
+};
+
+/** El texto de un veredicto en el idioma pedido. */
+export function nombreVeredicto(
+  veredicto: Veredicto,
+  lang: string = "es"
+): string {
+  return lang === "en" ? VEREDICTOS_EN[veredicto] : VEREDICTOS[veredicto].texto;
+}
+
 /**
  * Las categorías, como las de un changelog (ADR 0035).
  *
@@ -58,6 +76,27 @@ export const CATEGORIAS: Record<
   removed: { texto: "Quitado", color: "var(--color-debt)", orden: 7 },
   otro: { texto: "Otros", color: "var(--color-line-strong)", orden: 8 }
 };
+
+/** Las mismas categorías, en inglés. */
+const CATEGORIAS_EN: Record<Categoria, string> = {
+  feature: "Features",
+  fix: "Fixes",
+  optimized: "Performance",
+  refactor: "Refactor",
+  docs: "Docs",
+  chore: "Maintenance",
+  security: "Security",
+  removed: "Removed",
+  otro: "Other"
+};
+
+/** El texto de una categoría en el idioma pedido. */
+export function nombreCategoria(
+  categoria: Categoria,
+  lang: string = "es"
+): string {
+  return lang === "en" ? CATEGORIAS_EN[categoria] : CATEGORIAS[categoria].texto;
+}
 
 /** Una entrada de la guía, ya lista para pintar. */
 export interface Entrada {
@@ -104,8 +143,15 @@ export function resumenDias(dias: Dia[]): ResumenDia[] {
 }
 
 /** La ruta de un día: el último vive en `/guia/`, los demás en su fecha. */
-export function rutaDia(fecha: string, ultima: string): string {
-  return fecha === ultima ? "/guia/" : `/guia/${fecha}/`;
+export function rutaDia(
+  fecha: string,
+  ultima: string,
+  lang: string = "es"
+): string {
+  const prefijo = lang === "en" ? "/en" : "";
+  return fecha === ultima
+    ? `${prefijo}/guia/`
+    : `${prefijo}/guia/${fecha}/`;
 }
 
 /** La guía entera: las normas, los días y lo que falta. */
@@ -148,16 +194,52 @@ const MESES = [
   "diciembre"
 ];
 
-/** "2026-10-21" -> "21 oct" */
-export function fechaCorta(fecha: string): string {
+const MESES_CORTOS_EN = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec"
+];
+
+const MESES_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+
+/** "2026-10-21" -> "21 oct" (o "Oct 21") */
+export function fechaCorta(fecha: string, lang: string = "es"): string {
   const partes = fecha.split("-");
   if (partes.length !== 3) return fecha;
   const mes = Number(partes[1]) - 1;
+  if (lang === "en") {
+    return `${MESES_CORTOS_EN[mes] ?? partes[1]} ${Number(partes[2])}`;
+  }
   return `${Number(partes[2])} ${MESES_CORTOS[mes] ?? partes[1]}`;
 }
 
 /** "2026-10-21" -> { dia: "21", mes: "octubre", anio: "2026" } */
-export function fechaPartida(fecha: string): {
+export function fechaPartida(
+  fecha: string,
+  lang: string = "es"
+): {
   dia: string;
   mes: string;
   anio: string;
@@ -165,7 +247,7 @@ export function fechaPartida(fecha: string): {
   const [anio = "", mes = "", dia = ""] = fecha.split("-");
   return {
     dia: String(Number(dia)),
-    mes: MESES[Number(mes) - 1] ?? mes,
+    mes: (lang === "en" ? MESES_EN : MESES)[Number(mes) - 1] ?? mes,
     anio
   };
 }

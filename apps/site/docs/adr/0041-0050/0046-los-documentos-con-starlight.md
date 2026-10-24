@@ -136,17 +136,21 @@ Starlight conserva su cabecera (búsqueda, tema y GitHub) y se le añaden los en
 **Guía** y **Documentos** con un override de `Header`. Los documentos no pierden la navegación del
 resto del sitio; en móvil, el título lleva a Inicio y la barra lateral a la guía.
 
-### 8. Idiomas, preparados
+### 8. Idiomas, con dos
 
-El idioma por defecto es el español. Starlight resuelve la traducción de los documentos con su
-propio `locales` y Astro la de la UI con `i18n`. Añadir un idioma es:
+El idioma por defecto es el español; el inglés vive en `/en/`. Starlight resuelve la traducción de
+los documentos con su propio `locales`, Astro la de las rutas y la interfaz con `i18n`, y la portada
+y la guía se sirven desde las mismas islas de React con `lang`. Añadir contenido es:
 
-1. Crearlo en `locales` (Starlight) y en `i18n` (Astro).
-2. Crear `docs/<idioma>/` con el contenido traducido (o dejar que caiga al español).
-3. Añadir sus cadenas a `src/lib/i18n.ts`.
+1. Crear `docs/<idioma>/` con el mismo `slug` y el frontmatter traducido; lo que falte cae al
+   español y Starlight lo avisa en la página.
+2. Crear las rutas del idioma (`/en/`, `/en/guia/…`) apuntando a las mismas islas con su `lang`.
+3. Añadir las cadenas a los dos diccionarios de `src/lib/i18n.ts`.
 
-Los componentes React reciben `lang` y usan `t(lang, clave)`; las cadenas que falten caen al
-español. La portada y la guía no se traducen solas: se añaden cuando haya revisión.
+El selector de los documentos lo pone Starlight en su cabecera; el del sitio cambia el prefijo de la
+ruta y la guía avisa cuando una entrada solo existe en español. Los componentes React reciben `lang`
+y usan `t(lang, clave)`, y las fechas, categorías y veredictos de la guía se formatean en ese idioma.
+No se generan traducciones automáticas: una página en inglés es una página revisada.
 
 ## Consecuencias
 
@@ -183,3 +187,16 @@ español. La portada y la guía no se traducen solas: se añaden cuando haya rev
 - [x] Validar el build y la publicación en GitHub Pages (`web.yml` construye y publica con Node 24).
 
 M29 queda cerrada: los documentos y la guía se publican desde el markdown del repo.
+
+### M31 — El sitio en dos idiomas
+
+- [x] Selector de idioma en la portada, la guía y los documentos.
+- [x] Rutas inglesas: `/en/`, `/en/guia/`, `/en/guia/AAAA-MM-DD/`, `/en/guia/futuro/` y
+  `/en/guia/normas/`.
+- [x] Diccionario ES/EN completo en `src/lib/i18n.ts`: la interfaz no deja cadenas sin traducir.
+- [x] Fechas, categorías y veredictos de la guía localizados.
+- [x] Documentos de producto traducidos en `docs/en/`: índice, modelo, reglas, MCP, migración y
+  mapa, más el índice de ADR y la hoja de ruta.
+- [ ] Traducir los 50 ADR y las entradas de la guía; hasta entonces caen al español con aviso.
+
+La infraestructura y los documentos de producto están; M31 sigue abierta por el contenido.

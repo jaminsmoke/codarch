@@ -114,7 +114,7 @@ flowchart TD
 | M28 | El escritorio se instala y se actualiza | cerrada | [ADR 0045](0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md#hoja-de-ruta) |
 | M29 | Los documentos con Starlight | cerrada | [ADR 0046](0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M30 | El changelog es la guía | cerrada | [ADR 0047](0041-0050/0047-el-changelog-es-la-guia.md#hoja-de-ruta) |
-| M31 | i18n preparada | en curso | [ADR 0046](0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
+| M31 | El sitio en dos idiomas | en curso | [ADR 0046](0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M32 | El escritorio persiste en `.codarch/` | cerrada | [ADR 0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
 | M33 | La orquestación compartida | cerrada | [ADR 0049](0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
 | M34 | El estado vive en el repositorio | en curso | [ADR 0050](0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |

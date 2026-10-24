@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { idiomaDe, t } from "./i18n";
 
 /**
  * El título de la pestaña y la descripción ✓ ✅.
@@ -6,15 +7,20 @@ import { useEffect } from "react";
  * La web tiene una sola página HTML ✓ ✅, así que cada ruta dice quién es ✓ ✅.
  */
 
-const BASE = "CodArch · el mapa vivo de la arquitectura de tu software";
-
-export function useTitulo(titulo?: string, descripcion?: string): void {
+export function useTitulo(
+  titulo?: string,
+  descripcion?: string,
+  lang: string = "es"
+): void {
   useEffect(() => {
-    document.title = titulo ? `${titulo} · CodArch` : BASE;
+    const idioma = idiomaDe(lang);
+    document.title = titulo
+      ? `${titulo} · CodArch`
+      : t(idioma, "meta.titulo");
 
     const meta = document.querySelector<HTMLMetaElement>(
       'meta[name="description"]'
     );
     if (meta && descripcion) meta.content = descripcion;
-  }, [titulo, descripcion]);
+  }, [titulo, descripcion, lang]);
 }

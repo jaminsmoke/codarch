@@ -38,8 +38,15 @@ export const collections = {
   docs: defineCollection({
     loader: glob({
       base: "./docs",
-      pattern: ["**/*.md", "!guideline/**"],
-      generateId: ({ entry }) => `docs/${entry.replace(/\.md$/, "")}`
+      // El inglés vive en `docs/en/` y su id lleva el locale delante para que
+      // Starlight le dé la ruta `/en/docs/...` y su fallback al español.
+      pattern: ["**/*.md", "!guideline/**", "!en/guideline/**"],
+      generateId: ({ entry }) => {
+        const limpio = entry.replace(/\.md$/, "");
+        return limpio.startsWith("en/")
+          ? `en/docs/${limpio.slice(3)}`
+          : `docs/${limpio}`;
+      }
     }),
     schema: docsSchema({ extend: metadata })
   }),

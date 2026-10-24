@@ -7,6 +7,8 @@ import {
   VEREDICTOS,
   fechaCorta,
   fechaPartida,
+  nombreCategoria,
+  nombreVeredicto,
   rutaDia,
   type Categoria,
   type Dia,
@@ -41,13 +43,19 @@ function tono(color: string): CSSProperties {
 }
 
 /** La etiqueta de un veredicto, con su icono y su color. */
-function Etiqueta({ veredicto }: { veredicto: Veredicto }) {
+function Etiqueta({
+  veredicto,
+  lang
+}: {
+  veredicto: Veredicto;
+  lang: string;
+}) {
   const meta = VEREDICTOS[veredicto];
   const Icono = ICONOS[veredicto];
   return (
     <span style={tono(meta.color)} className="guia-veredicto">
       <Icono aria-hidden="true" className="size-3.5" strokeWidth={2.2} />
-      {meta.texto}
+      {nombreVeredicto(veredicto, lang)}
     </span>
   );
 }
@@ -61,7 +69,12 @@ interface Props {
 
 export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
   const idioma = idiomaDe(lang);
-  const fecha = fechaPartida(dia.fecha);
+  const fecha = fechaPartida(dia.fecha, idioma);
+  /** La fecha larga en el orden de cada idioma. */
+  const fechaLarga =
+    idioma === "en"
+      ? `${fecha.mes} ${fecha.dia}, ${fecha.anio}`
+      : `${fecha.dia} de ${fecha.mes} de ${fecha.anio}`;
   const ultima = dias.at(-1)?.fecha ?? dia.fecha;
   const indice = dias.findIndex((d) => d.fecha === dia.fecha);
   const anterior = indice > 0 ? dias[indice - 1] : undefined;
@@ -101,8 +114,9 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
   }, [dia]);
 
   useTitulo(
-    `La guía — ${fecha.dia} de ${fecha.mes} de ${fecha.anio}`,
-    `Las ideas del ${fecha.dia} de ${fecha.mes} de ${fecha.anio} en la guía de CodArch, con su veredicto.`
+    t(idioma, "guia.fecha.titulo").replace("{fecha}", fechaLarga),
+    t(idioma, "guia.hero.desc"),
+    idioma
   );
 
   return (
@@ -110,17 +124,15 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
       {esUltimo ? (
         <header className="mb-10">
           <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
-            El registro
+            {t(idioma, "guia.registro")}
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
             <div>
               <h1 className="font-display text-5xl leading-none font-bold tracking-tight sm:text-6xl">
-                La guía
+                {t(idioma, "guia.titulo")}
               </h1>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
-                Lo que se ha pensado y lo que queda. Cada día es un changelog:
-                sus novedades, sus arreglos y lo demás, con el veredicto de cada
-                idea.
+                {t(idioma, "guia.hero.desc")}
               </p>
             </div>
             <dl className="flex shrink-0 gap-6">
@@ -147,12 +159,12 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
             href={`${BASE}/guia/`}
             className="text-cobalt no-underline hover:underline"
           >
-            La guía
+            {t(idioma, "guia.titulo")}
           </a>
           <span aria-hidden="true" className="text-line-strong">
             /
           </span>
-          {fechaCorta(dia.fecha)}
+          {fechaCorta(dia.fecha, idioma)}
         </p>
       )}
 
@@ -178,8 +190,11 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
           </h2>
           <div className="min-w-0">
             <p className="font-mono text-[0.66rem] tracking-[0.14em] text-muted uppercase">
-              {dia.entradas.length} idea
-              {dia.entradas.length === 1 ? "" : "s"}
+              {dia.entradas.length}{" "}
+              {t(
+                idioma,
+                dia.entradas.length === 1 ? "guia.idea" : "guia.ideas"
+              )}
             </p>
             <ul className="mt-2 flex flex-wrap gap-1.5">
               {dia.grupos.map((grupo) => {
@@ -197,7 +212,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                       }
                     >
                       <span aria-hidden="true" className="guia-chip-punto" />
-                      {categoria.texto}
+                      {nombreCategoria(grupo.categoria, idioma)}
                       <span className="guia-chip-cuenta">
                         {grupo.entradas.length}
                       </span>
@@ -214,7 +229,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                     }
                     className="guia-chip"
                   >
-                    Mostrar todas
+                    {t(idioma, "guia.mostrarTodas")}
                   </button>
                 </li>
               ) : null}
@@ -228,13 +243,15 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
             return (
               <section
                 key={grupo.categoria}
-                aria-label={categoria.texto}
+                aria-label={nombreCategoria(grupo.categoria, idioma)}
                 style={tono(categoria.color)}
                 className="guia-grupo"
               >
                 <h3 className="guia-grupo-cabecera">
                   <span aria-hidden="true" className="guia-grupo-punto" />
-                  <span className="guia-grupo-nombre">{categoria.texto}</span>
+                  <span className="guia-grupo-nombre">
+                    {nombreCategoria(grupo.categoria, idioma)}
+                  </span>
                   <span className="guia-grupo-cuenta">
                     {grupo.entradas.length}
                   </span>
@@ -260,7 +277,10 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                             {entrada.titulo}
                           </h4>
                           <span className="guia-entrada-meta">
-                            <Etiqueta veredicto={entrada.veredicto} />
+                            <Etiqueta
+                              veredicto={entrada.veredicto}
+                              lang={idioma}
+                            />
                           </span>
                           <ChevronDown
                             aria-hidden="true"
@@ -272,7 +292,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                         </button>
                         <a
                           href={`#${entrada.id}`}
-                          aria-label={`Enlace a ${entrada.titulo}`}
+                          aria-label={`${t(idioma, "guia.enlace")} ${entrada.titulo}`}
                           className="guia-ancla"
                         >
                           #
@@ -308,32 +328,32 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
       </motion.section>
 
       <nav
-        aria-label="Los días de la guía"
+        aria-label={t(idioma, "guia.dias.nav")}
         className="mt-10 flex items-center justify-between gap-4 border-t border-line pt-5"
       >
         {anterior ? (
           <a
-            href={`${BASE}${rutaDia(anterior.fecha, ultima)}`}
+            href={`${BASE}${rutaDia(anterior.fecha, ultima, idioma)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
           >
             <ArrowLeft aria-hidden="true" className="size-3" />
-            {fechaCorta(anterior.fecha)}
+            {fechaCorta(anterior.fecha, idioma)}
           </a>
         ) : (
           <span />
         )}
         <a
-          href={`${BASE}/guia/futuro/`}
+          href={`${BASE}${idioma === "en" ? "/en" : ""}/guia/futuro/`}
           className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-cobalt"
         >
           {t(idioma, "guia.futuro")}
         </a>
         {siguiente ? (
           <a
-            href={`${BASE}${rutaDia(siguiente.fecha, ultima)}`}
+            href={`${BASE}${rutaDia(siguiente.fecha, ultima, idioma)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
           >
-            {fechaCorta(siguiente.fecha)}
+            {fechaCorta(siguiente.fecha, idioma)}
             <ArrowRight aria-hidden="true" className="size-3" />
           </a>
         ) : (
@@ -343,12 +363,12 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
 
       <p className="mt-5 text-sm text-muted">
         <a
-          href={`${BASE}/guia/normas/`}
+          href={`${BASE}${idioma === "en" ? "/en" : ""}/guia/normas/`}
           className="text-cobalt no-underline hover:underline"
         >
           {t(idioma, "guia.normas")}
         </a>
-        : la leyenda, las categorías y las reglas.
+        : {t(idioma, "guia.normas.pie")}
       </p>
     </div>
   );

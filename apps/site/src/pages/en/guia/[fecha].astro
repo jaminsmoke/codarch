@@ -1,0 +1,32 @@
+---
+import GuiaApp from "../../../components/GuiaApp";
+import Site from "../../../layouts/Site.astro";
+import { fechaPartida, rutaDia } from "../../../lib/guia";
+import { cargarGuia } from "../../../lib/guia-carga";
+
+export async function getStaticPaths() {
+  const datos = await cargarGuia();
+  return datos.dias.map((dia) => ({
+    params: { fecha: dia.fecha },
+    props: { fecha: dia.fecha }
+  }));
+}
+
+const { fecha: clave } = Astro.props;
+const datos = await cargarGuia();
+const dia = datos.dias.find((d) => d.fecha === clave);
+if (!dia) throw new Error(`Día desconocido: ${clave}`);
+const fecha = fechaPartida(dia.fecha, "en");
+const fechaLarga = `${fecha.mes} ${fecha.dia}, ${fecha.anio}`;
+const ultima = datos.dias.at(-1)?.fecha ?? dia.fecha;
+const ruta = rutaDia(dia.fecha, ultima, "en");
+const canonical = `https://jaminsmoke.github.io/codarch${ruta}`;
+---
+
+<Site
+  title={`${fechaLarga} — The guide — CodArch`}
+  description={`The ideas of ${fechaLarga} in the CodArch guide, with their verdict.`}
+  {canonical}
+>
+  <GuiaApp client:only="react" datos={datos} lang="en" />
+</Site>

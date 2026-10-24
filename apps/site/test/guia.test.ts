@@ -4,7 +4,11 @@ import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
 import {
   CATEGORIAS,
+  fechaCorta,
   fechaPartida,
+  nombreCategoria,
+  nombreVeredicto,
+  rutaDia,
   type Categoria,
   type Veredicto
 } from "../src/lib/guia";
@@ -115,6 +119,31 @@ describe("prepararGuia", () => {
       mes: "octubre",
       anio: "2026"
     });
+  });
+});
+
+describe("la guía en inglés", () => {
+  it("lleva los días a `/en/guia/` y deja la última fecha en la portada", () => {
+    expect(rutaDia("2026-10-21", "2026-10-22", "en")).toBe(
+      "/en/guia/2026-10-21/"
+    );
+    expect(rutaDia("2026-10-22", "2026-10-22", "en")).toBe("/en/guia/");
+    expect(rutaDia("2026-10-21", "2026-10-22")).toBe("/guia/2026-10-21/");
+  });
+
+  it("escribe la fecha en el orden del inglés", () => {
+    expect(fechaPartida("2026-10-21", "en")).toEqual({
+      dia: "21",
+      mes: "October",
+      anio: "2026"
+    });
+    expect(fechaCorta("2026-10-21", "en")).toBe("Oct 21");
+  });
+
+  it("nombra categorías y veredictos en inglés", () => {
+    expect(nombreCategoria("feature", "en")).toBe("Features");
+    expect(nombreVeredicto("fase", "en")).toBe("phase");
+    expect(nombreCategoria("feature")).toBe("Novedades");
   });
 });
 

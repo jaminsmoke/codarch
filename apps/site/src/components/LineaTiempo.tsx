@@ -41,15 +41,15 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
   const pasos: Paso[] = [
     ...dias.map((dia) => ({
       clave: dia.fecha,
-      ruta: rutaDia(dia.fecha, ultima),
-      texto: fechaCorta(dia.fecha),
+      ruta: rutaDia(dia.fecha, ultima, idioma),
+      texto: fechaCorta(dia.fecha, idioma),
       corto: String(Number(dia.fecha.slice(8, 10))),
       cuantas: dia.cuantas,
       futuro: false
     })),
     {
       clave: "futuro",
-      ruta: "/guia/futuro/",
+      ruta: `${idioma === "en" ? "/en" : ""}/guia/futuro/`,
       texto: t(idioma, "guia.futuro"),
       corto: "futuro",
       cuantas: 0,
@@ -65,16 +65,18 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
 
   return (
     <nav
-      aria-label="La línea de la guía"
+      aria-label={t(idioma, "guia.linea")}
       className="border-t border-line/70 bg-gradient-to-b from-ink/[0.04] to-ink/[0.01]"
     >
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-2.5">
         <p className="hidden shrink-0 items-center gap-1.5 font-mono text-[0.62rem] tracking-[0.16em] text-muted uppercase md:flex">
-          {dias.length} {dias.length === 1 ? "día" : "días"}
+          {dias.length}{" "}
+          {t(idioma, dias.length === 1 ? "guia.dia" : "guia.dias")}
           <span aria-hidden="true" className="text-line-strong">
             ·
           </span>
-          {ideas} {ideas === 1 ? "idea" : "ideas"}
+          {ideas}{" "}
+          {t(idioma, ideas === 1 ? "guia.idea" : "guia.ideas")}
         </p>
 
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -101,10 +103,11 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                   aria-current={esActivo ? "page" : undefined}
                   aria-label={
                     paso.futuro
-                      ? "El futuro: lo que todavía no ha pasado"
-                      : `${fechaCorta(paso.clave)} · ${paso.cuantas} idea${
-                          paso.cuantas === 1 ? "" : "s"
-                        }`
+                      ? t(idioma, "guia.futuro.aria")
+                      : `${fechaCorta(paso.clave, idioma)} · ${paso.cuantas} ${t(
+                          idioma,
+                          paso.cuantas === 1 ? "guia.idea" : "guia.ideas"
+                        )}`
                   }
                   initial={{ opacity: 1, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -187,7 +190,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
           {anterior ? (
             <a
               href={`${BASE}${anterior.ruta}`}
-              aria-label="El paso anterior"
+              aria-label={t(idioma, "guia.paso.anterior")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronLeft
@@ -208,7 +211,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
           {siguiente ? (
             <a
               href={`${BASE}${siguiente.ruta}`}
-              aria-label="El paso siguiente"
+              aria-label={t(idioma, "guia.paso.siguiente")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronRight

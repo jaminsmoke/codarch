@@ -1,0 +1,15 @@
+---
+import GuiaApp from "../../components/GuiaApp";
+import Site from "../../layouts/Site.astro";
+import { cargarGuia } from "../../lib/guia-carga";
+
+const datos = await cargarGuia();
+---
+
+<Site
+  title="The guide — CodArch"
+  description="What has been thought through and what is left: every day of CodArch as a changelog, with the verdict for each idea."
+  canonical="https://jaminsmoke.github.io/codarch/en/guia/"
+>
+  <GuiaApp client:only="react" datos={datos} lang="en" />
+</Site>

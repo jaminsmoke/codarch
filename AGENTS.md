@@ -176,9 +176,9 @@ también `npm run sync:action` y actualizar el repo público.
   `/guia/AAAA-MM-DD/`, `/guia/futuro/` y `/guia/normas/`, y la línea del tiempo enlaza a cada una.
   La cabecera y la línea del tiempo se montan una vez; solo cambia el contenido de abajo. Los
   documentos comparten **Inicio**, **Guía** y **Documentos** en su cabecera.
-- M31 en curso: i18n preparada (ADR 0046, §8). Un idioma ahora (español), estructura lista para
-  añadir otro copiando `apps/site/docs/` y traduciendo. Las cadenas de la UI están en
-  `src/lib/i18n.ts` y los componentes reciben `lang`.
+- M31 en curso: el sitio en dos idiomas (ADR 0046, §8). El español manda y el inglés vive en `/en/`:
+  portada, guía y documentos, con el diccionario ES/EN completo en `src/lib/i18n.ts`. En
+  `apps/site/docs/en/` están los documentos de producto; los ADR y la guía caen al español con aviso.
 - M32 cerrada: el escritorio persiste en `.codarch/` (ADR 0048). El proceso principal escribe
   `snapshot.cc.json` y actualiza `.gitignore`; el renderer lee de ahí al arrancar (snapshot,
   `report.json` y addons), migra una vez el proyecto viejo de `localStorage` y ya solo guarda

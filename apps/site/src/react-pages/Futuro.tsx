@@ -3,6 +3,8 @@ import { type CSSProperties } from "react";
 import {
   CATEGORIAS,
   fechaCorta,
+  nombreCategoria,
+  nombreVeredicto,
   rutaDia,
   type Entrada,
   type ResumenDia
@@ -27,34 +29,33 @@ interface Props {
 
 export default function Futuro({ futuras, dias, lang = "es" }: Props) {
   const idioma = idiomaDe(lang);
+  const raiz = idioma === "en" ? `${BASE}/en` : BASE;
   useTitulo(
-    `${t(idioma, "guia.futuro.titulo")} — ${t(idioma, "guia.titulo")}`,
-    "Las ideas de la guía de CodArch que esperan su turno: lo que todavía no ha pasado."
+    t(idioma, "guia.futuro.titulo"),
+    t(idioma, "guia.futuro.desc"),
+    idioma
   );
   const ultima = dias.at(-1)?.fecha ?? "";
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
       <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
-        El registro
+        {t(idioma, "guia.registro")}
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <h1 className="font-display text-5xl leading-none font-bold tracking-tight sm:text-6xl">
           {t(idioma, "guia.futuro.titulo")}
         </h1>
         <span className="guia-contador">
-          {futuras.length} {futuras.length === 1 ? "idea" : "ideas"}
+          {futuras.length}{" "}
+          {t(idioma, futuras.length === 1 ? "guia.idea" : "guia.ideas")}
         </span>
       </div>
       <p className="mt-4 mb-8 max-w-2xl text-lg leading-relaxed text-ink-soft">
-        Las ideas que esperan su turno: están aquí porque no se pierden, no
-        porque el trabajo esté hecho. Cada una lleva a su día, donde se escribió.
-        Lo que sí se está haciendo, en el{" "}
-        <a
-          className="text-cobalt"
-          href="https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/adr/roadmap.md"
-        >
-          roadmap
+        {t(idioma, "guia.futuro.desc")}{" "}
+        {t(idioma, "guia.futuro.desc.link")}{" "}
+        <a className="text-cobalt" href={`${raiz}/docs/adr/roadmap/`}>
+          {t(idioma, "guia.futuro.roadmap")}
         </a>
         .
       </p>
@@ -71,17 +72,21 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="guia-chip">
                   <span aria-hidden="true" className="guia-chip-punto" />
-                  {categoria.texto}
+                  {nombreCategoria(entrada.categoria, idioma)}
                 </span>
                 <span
                   style={{ "--tono": "var(--color-muted)" } as CSSProperties}
                   className="guia-veredicto"
                 >
-                  <Hourglass aria-hidden="true" className="size-3.5" strokeWidth={2.2} />
-                  esperar
+                  <Hourglass
+                    aria-hidden="true"
+                    className="size-3.5"
+                    strokeWidth={2.2}
+                  />
+                  {nombreVeredicto("esperar", idioma)}
                 </span>
                 <span className="ml-auto font-mono text-[0.66rem] tracking-[0.08em] text-muted uppercase">
-                  {fechaCorta(entrada.fecha)}
+                  {fechaCorta(entrada.fecha, idioma)}
                 </span>
               </div>
               <h2 className="font-display mt-2 text-xl font-bold tracking-tight">
@@ -91,7 +96,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
                 {entrada.resumen}
               </p>
               <a
-                href={`${BASE}${rutaDia(entrada.fecha, ultima)}#${entrada.id}`}
+                href={`${BASE}${rutaDia(entrada.fecha, ultima, idioma)}#${entrada.id}`}
                 className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline"
               >
                 <ArrowDown aria-hidden="true" className="size-3" />
@@ -103,7 +108,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
       </ul>
 
       <a
-        href={`${BASE}/guia/`}
+        href={`${raiz}/guia/`}
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />

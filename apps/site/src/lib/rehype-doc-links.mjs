@@ -9,16 +9,24 @@ const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
  * El markdown sigue escribiéndose como siempre (`../model.md`); el build lo
  * traduce a `/codarch/docs/model/` y conserva el ancla. Lo que no es un
  * documento sale al repositorio, como antes (ADR 0046).
+ *
+ * Los documentos ingleses viven en `docs/en/` con las mismas rutas relativas,
+ * así que su prefijo es `/codarch/en` y los ficheros que no son documentos
+ * siguen apuntando a la ruta canónica del repo (las imágenes se comparten).
  */
 export function rehypeDocLinks({ docsRoot, base }) {
   return (tree, file) => {
     if (!file.path) return;
-    const source = path
+    const relativa = path
       .relative(docsRoot, file.path)
       .split(path.sep)
       .join("/");
-    if (!source.endsWith(".md")) return;
-    const sourceDir = path.posix.dirname(source);
+    if (!relativa.endsWith(".md")) return;
+
+    const enIngles = relativa.startsWith("en/");
+    const canonico = enIngles ? relativa.slice(3) : relativa;
+    const sourceDir = path.posix.dirname(canonico);
+    const prefijo = enIngles ? `${base}/en` : base;
 
     visit(tree, "element", (node) => {
       if (node.tagName !== "a") return;
@@ -32,8 +40,13 @@ export function rehypeDocLinks({ docsRoot, base }) {
       if (!ruta) return;
 
       if (ruta.startsWith("/")) {
-        const interna = ruta === "/" || ruta.startsWith("/docs/") || ruta.startsWith("/guia/");
-        node.properties.href = interna ? `${base}${ruta}`.replace(/\/\/+/g, "/") : href;
+        const interna =
+          ruta === "/" ||
+          ruta.startsWith("/docs/") ||
+          ruta.startsWith("/guia/");
+        node.properties.href = interna
+          ? `${prefijo}${ruta}`.replace(/\/\/+/g, "/")
+          : href;
         return;
       }
 
@@ -48,14 +61,20 @@ export function rehypeDocLinks({ docsRoot, base }) {
       }
 
       if (destino.startsWith("guideline/")) {
-        node.properties.href = `${base}/guia/${ancla}`.replace(/\/\/+/g, "/");
+        node.properties.href = `${prefijo}/guia/${ancla}`.replace(
+          /\/\/+/g,
+          "/"
+        );
         return;
       }
 
       const clave = destino.replace(/\.md$/, "");
       const sinIndice = clave.replace(/(^|\/)index$/, "");
       const rutaWeb = sinIndice ? `/docs/${sinIndice}/` : "/docs/";
-      node.properties.href = `${base}${rutaWeb}${ancla}`.replace(/\/\/+/g, "/");
+      node.properties.href = `${prefijo}${rutaWeb}${ancla}`.replace(
+        /\/\/+/g,
+        "/"
+      );
     });
   };
 }
