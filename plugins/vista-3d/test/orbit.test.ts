@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   clampOrbit,
   dampOrbit,
+  fitDistance,
   orbitPosition,
   ORBIT_LIMITS,
   ORBIT_START,
@@ -55,6 +56,25 @@ describe("la cámara del 3D", () => {
   it("deja el ángulo sin recortar: dar la vuelta es la misma vista", () => {
     expect(clampOrbit({ ...ORBIT_START, azimuth: 12 }).azimuth).toBe(12);
     expect(clampOrbit({ ...ORBIT_START, azimuth: -12 }).azimuth).toBe(-12);
+  });
+
+  it("encuadra el mapa entero: el radio cabe en los dos campos de visión", () => {
+    const fov = (50 * Math.PI) / 180;
+    const radius = 610;
+    const distance = fitDistance(radius, fov, 1.2);
+
+    // Lo que se ve a esa distancia, en vertical y en horizontal, llega al radio.
+    const vertical = distance * Math.tan(fov / 2);
+    const horizontal = vertical * 1.2;
+    expect(vertical).toBeGreaterThan(radius);
+    expect(horizontal).toBeGreaterThan(radius);
+  });
+
+  it("una pantalla estrecha necesita más distancia que una ancha", () => {
+    const fov = (50 * Math.PI) / 180;
+    expect(fitDistance(610, fov, 0.5)).toBeGreaterThan(
+      fitDistance(610, fov, 2)
+    );
   });
 
   it("amortigua hacia el deseado y llega con 1", () => {

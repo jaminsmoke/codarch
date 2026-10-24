@@ -24,14 +24,22 @@ export interface OrbitState {
   distance: number;
 }
 
-/** Los límites: ni pegarse a una caja ni salirse del mapa. */
-export const ORBIT_LIMITS = {
+/** Los límites de la cámara. */
+export interface OrbitLimits {
+  minDistance: number;
+  maxDistance: number;
+  minPolar: number;
+  maxPolar: number;
+}
+
+/** Los límites por defecto: ni pegarse a una caja ni salirse del mapa ✓. */
+export const ORBIT_LIMITS: OrbitLimits = {
   minDistance: 60,
   maxDistance: 1600,
   minPolar: 0.12,
   /** Un poco antes del horizonte ✓: desde abajo, el mapa no se lee ✓. */
   maxPolar: Math.PI / 2.05
-} as const;
+};
 
 /** La vista con la que abre la escena ✓ (antes la de `OrbitControls` ✓). */
 export const ORBIT_START: OrbitState = {
@@ -39,6 +47,30 @@ export const ORBIT_START: OrbitState = {
   polar: 0.9813,
   distance: 467.3
 };
+
+/**
+ * La distancia a la que cabe un mapa de este radio, en una pantalla de este
+ * campo de visión ✓.
+ *
+ * Encaja la **esfera** que envuelve el mapa ✓ (la diagonal de su base y su
+ * altura ✓), así que vale para cualquier ángulo de cámara ✓: no hay que
+ * repetir el cálculo al orbitar ✓. Se cumplen los dos campos de visión ✓ (el
+ * vertical y el horizontal ✓) y se deja un aire ✓.
+ */
+export function fitDistance(
+  radius: number,
+  fov: number,
+  aspect: number,
+  margin = 1.08
+): number {
+  const safeRadius = Math.max(1, radius);
+  const safeFov = Math.min(Math.max(fov, 0.2), Math.PI - 0.2);
+  const safeAspect = Math.max(0.2, aspect);
+  const vertical = safeRadius / Math.sin(safeFov / 2);
+  const horizontalFov = 2 * Math.atan(Math.tan(safeFov / 2) * safeAspect);
+  const horizontal = safeRadius / Math.sin(Math.min(horizontalFov, Math.PI - 0.2) / 2);
+  return Math.max(vertical, horizontal) * margin;
+}
 
 /** Un punto de la escena ✓ (vale un `THREE.Vector3` ✓: es la misma forma ✓). */
 export interface Point {
@@ -58,17 +90,17 @@ export function orbitPosition(state: OrbitState, target: Point): Point {
 }
 
 /** El estado dentro de los límites ✓. */
-export function clampOrbit(state: OrbitState): OrbitState {
+export function clampOrbit(
+  state: OrbitState,
+  limits: OrbitLimits = ORBIT_LIMITS
+): OrbitState {
   return {
     // El ángulo no se recorta ✓: las vueltas enteras son la misma vista ✓.
     azimuth: state.azimuth,
-    polar: Math.min(
-      Math.max(state.polar, ORBIT_LIMITS.minPolar),
-      ORBIT_LIMITS.maxPolar
-    ),
+    polar: Math.min(Math.max(state.polar, limits.minPolar), limits.maxPolar),
     distance: Math.min(
-      Math.max(state.distance, ORBIT_LIMITS.minDistance),
-      ORBIT_LIMITS.maxDistance
+      Math.max(state.distance, limits.minDistance),
+      limits.maxDistance
     )
   };
 }
@@ -92,6 +124,12 @@ export interface OrbitControlsOptions {
   onTap?: (clientX: number, clientY: number) => void;
   /** El amortiguado por fotograma ✓ (0,18 por defecto ✓). */
   damping?: number;
+  /** Con qué vista abre ✓ (por defecto, `ORBIT_START` ✓). */
+  start?: OrbitState;
+  /** Alrededor de qué punto orbita ✓ (por defecto, el origen ✓). */
+  target?: Point;
+  /** Hasta dónde se puede acercar y alejar ✓. */
+  limits?: OrbitLimits;
 }
 
 export interface OrbitControls {
@@ -117,9 +155,10 @@ export function createOrbitControls(
   canvas: HTMLElement,
   options: OrbitControlsOptions = {}
 ): OrbitControls {
-  const target: Point = { x: 0, y: 0, z: 0 };
-  const desired: OrbitState = { ...ORBIT_START };
-  let current: OrbitState = { ...ORBIT_START };
+  const target: Point = options.target ?? { x: 0, y: 0, z: 0 };
+  const limits = options.limits ?? ORBIT_LIMITS;
+  const desired: OrbitState = { ...(options.start ?? ORBIT_START) };
+  let current: OrbitState = { ...desired };
   const damping = options.damping ?? 0.18;
 
   const pointers = new Map<number, { x: number; y: number }>();
@@ -160,8 +199,10 @@ export function createOrbitControls(
 
     if (pointers.size === 1) {
       desired.azimuth -= dx * ROTATE_SPEED;
-      desired.polar = clampOrbit({ ...desired, polar: desired.polar - dy * ROTATE_SPEED })
-        .polar;
+      desired.polar = clampOrbit(
+        { ...desired, polar: desired.polar - dy * ROTATE_SPEED },
+        limits
+      ).polar;
       travel += Math.abs(dx) + Math.abs(dy);
       return;
     }
@@ -169,10 +210,10 @@ export function createOrbitControls(
     if (pointers.size === 2) {
       const next = span();
       if (pinchSpan > 0 && next > 0) {
-        desired.distance = clampOrbit({
-          ...desired,
-          distance: desired.distance * (pinchSpan / next)
-        }).distance;
+        desired.distance = clampOrbit(
+          { ...desired, distance: desired.distance * (pinchSpan / next) },
+          limits
+        ).distance;
       }
       pinchSpan = next;
     }
@@ -199,10 +240,10 @@ export function createOrbitControls(
         : event.deltaMode === 2
           ? event.deltaY * 400
           : event.deltaY;
-    desired.distance = clampOrbit({
-      ...desired,
-      distance: desired.distance * Math.exp(delta * ZOOM_SPEED)
-    }).distance;
+    desired.distance = clampOrbit(
+      { ...desired, distance: desired.distance * Math.exp(delta * ZOOM_SPEED) },
+      limits
+    ).distance;
   };
 
   canvas.addEventListener("pointerdown", onPointerDown);

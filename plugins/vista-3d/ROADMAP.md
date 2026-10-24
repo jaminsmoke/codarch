@@ -24,7 +24,7 @@ el motor ✓ ni el snapshot ✓:
    contiene a sus hijos ✓. Plegada es **una** primitiva ✓; abierta, su suelo y sus hijos ✓.
 2. **La cámara dentro de la ciudad.** El LOD es **por pantalla** ✓: una carpeta se abre cuando mide
    más de ~22 px ✓ (de cerca ✓ o por ser grande ✓) y se cierra cuando no ✓. Hay un presupuesto de
-   1.200 primitivas ✓: una carpeta solo se abre si caben ella y **todos** sus hijos ✓, así que no se
+   4.000 primitivas ✓: una carpeta solo se abre si caben ella y **todos** sus hijos ✓, así que no se
    abre a medias ni deja agujeros ✓.
 
 Como el mapa es 2D (x, z) con la altura encima ✓, es un **quadtree** ✓, no un octree ✓ (la versión
@@ -34,7 +34,11 @@ Lo demás que llegó con esto ✅:
 
 - **Pulsar una carpeta plegada la enfoca** ✓: la app se queda con esa carpeta ✓ y la ciudad se abre ✓.
 - **Seleccionar no remonta la escena** ✓: el foco se mueve sin volver a crear el dispositivo de GPU ✓.
-- **Un material por color** ✓, no por caja ✓ (1.200 materiales serían 1.200 pipelines ✓).
+- **Una sola malla instanciada** ✓ (`InstancedMesh` ✓) con color por instancia ✓: miles de cajas son
+  una draw call ✓. Seleccionar solo reescribe colores ✓ y cambiar de LOD, matrices ✓.
+- **La cámara abre encuadrando el mapa entero** ✓: la distancia sale del radio del mapa y del campo
+  de visión ✓ (`fitDistance` ✓), orbita alrededor del centro del mapa ✓ y la niebla se escala con
+  él ✓.
 - El aviso dice **cuántas cajas** hay en pantalla ✓ y con qué runtime ✓.
 
 ## v0.03 — Elegir bien
@@ -50,10 +54,8 @@ Lo demás que llegó con esto ✅:
   seleccionado ✓) — y en una carpeta plegada, su nombre ✓.
 - **Comparar dos momentos**: el 3D con la línea del tiempo (M12 ✓) sería **muy** speak: ver cómo
   crece la ciudad ✓.
-- **Instancing** ✓: hoy son mallas separadas ✓ (1.200 como mucho ✓). Una `InstancedMesh` por color ✓
-  bajaría las draw calls a decenas ✓ y dejaría subir el presupuesto ✓.
-- **El encuadre al abrir**: la cámara arranca cerca ✓ y enseña una esquina del mapa ✓. Con el LOD ya
-  se puede enseñar la ciudad entera ✓ sin que cueste primitivas ✓; falta decidirlo como apertura ✓.
+- **La selección, con brillo**: hoy se tiñe el color de la instancia ✓ (con instancing no hay material
+  por caja ✓). Un contorno o un brillo exigiría una segunda malla para lo elegido ✓.
 
 ## Decisiones ya tomadas
 
@@ -68,6 +70,12 @@ Lo demás que llegó con esto ✅:
 - **La cámara es del plugin** ✓ (`orbit.ts` ✓). `OrbitControls` importa el build de WebGL de three ✓
   y, con los dos builds, el chunk llevaba three **dos veces** ✓ (836 KB ✓). La nuestra añade pinza en
   táctil ✓ y no selecciona al arrastrar ✓.
+- **Instancing antes que más detalle** ✓ (2026-10-24 ✓). El presupuesto subió de 1.200 a 4.000 al
+  pasar a una sola `InstancedMesh` ✓; el color por instancia respeta el degradado de las lentes ✓ y
+  la selección va en el color ✓.
+- **El encuadre se calcula, no se fija** ✓ (2026-10-24 ✓). La distancia de apertura sale del radio
+  del mapa y del campo de visión ✓: con otro tamaño de mapa o de pantalla sigue cabiendo ✓. Los
+  límites de zoom y la niebla van con esa misma distancia ✓.
 - **El LOD vive en el plugin** ✓ (2026-10-24 ✓). Calcularlo en el motor lo facturaría mejor ✓, pero
   el motor no sabe de volúmenes 3D ✓ y esto es una vista ✓: 400 líneas puras y probadas ✓ pesan
   menos que un concepto nuevo en el motor ✓. Si otro plugin necesita lo mismo ✓, se sube entonces ✓.

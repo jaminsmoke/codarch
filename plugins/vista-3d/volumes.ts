@@ -105,6 +105,54 @@ function volumeOf(placed: Placed, input: VolumeInput): Volume {
   };
 }
 
+/** Lo que ocupa el mapa: su centro y el radio de la esfera que lo envuelve ✓. */
+export interface MapBounds {
+  /** El centro de la base ✓. */
+  cx: number;
+  cz: number;
+  /** La mitad de la diagonal de la base, con la altura más alta ✓. */
+  radius: number;
+  maxHeight: number;
+}
+
+/**
+ * Los límites del mapa ✓.
+ *
+ * Sirve para encuadrar la escena al abrirla ✓: con el radio se calcula la
+ * distancia a la que cabe entero ✓ (`fitDistance` ✓), en vez de arrancar a una
+ * distancia fija que enseñaba una esquina ✓.
+ */
+export function boundsOf(roots: readonly Volume[]): MapBounds {
+  let minX = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxZ = -Infinity;
+  let maxHeight = 0;
+
+  const walk = (volume: Volume): void => {
+    minX = Math.min(minX, volume.x);
+    minZ = Math.min(minZ, volume.z);
+    maxX = Math.max(maxX, volume.x + volume.width);
+    maxZ = Math.max(maxZ, volume.z + volume.depth);
+    maxHeight = Math.max(maxHeight, volume.height);
+    for (const child of volume.children) walk(child);
+  };
+  for (const root of roots) walk(root);
+
+  if (!Number.isFinite(minX)) {
+    return { cx: 0, cz: 0, radius: 1, maxHeight: 0 };
+  }
+
+  const width = Math.max(1, maxX - minX);
+  const depth = Math.max(1, maxZ - minZ);
+  return {
+    cx: (minX + maxX) / 2,
+    cz: (minZ + maxZ) / 2,
+    radius: Math.hypot(width, depth, maxHeight) / 2,
+    maxHeight
+  };
+}
+
 /** Dónde está la cámara ✓ (vale un `THREE.Vector3` ✓). */
 export interface CameraPoint {
   x: number;

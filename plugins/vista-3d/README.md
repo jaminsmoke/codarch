@@ -9,9 +9,16 @@ lo mismo ✓.
 **Las carpetas son contenedores** ✓: de lejos, una carpeta es una caja que resume lo que tiene ✓; al
 acercarte se abre ✓ y enseña a sus hijos ✓, con su suelo debajo ✓. Es el **nivel de detalle** ✓
 (`volumes.ts` ✓): una carpeta solo se abre si se ve (más de ~22 px en pantalla ✓) y si caben sus
-hijos en el presupuesto de primitivas ✓ (1.200 ✓). Así un repo de 20.000 ficheros no dibuja 20.000
+hijos en el presupuesto de primitivas ✓ (4.000 ✓). Así un repo de 20.000 ficheros no dibuja 20.000
 cajas ✓. Como el mapa es 2D (x, z) con la altura encima ✓, el árbol es un **quadtree** ✓, no un
 octree ✓.
+
+Las cajas se dibujan en **una sola malla instanciada** ✓ (`InstancedMesh` ✓) con su color por
+instancia ✓: miles de cajas son una draw call ✓. La selección se tiñe del azul de la app ✓ en la
+propia instancia ✓.
+
+Al abrir, la cámara **encuadra el mapa entero** ✓: la distancia sale del radio del mapa y del campo de
+visión ✓ (`fitDistance` ✓), y la niebla se escala con él ✓.
 
 - **Orbita** con el ratón ✓, **zoom** con la rueda ✓ y **pinza** con dos dedos ✓.
 - **Pulsa un fichero** para seleccionarlo ✓ (un arrastre no selecciona ✓) y **una carpeta plegada**

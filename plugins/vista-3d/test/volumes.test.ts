@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@codarch/render/browser";
-import { buildVolumes, countVolumes, lodBoxes, SLAB_HEIGHT } from "../volumes";
+import {
+  boundsOf,
+  buildVolumes,
+  countVolumes,
+  lodBoxes,
+  SLAB_HEIGHT
+} from "../volumes";
 
 const colors = ["#111111", "#222222", "#333333", "#444444"];
 const colorFor = (index: number): string => colors[index % colors.length] ?? "#000000";
@@ -109,6 +115,22 @@ describe("los volúmenes de la escena", () => {
     expect(boxes).toHaveLength(1);
     expect(boxes[0]?.collapsed).toBe(true);
     expect(boxes[0]?.path).toBe("grande");
+  });
+
+  it("mide lo que ocupa el mapa para poder encuadrarlo", () => {
+    const bounds = boundsOf(buildVolumes(entrada));
+    // El mapa de la prueba va de 8 a 992 en x y de 8 a 692 en z (el relleno
+    // del layout), así que su centro cae en el medio.
+    expect(bounds.cx).toBeCloseTo(500, 0);
+    expect(bounds.cz).toBeCloseTo(350, 0);
+    expect(bounds.radius).toBeGreaterThan(400);
+    expect(bounds.maxHeight).toBeGreaterThan(0);
+  });
+
+  it("sin volúmenes hay un encuadre mínimo, no un infinito", () => {
+    const bounds = boundsOf([]);
+    expect(bounds.radius).toBeGreaterThan(0);
+    expect(Number.isFinite(bounds.cx)).toBe(true);
   });
 
   it("con presupuesto de sobra dibuja el árbol entero", () => {
