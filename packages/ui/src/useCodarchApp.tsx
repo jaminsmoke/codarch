@@ -1,35 +1,23 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   defaultMetric,
   getStats,
   parseCcJson,
-  symbolsOf,
   type CcJson
 } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
-import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
-import type { HistoryEntry, SymbolChain } from "@codarch/schema/browser";
-import {
-  buildRenderModel,
-  type RenderModel
-} from "@codarch/render/browser";
+import type { RepoAddon } from "@codarch/addons";
+import type { SymbolChain } from "@codarch/schema/browser";
+import { buildRenderModel, type RenderModel } from "@codarch/render/browser";
 import { usePlugins } from "./plugins";
-import type { PluginContext } from "@codarch/plugin-api";
-import {
-  CHURN_METRIC
-} from "./labels";
+import { CHURN_METRIC } from "./labels";
 import { findFolder } from "./tree";
 import { readMigration, readReport } from "./data";
+import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
 import type { Plataforma } from "./platform";
 import type { ViewPreferences } from "./storage";
-export { ViewPreferences, SavedProject } from "./storage";
+
+export type { ViewPreferences, SavedProject } from "./storage";
 
 export interface CodarchAppState {
   cc: CcJson | null;
@@ -78,6 +66,9 @@ export interface CodarchAppActions {
   setShowLabels: (show: boolean) => void;
   setPluginView: (view: string | null) => void;
   setChain: (chain: SymbolChain | null) => void;
+  setError: (message: string | null) => void;
+  setAddons: (addons: RepoAddon[]) => void;
+  setSelectedIndex: (index: number | null) => void;
 }
 
 interface ViewState {
@@ -89,7 +80,7 @@ export interface CodarchApp {
   state: CodarchAppState;
   actions: CodarchAppActions;
   view: { model: RenderModel | null; error: string | null };
-  detail: { roots: unknown[]; fileCount: number } | null;
+  detail: DetailResult | null;
   stats: ReturnType<typeof getStats> | null;
   migration: ReturnType<typeof readMigration>;
   hasChurn: boolean;
@@ -353,12 +344,12 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
     }
   }, [cc, areaMetric, colorMode]);
 
-  const detail = useMemo(() => {
+  const detail = useMemo<DetailResult | null>(() => {
     if (!view.model) return null;
     const folder = focusPath ? findFolder(view.model.roots, focusPath) : null;
     const roots = folder ? [folder] : view.model.roots;
     const total = folder ? folder.fileCount : view.model.fileCount;
-    return { roots, fileCount: total };
+    return pruneTree(roots, DEFAULT_DETAIL_OPTIONS, total);
   }, [view.model, focusPath]);
 
   const selectIndex = useCallback(
@@ -375,8 +366,16 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
       const file = view.model?.files.find((item) => item.path === path);
       if (file) selectIndex(file.index);
 
-      const symbol = await plataforma.cadenas(name);
-      if (symbol) setChain(symbol as SymbolChain);
+      const raw = await plataforma.cadenas(name);
+      const chains =
+        raw && typeof raw === "object"
+          ? (raw as { chains?: unknown }).chains
+          : null;
+      if (!Array.isArray(chains) || chains.length === 0) {
+        setChain(null);
+        return;
+      }
+      setChain((chains as SymbolChain[])[0] ?? null);
     },
     [view.model, selectIndex, plataforma]
   );
@@ -392,7 +391,9 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const saved = plataforma.leerProyecto();
+      const saved = plataforma.restaurarProyecto
+        ? await plataforma.restaurarProyecto()
+        : plataforma.leerProyecto();
       if (cancelled) return;
       if (saved && loadSnapshot(saved.snapshot, saved.label)) {
         setAddons((saved.addons ?? []) as RepoAddon[]);
@@ -467,7 +468,10 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
     setCenter,
     setShowLabels,
     setPluginView,
-    setChain
+    setChain,
+    setError,
+    setAddons,
+    setSelectedIndex
   };
 
   return {

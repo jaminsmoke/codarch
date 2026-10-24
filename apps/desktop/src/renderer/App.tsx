@@ -1,33 +1,9 @@
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { symbolsOf } from "@codarch/schema/browser";
+import type { AddonView as SavedView } from "@codarch/addons";
+import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent
-} from "react";
-import {
-  defaultMetric,
-  getStats,
-  parseCcJson,
-  symbolsOf,
-  type CcJson
-} from "@codarch/schema/browser";
-import type { DiffReport } from "@codarch/metrics/browser";
-import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
-import type { HistoryEntry } from "@codarch/schema/browser";
-import type {
-  SymbolChain,
-  SymbolHeat
-} from "@codarch/schema/browser";
-import {
-  buildRenderModel,
-  type RenderModel
-} from "@codarch/render/browser";
-import {
-  CHURN_METRIC,
   DebtList,
-  DEFAULT_DETAIL_OPTIONS,
   findFolder,
   HeatList,
   HistoryPanel,
@@ -41,194 +17,74 @@ import {
   metricIndexOf,
   orderedMetrics,
   PrPanel,
-  pruneTree
+  useCodarchApp
 } from "@codarch/ui";
-import { useCodarchApp } from "@codarch/ui";
 import { desktop } from "./bridge";
 import { plataformaEscritorio } from "./plataforma";
-import { usePlugins } from "./plugins";
 import type { CodarchDesktop } from "../preload";
-import {
-  clearProject,
-  readPreferences,
-  readProject,
-  writePreferences,
-  writeProject,
-  type ViewPreferences
-} from "./storage";
+import { clearProject, writeProject } from "./storage";
 import Settings from "./Settings";
 import type { PluginContext } from "@codarch/plugin-api";
-import { readMigration } from "@codarch/ui";
-import { readReport } from "@codarch/ui";
-
-interface ViewState {
-  model: RenderModel | null;
-  error: string | null;
-}
 
 export default function App() {
-  const [cc, setCc] = useState<CcJson | null>(null);
-  const [source, setSource] = useState("sin proyecto");
-  const [areaMetric, setAreaMetric] = useState<string | null>(null);
-  const [colorMode, setColorMode] = useState("risk");
-  const [query, setQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [report, setReport] = useState<DiffReport | null>(null);
-  const [reportSource, setReportSource] = useState<string | null>(null);
-  const [reportError, setReportError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"file" | "pr">("file");
-  const [focusPath, setFocusPath] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string | null>(null);
-  /** La cadena del símbolo abierto, si la hay. */
-  const [chain, setChain] = useState<SymbolChain | null>(null);
-  /** Si los ajustes están abiertos. */
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  /** El zoom del mapa (1 = el mapa entero). */
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState({ x: 0.5, y: 0.5 });
-  /** Si los bloques muestran su nombre aunque no quepa entero. */
-  const [showLabels, setShowLabels] = useState(true);
-  /** Los plugins: los compilados, los activados y sus módulos. */
-  const plugins = usePlugins();
-  /** Los addons que el repo analizado declara (ADR 0029). */
-  const [addons, setAddons] = useState<RepoAddon[]>([]);
-  /** La vista del plugin abierta en el mapa central (null = el mapa). */
-  const [pluginView, setPluginView] = useState<string | null>(null);
+  const plataforma = useMemo(() => plataformaEscritorio(), []);
+  const app = useCodarchApp(plataforma);
+  const {
+    cc,
+    source,
+    areaMetric,
+    colorMode,
+    query,
+    selectedIndex,
+    error,
+    loading,
+    report,
+    reportSource,
+    reportError,
+    tab,
+    focusPath,
+    progress,
+    chain,
+    settingsOpen,
+    zoom,
+    center,
+    showLabels,
+    addons,
+    pluginView
+  } = app.state;
+  const {
+    loadSnapshot,
+    loadReport,
+    resetReport,
+    analyzeFolder,
+    openSnapshotFile,
+    openReportFile,
+    selectIndex,
+    openSymbolChain,
+    zoomAt,
+    panMap,
+    fitMap,
+    setAreaMetric,
+    setColorMode,
+    setQuery,
+    setFocusPath,
+    setTab,
+    setSettingsOpen,
+    setShowLabels,
+    setPluginView,
+    setError,
+    setAddons,
+    setSelectedIndex
+  } = app.actions;
+  const { view, detail, stats, migration, hasChurn, plugins, selectedPathRef } =
+    app;
   const searchRef = useRef<HTMLInputElement>(null);
   const viewsMenuRef = useRef<HTMLDetailsElement>(null);
-  const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
-  if (preferencesRef.current === undefined) {
-    preferencesRef.current = readPreferences();
-  }
-  const selectedPathRef = useRef<string | null>(null);
 
   // El menú nativo abre los ajustes ✓.
   useEffect(() => {
     return desktop().onOpenSettings(() => setSettingsOpen(true));
-  }, []);
-
-  /** Acercar o alejar el mapa, centrado en un punto (0..1). */
-  const zoomAt = useCallback(
-    (factor: number, at?: { x: number; y: number }) => {
-      setZoom((current) => {
-        const next = Math.min(8, Math.max(1, current * factor));
-        if (next === current) return current;
-        if (at) {
-          const dx = at.x - center.x;
-          const dy = at.y - center.y;
-          const scale = 1 - next / current;
-          setCenter({
-            x: Math.min(1, Math.max(0, center.x + dx * scale)),
-            y: Math.min(1, Math.max(0, center.y + dy * scale))
-          });
-        }
-        return next;
-      });
-    },
-    [center]
-  );
-
-  /** Volver a ver el mapa entero. */
-  /** Mover el mapa, en fracciones de su tamaño. */
-  const panMap = useCallback(
-    (dx: number, dy: number) => {
-      setCenter((current) => {
-        // Sin zoom no hay nada escondido que enseñar.
-        const hidden = 1 - 1 / zoom;
-        if (hidden <= 0.001) return current;
-        return {
-          x: Math.min(1, Math.max(0, current.x - dx / hidden)),
-          y: Math.min(1, Math.max(0, current.y - dy / hidden))
-        };
-      });
-    },
-    [zoom]
-  );
-
-  const fitMap = useCallback(() => {
-    setZoom(1);
-    setCenter({ x: 0.5, y: 0.5 });
-  }, []);
-
-  const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
-  const migration = useMemo(() => readMigration(cc), [cc]);
-  /** ¿El snapshot trae churn de git? */
-  const hasChurn = useMemo(
-    () =>
-      stats
-        ? stats.metricCoverage.some((entry) => entry.name === CHURN_METRIC)
-        : false,
-    [stats]
-  );
-
-  const loadSnapshot = useCallback(
-    (raw: unknown, label: string, preserveView = false): boolean => {
-      try {
-        const parsed = parseCcJson(raw);
-        const nextStats = getStats(parsed);
-        const coverage = new Set(nextStats.metricCoverage.map((entry) => entry.name));
-        const nextArea = coverage.has("rloc")
-          ? "rloc"
-          : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
-        const wanted = preferencesRef.current;
-        const preferredArea =
-          wanted?.areaMetric && coverage.has(wanted.areaMetric)
-            ? wanted.areaMetric
-            : nextArea;
-        const preferredColor = wanted?.colorMode;
-        const validPreferredColor =
-          preferredColor &&
-          (preferredColor === "risk" ||
-            preferredColor === "structure" ||
-            (preferredColor === "status" && Boolean(parsed.lenses?.migration)) ||
-            coverage.has(preferredColor))
-            ? preferredColor
-            : null;
-        const defaultColor =
-          parsed.lenses?.migration && coverage.has("migrationDebt")
-            ? "migrationDebt"
-            : "risk";
-
-        setCc(parsed);
-        setSource(label);
-        setAreaMetric((current) =>
-          preserveView && current && coverage.has(current) ? current : preferredArea
-        );
-        setColorMode((current) => {
-          if (preserveView) {
-            if (current === "risk" || current === "structure" || current === "status") {
-              return current;
-            }
-            return coverage.has(current) ? current : "risk";
-          }
-          return validPreferredColor ?? defaultColor;
-        });
-        if (!preserveView) {
-          setQuery("");
-          selectedPathRef.current = null;
-          setSelectedIndex(null);
-          setFocusPath(null);
-        }
-        setError(null);
-        return true;
-      } catch (cause) {
-        setError((cause as Error).message);
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!cc || !areaMetric) return;
-    const preferences = { areaMetric, colorMode, showLabels };
-    preferencesRef.current = preferences;
-    writePreferences(preferences);
-  }, [cc, areaMetric, colorMode, showLabels]);
+  }, [setSettingsOpen]);
 
   /** Abre una foto del historial, leyéndola del disco. */
   const openHistorySnapshot = useCallback(
@@ -244,127 +100,9 @@ export default function App() {
     [loadSnapshot]
   );
 
-  const loadReport = useCallback(
-    (raw: unknown, label: string, focus = true): boolean => {
-      const next = readReport(raw);
-      if (!next) {
-        setReportError(`El fichero ${label} no parece un report.json de CodArch.`);
-        return false;
-      }
-      setReport(next);
-      setReportSource(label);
-      setReportError(null);
-      if (focus) setTab("pr");
-      return true;
-    },
-    []
-  );
-
-  useEffect(() => {
-    // El escritorio no tiene demo ni servidor: se restaura el último proyecto.
-    // Primero intenta leer desde `.codarch/` del repo (fuente compartida con la
-    // web y el CLI); si no hay, cae al snapshot guardado en localStorage.
-    let cancelled = false;
-    void (async () => {
-      const saved = readProject();
-      const root = saved?.label;
-      let persisted: unknown | null = null;
-      if (root) {
-        try {
-          persisted = await desktop().readSnapshot(root);
-        } catch {
-          persisted = null;
-        }
-      }
-      if (cancelled) return;
-
-      const snapshot = persisted ?? saved?.snapshot ?? null;
-      const label = root ?? saved?.label ?? null;
-      if (snapshot && label && loadSnapshot(snapshot, label)) {
-        setAddons((saved?.addons ?? []) as RepoAddon[]);
-        if (saved?.report) {
-          loadReport(saved.report, saved.reportLabel ?? "report.json", false);
-        }
-        return;
-      }
-      if (saved) clearProject();
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [loadReport, loadSnapshot]);
-
-  const view = useMemo<ViewState>(() => {
-    if (!cc || !areaMetric) return { model: null, error: null };
-    try {
-      return {
-        model: buildRenderModel(cc, {
-          areaMetric,
-          color: colorMode === "status" ? "risk" : colorMode,
-          title: cc.meta.projectName
-        }),
-        error: null
-      };
-    } catch (cause) {
-      return { model: null, error: (cause as Error).message };
-    }
-  }, [cc, areaMetric, colorMode]);
-
-  /**
-   * Árbol que se dibuja. En repos grandes se poda: un mosaico de 20.000
-   * celdas no se lee ni se pinta, el nivel de carpeta sí.
-   */
-  const detail = useMemo(() => {
-    if (!view.model) return null;
-    const folder = focusPath ? findFolder(view.model.roots, focusPath) : null;
-    const roots = folder ? [folder] : view.model.roots;
-    const total = folder ? folder.fileCount : view.model.fileCount;
-    return pruneTree(roots, DEFAULT_DETAIL_OPTIONS, total);
-  }, [view.model, focusPath]);
 
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
-  /**
-   * Selecciona un fichero por índice y recuerda su ruta.
-   *
-   * La ruta es la identidad estable: el índice depende del orden del árbol y
-   * cambia cuando el snapshot se reanaliza o cambia la métrica de área.
-   */
-  const selectIndex = useCallback(
-    (index: number | null) => {
-      setSelectedIndex(index);
-      const file = index === null ? undefined : view.model?.files[index];
-      selectedPathRef.current = file?.path ?? null;
-    },
-    [view.model]
-  );
-
-  /**
-   * Abre la vida de un símbolo: lo selecciona en el mapa y pide su cadena.
-   *
-   * La pide al proceso principal, que la construye desde las fotos del
-   * historial.
-   */
-  const openSymbolChain = useCallback(
-    async (name: string, path: string) => {
-      const file = view.model?.files.find((item) => item.path === path);
-      if (file) selectIndex(file.index);
-
-      const raw = await desktop().chains(name);
-      if (!raw || typeof raw !== "object") {
-        setChain(null);
-        return;
-      }
-      const chains = (raw as { chains?: unknown }).chains;
-      if (!Array.isArray(chains) || chains.length === 0) {
-        setChain(null);
-        return;
-      }
-      setChain((chains as SymbolChain[])[0] ?? null);
-    },
-    [view.model, selectIndex]
-  );
 
   /**
    * Aplica una vista guardada de un addon (ADR 0029).
@@ -557,13 +295,6 @@ export default function App() {
       .length;
   }, [view.model, query]);
 
-  const resetReport = useCallback(() => {
-    setReport(null);
-    setReportSource(null);
-    setReportError(null);
-    setTab("file");
-  }, []);
-
   /** Enfoca un fichero desde la vista de PR. */
   const selectPath = useCallback(
     (path: string) => {
@@ -609,84 +340,6 @@ export default function App() {
       loadReport(target.report, target.label);
     });
   }, [loadReport, loadSnapshot, resetReport]);
-
-  /** Analiza una carpeta elegida con el diálogo del sistema. */
-  const analyzeFolder = useCallback(async () => {
-    const root = await desktop().pickFolder();
-    if (!root) return;
-    setLoading(true);
-    setError(null);
-    setProgress(`Analizando ${root}...`);
-    try {
-      const result = await desktop().analyze(root);
-      if (loadSnapshot(result.snapshot, root)) {
-        setAddons(result.addons.addons);
-        clearProject();
-        writeProject({
-          snapshot: result.snapshot,
-          report: null,
-          label: root,
-          reportLabel: null,
-          addons: result.addons.addons
-        });
-        resetReport();
-      }
-    } catch (cause) {
-      setError((cause as Error).message);
-    } finally {
-      setProgress(null);
-      setLoading(false);
-    }
-  }, [loadSnapshot, resetReport]);
-
-  /** Abre un `cc.json` con el diálogo del sistema. */
-  const openSnapshotFile = useCallback(async () => {
-    const file = await desktop().pickFile();
-    if (!file) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const raw = await desktop().readJson(file);
-      if (loadSnapshot(raw, file)) {
-        // Un cc.json suelto no tiene repo del que sacar addons ✓.
-        setAddons([]);
-        clearProject();
-        writeProject({
-          snapshot: raw,
-          report: null,
-          label: file,
-          reportLabel: null,
-          addons: []
-        });
-        resetReport();
-      }
-    } catch (cause) {
-      setError((cause as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [loadSnapshot, resetReport]);
-
-  /** Abre un `report.json` con el diálogo del sistema. */
-  const openReportFile = useCallback(async () => {
-    const file = await desktop().pickFile();
-    if (!file) return;
-    try {
-      const raw = await desktop().readJson(file);
-      if (loadReport(raw, file)) {
-        const saved = readProject();
-        if (saved) {
-          writeProject({
-            ...saved,
-            report: raw,
-            reportLabel: file
-          });
-        }
-      }
-    } catch (cause) {
-      setReportError(`No se pudo leer ${file}: ${(cause as Error).message}`);
-    }
-  }, [loadReport]);
 
   return (
     <div className="app">

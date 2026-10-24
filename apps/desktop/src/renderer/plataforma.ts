@@ -25,6 +25,19 @@ export function plataformaEscritorio(): Plataforma {
     leerPreferencias: () => readPreferences(),
     escribirPreferencias: (prefs) => writePreferences(prefs),
     leerProyecto: () => readProject(),
+    restaurarProyecto: async () => {
+      const saved = readProject();
+      const root = saved?.label;
+      if (!root) return saved;
+      // `.codarch/` del repo manda: es la fuente compartida con la web y el CLI.
+      try {
+        const persisted = await desktop().readSnapshot(root);
+        if (persisted) return { ...saved, snapshot: persisted, label: root };
+      } catch {
+        // Sin `.codarch/` legible se usa la copia local.
+      }
+      return saved;
+    },
     escribirProyecto: (project) => writeProject(project as SavedProject),
     borrarProyecto: () => clearProject(),
     historial: () => desktop().history(),

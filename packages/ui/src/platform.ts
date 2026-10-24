@@ -31,6 +31,13 @@ export interface Plataforma {
   escribirPreferencias: (prefs: ViewPreferences) => void;
   /** Lee el proyecto guardado (snapshot + reporte). */
   leerProyecto: () => SavedProject | null;
+  /**
+   * Restaura el proyecto al arrancar, si la plataforma lo guarda en disco.
+   *
+   * El escritorio prefiere `.codarch/` del repo; la web no lo implementa y cae
+   * a `leerProyecto` (ADR 0048).
+   */
+  restaurarProyecto?: () => Promise<SavedProject | null>;
   /** Escribe el proyecto guardado. */
   escribirProyecto: (project: SavedProject) => boolean;
   /** Borra el proyecto guardado. */
