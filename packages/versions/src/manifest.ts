@@ -3,7 +3,7 @@
  * No editar a mano: `npm run version` lo reescribe.
  */
 
-export const PRODUCT_VERSION = "0.3.1-alpha.8" as const;
+export const PRODUCT_VERSION = "0.3.2" as const;
 export const CC_JSON_VERSION = "2.0" as const;
 export const REPORT_SCHEMA_VERSION = "1.3" as const;
 export const CONFIG_VERSION = 1 as const;
