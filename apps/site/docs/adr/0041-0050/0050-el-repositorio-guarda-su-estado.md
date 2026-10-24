@@ -44,8 +44,9 @@ preferencias de vista.
 - **`.codarch.yml`** (raíz, versionado): la configuración declarativa. Viaja con el repo y la lee
   también el CI.
 - **`.codarch/`** (ignorado): el estado derivado del análisis. Se puede borrar sin miedo; se
-  reconstruye. Incluye el snapshot, el reporte, el mapa y el libro de cadenas
-  (`.codarch/chains.json`), que se deriva del historial y también se puede regenerar.
+  reconstruye. Incluye el snapshot, el reporte, el mapa, el libro de cadenas
+  (`.codarch/chains.json`), que se deriva del historial, y las preferencias de vista del repo
+  (`preferences.json`, ADR 0053).
 - **`.codarch-history/`** (versionado): la línea del tiempo. No se mete dentro de `.codarch/`
   porque entonces dejaría de compartirse.
 

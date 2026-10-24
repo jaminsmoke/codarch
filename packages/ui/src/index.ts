@@ -9,7 +9,7 @@
 export { readMigration, readReport } from "./data";
 export { AppShell, type AppShellProps } from "./AppShell";
 export type { Plataforma } from "./platform";
-export { localStore, type ViewPreferences, type SavedProject } from "./storage";
+export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export {
   EMPTY_SOURCE_REQUEST,
   EMPTY_VIEW_STATE,

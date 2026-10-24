@@ -63,7 +63,12 @@ export interface CodarchAppState {
 export type WatchState = "live" | "paused" | "none";
 
 export interface CodarchAppActions {
-  loadSnapshot: (raw: unknown, label: string, preserveView?: boolean) => boolean;
+  loadSnapshot: (
+    raw: unknown,
+    label: string,
+    preserveView?: boolean,
+    preferences?: ViewPreferences | null
+  ) => boolean;
   loadReport: (raw: unknown, label: string, focus?: boolean) => boolean;
   resetReport: () => void;
   analyzeFolder: () => Promise<void>;
@@ -250,7 +255,12 @@ export function useCodarchApp(
   );
 
   const loadSnapshot = useCallback(
-    (raw: unknown, label: string, preserveView = false): boolean => {
+    (
+      raw: unknown,
+      label: string,
+      preserveView = false,
+      preferences?: ViewPreferences | null
+    ): boolean => {
       try {
         const parsed = parseCcJson(raw);
         const nextStats = getStats(parsed);
@@ -258,7 +268,7 @@ export function useCodarchApp(
         const nextArea = coverage.has("rloc")
           ? "rloc"
           : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
-        const wanted = preferencesRef.current;
+        const wanted = preferences ?? preferencesRef.current;
         const preferredArea =
           wanted?.areaMetric && coverage.has(wanted.areaMetric)
             ? wanted.areaMetric
@@ -296,6 +306,8 @@ export function useCodarchApp(
           selectedPathRef.current = null;
           setSelectedIndex(null);
           setFocusPath(null);
+          // Las preferencias del repo mandan sobre las de la máquina (ADR 0053).
+          if (preferences) setShowLabels(preferences.showLabels);
         }
         setError(null);
         return true;
@@ -382,7 +394,7 @@ export function useCodarchApp(
     setProgress(`Analizando ${root}...`);
     try {
       const result = await analizar(root);
-      if (loadSnapshot(result.snapshot, root)) {
+      if (loadSnapshot(result.snapshot, root, false, result.preferences)) {
         setAddons(result.addons.addons);
         void plataforma.escribirProyecto({
           snapshot: result.snapshot,
@@ -742,7 +754,7 @@ export function useCodarchApp(
     void (async () => {
       const saved = await plataforma.restaurarProyecto?.();
       if (cancelled) return;
-      if (saved && loadSnapshot(saved.snapshot, saved.label)) {
+      if (saved && loadSnapshot(saved.snapshot, saved.label, false, saved.preferences)) {
         setAddons((saved.addons ?? []) as RepoAddon[]);
         if (saved.report) {
           loadReport(saved.report, saved.reportLabel ?? "report.json", false);

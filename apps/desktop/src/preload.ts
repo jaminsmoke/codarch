@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import type { RepoAddons } from "@codarch/addons";
 import type { HistoryIndex } from "@codarch/schema";
+import type { ViewPreferences } from "@codarch/ui/storage";
 
 /**
  * Puente entre el renderer y el proceso principal.
@@ -22,6 +23,8 @@ export interface DesktopAnalysis {
   durationMs: number;
   /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
   addons: RepoAddons;
+  /** Las preferencias que el repo ya tenía (ADR 0053). */
+  preferences: ViewPreferences | null;
 }
 
 /** La línea del tiempo del repositorio analizado. */
@@ -33,6 +36,8 @@ export interface DesktopRestore {
   report: unknown | null;
   /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
   addons: RepoAddons;
+  /** Las preferencias de vista del repo, si las tiene (ADR 0053). */
+  preferences: ViewPreferences | null;
 }
 
 import { VERSION } from "./version";
@@ -77,6 +82,12 @@ const api = {
     report: unknown | null
   ): Promise<boolean> =>
     ipcRenderer.invoke("codarch:persist-project", root, snapshot, report),
+  /** Guarda las preferencias de vista en el `.codarch/` del repo (ADR 0053). */
+  persistPreferences: (
+    root: string,
+    preferences: ViewPreferences
+  ): Promise<boolean> =>
+    ipcRenderer.invoke("codarch:persist-preferences", root, preferences),
   /** La línea del tiempo del repositorio analizado. */
   history: (): Promise<DesktopHistory | null> => ipcRenderer.invoke("codarch:history"),
   /**

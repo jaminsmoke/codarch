@@ -32,7 +32,11 @@ export function plataformaEscritorio(): Plataforma {
     elegirFichero: () => desktop().pickFile(),
     leerJson: (file) => desktop().readJson(file),
     leerPreferencias: () => readPreferences(),
-    escribirPreferencias: (prefs) => writePreferences(prefs),
+    escribirPreferencias: (prefs) => {
+      // El repo manda; la copia local es el respaldo si no se puede escribir.
+      writePreferences(prefs);
+      if (actual) void desktop().persistPreferences(actual.label, prefs);
+    },
     leerProyecto: () => actual,
     restaurarProyecto: async () => {
       actual = await restaurarSesion({
@@ -56,7 +60,8 @@ export function plataformaEscritorio(): Plataforma {
             reportLabel: restored.report
               ? `${root}/.codarch/report.json`
               : null,
-            addons: restored.addons.addons
+            addons: restored.addons.addons,
+            preferences: restored.preferences ?? undefined
           };
         }
       });

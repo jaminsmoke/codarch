@@ -26,6 +26,8 @@ import {
   readHistoryIndex
 } from "@codarch/schema";
 import type { DesktopTarget } from "./preload";
+import { readRepoPreferences, writeRepoPreferences } from "./preferences";
+import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
 import { canAutoUpdate } from "./updates";
 
@@ -344,6 +346,7 @@ function restoreProject(root: string): {
   snapshot: unknown;
   report: unknown | null;
   addons: RepoAddons;
+  preferences: ReturnType<typeof readRepoPreferences>;
 } | null {
   if (!isDirectory(root)) return null;
   const snapshot = readPersistedSnapshot(root);
@@ -351,7 +354,8 @@ function restoreProject(root: string): {
   return {
     snapshot,
     report: readJsonFile(path.join(root, CODARCH_DIR, "report.json")),
-    addons: repoAddons(root)
+    addons: repoAddons(root),
+    preferences: readRepoPreferences(root)
   };
 }
 
@@ -573,7 +577,9 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
     durationMs: Date.now() - started,
     // Los addons que el repo declara (ADR 0029): sus vistas guardadas se
     // ofrecen en el mapa, sin leer nada más desde el renderer.
-    addons: repoAddons(root)
+    addons: repoAddons(root),
+    // Las preferencias que el repo ya tenía (ADR 0053).
+    preferences: readRepoPreferences(root)
   };
 });
 
@@ -584,6 +590,18 @@ ipcMain.handle("codarch:read-json", async (_event, file: string) => {
     throw new Error(`No se pudo leer ${file}: ${(cause as Error).message}`);
   }
 });
+
+/** Guarda las preferencias de vista en el `.codarch/` del repo (ADR 0053). */
+ipcMain.handle(
+  "codarch:persist-preferences",
+  async (_event, root: string, preferences: unknown) => {
+    if (typeof root !== "string" || !root) return false;
+    if (!isDirectory(root)) return false;
+    const parsed = parsePreferences(preferences);
+    if (!parsed) return false;
+    return writeRepoPreferences(root, parsed);
+  }
+);
 
 /** La línea del tiempo del repositorio analizado. */
 ipcMain.handle("codarch:history", async () => {

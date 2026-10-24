@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./plugins": "./src/plugins.ts",
     "./Settings": "./src/Settings.tsx",
+    "./storage": "./src/storage.ts",
     "./styles.css": "./src/styles.css"
   },
   "types": "./src/index.ts",

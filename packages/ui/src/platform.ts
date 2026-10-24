@@ -11,6 +11,8 @@ export interface ResultadoAnalisis {
   warnings: string[];
   durationMs: number;
   addons: RepoAddons;
+  /** Las preferencias que el repo ya tenía guardadas (ADR 0053). */
+  preferences?: ViewPreferences | null;
 }
 
 /**

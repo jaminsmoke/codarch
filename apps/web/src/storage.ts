@@ -1,4 +1,8 @@
-import type { ViewPreferences, SavedProject } from "@codarch/ui";
+import {
+  parsePreferences,
+  type ViewPreferences,
+  type SavedProject
+} from "@codarch/ui/storage";
 
 export type { ViewPreferences, SavedProject };
 
@@ -14,14 +18,7 @@ export function readPreferences(
   try {
     const raw = storage.getItem(PREFERENCES_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ViewPreferences>;
-    if (typeof parsed.colorMode !== "string") return null;
-    return {
-      areaMetric:
-        typeof parsed.areaMetric === "string" ? parsed.areaMetric : null,
-      colorMode: parsed.colorMode,
-      showLabels: parsed.showLabels !== false
-    };
+    return parsePreferences(JSON.parse(raw) as unknown);
   } catch {
     return null;
   }

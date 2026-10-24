@@ -34,8 +34,9 @@ analizado, con cualquier distribución. La app no guarda una copia maestra de na
 
 ### 2. Lo de la máquina, en su almacén local
 
-Las preferencias de vista, los plugins activados y la última raíz viven en el almacén de la
-plataforma:
+Las preferencias de vista del repositorio viven además en el propio repo, en
+`.codarch/preferences.json`, y mandan sobre las de la máquina. Los plugins activados y la última
+raíz viven en el almacén de la plataforma:
 
 - **web** (npm o Docker): el `localStorage` del navegador;
 - **escritorio**: el perfil de Electron (`app.getPath("userData")`, hoy
@@ -103,7 +104,5 @@ Sin fases abiertas: es una decisión de arquitectura de la entrega.
 
 ### Ideas abiertas
 
-- Preferencias de vista por repositorio (`.codarch/preferences.json`), con la carga asíncrona que
-  pide el hook.
 - Una tienda de plugins de la app, si se decide cargar código externo con sandbox.
 - Configuración de servidor para Docker, si un equipo la pide.

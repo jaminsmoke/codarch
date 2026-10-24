@@ -32,6 +32,7 @@
       "@codarch/ui": ["packages/ui/src/index.ts"],
       "@codarch/ui/plugins": ["packages/ui/src/plugins.ts"],
       "@codarch/ui/Settings": ["packages/ui/src/Settings.tsx"],
+      "@codarch/ui/storage": ["packages/ui/src/storage.ts"],
       "@codarch/ui/styles.css": ["packages/ui/src/styles.css"]
     }
   },
