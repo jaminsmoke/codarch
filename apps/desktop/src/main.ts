@@ -10,7 +10,7 @@ import {
 import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
-import { analyzeRepository } from "@codarch/parsers";
+import { analyzeRepository, ensureGitignoreEntry } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import type { RepoAddons } from "@codarch/addons";
 import { checkSource } from "@codarch/versions";
@@ -140,8 +140,8 @@ async function openTarget(target: string): Promise<void> {
     }
     const result = analyzeRepository(target, { git: true });
     lastRoot = target;
+    ensureStateIgnored(target);
     writeSnapshot(target, result.snapshot);
-    ensureGitignore(target);
     send({ kind: "snapshot", snapshot: result.snapshot, label: target });
     return;
   }
@@ -199,26 +199,14 @@ function writeSnapshot(root: string, snapshot: unknown): boolean {
   return writeCodarchJson(root, "snapshot.cc.json", snapshot);
 }
 
-/** Asegura que `.codarch/` esté ignorado en el repo. */
-function ensureGitignore(root: string): void {
-  const file = path.join(root, ".gitignore");
-  const entry = ".codarch/";
-  try {
-    let content = "";
-    if (existsSync(file)) {
-      content = readFileSync(file, "utf8");
-    }
-    const lines = content.split(/\r?\n/);
-    const hasEntry = lines.some(
-      (line) => line.trim() === entry || line.trim() === ".codarch"
-    );
-    if (hasEntry) return;
-    const suffix = content.length === 0 || content.endsWith("\n") ? "" : "\n";
-    writeFileSync(file, `${content}${suffix}${entry}\n`, "utf8");
-  } catch (cause) {
-    console.error(
-      `no se pudo actualizar ${file}: ${(cause as Error).message}`
-    );
+/**
+ * Deja `.codarch/` fuera de git si el directorio nace ahora (ADR 0050).
+ *
+ * Si ya existía, o el usuario quitó la línea del `.gitignore`, no se toca.
+ */
+function ensureStateIgnored(root: string): void {
+  if (!existsSync(path.join(root, CODARCH_DIR))) {
+    ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
   }
 }
 
@@ -258,7 +246,7 @@ function persistProject(
   report: unknown | null
 ): boolean {
   if (!isDirectory(root)) return false;
-  ensureGitignore(root);
+  ensureStateIgnored(root);
   if (!writeSnapshot(root, snapshot)) return false;
   if (report !== null && report !== undefined) {
     writeCodarchJson(root, "report.json", report);
@@ -472,8 +460,8 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   const started = Date.now();
   const result = analyzeRepository(root, { git: true });
   lastRoot = root;
+  ensureStateIgnored(root);
   writeSnapshot(root, result.snapshot);
-  ensureGitignore(root);
   return {
     snapshot: result.snapshot,
     files: result.files,

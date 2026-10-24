@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ConfigError } from "@codarch/metrics";
-import { analyzeRepository } from "@codarch/parsers";
+import { analyzeRepository, ensureGitignoreEntry } from "@codarch/parsers";
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
@@ -77,13 +77,23 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     throw error;
   }
 
+  const rootPath = path.resolve(root);
   const outDirectory = path.resolve(
-    options.out ?? path.join(path.resolve(root), ".codarch")
+    options.out ?? path.join(rootPath, ".codarch")
   );
   const snapshotPath = path.join(outDirectory, "snapshot.cc.json");
   const mapPath = path.join(outDirectory, "map.html");
 
   try {
+    // El estado es local: si `.codarch/` nace aquí, se ignora en el repo. Si
+    // ya existía (o el usuario quitó la línea), no se toca el `.gitignore`
+    // (ADR 0050).
+    if (
+      outDirectory === path.join(rootPath, ".codarch") &&
+      !fs.existsSync(outDirectory)
+    ) {
+      ensureGitignoreEntry(rootPath, ".codarch/");
+    }
     fs.mkdirSync(outDirectory, { recursive: true });
     fs.writeFileSync(
       snapshotPath,

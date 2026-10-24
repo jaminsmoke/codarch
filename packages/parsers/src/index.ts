@@ -44,6 +44,7 @@ export type {
 } from "./migration";
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
 export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
+export { ensureGitignoreEntry } from "./gitignore";
 export { MemoryFileSystem, directoryOf } from "./fs";
 export type { DirectoryEntry, FileSystem } from "./fs";
 export { NodeFileSystem } from "./node-fs";

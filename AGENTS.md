@@ -185,6 +185,10 @@ también `npm run sync:action` y actualizar el repo público.
   las preferencias y la raíz del último repo. La web y el escritorio comparten la misma fuente.
 - M33 cerrada: la orquestación compartida (ADR 0049). Un hook `useCodarchApp` en `@codarch/ui`
   encapsula el estado y las operaciones; cada app solo conecta su adaptador de plataforma.
+- M34 en curso: el estado vive en el repositorio (ADR 0050). `.codarch.yml` configura y se
+  versiona, `.codarch/` es el estado local y se ignora al crearse (CLI y escritorio), y
+  `.codarch-history/` se comparte. Queda enseñar lo guardado al instante, vigilar la raíz para que
+  el mapa cambie con el repo y decir qué raíz se está viendo.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
