@@ -15,6 +15,7 @@ import {
   buildSearch,
   historyFileName,
   localStore,
+  OpenMenu,
   parseSourceRequest,
   parseViewState,
   useCodarchApp,
@@ -702,83 +703,75 @@ export default function App() {
             >
               {copied ? "Copiado" : "Copiar enlace"}
             </button>
-            <details className="open-menu" ref={openMenuRef}>
-              <summary className="button">
-                <span className="button-label-long">Abrir repositorio o archivo</span>
-                <span className="button-label-short">Abrir</span>
-              </summary>
-              <div className="open-menu-panel">
-                <button
-                  type="button"
-                  onClick={openLiveFolder}
-                  disabled={serverMode === "demo"}
-                  title={
+            <OpenMenu
+              ref={openMenuRef}
+              items={[
+                {
+                  label: "Monitorizar carpeta (live)…",
+                  onClick: openLiveFolder,
+                  disabled: serverMode === "demo",
+                  title:
                     serverMode === "demo"
                       ? "Arranca `codarch serve` para elegir carpetas locales"
                       : "Analiza y vigila una carpeta local"
-                  }
-                >
-                  Monitorizar carpeta (live)…
-                </button>
-                <button type="button" onClick={() => void openRepository()}>
-                  Carpeta con .codarch…
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void analyzeFolderInBrowser()}
-                  title="Analiza la carpeta en el navegador, sin ejecutar el CLI"
-                >
-                  Analizar carpeta aquí…
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
+                },
+                {
+                  label: "Carpeta con .codarch…",
+                  onClick: () => void openRepository()
+                },
+                {
+                  label: "Analizar carpeta aquí…",
+                  onClick: () => void analyzeFolderInBrowser(),
+                  title: "Analiza la carpeta en el navegador, sin ejecutar el CLI"
+                },
+                {
+                  label: "Archivo cc.json…",
+                  onClick: () => {
                     closeOpenMenu();
                     inputRef.current?.click();
-                  }}
+                  }
+                }
+              ]}
+            >
+              <div className="url-load">
+                <label className="field">
+                  <span>Snapshot por URL</span>
+                  <input
+                    type="text"
+                    value={urlInput}
+                    placeholder="https://…/snapshot.cc.json"
+                    onChange={(event) => setUrlInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void loadFromUrl();
+                    }}
+                  />
+                </label>
+                <label className="field">
+                  <span>Reporte por URL (opcional)</span>
+                  <input
+                    type="text"
+                    value={reportUrlInput}
+                    placeholder="https://…/report.json"
+                    onChange={(event) => setReportUrlInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void loadFromUrl();
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void loadFromUrl()}
+                  disabled={!urlInput.trim()}
                 >
-                  Archivo cc.json…
+                  Cargar por URL
                 </button>
-                <div className="url-load">
-                  <label className="field">
-                    <span>Snapshot por URL</span>
-                    <input
-                      type="text"
-                      value={urlInput}
-                      placeholder="https://…/snapshot.cc.json"
-                      onChange={(event) => setUrlInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") void loadFromUrl();
-                      }}
-                    />
-                  </label>
-                  <label className="field">
-                    <span>Reporte por URL (opcional)</span>
-                    <input
-                      type="text"
-                      value={reportUrlInput}
-                      placeholder="https://…/report.json"
-                      onChange={(event) => setReportUrlInput(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") void loadFromUrl();
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => void loadFromUrl()}
-                    disabled={!urlInput.trim()}
-                  >
-                    Cargar por URL
-                  </button>
-                </div>
-                <p>
-                  Monitorizar analiza una carpeta en el servidor local. .codarch
-                  carga artefactos ya generados. Para activarlo:{" "}
-                  <code>codarch serve</code>.
-                </p>
               </div>
-            </details>
+              <p>
+                Monitorizar analiza una carpeta en el servidor local. .codarch
+                carga artefactos ya generados. Para activarlo:{" "}
+                <code>codarch serve</code>.
+              </p>
+            </OpenMenu>
             <input
               ref={inputRef}
               className="sr-only"

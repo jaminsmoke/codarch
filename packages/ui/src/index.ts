@@ -40,6 +40,7 @@ export {
   type BlockLabel
 } from "./labels";
 export { MapCanvas } from "./MapCanvas";
+export { OpenMenu, type OpenMenuItem } from "./OpenMenu";
 export { mapColorFor, metricIndexOf } from "./map";
 export { orderedMetrics } from "./metrics";
 export { nextCell, type CellBox, type Direction } from "./navigation";

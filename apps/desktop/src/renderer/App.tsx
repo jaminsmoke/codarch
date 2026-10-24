@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import type { HistoryEntry } from "@codarch/schema/browser";
-import { AppShell, useCodarchApp } from "@codarch/ui";
+import { AppShell, OpenMenu, useCodarchApp } from "@codarch/ui";
 import { desktop } from "./bridge";
 import { plataformaEscritorio } from "./plataforma";
 import type { CodarchDesktop } from "../preload";
@@ -95,30 +95,23 @@ export default function App() {
   return (
     <AppShell
       app={app}
-      topbarActions={
-        <>
-          <button
-            className="button ghost"
-            type="button"
-            onClick={() => void analyzeFolder()}
-          >
-            Analizar carpeta
-          </button>
-          <button
-            className="button ghost"
-            type="button"
-            onClick={() => void openSnapshotFile()}
-          >
-            Abrir cc.json
-          </button>
-          <button
-            className="button ghost"
-            type="button"
-            onClick={() => void openReportFile()}
-          >
-            Abrir report.json
-          </button>
-        </>
+      topbarTrailing={
+        <OpenMenu
+          items={[
+            {
+              label: "Analizar carpeta…",
+              onClick: () => void analyzeFolder()
+            },
+            {
+              label: "Archivo cc.json…",
+              onClick: () => void openSnapshotFile()
+            },
+            {
+              label: "Reporte JSON…",
+              onClick: () => void openReportFile()
+            }
+          ]}
+        />
       }
       onOpenHistory={(entry) => {
         void openHistorySnapshot(entry);
