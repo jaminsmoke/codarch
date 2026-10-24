@@ -44,7 +44,21 @@ const DICCIONARIO: Record<Idioma, Record<string, string>> = {
     "home.titulo": "El mapa vivo de la arquitectura de tu software",
     "home.guia": "La guía",
     "home.docs": "Los documentos",
-    "home.instalar": "Instalar"
+    "home.empezar": "Elige cómo usarlo",
+    "home.empezar.desc":
+      "Las tres vías ven el mismo cc.json y el mismo checksum. Empieza por la que te encaje.",
+    "home.cli": "CLI",
+    "home.cli.desc":
+      "Analiza, compara y sirve desde la terminal. Es la pieza que lleva las demás dentro.",
+    "home.web": "App web",
+    "home.web.desc":
+      "El mismo mapa en el navegador, servido en local desde el CLI o con Docker.",
+    "home.web.docker": "o con Docker:",
+    "home.desktop": "Escritorio",
+    "home.desktop.desc":
+      "App nativa con Electron: analiza con git contra el disco y guarda en .codarch/.",
+    "home.npm": "Ver en npm",
+    "home.releases": "Descargar instaladores"
   },
   en: {}
 };

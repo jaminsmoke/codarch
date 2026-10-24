@@ -42,43 +42,105 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
           y la deuda de migración. El mismo mapa aparece en el pull request,
           en el CI y en tu agente.
         </motion.p>
+      </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.16, ease: [0.22, 0.61, 0.36, 1] }}
-          className="mt-8 flex flex-wrap items-center gap-3"
-        >
-          <a
-            className="rounded-full border border-cobalt bg-cobalt px-5 py-2.5 font-medium text-white no-underline transition-transform hover:-translate-y-0.5"
-            href="https://www.npmjs.com/package/codarch"
-          >
-            {t(idioma, "home.instalar")}
-          </a>
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.16, ease: [0.22, 0.61, 0.36, 1] }}
+        className="mt-10"
+      >
+        <h2 className="font-display text-xl font-bold tracking-tight">
+          {t(idioma, "home.empezar")}
+        </h2>
+        <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+          {t(idioma, "home.empezar.desc")}
+        </p>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
+            <h3 className="font-display text-base font-bold">
+              {t(idioma, "home.cli")}
+            </h3>
+            <p className="flex-1 text-sm text-ink-soft">
+              {t(idioma, "home.cli.desc")}
+            </p>
+            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
+              npm i -g codarch@next
+            </code>
+            <a
+              className="font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
+              href="https://www.npmjs.com/package/codarch"
+            >
+              {t(idioma, "home.npm")} →
+            </a>
+          </article>
+
+          <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
+            <h3 className="font-display text-base font-bold">
+              {t(idioma, "home.web")}
+            </h3>
+            <p className="flex-1 text-sm text-ink-soft">
+              {t(idioma, "home.web.desc")}
+            </p>
+            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
+              codarch serve .
+            </code>
+            <span className="text-xs text-muted">
+              {t(idioma, "home.web.docker")}
+            </span>
+            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
+              docker compose up --build
+            </code>
+          </article>
+
+          <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
+            <h3 className="font-display text-base font-bold">
+              {t(idioma, "home.desktop")}
+            </h3>
+            <p className="flex-1 text-sm text-ink-soft">
+              {t(idioma, "home.desktop.desc")}
+            </p>
+            <a
+              className="inline-flex rounded-lg border border-line-strong bg-paper px-3 py-2 text-sm font-medium text-ink no-underline transition-colors hover:border-ink-soft"
+              href="https://github.com/jaminsmoke/codarch/releases"
+            >
+              {t(idioma, "home.releases")} →
+            </a>
+            <span className="text-xs text-muted">
+              Windows y Linux, sin firmar (alpha).
+            </span>
+          </article>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-6">
           <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
             href={`${BASE}/guia/`}
           >
             {t(idioma, "home.guia")}
           </a>
-          <code className="rounded-lg border border-line bg-panel px-3 py-2 font-mono text-sm text-ink-soft">
-            npm i -g codarch@next
-          </code>
-        </motion.div>
+          <a
+            className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
+            href={`${BASE}/docs/`}
+          >
+            {t(idioma, "home.docs")}
+          </a>
+        </div>
+      </motion.section>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-6 inline-flex items-center gap-2 rounded-full border border-ochre/50 bg-ochre/10 px-4 py-1.5 text-sm text-ink-soft"
-        >
-          <span>🧪</span>
-          <span>
-            <b>Alpha.</b> La funcionalidad está; el producto todavía no. Las
-            versiones llevan prerelease y no hay soporte.
-          </span>
-        </motion.p>
-      </section>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="mt-6 inline-flex items-center gap-2 rounded-full border border-ochre/50 bg-ochre/10 px-4 py-1.5 text-sm text-ink-soft"
+      >
+        <span>🧪</span>
+        <span>
+          <b>Alpha.</b> La funcionalidad está; el producto todavía no. Las
+          versiones llevan prerelease y no hay soporte.
+        </span>
+      </motion.p>
 
       <motion.figure
         initial={{ opacity: 0, y: 24 }}
