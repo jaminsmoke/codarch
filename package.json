@@ -25,6 +25,7 @@
     "sync:action": "node scripts/sync-action.mjs",
     "docs": "node scripts/docs.mjs",
     "version": "node scripts/version.mjs",
+    "release": "node scripts/release.ts",
     "site:dev": "npm run dev --workspace @codarch/site",
     "site:build": "npm run build --workspace @codarch/site",
     "web:dev": "npm run dev --workspace @codarch/web",

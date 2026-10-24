@@ -24,11 +24,13 @@ const PACKAGES = [
   { file: "package.json", label: "el producto" },
   { file: "apps/cli/package.json", label: "el CLI" },
   { file: "apps/desktop/package.json", label: "el escritorio" },
-  { file: "apps/mcp/package.json", label: "el MCP" }
+  { file: "apps/mcp/package.json", label: "el MCP" },
+  { file: "apps/web/package.json", label: "la web" }
 ];
 
 // Las carpetas con paquetes del repo. Los que no se publican no llevan versión
-// propia: se quedan en `0.0.0` y la versión la pone el producto (ADR 0041).
+// propia: se quedan en `0.0.0` y la versión la pone el producto (ADR 0041 y
+// ADR 0051).
 const WORKSPACES = ["apps", "packages", "plugins"];
 
 function paquetesSinVersionPropia() {
@@ -53,7 +55,7 @@ function paquetesSinVersionPropia() {
 }
 
 // Los mismos sitios dentro del lock: npm los exige, aunque sean derivados.
-const LOCK_PACKAGES = ["", "apps/cli", "apps/desktop", "apps/mcp"];
+const LOCK_PACKAGES = ["", "apps/cli", "apps/desktop", "apps/mcp", "apps/web"];
 
 const PRODUCT = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 const FORMAT = /^\d+\.\d+$/;

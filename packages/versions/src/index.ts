@@ -18,6 +18,7 @@ export {
   PRODUCT_VERSION,
   REPORT_SCHEMA_VERSION
 } from "./manifest.ts";
+export { nextProductVersion, type ReleaseKind } from "./release.ts";
 
 /** Una versión partida: `mayor.menor.parche`, con prerelease opcional. */
 export interface ParsedVersion {
