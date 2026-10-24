@@ -3,7 +3,8 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
+  type ChangeEvent
 } from "react";
 import {
   defaultMetric,
@@ -23,9 +24,6 @@ import {
   buildRenderModel,
   type RenderModel
 } from "@codarch/render/browser";
-import Settings from "./Settings";
-import { usePlugins } from "./plugins";
-import type { PluginContext } from "@codarch/plugin-api";
 import {
   CHURN_METRIC,
   DebtList,
@@ -43,10 +41,13 @@ import {
   metricIndexOf,
   orderedMetrics,
   PrPanel,
-  pruneTree,
-  readMigration,
-  readReport
+  pruneTree
 } from "@codarch/ui";
+import { useCodarchApp } from "@codarch/ui";
+import { desktop } from "./bridge";
+import { plataformaEscritorio } from "./plataforma";
+import { usePlugins } from "./plugins";
+import type { CodarchDesktop } from "../preload";
 import {
   clearProject,
   readPreferences,
@@ -55,8 +56,10 @@ import {
   writeProject,
   type ViewPreferences
 } from "./storage";
-import { desktop } from "./bridge";
-import type { CodarchDesktop } from "../preload";
+import Settings from "./Settings";
+import type { PluginContext } from "@codarch/plugin-api";
+import { readMigration } from "@codarch/ui";
+import { readReport } from "@codarch/ui";
 
 interface ViewState {
   model: RenderModel | null;
