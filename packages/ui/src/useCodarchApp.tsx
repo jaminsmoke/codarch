@@ -693,6 +693,7 @@ export function useCodarchApp(
   );
 
   // Al cambiar de métrica se conserva el fichero elegido si sigue existiendo.
+  /* eslint-disable react-hooks/set-state-in-effect -- la selección se deriva del modelo; el efecto la mantiene al cambiar de métrica */
   useEffect(() => {
     const files = view.model?.files;
     if (!files) {
@@ -709,6 +710,7 @@ export function useCodarchApp(
     }
     selectIndex(view.model?.defaultSelection ?? null);
   }, [view.model, selectIndex]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // `/` lleva al buscador y Escape limpia el foco y la selección.
   useEffect(() => {

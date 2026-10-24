@@ -494,6 +494,9 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+}).catch((error: Error) => {
+  console.error(`no se pudo arrancar: ${error.message}`);
+  app.quit();
 });
 
 // "Abrir con": en macOS llega antes de que la app esté lista.

@@ -87,9 +87,12 @@ Un solo `eslint.config.js` en la raíz, con bloques por ruta:
 
 ### M35 — La segunda red del lint
 
-- [ ] Instalar las dependencias y escribir `eslint.config.js` por área.
-- [ ] Corregir lo que salga (hooks, claves, accesibilidad) sin cambiar comportamiento.
-- [ ] Añadir `npm run lint:types` y su paso en el CI.
-- [ ] Documentar en `AGENTS.md` qué pasa en cada pasada.
+- [x] Instalar las dependencias y escribir `eslint.config.js` por área.
+- [x] Corregir lo que salga (hooks, claves, accesibilidad) sin cambiar comportamiento.
+- [x] Añadir `npm run lint:types` y su paso en el CI.
+- [x] Documentar en `AGENTS.md` qué pasa en cada pasada.
+
+Quedan quince avisos de `exhaustive-deps` por los setters que llegan en `app.actions` (son estables):
+no bloquean y se revisan si crecen.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

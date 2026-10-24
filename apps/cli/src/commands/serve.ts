@@ -193,6 +193,8 @@ export function runServe(options: ServeOptions): number {
     updatedAt: state.updatedAt
   });
 
+  // El handler atrapa sus errores y el servidor no espera la promesa.
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Node no espera el callback
   const server = http.createServer(async (request, response) => {
     try {
       const host = request.headers.host ?? `${options.host}:${options.port}`;

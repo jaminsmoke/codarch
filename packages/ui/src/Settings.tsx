@@ -182,6 +182,8 @@ export default function Settings({
   // Se comprueba al abrir la sección, no antes: sin red por sorpresa.
   useEffect(() => {
     if (open && section === "actualizaciones" && !update && !checking) {
+      // Es una comprobación externa (red) al abrir la sección, no estado derivado.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- comprobación externa al abrir
       void checkUpdates();
     }
   }, [open, section, update, checking, checkUpdates]);

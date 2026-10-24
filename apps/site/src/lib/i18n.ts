@@ -30,12 +30,14 @@ export type Clave = keyof typeof es;
 /** El diccionario tiene que estar completo en cada idioma. */
 const DICCIONARIO: Record<Idioma, Record<Clave, string>> = { es, en };
 
+/* eslint-disable @typescript-eslint/no-namespace, @typescript-eslint/no-empty-object-type -- la ampliación de Starlight se declara con namespace y merging */
 declare global {
   /** Las claves propias también se leen con `Astro.locals.t` (Starlight). */
   namespace StarlightApp {
     interface I18n extends Record<Clave, string> {}
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace, @typescript-eslint/no-empty-object-type */
 
 export function esIdioma(valor: string | undefined): valor is Idioma {
   return valor !== undefined && IDIOMAS.includes(valor as Idioma);

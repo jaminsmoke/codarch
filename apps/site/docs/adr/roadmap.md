@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso y M35 en curso.
+curso y M35 cerrada.
 
 ## Las fases
 
@@ -118,7 +118,7 @@ flowchart TD
 | M32 | El escritorio persiste en `.codarch/` | cerrada | [ADR 0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
 | M33 | La orquestación compartida | cerrada | [ADR 0049](0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
 | M34 | El estado vive en el repositorio | en curso | [ADR 0050](0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
-| M35 | La segunda red del lint | en curso | [ADR 0054](0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
+| M35 | La segunda red del lint | cerrada | [ADR 0054](0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

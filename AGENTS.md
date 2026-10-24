@@ -41,7 +41,8 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action �
 
 ```bash
 npm ci                 # respeta allowScripts fijados en package.json
-npm run lint           # oxlint
+npm run lint           # oxlint + eslint (ADR 0054)
+npm run lint:types     # eslint con tipos: hooks y promesas
 npm run typecheck      # tsc --noEmit
 npx vitest run         # suite completa
 npm run check:action   # action.yml + workflow + comentario
@@ -192,6 +193,9 @@ también `npm run sync:action` y actualizar el repo público.
   crearse (CLI y escritorio), y `.codarch-history/` se comparte. La vigilancia es compartida
   (`watchRepository`, chokidar) y la cabecera dice `live` / `live en pausa` / `sin vigilancia`.
   Queda decir en la app qué raíz se está viendo al analizar una subcarpeta.
+- M35 cerrada: la segunda red del lint (ADR 0054). Oxlint sigue en cada guardado y ESLint añade
+  hooks, accesibilidad, claves y promesas por área; `npm run lint:types` cubre las reglas que
+  necesitan tipos y el CI corre las dos pasadas.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

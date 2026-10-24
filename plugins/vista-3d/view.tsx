@@ -44,6 +44,8 @@ export function Vista3D({ context }: { context: PluginContext }) {
   // El contexto cambia con cada selección ✓ (lleva el fichero elegido ✓), pero
   // la escena no debe volver a montarse por eso ✓: los callbacks leen de aquí ✓.
   const latest = useRef(context);
+  // La escena lee el contexto por referencia para no remontarse en cada selección.
+  // eslint-disable-next-line react-hooks/refs -- lectura intencionada del contexto actual
   latest.current = context;
 
   const model = context.model;
@@ -52,6 +54,8 @@ export function Vista3D({ context }: { context: PluginContext }) {
   /** El árbol de volúmenes: se construye cuando cambia el mapa o el color ✓. */
   const volumes = useMemo<Volume[]>(() => {
     if (!model) return [];
+    // `colorFor` se resuelve al construir el árbol: no depende de cada render.
+    // eslint-disable-next-line react-hooks/refs -- la función se lee por referencia a propósito
     return buildVolumes({
       roots: model.roots,
       files: model.files,
@@ -62,6 +66,7 @@ export function Vista3D({ context }: { context: PluginContext }) {
     });
     // `colorFor` se lee por la referencia ✓: su identidad cambia en cada render ✓
     // y no queremos reconstruir el árbol por eso ✓.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- colorMode cambia los colores aunque se lea por referencia
   }, [model, colorMode]);
 
   const selection = context.selection;

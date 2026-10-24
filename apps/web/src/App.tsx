@@ -267,6 +267,8 @@ export default function App() {
     if (urlApplied || !view.model || !stats) return;
     const wanted = urlRef.current?.view;
     if (wanted) applyView(wanted);
+    // El flag es del arranque: la URL se aplica una sola vez.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- aplicar la URL es un efecto externo
     setUrlApplied(true);
   }, [urlApplied, view.model, stats, applyView]);
 

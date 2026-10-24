@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-element-interactions -- el fondo del diálogo cierra con ratón; el teclado ya tiene Escape y el botón Cerrar */
+
 interface BrowseEntry {
   name: string;
   path: string;
@@ -52,12 +54,14 @@ export default function FolderPicker({
     }
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- al abrir, la carpeta inicial manda sobre lo que hubiera */
   useEffect(() => {
     if (!open) return;
     setCurrentPath(initialPath);
     setTypedPath(initialPath);
     void load(initialPath);
   }, [open, initialPath, load]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!open) return;

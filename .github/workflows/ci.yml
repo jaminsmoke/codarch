@@ -29,6 +29,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Las reglas que necesitan tipos: más lentas, van aparte (ADR 0054).
+      - name: Lint con tipos
+        run: npm run lint:types
+
       - name: Tipos
         run: npm run typecheck
 
