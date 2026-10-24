@@ -36,6 +36,7 @@
     "desktop:start": "npm run start --workspace @codarch/desktop",
     "serve": "npm run web:build && tsx apps/cli/src/index.ts serve",
     "check:action": "node scripts/check-action.mjs",
+    "check:desktop": "node scripts/check-desktop-package.mjs",
     "icons": "node scripts/make-icons.mjs",
     "lint": "oxlint .",
     "test": "vitest run",

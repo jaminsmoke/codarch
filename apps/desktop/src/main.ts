@@ -89,6 +89,17 @@ function send(target: DesktopTarget): void {
 function configureUpdates(): void {
   if (!canAutoUpdate(process.platform, app.isPackaged)) return;
 
+  // Sin `resources/app-update.yml` electron-updater no sabe a qué release
+  // mirar y la comprobación falla sin que nadie lo vea. Mejor decirlo: un
+  // instalador empaquetado sin esos metadatos no se actualiza nunca.
+  const configuracion = path.join(process.resourcesPath, "app-update.yml");
+  if (!existsSync(configuracion)) {
+    console.warn(
+      `no hay ${configuracion}: esta instalación no puede actualizarse sola`
+    );
+    return;
+  }
+
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
   // El producto está en alpha y publica prereleases ✓.

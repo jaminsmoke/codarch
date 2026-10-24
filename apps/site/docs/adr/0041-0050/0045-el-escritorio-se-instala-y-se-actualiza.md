@@ -58,6 +58,11 @@ diferenciales.
 El workflow sube esos archivos al release. Sin ellos, `electron-updater` no tiene a quién preguntar
 ni qué descargar.
 
+El paquete instalado lleva además `resources/app-update.yml`: es lo que le dice al actualizador a
+qué repositorio mirar. Un instalador sin ese archivo **no se actualiza nunca**, y falla en
+silencio, así que el workflow comprueba después de empaquetar que está ahí y que el canal existe
+(`scripts/check-desktop-package.mjs`).
+
 El tag de la release es `v<versión>` (`v0.3.1-alpha.2`), no `desktop-v<versión>`:
 `electron-updater` lee las etiquetas del feed de GitHub como versiones semver y descarta las que no
 lo son. El planificador acepta las dos formas para seguir leyendo el historial `desktop-v*`.
@@ -115,4 +120,5 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Añadir `electron-updater` y la comprobación en segundo plano para Windows y Linux.
 - [x] Cambiar el tag a `v<versión>` para que `electron-updater` lo lea como semver.
 - [x] Probar el ciclo: `alpha.1` descargó `alpha.2`, la instaló al cerrar y arrancó como `alpha.2`.
+- [x] Comprobar en el CI que el instalador lleva `app-update.yml` y `latest*.yml`.
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.

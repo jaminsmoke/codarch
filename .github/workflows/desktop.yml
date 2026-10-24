@@ -12,6 +12,7 @@ on:
       - "plugins/**"
       - "package.json"
       - "package-lock.json"
+      - "scripts/check-desktop-package.mjs"
       - ".github/workflows/desktop.yml"
   pull_request:
     paths:
@@ -21,6 +22,7 @@ on:
       - "plugins/**"
       - "package.json"
       - "package-lock.json"
+      - "scripts/check-desktop-package.mjs"
       - ".github/workflows/desktop.yml"
 
 permissions:
@@ -89,6 +91,12 @@ jobs:
       - name: Empaquetar
         working-directory: apps/desktop
         run: npx electron-builder --publish never
+
+      # Lo que hace posible que la app instalada se actualice sola (ADR 0045).
+      # Si falta, mejor saberlo aquí que en la app de alguien.
+      - name: Comprobar los metadatos de actualización
+        working-directory: apps/desktop
+        run: node ../../scripts/check-desktop-package.mjs release
 
       # Solo los instaladores: la carpeta "unpacked" lleva los binarios
       # sueltos y GitHub limita las peticiones al subir assets.
