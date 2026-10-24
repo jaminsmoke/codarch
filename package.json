@@ -48,7 +48,6 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
-    "@types/three": "^0.180.0",
     "@vitest/eslint-plugin": "1.4.0",
     "esbuild": "^0.28.2",
     "eslint": "^9.39.5",
@@ -57,7 +56,6 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.13.0",
     "oxlint": "^1.89.0",
-    "three": "^0.180.0",
     "tree-sitter": "0.25.1",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0",

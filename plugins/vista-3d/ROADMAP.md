@@ -34,8 +34,8 @@ Lo demás que llegó con esto ✅:
 
 - **Pulsar una carpeta plegada la enfoca** ✓: la app se queda con esa carpeta ✓ y la ciudad se abre ✓.
 - **Seleccionar no remonta la escena** ✓: el foco se mueve sin volver a crear el dispositivo de GPU ✓.
-- **Una sola malla instanciada** ✓ (`InstancedMesh` ✓) con color por instancia ✓: miles de cajas son
-  una draw call ✓. Seleccionar solo reescribe colores ✓ y cambiar de LOD, matrices ✓.
+- **Una sola malla instanciada** ✓ con color por instancia ✓: miles de cajas son una draw call ✓.
+  Seleccionar solo reescribe colores ✓ y cambiar de LOD, matrices ✓.
 - **La cámara abre encuadrando el mapa entero** ✓: la distancia sale del radio del mapa y del campo
   de visión ✓ (`fitDistance` ✓), orbita alrededor del centro del mapa ✓ y la niebla se escala con
   él ✓.
@@ -61,18 +61,18 @@ Lo demás que llegó con esto ✅:
 
 - **Empezar por el `RenderModel` tal cual** ✓ y migrar después ✓. El plugin aísla el trabajo ✓: si
   el modelo 3D acaba siendo otro ✓, solo cambia este plugin ✓.
-- **La GPU manda** ✓: todo lo que se pueda, en la GPU ✓. El plugin pide **GPU** ✓
-  (`requires: { gpu: true }` ✓) y la tienda dice con qué va a dibujar aquí ✓ (`WebGPU` o `WebGL2` ✓).
-- **WebGPU primero, WebGL2 de suelo** ✓ (2026-10-24 ✓). Se dibuja con `three/webgpu` ✓: va por el
-  driver de la tarjeta ✓ (D3D12 ✓, Vulkan ✓, Metal ✓), pide la GPU dedicada ✓ y three cae solo a
-  WebGL2 cuando no hay WebGPU ✓, así que hay **una sola ruta de código** ✓. Cuesta ~164 KB más en el
-  chunk del plugin ✓ (506 → 670 KB ✓), que se descarga solo al abrir la vista ✓.
-- **La cámara es del plugin** ✓ (`orbit.ts` ✓). `OrbitControls` importa el build de WebGL de three ✓
-  y, con los dos builds, el chunk llevaba three **dos veces** ✓ (836 KB ✓). La nuestra añade pinza en
-  táctil ✓ y no selecciona al arrastrar ✓.
+- **La GPU manda** ✓: todo lo que se pueda, en la GPU ✓. El plugin pide **WebGL2** ✓
+  (`requires: { webgl2: true }` ✓).
+- **WebGL2 propio, sin three** ✓ (2026-10-24 ✓, ADR 0055 ✓). La vista se dibuja con WebGL2 a pelo ✓:
+  un cubo instanciado ✓ (`drawArraysInstanced` ✓) y dos shaders ✓. Se probó antes con
+  `three/webgpu` ✓, y el runtime costaba más que el dibujo ✓. Medido en la RTX del desarrollo ✓:
+  4.000 cajas a 1280×800 → 3,1 ms por fotograma ✓; a 2560×1600 → 8,5 ms ✓ (la medida incluye leer
+  un píxel, que fuerza a esperar a la GPU ✓). El chunk del plugin baja de 2,2 MB a 15 KB ✓.
+- **La cámara es del plugin** ✓ (`orbit.ts` ✓): matemática pura ✓, sin cámara de librería ✓. Añade
+  pinza en táctil ✓ y no selecciona al arrastrar ✓.
 - **Instancing antes que más detalle** ✓ (2026-10-24 ✓). El presupuesto subió de 1.200 a 4.000 al
-  pasar a una sola `InstancedMesh` ✓; el color por instancia respeta el degradado de las lentes ✓ y
-  la selección va en el color ✓.
+  pasar a una sola llamada instanciada ✓; el color por instancia respeta el degradado de las lentes ✓
+  y la selección va en el color ✓.
 - **El encuadre se calcula, no se fija** ✓ (2026-10-24 ✓). La distancia de apertura sale del radio
   del mapa y del campo de visión ✓: con otro tamaño de mapa o de pantalla sigue cabiendo ✓. Los
   límites de zoom y la niebla van con esa misma distancia ✓.

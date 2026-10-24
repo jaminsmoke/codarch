@@ -1,14 +1,9 @@
-// Solo tipos: este módulo no arrastra three ✓ (así su matemática se prueba en
-// Node, sin GPU ✓).
-import type { PerspectiveCamera } from "three/webgpu";
-
 /**
  * La cámara del 3D: orbitar y acercarse.
  *
- * Es propia del plugin a propósito ✓: `OrbitControls` importa el build de
- * WebGL de three ✓ (`three`), y este plugin usa el build de WebGPU ✓
- * (`three/webgpu`) ✓. Con los dos, el chunk del plugin lleva three **dos
- * veces** ✓ y engorda sin dibujar una caja más ✓.
+ * Es propia del plugin a propósito ✓: aquí solo hay matemática ✓ (sin three ✓,
+ * sin DOM más allá de los eventos ✓), así que se prueba en Node ✓ y el
+ * renderizador recibe una posición y un objetivo ✓, no un objeto de cámara ✓.
  *
  * La matemática va aparte ✓ (`orbitPosition` ✓, `clampOrbit` ✓) para poder
  * probarla sin GPU ✓.
@@ -134,9 +129,17 @@ export interface OrbitControlsOptions {
   limits?: OrbitLimits;
 }
 
+/** Dónde está la cámara y a qué mira ✓. */
+export interface OrbitPose {
+  position: Point;
+  target: Point;
+}
+
 export interface OrbitControls {
   /** Mueve la cámara un paso ✓: dice si ha cambiado algo ✓. */
   update(): boolean;
+  /** La cámara de ahora ✓: posición y objetivo ✓. */
+  pose(): OrbitPose;
   /** Suelta los eventos ✓. */
   dispose(): void;
 }
@@ -153,7 +156,6 @@ const ZOOM_SPEED = 0.0015;
  * (zoom en pantalla táctil ✓). El objetivo es el centro del mapa ✓.
  */
 export function createOrbitControls(
-  camera: PerspectiveCamera,
   canvas: HTMLElement,
   options: OrbitControlsOptions = {}
 ): OrbitControls {
@@ -261,15 +263,15 @@ export function createOrbitControls(
     update(): boolean {
       const previous = current;
       current = dampOrbit(current, desired, damping);
-      const position = orbitPosition(current, target);
-      camera.position.set(position.x, position.y, position.z);
-      camera.lookAt(target.x, target.y, target.z);
       // Quieto no hay fotograma: solo se sigue dibujando mientras la cámara se mueve.
       return (
         Math.abs(current.azimuth - previous.azimuth) > 1e-5 ||
         Math.abs(current.polar - previous.polar) > 1e-5 ||
         Math.abs(current.distance - previous.distance) > 1e-4
       );
+    },
+    pose(): OrbitPose {
+      return { position: orbitPosition(current, target), target: { ...target } };
     },
     dispose(): void {
       canvas.removeEventListener("pointerdown", onPointerDown);

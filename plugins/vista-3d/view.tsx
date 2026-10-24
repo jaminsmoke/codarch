@@ -29,7 +29,6 @@ function themeColor(name: string, fallback: string): string {
 type Runtime = SceneBackend | "pending" | "error";
 
 function runtimeLabel(runtime: Runtime): string {
-  if (runtime === "webgpu") return "WebGPU";
   if (runtime === "webgl2") return "WebGL2";
   if (runtime === "error") return "sin GPU";
   return "arrancando la GPU";

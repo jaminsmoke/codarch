@@ -13,9 +13,10 @@ hijos en el presupuesto de primitivas ✓ (4.000 ✓). Así un repo de 20.000 fi
 cajas ✓. Como el mapa es 2D (x, z) con la altura encima ✓, el árbol es un **quadtree** ✓, no un
 octree ✓.
 
-Las cajas se dibujan en **una sola malla instanciada** ✓ (`InstancedMesh` ✓) con su color por
-instancia ✓: miles de cajas son una draw call ✓. La selección se tiñe del azul de la app ✓ en la
-propia instancia ✓.
+Las cajas se dibujan con **WebGL2 propio** ✓, sin librería ✓: un cubo instanciado ✓
+(`drawArraysInstanced` ✓) y dos shaders ✓. Miles de cajas son una draw call ✓. La selección se tiñe
+del azul de la app ✓ en la propia instancia ✓. Y solo se dibuja **cuando algo cambia** ✓: quieta, la
+vista no consume ✓.
 
 Al abrir, la cámara **encuadra el mapa entero** ✓: la distancia sale del radio del mapa y del campo de
 visión ✓ (`fitDistance` ✓), y la niebla se escala con él ✓.
@@ -23,14 +24,11 @@ visión ✓ (`fitDistance` ✓), y la niebla se escala con él ✓.
 - **Orbita** con el ratón ✓, **zoom** con la rueda ✓ y **pinza** con dos dedos ✓.
 - **Pulsa un fichero** para seleccionarlo ✓ (un arrastre no selecciona ✓) y **una carpeta plegada**
   para enfocarla ✓: la app se queda con esa carpeta ✓ y el mapa se abre ✓.
-- Dibuja con **WebGPU** ✓ si la máquina lo tiene ✓ y cae a **WebGL2** ✓ si no ✓; el aviso de la
-  escena dice con cuál está corriendo ✓ y cuántas cajas hay en pantalla ✓.
-- Necesita **GPU** ✓: la que haya, WebGPU o WebGL2 ✓ (`requires: { gpu: true }` ✓). La tienda enseña
-  con cuál va a dibujar en esta máquina ✓.
+- Dibuja con **WebGL2** ✓ (`requires: { webgl2: true }` ✓) y el aviso de la escena dice cuántas
+  cajas hay en pantalla ✓.
 
-La GPU va por WebGPU ✓ (`three/webgpu` ✓): el driver elige la tarjeta ✓ (D3D12 en Windows ✓, Vulkan ✓,
-Metal ✓) y `powerPreference` pide la dedicada ✓. La cámara es **propia del plugin** ✓ (`orbit.ts` ✓):
-`OrbitControls` importa el build de WebGL de three ✓ y con los dos el chunk llevaría three dos veces ✓.
+La GPU va por el driver de la tarjeta ✓ (`powerPreference` pide la dedicada ✓). La cámara es
+**propia del plugin** ✓ (`orbit.ts` ✓) y su matemática se prueba en Node ✓.
 
 No toca el snapshot ✓ ni el motor ✓: es una **vista** ✓, no una lente ✓. El análisis no depende de
 que esté activa ✓.

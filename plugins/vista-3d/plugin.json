@@ -8,6 +8,6 @@
     "views": ["vista-3d"]
   },
   "requires": {
-    "gpu": true
+    "webgl2": true
   }
 }
