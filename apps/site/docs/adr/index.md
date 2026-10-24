@@ -74,6 +74,7 @@ flowchart TD
 | [0051](0051-0060/0051-la-version-se-sube-con-un-comando.md) | La versión se sube con un comando | 2026-10-24 | aceptado | se aplica en cada release |
 | [0052](0051-0060/0052-solo-hacia-abajo-y-nunca-el-sistema.md) | Solo hacia abajo y nunca el sistema | 2026-10-24 | aceptado | se aplica en el análisis |
 | [0053](0051-0060/0053-la-configuracion-no-se-mezcla.md) | La configuración de la app no se mezcla con la del repo | 2026-10-24 | aceptado | se aplica en la entrega |
+| [0054](0051-0060/0054-el-lint-por-app.md) | El lint, por app y por tipo de código | 2026-10-24 | aceptado | M35 |
 
 ## Las carpetas
 
