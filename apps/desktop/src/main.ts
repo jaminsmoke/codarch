@@ -11,7 +11,6 @@ import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
 import {
-  analyzeRepository,
   ensureGitignoreEntry,
   protectedRootReason,
   watchRepository
@@ -26,6 +25,7 @@ import {
   readHistoryIndex
 } from "@codarch/schema";
 import type { DesktopTarget } from "./preload";
+import { createAnalyzer, type RepoAnalyzer } from "./analyzer";
 import { readRepoPreferences, writeRepoPreferences } from "./preferences";
 import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
@@ -53,6 +53,20 @@ const RENDERER_DIST = path.join(__dirname, "..", "dist", "renderer");
 
 /** La última raíz analizada: de dónde se saca el historial. */
 let lastRoot: string | null = null;
+
+/**
+ * El proceso que analiza, arrancado la primera vez que hace falta.
+ *
+ * Analizar bloquearía el proceso principal —menú, IPC y hasta el despacho de
+ * los clics— durante segundos, así que vive en un `utilityProcess`
+ * (`analyze-worker.ts`).
+ */
+let analyzer: RepoAnalyzer | null = null;
+
+function repoAnalyzer(): RepoAnalyzer {
+  analyzer ??= createAnalyzer(path.join(__dirname, "analyze-worker.cjs"));
+  return analyzer;
+}
 
 let window: BrowserWindow | null = null;
 
@@ -120,7 +134,7 @@ function watchRoot(root: string): void {
   watchingRoot = root;
   try {
     repositoryWatcher = watchRepository(root, {
-      onChange: () => refreshFromDisk(root)
+      onChange: () => void refreshFromDisk(root)
     });
     sendWatch(true);
   } catch (cause) {
@@ -136,10 +150,10 @@ function stopWatching(): void {
 }
 
 /** Reanaliza y, si el código cambió, reescribe el estado y avisa. */
-function refreshFromDisk(root: string): void {
+async function refreshFromDisk(root: string): Promise<void> {
   if (!isDirectory(root)) return;
   try {
-    const result = analyzeRepository(root, { git: true });
+    const result = await repoAnalyzer().analyze(root);
     const stored = readPersistedSnapshot(root) as {
       meta?: { checksum?: string };
     } | null;
@@ -215,7 +229,15 @@ async function openTarget(target: string): Promise<void> {
       send({ kind: "snapshot", snapshot: persisted, label: target });
       return;
     }
-    const result = analyzeRepository(target, { git: true });
+    let result;
+    try {
+      result = await repoAnalyzer().analyze(target);
+    } catch (cause) {
+      // El proceso que analiza puede caerse: se dice y no se deja la app muda.
+      console.error(`no se pudo analizar ${target}: ${(cause as Error).message}`);
+      send({ kind: "report", report: null, label: target });
+      return;
+    }
     lastRoot = target;
     ensureStateIgnored(target);
     writeSnapshot(target, result.snapshot);
@@ -518,6 +540,7 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   stopWatching();
+  analyzer?.close();
 });
 
 /** El renderer pide una carpeta y se analiza en el proceso principal. */
@@ -534,8 +557,9 @@ ipcMain.handle("codarch:restore-project", async (_event, root: string) => {
     lastRoot = root;
     watchRoot(root);
     // Lo guardado se pinta al instante; el análisis de verdad llega detrás,
-    // para ver lo que cambió sin la app abierta antes de ponerse en live.
-    setTimeout(() => refreshFromDisk(root), 400);
+    // en su proceso, para ver lo que cambió sin la app abierta antes de
+    // ponerse en live.
+    setTimeout(() => void refreshFromDisk(root), 400);
   }
   return restored;
 });
@@ -567,7 +591,7 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
     throw new Error(`CodArch no analiza ${denied}; abre la carpeta de un proyecto`);
   }
   const started = Date.now();
-  const result = analyzeRepository(root, { git: true });
+  const result = await repoAnalyzer().analyze(root);
   lastRoot = root;
   ensureStateIgnored(root);
   writeSnapshot(root, result.snapshot);

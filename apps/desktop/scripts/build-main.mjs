@@ -4,10 +4,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
- * Empaqueta el proceso principal y el preload.
+ * Empaqueta el proceso principal, el preload y el proceso que analiza.
  *
- * El proceso principal usa `node:fs` y el binding nativo de tree-sitter, así
- * que se empaqueta como CommonJS y las dependencias nativas se quedan fuera.
+ * El análisis vive en su propio `utilityProcess` (guía: «El escritorio analiza
+ * sin congelarse»): así no compite con el despacho de clics ni con el IPC. Los
+ * tres bundles comparten externals y versión.
  */
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -55,4 +56,14 @@ await build({
   outfile: path.join(DIST, "preload.cjs")
 });
 
-console.log(`ok · proceso principal y preload en ${path.relative(ROOT, DIST)}`);
+// El proceso que analiza: el mismo bundle, pero su propio fichero para que
+// `utilityProcess.fork` lo arranque aparte.
+await build({
+  ...shared,
+  entryPoints: [path.join(ROOT, "src", "analyze-worker.ts")],
+  outfile: path.join(DIST, "analyze-worker.cjs")
+});
+
+console.log(
+  `ok · proceso principal, preload y análisis en ${path.relative(ROOT, DIST)}`
+);
