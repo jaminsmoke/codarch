@@ -100,9 +100,7 @@ export default function App() {
     [loadSnapshot]
   );
 
-
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
-
 
   /**
    * Aplica una vista guardada de un addon (ADR 0029).

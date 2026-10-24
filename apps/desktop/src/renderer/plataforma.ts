@@ -40,10 +40,7 @@ export function plataformaEscritorio(): Plataforma {
     },
     escribirProyecto: (project) => writeProject(project as SavedProject),
     borrarProyecto: () => clearProject(),
-    historial: () => desktop().history(),
-    fotoHistorial: (name) => desktop().historySnapshot(name),
     cadenas: (symbol) => desktop().chains(symbol),
-    abrirExterno: (url) => desktop().openExternal(url),
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)

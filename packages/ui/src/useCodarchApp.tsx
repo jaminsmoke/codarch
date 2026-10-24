@@ -67,8 +67,11 @@ export interface CodarchAppActions {
   setPluginView: (view: string | null) => void;
   setChain: (chain: SymbolChain | null) => void;
   setError: (message: string | null) => void;
+  setReportError: (message: string | null) => void;
   setAddons: (addons: RepoAddon[]) => void;
   setSelectedIndex: (index: number | null) => void;
+  setLoading: (loading: boolean) => void;
+  setProgress: (message: string | null) => void;
 }
 
 interface ViewState {
@@ -92,9 +95,17 @@ export interface CodarchApp {
   fitMap: () => void;
 }
 
-export function useCodarchApp(plataforma: Plataforma): CodarchApp {
+export interface CodarchAppOptions {
+  /** La etiqueta inicial de la fuente (antes de cargar nada). */
+  sourceInicial?: string;
+}
+
+export function useCodarchApp(
+  plataforma: Plataforma,
+  options: CodarchAppOptions = {}
+): CodarchApp {
   const [cc, setCc] = useState<CcJson | null>(null);
-  const [source, setSource] = useState("sin proyecto");
+  const [source, setSource] = useState(options.sourceInicial ?? "sin proyecto");
   const [areaMetric, setAreaMetric] = useState<string | null>(null);
   const [colorMode, setColorMode] = useState("risk");
   const [query, setQuery] = useState("");
@@ -255,13 +266,15 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
   }, []);
 
   const analyzeFolder = useCallback(async () => {
-    const root = await plataforma.elegirCarpeta();
+    const { elegirCarpeta, analizar } = plataforma;
+    if (!elegirCarpeta || !analizar) return;
+    const root = await elegirCarpeta();
     if (!root) return;
     setLoading(true);
     setError(null);
     setProgress(`Analizando ${root}...`);
     try {
-      const result = await plataforma.analizar(root);
+      const result = await analizar(root);
       if (loadSnapshot(result.snapshot, root)) {
         setAddons(result.addons.addons);
         plataforma.borrarProyecto();
@@ -283,12 +296,14 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
   }, [loadSnapshot, resetReport, plataforma]);
 
   const openSnapshotFile = useCallback(async () => {
-    const file = await plataforma.elegirFichero();
+    const { elegirFichero, leerJson } = plataforma;
+    if (!elegirFichero || !leerJson) return;
+    const file = await elegirFichero();
     if (!file) return;
     setLoading(true);
     setError(null);
     try {
-      const raw = await plataforma.leerJson(file);
+      const raw = await leerJson(file);
       if (loadSnapshot(raw, file)) {
         setAddons([]);
         plataforma.borrarProyecto();
@@ -309,10 +324,12 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
   }, [loadSnapshot, resetReport, plataforma]);
 
   const openReportFile = useCallback(async () => {
-    const file = await plataforma.elegirFichero();
+    const { elegirFichero, leerJson } = plataforma;
+    if (!elegirFichero || !leerJson) return;
+    const file = await elegirFichero();
     if (!file) return;
     try {
-      const raw = await plataforma.leerJson(file);
+      const raw = await leerJson(file);
       if (loadReport(raw, file)) {
         const saved = plataforma.leerProyecto();
         if (saved) {
@@ -366,6 +383,7 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
       const file = view.model?.files.find((item) => item.path === path);
       if (file) selectIndex(file.index);
 
+      if (!plataforma.cadenas) return;
       const raw = await plataforma.cadenas(name);
       const chains =
         raw && typeof raw === "object"
@@ -387,13 +405,13 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
     plataforma.escribirPreferencias(preferences);
   }, [cc, areaMetric, colorMode, showLabels, plataforma]);
 
-  // Restaurar el último proyecto al montar.
+  // Restaurar el último proyecto al montar. Solo si la plataforma guarda en
+  // disco: la web lleva su propio arranque (servidor, URL, demo).
   useEffect(() => {
+    if (!plataforma.restaurarProyecto) return;
     let cancelled = false;
     void (async () => {
-      const saved = plataforma.restaurarProyecto
-        ? await plataforma.restaurarProyecto()
-        : plataforma.leerProyecto();
+      const saved = await plataforma.restaurarProyecto?.();
       if (cancelled) return;
       if (saved && loadSnapshot(saved.snapshot, saved.label)) {
         setAddons((saved.addons ?? []) as RepoAddon[]);
@@ -411,7 +429,7 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
   }, [loadSnapshot, loadReport, plataforma]);
 
   useEffect(() => {
-    if (!cc) return;
+    if (!cc || !plataforma.restaurarProyecto) return;
     const saved = plataforma.leerProyecto();
     if (saved) {
       plataforma.escribirProyecto({
@@ -470,8 +488,11 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
     setPluginView,
     setChain,
     setError,
+    setReportError,
     setAddons,
-    setSelectedIndex
+    setSelectedIndex,
+    setLoading,
+    setProgress
   };
 
   return {

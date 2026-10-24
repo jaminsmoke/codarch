@@ -41,14 +41,15 @@ y las usa.
 
 ### 2. Un adaptador por plataforma
 
-Cada app implementa un `Plataforma`:
+Cada app implementa un `Plataforma`. Lo que una plataforma no puede hacer se queda fuera
+(opcional) y el hook no lo ofrece:
 
-- **Web**: `analyze` usa `analyzeInBrowser`, `openFolder` usa `directoryPicker`, `readJson` usa
-  `fetch`, `readPreferences`/`writePreferences` usan `localStorage`, `readProject`/`writeProject`
-  usan `localStorage`.
-- **Escritorio**: `analyze` usa `desktop().analyze`, `openFolder` usa `desktop().pickFolder`,
-  `readJson` usa `desktop().readJson`, `readPreferences`/`writePreferences` usan `localStorage`,
-  `readProject`/`writeProject` leen/escriben `.codarch/` del repo.
+- **Web**: preferencias, proyecto y plugins en `localStorage`; `cadenas` por `fetch` a
+  `data/chains.json`. El análisis en el navegador y la elección de carpeta viven en la app, porque
+  tienen progreso por fichero y cancelación.
+- **Escritorio**: `analizar` usa `desktop().analyze`, `elegirCarpeta` usa `desktop().pickFolder`,
+  `leerJson` usa `desktop().readJson`, preferencias y plugins en `localStorage`, y
+  `restaurarProyecto` prefiere `.codarch/` del repo con la copia local como respaldo.
 
 ### 3. El `App.tsx` de cada app queda mínimo
 
@@ -78,9 +79,13 @@ orquestación, no del render.
 
 ### M33 — La orquestación compartida
 
-- [ ] Extraer `useCodarchApp` en `@codarch/ui` con el adaptador web.
-- [ ] Refactorizar la web para usarlo.
-- [ ] Implementar el adaptador del escritorio y refactorizarlo.
-- [ ] Verificar que ambas apps se comportan igual.
+- [x] Extraer `useCodarchApp` en `@codarch/ui`.
+- [x] Implementar el adaptador del escritorio y refactorizarlo.
+- [x] Implementar el adaptador de la web y refactorizarla.
+- [x] Verificar que ambas apps se comportan igual (lint, tipos, 395 tests y los dos builds).
+
+Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio), y desaparecen las
+dos copias de `plugins.ts`. La restauración automática del proyecto solo corre donde la plataforma
+la declara: la web conserva su arranque propio (servidor, URL, demo).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

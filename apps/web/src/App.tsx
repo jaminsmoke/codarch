@@ -8,29 +8,17 @@ import {
   type DragEvent
 } from "react";
 import {
-  defaultMetric,
-  getStats,
-  parseCcJson,
   symbolsOf,
-  type CcJson,
-  type CcMigrationLens
+  type CcMigrationLens,
+  type HistoryEntry,
+  type SymbolHeat
 } from "@codarch/schema/browser";
-import type { DiffReport } from "@codarch/metrics/browser";
 import type { AddonView as SavedView, RepoAddon } from "@codarch/addons";
-import type { HistoryEntry } from "@codarch/schema/browser";
-import type { SymbolChain, SymbolHeat } from "@codarch/schema/browser";
-import {
-  buildRenderModel,
-  type RenderModel
-} from "@codarch/render/browser";
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
-import { usePlugins } from "./plugins";
 import type { PluginContext } from "@codarch/plugin-api";
 import {
-  CHURN_METRIC,
   DebtList,
-  DEFAULT_DETAIL_OPTIONS,
   findFolder,
   HeatList,
   HistoryPanel,
@@ -45,22 +33,13 @@ import {
   metricIndexOf,
   orderedMetrics,
   PrPanel,
-  pruneTree,
-  readMigration,
-  readReport
+  useCodarchApp
 } from "@codarch/ui";
 import {
   readRepositoryFromFiles,
   readRepositoryFromPicker
 } from "./repository";
-import {
-  clearProject,
-  readPreferences,
-  readProject,
-  writePreferences,
-  writeProject,
-  type ViewPreferences
-} from "./storage";
+import { clearProject, readProject, writeProject } from "./storage";
 import {
   buildSearch,
   parseSourceRequest,
@@ -73,27 +52,62 @@ import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
 import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
-
-interface ViewState {
-  model: RenderModel | null;
-  error: string | null;
-}
+import { fetchJson, fetchJsonStrict } from "./http";
+import { plataformaWeb } from "./plataforma";
 
 export default function App() {
-  const [cc, setCc] = useState<CcJson | null>(null);
-  const [source, setSource] = useState("demo.cc.json");
-  const [areaMetric, setAreaMetric] = useState<string | null>(null);
-  const [colorMode, setColorMode] = useState("risk");
-  const [query, setQuery] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const plataforma = useMemo(() => plataformaWeb(), []);
+  const app = useCodarchApp(plataforma, { sourceInicial: "demo.cc.json" });
+  const {
+    cc,
+    source,
+    areaMetric,
+    colorMode,
+    query,
+    selectedIndex,
+    error,
+    loading,
+    report,
+    reportSource,
+    reportError,
+    tab,
+    focusPath,
+    progress,
+    chain,
+    settingsOpen,
+    zoom,
+    center,
+    showLabels,
+    addons,
+    pluginView
+  } = app.state;
+  const {
+    loadSnapshot,
+    loadReport,
+    resetReport,
+    selectIndex,
+    openSymbolChain,
+    zoomAt,
+    panMap,
+    fitMap,
+    setAreaMetric,
+    setColorMode,
+    setQuery,
+    setFocusPath,
+    setTab,
+    setSettingsOpen,
+    setShowLabels,
+    setPluginView,
+    setError,
+    setReportError,
+    setAddons,
+    setSelectedIndex,
+    setLoading,
+    setProgress
+  } = app.actions;
+  const { view, detail, stats, migration, hasChurn, plugins, selectedPathRef } =
+    app;
   const [dragging, setDragging] = useState(false);
-  const [report, setReport] = useState<DiffReport | null>(null);
-  const [reportSource, setReportSource] = useState<string | null>(null);
-  const [reportError, setReportError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"file" | "pr">("file");
-  const [focusPath, setFocusPath] = useState<string | null>(null);
   const [serverMode, setServerMode] = useState<"demo" | "local" | "served" | "live">(
     "demo"
   );
@@ -105,22 +119,6 @@ export default function App() {
   const [reportUrl, setReportUrl] = useState<string | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const [reportUrlInput, setReportUrlInput] = useState("");
-  const [progress, setProgress] = useState<string | null>(null);
-  /** La cadena del símbolo abierto, si la hay. */
-  const [chain, setChain] = useState<SymbolChain | null>(null);
-  /** Si los ajustes están abiertos. */
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  /** El zoom del mapa (1 = el mapa entero) ✓. */
-  const [zoom, setZoom] = useState(1);
-  const [center, setCenter] = useState({ x: 0.5, y: 0.5 });
-  /** Si los bloques muestran su nombre aunque no quepa entero ✓. */
-  const [showLabels, setShowLabels] = useState(true);
-  /** Los plugins: los compilados, los activados y sus módulos. */
-  const plugins = usePlugins();
-  /** Los addons que el repo declara (solo con el servidor local). */
-  const [addons, setAddons] = useState<RepoAddon[]>([]);
-  /** La vista del plugin abierta en el mapa central (null = el mapa). */
-  const [pluginView, setPluginView] = useState<string | null>(null);
   /** El análisis en marcha, para poder cortarlo. */
   const analysisRef = useRef<AnalysisHandle | null>(null);
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
@@ -133,142 +131,18 @@ export default function App() {
   const openMenuRef = useRef<HTMLDetailsElement>(null);
   const viewsMenuRef = useRef<HTMLDetailsElement>(null);
   const manualLoadRef = useRef(false);
-  const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
-  if (preferencesRef.current === undefined) {
-    preferencesRef.current = readPreferences();
-  }
   // La URL se lee una sola vez: al arrancar decide qué se carga y qué vista se aplica.
   const urlRef = useRef<{ view: UrlViewState; source: SourceRequest } | null>(null);
   if (urlRef.current === null) {
     const search = typeof window === "undefined" ? "" : window.location.search;
     urlRef.current = { view: parseViewState(search), source: parseSourceRequest(search) };
   }
-  const selectedPathRef = useRef<string | null>(null);
-
-  /** Acercar o alejar el mapa, centrado en un punto (0..1) ✓. */
-  const zoomAt = useCallback(
-    (factor: number, at?: { x: number; y: number }) => {
-      setZoom((current) => {
-        const next = Math.min(8, Math.max(1, current * factor));
-        if (next === current) return current;
-        if (at) {
-          // El punto bajo el cursor se queda quieto ✓.
-          const dx = at.x - center.x;
-          const dy = at.y - center.y;
-          const scale = 1 - next / current;
-          setCenter({
-            x: Math.min(1, Math.max(0, center.x + dx * scale)),
-            y: Math.min(1, Math.max(0, center.y + dy * scale))
-          });
-        }
-        return next;
-      });
-    },
-    [center]
-  );
-
-  /** Mover el mapa, en fracciones de su tamaño ✓. */
-  const panMap = useCallback(
-    (dx: number, dy: number) => {
-      setCenter((current) => {
-        // Sin zoom no hay nada escondido que enseñar ✓.
-        const hidden = 1 - 1 / zoom;
-        if (hidden <= 0.001) return current;
-        return {
-          x: Math.min(1, Math.max(0, current.x - dx / hidden)),
-          y: Math.min(1, Math.max(0, current.y - dy / hidden))
-        };
-      });
-    },
-    [zoom]
-  );
-
-  /** Volver a ver el mapa entero ✓. */
-  const fitMap = useCallback(() => {
-    setZoom(1);
-    setCenter({ x: 0.5, y: 0.5 });
-  }, []);
-
-  const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
-  const migration = useMemo(() => readMigration(cc), [cc]);
-  /** ¿El snapshot trae churn de git? */
-  const hasChurn = useMemo(
-    () => (stats ? stats.metricCoverage.some((entry) => entry.name === CHURN_METRIC) : false),
-    [stats]
-  );
 
   /** Los addons que traen vistas guardadas: los únicos que dan un menú. */
   const addonsWithViews = useMemo(
     () => addons.filter((addon) => addon.views.length > 0),
     [addons]
   );
-
-  const loadSnapshot = useCallback(
-    (raw: unknown, label: string, preserveView = false): boolean => {
-      try {
-        const parsed = parseCcJson(raw);
-        const nextStats = getStats(parsed);
-        const coverage = new Set(nextStats.metricCoverage.map((entry) => entry.name));
-        const nextArea = coverage.has("rloc")
-          ? "rloc"
-          : defaultMetric(nextStats) ?? nextStats.metricCoverage[0]?.name ?? null;
-        const wanted = preferencesRef.current;
-        const preferredArea =
-          wanted?.areaMetric && coverage.has(wanted.areaMetric)
-            ? wanted.areaMetric
-            : nextArea;
-        const preferredColor = wanted?.colorMode;
-        const validPreferredColor =
-          preferredColor &&
-          (preferredColor === "risk" ||
-            preferredColor === "structure" ||
-            (preferredColor === "status" && Boolean(parsed.lenses?.migration)) ||
-            coverage.has(preferredColor))
-            ? preferredColor
-            : null;
-        const defaultColor =
-          parsed.lenses?.migration && coverage.has("migrationDebt")
-            ? "migrationDebt"
-            : "risk";
-
-        setCc(parsed);
-        setSource(label);
-        setAreaMetric((current) =>
-          preserveView && current && coverage.has(current) ? current : preferredArea
-        );
-        setColorMode((current) => {
-          if (preserveView) {
-            if (current === "risk" || current === "structure" || current === "status") {
-              return current;
-            }
-            return coverage.has(current) ? current : "risk";
-          }
-          return validPreferredColor ?? defaultColor;
-        });
-        if (!preserveView) {
-          setQuery("");
-          selectedPathRef.current = null;
-          setSelectedIndex(null);
-          setFocusPath(null);
-        }
-        setError(null);
-        return true;
-      } catch (cause) {
-        setError((cause as Error).message);
-        return false;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (!cc || !areaMetric) return;
-    const preferences = { areaMetric, colorMode, showLabels };
-    preferencesRef.current = preferences;
-    writePreferences(preferences);
-  }, [cc, areaMetric, colorMode, showLabels]);
 
   /** Abre una foto del historial. */
   const openHistorySnapshot = useCallback(
@@ -281,22 +155,6 @@ export default function App() {
       loadSnapshot(raw, label);
     },
     [loadSnapshot]
-  );
-
-  const loadReport = useCallback(
-    (raw: unknown, label: string, focus = true): boolean => {
-      const next = readReport(raw);
-      if (!next) {
-        setReportError(`El fichero ${label} no parece un report.json de CodArch.`);
-        return false;
-      }
-      setReport(next);
-      setReportSource(label);
-      setReportError(null);
-      if (focus) setTab("pr");
-      return true;
-    },
-    []
   );
 
   /**
@@ -394,10 +252,7 @@ export default function App() {
           if (saved.report) {
             loadReport(saved.report, saved.reportLabel ?? "report.json", false);
           } else {
-            setReport(null);
-            setReportSource(null);
-            setReportError(null);
-            setTab("file");
+            resetReport();
           }
           return;
         }
@@ -443,77 +298,9 @@ export default function App() {
     return () => events.close();
   }, [serverMode, loadReport, loadSnapshot]);
 
-  const view = useMemo<ViewState>(() => {
-    if (!cc || !areaMetric) return { model: null, error: null };
-    try {
-      return {
-        model: buildRenderModel(cc, {
-          areaMetric,
-          color: colorMode === "status" ? "risk" : colorMode,
-          title: cc.meta.projectName
-        }),
-        error: null
-      };
-    } catch (cause) {
-      return { model: null, error: (cause as Error).message };
-    }
-  }, [cc, areaMetric, colorMode]);
-
-  /**
-   * Árbol que se dibuja. En repos grandes se poda: un mosaico de 20.000
-   * celdas no se lee ni se pinta, el nivel de carpeta sí.
-   */
-  const detail = useMemo(() => {
-    if (!view.model) return null;
-    const folder = focusPath ? findFolder(view.model.roots, focusPath) : null;
-    const roots = folder ? [folder] : view.model.roots;
-    const total = folder ? folder.fileCount : view.model.fileCount;
-    return pruneTree(roots, DEFAULT_DETAIL_OPTIONS, total);
-  }, [view.model, focusPath]);
 
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
-  /**
-   * Selecciona un fichero por índice y recuerda su ruta.
-   *
-   * La ruta es la identidad estable: el índice depende del orden del árbol y
-   * cambia cuando el snapshot se reanaliza o cambia la métrica de área.
-   */
-  const selectIndex = useCallback(
-    (index: number | null) => {
-      setSelectedIndex(index);
-      const file = index === null ? undefined : view.model?.files[index];
-      selectedPathRef.current = file?.path ?? null;
-    },
-    [view.model]
-  );
-
-  /**
-   * Abre la vida de un símbolo: lo selecciona en el mapa y pide su cadena.
-   *
-   * La pide al servidor, que la construye desde las fotos del historial ✓.
-   */
-  const openSymbolChain = useCallback(
-    async (name: string, path: string) => {
-      const file = view.model?.files.find((item) => item.path === path);
-      if (file) selectIndex(file.index);
-
-      const raw = await fetchJson(
-        `data/chains.json?symbol=${encodeURIComponent(name)}`
-      );
-      if (!raw || typeof raw !== "object") {
-        setChain(null);
-        return;
-      }
-      const chains = (raw as { chains?: unknown }).chains;
-      if (!Array.isArray(chains) || chains.length === 0) {
-        setChain(null);
-        return;
-      }
-      setChain((chains as SymbolChain[])[0] ?? null);
-    },
-    [view.model, selectIndex]
-  );
 
 
   useEffect(() => {
@@ -783,10 +570,7 @@ export default function App() {
             label: file.name,
             reportLabel: null
           });
-          setReport(null);
-          setReportSource(null);
-          setReportError(null);
-          setTab("file");
+          resetReport();
         }
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
@@ -815,10 +599,7 @@ export default function App() {
             label: file.name,
             reportLabel: null
           });
-          setReport(null);
-          setReportSource(null);
-          setReportError(null);
-          setTab("file");
+          resetReport();
         }
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
@@ -863,13 +644,6 @@ export default function App() {
     },
     [applyWanted]
   );
-
-  const resetReport = useCallback(() => {
-    setReport(null);
-    setReportSource(null);
-    setReportError(null);
-    setTab("file");
-  }, []);
 
   /** Carga un snapshot (y opcionalmente un reporte) desde una URL. */
   const loadFromUrl = useCallback(async () => {
@@ -1757,38 +1531,6 @@ function readStorage(): Storage | null {
     return typeof window === "undefined" ? null : window.localStorage;
   } catch {
     return null;
-  }
-}
-
-async function fetchJson(url: string): Promise<unknown | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    // El servidor responde 204 cuando no hay reporte que enseñar.
-    if (response.status === 204) return null;
-    return (await response.json()) as unknown;
-  } catch {
-    return null;
-  }
-}
-
-/** Igual que `fetchJson`, pero explica por qué falló la carga por URL. */
-async function fetchJsonStrict(url: string): Promise<unknown> {
-  let response: Response;
-  try {
-    response = await fetch(url);
-  } catch (cause) {
-    throw new Error(
-      `no se pudo contactar con ${url} (${(cause as Error).message}). Si el origen no permite CORS, sirve el fichero desde el mismo servidor.`
-    );
-  }
-  if (!response.ok) {
-    throw new Error(`respondió ${response.status}`);
-  }
-  try {
-    return (await response.json()) as unknown;
-  } catch (cause) {
-    throw new Error(`el JSON no es válido (${(cause as Error).message})`);
   }
 }
 
