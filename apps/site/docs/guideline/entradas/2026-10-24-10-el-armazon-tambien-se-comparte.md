@@ -15,11 +15,14 @@ fichero elegido, los símbolos, las vistas de los plugins, la búsqueda o el ata
 palabra por palabra.
 
 **Qué cambió**: `useCodarchApp` calcula ahora el fichero y su migración, los símbolos, las métricas,
-las vistas de los plugins con su contexto, la búsqueda, `selectPath` y el estado de vista que
-comparten la URL y las vistas guardadas (`applyView`). `AppShell` pinta el armazón completo y cada
-app le pasa lo suyo por huecos: los botones de la cabecera, el aviso de la demo, la pista de
-arrastrar, el botón de cancelar y los ajustes ya montados. La web conserva su arranque (servidor,
-URL, demo) y el escritorio el suyo (`.codarch/`, menú nativo).
+las vistas de los plugins con su contexto, la búsqueda, `selectPath`, las opciones de los ajustes y
+el estado de vista que comparten la URL y las vistas guardadas (`applyView`). También carga un
+snapshot con su reporte (`abrirSnapshot`/`abrirReporte`) y lo guarda como proyecto, así que abrir un
+fichero, soltarlo, cargar una URL o leer una carpeta con `.codarch/` dejan de repetir la misma
+secuencia. `AppShell` pinta el armazón completo y cada app le pasa lo suyo por huecos: los botones
+de la cabecera, el aviso de la demo, la pista de arrastrar, el botón de cancelar y los ajustes ya
+montados. La web conserva su arranque (servidor, URL, demo) y el escritorio el suyo (`.codarch/`,
+menú nativo).
 
 Los `App.tsx` quedan en 922 líneas (web) y 172 (escritorio), y `AppShell` ocupa 504; antes eran
 1565 y 762 con el marcado repetido.

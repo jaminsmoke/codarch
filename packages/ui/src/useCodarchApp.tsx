@@ -61,6 +61,15 @@ export interface CodarchAppActions {
   openReportFile: () => Promise<void>;
   selectIndex: (index: number | null) => void;
   openSymbolChain: (name: string, path: string) => Promise<void>;
+  /**
+   * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
+   *
+   * Es el paso común de «Abrir cc.json», soltar un fichero y cargar por URL:
+   * una sola escritura del proyecto y el reporte anterior fuera.
+   */
+  abrirSnapshot: (raw: unknown, label: string) => boolean;
+  /** Carga un reporte y lo guarda en el proyecto actual. */
+  abrirReporte: (raw: unknown, label: string) => boolean;
   zoomAt: (factor: number, at?: { x: number; y: number }) => void;
   panMap: (dx: number, dy: number) => void;
   fitMap: () => void;
@@ -108,6 +117,10 @@ export interface CodarchApp {
   metricOptions: string[];
   /** El título de una métrica, con el que trae el snapshot si lo trae. */
   metricTitle: (key: string) => string;
+  /** Las opciones del selector de área de los ajustes. */
+  areaOptions: CodarchOption[];
+  /** Las opciones del selector de color de los ajustes. */
+  colorOptions: CodarchOption[];
   selectedFile: RenderModel["files"][number] | null;
   selectedMigration: CcMigrationNode | null;
   selectedSymbols: ReturnType<typeof symbolsOf>;
@@ -133,6 +146,12 @@ export interface CodarchApp {
 export interface CodarchAppOptions {
   /** La etiqueta inicial de la fuente (antes de cargar nada). */
   sourceInicial?: string;
+}
+
+/** Una opción de un selector de los ajustes. */
+export interface CodarchOption {
+  value: string;
+  label: string;
 }
 
 export function useCodarchApp(
@@ -300,6 +319,46 @@ export function useCodarchApp(
     setTab("file");
   }, []);
 
+  /**
+   * Carga un snapshot y lo guarda como el proyecto actual.
+   *
+   * Es el paso que comparten «Abrir cc.json», soltar un fichero y cargar por
+   * URL: una sola escritura y el reporte anterior fuera.
+   */
+  const abrirSnapshot = useCallback(
+    (raw: unknown, label: string): boolean => {
+      if (!loadSnapshot(raw, label)) return false;
+      setAddons([]);
+      void plataforma.escribirProyecto({
+        snapshot: raw,
+        report: null,
+        label,
+        reportLabel: null,
+        addons: []
+      });
+      resetReport();
+      return true;
+    },
+    [loadSnapshot, resetReport, plataforma]
+  );
+
+  /** Carga un reporte y lo guarda en el proyecto actual. */
+  const abrirReporte = useCallback(
+    (raw: unknown, label: string): boolean => {
+      if (!loadReport(raw, label)) return false;
+      const saved = plataforma.leerProyecto();
+      if (saved) {
+        void plataforma.escribirProyecto({
+          ...saved,
+          report: raw,
+          reportLabel: label
+        });
+      }
+      return true;
+    },
+    [loadReport, plataforma]
+  );
+
   const analyzeFolder = useCallback(async () => {
     const { elegirCarpeta, analizar } = plataforma;
     if (!elegirCarpeta || !analizar) return;
@@ -337,24 +396,13 @@ export function useCodarchApp(
     setLoading(true);
     setError(null);
     try {
-      const raw = await leerJson(file);
-      if (loadSnapshot(raw, file)) {
-        setAddons([]);
-        void plataforma.escribirProyecto({
-          snapshot: raw,
-          report: null,
-          label: file,
-          reportLabel: null,
-          addons: []
-        });
-        resetReport();
-      }
+      abrirSnapshot(await leerJson(file), file);
     } catch (cause) {
       setError((cause as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [loadSnapshot, resetReport, plataforma]);
+  }, [plataforma, abrirSnapshot]);
 
   const openReportFile = useCallback(async () => {
     const { elegirFichero, leerJson } = plataforma;
@@ -362,21 +410,11 @@ export function useCodarchApp(
     const file = await elegirFichero();
     if (!file) return;
     try {
-      const raw = await leerJson(file);
-      if (loadReport(raw, file)) {
-        const saved = plataforma.leerProyecto();
-        if (saved) {
-          void plataforma.escribirProyecto({
-            ...saved,
-            report: raw,
-            reportLabel: file
-          });
-        }
-      }
+      abrirReporte(await leerJson(file), file);
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [loadReport, plataforma]);
+  }, [plataforma, abrirReporte]);
 
   const view = useMemo<ViewState>(() => {
     if (!cc || !areaMetric) return { model: null, error: null };
@@ -449,6 +487,24 @@ export function useCodarchApp(
     (key: string): string => descriptors?.[key]?.title ?? key,
     [descriptors]
   );
+
+  const areaOptions = useMemo<CodarchOption[]>(
+    () => metricOptions.map((key) => ({ value: key, label: metricTitle(key) })),
+    [metricOptions, metricTitle]
+  );
+
+  const colorOptions = useMemo<CodarchOption[]>(() => {
+    const options: CodarchOption[] = [
+      { value: "risk", label: "Riesgo" },
+      { value: "structure", label: "Estructura" }
+    ];
+    if (hasChurn) options.push({ value: "churn", label: "Calor (commits)" });
+    if (migration) {
+      options.push({ value: "status", label: "Estado de migración" });
+    }
+    for (const option of areaOptions) options.push(option);
+    return options;
+  }, [hasChurn, migration, areaOptions]);
 
   const selectedFile =
     view.model && selectedIndex !== null
@@ -731,6 +787,8 @@ export function useCodarchApp(
     analyzeFolder,
     openSnapshotFile,
     openReportFile,
+    abrirSnapshot,
+    abrirReporte,
     selectIndex,
     openSymbolChain,
     zoomAt,
@@ -772,6 +830,8 @@ export function useCodarchApp(
     searchRef,
     metricOptions,
     metricTitle,
+    areaOptions,
+    colorOptions,
     selectedFile,
     selectedMigration,
     selectedSymbols,

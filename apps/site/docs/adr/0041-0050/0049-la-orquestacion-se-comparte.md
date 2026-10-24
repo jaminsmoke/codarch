@@ -102,6 +102,8 @@ plataforma, no presentación.
 - [x] Mover al hook lo que era igual en las dos apps: fichero elegido, símbolos, métricas, vistas
       de plugins, búsqueda, atajos y el estado de vista que comparten la URL y los addons.
 - [x] Extraer `AppShell` con la cabecera, la barra lateral, el escenario y el inspector.
+- [x] Derivar en el hook las opciones de los ajustes y la carga de un snapshot con su reporte
+      (`abrirSnapshot`/`abrirReporte`), que la web repetía en cada forma de abrir un fichero.
 - [x] Verificar que ambas apps se comportan igual (lint, tipos, 410 tests y los dos builds).
 
 Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio) con el hook; después,

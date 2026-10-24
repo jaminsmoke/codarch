@@ -32,7 +32,12 @@ export default function App() {
     setError,
     setAddons
   } = app.actions;
-  const { view, migration, hasChurn, plugins, metricOptions, metricTitle } = app;
+  const {
+    view,
+    plugins,
+    areaOptions,
+    colorOptions
+  } = app;
 
   // El menú nativo abre los ajustes ✓.
   useEffect(() => {
@@ -127,22 +132,8 @@ export default function App() {
           onAreaMetric={(value) => setAreaMetric(value)}
           colorMode={colorMode}
           onColorMode={(value) => setColorMode(value)}
-          areaOptions={metricOptions.map((key) => ({
-            value: key,
-            label: metricTitle(key)
-          }))}
-          colorOptions={[
-            { value: "risk", label: "Riesgo" },
-            { value: "structure", label: "Estructura" },
-            ...(hasChurn ? [{ value: "churn", label: "Calor (commits)" }] : []),
-            ...(migration
-              ? [{ value: "status", label: "Estado de migración" }]
-              : []),
-            ...metricOptions.map((key) => ({
-              value: key,
-              label: metricTitle(key)
-            }))
-          ]}
+          areaOptions={areaOptions}
+          colorOptions={colorOptions}
           model={view.model}
           savedProject={cc ? { label: source } : null}
           onClearProject={() => {

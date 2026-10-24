@@ -23,9 +23,10 @@ import {
 } from "@codarch/ui";
 import {
   readRepositoryFromFiles,
-  readRepositoryFromPicker
+  readRepositoryFromPicker,
+  type RepositoryArtifacts
 } from "./repository";
-import { clearProject, readProject, writeProject } from "./storage";
+import { clearProject, readProject } from "./storage";
 import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
 import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
@@ -51,6 +52,8 @@ export default function App() {
     loadSnapshot,
     loadReport,
     resetReport,
+    abrirSnapshot,
+    abrirReporte,
     setAreaMetric,
     setColorMode,
     setSettingsOpen,
@@ -61,8 +64,14 @@ export default function App() {
     setLoading,
     setProgress
   } = app.actions;
-  const { view, stats, migration, hasChurn, plugins, metricOptions, metricTitle, applyView } =
-    app;
+  const {
+    view,
+    stats,
+    plugins,
+    areaOptions,
+    colorOptions,
+    applyView
+  } = app;
   const [dragging, setDragging] = useState(false);
   const [serverMode, setServerMode] = useState<"demo" | "local" | "served" | "live">(
     "demo"
@@ -308,32 +317,31 @@ export default function App() {
     return "web";
   }, [serverVersion]);
 
-  const onFile = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      event.target.value = "";
-      if (!file) return;
+  /** Abre un cc.json local y lo deja como proyecto (sin URL de origen). */
+  const openLocalFile = useCallback(
+    async (file: File) => {
       manualLoadRef.current = true;
       try {
         const raw = JSON.parse(await file.text()) as unknown;
-        if (loadSnapshot(raw, file.name)) {
+        if (abrirSnapshot(raw, file.name)) {
           setServerMode("local");
           setSourceUrl(null);
           setReportUrl(null);
-          clearProject();
-          writeProject({
-            snapshot: raw,
-            report: null,
-            label: file.name,
-            reportLabel: null
-          });
-          resetReport();
         }
       } catch (cause) {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
     },
-    [loadSnapshot]
+    [abrirSnapshot]
+  );
+
+  const onFile = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (file) await openLocalFile(file);
+    },
+    [openLocalFile]
   );
 
   const onDrop = useCallback(
@@ -341,28 +349,9 @@ export default function App() {
       event.preventDefault();
       setDragging(false);
       const file = event.dataTransfer.files?.[0];
-      if (!file) return;
-      manualLoadRef.current = true;
-      try {
-        const raw = JSON.parse(await file.text()) as unknown;
-        if (loadSnapshot(raw, file.name)) {
-          setServerMode("local");
-          setSourceUrl(null);
-          setReportUrl(null);
-          clearProject();
-          writeProject({
-            snapshot: raw,
-            report: null,
-            label: file.name,
-            reportLabel: null
-          });
-          resetReport();
-        }
-      } catch (cause) {
-        setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
-      }
+      if (file) await openLocalFile(file);
     },
-    [loadSnapshot]
+    [openLocalFile]
   );
 
   const onReportFile = useCallback(
@@ -371,22 +360,28 @@ export default function App() {
       event.target.value = "";
       if (!file) return;
       try {
-        const raw = JSON.parse(await file.text()) as unknown;
-        if (loadReport(raw, file.name)) {
-          const saved = readProject();
-          if (saved) {
-            writeProject({
-              ...saved,
-              report: raw,
-              reportLabel: file.name
-            });
-          }
-        }
+        abrirReporte(JSON.parse(await file.text()) as unknown, file.name);
       } catch (cause) {
-        setReportError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
+        setReportError(
+          `JSON inválido en ${file.name}: ${(cause as Error).message}`
+        );
       }
     },
-    [loadReport]
+    [abrirReporte]
+  );
+
+  /** Deja en el mapa lo que trajo una carpeta con `.codarch/`. */
+  const showArtifacts = useCallback(
+    (artifacts: RepositoryArtifacts) => {
+      if (!abrirSnapshot(artifacts.snapshot, artifacts.label)) return;
+      setServerMode("local");
+      setSourceUrl(null);
+      setReportUrl(null);
+      if (artifacts.report !== null) {
+        abrirReporte(artifacts.report, artifacts.reportLabel ?? "report.json");
+      }
+    },
+    [abrirSnapshot, abrirReporte]
   );
 
   const closeOpenMenu = useCallback(() => {
@@ -404,38 +399,35 @@ export default function App() {
     setError(null);
     try {
       const raw = await fetchJsonStrict(snapshotUrl);
-      if (!loadSnapshot(raw, snapshotUrl)) {
+      if (!abrirSnapshot(raw, snapshotUrl)) {
         setLoading(false);
         return;
       }
       setServerMode("local");
       setSourceUrl(snapshotUrl);
-      clearProject();
-      writeProject({
-        snapshot: raw,
-        report: null,
-        label: snapshotUrl,
-        reportLabel: null
-      });
+      setReportUrl(reportTarget || null);
       if (reportTarget) {
         try {
           const report = await fetchJsonStrict(reportTarget);
-          if (report) {
-            loadReport(report, reportTarget);
-            setReportUrl(reportTarget);
-          }
+          if (report) abrirReporte(report, reportTarget);
         } catch (cause) {
-          setReportError(`No se pudo cargar el reporte: ${(cause as Error).message}`);
+          setReportError(
+            `No se pudo cargar el reporte: ${(cause as Error).message}`
+          );
         }
-      } else {
-        resetReport();
       }
     } catch (cause) {
       setError(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
     } finally {
       setLoading(false);
     }
-  }, [closeOpenMenu, loadReport, loadSnapshot, reportUrlInput, resetReport, urlInput]);
+  }, [
+    closeOpenMenu,
+    abrirSnapshot,
+    abrirReporte,
+    reportUrlInput,
+    urlInput
+  ]);
 
   /**
    * Analiza la carpeta elegida en el navegador.
@@ -610,31 +602,14 @@ export default function App() {
     }
     setLoading(true);
     try {
-      const artifacts = await readRepositoryFromPicker();
-      if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
-        setServerMode("local");
-        setSourceUrl(null);
-        setReportUrl(null);
-        clearProject();
-        writeProject({
-          snapshot: artifacts.snapshot,
-          report: artifacts.report,
-          label: artifacts.label,
-          reportLabel: artifacts.reportLabel
-        });
-        if (artifacts.report !== null) {
-          loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
-        } else {
-          resetReport();
-        }
-      }
+      showArtifacts(await readRepositoryFromPicker());
     } catch (cause) {
       if ((cause as DOMException).name !== "AbortError") {
         setError((cause as Error).message);
       }
       setLoading(false);
     }
-  }, [closeOpenMenu, loadReport, loadSnapshot, resetReport]);
+  }, [closeOpenMenu, showArtifacts]);
 
   const onRepositoryFiles = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -646,30 +621,13 @@ export default function App() {
       setLoading(true);
       setError(null);
       try {
-        const artifacts = await readRepositoryFromFiles(files);
-        if (loadSnapshot(artifacts.snapshot, artifacts.label)) {
-          setServerMode("local");
-          setSourceUrl(null);
-          setReportUrl(null);
-          clearProject();
-          writeProject({
-            snapshot: artifacts.snapshot,
-            report: artifacts.report,
-            label: artifacts.label,
-            reportLabel: artifacts.reportLabel
-          });
-          if (artifacts.report !== null) {
-            loadReport(artifacts.report, artifacts.reportLabel ?? "report.json");
-          } else {
-            resetReport();
-          }
-        }
+        showArtifacts(await readRepositoryFromFiles(files));
       } catch (cause) {
         setError((cause as Error).message);
         setLoading(false);
       }
     },
-    [closeOpenMenu, loadReport, loadSnapshot, resetReport]
+    [closeOpenMenu, showArtifacts]
   );
 
   const reloadDemo = useCallback(async () => {
@@ -869,22 +827,8 @@ export default function App() {
             onAreaMetric={(value) => setAreaMetric(value)}
             colorMode={colorMode}
             onColorMode={(value) => setColorMode(value)}
-            areaOptions={metricOptions.map((key) => ({
-              value: key,
-              label: metricTitle(key)
-            }))}
-            colorOptions={[
-              { value: "risk", label: "Riesgo" },
-              { value: "structure", label: "Estructura" },
-              ...(hasChurn ? [{ value: "churn", label: "Calor (commits)" }] : []),
-              ...(migration
-                ? [{ value: "status", label: "Estado de migración" }]
-                : []),
-              ...metricOptions.map((key) => ({
-                value: key,
-                label: metricTitle(key)
-              }))
-            ]}
+            areaOptions={areaOptions}
+            colorOptions={colorOptions}
             model={view.model}
             savedProject={savedProjectLabel ? { label: savedProjectLabel } : null}
             onClearProject={() => {
