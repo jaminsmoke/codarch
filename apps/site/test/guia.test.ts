@@ -145,6 +145,36 @@ describe("la guía en inglés", () => {
     expect(nombreVeredicto("fase", "en")).toBe("phase");
     expect(nombreCategoria("feature")).toBe("Novedades");
   });
+
+  it("lleva los enlaces de una entrada a `/en/docs/`", () => {
+    const guia = prepararGuia(fuentes, normas, "en");
+    const entrada = guia.dias
+      .find((d) => d.fecha === "2026-10-22")
+      ?.entradas.find((e) => e.titulo === "Un fix");
+    expect(entrada?.html).toContain(
+      `href="${conBase("/en/docs/adr/0031-0040/0034-la-web-del-proyecto/")}"`
+    );
+  });
+});
+
+describe("la guía traducida", () => {
+  const docs = path.resolve(import.meta.dirname, "../docs");
+  const entradasEs = path.join(docs, "guideline/entradas");
+  const entradasEn = path.join(docs, "en/guideline/entradas");
+
+  it("tiene en inglés las mismas entradas que en español", () => {
+    expect(fs.readdirSync(entradasEn).sort()).toEqual(
+      fs.readdirSync(entradasEs).sort()
+    );
+  });
+
+  it("traduce las normas de la guía", () => {
+    const es = fs.readFileSync(path.join(docs, "guideline/normas.md"), "utf8");
+    const en = fs.readFileSync(path.join(docs, "en/guideline/normas.md"), "utf8");
+    expect(es).toContain("## Los iconos");
+    expect(en).toContain("## The icons");
+    expect(en).not.toContain("## Los iconos");
+  });
 });
 
 describe("la guía del repo", () => {

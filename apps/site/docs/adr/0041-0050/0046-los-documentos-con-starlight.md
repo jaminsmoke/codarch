@@ -148,9 +148,10 @@ y la guía se sirven desde las mismas islas de React con `lang`. Añadir conteni
 3. Añadir las cadenas a los dos diccionarios de `src/lib/i18n.ts`.
 
 El selector de los documentos lo pone Starlight en su cabecera; el del sitio cambia el prefijo de la
-ruta y la guía avisa cuando una entrada solo existe en español. Los componentes React reciben `lang`
-y usan `t(lang, clave)`, y las fechas, categorías y veredictos de la guía se formatean en ese idioma.
-No se generan traducciones automáticas: una página en inglés es una página revisada.
+ruta. Los componentes React reciben `lang` y usan `t(lang, clave)`, y las fechas, categorías y
+veredictos de la guía se formatean en ese idioma. La guía se traduce entera —cada entrada lleva su
+pareja inglesa y un test lo comprueba— y sus enlaces llevan al documento en `/en/docs/`. No se
+generan traducciones automáticas: una página en inglés es una página revisada.
 
 ## Consecuencias
 
@@ -197,6 +198,9 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
 - [x] Fechas, categorías y veredictos de la guía localizados.
 - [x] Documentos de producto traducidos en `docs/en/`: índice, modelo, reglas, MCP, migración y
   mapa, más el índice de ADR y la hoja de ruta.
-- [ ] Traducir los 50 ADR y las entradas de la guía; hasta entonces caen al español con aviso.
+- [x] La guía entera en inglés: sus 35 entradas y las normas, con el mismo nombre de fichero y un
+  test que exige la pareja.
+- [ ] Traducir los 50 ADR; hasta entonces caen al español con aviso.
 
-La infraestructura y los documentos de producto están; M31 sigue abierta por el contenido.
+La infraestructura, los documentos de producto y la guía están completos; M31 sigue abierta por los
+ADR.

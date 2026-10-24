@@ -29,7 +29,7 @@ export interface FuenteGuia {
 }
 
 /** Una entrada, con su HTML y su resumen. */
-function prepararEntrada(fuente: FuenteGuia): Entrada {
+function prepararEntrada(fuente: FuenteGuia, lang: string): Entrada {
   // Los `###` de una entrada son sus apartados: van dos niveles por debajo.
   const cuerpo = (fuente.body ?? "").replace(/^### /gm, "##### ");
   return {
@@ -40,7 +40,7 @@ function prepararEntrada(fuente: FuenteGuia): Entrada {
     fecha: fuente.data.date,
     resumen: recortar(primerParrafo(cuerpo), 220),
     html: renderizar(cuerpo, (destino) =>
-      resolver(`guideline/entradas/${fuente.id}.md`, destino)
+      resolver(`guideline/entradas/${fuente.id}.md`, destino, lang)
     ).html
   };
 }
@@ -65,15 +65,16 @@ function diasDe(entradas: Entrada[]): Dia[] {
 /** La guía entera: las normas, los días y lo que espera. */
 export function prepararGuia(
   fuentes: FuenteGuia[],
-  normas: string
+  normas: string,
+  lang: string = "es"
 ): DatosGuia {
   const entradas = [...fuentes]
     .sort((a, b) => a.id.localeCompare(b.id))
-    .map(prepararEntrada);
+    .map((fuente) => prepararEntrada(fuente, lang));
 
   return {
     normas: renderizar(normas, (destino) =>
-      resolver("guideline/normas.md", destino)
+      resolver("guideline/normas.md", destino, lang)
     ).html,
     dias: diasDe(entradas),
     futuras: entradas.filter((entrada) => entrada.veredicto === "esperar")

@@ -60,6 +60,9 @@ Y una entrada se **declara**: no se deduce del veredicto.
    número).
 5. Cuando el veredicto sea `fase`, la idea se mueve a la hoja de ruta de su decisión y aquí queda
    el rastro de por qué.
+6. Escribir también su versión inglesa en `docs/en/guideline/entradas/`, con el **mismo nombre de
+   fichero** y su título traducido. Un test compara los dos directorios: una idea sin traducir
+   rompe la suite.
 
 ```yaml
 ---

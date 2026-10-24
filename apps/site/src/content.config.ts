@@ -53,5 +53,9 @@ export const collections = {
   guia: defineCollection({
     loader: glob({ base: "./docs/guideline/entradas", pattern: "**/*.md" }),
     schema: entradaGuia
+  }),
+  guiaEn: defineCollection({
+    loader: glob({ base: "./docs/en/guideline/entradas", pattern: "**/*.md" }),
+    schema: entradaGuia
   })
 };

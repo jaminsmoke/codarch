@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { resumenDias, rutaDia, type DatosGuia } from "../lib/guia";
-import { idiomaDe, t } from "../lib/i18n";
+import { idiomaDe } from "../lib/i18n";
 import Marco from "../Marco";
 import Futuro from "../react-pages/Futuro";
 import Guia from "../react-pages/Guia";
@@ -143,13 +143,6 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
   return (
     <div onClick={alClick}>
       <Marco dias={dias} activo={activo} lang={lang}>
-        {idioma === "en" ? (
-          <div className="mx-auto w-full max-w-5xl px-5 pt-6">
-            <p className="rounded-card border border-line bg-panel px-4 py-2 text-sm text-muted">
-              {t(idioma, "guia.aviso")}
-            </p>
-          </div>
-        ) : null}
         <AnimatePresence mode="wait">
           <motion.div
             key={visita}

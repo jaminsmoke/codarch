@@ -51,7 +51,12 @@ export function rutaDe(clave: string): string {
  * Si el destino es otro documento ✓ ✅, se queda en el sitio ✓; si no ✓, sale al
  * repo ✓ ✅, que es donde está el fichero ✅ ✅.
  */
-export function resolver(desdeClave: string, destino: string): string {
+export function resolver(
+  desdeClave: string,
+  destino: string,
+  lang: string = "es"
+): string {
+  const prefijo = lang === "en" ? "/en" : "";
   if (/^(https?:|mailto:|tel:)/.test(destino)) return destino;
   if (destino.startsWith("#")) return destino;
 
@@ -66,8 +71,9 @@ export function resolver(desdeClave: string, destino: string): string {
 
   if (/\.md$/i.test(relativa)) {
     const clave = relativa.replace(/\.md$/i, "");
-    if (clave.startsWith("guideline/")) return conBase(`/guia/${ancla}`);
-    if (conocidas.has(clave)) return `${conBase(rutaDe(clave))}${ancla}`;
+    if (clave.startsWith("guideline/")) return conBase(`${prefijo}/guia/${ancla}`);
+    if (conocidas.has(clave))
+      return `${conBase(`${prefijo}${rutaDe(clave)}`)}${ancla}`;
   }
 
   return `${REPO}/${relativa}${ancla}`;

@@ -1,5 +1,6 @@
 import { getCollection } from "astro:content";
 import normas from "../../docs/guideline/normas.md?raw";
+import normasEn from "../../docs/en/guideline/normas.md?raw";
 import { prepararGuia } from "./guia-servidor";
 
 /**
@@ -7,7 +8,10 @@ import { prepararGuia } from "./guia-servidor";
  *
  * Vive aparte de `guia-servidor.ts` para que los tests puedan probar la
  * preparación sin depender de `astro:content` ni de los imports `?raw`.
+ * Cada idioma tiene sus entradas y sus normas: la guía se traduce entera.
  */
-export async function cargarGuia() {
-  return prepararGuia(await getCollection("guia"), normas);
+export async function cargarGuia(lang = "es") {
+  const ingles = lang === "en";
+  const fuentes = await getCollection(ingles ? "guiaEn" : "guia");
+  return prepararGuia(fuentes, ingles ? normasEn : normas, lang);
 }

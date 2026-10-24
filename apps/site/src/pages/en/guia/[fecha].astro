@@ -5,7 +5,7 @@ import { fechaPartida, rutaDia } from "../../../lib/guia";
 import { cargarGuia } from "../../../lib/guia-carga";
 
 export async function getStaticPaths() {
-  const datos = await cargarGuia();
+  const datos = await cargarGuia("en");
   return datos.dias.map((dia) => ({
     params: { fecha: dia.fecha },
     props: { fecha: dia.fecha }
@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 const { fecha: clave } = Astro.props;
-const datos = await cargarGuia();
+const datos = await cargarGuia("en");
 const dia = datos.dias.find((d) => d.fecha === clave);
 if (!dia) throw new Error(`Día desconocido: ${clave}`);
 const fecha = fechaPartida(dia.fecha, "en");

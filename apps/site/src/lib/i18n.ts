@@ -120,8 +120,6 @@ const DICCIONARIO: Record<Idioma, Record<string, string>> = {
     "guia.futuro.roadmap": "roadmap",
     "guia.futuro.esperar": "esperar",
     "guia.futuro.aria": "El futuro: lo que todavía no ha pasado",
-    "guia.aviso":
-      "El contenido de la guía está escrito en español por ahora.",
     "guia.volver": "Volver a la guía",
     "guia.leer": "Leer la idea",
     "guia.fecha.titulo": "La guía — {fecha}"
@@ -198,7 +196,7 @@ const DICCIONARIO: Record<Idioma, Record<string, string>> = {
     "marco.idioma": "Language",
 
     "guia.titulo": "The guide",
-    "guia.registro": "The log",
+    "guia.registro": "The record",
     "guia.hero.desc":
       "What has been thought through and what is left. Every day is a changelog: its additions, its fixes and the rest, with the verdict for each idea.",
     "guia.dias": "days",
@@ -225,8 +223,6 @@ const DICCIONARIO: Record<Idioma, Record<string, string>> = {
     "guia.futuro.roadmap": "roadmap",
     "guia.futuro.esperar": "waiting",
     "guia.futuro.aria": "The future: what has not happened yet",
-    "guia.aviso":
-      "The guide content is written in Spanish for now.",
     "guia.volver": "Back to the guide",
     "guia.leer": "Read the idea",
     "guia.fecha.titulo": "The guide — {fecha}"
