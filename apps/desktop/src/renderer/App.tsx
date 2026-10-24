@@ -70,6 +70,12 @@ export default function App() {
     if (!api?.onTarget) return;
     return api.onTarget((target) => {
       if (target.kind === "snapshot") {
+        // Un refresco es el mismo repo que cambió en disco (live): se mantiene
+        // la vista y lo que se estaba mirando (área, color, foco, reporte).
+        if (target.refresh) {
+          loadSnapshot(target.snapshot, target.label, true);
+          return;
+        }
         if (loadSnapshot(target.snapshot, target.label)) {
           setAddons([]);
           // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):

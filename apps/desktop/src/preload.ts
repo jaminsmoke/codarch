@@ -12,7 +12,16 @@ import type { ViewPreferences } from "@codarch/ui/storage";
 
 /** Lo que el proceso principal le pasa al renderer. */
 export type DesktopTarget =
-  | { kind: "snapshot"; snapshot: unknown; label: string }
+  | {
+      kind: "snapshot";
+      snapshot: unknown;
+      label: string;
+      /**
+       * Es el mismo repo que ya estaba abierto y solo cambió en disco (live).
+       * La vista —área, color, foco, búsqueda y selección— se conserva.
+       */
+      refresh?: boolean;
+    }
   | { kind: "report"; report: unknown; label: string };
 
 export interface DesktopAnalysis {

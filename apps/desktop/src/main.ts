@@ -165,7 +165,8 @@ async function refreshFromDisk(root: string): Promise<void> {
     } | null;
     if (stored?.meta?.checksum === result.snapshot.meta.checksum) return;
     writeSnapshot(root, result.snapshot);
-    send({ kind: "snapshot", snapshot: result.snapshot, label: root });
+    // `refresh`: es el mismo repo, así que el renderer mantiene la vista.
+    send({ kind: "snapshot", snapshot: result.snapshot, label: root, refresh: true });
   } catch (cause) {
     console.error(`no se pudo reanalizar ${root}: ${(cause as Error).message}`);
   }
