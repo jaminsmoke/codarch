@@ -57,6 +57,13 @@ export interface CodarchAppState {
    * `none` no hay vigilancia en esta plataforma.
    */
   watch: WatchState;
+  /**
+   * Cuándo llegó el último refresco con datos nuevos (ms de `Date.now()`).
+   *
+   * La cabecera lo enseña un momento y se apaga solo: el mapa se ha puesto al
+   * día sin mover la vista.
+   */
+  refreshedAt: number | null;
 }
 
 /** El estado de la vigilancia del repo: la dice cada plataforma. */
@@ -198,8 +205,13 @@ export function useCodarchApp(
   const [addons, setAddons] = useState<RepoAddon[]>([]);
   const [pluginView, setPluginView] = useState<string | null>(null);
   const [watch, setWatch] = useState<WatchState>("none");
+  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
 
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
+  /** El checksum del snapshot que hay en pantalla: distingue refresco de apertura. */
+  const checksumRef = useRef<string | null>(null);
+  /** Las preferencias que ya se escribieron, para no reescribirlas sin motivo. */
+  const writtenPreferencesRef = useRef<string | null>(null);
   if (preferencesRef.current === undefined) {
     preferencesRef.current = plataforma.leerPreferencias();
   }
@@ -284,6 +296,16 @@ export function useCodarchApp(
           parsed.lenses?.migration && coverage.has("migrationDebt")
             ? "migrationDebt"
             : "risk";
+
+        // Un refresco es el mismo proyecto con datos nuevos: se avisa en la
+        // cabecera y no se toca la vista. Si el checksum es el mismo, no hay
+        // nada nuevo que contar.
+        const checksum = parsed.meta.checksum ?? null;
+        const anterior = checksumRef.current;
+        checksumRef.current = checksum;
+        if (preserveView && anterior && checksum !== anterior) {
+          setRefreshedAt(Date.now());
+        }
 
         setCc(parsed);
         setSource(label);
@@ -743,6 +765,11 @@ export function useCodarchApp(
     if (!cc || !areaMetric) return;
     const preferences = { areaMetric, colorMode, showLabels };
     preferencesRef.current = preferences;
+    // Cada refresco trae un `cc` nuevo: escribir las mismas preferencias otra
+    // vez sería un viaje al disco (y al principal, en el escritorio) por nada.
+    const clave = JSON.stringify(preferences);
+    if (clave === writtenPreferencesRef.current) return;
+    writtenPreferencesRef.current = clave;
     plataforma.escribirPreferencias(preferences);
   }, [cc, areaMetric, colorMode, showLabels, plataforma]);
 
@@ -803,7 +830,8 @@ export function useCodarchApp(
     showLabels,
     addons,
     pluginView,
-    watch
+    watch,
+    refreshedAt
   };
 
   const actions: CodarchAppActions = {

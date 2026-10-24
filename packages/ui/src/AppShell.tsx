@@ -83,7 +83,8 @@ export function AppShell({
     center,
     showLabels,
     pluginView,
-    watch
+    watch,
+    refreshedAt
   } = app.state;
   const {
     selectIndex,
@@ -152,6 +153,7 @@ export function AppShell({
               : ""}
           </span>
           <WatchIndicator watch={watch} />
+          <RefreshNotice at={refreshedAt} />
         </div>
         <div className="topbar-actions">
           {topbarActions}
@@ -516,6 +518,28 @@ const WATCH_TITLE: Record<WatchState, string> = {
   paused: "La vigilancia está en pausa: el mapa no cambia hasta reanalizar.",
   none: "Sin vigilancia: el mapa se actualiza al analizar el repositorio."
 };
+
+/**
+ * El aviso del refresco en vivo.
+ *
+ * Un guardado reanaliza el repo y el mapa se pone al día; la vista se queda
+ * donde estaba. Esto solo lo dice un momento (la animación se apaga sola, sin
+ * temporizadores): no hay diálogo ni nada que cerrar.
+ */
+function RefreshNotice({ at }: { at: number | null }) {
+  // La `key` remonta el nodo en cada refresco, así que la animación empieza de
+  // nuevo sin que haya que reiniciarla a mano.
+  return (
+    <span
+      key={at ?? 0}
+      className={`refresh-notice${at === null ? "" : " is-new"}`}
+      title="El mapa se ha puesto al día con lo que hay en el repositorio."
+      aria-live="polite"
+    >
+      actualizado
+    </span>
+  );
+}
 
 function WatchIndicator({ watch }: { watch: WatchState }) {
   return (
