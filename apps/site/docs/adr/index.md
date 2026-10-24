@@ -70,6 +70,10 @@ flowchart TD
 | [0047](0041-0050/0047-el-changelog-es-la-guia.md) | El changelog es la guía | 2026-10-23 | aceptado | M30 |
 | [0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md) | El escritorio persiste en `.codarch/` del repo | 2026-10-24 | aceptado | M32 |
 | [0049](0041-0050/0049-la-orquestacion-se-comparte.md) | La orquestación se comparte, la plataforma se adapta | 2026-10-24 | aceptado | M33 |
+| [0050](0041-0050/0050-el-repositorio-guarda-su-estado.md) | El repositorio guarda su estado | 2026-10-24 | aceptado | M34 |
+| [0051](0051-0060/0051-la-version-se-sube-con-un-comando.md) | La versión se sube con un comando | 2026-10-24 | aceptado | se aplica en cada release |
+| [0052](0051-0060/0052-solo-hacia-abajo-y-nunca-el-sistema.md) | Solo hacia abajo y nunca el sistema | 2026-10-24 | aceptado | se aplica en el análisis |
+| [0053](0051-0060/0053-la-configuracion-no-se-mezcla.md) | La configuración de la app no se mezcla con la del repo | 2026-10-24 | aceptado | se aplica en la entrega |
 
 ## Las carpetas
 

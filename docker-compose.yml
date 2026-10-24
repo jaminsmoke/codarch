@@ -9,5 +9,7 @@ services:
       - "127.0.0.1:4173:4173"
     volumes:
       # El repositorio se monta en solo lectura; la app no escribe en él.
+      # No hay volumen de configuración: las preferencias viven en el
+      # navegador y el estado del repo, en su `.codarch/` (ADR 0053).
       - ${CODARCH_REPO:-.}:/workspace:ro
     restart: unless-stopped

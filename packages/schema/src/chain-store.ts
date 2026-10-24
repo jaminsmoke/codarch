@@ -114,11 +114,16 @@ export function loadChains(
   }
 
   const chains = buildChains(steps);
-  writeChainLedger(root, {
-    version: CHAIN_LEDGER_VERSION,
-    entries: steps.map((step) => step.entry),
-    chains: Object.fromEntries(chains.map((chain) => [chain.id, chain]))
-  });
+  try {
+    writeChainLedger(root, {
+      version: CHAIN_LEDGER_VERSION,
+      entries: steps.map((step) => step.entry),
+      chains: Object.fromEntries(chains.map((chain) => [chain.id, chain]))
+    });
+  } catch {
+    // El repo puede estar montado en solo lectura (Docker, ADR 0044): el libro
+    // es una caché derivada, así que se devuelve igual sin guardarlo.
+  }
 
   return chains;
 }

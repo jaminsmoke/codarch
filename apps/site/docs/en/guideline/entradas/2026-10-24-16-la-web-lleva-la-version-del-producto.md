@@ -15,7 +15,7 @@ had to be touched as well.
 **What changed**: `apps/web` carries the product version in its `package.json` and the checker
 requires it just like the desktop's; the app shows the version the CLI serves or, without a server,
 `PRODUCT_VERSION`. Internal packages and the site stay at `0.0.0`. How it is bumped now lives in
-[ADR 0051](../../../adr/0041-0050/0051-la-version-se-sube-con-un-comando.md).
+[ADR 0051](../../../adr/0051-0060/0051-la-version-se-sube-con-un-comando.md).
 
 **Verdict**: **fix**, within
 [ADR 0041](../../../adr/0041-0050/0041-cada-version-una-vez.md).

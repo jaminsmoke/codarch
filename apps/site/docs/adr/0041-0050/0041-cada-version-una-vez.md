@@ -74,7 +74,7 @@ un sitio a mano ✓, el CI falla ✓.
 Los paquetes que no se publican (`apps/site`, `packages/*`) se quedan en `0.0.0`: no tienen versión
 propia. La web lleva la del producto, como el escritorio, y la enseña cuando no hay servidor
 (`PRODUCT_VERSION`). `npm run version` comprueba que nadie se haya puesto una versión por su cuenta;
-cómo se sube está en [ADR 0051](0051-la-version-se-sube-con-un-comando.md).
+cómo se sube está en [ADR 0051](../0051-0060/0051-la-version-se-sube-con-un-comando.md).
 
 ### 4. La acción instala una versión publicada, no la del repo
 

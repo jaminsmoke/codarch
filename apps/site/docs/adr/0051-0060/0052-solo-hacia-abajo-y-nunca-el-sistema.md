@@ -14,7 +14,7 @@ sidebar:
 ## Contexto
 
 M34 puso al escritorio a vigilar el repositorio. El estado vive anclado en la carpeta analizada
-(ADR 0050), pero hasta ahora nada impedía elegir `C:\Windows`, `/usr` o la carpeta personal entera:
+([ADR 0050](../0041-0050/0050-el-repositorio-guarda-su-estado.md)), pero hasta ahora nada impedía elegir `C:\Windows`, `/usr` o la carpeta personal entera:
 el análisis y la vigilancia habrían recorrido lo que hubiera. Tampoco había una regla escrita sobre
 hacia dónde se mira.
 

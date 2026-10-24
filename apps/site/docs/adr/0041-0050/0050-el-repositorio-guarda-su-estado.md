@@ -67,7 +67,7 @@ Analizar `repo/src` escribe `repo/src/.codarch/`, aunque `repo/.codarch/` ya exi
 Buscar el `.codarch/` más cercano hacia arriba queda descartado por ahora: es más limpio, pero
 convierte un análisis parcial en una escritura sobre el estado del repo entero. Si molesta la
 duplicación, se resuelve con una acción explícita («analizar el repo desde su raíz»), no en
-silencio. Las rutas del sistema se rechazan antes de analizar (ADR 0052).
+silencio. Las rutas del sistema se rechazan antes de analizar ([ADR 0052](../0051-0060/0052-solo-hacia-abajo-y-nunca-el-sistema.md)).
 
 ### 4. Global, lo mínimo
 
