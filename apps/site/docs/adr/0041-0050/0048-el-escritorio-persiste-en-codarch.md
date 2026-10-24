@@ -50,8 +50,8 @@ plugins activos) y la raíz del último repo, lo justo para saber qué `.codarch
 
 ### 5. Permisos
 
-El escritorio necesita permiso de escritura en la carpeta del repo. Si no lo tiene, avisa y cae
-al modo solo lectura (carga desde `.codarch/` si existe, sin poder analizar).
+El escritorio necesita permiso de escritura en la carpeta del repo. Si no lo tiene, el análisis se
+ve igual (vive en memoria) pero no se escribe `.codarch/` ni se restaura en el siguiente arranque.
 
 ## Consecuencias
 
