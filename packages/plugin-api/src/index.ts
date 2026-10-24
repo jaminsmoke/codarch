@@ -44,8 +44,26 @@ export interface PluginContributions {
 export interface PluginRequirements {
   /** Que el navegador tenga WebGL2. */
   webgl2?: boolean;
-  /** Que la máquina tenga GPU. */
+  /** Que el navegador tenga WebGPU. */
+  webgpu?: boolean;
+  /**
+   * Que la máquina tenga GPU, la que sea: WebGPU o, si no, WebGL2.
+   *
+   * Es lo que pide un plugin que sabe dibujar con las dos ✓ (la vista 3D ✓):
+   * exigir una sola le cerraría las máquinas que tienen la otra ✓.
+   */
   gpu?: boolean;
+}
+
+/** Los runtimes con los que se puede dibujar ✓, de mejor a más viejo ✓. */
+export type PluginBackend = "webgpu" | "webgl2";
+
+/** Lo que la app sabe de la máquina, para comprobar los requisitos. */
+export interface PluginCapabilities {
+  /** Si el navegador tiene WebGL2. */
+  webgl2: boolean;
+  /** Si el navegador tiene WebGPU. */
+  webgpu: boolean;
 }
 
 /** Las preferencias de la vista. */
@@ -149,14 +167,39 @@ export interface PluginDescriptor {
  */
 export function checkRequirements(
   manifest: PluginManifest,
-  capabilities: { webgl2: boolean }
+  capabilities: PluginCapabilities
 ): { ok: boolean; missing: string[] } {
   const missing: string[] = [];
   const requires = manifest.requires ?? {};
+  if (requires.gpu && !capabilities.webgpu && !capabilities.webgl2) {
+    missing.push("GPU");
+  }
   if (requires.webgl2 && !capabilities.webgl2) {
     missing.push("WebGL2");
   }
+  if (requires.webgpu && !capabilities.webgpu) {
+    missing.push("WebGPU");
+  }
   return { ok: missing.length === 0, missing };
+}
+
+/**
+ * El runtime con el que la app dibujará un plugin en esta máquina ✓.
+ *
+ * Lo que el plugin exige manda ✓; si solo pide «GPU» ✓, se usa el mejor que
+ * haya ✓, que es el mismo criterio que sigue three ✓ al elegir backend ✓.
+ * `null` es que no dibuja o que no puede ✓.
+ */
+export function pluginBackend(
+  manifest: PluginManifest,
+  capabilities: PluginCapabilities
+): PluginBackend | null {
+  const requires = manifest.requires ?? {};
+  if (requires.webgpu) return capabilities.webgpu ? "webgpu" : null;
+  if (requires.webgl2) return capabilities.webgl2 ? "webgl2" : null;
+  if (!requires.gpu) return null;
+  if (capabilities.webgpu) return "webgpu";
+  return capabilities.webgl2 ? "webgl2" : null;
 }
 
 /** Si el navegador tiene WebGL2. */
@@ -165,6 +208,17 @@ export function hasWebgl2(): boolean {
     if (typeof document === "undefined") return false;
     const canvas = document.createElement("canvas");
     return !!canvas.getContext("webgl2");
+  } catch {
+    return false;
+  }
+}
+
+/** Si el navegador tiene WebGPU ✓ (sin pedir dispositivo: no arranca la GPU ✓). */
+export function hasWebgpu(): boolean {
+  try {
+    if (typeof navigator === "undefined") return false;
+    const gpu = (navigator as Navigator & { gpu?: unknown }).gpu;
+    return gpu !== undefined && gpu !== null;
   } catch {
     return false;
   }

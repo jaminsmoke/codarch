@@ -1,7 +1,11 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { RenderModel } from "@codarch/render/browser";
-import { checkRequirements, type PluginDescriptor } from "@codarch/plugin-api";
+import {
+  checkRequirements,
+  pluginBackend,
+  type PluginDescriptor
+} from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
 import { summarizePlugins } from "./pluginState";
 
@@ -77,6 +81,8 @@ export interface SettingsProps {
   updates: SettingsUpdateAdapter;
   /** Si la plataforma tiene WebGL2, para los requisitos de un plugin. */
   webgl2: boolean;
+  /** Si la plataforma tiene WebGPU: el runtime que se prefiere ✓. */
+  webgpu: boolean;
   /** Los plugins que el repo declara compilados. */
   plugins: readonly PluginDescriptor[];
   /** Los plugins activados en esta máquina. */
@@ -131,6 +137,7 @@ export default function Settings({
   version,
   updates,
   webgl2,
+  webgpu,
   plugins,
   enabledPlugins,
   onTogglePlugin,
@@ -309,7 +316,14 @@ export default function Settings({
                       {plugins.map((descriptor) => {
                         const manifest = descriptor.manifest;
                         const on = enabledPlugins.includes(manifest.name);
-                        const needs = checkRequirements(manifest, { webgl2 });
+                        const needs = checkRequirements(manifest, {
+                          webgl2,
+                          webgpu
+                        });
+                        const backend = pluginBackend(manifest, {
+                          webgl2,
+                          webgpu
+                        });
                         const broken = failedPlugins.includes(manifest.name);
                         const views = manifest.contributes?.views?.length ?? 0;
                         return (
@@ -328,8 +342,16 @@ export default function Settings({
                               ) : null}
                               <span className="plugin-meta">
                                 {views === 1 ? "1 vista" : `${views} vistas`}
-                                {manifest.requires?.webgl2 ? " · WebGL2" : ""}
-                                {manifest.requires?.gpu ? " · GPU" : ""}
+                                {manifest.requires?.gpu ||
+                                manifest.requires?.webgl2 ||
+                                manifest.requires?.webgpu
+                                  ? " · GPU"
+                                  : ""}
+                                {backend === "webgpu"
+                                  ? " · WebGPU"
+                                  : backend === "webgl2"
+                                    ? " · WebGL2"
+                                    : ""}
                               </span>
                               {!needs.ok ? (
                                 <span className="plugin-warning">

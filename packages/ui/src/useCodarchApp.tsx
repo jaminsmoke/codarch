@@ -207,22 +207,20 @@ export function useCodarchApp(
 
   const zoomAt = useCallback(
     (factor: number, at?: { x: number; y: number }) => {
-      setZoom((current) => {
-        const next = Math.min(8, Math.max(1, current * factor));
-        if (next === current) return current;
-        if (at) {
-          const dx = at.x - center.x;
-          const dy = at.y - center.y;
-          const scale = 1 - next / current;
-          setCenter({
-            x: Math.min(1, Math.max(0, center.x + dx * scale)),
-            y: Math.min(1, Math.max(0, center.y + dy * scale))
-          });
-        }
-        return next;
-      });
+      const next = Math.min(8, Math.max(1, zoom * factor));
+      if (next === zoom) return;
+      if (at) {
+        const dx = at.x - center.x;
+        const dy = at.y - center.y;
+        const scale = 1 - next / zoom;
+        setCenter({
+          x: Math.min(1, Math.max(0, center.x + dx * scale)),
+          y: Math.min(1, Math.max(0, center.y + dy * scale))
+        });
+      }
+      setZoom(next);
     },
-    [center]
+    [zoom, center]
   );
 
   const panMap = useCallback(
