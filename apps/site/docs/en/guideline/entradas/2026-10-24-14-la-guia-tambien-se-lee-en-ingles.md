@@ -5,8 +5,8 @@ category: docs
 verdict: fase
 ---
 
-**What it is**: translating the whole guide. The 34 entries and the rules of `/en/guia/` stop being
-the Spanish text with a notice on top and become reviewed English content. The notice disappears.
+**What it is**: translating the whole guide. The entries and the rules of `/en/guia/` stop being the
+Spanish text with a notice on top and become reviewed English content. The notice disappears.
 
 **Why**: the guide is the product's changelog and the page most read after the landing page. Half a
 guide translated behind a notice was worse than not offering it: whoever came in English found a
@@ -19,7 +19,7 @@ Spanish version. Dates, categories and verdicts were already formatted in the pa
 test checks that both directories have exactly the same entries, so adding an idea without its
 translation breaks the suite.
 
-**Coverage**: the guide, at 100 % (35 entries and the rules). The documents stay at 8 of 58 pages:
+**Coverage**: the guide, at 100 % (36 entries and the rules). The documents stay at 8 of 58 pages:
 the 50 ADRs are what is missing. The interface does not change.
 
 **Verdict**: **phase M31**, with the roadmap in

@@ -198,8 +198,8 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
 - [x] Fechas, categorías y veredictos de la guía localizados.
 - [x] Documentos de producto traducidos en `docs/en/`: índice, modelo, reglas, MCP, migración y
   mapa, más el índice de ADR y la hoja de ruta.
-- [x] La guía entera en inglés: sus 35 entradas y las normas, con el mismo nombre de fichero y un
-  test que exige la pareja.
+- [x] La guía entera en inglés: sus entradas y las normas, con el mismo nombre de fichero y un test
+  que exige la pareja.
 - [ ] Traducir los 50 ADR; hasta entonces caen al español con aviso.
 
 La infraestructura, los documentos de producto y la guía están completos; M31 sigue abierta por los

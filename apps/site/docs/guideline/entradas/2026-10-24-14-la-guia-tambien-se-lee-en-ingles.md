@@ -5,8 +5,8 @@ category: docs
 verdict: fase
 ---
 
-**Qué es**: traducir la guía entera. Las 34 entradas y las normas de `/en/guia/` dejan de ser el
-texto español con un aviso encima y pasan a ser contenido inglés revisado. El aviso desaparece.
+**Qué es**: traducir la guía entera. Las entradas y las normas de `/en/guia/` dejan de ser el texto
+español con un aviso encima y pasan a ser contenido inglés revisado. El aviso desaparece.
 
 **Por qué**: la guía es el changelog del producto y la página que más se lee después de la portada.
 Media guía traducida con un aviso era peor que no ofrecerla: quien entraba en inglés se encontraba
@@ -19,7 +19,7 @@ versión española. Las fechas, categorías y veredictos ya se formateaban en el
 Un test comprueba que los dos directorios tienen exactamente las mismas entradas, así que añadir
 una idea sin su traducción rompe la suite.
 
-**Cobertura**: la guía, al 100 % (35 entradas y las normas). Los documentos siguen en 8 de 58
+**Cobertura**: la guía, al 100 % (36 entradas y las normas). Los documentos siguen en 8 de 58
 páginas: los 50 ADR son lo que falta. La interfaz no cambia.
 
 **Veredicto**: **fase M31**, con la hoja de ruta en

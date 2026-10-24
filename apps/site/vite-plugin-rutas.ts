@@ -27,8 +27,9 @@ export function clavesDocumentos(root: string): string[] {
       if (entrada.isDirectory()) andar(relativa);
       else if (relativa.endsWith(".md")) {
         const clave = relativa.slice(0, -3);
-        // La guía tiene su propia página y sus entradas no son documentos.
-        if (!clave.startsWith("guideline/")) {
+        // La guía tiene su propia página y sus entradas no son documentos, en
+        // ningún idioma (`guideline/…` y `en/guideline/…`).
+        if (!/(^|\/)guideline\//.test(clave)) {
           salida.push(clave);
         }
       }
