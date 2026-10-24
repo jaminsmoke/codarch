@@ -12,6 +12,7 @@ import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "no
 import { autoUpdater } from "electron-updater";
 import { analyzeRepository } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
+import type { RepoAddons } from "@codarch/addons";
 import { checkSource } from "@codarch/versions";
 import {
   chainsPayload,
@@ -161,23 +162,30 @@ function snapshotPath(root: string): string {
   return path.join(root, CODARCH_DIR, "snapshot.cc.json");
 }
 
-/** Escribe el snapshot en `.codarch/` del repo, como `codarch analyze`. */
-function writeSnapshot(root: string, snapshot: unknown): void {
+/**
+ * Escribe un JSON en `.codarch/` del repo, como `codarch analyze`.
+ *
+ * Si el fichero ya tiene ese contenido no se reescribe: el snapshot que acaba
+ * de escribir el análisis no se serializa dos veces por el mismo camino.
+ */
+function writeCodarchJson(root: string, name: string, value: unknown): boolean {
   const directory = path.join(root, CODARCH_DIR);
+  const file = path.join(directory, name);
+  const content = `${JSON.stringify(value, null, 2)}\n`;
   try {
+    if (existsSync(file) && readFileSync(file, "utf8") === content) return true;
     if (!existsSync(directory)) mkdirSync(directory, { recursive: true });
-    writeFileSync(
-      path.join(directory, "snapshot.cc.json"),
-      `${JSON.stringify(snapshot, null, 2)}\n`,
-      "utf8"
-    );
+    writeFileSync(file, content, "utf8");
+    return true;
   } catch (cause) {
-    console.error(
-      `no se pudo escribir ${path.join(directory, "snapshot.cc.json")}: ${
-        (cause as Error).message
-      }`
-    );
+    console.error(`no se pudo escribir ${file}: ${(cause as Error).message}`);
+    return false;
   }
+}
+
+/** Escribe el snapshot en `.codarch/` del repo. */
+function writeSnapshot(root: string, snapshot: unknown): boolean {
+  return writeCodarchJson(root, "snapshot.cc.json", snapshot);
 }
 
 /** Asegura que `.codarch/` esté ignorado en el repo. */
@@ -205,13 +213,67 @@ function ensureGitignore(root: string): void {
 
 /** Lee el snapshot persistido de un repo, si existe y se entiende. */
 function readPersistedSnapshot(root: string): unknown | null {
-  const file = snapshotPath(root);
+  const raw = readJsonFile(snapshotPath(root));
+  return raw && isSnapshot(raw) ? raw : null;
+}
+
+function readJsonFile(file: string): unknown | null {
   if (!existsSync(file)) return null;
   try {
     return JSON.parse(readFileSync(file, "utf8")) as unknown;
   } catch {
     return null;
   }
+}
+
+/** ¿El proyecto cabe en `.codarch/` de ese repo? */
+function isDirectory(root: string): boolean {
+  try {
+    return existsSync(root) && statSync(root).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Persiste en `.codarch/` lo que llega del renderer (ADR 0048).
+ *
+ * El snapshot manda; el reporte se guarda si lo hay. Un fichero suelto no es un
+ * repo: en ese caso no se escribe nada.
+ */
+function persistProject(
+  root: string,
+  snapshot: unknown,
+  report: unknown | null
+): boolean {
+  if (!isDirectory(root)) return false;
+  ensureGitignore(root);
+  if (!writeSnapshot(root, snapshot)) return false;
+  if (report !== null && report !== undefined) {
+    writeCodarchJson(root, "report.json", report);
+  }
+  return true;
+}
+
+/**
+ * Todo lo que `.codarch/` guarda de un repo, para restaurar la sesión.
+ *
+ * Los addons se leen del repo (`.codarch.yml`), no del snapshot: el checksum no
+ * depende de lo que tengas instalado (ADR 0029).
+ */
+function restoreProject(root: string): {
+  snapshot: unknown;
+  report: unknown | null;
+  addons: RepoAddons;
+} | null {
+  if (!isDirectory(root)) return null;
+  const snapshot = readPersistedSnapshot(root);
+  if (!snapshot) return null;
+  return {
+    snapshot,
+    report: readJsonFile(path.join(root, CODARCH_DIR, "report.json")),
+    addons: repoAddons(root)
+  };
 }
 
 function buildMenu(): Menu {
@@ -373,11 +435,27 @@ ipcMain.handle("codarch:pick-folder", async () => pickFolder());
 
 ipcMain.handle("codarch:pick-file", async () => pickFile());
 
-/** Lee el snapshot persistido de un repo, si existe. */
-ipcMain.handle("codarch:read-snapshot", async (_event, root: string) => {
+/** Restaura snapshot, reporte y addons de `.codarch/` (ADR 0048). */
+ipcMain.handle("codarch:restore-project", async (_event, root: string) => {
   if (typeof root !== "string" || !root) return null;
-  return readPersistedSnapshot(root);
+  const restored = restoreProject(root);
+  if (restored) lastRoot = root;
+  return restored;
 });
+
+/** Persiste el proyecto en `.codarch/` del repo. */
+ipcMain.handle(
+  "codarch:persist-project",
+  async (
+    _event,
+    root: string,
+    snapshot: unknown,
+    report: unknown | null
+  ) => {
+    if (typeof root !== "string" || !root) return false;
+    return persistProject(root, snapshot, report);
+  }
+);
 
 ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   const started = Date.now();

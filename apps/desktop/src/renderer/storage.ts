@@ -4,8 +4,10 @@ export type { ViewPreferences, SavedProject };
 
 const PREFERENCES_KEY = "codarch.preferences.v1";
 const PLUGINS_KEY = "codarch.plugins.v1";
-const PROJECT_KEY = "codarch.project.v1";
-const MAX_PROJECT_CHARS = 2_500_000;
+/** La raíz del último repo abierto: su snapshot vive en `.codarch/` (ADR 0048). */
+const LAST_ROOT_KEY = "codarch.lastRoot.v1";
+/** El proyecto que guardaba la versión anterior, solo para migrarlo una vez. */
+const LEGACY_PROJECT_KEY = "codarch.project.v1";
 
 export function readPreferences(
   storage: Storage | null = getStorage()
@@ -72,12 +74,52 @@ export function writeEnabledPlugins(
   }
 }
 
-export function readProject(
+/** El último repo abierto, para volver a leer su `.codarch/` al arrancar. */
+export function readLastRoot(
+  storage: Storage | null = getStorage()
+): string | null {
+  if (!storage) return null;
+  try {
+    const root = storage.getItem(LAST_ROOT_KEY);
+    return root && root.trim() !== "" ? root : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeLastRoot(
+  root: string,
+  storage: Storage | null = getStorage()
+): void {
+  if (!storage) return;
+  try {
+    storage.setItem(LAST_ROOT_KEY, root);
+  } catch {
+    // Sin almacenamiento no se recuerda el repo: se abre a mano.
+  }
+}
+
+/** Olvida el último repo: al arrancar no se restaura nada. */
+export function clearLastRoot(storage: Storage | null = getStorage()): void {
+  if (!storage) return;
+  try {
+    storage.removeItem(LAST_ROOT_KEY);
+  } catch {
+    // Sin storage no hay nada que olvidar.
+  }
+}
+
+/**
+ * El proyecto que guardaba la versión anterior en `localStorage`.
+ *
+ * Solo se lee para migrarlo a `.codarch/` del repo y olvidarlo (ADR 0048).
+ */
+export function readLegacyProject(
   storage: Storage | null = getStorage()
 ): SavedProject | null {
   if (!storage) return null;
   try {
-    const raw = storage.getItem(PROJECT_KEY);
+    const raw = storage.getItem(LEGACY_PROJECT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<SavedProject>;
     if (
@@ -87,7 +129,6 @@ export function readProject(
       typeof parsed.snapshot !== "object" ||
       parsed.snapshot === null
     ) {
-      storage.removeItem(PROJECT_KEY);
       return null;
     }
     return {
@@ -103,32 +144,17 @@ export function readProject(
       addons: Array.isArray(parsed.addons) ? parsed.addons : []
     };
   } catch {
-    storage.removeItem(PROJECT_KEY);
     return null;
   }
 }
 
-export function writeProject(
-  project: SavedProject,
-  storage: Storage | null = getStorage()
-): boolean {
-  if (!storage) return false;
-  try {
-    const serialized = JSON.stringify(project);
-    if (serialized.length > MAX_PROJECT_CHARS) return false;
-    storage.setItem(PROJECT_KEY, serialized);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-export function clearProject(storage: Storage | null = getStorage()): void {
+/** Olvida el proyecto de la versión anterior: ya vive en `.codarch/`. */
+export function clearLegacyProject(storage: Storage | null = getStorage()): void {
   if (!storage) return;
   try {
-    storage.removeItem(PROJECT_KEY);
+    storage.removeItem(LEGACY_PROJECT_KEY);
   } catch {
-    // Sin storage no hay nada que limpiar.
+    // Sin storage no hay nada que olvidar.
   }
 }
 

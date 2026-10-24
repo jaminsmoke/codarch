@@ -27,6 +27,14 @@ export interface DesktopAnalysis {
 /** La línea del tiempo del repositorio analizado. */
 export type DesktopHistory = HistoryIndex;
 
+/** Lo que `.codarch/` guarda de un repo, listo para restaurar la sesión. */
+export interface DesktopRestore {
+  snapshot: unknown;
+  report: unknown | null;
+  /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
+  addons: RepoAddons;
+}
+
 import { VERSION } from "./version";
 
 /** Lo que se sabe de las actualizaciones de la app (ADR 0032). */
@@ -51,9 +59,16 @@ const api = {
   /** Lee un JSON del disco. */
   readJson: (file: string): Promise<unknown> =>
     ipcRenderer.invoke("codarch:read-json", file),
-  /** Lee el snapshot persistido de un repo, si existe. */
-  readSnapshot: (root: string): Promise<unknown | null> =>
-    ipcRenderer.invoke("codarch:read-snapshot", root),
+  /** Restaura snapshot, reporte y addons de `.codarch/` del repo. */
+  restoreProject: (root: string): Promise<DesktopRestore | null> =>
+    ipcRenderer.invoke("codarch:restore-project", root),
+  /** Persiste el proyecto en `.codarch/` del repo. */
+  persistProject: (
+    root: string,
+    snapshot: unknown,
+    report: unknown | null
+  ): Promise<boolean> =>
+    ipcRenderer.invoke("codarch:persist-project", root, snapshot, report),
   /** La línea del tiempo del repositorio analizado. */
   history: (): Promise<DesktopHistory | null> => ipcRenderer.invoke("codarch:history"),
   /**

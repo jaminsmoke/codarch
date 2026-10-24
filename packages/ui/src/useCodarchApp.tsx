@@ -277,8 +277,7 @@ export function useCodarchApp(
       const result = await analizar(root);
       if (loadSnapshot(result.snapshot, root)) {
         setAddons(result.addons.addons);
-        plataforma.borrarProyecto();
-        plataforma.escribirProyecto({
+        void plataforma.escribirProyecto({
           snapshot: result.snapshot,
           report: null,
           label: root,
@@ -306,8 +305,7 @@ export function useCodarchApp(
       const raw = await leerJson(file);
       if (loadSnapshot(raw, file)) {
         setAddons([]);
-        plataforma.borrarProyecto();
-        plataforma.escribirProyecto({
+        void plataforma.escribirProyecto({
           snapshot: raw,
           report: null,
           label: file,
@@ -333,7 +331,7 @@ export function useCodarchApp(
       if (loadReport(raw, file)) {
         const saved = plataforma.leerProyecto();
         if (saved) {
-          plataforma.escribirProyecto({
+          void plataforma.escribirProyecto({
             ...saved,
             report: raw,
             reportLabel: file
@@ -432,7 +430,7 @@ export function useCodarchApp(
     if (!cc || !plataforma.restaurarProyecto) return;
     const saved = plataforma.leerProyecto();
     if (saved) {
-      plataforma.escribirProyecto({
+      void plataforma.escribirProyecto({
         ...saved,
         snapshot: cc,
         label: source

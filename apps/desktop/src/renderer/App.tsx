@@ -22,7 +22,6 @@ import {
 import { desktop } from "./bridge";
 import { plataformaEscritorio } from "./plataforma";
 import type { CodarchDesktop } from "../preload";
-import { clearProject, writeProject } from "./storage";
 import Settings from "./Settings";
 import type { PluginContext } from "@codarch/plugin-api";
 
@@ -319,8 +318,9 @@ export default function App() {
       if (target.kind === "snapshot") {
         if (loadSnapshot(target.snapshot, target.label)) {
           setAddons([]);
-          clearProject();
-          writeProject({
+          // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):
+          // esto solo recuerda cuál es el último repo.
+          void plataforma.escribirProyecto({
             snapshot: target.snapshot,
             report: null,
             label: target.label,
@@ -337,7 +337,7 @@ export default function App() {
       }
       loadReport(target.report, target.label);
     });
-  }, [loadReport, loadSnapshot, resetReport]);
+  }, [loadReport, loadSnapshot, plataforma, resetReport]);
 
   return (
     <div className="app">
@@ -719,8 +719,17 @@ export default function App() {
           }))
         ]}
         model={view.model}
-        savedProject={null}
-        onClearProject={() => setSettingsOpen(false)}
+        savedProject={cc ? { label: source } : null}
+        onClearProject={() => {
+          plataforma.borrarProyecto();
+          setSettingsOpen(false);
+        }}
+        projectNote={
+          <>
+            Vive en <code>.codarch/</code> del repositorio y lo comparten el CLI
+            y la web. Olvidarlo no borra ese directorio.
+          </>
+        }
         storageAvailable={true}
         version={desktop().version}
         plugins={plugins.descriptors}

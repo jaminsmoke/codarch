@@ -42,7 +42,7 @@ export interface Plataforma {
    */
   restaurarProyecto?: () => Promise<SavedProject | null>;
   /** Escribe el proyecto guardado. */
-  escribirProyecto: (project: SavedProject) => boolean;
+  escribirProyecto: (project: SavedProject) => boolean | Promise<boolean>;
   /** Borra el proyecto guardado. */
   borrarProyecto: () => void;
   /** Las cadenas de los símbolos. */

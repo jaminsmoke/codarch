@@ -62,6 +62,8 @@ export interface SettingsProps {
   /** El proyecto guardado, si lo hay. */
   savedProject: { label: string } | null;
   onClearProject: () => void;
+  /** Dónde vive el proyecto guardado; por defecto, este navegador. */
+  projectNote?: ReactNode;
   /** Si el almacenamiento local está disponible. */
   storageAvailable: boolean;
   /** La versión de CodArch que está corriendo. */
@@ -118,6 +120,7 @@ export default function Settings({
   model,
   savedProject,
   onClearProject,
+  projectNote,
   storageAvailable,
   version,
   updates,
@@ -253,7 +256,8 @@ export default function Settings({
                     <b>{savedProject ? savedProject.label : "ninguno"}</b>
                   </div>
                   <p className="muted small">
-                    Se guarda en este navegador para que no tengas que elegirlo cada vez ✓.
+                    {projectNote ??
+                      "Se guarda en este navegador para que no tengas que elegirlo cada vez ✓."}
                   </p>
                   <button
                     type="button"
