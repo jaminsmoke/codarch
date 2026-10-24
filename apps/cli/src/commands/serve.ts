@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ConfigError } from "@codarch/metrics";
 import {
   analyzeRepository,
+  ensureGitignoreEntry,
   protectedRootReason,
   watchRepository,
   type RepositoryWatcher
@@ -298,7 +299,11 @@ export function runServe(options: ServeOptions): number {
 
       if (pathname === "/data/chains.json") {
         // Las cadenas de los símbolos: "?symbol=nombre" trae la de ese
-        // símbolo; sin él, el calor de los más reescritos ✓.
+        // símbolo; sin él, el calor de los más reescritos. El libro se cachea
+        // en `.codarch/` (es derivado); si nace aquí, se ignora en git.
+        if (!fs.existsSync(path.join(state.root, ".codarch"))) {
+          ensureGitignoreEntry(state.root, ".codarch/");
+        }
         const symbol = url.searchParams.get("symbol");
         sendJson(response, chainsPayload(state.root, symbol));
         return;

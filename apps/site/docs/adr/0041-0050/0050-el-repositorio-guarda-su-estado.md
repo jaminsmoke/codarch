@@ -44,7 +44,8 @@ preferencias de vista.
 - **`.codarch.yml`** (raíz, versionado): la configuración declarativa. Viaja con el repo y la lee
   también el CI.
 - **`.codarch/`** (ignorado): el estado derivado del análisis. Se puede borrar sin miedo; se
-  reconstruye.
+  reconstruye. Incluye el snapshot, el reporte, el mapa y el libro de cadenas
+  (`.codarch/chains.json`), que se deriva del historial y también se puede regenerar.
 - **`.codarch-history/`** (versionado): la línea del tiempo. No se mete dentro de `.codarch/`
   porque entonces dejaría de compartirse.
 
@@ -54,8 +55,9 @@ El CLI y el escritorio añaden `.codarch/` al `.gitignore` del repositorio **sol
 directorio nace**, sin tocar el resto del fichero y sin repetir la entrada si ya está (`.codarch/`
 o `.codarch` valen igual). Si el usuario quita la línea para versionar el estado, no vuelve.
 
-Un `--out` distinto de `.codarch/` no toca el `.gitignore`. `serve` no escribe nada: analiza en
-memoria y sirve.
+Un `--out` distinto de `.codarch/` no toca el `.gitignore`. `serve` analiza en memoria y no escribe
+el estado del análisis; si calcula el libro de cadenas, lo cachea en `.codarch/chains.json` (que es
+derivado) y deja `.codarch/` ignorado al crearlo.
 
 ### 3. El estado se ancla en la carpeta analizada
 
@@ -115,6 +117,7 @@ reanaliza detrás: los cambios hechos sin la app se ven antes de ponerse en live
 - [x] La cabecera dice si el repo se vigila: `live`, `live en pausa` o `sin vigilancia`.
 - [x] Al abrir un repo con `.codarch/`, enseñar lo guardado al instante y refrescar en segundo plano.
 - [x] Una vigilancia compartida (`watchRepository`, chokidar) para `serve` y el escritorio.
+- [x] El libro de cadenas y el historial viven en el repo; un fichero suelto no mezcla estados.
 - [ ] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo.
 - [ ] Decidir si la vigilancia del escritorio se puede pausar desde los ajustes, como la web.
 

@@ -71,6 +71,9 @@ export function plataformaEscritorio(): Plataforma {
       if (saved) {
         actual = project;
         writeLastRoot(project.label);
+      } else {
+        // Un fichero suelto no es un proyecto: no hay nada que recordar.
+        actual = null;
       }
       return saved;
     },

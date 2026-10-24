@@ -222,6 +222,10 @@ async function openTarget(target: string): Promise<void> {
     return;
   }
 
+  // Un fichero suelto no es un repo: se deja de vigilar el anterior para no
+  // mezclar su historial ni su libro de cadenas con este snapshot (ADR 0050).
+  stopWatching();
+  lastRoot = null;
   const raw = JSON.parse(readFileSync(target, "utf8")) as unknown;
   if (isSnapshot(raw)) {
     send({ kind: "snapshot", snapshot: raw, label: target });
@@ -539,6 +543,13 @@ ipcMain.handle(
     report: unknown | null
   ) => {
     if (typeof root !== "string" || !root) return false;
+    // Un fichero suelto no es un proyecto: no se escribe en ningún repo y se
+    // deja de vigilar el anterior para no mezclar estados (ADR 0050).
+    if (!isDirectory(root)) {
+      stopWatching();
+      lastRoot = null;
+      return false;
+    }
     return persistProject(root, snapshot, report);
   }
 );
