@@ -55,7 +55,7 @@ function Etiqueta({
   const Icono = ICONOS[veredicto];
   return (
     <span style={tono(meta.color)} className="guia-veredicto">
-      <Icono aria-hidden="true" className="size-3.5" strokeWidth={2.2} />
+      <Icono aria-hidden="true" className="size-3" strokeWidth={2.2} />
       {nombreVeredicto(veredicto, lang)}
     </span>
   );

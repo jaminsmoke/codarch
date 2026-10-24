@@ -267,7 +267,7 @@ body {
 }
 
 .guia-dia {
-  margin-bottom: 4rem;
+  margin-bottom: 2.75rem;
 }
 
 .guia-dia-cabecera {
@@ -275,8 +275,8 @@ body {
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1.2rem;
-  padding-bottom: 1rem;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-line);
 }
 
@@ -300,22 +300,22 @@ body {
 
 .guia-fecha-dia {
   font-family: var(--font-display);
-  font-size: clamp(2.75rem, 6vw, 4.25rem);
+  font-size: clamp(2.1rem, 4.4vw, 3.15rem);
   font-weight: 750;
   font-variant-numeric: tabular-nums;
   line-height: 0.82;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
   color: var(--color-cobalt);
 }
 
 .guia-fecha-mes {
   display: flex;
   flex-direction: column;
-  padding-top: 0.15rem;
+  padding-top: 0.1rem;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   line-height: 1.25;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-soft);
 }
@@ -328,13 +328,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.18rem 0.45rem 0.18rem 0.4rem;
+  padding: 0.13rem 0.42rem 0.13rem 0.36rem;
   border: 1px solid color-mix(in srgb, var(--tono) 36%, var(--color-line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--tono) 10%, var(--color-panel));
   color: color-mix(in srgb, var(--tono) 82%, var(--color-ink));
   font-family: var(--font-mono);
-  font-size: 0.59rem;
+  font-size: 0.57rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -359,21 +359,21 @@ body {
 
 .guia-grupos {
   display: grid;
-  gap: 1rem;
-  margin-top: 1.25rem;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
 }
 
 .guia-grupo {
   border-left: 3px solid var(--tono);
-  padding-left: 0.9rem;
-  margin-bottom: 1.5rem;
+  padding-left: 0.85rem;
+  margin-bottom: 0.85rem;
 }
 
 .guia-grupo-cabecera {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.35rem;
+  gap: 0.45rem;
+  margin: 0 0 0.1rem;
   padding: 0;
   border: 0;
   background: transparent;
@@ -390,16 +390,16 @@ body {
 
 .guia-grupo-nombre {
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--tono) 75%, var(--color-ink));
 }
 
 .guia-grupo-cuenta {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--color-muted);
 }
 
@@ -414,7 +414,7 @@ body {
 }
 
 .guia-entrada {
-  padding: 0.85rem 0 0.95rem;
+  padding: 0.5rem 0 0.55rem;
   border-left: 0 solid var(--tono);
   transition:
     border-color 0.18s ease,
@@ -435,9 +435,9 @@ body {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.6rem;
   min-width: 0;
-  padding: 0.55rem 0;
+  padding: 0.28rem 0;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -452,24 +452,10 @@ body {
   border-radius: 4px;
 }
 
-.guia-entrada-titulo {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
-  text-wrap: balance;
-}
-
-.guia-entrada-meta {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0;
-}
-
 .guia-entrada-chevron {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
   margin-left: auto;
   color: var(--color-muted);
   transition: transform 0.2s ease;
@@ -480,7 +466,7 @@ body {
 }
 
 .guia-entrada-cuerpo {
-  padding: 0.6rem 0 0.9rem 0.1rem;
+  padding: 0.35rem 0 0.7rem 0.1rem;
 }
 
 .guia-entrada:hover {
@@ -499,12 +485,14 @@ body {
 }
 
 .guia-entrada-titulo {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 2.4vw, 1.65rem);
+  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
   font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
@@ -525,29 +513,30 @@ body {
 
 .guia-entrada-meta {
   display: flex;
+  flex-shrink: 0;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.6rem 0 0.85rem;
+  gap: 0.35rem;
+  margin: 0;
 }
 
 .guia-veredicto {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.16rem 0.45rem;
+  gap: 0.25rem;
+  padding: 0.1rem 0.42rem;
   border: 1px solid color-mix(in srgb, var(--tono) 36%, var(--color-line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--tono) 12%, transparent);
   color: color-mix(in srgb, var(--tono) 76%, var(--color-ink));
   font-family: var(--font-mono);
-  font-size: 0.61rem;
+  font-size: 0.58rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .prosa-guia {
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 0.97rem;
+  line-height: 1.7;
   color: var(--color-ink-soft);
 }
 
@@ -561,7 +550,7 @@ body {
 
 .prosa-guia p {
   max-width: 68ch;
-  margin: 0.62rem 0;
+  margin: 0.55rem 0;
   text-wrap: pretty;
 }
 
@@ -576,15 +565,15 @@ body {
 }
 
 .prosa-guia h2 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 .prosa-guia h5 {
-  margin: 1.9rem 0 0.45rem;
-  padding-top: 0.9rem;
+  margin: 1.5rem 0 0.4rem;
+  padding-top: 0.75rem;
   border-top: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
   font-family: var(--font-display);
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   letter-spacing: -0.01em;
 }
 
@@ -599,8 +588,8 @@ body {
 }
 
 .guia-futuro {
-  margin-top: 2rem;
-  padding: 1.5rem;
+  margin-top: 1.5rem;
+  padding: 1.2rem;
   border: 1px solid color-mix(in srgb, var(--color-ochre) 22%, var(--color-line));
   border-radius: 16px;
   background:
@@ -632,7 +621,7 @@ body {
 }
 
 .guia-futuro-item {
-  padding: 1rem 1.05rem;
+  padding: 0.85rem 0.95rem;
   border: 1px solid color-mix(in srgb, var(--tono) 18%, var(--color-line));
   border-left: 3px solid var(--tono);
   border-radius: 12px;
@@ -640,7 +629,7 @@ body {
 }
 
 .guia-normas {
-  margin-top: 3rem;
+  margin-top: 2.25rem;
   padding-top: 1rem;
   border-top: 1px solid var(--color-line);
 }
@@ -677,7 +666,7 @@ body {
 @media (max-width: 640px) {
   .guia-dia-cabecera {
     align-items: flex-start;
-    gap: 0.9rem;
+    gap: 0.75rem;
   }
 
   .guia-dia-cabecera > div {
@@ -690,11 +679,7 @@ body {
   }
 
   .guia-fecha-dia {
-    font-size: 2.6rem;
-  }
-
-  .guia-entrada {
-    padding: 1.05rem 1rem 1.2rem;
+    font-size: 1.95rem;
   }
 
   .guia-futuro {
