@@ -394,6 +394,27 @@ export function useCodarchApp(plataforma: Plataforma): CodarchApp {
     plataforma.escribirPreferencias(preferences);
   }, [cc, areaMetric, colorMode, showLabels, plataforma]);
 
+  // Restaurar el último proyecto al montar.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const saved = plataforma.leerProyecto();
+      if (cancelled) return;
+      if (saved && loadSnapshot(saved.snapshot, saved.label)) {
+        setAddons((saved.addons ?? []) as RepoAddon[]);
+        if (saved.report) {
+          loadReport(saved.report, saved.reportLabel ?? "report.json", false);
+        }
+        return;
+      }
+      if (saved) plataforma.borrarProyecto();
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadSnapshot, loadReport, plataforma]);
+
   useEffect(() => {
     if (!cc) return;
     const saved = plataforma.leerProyecto();
