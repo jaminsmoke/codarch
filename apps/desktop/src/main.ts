@@ -90,6 +90,12 @@ function createWindow(): void {
 
   void window.loadFile(path.join(RENDERER_DIST, "index.html"));
   window.once("ready-to-show", () => window?.show());
+  // El renderer se entera del estado de la vigilancia por este aviso; si llega
+  // antes de que escuche (o la ventana se recarga), la cabecera se quedaría en
+  // «sin vigilancia» aunque el repo se esté vigilando.
+  window.webContents.on("did-finish-load", () =>
+    sendWatch(repositoryWatcher !== null)
+  );
 
   // Los enlaces externos se abren en el navegador del sistema, no dentro.
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -227,6 +233,11 @@ async function openTarget(target: string): Promise<void> {
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
       send({ kind: "snapshot", snapshot: persisted, label: target });
+      // Lo guardado se pinta al instante, pero el repo sigue vivo: se vigila y
+      // se reanaliza detrás, como al restaurar el último proyecto. Sin esto,
+      // abrir un repo ya analizado dejaba el mapa congelado y sin `live`.
+      watchRoot(target);
+      setTimeout(() => void refreshFromDisk(target), 400);
       return;
     }
     let result;
