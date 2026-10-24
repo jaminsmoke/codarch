@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { motion } from "motion/react";
 import type { ResumenDia } from "./lib/guia";
-import { idiomaDe, t, type Idioma } from "./lib/i18n";
+import { idiomaDe, t, type Clave, type Idioma } from "./lib/i18n";
 
 /**
  * El frame: lo que envuelve a todas las páginas ✓ ✓.
@@ -59,7 +59,7 @@ export default function Marco({
   const actual =
     typeof window === "undefined" ? "/" : window.location.pathname;
 
-  const enlaces = [
+  const enlaces: { ruta: string; clave: Clave }[] = [
     { ruta: "/", clave: "nav.inicio" },
     { ruta: "/guia/", clave: "nav.guia" },
     { ruta: "/docs/", clave: "nav.documentos" }

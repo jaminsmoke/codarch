@@ -145,11 +145,13 @@ y la guía se sirven desde las mismas islas de React con `lang`. Añadir conteni
 1. Crear `docs/<idioma>/` con el mismo `slug` y el frontmatter traducido; lo que falte cae al
    español y Starlight lo avisa en la página.
 2. Crear las rutas del idioma (`/en/`, `/en/guia/…`) apuntando a las mismas islas con su `lang`.
-3. Añadir las cadenas a los dos diccionarios de `src/lib/i18n.ts`.
+3. Añadir las cadenas a `src/content/i18n/<idioma>.json`: una entrada por idioma con todas las
+   claves, que es la colección `i18n` de Starlight. `src/lib/i18n.ts` las tipa para las islas de
+   React y los componentes de Starlight las leen con `Astro.locals.t`.
 
 El selector de los documentos lo pone Starlight en su cabecera; el del sitio cambia el prefijo de la
-ruta. Los componentes React reciben `lang` y usan `t(lang, clave)`, y las fechas, categorías y
-veredictos de la guía se formatean en ese idioma. La guía se traduce entera —cada entrada lleva su
+ruta. La cabecera y los documentos usan `Astro.locals.t`; las islas de React reciben `lang` y usan
+`t(lang, clave)`, y las fechas, categorías y veredictos de la guía se formatean en ese idioma. La guía se traduce entera —cada entrada lleva su
 pareja inglesa y un test lo comprueba— y sus enlaces llevan al documento en `/en/docs/`. No se
 generan traducciones automáticas: una página en inglés es una página revisada.
 
@@ -194,7 +196,8 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
 - [x] Selector de idioma en la portada, la guía y los documentos.
 - [x] Rutas inglesas: `/en/`, `/en/guia/`, `/en/guia/AAAA-MM-DD/`, `/en/guia/futuro/` y
   `/en/guia/normas/`.
-- [x] Diccionario ES/EN completo en `src/lib/i18n.ts`: la interfaz no deja cadenas sin traducir.
+- [x] Diccionario ES/EN completo en `src/content/i18n/` (la colección `i18n` de Starlight): la
+  interfaz no deja cadenas sin traducir.
 - [x] Fechas, categorías y veredictos de la guía localizados.
 - [x] Documentos de producto traducidos en `docs/en/`: índice, modelo, reglas, MCP, migración y
   mapa, más el índice de ADR y la hoja de ruta.

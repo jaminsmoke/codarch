@@ -1,6 +1,7 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
-import { docsSchema } from "@astrojs/starlight/schema";
+import { i18nLoader } from "@astrojs/starlight/loaders";
+import { docsSchema, i18nSchema } from "@astrojs/starlight/schema";
 
 /**
  * Los documentos siguen viviendo en `docs/` (ADR 0046).
@@ -57,5 +58,10 @@ export const collections = {
   guiaEn: defineCollection({
     loader: glob({ base: "./docs/en/guideline/entradas", pattern: "**/*.md" }),
     schema: entradaGuia
+  }),
+  /** Las cadenas de la interfaz: una entrada por idioma (Starlight). */
+  i18n: defineCollection({
+    loader: i18nLoader(),
+    schema: i18nSchema()
   })
 };

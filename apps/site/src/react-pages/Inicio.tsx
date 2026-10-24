@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import captura from "../../docs/images/atlas.png";
-import { idiomaDe, t } from "../lib/i18n";
+import { idiomaDe, t, type Clave } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
@@ -14,7 +14,7 @@ const retrato = typeof atlas === "string" ? atlas : atlas.src;
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /** Las seis piezas del producto, como claves del diccionario. */
-const PIEZAS = [
+const PIEZAS: { titulo: Clave; texto: Clave }[] = [
   { titulo: "home.pieza.cli", texto: "home.pieza.cli.desc" },
   { titulo: "home.pieza.action", texto: "home.pieza.action.desc" },
   { titulo: "home.pieza.mcp", texto: "home.pieza.mcp.desc" },

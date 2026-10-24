@@ -36,7 +36,7 @@ La web se organiza en tres áreas principales:
 
 - **Cabecera de documentos**: Lleva **Inicio**, **Guía** y **Documentos** (`src/components/Header.astro`). Conserva la búsqueda, el tema y el GitHub de Starlight.
 
-- **Idiomas**: El idioma por defecto es el español. Las cadenas de la UI viven en `src/lib/i18n.ts` y los componentes reciben `lang`. Los documentos se traducen por carpeta (`docs/<idioma>/`) con fallback de Starlight. Añadir un idioma es copiar la carpeta, traducirla y añadirlo a `locales` e `i18n`.
+- **Idiomas**: El idioma por defecto es el español. Las cadenas de la UI viven en `src/content/i18n/<idioma>.json`, la colección `i18n` de Starlight: los documentos las leen con `Astro.locals.t` y las islas de React con `t(lang, clave)` desde `src/lib/i18n.ts`. Los documentos se traducen por carpeta (`docs/<idioma>/`) con fallback de Starlight. Añadir un idioma es añadir su JSON, copiar la carpeta y sumarlo a `locales`.
 
 - **Publicación**: Se publica en GitHub Pages con el workflow `web.yml`, en la ruta `/codarch/`.
 

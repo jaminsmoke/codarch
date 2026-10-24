@@ -28,5 +28,5 @@ const canonical = `https://jaminsmoke.github.io/codarch${ruta}`;
   description={`The ideas of ${fechaLarga} in the CodArch guide, with their verdict.`}
   {canonical}
 >
-  <GuiaApp client:only="react" datos={datos} lang="en" />
+  <GuiaApp client:only="react" datos={datos} lang={Astro.currentLocale ?? "es"} />
 </Site>

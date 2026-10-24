@@ -90,7 +90,8 @@ también `npm run sync:action` y actualizar el repo público.
    `latest` ✓ ✓; requiere OTP ✓), actualizar el input `version` de la acción ✓, sincronizar ✓ y
    mover `v1` ✓.
 10. **Idiomas.** El idioma por defecto es el español. Las cadenas de la UI viven en
-    `apps/site/src/lib/i18n.ts` y el contenido en `apps/site/docs/<idioma>/`. Añadir un idioma es
+    `apps/site/src/content/i18n/<idioma>.json` (la colección `i18n` de Starlight) y el contenido en
+    `apps/site/docs/<idioma>/`. Añadir un idioma es
     copiar la carpeta, traducirla y añadirlo a `locales` (Starlight) e `i18n` (Astro); los
     componentes reciben `lang` y las cadenas que falten caen al español. No se generan
     traducciones automáticamente.
@@ -177,7 +178,7 @@ también `npm run sync:action` y actualizar el repo público.
   La cabecera y la línea del tiempo se montan una vez; solo cambia el contenido de abajo. Los
   documentos comparten **Inicio**, **Guía** y **Documentos** en su cabecera.
 - M31 en curso: el sitio en dos idiomas (ADR 0046, §8). El español manda y el inglés vive en `/en/`:
-  portada, guía y documentos, con el diccionario ES/EN completo en `src/lib/i18n.ts`. En
+  portada, guía y documentos, con las cadenas ES/EN en `src/content/i18n/`. En
   `apps/site/docs/en/` están los documentos de producto y la guía entera; los ADR caen al español con aviso.
 - M32 cerrada: el escritorio persiste en `.codarch/` (ADR 0048). El proceso principal escribe
   `snapshot.cc.json` y actualiza `.gitignore`; el renderer lee de ahí al arrancar (snapshot,
