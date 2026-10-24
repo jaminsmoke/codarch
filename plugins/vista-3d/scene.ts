@@ -1,52 +1,62 @@
 import * as THREE from "three/webgpu";
 import { createOrbitControls, orbitPosition, ORBIT_START } from "./orbit";
+import { lodBoxes, type DrawnBox, type Volume } from "./volumes";
 
 /**
  * La escena: las cajas del mapa en tres dimensiones.
  *
- * Cada fichero del mapa es una caja ✓: la base es su rectángulo del treemap ✓
- * (la misma distribución 2D ✓) y la altura dice cuánto pesa ✓ (el riesgo, por
- * defecto ✓). El color es el del mapa ✓, para que las dos vistas digan lo
- * mismo ✓.
+ * Cada fichero es una caja ✓: la base es su rectángulo del treemap ✓ (la misma
+ * distribución 2D ✓) y la altura dice cuánto pesa ✓ (el riesgo, por defecto ✓).
+ * El color es el del mapa ✓, para que las dos vistas digan lo mismo ✓.
+ *
+ * Y las carpetas son **contenedores** ✓: si están lejos, son una caja que
+ * resume lo que tienen ✓; al acercarte se abren ✓ y enseñan a sus hijos ✓.
+ * Eso es el nivel de detalle ✓ (`volumes.ts` ✓): el número de primitivas no
+ * crece con el repo ✓.
  *
  * La GPU se usa con **WebGPU** ✓ (`three/webgpu` ✓): es el runtime moderno del
  * navegador ✓, va por el driver de la tarjeta ✓ (D3D12 en Windows ✓, Vulkan ✓,
  * Metal ✓) y elige la GPU dedicada con `powerPreference` ✓. Si la máquina no
  * lo tiene ✓, three cae solo a WebGL2 ✓: una sola ruta de código ✓.
- *
- * La cámara se mueve con el ratón ✓ (orbitar ✓, zoom ✓) y al pulsar una caja
- * se selecciona el fichero ✓.
  */
 
 /** El runtime que acabó dibujando ✓. */
 export type SceneBackend = "webgpu" | "webgl2";
 
-export interface BoxCell {
-  /** La ruta del fichero. */
-  path: string;
-  x: number;
-  z: number;
-  width: number;
-  depth: number;
-  /** La altura de la caja. */
-  height: number;
-  color: string;
-}
-
 export interface SceneOptions {
-  /** Las cajas a dibujar. */
-  cells: BoxCell[];
+  /** El árbol de volúmenes: carpetas y ficheros ✓. */
+  roots: Volume[];
   /** El fondo de la escena: el de la app ✓ (su tema manda ✓). */
   background: string;
   /** La ruta del fichero seleccionado, si lo hay. */
   selected: string | null;
-  /** Se llama al pulsar una caja. */
+  /** Se llama al pulsar un fichero ✓. */
   onSelect: (path: string) => void;
+  /** Se llama al pulsar una carpeta plegada ✓: se abre en el resto de la app ✓. */
+  onFocus?: (path: string) => void;
   /** El runtime que ha arrancado ✓ (para decirlo en el aviso ✓). */
   onBackend?: (backend: SceneBackend) => void;
   /** La GPU no arrancó ✓. */
   onError?: () => void;
+  /** Cuántas primitivas se están dibujando ✓ (cambia con el nivel de detalle ✓). */
+  onBoxes?: (count: number) => void;
 }
+
+export interface Scene {
+  /** Cambia el fichero iluminado sin volver a montar la escena ✓. */
+  setSelected(path: string | null): void;
+  /** Suelta la GPU, los eventos y la geometría ✓. */
+  dispose(): void;
+}
+
+/** El campo de visión, en grados ✓. */
+const FOV = 50;
+/** El techo de primitivas: por encima, las carpetas se quedan plegadas ✓. */
+const BUDGET = 1200;
+/** Lo que tiene que medir una carpeta en pantalla para abrirse ✓ (píxeles ✓). */
+const MIN_PIXELS = 22;
+/** Cada cuánto se vuelve a mirar la cámara para el nivel de detalle ✓. */
+const REFRESH_MS = 120;
 
 /** El backend que three eligió de verdad ✓ (WebGPU o su caída a WebGL2 ✓). */
 function backendOf(renderer: THREE.WebGPURenderer): SceneBackend {
@@ -54,11 +64,11 @@ function backendOf(renderer: THREE.WebGPURenderer): SceneBackend {
   return backend.isWebGPUBackend === true ? "webgpu" : "webgl2";
 }
 
-/** Monta la escena en un canvas y devuelve cómo destruirla. */
+/** Monta la escena en un canvas ✓. */
 export function mountScene(
   canvas: HTMLCanvasElement,
   options: SceneOptions
-): () => void {
+): Scene {
   const renderer = new THREE.WebGPURenderer({
     canvas,
     antialias: true,
@@ -75,7 +85,7 @@ export function mountScene(
   scene.background = new THREE.Color(options.background);
   scene.fog = new THREE.Fog(options.background, 400, 1600);
 
-  const camera = new THREE.PerspectiveCamera(50, 1, 1, 4000);
+  const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 4000);
   const start = orbitPosition(ORBIT_START, { x: 0, y: 0, z: 0 });
   camera.position.set(start.x, start.y, start.z);
 
@@ -88,14 +98,13 @@ export function mountScene(
   scene.add(fill);
 
   // El suelo: da la referencia de dónde está el cero.
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(1200, 1200),
-    new THREE.MeshBasicMaterial({
-      color: options.background,
-      transparent: true,
-      opacity: 0.55
-    })
-  );
+  const groundGeometry = new THREE.PlaneGeometry(1200, 1200);
+  const groundMaterial = new THREE.MeshBasicMaterial({
+    color: options.background,
+    transparent: true,
+    opacity: 0.55
+  });
+  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.5;
   scene.add(ground);
@@ -103,42 +112,91 @@ export function mountScene(
   const group = new THREE.Group();
   scene.add(group);
 
-  const meshes = new Map<string, THREE.Mesh>();
+  // Un material por color ✓, no por caja ✓: con 1.200 cajas, 1.200 materiales
+  // son 1.200 pipelines ✓ y la GPU se atraganta ✓.
+  const materials = new Map<string, THREE.MeshLambertMaterial>();
+  const materialFor = (color: string, isSelected: boolean): THREE.MeshLambertMaterial => {
+    const key = `${color}|${isSelected ? 1 : 0}`;
+    const cached = materials.get(key);
+    if (cached) return cached;
+    const material = new THREE.MeshLambertMaterial({
+      color: new THREE.Color(color),
+      emissive: new THREE.Color(isSelected ? "#2f6fed" : "#000000"),
+      emissiveIntensity: isSelected ? 0.55 : 0
+    });
+    materials.set(key, material);
+    return material;
+  };
+
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
+  let drawn: THREE.Mesh[] = [];
+  let selected = options.selected;
+  let signature = "";
 
-  const rebuild = (cells: BoxCell[], selected: string | null): void => {
-    for (const mesh of meshes.values()) {
-      group.remove(mesh);
-    }
-    meshes.clear();
-
-    for (const cell of cells) {
-      const isSelected = cell.path === selected;
-      const material = new THREE.MeshLambertMaterial({
-        color: new THREE.Color(cell.color),
-        emissive: new THREE.Color(isSelected ? "#2f6fed" : "#000000"),
-        emissiveIntensity: isSelected ? 0.55 : 0
-      });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.scale.set(
-        Math.max(1, cell.width - 1),
-        Math.max(1, cell.height),
-        Math.max(1, cell.depth - 1)
-      );
-      mesh.position.set(
-        cell.x + cell.width / 2,
-        Math.max(1, cell.height) / 2,
-        cell.z + cell.depth / 2
-      );
-      mesh.userData.path = cell.path;
-      group.add(mesh);
-      meshes.set(cell.path, mesh);
-    }
+  const clear = (): void => {
+    for (const mesh of drawn) group.remove(mesh);
+    drawn = [];
   };
 
-  rebuild(options.cells, options.selected);
+  const draw = (boxes: DrawnBox[]): void => {
+    clear();
+    for (const box of boxes) {
+      const mesh = new THREE.Mesh(
+        geometry,
+        materialFor(box.color, box.path === selected)
+      );
+      mesh.scale.set(
+        Math.max(1, box.width - 1),
+        Math.max(1, box.height),
+        Math.max(1, box.depth - 1)
+      );
+      mesh.position.set(
+        box.x + box.width / 2,
+        box.height / 2,
+        box.z + box.depth / 2
+      );
+      mesh.userData.path = box.path;
+      mesh.userData.kind = box.kind;
+      mesh.userData.collapsed = box.collapsed;
+      group.add(mesh);
+      drawn.push(mesh);
+    }
+    options.onBoxes?.(boxes.length);
+  };
+
+  let lastCamera: { x: number; y: number; z: number } | null = null;
+
+  /** Mira la cámara y, si cambia lo que se ve, vuelve a dibujar ✓. */
+  const refresh = (force = false): void => {
+    // Quieto no hay nada que recalcular ✓: mover el ratón gira la cámara ✓,
+    // pero el nivel de detalle solo cambia cuando cambia de verdad ✓.
+    if (!force && lastCamera) {
+      const moved = Math.hypot(
+        camera.position.x - lastCamera.x,
+        camera.position.y - lastCamera.y,
+        camera.position.z - lastCamera.z
+      );
+      if (moved < camera.position.length() * 0.005) return;
+    }
+    lastCamera = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+
+    const boxes = lodBoxes(options.roots, {
+      camera: camera.position,
+      viewportHeight: canvas.clientHeight || 1,
+      fov: (FOV * Math.PI) / 180,
+      minPixels: MIN_PIXELS,
+      budget: BUDGET
+    });
+    // La firma dice qué se ve ✓; cambiar de selección también redibuja ✓.
+    const next = `${selected ?? ""}§${boxes
+      .map((box) => (box.collapsed ? `+${box.path}` : box.path))
+      .join("|")}`;
+    if (!force && next === signature) return;
+    signature = next;
+    draw(boxes);
+  };
 
   const resize = (): void => {
     const width = canvas.clientWidth || 1;
@@ -146,6 +204,7 @@ export function mountScene(
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    refresh(true);
   };
 
   const observer = new ResizeObserver(resize);
@@ -157,18 +216,26 @@ export function mountScene(
     pointer.x = ((clientX - bounds.left) / bounds.width) * 2 - 1;
     pointer.y = -((clientY - bounds.top) / bounds.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const hits = raycaster.intersectObjects(group.children, false);
-    const path = hits[0]?.object.userData.path;
-    if (typeof path === "string") options.onSelect(path);
+    const hit = raycaster.intersectObjects(drawn, false)[0]?.object.userData;
+    if (typeof hit?.path !== "string") return;
+    // Una carpeta plegada es una pregunta ✓: dentro hay más ✓. Al pulsarla se
+    // enfoca y la ciudad se abre ✓.
+    if (hit.kind === "folder" && hit.collapsed === true) options.onFocus?.(hit.path);
+    else if (hit.kind === "file") options.onSelect(hit.path);
   };
 
   const controls = createOrbitControls(camera, canvas, { onTap });
 
   let frame = 0;
   let disposed = false;
-  const animate = (): void => {
+  let lastRefresh = 0;
+  const animate = (time = 0): void => {
     frame = requestAnimationFrame(animate);
     controls.update();
+    if (time - lastRefresh >= REFRESH_MS) {
+      lastRefresh = time;
+      refresh();
+    }
     renderer.render(scene, camera);
   };
 
@@ -187,17 +254,24 @@ export function mountScene(
       if (!disposed) options.onError?.();
     });
 
-  return () => {
-    disposed = true;
-    cancelAnimationFrame(frame);
-    observer.disconnect();
-    controls.dispose();
-    for (const mesh of meshes.values()) {
-      (mesh.material as THREE.Material).dispose();
+  return {
+    setSelected(path: string | null): void {
+      if (path === selected) return;
+      selected = path;
+      refresh(true);
+    },
+    dispose(): void {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      controls.dispose();
+      clear();
+      geometry.dispose();
+      for (const material of materials.values()) material.dispose();
+      materials.clear();
+      groundGeometry.dispose();
+      groundMaterial.dispose();
+      renderer.dispose();
     }
-    geometry.dispose();
-    (ground.material as THREE.Material).dispose();
-    ground.geometry.dispose();
-    renderer.dispose();
   };
 }
