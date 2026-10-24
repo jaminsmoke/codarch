@@ -32,7 +32,7 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action �
   en carpetas de diez ✓ (`apps/site/docs/adr/0021-0030/0028-los-plugins.md` ✓). Cada ADR lleva su **hoja de
   ruta** dentro ✓ (`## Hoja de ruta` ✓): lo abierto y lo que está en curso ✓. El registro de lo
   hecho vive en el **feed de la guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, ADR 0047 ✓).
-- `apps/site/docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M31 ✓): una línea por fase ✓ con su decisión ✓.
+- `apps/site/docs/adr/roadmap.md` **indexa** las fases ✓ (M0 a M32 ✓): una línea por fase ✓ con su decisión ✓.
   Las ideas que no son fase viven en la **guía** ✓ (`apps/site/docs/guideline/entradas/` ✓, un fichero por idea ✓
   con su fecha ✓), por orden cronológico ✓, cada una con su veredicto ✓ (fase ✓, ADR ✓, arreglo ✓
   o esperar ✓). Un plugin tiene su propia hoja de ruta en su carpeta ✓.
@@ -179,6 +179,8 @@ también `npm run sync:action` y actualizar el repo público.
 - M31 en curso: i18n preparada (ADR 0046, §8). Un idioma ahora (español), estructura lista para
   añadir otro copiando `apps/site/docs/` y traduciendo. Las cadenas de la UI están en
   `src/lib/i18n.ts` y los componentes reciben `lang`.
+- M32 en curso: el escritorio persiste en `.codarch/` (ADR 0048). El proceso principal escribe
+  `snapshot.cc.json` y actualiza `.gitignore`; la web y el escritorio comparten la misma fuente.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

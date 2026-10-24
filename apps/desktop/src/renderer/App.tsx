@@ -259,16 +259,37 @@ export default function App() {
 
   useEffect(() => {
     // El escritorio no tiene demo ni servidor: se restaura el último proyecto.
-    const saved = readProject();
-    if (saved && loadSnapshot(saved.snapshot, saved.label)) {
-      setAddons(saved.addons ?? []);
-      if (saved.report) {
-        loadReport(saved.report, saved.reportLabel ?? "report.json", false);
+    // Primero intenta leer desde `.codarch/` del repo (fuente compartida con la
+    // web y el CLI); si no hay, cae al snapshot guardado en localStorage.
+    let cancelled = false;
+    void (async () => {
+      const saved = readProject();
+      const root = saved?.label;
+      let persisted: unknown | null = null;
+      if (root) {
+        try {
+          persisted = await desktop().readSnapshot(root);
+        } catch {
+          persisted = null;
+        }
       }
-      return;
-    }
-    if (saved) clearProject();
-    setLoading(false);
+      if (cancelled) return;
+
+      const snapshot = persisted ?? saved?.snapshot ?? null;
+      const label = root ?? saved?.label ?? null;
+      if (snapshot && label && loadSnapshot(snapshot, label)) {
+        setAddons(saved?.addons ?? []);
+        if (saved?.report) {
+          loadReport(saved.report, saved.reportLabel ?? "report.json", false);
+        }
+        return;
+      }
+      if (saved) clearProject();
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [loadReport, loadSnapshot]);
 
   const view = useMemo<ViewState>(() => {

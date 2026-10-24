@@ -51,6 +51,9 @@ const api = {
   /** Lee un JSON del disco. */
   readJson: (file: string): Promise<unknown> =>
     ipcRenderer.invoke("codarch:read-json", file),
+  /** Lee el snapshot persistido de un repo, si existe. */
+  readSnapshot: (root: string): Promise<unknown | null> =>
+    ipcRenderer.invoke("codarch:read-snapshot", root),
   /** La línea del tiempo del repositorio analizado. */
   history: (): Promise<DesktopHistory | null> => ipcRenderer.invoke("codarch:history"),
   /**

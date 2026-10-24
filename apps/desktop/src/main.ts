@@ -8,7 +8,7 @@ import {
   type MenuItemConstructorOptions
 } from "electron";
 import path from "node:path";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
 import { analyzeRepository } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
@@ -120,8 +120,16 @@ async function openTarget(target: string): Promise<void> {
   }
 
   if (statSync(target).isDirectory()) {
+    const persisted = readPersistedSnapshot(target);
+    if (persisted && isSnapshot(persisted)) {
+      lastRoot = target;
+      send({ kind: "snapshot", snapshot: persisted, label: target });
+      return;
+    }
     const result = analyzeRepository(target, { git: true });
     lastRoot = target;
+    writeSnapshot(target, result.snapshot);
+    ensureGitignore(target);
     send({ kind: "snapshot", snapshot: result.snapshot, label: target });
     return;
   }
@@ -143,6 +151,67 @@ function isSnapshot(value: unknown): boolean {
     record.meta !== null &&
     Array.isArray(record.files)
   );
+}
+
+/** Carpeta local del repo donde el escritorio deja sus artefactos. */
+const CODARCH_DIR = ".codarch";
+
+/** Ruta del snapshot persistido de un repo, si existe. */
+function snapshotPath(root: string): string {
+  return path.join(root, CODARCH_DIR, "snapshot.cc.json");
+}
+
+/** Escribe el snapshot en `.codarch/` del repo, como `codarch analyze`. */
+function writeSnapshot(root: string, snapshot: unknown): void {
+  const directory = path.join(root, CODARCH_DIR);
+  try {
+    if (!existsSync(directory)) mkdirSync(directory, { recursive: true });
+    writeFileSync(
+      path.join(directory, "snapshot.cc.json"),
+      `${JSON.stringify(snapshot, null, 2)}\n`,
+      "utf8"
+    );
+  } catch (cause) {
+    console.error(
+      `no se pudo escribir ${path.join(directory, "snapshot.cc.json")}: ${
+        (cause as Error).message
+      }`
+    );
+  }
+}
+
+/** Asegura que `.codarch/` esté ignorado en el repo. */
+function ensureGitignore(root: string): void {
+  const file = path.join(root, ".gitignore");
+  const entry = ".codarch/";
+  try {
+    let content = "";
+    if (existsSync(file)) {
+      content = readFileSync(file, "utf8");
+    }
+    const lines = content.split(/\r?\n/);
+    const hasEntry = lines.some(
+      (line) => line.trim() === entry || line.trim() === ".codarch"
+    );
+    if (hasEntry) return;
+    const suffix = content.length === 0 || content.endsWith("\n") ? "" : "\n";
+    writeFileSync(file, `${content}${suffix}${entry}\n`, "utf8");
+  } catch (cause) {
+    console.error(
+      `no se pudo actualizar ${file}: ${(cause as Error).message}`
+    );
+  }
+}
+
+/** Lee el snapshot persistido de un repo, si existe y se entiende. */
+function readPersistedSnapshot(root: string): unknown | null {
+  const file = snapshotPath(root);
+  if (!existsSync(file)) return null;
+  try {
+    return JSON.parse(readFileSync(file, "utf8")) as unknown;
+  } catch {
+    return null;
+  }
 }
 
 function buildMenu(): Menu {
@@ -304,10 +373,18 @@ ipcMain.handle("codarch:pick-folder", async () => pickFolder());
 
 ipcMain.handle("codarch:pick-file", async () => pickFile());
 
+/** Lee el snapshot persistido de un repo, si existe. */
+ipcMain.handle("codarch:read-snapshot", async (_event, root: string) => {
+  if (typeof root !== "string" || !root) return null;
+  return readPersistedSnapshot(root);
+});
+
 ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   const started = Date.now();
   const result = analyzeRepository(root, { git: true });
   lastRoot = root;
+  writeSnapshot(root, result.snapshot);
+  ensureGitignore(root);
   return {
     snapshot: result.snapshot,
     files: result.files,
