@@ -1,8 +1,5 @@
-import type { CcJson } from "@codarch/schema/browser";
-import type { DiffReport } from "@codarch/metrics/browser";
 import type { RepoAddons } from "@codarch/addons";
-import type { HistoryEntry, HistoryIndex } from "@codarch/schema/browser";
-import type { SymbolChain } from "@codarch/schema/browser";
+import type { HistoryIndex } from "@codarch/schema/browser";
 import type { PluginStore } from "./plugins";
 import type { ViewPreferences, SavedProject } from "./storage";
 

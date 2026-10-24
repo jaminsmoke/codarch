@@ -8,7 +8,7 @@ import {
   writePreferences,
   writeProject
 } from "./storage";
-import type { Plataforma, ViewPreferences, SavedProject } from "@codarch/ui";
+import type { Plataforma, SavedProject } from "@codarch/ui";
 
 /**
  * Adaptador de plataforma del escritorio para `useCodarchApp`.

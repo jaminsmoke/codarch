@@ -27,14 +27,8 @@ import {
 } from "./labels";
 import { findFolder } from "./tree";
 import { readMigration, readReport } from "./data";
-import {
-  DEFAULT_DETAIL_OPTIONS,
-  pruneTree,
-  type DetailOptions,
-  type DetailResult
-} from "./detail";
 import type { Plataforma } from "./platform";
-import type { ViewPreferences, SavedProject } from "./storage";
+import type { ViewPreferences } from "./storage";
 export { ViewPreferences, SavedProject } from "./storage";
 
 export interface CodarchAppState {
