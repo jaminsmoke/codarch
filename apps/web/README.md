@@ -27,8 +27,8 @@ navegador de carpetas del servidor: puedes cambiar de repo sin reiniciar el coma
 `servido`. Detener live apaga el watcher, no el proceso que sirve los datos; el proceso se cierra
 con Vite o con `codarch serve`.
 
-Si no hay servidor, la demo carga `public/demo.cc.json` y `public/demo.report.json`, un diff real de
-este repo entre el commit anterior a la app web y el árbol actual.
+Si no hay servidor ni proyecto guardado, la app no inventa datos: pide abrir un `cc.json` o arrancar
+`codarch serve`.
 
 **Abrir repositorio o archivo** ofrece tres caminos:
 

@@ -235,6 +235,14 @@ export function fechaCorta(fecha: string, lang: string = "es"): string {
   return `${Number(partes[2])} ${MESES_CORTOS[mes] ?? partes[1]}`;
 }
 
+/** La fecha larga, en el orden de cada idioma: "24 de octubre de 2026" / "October 24, 2026". */
+export function fechaCompleta(fecha: string, lang: string = "es"): string {
+  const partes = fechaPartida(fecha, lang);
+  return lang === "en"
+    ? `${partes.mes} ${partes.dia}, ${partes.anio}`
+    : `${partes.dia} de ${partes.mes} de ${partes.anio}`;
+}
+
 /** "2026-10-21" -> { dia: "21", mes: "octubre", anio: "2026" } */
 export function fechaPartida(
   fecha: string,

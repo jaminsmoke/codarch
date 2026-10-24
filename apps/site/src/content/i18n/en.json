@@ -78,5 +78,16 @@
   "guia.futuro.aria": "The future: what has not happened yet",
   "guia.volver": "Back to the guide",
   "guia.leer": "Read the idea",
-  "guia.fecha.titulo": "The guide — {fecha}"
+  "guia.fecha.titulo": "The guide — {fecha}",
+
+  "meta.home.titulo": "CodArch — the living map of your software architecture",
+  "meta.home.desc": "CodArch analyses your repository and draws it: a treemap of files and folders with each block's risk, each function's complexity and the migration debt.",
+  "meta.guia.titulo": "The guide — CodArch",
+  "meta.guia.desc": "What has been thought through and what is left: every day of CodArch as a changelog, with the verdict for each idea.",
+  "meta.guia.dia.titulo": "{fecha} — The guide — CodArch",
+  "meta.guia.dia.desc": "The ideas of {fecha} in the CodArch guide, with their verdict.",
+  "meta.guia.futuro.titulo": "Future — The guide — CodArch",
+  "meta.guia.futuro.desc": "The ideas in the CodArch guide that are waiting their turn: what has not happened yet.",
+  "meta.guia.normas.titulo": "How this guide is written — CodArch",
+  "meta.guia.normas.desc": "The legend, the categories, the verdicts and the rules of the CodArch guide."
 }

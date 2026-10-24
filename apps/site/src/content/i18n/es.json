@@ -78,5 +78,16 @@
   "guia.futuro.aria": "El futuro: lo que todavía no ha pasado",
   "guia.volver": "Volver a la guía",
   "guia.leer": "Leer la idea",
-  "guia.fecha.titulo": "La guía — {fecha}"
+  "guia.fecha.titulo": "La guía — {fecha}",
+
+  "meta.home.titulo": "CodArch — el mapa vivo de la arquitectura de tu software",
+  "meta.home.desc": "CodArch analiza tu repositorio y lo dibuja: un treemap de ficheros y carpetas con el riesgo de cada bloque, la complejidad de cada función y la deuda de migración.",
+  "meta.guia.titulo": "La guía — CodArch",
+  "meta.guia.desc": "Lo que se ha pensado y lo que queda: cada día de CodArch como un changelog, con el veredicto de cada idea.",
+  "meta.guia.dia.titulo": "{fecha} — La guía — CodArch",
+  "meta.guia.dia.desc": "Las ideas del {fecha} en la guía de CodArch, con su veredicto.",
+  "meta.guia.futuro.titulo": "Futuro — La guía — CodArch",
+  "meta.guia.futuro.desc": "Las ideas de la guía de CodArch que esperan su turno: lo que todavía no ha pasado.",
+  "meta.guia.normas.titulo": "Cómo se escribe esta guía — CodArch",
+  "meta.guia.normas.desc": "La leyenda, las categorías, los veredictos y las reglas de la guía de CodArch."
 }

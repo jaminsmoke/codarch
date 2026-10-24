@@ -39,6 +39,11 @@ export function conBase(ruta: string): string {
   return `${BASE}${ruta}`;
 }
 
+/** La dirección absoluta de una ruta del sitio, para el `canonical`. */
+export function urlCanonica(ruta: string): string {
+  return `https://jaminsmoke.github.io${BASE}${ruta}`;
+}
+
 /** Cómo se llama un documento dentro del sitio ✓ ✅ (ruta del router ✓). */
 export function rutaDe(clave: string): string {
   const slug = clave.replace(/(^|\/)index$/, "");

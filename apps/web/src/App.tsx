@@ -37,7 +37,7 @@ import { plataformaWeb } from "./plataforma";
 
 export default function App() {
   const plataforma = useMemo(() => plataformaWeb(), []);
-  const app = useCodarchApp(plataforma, { sourceInicial: "demo.cc.json" });
+  const app = useCodarchApp(plataforma, { sourceInicial: "sin proyecto" });
   const {
     areaMetric,
     colorMode,
@@ -74,9 +74,9 @@ export default function App() {
     applyView
   } = app;
   const [dragging, setDragging] = useState(false);
-  const [serverMode, setServerMode] = useState<"demo" | "local" | "served" | "live">(
-    "demo"
-  );
+  const [serverMode, setServerMode] = useState<
+    "static" | "local" | "served" | "live"
+  >("static");
   const [serverRootPath, setServerRootPath] = useState("");
   /** La versión de CodArch que está sirviendo el servidor local. */
   const [serverVersion, setServerVersion] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export default function App() {
   /**
    * Los addons que el repo declara (ADR 0029).
    *
-   * Solo los cuenta el servidor local: en la demo y con un fichero suelto no
+   * Solo los cuenta el servidor local: con un fichero suelto no
    * hay repo del que sacarlos, así que no hay vistas guardadas que ofrecer.
    */
   const loadAddons = useCallback(async (): Promise<void> => {
@@ -132,7 +132,7 @@ export default function App() {
     let cancelled = false;
 
     const boot = async (): Promise<void> => {
-      // Una URL explícita manda sobre el servidor local y sobre la demo.
+      // Una URL explícita manda sobre el servidor local y sobre lo guardado.
       const requested = urlRef.current?.source;
       if (requested?.snapshotUrl) {
         try {
@@ -160,7 +160,7 @@ export default function App() {
           setLoading(false);
           return;
         } catch (cause) {
-          // No se cae al servidor ni a la demo: la URL pedida es explícita.
+          // No se cae al servidor ni a lo guardado: la URL pedida es explícita.
           if (!cancelled) {
             setServerMode("local");
             setError(`No se pudo cargar ${requested.snapshotUrl}: ${(cause as Error).message}`);
@@ -217,18 +217,9 @@ export default function App() {
         clearProject();
       }
 
-      const demoSnapshot = await fetchJson("demo.cc.json");
-      if (demoSnapshot && !cancelled && !manualLoadRef.current) {
-        loadSnapshot(demoSnapshot, "demo.cc.json");
-      }
-      const demoReport = await fetchJson("demo.report.json");
-      if (demoReport && !cancelled && !manualLoadRef.current) {
-        loadReport(demoReport, "demo.report.json");
-      }
-      if (!demoSnapshot && !cancelled) {
-        setError("No se pudo cargar la demo. Abre un cc.json para empezar.");
-        setLoading(false);
-      }
+      // Sin servidor y sin proyecto guardado no hay nada que enseñar: se queda
+      // el estado vacío del mapa ("Abre un cc.json para empezar").
+      if (!cancelled) setLoading(false);
     };
 
     boot().catch((cause: Error) => {
@@ -584,7 +575,7 @@ export default function App() {
 
   const openLiveFolder = useCallback(() => {
     closeOpenMenu();
-    if (serverMode === "demo") {
+    if (serverMode === "static") {
       setError(
         "Para monitorizar carpetas hace falta el servidor local. Ejecuta `codarch serve` una vez y abre su URL."
       );
@@ -631,33 +622,6 @@ export default function App() {
     [closeOpenMenu, showArtifacts]
   );
 
-  const reloadDemo = useCallback(async () => {
-    manualLoadRef.current = true;
-    clearProject();
-    setLoading(true);
-    try {
-      const [snapshotResponse, reportResponse] = await Promise.all([
-        fetch("demo.cc.json"),
-        fetch("demo.report.json")
-      ]);
-      if (!snapshotResponse.ok) {
-        throw new Error(`no se pudo cargar la demo (${snapshotResponse.status})`);
-      }
-      loadSnapshot(await snapshotResponse.json(), "demo.cc.json");
-      setServerMode("demo");
-      setSourceUrl(null);
-      setReportUrl(null);
-      if (reportResponse.ok) {
-        loadReport(await reportResponse.json(), "demo.report.json");
-      } else {
-        resetReport();
-      }
-    } catch (cause) {
-      setError((cause as Error).message);
-      setLoading(false);
-    }
-  }, [loadReport, loadSnapshot, resetReport]);
-
   return (
     <>
       <AppShell
@@ -688,30 +652,19 @@ export default function App() {
                 {serverMode === "live" ? "Live" : "Servido"}
               </button>
             ) : null}
-            <button className="button ghost" type="button" onClick={reloadDemo}>
-              Demo
-            </button>
           </>
         }
         topbarTrailing={
           <>
-            <button
-              className="button ghost"
-              type="button"
-              onClick={() => void copyLink()}
-              title="Copia el enlace de la vista actual (área, color, carpeta y fichero)"
-            >
-              {copied ? "Copiado" : "Copiar enlace"}
-            </button>
             <OpenMenu
               ref={openMenuRef}
               items={[
                 {
                   label: "Monitorizar carpeta (live)…",
                   onClick: openLiveFolder,
-                  disabled: serverMode === "demo",
+                  disabled: serverMode === "static",
                   title:
-                    serverMode === "demo"
+                    serverMode === "static"
                       ? "Arranca `codarch serve` para elegir carpetas locales"
                       : "Analiza y vigila una carpeta local"
                 },
@@ -730,6 +683,13 @@ export default function App() {
                     closeOpenMenu();
                     inputRef.current?.click();
                   }
+                },
+                {
+                  label: copied ? "Enlace copiado" : "Copiar enlace de la vista",
+                  onClick: () => void copyLink(),
+                  keepOpen: true,
+                  title:
+                    "Copia el enlace de la vista actual (área, color, carpeta y fichero)"
                 }
               ]}
             >
@@ -791,17 +751,6 @@ export default function App() {
               } as Record<string, string>)}
             />
           </>
-        }
-        banner={
-          serverMode === "demo" ? (
-            <div className="demo-banner">
-              <strong>Demo.</strong>
-              <span>
-                Para monitorizar tu repositorio, ejecuta{" "}
-                <code>codarch serve .</code> en su raíz y abre la URL que imprime.
-              </span>
-            </div>
-          ) : null
         }
         overlay={dragging ? <div className="drop-hint">Suelta un cc.json</div> : null}
         onCancelAnalysis={cancelAnalysis}

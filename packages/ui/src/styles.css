@@ -140,64 +140,6 @@ button {
   max-width: 100%;
 }
 
-.server-mode {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font: 500 8.5px/1 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #a9b7bc;
-}
-
-.server-mode i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #7f8b90;
-}
-
-.server-mode-demo {
-  color: #e7c06b;
-}
-
-.server-mode-demo i {
-  background: var(--ochre);
-}
-
-.server-mode-local {
-  color: #a9b7bc;
-}
-
-.server-mode-live {
-  color: #8fe3c0;
-}
-
-.server-mode-live i {
-  background: #45d6a0;
-  box-shadow: 0 0 0 3px rgba(69, 214, 160, 0.16);
-}
-
-.demo-banner {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 5px 8px;
-  margin-bottom: 10px;
-  padding: 7px 10px;
-  border: 1px solid rgba(217, 162, 27, 0.35);
-  background: rgba(217, 162, 27, 0.08);
-  color: var(--ink-soft);
-  font-size: 11px;
-}
-
-.demo-banner strong {
-  font: 600 9px/1 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #8a650d;
-}
-
 .topbar-actions {
   display: flex;
   justify-content: flex-end;

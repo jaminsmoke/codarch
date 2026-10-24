@@ -12,6 +12,8 @@ export interface OpenMenuItem {
   onClick: () => void;
   disabled?: boolean;
   title?: string;
+  /** No cerrar el menú al pulsarlo (para acciones con respuesta, como copiar). */
+  keepOpen?: boolean;
 }
 
 export interface OpenMenuProps {
@@ -37,7 +39,9 @@ export function OpenMenu({ items, children, ref }: OpenMenuProps) {
             title={item.title}
             onClick={(event) => {
               // Cerrar el menú antes de abrir un diálogo o cargar nada.
-              event.currentTarget.closest("details")?.removeAttribute("open");
+              if (!item.keepOpen) {
+                event.currentTarget.closest("details")?.removeAttribute("open");
+              }
               item.onClick();
             }}
           >
