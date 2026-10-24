@@ -30,8 +30,8 @@ La web app y el CLI, en cambio, leen y escriben en `.codarch/` del repo. El escr
 ### 1. El escritorio escribe en `.codarch/`
 
 Al analizar una carpeta, el proceso principal escribe `snapshot.cc.json` en `.codarch/` del repo,
-igual que `codarch analyze`. Si el snapshot ya existe y está actualizado (mismo git HEAD), se
-reutiliza en vez de re-analizar.
+igual que `codarch analyze`. Si el fichero ya tiene ese contenido no se reescribe, y el renderer
+solo guarda en `localStorage` la raíz del último repo: el proyecto se lee siempre de `.codarch/`.
 
 ### 2. `Abrir repositorio` carga desde `.codarch/`
 
@@ -43,10 +43,10 @@ web app. «Re-analizar» regenera el fichero.
 Si el repo no ignora `.codarch/`, el escritorio lo añade a su `.gitignore` (append, sin tocar
 lo demás). Así los artefactos locales no se commitean.
 
-### 4. `localStorage` solo para preferencias de ventana
+### 4. `localStorage` solo para preferencias
 
-El snapshot y el reporte salen de `localStorage`. Ahí quedan solo las preferencias globales
-(tema, zoom, plugins activos) que no dependen del repo.
+El snapshot y el reporte salen de `localStorage`. Ahí quedan las preferencias globales (tema, zoom,
+plugins activos) y la raíz del último repo, lo justo para saber qué `.codarch/` leer al arrancar.
 
 ### 5. Permisos
 
@@ -77,7 +77,12 @@ al modo solo lectura (carga desde `.codarch/` si existe, sin poder analizar).
 - [x] El proceso principal escribe `.codarch/snapshot.cc.json` al analizar.
 - [x] `Abrir repositorio` carga desde `.codarch/` si existe.
 - [x] `.gitignore` se actualiza con `.codarch/` si falta.
-- [ ] El renderer lee desde `.codarch/` y deja de guardar snapshots en `localStorage`.
-- [ ] Migración de un proyecto guardado en `localStorage` a `.codarch/`.
+- [x] El renderer lee desde `.codarch/` y deja de guardar snapshots en `localStorage`.
+- [x] Migración de un proyecto guardado en `localStorage` a `.codarch/`.
+
+El renderer conserva en `localStorage` solo las preferencias y la raíz del último repo. Al
+arrancar, `restaurarSesion` migra una vez el proyecto viejo (si el repo sigue ahí), lee
+`.codarch/snapshot.cc.json`, su `report.json` si existe y los addons que declara el repo. Si el
+`.codarch/` desapareció, el arranque queda vacío en vez de inventarse el proyecto.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

@@ -179,8 +179,10 @@ también `npm run sync:action` y actualizar el repo público.
 - M31 en curso: i18n preparada (ADR 0046, §8). Un idioma ahora (español), estructura lista para
   añadir otro copiando `apps/site/docs/` y traduciendo. Las cadenas de la UI están en
   `src/lib/i18n.ts` y los componentes reciben `lang`.
-- M32 en curso: el escritorio persiste en `.codarch/` (ADR 0048). El proceso principal escribe
-  `snapshot.cc.json` y actualiza `.gitignore`; la web y el escritorio comparten la misma fuente.
+- M32 cerrada: el escritorio persiste en `.codarch/` (ADR 0048). El proceso principal escribe
+  `snapshot.cc.json` y actualiza `.gitignore`; el renderer lee de ahí al arrancar (snapshot,
+  `report.json` y addons), migra una vez el proyecto viejo de `localStorage` y ya solo guarda
+  las preferencias y la raíz del último repo. La web y el escritorio comparten la misma fuente.
 - M33 cerrada: la orquestación compartida (ADR 0049). Un hook `useCodarchApp` en `@codarch/ui`
   encapsula el estado y las operaciones; cada app solo conecta su adaptador de plataforma.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
