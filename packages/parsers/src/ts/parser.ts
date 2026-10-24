@@ -1,13 +1,8 @@
 import Parser from "tree-sitter";
 import TypeScript from "tree-sitter-typescript";
 import type { FileParseResult, SourceParser } from "../types";
-import {
-  collectImports,
-  measureSource,
-  usesTsxGrammar,
-  type SyntaxNodeLike
-} from "./measure";
-import { collectSymbols } from "./symbols";
+import { usesTsxGrammar, type SyntaxNodeLike } from "./measure";
+import { analyzeTree } from "./tree";
 
 const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"] as const;
 
@@ -17,8 +12,9 @@ const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"
  * Devuelve solo agregados por fichero. No retiene el árbol ni el fuente: el
  * análisis de un repositorio procesa un fichero cada vez.
  *
- * Las métricas se calculan en `measure.ts`, que es el mismo código que usa el
- * parser WASM del navegador: los números salen iguales en los dos.
+ * Métricas, importaciones y símbolos salen de `analyzeTree`, que recorre el
+ * árbol una sola vez y es el mismo código que usa el parser WASM: los números
+ * salen iguales en los dos.
  */
 export class TypeScriptParser implements SourceParser {
   readonly name = "typescript";
@@ -39,11 +35,6 @@ export class TypeScriptParser implements SourceParser {
     const root = parser.parse(source, undefined, {
       bufferSize: Math.max(64 * 1024, Buffer.byteLength(source, "utf8") + 1)
     }).rootNode;
-    const node = root as unknown as SyntaxNodeLike;
-    return {
-      metrics: measureSource(source, node),
-      imports: collectImports(node),
-      symbols: collectSymbols(node)
-    };
+    return analyzeTree(source, root as unknown as SyntaxNodeLike);
   }
 }

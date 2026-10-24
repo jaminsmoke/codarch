@@ -22,7 +22,7 @@ export interface SyntaxNodeLike {
  * Nodos que representan una función implementada. Las firmas de interfaces y
  * los métodos abstractos no cuentan: no tienen cuerpo que medir.
  */
-const FUNCTION_TYPES = new Set([
+export const FUNCTION_TYPES = new Set([
   "function_declaration",
   "function_expression",
   "arrow_function",
@@ -68,7 +68,7 @@ export function usesTsxGrammar(filePath: string): boolean {
  * el WASM lo tipa como `comment`. Con la regla por texto los dos builds
  * cuentan las mismas líneas de código.
  */
-function isComment(text: string): boolean {
+export function isComment(text: string): boolean {
   return text.startsWith("//") || text.startsWith("/*") || text.startsWith("#!");
 }
 
@@ -77,7 +77,15 @@ export function commentText(text: string): boolean {
   return isComment(text);
 }
 
-/** Agregados por fichero a partir del árbol de sintaxis. */
+/**
+ * Agregados por fichero a partir del árbol de sintaxis.
+ *
+ * Recorre el árbol por su cuenta. El análisis de un fichero necesita además
+ * las importaciones y los símbolos, y cada recorrido vuelve a materializar los
+ * hijos de cada nodo en el binding: por eso el camino normal es `analyzeTree`
+ * (`tree.ts`), que hace las tres cosas en una sola pasada. Esta función se
+ * queda para lo que solo quiere métricas.
+ */
 export function measureSource(source: string, root: SyntaxNodeLike): Metrics {
   const codeLines = new Set<number>();
   const stack: SyntaxNodeLike[] = [root];
@@ -175,7 +183,12 @@ export function countLines(source: string): number {
   return last === 10 || last === 13 ? lines - 1 : lines;
 }
 
-/** Importaciones, reexportaciones e imports dinámicos o por `require`. */
+/**
+ * Importaciones, reexportaciones e imports dinámicos o por `require`.
+ *
+ * Como `measureSource`, recorre el árbol por su cuenta; el camino normal para
+ * un fichero del análisis es `analyzeTree`.
+ */
 export function collectImports(root: SyntaxNodeLike): ParsedImport[] {
   const imports: ParsedImport[] = [];
   const stack: SyntaxNodeLike[] = [root];
@@ -234,7 +247,9 @@ export function collectImports(root: SyntaxNodeLike): ParsedImport[] {
   return imports;
 }
 
-function findImportSource(node: SyntaxNodeLike): SyntaxNodeLike | null {
+export function findImportSource(
+  node: SyntaxNodeLike
+): SyntaxNodeLike | null {
   const direct = node.childForFieldName("source");
   if (direct) return direct;
 
@@ -244,7 +259,7 @@ function findImportSource(node: SyntaxNodeLike): SyntaxNodeLike | null {
   return clause?.childForFieldName("source") ?? null;
 }
 
-function callImportKind(node: SyntaxNodeLike): ImportKind | null {
+export function callImportKind(node: SyntaxNodeLike): ImportKind | null {
   const fn = node.childForFieldName("function");
   if (!fn) return null;
   if (fn.type === "import") return "dynamic";
@@ -252,7 +267,7 @@ function callImportKind(node: SyntaxNodeLike): ImportKind | null {
   return null;
 }
 
-function stringLiteralValue(node: SyntaxNodeLike): string | null {
+export function stringLiteralValue(node: SyntaxNodeLike): string | null {
   if (node.type === "string") {
     return decodeStringBody(node.text.slice(1, -1));
   }

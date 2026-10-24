@@ -19,7 +19,7 @@ import {
  */
 
 /** Nodos que declaran un símbolo con nombre propio. */
-const DECLARATION_KINDS: Record<string, ParsedSymbol["kind"]> = {
+export const DECLARATION_KINDS: Record<string, ParsedSymbol["kind"]> = {
   function_declaration: "function",
   generator_function_declaration: "function",
   method_definition: "function",
@@ -31,19 +31,23 @@ const DECLARATION_KINDS: Record<string, ParsedSymbol["kind"]> = {
 };
 
 /** Valores que son una función o una clase aunque no se declaren con `function`/`class`. */
-const FUNCTION_VALUES = new Set([
+export const FUNCTION_VALUES = new Set([
   "arrow_function",
   "function_expression",
   "generator_function"
 ]);
 
-const CLASS_VALUES = new Set(["class", "class_expression"]);
+export const CLASS_VALUES = new Set(["class", "class_expression"]);
 
 /**
  * Los símbolos del fichero, en el orden en que aparecen.
  *
  * Comparte código con el parser del navegador: los dos dan la misma lista,
  * que es lo que hace que el checksum del snapshot siga siendo el mismo.
+ *
+ * El camino normal de un fichero es `analyzeTree` (`tree.ts`), que recorre el
+ * árbol una sola vez para métricas, importaciones y símbolos; esto se queda
+ * para lo que solo quiere símbolos.
  */
 export function collectSymbols(root: SyntaxNodeLike): ParsedSymbol[] {
   const symbols: ParsedSymbol[] = [];
@@ -56,16 +60,16 @@ export function collectSymbols(root: SyntaxNodeLike): ParsedSymbol[] {
     if (kind) {
       const nameNode = node.childForFieldName("name");
       const name = nameNode?.text;
-      if (name) symbols.push(describe(name, kind, node, nameNode));
+      if (name) symbols.push(describeSymbol(name, kind, node, nameNode));
     } else if (node.type === "variable_declarator") {
       const nameNode = node.childForFieldName("name");
       const name = nameNode?.text;
       const value = node.childForFieldName("value");
       if (name && value) {
         if (FUNCTION_VALUES.has(value.type)) {
-          symbols.push(describe(name, "function", value));
+          symbols.push(describeSymbol(name, "function", value));
         } else if (CLASS_VALUES.has(value.type)) {
-          symbols.push(describe(name, "class", value));
+          symbols.push(describeSymbol(name, "class", value));
         }
       }
     }
@@ -76,12 +80,18 @@ export function collectSymbols(root: SyntaxNodeLike): ParsedSymbol[] {
   return symbols.sort((a, b) => a.line - b.line);
 }
 
-/** Un símbolo con su posición y, si es una función, su complejidad. */
-function describe(
+/**
+ * Un símbolo con su posición y, si es una función, su complejidad.
+ *
+ * `complexity` llega desde fuera cuando el recorrido ya la calculó para las
+ * métricas del fichero: es la misma función y no hay que volver a medirla.
+ */
+export function describeSymbol(
   name: string,
   kind: ParsedSymbol["kind"],
   node: SyntaxNodeLike,
-  nameNode?: SyntaxNodeLike | null
+  nameNode?: SyntaxNodeLike | null,
+  complexity?: number
 ): ParsedSymbol {
   const symbol: ParsedSymbol = {
     name,
@@ -91,7 +101,7 @@ function describe(
   };
 
   if (kind === "function") {
-    symbol.complexity = functionComplexity(node);
+    symbol.complexity = complexity ?? functionComplexity(node);
     symbol.lines = node.endPosition.row - node.startPosition.row + 1;
   }
 
@@ -139,9 +149,13 @@ function bodyHash(node: SyntaxNodeLike, skip?: SyntaxNodeLike | null): string {
       continue;
     }
 
+    // Los hijos, una sola vez: cada acceso en el binding nativo los vuelve a
+    // materializar ✓.
+    const children = current.children;
+
     // Al revés, para que salgan en el orden del fuente ✓.
-    for (let index = current.children.length - 1; index >= 0; index--) {
-      stack.push(current.children[index] as SyntaxNodeLike);
+    for (let index = children.length - 1; index >= 0; index--) {
+      stack.push(children[index] as SyntaxNodeLike);
     }
   }
 
