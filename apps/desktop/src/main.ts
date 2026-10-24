@@ -542,8 +542,34 @@ ipcMain.handle("codarch:check-update", async () => {
     latest: resultado.latest,
     outdated: resultado.outdated,
     error: resultado.error,
-    url: resultado.url
+    url: resultado.url,
+    canInstall: canAutoUpdate(process.platform, app.isPackaged)
   };
+});
+
+/**
+ * Descarga la actualización y reinicia la app con ella (ADR 0045).
+ *
+ * Es el botón de **Actualizaciones**: no hay que volver a bajar el instalador.
+ * `electron-updater` cierra la ventana, aplica el paquete descargado y vuelve
+ * a abrir la app nueva.
+ */
+ipcMain.handle("codarch:install-update", async () => {
+  if (!canAutoUpdate(process.platform, app.isPackaged)) {
+    return { ok: false, error: "esta instalación no puede actualizarse sola" };
+  }
+  try {
+    const resultado = await autoUpdater.checkForUpdates();
+    if (!resultado?.isUpdateAvailable) {
+      return { ok: false, error: "no hay ninguna versión nueva" };
+    }
+    await autoUpdater.downloadUpdate();
+    // Un respiro para que el renderer pinte «Reiniciando…» antes del cierre.
+    setTimeout(() => autoUpdater.quitAndInstall(true, true), 400);
+    return { ok: true, error: null };
+  } catch (cause) {
+    return { ok: false, error: (cause as Error).message };
+  }
 });
 
 /** Abre una página (la release, el npm) en el navegador del sistema. */

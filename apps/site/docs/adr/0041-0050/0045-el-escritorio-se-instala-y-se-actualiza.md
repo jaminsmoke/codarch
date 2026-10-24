@@ -77,8 +77,9 @@ La app usa `electron-updater` cuando está empaquetada:
 
 En Windows el instalador es por usuario y no necesita administrador. En Linux la actualización del
 `.deb` la aplica `electron-updater` con `dpkg`/`apt`; si la app no corre como root, el sistema pide
-permiso de administrador. La sección **Actualizaciones** de los ajustes sigue enseñando la versión
-y el enlace; la actualización en segundo plano no la sustituye.
+permiso de administrador. La sección **Actualizaciones** de los ajustes enseña la versión y el
+enlace, y además ofrece **Actualizar y reiniciar**: descarga la versión nueva si no lo había hecho
+ya, la instala y vuelve a abrir la app, sin bajar el instalador a mano.
 
 macOS queda fuera hasta que haya firma y notarización. No se compila, no se sube y no se ofrece un
 DMG que el sistema vaya a bloquear.
@@ -121,4 +122,5 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Cambiar el tag a `v<versión>` para que `electron-updater` lo lea como semver.
 - [x] Probar el ciclo: `alpha.1` descargó `alpha.2`, la instaló al cerrar y arrancó como `alpha.2`.
 - [x] Comprobar en el CI que el instalador lleva `app-update.yml` y `latest*.yml`.
+- [x] Actualizar desde los ajustes con un botón que descarga, instala y reinicia la app.
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.

@@ -44,6 +44,14 @@ export interface DesktopUpdate {
   outdated: boolean;
   error: string | null;
   url: string | null;
+  /** Si esta instalación puede descargar e instalar la actualización sola. */
+  canInstall: boolean;
+}
+
+/** El resultado de pedirle a la app que se actualice aquí mismo. */
+export interface DesktopInstallResult {
+  ok: boolean;
+  error: string | null;
 }
 
 const api = {
@@ -88,6 +96,9 @@ const api = {
    */
   checkUpdate: (): Promise<DesktopUpdate> =>
     ipcRenderer.invoke("codarch:check-update"),
+  /** Descarga la actualización y reinicia la app con ella. */
+  installUpdate: (): Promise<DesktopInstallResult> =>
+    ipcRenderer.invoke("codarch:install-update"),
   /** Abre una página en el navegador del sistema ✓. */
   openExternal: (url: string): Promise<void> =>
     ipcRenderer.invoke("codarch:open-external", url),

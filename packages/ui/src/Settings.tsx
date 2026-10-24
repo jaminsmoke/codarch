@@ -27,6 +27,8 @@ export interface SettingsUpdateInfo {
   outdated: boolean;
   error: string | null;
   url: string | null;
+  /** Si la app puede instalarse aquí mismo la versión nueva (escritorio). */
+  canInstall?: boolean;
 }
 
 /**
