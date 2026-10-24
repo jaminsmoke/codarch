@@ -2,14 +2,15 @@ import SharedSettings, {
   type SettingsProps as SharedSettingsProps,
   type SettingsUpdateAdapter
 } from "@codarch/ui/Settings";
-import { hasWebgl2 } from "@codarch/plugin-api";
+import { hasWebgl2, hasWebgpu } from "@codarch/plugin-api";
 import { checkSource } from "@codarch/versions";
 
 /** El paquete que se publica en npm: es el CLI, el que sirve esta web. */
 const NPM_PACKAGE = "codarch";
 
-/** La capacidad no cambia durante la sesión ✓. */
+/** Las capacidades no cambian durante la sesión ✓. */
 const webgl2 = hasWebgl2();
+const webgpu = hasWebgpu();
 
 const updates: SettingsUpdateAdapter = {
   async check(current) {
@@ -47,8 +48,18 @@ const updates: SettingsUpdateAdapter = {
   )
 };
 
-export type SettingsProps = Omit<SharedSettingsProps, "updates" | "webgl2">;
+export type SettingsProps = Omit<
+  SharedSettingsProps,
+  "updates" | "webgl2" | "webgpu"
+>;
 
 export default function Settings(props: SettingsProps) {
-  return <SharedSettings {...props} updates={updates} webgl2={webgl2} />;
+  return (
+    <SharedSettings
+      {...props}
+      updates={updates}
+      webgl2={webgl2}
+      webgpu={webgpu}
+    />
+  );
 }

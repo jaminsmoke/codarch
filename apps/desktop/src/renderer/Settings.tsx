@@ -4,11 +4,12 @@ import SharedSettings, {
   type SettingsUpdateAdapter,
   type SettingsUpdateInfo
 } from "@codarch/ui/Settings";
-import { hasWebgl2 } from "@codarch/plugin-api";
+import { hasWebgl2, hasWebgpu } from "@codarch/plugin-api";
 import { desktop } from "./bridge";
 
-/** La capacidad no cambia durante la sesión ✓. */
+/** Las capacidades no cambian durante la sesión ✓. */
 const webgl2 = hasWebgl2();
+const webgpu = hasWebgpu();
 
 /**
  * Actualizar y reiniciar, aquí mismo (ADR 0045).
@@ -90,8 +91,18 @@ const updates: SettingsUpdateAdapter = {
   )
 };
 
-export type SettingsProps = Omit<SharedSettingsProps, "updates" | "webgl2">;
+export type SettingsProps = Omit<
+  SharedSettingsProps,
+  "updates" | "webgl2" | "webgpu"
+>;
 
 export default function Settings(props: SettingsProps) {
-  return <SharedSettings {...props} updates={updates} webgl2={webgl2} />;
+  return (
+    <SharedSettings
+      {...props}
+      updates={updates}
+      webgl2={webgl2}
+      webgpu={webgpu}
+    />
+  );
 }
