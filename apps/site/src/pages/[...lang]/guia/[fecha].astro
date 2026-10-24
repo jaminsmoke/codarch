@@ -1,0 +1,47 @@
+---
+import GuiaApp from "../../../components/GuiaApp";
+import Site from "../../../layouts/Site.astro";
+import { cargarGuia } from "../../../lib/guia-carga";
+import { fechaCompleta, rutaDia } from "../../../lib/guia";
+import { idiomaDe, t } from "../../../lib/i18n";
+import { urlCanonica } from "../../../lib/rutas";
+
+/**
+ * Un día de la guía, en los dos idiomas.
+ *
+ * Las fechas son las mismas en los dos idiomas, así que cada una se genera dos
+ * veces: sin prefijo y con `/en`. El texto del día sale de la colección del
+ * idioma que toca.
+ */
+export async function getStaticPaths() {
+  const es = await cargarGuia("es");
+  const en = await cargarGuia("en");
+  return [
+    ...es.dias.map((dia) => ({
+      params: { lang: undefined, fecha: dia.fecha }
+    })),
+    ...en.dias.map((dia) => ({
+      params: { lang: "en", fecha: dia.fecha }
+    }))
+  ];
+}
+
+const idioma = idiomaDe(Astro.params.lang);
+const clave = Astro.params.fecha;
+const datos = await cargarGuia(idioma);
+const dia = datos.dias.find((d) => d.fecha === clave);
+if (!dia) throw new Error(`Día desconocido: ${clave}`);
+
+const fechaLarga = fechaCompleta(dia.fecha, idioma);
+const titulo = t(idioma, "meta.guia.dia.titulo").replace("{fecha}", fechaLarga);
+const descripcion = t(idioma, "meta.guia.dia.desc").replace(
+  "{fecha}",
+  fechaLarga
+);
+const ultima = datos.dias.at(-1)?.fecha ?? dia.fecha;
+const canonical = urlCanonica(rutaDia(dia.fecha, ultima, idioma));
+---
+
+<Site title={titulo} description={descripcion} {canonical}>
+  <GuiaApp client:only="react" datos={datos} lang={idioma} />
+</Site>

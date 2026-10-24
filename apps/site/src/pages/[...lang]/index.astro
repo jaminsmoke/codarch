@@ -1,0 +1,28 @@
+---
+import ReactSite from "../../components/ReactSite";
+import Site from "../../layouts/Site.astro";
+import { idiomaDe, t } from "../../lib/i18n";
+import { urlCanonica } from "../../lib/rutas";
+
+/**
+ * La portada, en los dos idiomas (ADR 0046 · §8).
+ *
+ * Una sola ruta sirve `/` y `/en/`: el parámetro de descanso `lang` está vacío
+ * en el idioma por defecto y vale `en` en el otro. El idioma sale en cada
+ * petición, así que no hay dos ficheros que se puedan separar.
+ */
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
+}
+
+const idioma = idiomaDe(Astro.params.lang);
+const canonical = urlCanonica(idioma === "en" ? "/en/" : "/");
+---
+
+<Site
+  title={t(idioma, "meta.home.titulo")}
+  description={t(idioma, "meta.home.desc")}
+  {canonical}
+>
+  <ReactSite client:only="react" lang={idioma} />
+</Site>

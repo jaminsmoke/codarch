@@ -1,0 +1,26 @@
+---
+import GuiaApp from "../../../components/GuiaApp";
+import Site from "../../../layouts/Site.astro";
+import { cargarGuia } from "../../../lib/guia-carga";
+import { idiomaDe, t } from "../../../lib/i18n";
+import { urlCanonica } from "../../../lib/rutas";
+
+/** Lo que espera, en los dos idiomas: `/guia/futuro/` y `/en/guia/futuro/`. */
+export function getStaticPaths() {
+  return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
+}
+
+const idioma = idiomaDe(Astro.params.lang);
+const datos = await cargarGuia(idioma);
+const canonical = urlCanonica(
+  idioma === "en" ? "/en/guia/futuro/" : "/guia/futuro/"
+);
+---
+
+<Site
+  title={t(idioma, "meta.guia.futuro.titulo")}
+  description={t(idioma, "meta.guia.futuro.desc")}
+  {canonical}
+>
+  <GuiaApp client:only="react" datos={datos} lang={idioma} />
+</Site>

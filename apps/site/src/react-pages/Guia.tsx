@@ -5,6 +5,7 @@ import clsx from "clsx";
 import {
   CATEGORIAS,
   VEREDICTOS,
+  fechaCompleta,
   fechaCorta,
   fechaPartida,
   nombreCategoria,
@@ -70,11 +71,7 @@ interface Props {
 export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
   const idioma = idiomaDe(lang);
   const fecha = fechaPartida(dia.fecha, idioma);
-  /** La fecha larga en el orden de cada idioma. */
-  const fechaLarga =
-    idioma === "en"
-      ? `${fecha.mes} ${fecha.dia}, ${fecha.anio}`
-      : `${fecha.dia} de ${fecha.mes} de ${fecha.anio}`;
+  const fechaLarga = fechaCompleta(dia.fecha, idioma);
   const ultima = dias.at(-1)?.fecha ?? dia.fecha;
   const indice = dias.findIndex((d) => d.fecha === dia.fecha);
   const anterior = indice > 0 ? dias[indice - 1] : undefined;

@@ -144,7 +144,8 @@ y la guía se sirven desde las mismas islas de React con `lang`. Añadir conteni
 
 1. Crear `docs/<idioma>/` con el mismo `slug` y el frontmatter traducido; lo que falte cae al
    español y Starlight lo avisa en la página.
-2. Crear las rutas del idioma (`/en/`, `/en/guia/…`) apuntando a las mismas islas con su `lang`.
+2. Servir las rutas con un parámetro de descanso (`[...lang]`): una sola página genera `/`,
+   `/guia/…` y sus versiones `/en/…`. Una vista, un fichero; el idioma es un dato.
 3. Añadir las cadenas a `src/content/i18n/<idioma>.json`: una entrada por idioma con todas las
    claves, que es la colección `i18n` de Starlight. `src/lib/i18n.ts` las tipa para las islas de
    React y los componentes de Starlight las leen con `Astro.locals.t`.
@@ -199,6 +200,8 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
 - [x] Diccionario ES/EN completo en `src/content/i18n/` (la colección `i18n` de Starlight): la
   interfaz no deja cadenas sin traducir.
 - [x] Fechas, categorías y veredictos de la guía localizados.
+- [x] Una sola ruta por vista con `[...lang]`: los dos idiomas comparten fichero y cambian el
+  prefijo.
 - [x] Documentos de producto traducidos en `docs/en/`: índice, modelo, reglas, MCP, migración y
   mapa, más el índice de ADR y la hoja de ruta.
 - [x] La guía entera en inglés: sus entradas y las normas, con el mismo nombre de fichero y un test
