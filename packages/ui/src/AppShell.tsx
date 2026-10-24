@@ -1,7 +1,7 @@
 import { type DragEvent, type ReactNode, useMemo, useRef } from "react";
 import type { AddonView as SavedView } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
-import type { CodarchApp } from "./useCodarchApp";
+import type { CodarchApp, WatchState } from "./useCodarchApp";
 import { MapCanvas } from "./MapCanvas";
 import { viewStateFromSaved } from "./viewState";
 import {
@@ -82,7 +82,8 @@ export function AppShell({
     zoom,
     center,
     showLabels,
-    pluginView
+    pluginView,
+    watch
   } = app.state;
   const {
     selectIndex,
@@ -150,6 +151,7 @@ export function AppShell({
               ? ` · ${view.model.meta.commit.slice(0, 8)}`
               : ""}
           </span>
+          <WatchIndicator watch={watch} />
         </div>
         <div className="topbar-actions">
           {topbarActions}
@@ -499,5 +501,30 @@ export function AppShell({
 
       {settings}
     </div>
+  );
+}
+
+/** Lo que dice cada estado de vigilancia, en la cabecera. */
+const WATCH_LABEL: Record<WatchState, string> = {
+  live: "live",
+  paused: "live en pausa",
+  none: "sin vigilancia"
+};
+
+const WATCH_TITLE: Record<WatchState, string> = {
+  live: "El repositorio se reanaliza al guardar y el mapa se refresca solo.",
+  paused: "La vigilancia está en pausa: el mapa no cambia hasta reanalizar.",
+  none: "Sin vigilancia: el mapa se actualiza al analizar el repositorio."
+};
+
+function WatchIndicator({ watch }: { watch: WatchState }) {
+  return (
+    <span
+      className={`watch-indicator watch-${watch}`}
+      title={WATCH_TITLE[watch]}
+    >
+      <i />
+      {WATCH_LABEL[watch]}
+    </span>
   );
 }

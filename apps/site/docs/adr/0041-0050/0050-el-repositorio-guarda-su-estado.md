@@ -106,6 +106,7 @@ y refresca después, sin esperar al análisis.
 
 - [x] El escritorio escribe `.codarch/` en el repo y lo ignora al crearlo (M32).
 - [x] El CLI `analyze` ignora `.codarch/` cuando lo crea; `--out` no toca el `.gitignore`.
+- [x] La cabecera dice si el repo se vigila: `live`, `live en pausa` o `sin vigilancia`.
 - [ ] Al abrir un repo con `.codarch/`, enseñar lo guardado al instante y refrescar en segundo plano.
 - [ ] Vigilar la raíz en el escritorio y reanalizar con retardo: el mapa cambia con el repo.
 - [ ] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo.

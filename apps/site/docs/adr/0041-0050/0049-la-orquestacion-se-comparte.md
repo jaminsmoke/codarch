@@ -104,6 +104,8 @@ plataforma, no presentación.
 - [x] Extraer `AppShell` con la cabecera, la barra lateral, el escenario y el inspector.
 - [x] Derivar en el hook las opciones de los ajustes y la carga de un snapshot con su reporte
       (`abrirSnapshot`/`abrirReporte`), que la web repetía en cada forma de abrir un fichero.
+- [x] Poner guardas para que las apps no vuelvan a crecer: no pintan el armazón y tienen tope de
+      líneas (`apps/web/test/architecture.test.ts`).
 - [x] Verificar que ambas apps se comportan igual (lint, tipos, 410 tests y los dos builds).
 
 Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio) con el hook; después,

@@ -68,6 +68,11 @@ export interface SettingsProps {
   projectNote?: ReactNode;
   /** Si el almacenamiento local está disponible. */
   storageAvailable: boolean;
+  /** La vigilancia del servidor local, cuando la plataforma la ofrece. */
+  watch?: {
+    state: "live" | "paused";
+    onToggle: () => void;
+  };
   /** La versión de CodArch que está corriendo. */
   version: string;
   /** De dónde se comprueba la actualización de la app. */
@@ -124,6 +129,7 @@ export default function Settings({
   onClearProject,
   projectNote,
   storageAvailable,
+  watch,
   version,
   updates,
   webgl2,
@@ -448,6 +454,29 @@ export default function Settings({
                     <span>Almacenamiento local</span>
                     <b>{storageAvailable ? "disponible" : "no disponible"}</b>
                   </div>
+                  {watch ? (
+                    <>
+                      <div className="settings-row">
+                        <span>Vigilancia</span>
+                        <b>{watch.state === "live" ? "live" : "detenida"}</b>
+                      </div>
+                      <p>
+                        <button
+                          type="button"
+                          className="button"
+                          onClick={watch.onToggle}
+                        >
+                          {watch.state === "live"
+                            ? "Detener live"
+                            : "Activar live"}
+                        </button>
+                      </p>
+                      <p className="muted small">
+                        Con live, el servidor reanaliza al guardar y el mapa se
+                        refresca solo.
+                      </p>
+                    </>
+                  ) : null}
                   <p className="muted small">
                     El checksum es la identidad del análisis: el mismo código da el mismo checksum ✓.
                   </p>

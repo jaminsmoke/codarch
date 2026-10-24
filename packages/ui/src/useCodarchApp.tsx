@@ -50,7 +50,17 @@ export interface CodarchAppState {
   showLabels: boolean;
   addons: RepoAddon[];
   pluginView: string | null;
+  /**
+   * Si el repo se vigila y el mapa se refresca solo (ADR 0050).
+   *
+   * `live` reanaliza al guardar; `paused` puede vigilar pero está parado;
+   * `none` no hay vigilancia en esta plataforma.
+   */
+  watch: WatchState;
 }
+
+/** El estado de la vigilancia del repo: la dice cada plataforma. */
+export type WatchState = "live" | "paused" | "none";
 
 export interface CodarchAppActions {
   loadSnapshot: (raw: unknown, label: string, preserveView?: boolean) => boolean;
@@ -90,6 +100,8 @@ export interface CodarchAppActions {
   setSelectedIndex: (index: number | null) => void;
   setLoading: (loading: boolean) => void;
   setProgress: (message: string | null) => void;
+  /** Lo pone cada plataforma: si vigila el repo o no. */
+  setWatch: (watch: WatchState) => void;
 }
 
 interface ViewState {
@@ -180,6 +192,7 @@ export function useCodarchApp(
   const plugins = usePlugins(plataforma.plugins);
   const [addons, setAddons] = useState<RepoAddon[]>([]);
   const [pluginView, setPluginView] = useState<string | null>(null);
+  const [watch, setWatch] = useState<WatchState>("none");
 
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   if (preferencesRef.current === undefined) {
@@ -777,7 +790,8 @@ export function useCodarchApp(
     center,
     showLabels,
     addons,
-    pluginView
+    pluginView,
+    watch
   };
 
   const actions: CodarchAppActions = {
@@ -810,7 +824,8 @@ export function useCodarchApp(
     setAddons,
     setSelectedIndex,
     setLoading,
-    setProgress
+    setProgress,
+    setWatch
   };
 
   return {

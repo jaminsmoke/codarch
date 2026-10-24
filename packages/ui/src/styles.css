@@ -140,6 +140,40 @@ button {
   max-width: 100%;
 }
 
+.watch-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93a2a8;
+}
+
+.watch-indicator i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7f8b90;
+}
+
+.watch-live {
+  color: #8fe3c0;
+}
+
+.watch-live i {
+  background: #45d6a0;
+  box-shadow: 0 0 0 3px rgba(69, 214, 160, 0.16);
+}
+
+.watch-paused {
+  color: #e7c06b;
+}
+
+.watch-paused i {
+  background: var(--ochre);
+}
+
 .topbar-actions {
   display: flex;
   justify-content: flex-end;

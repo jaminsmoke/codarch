@@ -64,7 +64,8 @@ export default function App() {
     setReportError,
     setAddons,
     setLoading,
-    setProgress
+    setProgress,
+    setWatch
   } = app.actions;
   const {
     view,
@@ -91,6 +92,17 @@ export default function App() {
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
   const cancelRef = useRef<{ aborted: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
+  // La cabecera dice si el repo se vigila (ADR 0050): la web lo sabe por el
+  // servidor; el escritorio dirá «sin vigilancia» hasta M34.
+  useEffect(() => {
+    setWatch(
+      serverMode === "live"
+        ? "live"
+        : serverMode === "served"
+          ? "paused"
+          : "none"
+    );
+  }, [serverMode, setWatch]);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
@@ -639,27 +651,6 @@ export default function App() {
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        topbarActions={
-          <>
-            {serverMode === "live" || serverMode === "served" ? (
-              <button
-                className={`button ghost live-toggle${
-                  serverMode === "live" ? " is-live" : ""
-                }`}
-                type="button"
-                onClick={() => void toggleWatch()}
-                title={
-                  serverMode === "live"
-                    ? "El servidor reanaliza al guardar. Pulsa para detenerlo."
-                    : "El servidor no reanaliza solo. Pulsa para activarlo."
-                }
-              >
-                <i />
-                {serverMode === "live" ? "Live" : "Servido"}
-              </button>
-            ) : null}
-          </>
-        }
         topbarTrailing={
           <>
             <OpenMenu
@@ -784,6 +775,14 @@ export default function App() {
               setSettingsOpen(false);
             }}
             storageAvailable={storageAvailable}
+            watch={
+              serverMode === "live" || serverMode === "served"
+                ? {
+                    state: serverMode === "live" ? "live" : "paused",
+                    onToggle: () => void toggleWatch()
+                  }
+                : undefined
+            }
             version={appVersion}
             plugins={plugins.descriptors}
             enabledPlugins={plugins.enabled}
