@@ -24,7 +24,7 @@ de la cabecera, el aviso de la demo, la pista de arrastrar, el botón de cancela
 montados. La web conserva su arranque (servidor, URL, demo) y el escritorio el suyo (`.codarch/`,
 menú nativo).
 
-Los `App.tsx` quedan en 922 líneas (web) y 172 (escritorio), y `AppShell` ocupa 504; antes eran
+Los `App.tsx` quedan en 865 líneas (web) y 162 (escritorio), y `AppShell` ocupa 503; antes eran
 1565 y 762 con el marcado repetido.
 
 **Veredicto**: **fase M33**, en la hoja de ruta de

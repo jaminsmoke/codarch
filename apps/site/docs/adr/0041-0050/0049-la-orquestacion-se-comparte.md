@@ -107,8 +107,9 @@ plataforma, no presentación.
 - [x] Verificar que ambas apps se comportan igual (lint, tipos, 410 tests y los dos builds).
 
 Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio) con el hook; después,
-a 922 y 172 al sacar `AppShell` (que ocupa 504). Desaparecen las dos copias de `plugins.ts` y el
-marcado duplicado de las dos apps. La restauración automática del proyecto solo corre donde la
-plataforma la declara: la web conserva su arranque propio (servidor, URL, demo).
+a 865 y 162 al sacar `AppShell` (que ocupa 503) y llevar al hook las opciones de los ajustes y la
+carga de un snapshot. Desaparecen las dos copias de `plugins.ts` y el marcado duplicado de las dos
+apps. La restauración automática del proyecto solo corre donde la plataforma la declara: la web
+conserva su arranque propio (servidor, URL, demo).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
