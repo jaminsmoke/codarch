@@ -7,6 +7,7 @@ import { unified } from "@astrojs/markdown-remark";
 import { defineConfig } from "astro/config";
 import { rehypeDocLinks } from "./src/lib/rehype-doc-links.mjs";
 import { sidebar } from "./src/sidebar.mjs";
+import { faviconDev } from "./vite-plugin-favicon.ts";
 import { rutasDocs } from "./vite-plugin-rutas.ts";
 
 /**
@@ -60,7 +61,7 @@ export default defineConfig({
     })
   ],
   vite: {
-    plugins: [tailwindcss(), rutasDocs(root)],
+    plugins: [tailwindcss(), rutasDocs(root), faviconDev(root)],
     server: {
       fs: {
         // El markdown, las imágenes y los paquetes del monorepo viven fuera
