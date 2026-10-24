@@ -27,6 +27,31 @@ const PACKAGES = [
   { file: "apps/mcp/package.json", label: "el MCP" }
 ];
 
+// Las carpetas con paquetes del repo. Los que no se publican no llevan versión
+// propia: se quedan en `0.0.0` y la versión la pone el producto (ADR 0041).
+const WORKSPACES = ["apps", "packages", "plugins"];
+
+function paquetesSinVersionPropia() {
+  const propios = new Set(PACKAGES.map((target) => target.file));
+  const files = [];
+  for (const folder of WORKSPACES) {
+    let entries;
+    try {
+      entries = fs.readdirSync(path.join(ROOT, folder), { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name === "node_modules") continue;
+      const file = `${folder}/${entry.name}/package.json`;
+      if (!propios.has(file) && fs.existsSync(path.join(ROOT, file))) {
+        files.push(file);
+      }
+    }
+  }
+  return files;
+}
+
 // Los mismos sitios dentro del lock: npm los exige, aunque sean derivados.
 const LOCK_PACKAGES = ["", "apps/cli", "apps/desktop", "apps/mcp"];
 
@@ -107,6 +132,15 @@ function comprobar() {
     if (version !== versiones.product) {
       throw new Error(
         `${target.label} está en ${version ?? "(sin versión)"}, pero el producto está en ${versiones.product}`
+      );
+    }
+  }
+
+  for (const file of paquetesSinVersionPropia()) {
+    const version = leer(file).version;
+    if (version !== "0.0.0") {
+      throw new Error(
+        `${file} está en ${version ?? "(sin versión)"}; los paquetes que no se publican llevan 0.0.0 y la versión la pone el producto`
       );
     }
   }

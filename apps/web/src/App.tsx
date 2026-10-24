@@ -34,6 +34,7 @@ import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
 import { fetchJson, fetchJsonStrict } from "./http";
 import { plataformaWeb } from "./plataforma";
+import { PRODUCT_VERSION } from "@codarch/versions";
 
 export default function App() {
   const plataforma = useMemo(() => plataformaWeb(), []);
@@ -303,11 +304,16 @@ export default function App() {
   /** Si el almacenamiento local está disponible. */
   const storageAvailable = useMemo(() => localStore() !== null, []);
 
-  /** La versión de CodArch que está corriendo. */
-  const appVersion = useMemo(() => {
-    if (serverVersion) return serverVersion;
-    return "web";
-  }, [serverVersion]);
+  /**
+   * La versión que se enseña.
+   *
+   * Con servidor, la que sirve el CLI; sin él, la del producto: la web no
+   * lleva versión propia y no hay nada que subir aparte (ADR 0041).
+   */
+  const appVersion = useMemo(
+    () => serverVersion ?? PRODUCT_VERSION,
+    [serverVersion]
+  );
 
   /** Abre un cc.json local y lo deja como proyecto (sin URL de origen). */
   const openLocalFile = useCallback(
