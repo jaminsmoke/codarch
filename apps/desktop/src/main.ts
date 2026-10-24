@@ -10,7 +10,8 @@ import {
 import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
-import { analyzeRepository, ensureGitignoreEntry } from "@codarch/parsers";
+import { analyzeRepository, ensureGitignoreEntry, watchRepository } from "@codarch/parsers";
+import type { RepositoryWatcher } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import type { RepoAddons } from "@codarch/addons";
 import { checkSource } from "@codarch/versions";
@@ -80,6 +81,63 @@ function send(target: DesktopTarget): void {
   window?.webContents.send("codarch:target", target);
 }
 
+/** El proceso principal vigila el repo abierto, si puede. */
+let repositoryWatcher: RepositoryWatcher | null = null;
+let watchingRoot: string | null = null;
+
+/** La cabecera dice si el repo se vigila (ADR 0050). */
+function sendWatch(live: boolean): void {
+  window?.webContents.send("codarch:watch", live);
+}
+
+/**
+ * Vigila la raíz abierta y reanaliza al guardar.
+ *
+ * El mapa cambia con el repo sin volver a analizarlo a mano. Se reescribe
+ * `.codarch/` solo si el checksum cambió, y el renderer recibe el snapshot
+ * nuevo por el mismo canal que «abrir con» (ADR 0050).
+ */
+function watchRoot(root: string): void {
+  if (watchingRoot === root && repositoryWatcher) {
+    sendWatch(true);
+    return;
+  }
+  void repositoryWatcher?.close();
+  repositoryWatcher = null;
+  watchingRoot = root;
+  try {
+    repositoryWatcher = watchRepository(root, {
+      onChange: () => refreshFromDisk(root)
+    });
+    sendWatch(true);
+  } catch (cause) {
+    console.error(`no se pudo vigilar ${root}: ${(cause as Error).message}`);
+    sendWatch(false);
+  }
+}
+
+function stopWatching(): void {
+  void repositoryWatcher?.close();
+  repositoryWatcher = null;
+  watchingRoot = null;
+}
+
+/** Reanaliza y, si el código cambió, reescribe el estado y avisa. */
+function refreshFromDisk(root: string): void {
+  if (!isDirectory(root)) return;
+  try {
+    const result = analyzeRepository(root, { git: true });
+    const stored = readPersistedSnapshot(root) as {
+      meta?: { checksum?: string };
+    } | null;
+    if (stored?.meta?.checksum === result.snapshot.meta.checksum) return;
+    writeSnapshot(root, result.snapshot);
+    send({ kind: "snapshot", snapshot: result.snapshot, label: root });
+  } catch (cause) {
+    console.error(`no se pudo reanalizar ${root}: ${(cause as Error).message}`);
+  }
+}
+
 /**
  * Las actualizaciones en segundo plano ✓ (ADR 0045).
  *
@@ -142,6 +200,7 @@ async function openTarget(target: string): Promise<void> {
     lastRoot = target;
     ensureStateIgnored(target);
     writeSnapshot(target, result.snapshot);
+    watchRoot(target);
     send({ kind: "snapshot", snapshot: result.snapshot, label: target });
     return;
   }
@@ -429,6 +488,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
+app.on("before-quit", () => {
+  stopWatching();
+});
+
 /** El renderer pide una carpeta y se analiza en el proceso principal. */
 ipcMain.handle("codarch:pick-folder", async () => pickFolder());
 
@@ -438,7 +501,13 @@ ipcMain.handle("codarch:pick-file", async () => pickFile());
 ipcMain.handle("codarch:restore-project", async (_event, root: string) => {
   if (typeof root !== "string" || !root) return null;
   const restored = restoreProject(root);
-  if (restored) lastRoot = root;
+  if (restored) {
+    lastRoot = root;
+    watchRoot(root);
+    // Lo guardado se pinta al instante; el análisis de verdad llega detrás,
+    // para ver lo que cambió sin la app abierta antes de ponerse en live.
+    setTimeout(() => refreshFromDisk(root), 400);
+  }
   return restored;
 });
 
@@ -462,6 +531,7 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   lastRoot = root;
   ensureStateIgnored(root);
   writeSnapshot(root, result.snapshot);
+  watchRoot(root);
   return {
     snapshot: result.snapshot,
     files: result.files,

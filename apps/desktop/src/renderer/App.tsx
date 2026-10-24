@@ -30,19 +30,20 @@ export default function App() {
     setSettingsOpen,
     setShowLabels,
     setError,
-    setAddons
+    setAddons,
+    setWatch
   } = app.actions;
-  const {
-    view,
-    plugins,
-    areaOptions,
-    colorOptions
-  } = app;
+  const { view, plugins, areaOptions, colorOptions } = app;
 
   // El menú nativo abre los ajustes ✓.
   useEffect(() => {
     return desktop().onOpenSettings(() => setSettingsOpen(true));
   }, [setSettingsOpen]);
+
+  // La cabecera dice si el proceso principal vigila el repo (ADR 0050).
+  useEffect(() => {
+    return desktop().onWatch((live) => setWatch(live ? "live" : "none"));
+  }, [setWatch]);
 
   /** Abre una foto del historial, leyéndola del disco. */
   const openHistorySnapshot = useCallback(

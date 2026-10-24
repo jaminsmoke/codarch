@@ -74,9 +74,15 @@ y su estado viven en el repo. Abrir otro repositorio no hereda nada del anterior
 
 ### 5. A tiempo real
 
-El escritorio vigilará la raíz analizada como hace `serve --watch`: reanaliza con retardo, reescribe
-`.codarch/` y refresca el mapa. Al abrir un repo que ya tiene estado, enseña lo guardado al instante
-y refresca después, sin esperar al análisis.
+Una sola vigilancia compartida (`watchRepository`, con chokidar) para el CLI y el escritorio: la
+misma lista de exclusiones, el mismo agrupado de ráfagas y el mismo respeto a los renombrados de los
+editores. No se vigila `.git`, `node_modules`, `.codarch/` (para no realimentarse) ni las carpetas de
+salida.
+
+El escritorio empieza a vigilar al analizar o restaurar un repo, reanaliza al guardar y solo
+reescribe `.codarch/` si el checksum cambió; el mapa recibe el snapshot nuevo. La cabecera dice
+`live` mientras vigila. Al abrir un repo que ya tiene estado, enseña lo guardado al instante y
+reanaliza detrás: los cambios hechos sin la app se ven antes de ponerse en live.
 
 ## Consecuencias
 
@@ -107,8 +113,9 @@ y refresca después, sin esperar al análisis.
 - [x] El escritorio escribe `.codarch/` en el repo y lo ignora al crearlo (M32).
 - [x] El CLI `analyze` ignora `.codarch/` cuando lo crea; `--out` no toca el `.gitignore`.
 - [x] La cabecera dice si el repo se vigila: `live`, `live en pausa` o `sin vigilancia`.
-- [ ] Al abrir un repo con `.codarch/`, enseñar lo guardado al instante y refrescar en segundo plano.
-- [ ] Vigilar la raíz en el escritorio y reanalizar con retardo: el mapa cambia con el repo.
+- [x] Al abrir un repo con `.codarch/`, enseñar lo guardado al instante y refrescar en segundo plano.
+- [x] Una vigilancia compartida (`watchRepository`, chokidar) para `serve` y el escritorio.
 - [ ] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo.
+- [ ] Decidir si la vigilancia del escritorio se puede pausar desde los ajustes, como la web.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

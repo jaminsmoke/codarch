@@ -45,6 +45,11 @@ export type {
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
 export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
+export {
+  watchRepository,
+  type RepositoryWatcher,
+  type WatchRepositoryOptions
+} from "./watch";
 export { MemoryFileSystem, directoryOf } from "./fs";
 export type { DirectoryEntry, FileSystem } from "./fs";
 export { NodeFileSystem } from "./node-fs";

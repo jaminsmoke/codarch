@@ -3,7 +3,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ConfigError } from "@codarch/metrics";
-import { analyzeRepository } from "@codarch/parsers";
+import {
+  analyzeRepository,
+  watchRepository,
+  type RepositoryWatcher
+} from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
 import { loadProjectIgnore } from "../config";
@@ -32,9 +36,6 @@ const MIME: Record<string, string> = {
   ".woff2": "font/woff2",
   ".wasm": "application/wasm"
 };
-
-const IGNORED_WATCH =
-  /(^|\/)(node_modules|\.git|\.codarch|dist|coverage|\.next|out|target)(\/|$)/;
 
 const IGNORED_BROWSE = new Set([
   ".git",
@@ -90,19 +91,13 @@ export function runServe(options: ServeOptions): number {
     }
     throw error;
   }
-  let watcher: fs.FSWatcher | null = null;
-  let timer: NodeJS.Timeout | undefined;
+  let watcher: RepositoryWatcher | null = null;
   const clients = new Set<http.ServerResponse>();
 
   const startWatcher = (): string | null => {
     if (watcher) return null;
     try {
-      watcher = fs.watch(state.root, { recursive: true }, (_event, filename) => {
-        if (!filename) return;
-        const relative = filename.toString().replace(/\\/g, "/");
-        if (IGNORED_WATCH.test(relative)) return;
-        scheduleRefresh();
-      });
+      watcher = watchRepository(state.root, { onChange: () => refresh() });
       return null;
     } catch (error) {
       watcher = null;
@@ -111,11 +106,7 @@ export function runServe(options: ServeOptions): number {
   };
 
   const stopWatcher = (): void => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = undefined;
-    }
-    watcher?.close();
+    void watcher?.close();
     watcher = null;
   };
 
@@ -141,14 +132,6 @@ export function runServe(options: ServeOptions): number {
       console.error(`  no se pudo reanalizar: ${message}`);
       broadcast(clients, "error", { message });
     }
-  };
-
-  const scheduleRefresh = (): void => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = undefined;
-      refresh();
-    }, 350);
   };
 
   const setWatch = (enabled: boolean): void => {

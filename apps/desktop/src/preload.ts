@@ -113,6 +113,16 @@ const api = {
     return () => ipcRenderer.removeListener("codarch:open-settings", listener);
   },
   /**
+   * Escucha si el proceso principal está vigilando el repo (ADR 0050).
+   *
+   * Devuelve la función para dejar de escuchar.
+   */
+  onWatch: (callback: (live: boolean) => void): (() => void) => {
+    const listener = (_event: unknown, live: boolean): void => callback(live);
+    ipcRenderer.on("codarch:watch", listener);
+    return () => ipcRenderer.removeListener("codarch:watch", listener);
+  },
+  /**
    * Escucha lo que llega desde el menú o desde "abrir con".
    *
    * Devuelve la función para dejar de escuchar.
