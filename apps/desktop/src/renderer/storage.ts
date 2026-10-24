@@ -1,27 +1,6 @@
-import type { RepoAddon } from "@codarch/addons";
+import type { ViewPreferences, SavedProject } from "@codarch/ui";
 
-export interface ViewPreferences {
-  areaMetric: string | null;
-  colorMode: string;
-  /**
-   * Si los bloques muestran su nombre aunque no quepa entero.
-   *
-   * Con los nombres puestos, el mapa se lee de un vistazo ✓.
-   */
-  showLabels: boolean;
-}
-
-export interface SavedProject {
-  snapshot: unknown;
-  report: unknown | null;
-  label: string;
-  reportLabel: string | null;
-  /**
-   * Los addons del proyecto (ADR 0029), para que sus vistas sigan ahí al
-   * reabrir la app sin volver a analizar la carpeta.
-   */
-  addons?: RepoAddon[];
-}
+export type { ViewPreferences, SavedProject };
 
 const PREFERENCES_KEY = "codarch.preferences.v1";
 const PLUGINS_KEY = "codarch.plugins.v1";

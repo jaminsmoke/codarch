@@ -26,7 +26,7 @@ Hoy CodArch tiene:
   e instaladores sin firmar.
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
-M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso y M32 en curso.
+M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 en curso y M33 en curso.
 
 ## Las fases
 
@@ -115,6 +115,7 @@ flowchart TD
 | M30 | El changelog es la guía | cerrada | [ADR 0047](0041-0050/0047-el-changelog-es-la-guia.md#hoja-de-ruta) |
 | M31 | i18n preparada | en curso | [ADR 0046](0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M32 | El escritorio persiste en `.codarch/` | en curso | [ADR 0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
+| M33 | La orquestación compartida | en curso | [ADR 0049](0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

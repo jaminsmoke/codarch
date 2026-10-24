@@ -278,7 +278,7 @@ export default function App() {
       const snapshot = persisted ?? saved?.snapshot ?? null;
       const label = root ?? saved?.label ?? null;
       if (snapshot && label && loadSnapshot(snapshot, label)) {
-        setAddons(saved?.addons ?? []);
+        setAddons((saved?.addons ?? []) as RepoAddon[]);
         if (saved?.report) {
           loadReport(saved.report, saved.reportLabel ?? "report.json", false);
         }

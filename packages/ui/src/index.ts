@@ -7,6 +7,9 @@
  */
 
 export { readMigration, readReport } from "./data";
+export type { Plataforma } from "./platform";
+export type { ViewPreferences, SavedProject } from "./storage";
+export { useCodarchApp, type CodarchApp, type CodarchAppState, type CodarchAppActions } from "./useCodarchApp";
 export {
   DEFAULT_DETAIL_OPTIONS,
   pruneTree,

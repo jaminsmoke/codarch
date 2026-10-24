@@ -69,6 +69,7 @@ flowchart TD
 | [0046](0041-0050/0046-los-documentos-con-starlight.md) | Los documentos se publican con Starlight | 2026-10-23 | aceptado | M29 |
 | [0047](0041-0050/0047-el-changelog-es-la-guia.md) | El changelog es la guía | 2026-10-23 | aceptado | M30 |
 | [0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md) | El escritorio persiste en `.codarch/` del repo | 2026-10-24 | aceptado | M32 |
+| [0049](0041-0050/0049-la-orquestacion-se-comparte.md) | La orquestación se comparte, la plataforma se adapta | 2026-10-24 | aceptado | M33 |
 
 ## Las carpetas
 
@@ -78,6 +79,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0011-0020**: 0011, 0012, 0013, 0014, 0015, 0016, 0017, 0018, 0019, 0020
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
-- **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048
+- **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).
