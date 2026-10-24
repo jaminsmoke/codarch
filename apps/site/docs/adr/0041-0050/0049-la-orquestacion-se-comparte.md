@@ -57,10 +57,27 @@ El `App.tsx` de la web y del escritorio solo conecta el adaptador y renderiza el
 componentes de `@codarch/ui`. Las features específicas de plataforma (análisis en navegador,
 actualizaciones del escritorio) se añaden como extensiones.
 
+### 4. El armazón también se comparte: `AppShell`
+
+La cabecera, la barra lateral, el escenario, el inspector y el menú de vistas son el mismo marcado
+en las dos apps, así que viven en un componente `AppShell` de `@codarch/ui`. Cada app le pasa lo
+suyo por huecos explícitos: los botones de la cabecera, el aviso de la demo, la pista de arrastrar,
+el botón de cancelar el análisis y los ajustes ya montados (que llevan props de plataforma).
+
+El estado de vista (las claves `area`, `color`, `focus`, `file`, `tab`, `symbol` y `labels`) también
+sale de `@codarch/ui`: la web lo lee y lo escribe en la URL y el escritorio lo aplica desde las
+vistas guardadas de un addon, con el mismo criterio de qué encaja con el snapshot.
+
 ### 4. La UI sigue siendo `@codarch/ui`
 
 Los componentes visuales no cambian: ya están en `@codarch/ui`. La unificación es de la
 orquestación, no del render.
+
+### 5. Lo que sigue siendo de cada app
+
+El arranque de la web (servidor local, URL, demo, drag & drop, análisis en el navegador con
+cancelación) y el del escritorio (`.codarch/`, menú nativo, actualizaciones) no se mudan: son
+plataforma, no presentación.
 
 ## Consecuencias
 
@@ -82,10 +99,14 @@ orquestación, no del render.
 - [x] Extraer `useCodarchApp` en `@codarch/ui`.
 - [x] Implementar el adaptador del escritorio y refactorizarlo.
 - [x] Implementar el adaptador de la web y refactorizarla.
-- [x] Verificar que ambas apps se comportan igual (lint, tipos, 395 tests y los dos builds).
+- [x] Mover al hook lo que era igual en las dos apps: fichero elegido, símbolos, métricas, vistas
+      de plugins, búsqueda, atajos y el estado de vista que comparten la URL y los addons.
+- [x] Extraer `AppShell` con la cabecera, la barra lateral, el escenario y el inspector.
+- [x] Verificar que ambas apps se comportan igual (lint, tipos, 410 tests y los dos builds).
 
-Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio), y desaparecen las
-dos copias de `plugins.ts`. La restauración automática del proyecto solo corre donde la plataforma
-la declara: la web conserva su arranque propio (servidor, URL, demo).
+Los `App.tsx` bajan de 1821 a 1565 líneas (web) y de 1106 a 762 (escritorio) con el hook; después,
+a 922 y 172 al sacar `AppShell` (que ocupa 504). Desaparecen las dos copias de `plugins.ts` y el
+marcado duplicado de las dos apps. La restauración automática del proyecto solo corre donde la
+plataforma la declara: la web conserva su arranque propio (servidor, URL, demo).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

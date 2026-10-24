@@ -15,3 +15,17 @@ export interface SavedProject {
   reportLabel: string | null;
   addons?: unknown[];
 }
+
+/**
+ * El almacenamiento local del navegador, si lo deja.
+ *
+ * Las dos apps lo inyectan en el contexto de los plugins; cuando el navegador
+ * lo bloquea, el plugin se queda sin él en vez de romper la app.
+ */
+export function localStore(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}

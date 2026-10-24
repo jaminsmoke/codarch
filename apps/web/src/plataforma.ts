@@ -1,4 +1,5 @@
 import type { Plataforma, SavedProject } from "@codarch/ui";
+import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import { fetchJson } from "./http";
 import {
   clearProject,
@@ -26,6 +27,18 @@ export function plataformaWeb(): Plataforma {
     borrarProyecto: () => clearProject(),
     cadenas: async (symbol) =>
       fetchJson(`data/chains.json?symbol=${encodeURIComponent(symbol)}`),
+    historial: async () => {
+      const raw = await fetchJson("data/history.json");
+      if (!raw || typeof raw !== "object") return null;
+      const list = (raw as { entries?: unknown }).entries;
+      return Array.isArray(list) ? (list as HistoryEntry[]) : null;
+    },
+    calor: async () => {
+      const raw = await fetchJson("data/chains.json");
+      if (!raw || typeof raw !== "object") return null;
+      const list = (raw as { heat?: unknown }).heat;
+      return Array.isArray(list) ? (list as SymbolHeat[]) : null;
+    },
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)

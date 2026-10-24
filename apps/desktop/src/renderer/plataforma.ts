@@ -12,6 +12,7 @@ import {
 } from "./storage";
 import { restaurarSesion } from "./restore";
 import type { Plataforma, SavedProject } from "@codarch/ui";
+import type { SymbolHeat } from "@codarch/schema/browser";
 
 /**
  * Adaptador de plataforma del escritorio para `useCodarchApp`.
@@ -80,6 +81,16 @@ export function plataformaEscritorio(): Plataforma {
       clearLastRoot();
     },
     cadenas: (symbol) => desktop().chains(symbol),
+    historial: async () => {
+      const index = await desktop().history();
+      return index && Array.isArray(index.entries) ? index.entries : null;
+    },
+    calor: async () => {
+      const raw = await desktop().chains();
+      if (!raw || typeof raw !== "object") return null;
+      const list = (raw as { heat?: unknown }).heat;
+      return Array.isArray(list) ? (list as SymbolHeat[]) : null;
+    },
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)

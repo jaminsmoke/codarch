@@ -1,14 +1,15 @@
 /**
  * Estado de vista en la URL.
  *
- * La app web se puede abrir en tres sitios: la demo, un fichero local o el
- * servidor local. En los tres casos la URL puede llevar el estado de la vista
- * (área, color, carpeta enfocada, fichero seleccionado, pestaña, símbolo) y
- * las direcciones de los artefactos que se cargan por URL.
+ * La web se puede abrir en tres sitios: la demo, un fichero local o el servidor
+ * local. En los tres casos la URL puede llevar el estado de la vista (área,
+ * color, carpeta enfocada, fichero seleccionado, pestaña, símbolo) y las
+ * direcciones de los artefactos que se cargan por URL.
  *
  * Las claves son cortas y estables porque la URL se comparte y se pega en
- * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y
- * `report`. Una vista guardada de un addon usa las mismas claves (ADR 0029).
+ * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y `report`.
+ * Una vista guardada de un addon usa las mismas claves (ADR 0029) y el
+ * escritorio las aplica con el mismo criterio, aunque no tenga URL.
  */
 
 import type { AddonViewState } from "@codarch/addons";
@@ -105,6 +106,22 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
     symbolName: state.symbol ?? null,
     showLabels: state.labels ?? null
   };
+}
+
+/**
+ * Si un modo de color se puede pintar con este snapshot.
+ *
+ * `risk` y `structure` siempre; `status` pide la lente de migración; el resto
+ * es el nombre de una métrica que tiene que venir en el snapshot.
+ */
+export function isColorModeAvailable(
+  colorMode: string,
+  coverage: ReadonlySet<string>,
+  migration: unknown
+): boolean {
+  if (colorMode === "risk" || colorMode === "structure") return true;
+  if (colorMode === "status") return Boolean(migration);
+  return coverage.has(colorMode);
 }
 
 /**

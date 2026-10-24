@@ -1,4 +1,5 @@
 import type { RepoAddons } from "@codarch/addons";
+import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginStore } from "./plugins";
 import type { ViewPreferences, SavedProject } from "./storage";
 
@@ -47,6 +48,10 @@ export interface Plataforma {
   borrarProyecto: () => void;
   /** Las cadenas de los símbolos. */
   cadenas?: (symbol: string) => Promise<unknown | null>;
+  /** La línea del tiempo del repo, si la plataforma la sirve. */
+  historial?: () => Promise<HistoryEntry[] | null>;
+  /** El calor de los símbolos, si la plataforma lo sirve. */
+  calor?: () => Promise<SymbolHeat[] | null>;
   /** Almacenamiento de plugins activados. */
   plugins: PluginStore;
 }

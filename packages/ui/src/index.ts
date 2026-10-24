@@ -7,8 +7,21 @@
  */
 
 export { readMigration, readReport } from "./data";
+export { AppShell, type AppShellProps } from "./AppShell";
 export type { Plataforma } from "./platform";
-export type { ViewPreferences, SavedProject } from "./storage";
+export { localStore, type ViewPreferences, type SavedProject } from "./storage";
+export {
+  EMPTY_SOURCE_REQUEST,
+  EMPTY_VIEW_STATE,
+  buildSearch,
+  isColorModeAvailable,
+  parseSourceRequest,
+  parseViewState,
+  viewStateFromSaved,
+  type SavedViewState,
+  type SourceRequest,
+  type ViewState
+} from "./viewState";
 export { useCodarchApp, type CodarchApp, type CodarchAppState, type CodarchAppActions } from "./useCodarchApp";
 export {
   DEFAULT_DETAIL_OPTIONS,

@@ -1,0 +1,503 @@
+import { type DragEvent, type ReactNode, useMemo, useRef } from "react";
+import type { AddonView as SavedView } from "@codarch/addons";
+import type { HistoryEntry } from "@codarch/schema/browser";
+import type { CodarchApp } from "./useCodarchApp";
+import { MapCanvas } from "./MapCanvas";
+import { viewStateFromSaved } from "./viewState";
+import {
+  DebtList,
+  HeatList,
+  HistoryPanel,
+  HotList,
+  Inspector,
+  Kpi,
+  LanguageSample,
+  Legend
+} from "./panels";
+import PrPanel from "./PrPanel";
+
+/**
+ * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
+ *
+ * La web y el escritorio pintan lo mismo; lo que cambia de una plataforma a
+ * otra entra por los huecos (`topbarActions`, `banner`, `settings`…) en vez de
+ * duplicar el marcado (ADR 0049).
+ */
+export interface AppShellProps {
+  app: CodarchApp;
+  /** Botones propios de la plataforma, antes del menú de vistas. */
+  topbarActions?: ReactNode;
+  /** Botones propios de la plataforma, después del menú de vistas. */
+  topbarTrailing?: ReactNode;
+  /** Un aviso entre la cabecera del escenario y las pestañas. */
+  banner?: ReactNode;
+  /** Algo encima del mapa: la pista de arrastrar un fichero. */
+  overlay?: ReactNode;
+  /** Cancelar el análisis en marcha; sin esto no se pinta el botón. */
+  onCancelAnalysis?: () => void;
+  /** Abrir una foto del historial, con la ruta que sepa cada plataforma. */
+  onOpenHistory: (entry: HistoryEntry) => void;
+  /** Cargar el reporte desde donde sepa cada plataforma. */
+  onLoadReport: () => void;
+  /** Los ajustes ya montados: llevan props propias de la plataforma. */
+  settings: ReactNode;
+  /** Clases extra para el contenedor (por ejemplo, mientras se arrastra). */
+  className?: string;
+  onDragOver?: (event: DragEvent<HTMLDivElement>) => void;
+  onDragLeave?: () => void;
+  onDrop?: (event: DragEvent<HTMLDivElement>) => void;
+}
+
+export function AppShell({
+  app,
+  topbarActions,
+  topbarTrailing,
+  banner,
+  overlay,
+  onCancelAnalysis,
+  onOpenHistory,
+  onLoadReport,
+  settings,
+  className,
+  onDragOver,
+  onDragLeave,
+  onDrop
+}: AppShellProps) {
+  const {
+    cc,
+    source,
+    areaMetric,
+    colorMode,
+    query,
+    selectedIndex,
+    error,
+    loading,
+    report,
+    reportSource,
+    reportError,
+    tab,
+    focusPath,
+    progress,
+    chain,
+    zoom,
+    center,
+    showLabels,
+    pluginView
+  } = app.state;
+  const {
+    selectIndex,
+    openSymbolChain,
+    zoomAt,
+    panMap,
+    fitMap,
+    setAreaMetric,
+    setColorMode,
+    setQuery,
+    setFocusPath,
+    setTab,
+    setSettingsOpen,
+    setPluginView
+  } = app.actions;
+  const {
+    view,
+    detail,
+    migration,
+    hasChurn,
+    metricOptions,
+    metricTitle,
+    selectedFile,
+    selectedMigration,
+    selectedSymbols,
+    pluginViews,
+    activePluginView,
+    pluginContext,
+    matches,
+    searchRef,
+    addonsWithViews,
+    selectPath,
+    loadHistory,
+    loadHeat
+  } = app;
+  const viewsMenuRef = useRef<HTMLDetailsElement>(null);
+
+  const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
+
+  const applySavedView = (saved: SavedView) => {
+    viewsMenuRef.current?.removeAttribute("open");
+    app.applyView(viewStateFromSaved(saved.state));
+  };
+
+  return (
+    <div
+      className={`app${className ? ` ${className}` : ""}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand-mark">CODARCH</span>
+          <span className="brand-sub">atlas de arquitectura</span>
+        </div>
+        <div className="snapshot-meta">
+          <span className="project">{cc?.meta.projectName ?? "sin proyecto"}</span>
+          <span className="mono">
+            {source}
+            {view.model?.meta.checksum
+              ? ` · ${view.model.meta.checksum.slice(0, 8)}`
+              : ""}
+            {view.model?.meta.commit
+              ? ` · ${view.model.meta.commit.slice(0, 8)}`
+              : ""}
+          </span>
+        </div>
+        <div className="topbar-actions">
+          {topbarActions}
+          {addonsWithViews.length > 0 ? (
+            <details className="open-menu" ref={viewsMenuRef}>
+              <summary className="button ghost">Vistas</summary>
+              <div className="open-menu-panel">
+                {addonsWithViews.map((addon) => (
+                  <div key={addon.name} className="open-menu-group">
+                    <span
+                      className="open-menu-label"
+                      title={addon.description ?? addon.title}
+                    >
+                      {addon.title}
+                    </span>
+                    {addon.views.map((saved) => (
+                      <button
+                        key={`${addon.name}:${saved.id}`}
+                        type="button"
+                        title={saved.description ?? saved.title}
+                        onClick={() => applySavedView(saved)}
+                      >
+                        {saved.title}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
+          {topbarTrailing}
+          <button
+            className="button ghost icon-button"
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            title="Ajustes"
+            aria-label="Ajustes"
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M8 5.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm0 1.6a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"
+              />
+              <path
+                fill="currentColor"
+                d="M6.6.9h2.8l.3 1.6c.4.1.8.3 1.1.5l1.4-.9 2 2-.9 1.4c.2.4.4.7.5 1.1l1.6.3v2.8l-1.6.3c-.1.4-.3.8-.5 1.1l.9 1.4-2 2-1.4-.9c-.4.2-.7.4-1.1.5l-.3 1.6H6.6l-.3-1.6c-.4-.1-.8-.3-1.1-.5l-1.4.9-2-2 .9-1.4c-.2-.4-.4-.7-.5-1.1l-1.6-.3V6.9l1.6-.3c.1-.4.3-.8.5-1.1l-.9-1.4 2-2 1.4.9c.3-.2.7-.4 1.1-.5L6.6.9Z"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div className="shell">
+        <aside className="rail">
+          <section className="panel-block">
+            <div className="eyebrow">Vista</div>
+            <label className="field">
+              <span>Área</span>
+              <select
+                value={areaMetric ?? ""}
+                onChange={(event) => setAreaMetric(event.target.value)}
+              >
+                {metricOptions.map((key) => (
+                  <option key={key} value={key}>
+                    {metricTitle(key)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Color</span>
+              <select
+                value={colorMode}
+                onChange={(event) => setColorMode(event.target.value)}
+              >
+                <option value="risk">Riesgo</option>
+                <option value="structure">Estructura</option>
+                {hasChurn ? <option value="churn">Calor (commits)</option> : null}
+                {migration ? (
+                  <option value="status">Estado de migración</option>
+                ) : null}
+                {metricOptions.map((key) => (
+                  <option key={key} value={key}>
+                    {metricTitle(key)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field search-field">
+              <span>Buscar</span>
+              <input
+                ref={searchRef}
+                type="search"
+                placeholder="ruta o fichero…"
+                title="Pulsa / para buscar; Enter abre el primer resultado"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter" || !view.model) return;
+                  const needle = query.trim().toLowerCase();
+                  if (!needle) return;
+                  const match = view.model.files.find((file) =>
+                    file.path.toLowerCase().includes(needle)
+                  );
+                  if (match) {
+                    selectIndex(match.index);
+                    setTab("file");
+                  }
+                }}
+              />
+            </label>
+            {query ? (
+              <div className="muted tiny">
+                {matches} de {view.model?.fileCount ?? 0} ficheros
+              </div>
+            ) : null}
+          </section>
+
+          <LanguageSample model={view.model} migration={migration} />
+
+          <Legend colorMode={colorMode} migration={migration} model={view.model} />
+
+          <HistoryPanel load={loadHistory} onOpenSnapshot={onOpenHistory} />
+
+          <HotList
+            model={view.model}
+            selectedIndex={selectedIndex}
+            onSelect={selectIndex}
+          />
+
+          <HeatList
+            load={loadHeat}
+            onSelectSymbol={(name, path) => {
+              void openSymbolChain(name, path);
+            }}
+          />
+
+          <DebtList
+            model={view.model}
+            migration={migration}
+            selectedIndex={selectedIndex}
+            onSelect={selectIndex}
+          />
+        </aside>
+
+        <main className="stage">
+          <div className="stage-head">
+            <div>
+              <div className="eyebrow">Mapa</div>
+              <h1>{view.model?.meta.title ?? "Sin snapshot"}</h1>
+              {focusPath ? (
+                <div className="breadcrumb">
+                  <button type="button" onClick={() => setFocusPath(null)}>
+                    Todo
+                  </button>
+                  <span>/</span>
+                  <span>{focusPath}</span>
+                </div>
+              ) : null}
+            </div>
+            <div className="stage-kpis">
+              <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
+              <Kpi label="carpetas" value={view.model?.folderCount ?? 0} />
+              <Kpi
+                label={view.model?.areaTitle ?? "área"}
+                value={view.model?.totalArea ?? 0}
+              />
+              <Kpi
+                label="deuda"
+                value={migration?.summary.migrationDebt ?? 0}
+                accent={migration ? "debt" : undefined}
+              />
+            </div>
+          </div>
+
+          {banner}
+
+          <div className="stage-tabs">
+            <button
+              type="button"
+              className={`stage-tab${pluginView === null ? " is-active" : ""}`}
+              onClick={() => setPluginView(null)}
+            >
+              Mapa
+            </button>
+            {pluginViews.map((view) => (
+              <button
+                key={view.id}
+                type="button"
+                className={`stage-tab${pluginView === view.id ? " is-active" : ""}`}
+                onClick={() => setPluginView(view.id)}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="map-frame">
+            {loading ? (
+              <div className="empty">Cargando snapshot…</div>
+            ) : view.error || error ? (
+              <div className="empty error">
+                <strong>No se pudo dibujar el mapa.</strong>
+                <span>{view.error ?? error}</span>
+              </div>
+            ) : view.model ? (
+              pluginView && activePluginView ? (
+                <div className="plugin-stage">
+                  {activePluginView.render(pluginContext)}
+                </div>
+              ) : (
+                <MapCanvas
+                  model={view.model}
+                  roots={mapRoots}
+                  colorMode={colorMode}
+                  migration={migration}
+                  query={query.trim().toLowerCase()}
+                  selectedIndex={selectedIndex}
+                  onSelect={selectIndex}
+                  onFocusFolder={setFocusPath}
+                  zoom={zoom}
+                  center={center}
+                  onZoomAt={zoomAt}
+                  showLabels={showLabels}
+                  onPan={panMap}
+                />
+              )
+            ) : (
+              <div className="empty">Abre un cc.json para empezar.</div>
+            )}
+            {overlay}
+          </div>
+
+          <div className="stage-foot">
+            <div className="map-controls">
+              <button
+                type="button"
+                onClick={() => zoomAt(1.25)}
+                disabled={zoom >= 8}
+                title="Acercar"
+                aria-label="Acercar"
+              >
+                +
+              </button>
+              <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
+              <button
+                type="button"
+                onClick={() => zoomAt(1 / 1.25)}
+                disabled={zoom <= 1}
+                title="Alejar"
+                aria-label="Alejar"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                onClick={fitMap}
+                disabled={zoom === 1}
+                title="Ver el mapa entero"
+              >
+                Ajustar
+              </button>
+              <span
+                className="map-controls-hint"
+                title="Con el botón derecho apretado, arrastra para mover el mapa"
+              >
+                botón derecho: mover
+              </span>
+            </div>
+            <span>
+              {view.model
+                ? `${view.model.fileCount} ficheros · ${view.model.folderCount} carpetas · ${view.model.meta.apiVersion}`
+                : "—"}
+            </span>
+            {progress ? (
+              <span className="progress-cell">
+                <span className="mono detail-note">{progress}</span>
+                {onCancelAnalysis ? (
+                  <button
+                    className="button ghost small"
+                    type="button"
+                    onClick={onCancelAnalysis}
+                    title="Cortar el análisis"
+                  >
+                    Cancelar
+                  </button>
+                ) : null}
+              </span>
+            ) : detail && detail.hiddenFiles > 0 ? (
+              <span className="mono detail-note">
+                {`nivel carpeta · ${detail.cells} bloques · ${detail.hiddenFiles} ficheros dentro`}
+              </span>
+            ) : (
+              <span className="mono">
+                {view.model?.warnings[0] ??
+                  "clic en una celda para inspeccionar"}
+              </span>
+            )}
+          </div>
+        </main>
+
+        <aside className="inspector">
+          <div className="tabs" role="tablist" aria-label="Panel derecho">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "file"}
+              className={`tab${tab === "file" ? " is-active" : ""}`}
+              onClick={() => setTab("file")}
+            >
+              Fichero
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "pr"}
+              className={`tab${tab === "pr" ? " is-active" : ""}`}
+              onClick={() => setTab("pr")}
+            >
+              PR {report ? <i className="tab-dot" title="Reporte cargado" /> : null}
+            </button>
+          </div>
+          {tab === "file" ? (
+            <Inspector
+              model={view.model}
+              file={selectedFile}
+              migrationNode={selectedMigration}
+              areaMetric={areaMetric}
+              metricTitle={metricTitle}
+              symbols={selectedSymbols}
+              chain={chain}
+              onSelectSymbol={(name) => {
+                void openSymbolChain(name, selectedFile?.path ?? "");
+              }}
+            />
+          ) : (
+            <PrPanel
+              report={report}
+              source={reportSource}
+              error={reportError}
+              onLoad={onLoadReport}
+              onSelectPath={selectPath}
+            />
+          )}
+        </aside>
+      </div>
+
+      {settings}
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSearch,
+  isColorModeAvailable,
   parseSourceRequest,
   parseViewState,
   viewStateFromSaved,
@@ -118,5 +119,24 @@ describe("estado de vista en la URL", () => {
       symbolName: null,
       showLabels: true
     });
+  });
+});
+
+describe("el modo de color que se puede pintar", () => {
+  const coverage = new Set(["rloc", "maxComplexity"]);
+
+  it("risk y structure siempre valen", () => {
+    expect(isColorModeAvailable("risk", coverage, null)).toBe(true);
+    expect(isColorModeAvailable("structure", coverage, null)).toBe(true);
+  });
+
+  it("status pide la lente de migración", () => {
+    expect(isColorModeAvailable("status", coverage, null)).toBe(false);
+    expect(isColorModeAvailable("status", coverage, { summary: {} })).toBe(true);
+  });
+
+  it("una métrica vale si está en el snapshot", () => {
+    expect(isColorModeAvailable("rloc", coverage, null)).toBe(true);
+    expect(isColorModeAvailable("lineas", coverage, null)).toBe(false);
   });
 });

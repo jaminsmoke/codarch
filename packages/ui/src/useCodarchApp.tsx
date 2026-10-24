@@ -3,19 +3,28 @@ import {
   defaultMetric,
   getStats,
   parseCcJson,
-  type CcJson
+  symbolsOf,
+  type CcJson,
+  type CcMigrationNode
 } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RepoAddon } from "@codarch/addons";
-import type { SymbolChain } from "@codarch/schema/browser";
+import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
+import type { PluginContext, PluginView } from "@codarch/plugin-api";
 import { buildRenderModel, type RenderModel } from "@codarch/render/browser";
 import { usePlugins } from "./plugins";
 import { CHURN_METRIC } from "./labels";
 import { findFolder } from "./tree";
+import { mapColorFor, metricIndexOf } from "./map";
+import { orderedMetrics } from "./metrics";
 import { readMigration, readReport } from "./data";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
 import type { Plataforma } from "./platform";
-import type { ViewPreferences } from "./storage";
+import { localStore, type ViewPreferences } from "./storage";
+import {
+  isColorModeAvailable,
+  type ViewState as AppViewState
+} from "./viewState";
 
 export type { ViewPreferences, SavedProject } from "./storage";
 
@@ -93,6 +102,32 @@ export interface CodarchApp {
   zoomAt: (factor: number, at?: { x: number; y: number }) => void;
   panMap: (dx: number, dy: number) => void;
   fitMap: () => void;
+  /** El buscador de la barra lateral: lo enfoca la tecla `/`. */
+  searchRef: React.RefObject<HTMLInputElement | null>;
+  /** Las métricas del snapshot, en el orden en que se ofrecen. */
+  metricOptions: string[];
+  /** El título de una métrica, con el que trae el snapshot si lo trae. */
+  metricTitle: (key: string) => string;
+  selectedFile: RenderModel["files"][number] | null;
+  selectedMigration: CcMigrationNode | null;
+  selectedSymbols: ReturnType<typeof symbolsOf>;
+  /** Las vistas que aportan los plugins activados. */
+  pluginViews: PluginView[];
+  activePluginView: PluginView | null;
+  /** Lo que recibe la vista de un plugin. */
+  pluginContext: PluginContext;
+  /** Cuántos ficheros encajan con la búsqueda actual. */
+  matches: number;
+  /** Selecciona un fichero por su ruta y vuelve a la pestaña del fichero. */
+  selectPath: (path: string) => void;
+  /** Los addons que traen vistas guardadas: los únicos que dan menú. */
+  addonsWithViews: RepoAddon[];
+  /** Aplica un estado de vista (la URL o una vista guardada, ADR 0029). */
+  applyView: (view: AppViewState) => void;
+  /** El historial del repo, si la plataforma lo sabe leer. */
+  loadHistory: () => Promise<HistoryEntry[] | null>;
+  /** El calor de los símbolos, si la plataforma lo sabe leer. */
+  loadHeat: () => Promise<SymbolHeat[] | null>;
 }
 
 export interface CodarchAppOptions {
@@ -396,6 +431,233 @@ export function useCodarchApp(
     [view.model, selectIndex, plataforma]
   );
 
+  /** El buscador de la barra lateral: lo enfoca la tecla `/`. */
+  const searchRef = useRef<HTMLInputElement | null>(null);
+
+  // Derivado del modelo: es lo mismo en la web y en el escritorio (ADR 0049).
+  const metricOptions = useMemo(
+    () =>
+      stats ? orderedMetrics(stats.metricCoverage.map((entry) => entry.name)) : [],
+    [stats]
+  );
+
+  const descriptors = cc?.lenses?.metrics?.attributeDescriptors as
+    | Record<string, { title?: string }>
+    | undefined;
+
+  const metricTitle = useCallback(
+    (key: string): string => descriptors?.[key]?.title ?? key,
+    [descriptors]
+  );
+
+  const selectedFile =
+    view.model && selectedIndex !== null
+      ? view.model.files[selectedIndex] ?? null
+      : null;
+  const selectedMigration = selectedFile
+    ? migration?.nodes[selectedFile.nodeId] ?? null
+    : null;
+  /** Los símbolos del fichero elegido, del más complejo al más simple. */
+  const selectedSymbols = useMemo(
+    () => (selectedFile && cc ? symbolsOf(cc, selectedFile.nodeId) : []),
+    [cc, selectedFile]
+  );
+
+  /** Las vistas que aportan los plugins activados. */
+  const pluginViews = useMemo(() => {
+    const views: PluginView[] = [];
+    for (const descriptor of plugins.descriptors) {
+      if (!plugins.enabled.includes(descriptor.manifest.name)) continue;
+      const module = plugins.moduleOf(descriptor.manifest.name);
+      for (const view of module?.views ?? []) views.push(view);
+    }
+    return views;
+  }, [plugins]);
+
+  /** La vista que está abierta, si la hay. */
+  const activePluginView =
+    pluginViews.find((view) => view.id === pluginView) ?? null;
+
+  /** Lo que recibe el plugin: el modelo, lo que puede pedir y el color. */
+  const pluginContext = useMemo<PluginContext>(
+    () => ({
+      model: view.model,
+      selection: selectedFile?.path ?? null,
+      actions: {
+        select: (path: string) => {
+          const index = view.model?.files.findIndex(
+            (file) => file.path === path
+          );
+          if (index !== undefined && index >= 0) selectIndex(index);
+        },
+        focus: (path: string) => setFocusPath(path),
+        setTab: (tab: "file" | "pr") => setTab(tab)
+      },
+      preferences: { areaMetric, colorMode },
+      colorFor: (index: number) => {
+        const file = view.model?.files[index];
+        if (!file || !view.model) return "#d5d2ca";
+        return mapColorFor(
+          file,
+          colorMode,
+          view.model,
+          migration,
+          metricIndexOf(view.model)
+        );
+      },
+      url: {
+        read: () => ({
+          areaMetric,
+          colorMode,
+          focusPath,
+          filePath: selectedFile?.path ?? null,
+          tab
+        }),
+        write: (state) => {
+          if (state.areaMetric !== undefined) setAreaMetric(state.areaMetric);
+          if (state.colorMode !== undefined) setColorMode(state.colorMode);
+          if (state.focusPath !== undefined) setFocusPath(state.focusPath);
+        }
+      },
+      storage: localStore()
+    }),
+    [
+      view.model,
+      selectedFile,
+      areaMetric,
+      colorMode,
+      focusPath,
+      tab,
+      selectIndex,
+      migration
+    ]
+  );
+
+  const matches = useMemo(() => {
+    if (!view.model || query.trim() === "") return view.model?.fileCount ?? 0;
+    const needle = query.trim().toLowerCase();
+    return view.model.files.filter((file) =>
+      file.path.toLowerCase().includes(needle)
+    ).length;
+  }, [view.model, query]);
+
+  /** Los addons que traen vistas guardadas: los únicos que dan menú. */
+  const addonsWithViews = useMemo(
+    () => addons.filter((addon) => addon.views.length > 0),
+    [addons]
+  );
+
+  /** Selecciona un fichero por su ruta y vuelve a la pestaña del fichero. */
+  const selectPath = useCallback(
+    (path: string) => {
+      const index =
+        view.model?.files.findIndex((candidate) => candidate.path === path) ??
+        -1;
+      if (index >= 0) {
+        selectIndex(index);
+        setTab("file");
+      }
+    },
+    [selectIndex, view.model]
+  );
+
+  /**
+   * Aplica un estado de vista al mapa.
+   *
+   * Lo usan la URL de la web y las vistas guardadas de un addon (ADR 0029):
+   * las dos hablan el mismo dialecto. Lo que no encaja con el snapshot
+   * (métrica que no está, carpeta o fichero que ya no existen) se ignora en
+   * silencio: es una pista, no un contrato.
+   */
+  const applyView = useCallback(
+    (wanted: AppViewState) => {
+      if (!view.model || !stats) return;
+      const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
+      if (wanted.areaMetric && coverage.has(wanted.areaMetric)) {
+        setAreaMetric(wanted.areaMetric);
+      }
+      if (
+        wanted.colorMode &&
+        isColorModeAvailable(wanted.colorMode, coverage, migration)
+      ) {
+        setColorMode(wanted.colorMode);
+      }
+      if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
+        setFocusPath(wanted.focusPath);
+      }
+      if (wanted.filePath) {
+        const index = view.model.files.findIndex(
+          (file) => file.path === wanted.filePath
+        );
+        if (index >= 0) selectIndex(index);
+      }
+      if (wanted.tab) setTab(wanted.tab);
+      if (wanted.showLabels !== null) setShowLabels(wanted.showLabels);
+      // El símbolo se abre después, cuando ya se puede pedir su cadena.
+      if (wanted.symbolName) {
+        void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
+      }
+    },
+    [view.model, stats, migration, selectIndex, openSymbolChain]
+  );
+
+  const loadHistory = useCallback(
+    async (): Promise<HistoryEntry[] | null> =>
+      plataforma.historial ? plataforma.historial() : null,
+    [plataforma]
+  );
+
+  const loadHeat = useCallback(
+    async (): Promise<SymbolHeat[] | null> =>
+      plataforma.calor ? plataforma.calor() : null,
+    [plataforma]
+  );
+
+  // Al cambiar de métrica se conserva el fichero elegido si sigue existiendo.
+  useEffect(() => {
+    const files = view.model?.files;
+    if (!files) {
+      selectIndex(null);
+      return;
+    }
+    const wanted = selectedPathRef.current;
+    if (wanted) {
+      const index = files.findIndex((file) => file.path === wanted);
+      if (index >= 0) {
+        selectIndex(index);
+        return;
+      }
+    }
+    selectIndex(view.model?.defaultSelection ?? null);
+  }, [view.model, selectIndex]);
+
+  // `/` lleva al buscador y Escape limpia el foco y la selección.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement;
+
+      if (event.key === "/" && !typing) {
+        event.preventDefault();
+        searchRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== "Escape") return;
+      setFocusPath(null);
+      selectedPathRef.current = null;
+      setSelectedIndex(null);
+      setQuery("");
+      if (typing) target.blur();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   useEffect(() => {
     if (!cc || !areaMetric) return;
     const preferences = { areaMetric, colorMode, showLabels };
@@ -506,6 +768,21 @@ export function useCodarchApp(
     selectedPathRef,
     zoomAt,
     panMap,
-    fitMap
+    fitMap,
+    searchRef,
+    metricOptions,
+    metricTitle,
+    selectedFile,
+    selectedMigration,
+    selectedSymbols,
+    pluginViews,
+    activePluginView,
+    pluginContext,
+    matches,
+    selectPath,
+    addonsWithViews,
+    applyView,
+    loadHistory,
+    loadHeat
   };
 }
