@@ -109,7 +109,8 @@ reglas. Todo sale del snapshot que ya existía.
 - [x] Cada fila pinta el mapa y la activa queda marcada.
 - [x] Deuda y cruces como métricas curadas del modelo, con su p95.
 - [ ] Agrupar imports bajo un pliegue si la tabla crece con métricas nuevas.
-- [ ] Llevar el mismo lenguaje a la tabla del reporte (Cambios) y a la ficha
-  del símbolo.
+
+Llevar esta tabla a **Cambios** y a la ficha del símbolo es la M49
+([ADR 0061](../0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta)).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

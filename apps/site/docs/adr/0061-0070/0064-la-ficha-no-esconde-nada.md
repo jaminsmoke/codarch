@@ -134,8 +134,10 @@ ya no enseña solo métricas.
 - [x] Secciones **Superficie** y **Miembros** plegables en la ficha.
 - [x] La ficha de un fichero sin símbolos ya no queda vacía.
 - [x] Paridad nativa/WASM y determinismo del snapshot.
-- [ ] Llevar la estructura al diff y al MCP, si hace falta.
 - [ ] Espacios de nombres y código suelto, solo si aparecen en un repo real.
 - [ ] Claves de objetos, como detalle de una variable, no como sección.
+
+Llevar la estructura al diff y al MCP espera junto al código y las dependencias: una sola decisión de
+cuándo el MCP crece (2026-10-25).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

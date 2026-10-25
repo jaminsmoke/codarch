@@ -121,7 +121,20 @@ modelo de métricas. Todo es lectura y disposición.
   `aria-expanded` / `aria-controls`.
 - [x] **Métricas** es la primera sección plegable y recuerda su estado en el
   almacenamiento local.
-- [ ] Llevar el componente a **Reglas**, **Cambios** y los bloques del raíl.
 - [ ] Un atajo para plegar o desplegar todas las secciones.
+
+### M49 — El lenguaje de la ficha, en todo el reporte
+
+**Estado:** sin empezar. Nace de la criba del backlog del 2026-10-25: la tabla de métricas y las
+secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en tres ADR.
+
+- [ ] La tabla de métricas de **Cambios** usa la misma tabla que la ficha: riesgo primero, área como
+  marca, barra hasta el p95 y color solo cuando menos es mejor.
+- [ ] **Reglas** y los bloques del raíl pliegan con `CollapsibleSection`, con título, cuenta y
+  resumen como Métricas.
+- [ ] La vida del símbolo y la ficha del reporte siguen el mismo patrón.
+- [ ] El plegado se recuerda por sección, también en las vistas del reporte.
+- [ ] Tests en `@codarch/ui` y la misma comprobación en las dos apps; ninguna sección nueva sin título
+  con cuenta y resumen.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

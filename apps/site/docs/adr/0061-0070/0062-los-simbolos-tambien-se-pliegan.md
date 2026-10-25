@@ -87,7 +87,8 @@ orden de `symbolsOf`. Solo cambia lo que la ficha enseña y cómo se pliega.
 - [x] Tooltip con la línea y nota con el orden y la acción.
 - [x] Estado plegado recordado en el almacenamiento local.
 - [ ] Un filtro por nombre si un fichero trae una lista enorme.
-- [ ] Agrupar por tipo cuando el fichero mezcle muchas clases e interfaces.
-- [ ] Llevar el patrón a la vida del símbolo y a la ficha del reporte.
+
+Agrupar por tipo ya está hecho en la M43, y llevar la tabla y los pliegues a la vida del símbolo y a
+la ficha del reporte es la M49 ([ADR 0061](0061-el-marco-del-proyecto.md#hoja-de-ruta)).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

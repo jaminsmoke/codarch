@@ -132,8 +132,10 @@ aditivos); la cadena de un símbolo sigue emparejando por cuerpo; y el orden de
 - [x] La ficha agrupa por tipo y el resumen plegado enseña el reparto.
 - [x] La vida del símbolo es una sección plegable, como Métricas y Símbolos.
 - [x] Colores propios para `enum` y `variable` y títulos largos con elipsis.
-- [ ] Un filtro por nombre cuando un fichero traiga cientos de símbolos.
 - [ ] Distinguir el valor de una variable (texto, número, objeto) en la fila.
-- [ ] Espacios de nombres y alias de importación, si el modelo los necesita.
+
+El filtro por nombre es uno solo y vive en el [ADR 0062](0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta);
+los alias de importación ya los guarda la M44 y los espacios de nombres siguen en el
+[ADR 0064](0064-la-ficha-no-esconde-nada.md#hoja-de-ruta).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

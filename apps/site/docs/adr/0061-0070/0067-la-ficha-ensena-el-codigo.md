@@ -110,9 +110,9 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - [x] Sección de código plegable al pulsar un símbolo.
 - [x] Grupos de símbolos plegables.
 - [x] Icono de ayuda por métrica.
-- [ ] Llevar el código al MCP o al reporte, si un agente lo pide.
-- [x] Resaltado de sintaxis con Prism y fondo de editor.
-- [x] Salto a la línea del editor (ADR 0068).
 - [x] Código de los miembros de clase, no solo de los símbolos.
+
+Llevar el código al MCP espera con la estructura y las dependencias: una sola decisión de cuándo el
+MCP crece (2026-10-25).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

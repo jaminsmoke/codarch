@@ -88,8 +88,8 @@ pestaña sigue leyendo lo que ya existe.
 - [x] Vistas de addon y API de plugins con los nombres nuevos.
 - [ ] Hacer que la parte del fichero recuerde su última sección abierta al
   cambiar de celda (hoy vuelve arriba).
-- [ ] Enseñar también las reglas configuradas que no se violan: el reporte solo
-  lleva violaciones y haría falta el catálogo (sigue abierto en el ADR 0058).
-- [ ] Filtrar por severidad u origen y buscar una regla por nombre (ADR 0058).
+
+Lo que es de las reglas —el catálogo de las que no se violan y el filtro por severidad— vive solo en
+el [ADR 0058](0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

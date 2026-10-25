@@ -105,8 +105,7 @@ pasa de **2.173 kB a 15 kB**.
 
 ### Lo que sigue en el plugin
 
-- [ ] Etiquetas al pasar el ratón y en la carpeta plegada.
-- [ ] La altura como complejidad, configurable.
-- [ ] Comparar dos momentos en 3D con la línea del tiempo.
+El plugin lleva su propia hoja de ruta (`plugins/vista-3d/ROADMAP.md`): las etiquetas, la altura como
+complejidad y la línea del tiempo en 3D viven allí, no aquí (2026-10-25).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

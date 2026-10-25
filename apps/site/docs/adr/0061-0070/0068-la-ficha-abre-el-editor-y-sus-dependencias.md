@@ -91,6 +91,5 @@ alfabéticamente.
 - [x] Las dependencias salen del grafo existente, sin tocar el snapshot.
 - [ ] Elegir el editor (VS Code, Cursor, otro) en los ajustes.
 - [ ] Enseñar el tipo de arista (import normal, type-only, dinámico).
-- [ ] Llevar las dependencias al MCP o al reporte, si un agente lo pide.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

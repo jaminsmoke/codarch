@@ -252,6 +252,8 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
   `vscode://file/…:línea` en escritorio y web servida, con **Copiar ruta** como salida universal.
   La pestaña Fichero gana **Dependencias**: **Importa** y **Lo usan**, desde el grafo que ya
   existía, sin tocar el snapshot.
+- M49 sin empezar: el lenguaje de la ficha en todo el reporte (ADR 0061). La tabla de métricas y las
+  secciones plegables llegan a **Cambios**, **Reglas**, el raíl y la vida del símbolo.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
