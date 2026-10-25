@@ -27,7 +27,9 @@ Today CodArch has:
   unsigned installers.
 
 Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 closed, M27 closed,
-M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed and M33 closed.
+M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
+closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
+closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed and M49 not started.
 
 ## The phases
 
@@ -48,6 +50,18 @@ flowchart TD
     M5 --> M6["M6 · Analysis in the browser"]
     M6 --> M7["M7 · Desktop app"]
     M7 --> M26["M26 · Shared UI"]
+    M26 --> M37["M37 · The file card and its lenses"]
+    M37 --> M38["M38 · Rules get their tab"]
+    M38 --> M39["M39 · Three tabs"]
+    M39 --> M40["M40 · A metrics table"]
+    M40 --> M41["M41 · The project frame"]
+    M41 --> M42["M42 · Symbols collapse too"]
+    M42 --> M43["M43 · Every symbol in the module"]
+    M43 --> M44["M44 · The card hides nothing"]
+    M44 --> M45["M45 · A version per component"]
+    M45 --> M46["M46 · The action returns"]
+    M46 --> M47["M47 · The card shows the code"]
+    M47 --> M48["M48 · Editor and dependencies"]
   end
   subgraph lenses["Lenses: migration, domain, symbols, time"]
     M8["M8 · Migration where it was missing"] --> M9["M9 · Domain lens"]
@@ -118,6 +132,22 @@ flowchart TD
 | M31 | The site in two languages | in progress | [ADR 0046](0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M32 | The desktop persists in `.codarch/` | closed | [ADR 0048](0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
 | M33 | Shared orchestration | closed | [ADR 0049](0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
+| M34 | The state lives in the repository | in progress | [ADR 0050](0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
+| M35 | The second lint net | closed | [ADR 0054](0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
+| M36 | Live does not re-analyse | closed | [ADR 0056](0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta) |
+| M37 | The file card talks about its lenses | closed | [ADR 0057](0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta) |
+| M38 | Rules get their own tab | closed | [ADR 0058](0051-0060/0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta) |
+| M39 | Three tabs | closed | [ADR 0059](0051-0060/0059-tres-pestanas.md#hoja-de-ruta) |
+| M40 | The card reads as a table | closed | [ADR 0060](0051-0060/0060-la-ficha-se-lee-en-una-tabla.md#hoja-de-ruta) |
+| M41 | The project frame | closed | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
+| M42 | Symbols collapse too | closed | [ADR 0062](0061-0070/0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta) |
+| M43 | Every symbol in the module | closed | [ADR 0063](0061-0070/0063-todos-los-simbolos.md#hoja-de-ruta) |
+| M44 | The card hides nothing | closed | [ADR 0064](0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta) |
+| M45 | A version per component | closed | [ADR 0065](0061-0070/0065-cada-componente-su-version.md#hoja-de-ruta) |
+| M46 | The action returns to the monorepo | closed | [ADR 0066](0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta) |
+| M47 | The card shows the code | closed | [ADR 0067](0061-0070/0067-la-ficha-ensena-el-codigo.md#hoja-de-ruta) |
+| M48 | The card opens the editor and its dependencies | closed | [ADR 0068](0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta) |
+| M49 | The card's language, across the report | not started | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 
 ## How to read this
 
