@@ -5,6 +5,7 @@ import type {
   CcMigrationLens,
   CcMigrationNode,
   CcMigrationStatus,
+  CcStructureNode,
   CcSymbol,
   HistoryEntry,
   SymbolChain,
@@ -14,6 +15,12 @@ import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
 import { groupSymbols, symbolSummary } from "./symbols";
+import {
+  groupMembers,
+  memberSummary,
+  surfaceCount,
+  surfaceSummary
+} from "./structure";
 import {
   CHURN_METRIC,
   EVENT_LABEL,
@@ -413,6 +420,7 @@ export function Inspector({
   colorMode,
   metricTitle,
   symbols,
+  structure,
   chain,
   onSelectSymbol,
   onColorMode
@@ -425,6 +433,8 @@ export function Inspector({
   colorMode: string;
   metricTitle: (key: string) => string;
   symbols: CcSymbol[];
+  /** Miembros, imports y exports del fichero (ADR 0064). */
+  structure: CcStructureNode | null;
   chain: SymbolChain | null;
   onSelectSymbol: (name: string) => void;
   /** Pinta el mapa por una métrica (o por el riesgo). */
@@ -588,6 +598,131 @@ export function Inspector({
             <p className="muted tiny symbol-note">
               Agrupados por tipo y ordenados por complejidad. Pulsa uno para
               seguir su vida.
+            </p>
+          </div>
+        </CollapsibleSection>
+      ) : null}
+
+      {structure && surfaceCount(structure) > 0 ? (
+        <CollapsibleSection
+          id="file-surface"
+          title="Superficie"
+          count={surfaceCount(structure)}
+          summary={surfaceSummary(structure)}
+        >
+          <div className="surface-list">
+            {structure.imports.length > 0 ? (
+              <div className="surface-group">
+                <div className="symbol-group-head">
+                  <span>Importa</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {structure.imports.length}
+                  </span>
+                </div>
+                {structure.imports.map((entry) => (
+                  <div
+                    key={`${entry.line}-${entry.source}`}
+                    className="surface-row"
+                  >
+                    <span className="mono surface-source" title={entry.source}>
+                      {entry.source}
+                    </span>
+                    <span className="surface-names">
+                      {entry.names.length > 0 ? (
+                        entry.names.map((name) => (
+                          <span key={name} className="surface-name">
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="muted tiny">efecto secundario</span>
+                      )}
+                      {entry.typeOnly ? (
+                        <span className="surface-badge">type</span>
+                      ) : null}
+                      {entry.kind !== "static" ? (
+                        <span className="surface-badge">{entry.kind}</span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {structure.exports.length > 0 ? (
+              <div className="surface-group">
+                <div className="symbol-group-head">
+                  <span>Exporta</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {structure.exports.length}
+                  </span>
+                </div>
+                {structure.exports.map((entry) => (
+                  <div
+                    key={`${entry.line}-${entry.name}-${entry.source ?? ""}`}
+                    className="surface-row"
+                  >
+                    <span className="surface-name">{entry.name}</span>
+                    {entry.local ? (
+                      <span className="muted tiny">desde {entry.local}</span>
+                    ) : null}
+                    {entry.source ? (
+                      <span className="mono surface-source">← {entry.source}</span>
+                    ) : null}
+                    {entry.typeOnly ? (
+                      <span className="surface-badge">type</span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <p className="muted tiny symbol-note">
+              Lo que el fichero importa y exporta. No son símbolos: no tienen
+              cadena.
+            </p>
+          </div>
+        </CollapsibleSection>
+      ) : null}
+
+      {structure && structure.members.length > 0 ? (
+        <CollapsibleSection
+          id="file-members"
+          title="Miembros"
+          count={structure.members.length}
+          summary={memberSummary(structure.members)}
+        >
+          <div className="member-list">
+            {groupMembers(structure.members).map((group) => (
+              <div key={group.owner} className="member-group">
+                <div className="symbol-group-head">
+                  <span>{group.owner}</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {group.members.length}
+                  </span>
+                </div>
+                {group.members.map((member) => (
+                  <div
+                    key={`${member.name}-${member.line}`}
+                    className="member-row"
+                    title={`${member.name} · línea ${member.line}`}
+                  >
+                    <span className="symbol-kind member-kind">
+                      {member.from === "parameter" ? "par" : "campo"}
+                    </span>
+                    <span className="symbol-name" title={member.name}>
+                      {member.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <p className="muted tiny symbol-note">
+              Campos y propiedades del constructor. No son símbolos: viven
+              dentro de su clase.
             </p>
           </div>
         </CollapsibleSection>

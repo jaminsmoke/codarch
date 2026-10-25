@@ -111,6 +111,7 @@ export function AppShell({
     selectedFile,
     selectedMigration,
     selectedSymbols,
+    selectedStructure,
     pluginViews,
     activePluginView,
     pluginContext,
@@ -512,6 +513,7 @@ export function AppShell({
               colorMode={colorMode}
               metricTitle={metricTitle}
               symbols={selectedSymbols}
+              structure={selectedStructure}
               chain={chain}
               onSelectSymbol={(name) => {
                 void openSymbolChain(name, selectedFile?.path ?? "");

@@ -5,7 +5,8 @@ import {
   parseCcJson,
   symbolsOf,
   type CcJson,
-  type CcMigrationNode
+  type CcMigrationNode,
+  type CcStructureNode
 } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RepoAddon } from "@codarch/addons";
@@ -149,6 +150,8 @@ export interface CodarchApp {
   selectedFile: RenderModel["files"][number] | null;
   selectedMigration: CcMigrationNode | null;
   selectedSymbols: ReturnType<typeof symbolsOf>;
+  /** Miembros, imports y exports del fichero (ADR 0064). */
+  selectedStructure: CcStructureNode | null;
   /** Las vistas que aportan los plugins activados. */
   pluginViews: PluginView[];
   activePluginView: PluginView | null;
@@ -576,6 +579,13 @@ export function useCodarchApp(
     () => (selectedFile && cc ? symbolsOf(cc, selectedFile.nodeId) : []),
     [cc, selectedFile]
   );
+  const selectedStructure = useMemo(
+    () =>
+      selectedFile && cc
+        ? cc.lenses?.structure?.nodes[selectedFile.nodeId] ?? null
+        : null,
+    [cc, selectedFile]
+  );
 
   /** Las vistas que aportan los plugins activados. */
   const pluginViews = useMemo(() => {
@@ -899,6 +909,7 @@ export function useCodarchApp(
     selectedFile,
     selectedMigration,
     selectedSymbols,
+    selectedStructure,
     pluginViews,
     activePluginView,
     pluginContext,
