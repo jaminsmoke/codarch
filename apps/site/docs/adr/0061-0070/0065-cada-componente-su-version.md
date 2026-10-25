@@ -165,8 +165,8 @@ usuario.
 - `versions.json` y el manifiesto cambian de forma; los scripts, los builds y
   los tests se actualizan en el mismo tramo.
 - La app puede decir qué versión de cada pieza está usando sin adivinar.
-- El pin de la acción se actualiza después de que npm acepte la versión; el
-  repositorio público de la acción se sincroniza a mano con `sync:action`.
+- El pin de la acción se actualiza después de que npm acepte la versión, y el
+  tag `v1` se mueve en el mismo monorepo (ADR 0066).
 
 ## Alternativas descartadas
 

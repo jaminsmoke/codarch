@@ -11,6 +11,8 @@ sidebar:
 
 **Estado:** aceptado ✅ · **Fecha:** 2026-10-20
 
+**Actualizado por:** [ADR 0066](../0061-0070/0066-la-accion-vuelve-al-monorepo.md) - el monorepo ya es público: la acción vive en apps/github-action y se usa por subruta.
+
 ## Contexto
 
 El CLI ya se publica como `codarch@0.1.1` y la acción compuesta vive en `apps/github-action`. La

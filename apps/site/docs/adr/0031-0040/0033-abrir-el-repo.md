@@ -17,8 +17,7 @@ El código de CodArch **ya sale del repo** ✓:
 
 - El CLI está publicado en npm ✓ como `codarch` ✓ (0.2.0 ✓), con su binario ✓ y su código
   empaquetado ✓.
-- La GitHub Action vive en un repo **público** ✓ (`jaminsmoke/codarch-action` ✓), que se genera
-  desde aquí ✓ con `npm run sync:action` ✓.
+- La GitHub Action vive en `apps/github-action` del monorepo público y se usa por subruta.
 
 Lo único que sigue privado ✓ es el **código fuente** ✓ y los **documentos** ✓. Y el plan de la guía
 —el **registro público de plugins** ✓— necesita que el repo sea público ✓: nadie publica un

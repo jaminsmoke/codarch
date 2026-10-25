@@ -111,7 +111,7 @@ se pone una versión que todavía no está en npm.
 - [x] El escritorio compara `versions.json` con la última release del escritorio; desde
   `0.3.1-alpha.2` el tag es `v<versión>`.
 - [x] El workflow construye y crea el tag y la release en la misma ejecución.
-- [x] La acción de GitHub se actualiza después de publicar; `codarch-action@v1` apunta al pin nuevo.
+- [x] La acción de GitHub se actualiza después de publicar; `jaminsmoke/codarch/apps/github-action@v1` apunta al pin nuevo.
 - [x] Validar el primer release automático del escritorio con `desktop-v0.3.0-alpha.2`.
 
 ### Ideas abiertas
