@@ -1,7 +1,7 @@
 import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
 
-interface PrPanelProps {
+interface ChangesPanelProps {
   report: DiffReport | null;
   source: string | null;
   error: string | null;
@@ -9,26 +9,34 @@ interface PrPanelProps {
   onSelectPath: (path: string) => void;
 }
 
-export default function PrPanel({
+/**
+ * La pestaña de cambios: qué se ha movido entre base y head.
+ *
+ * Ficheros, aristas, ciclos, migración, símbolos y las listas de ficheros
+ * tocados. Las reglas y los hotspots no están aquí: tienen su propia pestaña
+ * (ADR 0058). Se llamaba PR y sugería un pull request pendiente de mergear; el
+ * reporte es un diff de snapshots, con git o sin él (ADR 0059).
+ */
+export default function ChangesPanel({
   report,
   source,
   error,
   onLoad,
   onSelectPath
-}: PrPanelProps) {
+}: ChangesPanelProps) {
   if (!report) {
     return (
-      <section className="pr-panel">
-        <div className="eyebrow">Pull request</div>
+      <section className="change-panel">
+        <div className="eyebrow">Cambios</div>
         <h2>Sin reporte</h2>
         <p className="muted small">
-          Carga el <code>report.json</code> que genera <code>codarch diff</code> o la GitHub
-          Action para ver los cambios del snapshot.
+          Carga el <code>report.json</code> que genera <code>codarch diff</code>{" "}
+          o la GitHub Action para ver los cambios del snapshot.
         </p>
         <button className="button dark" type="button" onClick={onLoad}>
           Abrir reporte
         </button>
-        {error ? <p className="pr-error">{error}</p> : null}
+        {error ? <p className="panel-error">{error}</p> : null}
       </section>
     );
   }
@@ -44,28 +52,38 @@ export default function PrPanel({
   const symbolFiles = symbols?.files.slice(0, 6) ?? [];
 
   return (
-    <section className="pr-panel">
-      <div className="eyebrow">Pull request · {source ?? "report.json"}</div>
+    <section className="change-panel">
+      <div className="eyebrow">Cambios · {source ?? "report.json"}</div>
       <h2>Cambios de arquitectura</h2>
-      <div className="pr-checksums mono">
+      <div className="change-checksums mono">
         {report.base.checksum.slice(0, 8) || "base"} →{" "}
         {report.head.checksum.slice(0, 8) || "head"}
       </div>
 
-      <div className="pr-grid">
-        <PrStat label="Ficheros" value={`+${summary.addedFiles} −${summary.removedFiles} ~${summary.changedFiles}`} />
-        <PrStat label="Aristas" value={`+${summary.addedEdges} −${summary.removedEdges}`} />
-        <PrStat label="Ciclos" value={`+${summary.introducedCycles} −${summary.fixedCycles}`} accent={summary.introducedCycles > 0 ? "bad" : undefined} />
-        <PrStat label="Hotspots" value={formatCompact(summary.hotspots)} />
+      <div className="change-grid">
+        <ChangeStat
+          label="Ficheros"
+          value={`+${summary.addedFiles} −${summary.removedFiles} ~${summary.changedFiles}`}
+        />
+        <ChangeStat
+          label="Aristas"
+          value={`+${summary.addedEdges} −${summary.removedEdges}`}
+        />
+        <ChangeStat
+          label="Ciclos"
+          value={`+${summary.introducedCycles} −${summary.fixedCycles}`}
+          accent={summary.introducedCycles > 0 ? "bad" : undefined}
+        />
+        <ChangeStat label="Hotspots" value={formatCompact(summary.hotspots)} />
         {migration ? (
-          <PrStat
+          <ChangeStat
             label="Deuda migración"
             value={formatCompact(migration.debt.head)}
             accent={migration.debt.delta > 0 ? "bad" : "good"}
           />
         ) : null}
         {symbols ? (
-          <PrStat
+          <ChangeStat
             label="Símbolos"
             value={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
           />
@@ -73,9 +91,9 @@ export default function PrPanel({
       </div>
 
       {migration ? (
-        <div className="pr-section">
+        <div className="change-section">
           <div className="eyebrow">Migración</div>
-          <div className="pr-rule-summary">
+          <div className="change-summary">
             <span>
               deuda <b>{migration.debt.base}</b> → <b>{migration.debt.head}</b>
             </span>
@@ -114,7 +132,7 @@ export default function PrPanel({
       ) : null}
 
       {symbols && symbolFiles.length > 0 ? (
-        <div className="pr-section">
+        <div className="change-section">
           <div className="eyebrow">Símbolos</div>
           <div className="violation-list">
             {symbolFiles.map((file) => (
@@ -128,9 +146,14 @@ export default function PrPanel({
                   {file.path}
                 </button>
                 {file.symbols.slice(0, 4).map((symbol) => (
-                  <div key={`${symbol.name}-${symbol.status}`} className="symbol-change">
+                  <div
+                    key={`${symbol.name}-${symbol.status}`}
+                    className="symbol-change"
+                  >
                     <span className={`symbol-kind symbol-${symbol.kind}`}>
-                      {symbol.kind === "function" ? "fn" : symbol.kind.slice(0, 3)}
+                      {symbol.kind === "function"
+                        ? "fn"
+                        : symbol.kind.slice(0, 3)}
                     </span>
                     <span className="symbol-name">{symbol.name}</span>
                     <span className="mono">
@@ -151,13 +174,16 @@ export default function PrPanel({
       ) : null}
 
       {cycles.length > 0 ? (
-        <div className="pr-section">
+        <div className="change-section">
           <div className="eyebrow">Ciclos nuevos</div>
-          <div className="pr-rows">
+          <div className="change-rows">
             {cycles.map((cycle, index) => (
-              <div key={index} className="pr-cycle">
+              <div key={index} className="change-cycle">
                 <span className="mono">×{cycle.size}</span>
-                <span className="pr-path" title={cycle.nodes.map((node) => node.path).join(" → ")}>
+                <span
+                  className="change-path"
+                  title={cycle.nodes.map((node) => node.path).join(" → ")}
+                >
                   {cycle.nodes.map((node) => node.path).join(" → ")}
                 </span>
               </div>
@@ -166,26 +192,27 @@ export default function PrPanel({
         </div>
       ) : null}
 
-      <div className="pr-section">
+      <div className="change-section">
         <div className="eyebrow">Ficheros modificados</div>
         {changed.length === 0 ? (
           <p className="muted small">Sin ficheros modificados.</p>
         ) : (
-          <div className="pr-rows">
+          <div className="change-rows">
             {changed.map((file) => (
               <button
                 key={file.id}
                 type="button"
-                className="pr-row"
+                className="change-row"
                 title={file.path}
                 onClick={() => onSelectPath(file.path)}
               >
-                <span className="pr-path">{file.path}</span>
-                <span className="mono pr-delta">
+                <span className="change-path">{file.path}</span>
+                <span className="mono change-delta">
                   {file.changes
                     .slice(0, 2)
-                    .map((change) =>
-                      `${change.metric} ${change.delta === null ? "±" : change.delta > 0 ? `+${formatCompact(change.delta)}` : formatCompact(change.delta)}`
+                    .map(
+                      (change) =>
+                        `${change.metric} ${change.delta === null ? "±" : change.delta > 0 ? `+${formatCompact(change.delta)}` : formatCompact(change.delta)}`
                     )
                     .join(" · ")}
                 </span>
@@ -194,24 +221,26 @@ export default function PrPanel({
           </div>
         )}
         {report.files.changed.length > changed.length ? (
-          <p className="muted tiny">+{report.files.changed.length - changed.length} más</p>
+          <p className="muted tiny">
+            +{report.files.changed.length - changed.length} más
+          </p>
         ) : null}
       </div>
 
       {added.length > 0 ? (
-        <div className="pr-section">
+        <div className="change-section">
           <div className="eyebrow">Ficheros nuevos</div>
-          <div className="pr-rows">
+          <div className="change-rows">
             {added.map((file) => (
               <button
                 key={file.id}
                 type="button"
-                className="pr-row"
+                className="change-row"
                 title={file.path}
                 onClick={() => onSelectPath(file.path)}
               >
-                <span className="pr-path">{file.path}</span>
-                <span className="mono pr-delta">
+                <span className="change-path">{file.path}</span>
+                <span className="mono change-delta">
                   +{formatCompact(file.metrics.rloc ?? file.metrics.loc ?? 0)}
                 </span>
               </button>
@@ -223,7 +252,7 @@ export default function PrPanel({
   );
 }
 
-function PrStat({
+function ChangeStat({
   label,
   value,
   accent
@@ -233,7 +262,7 @@ function PrStat({
   accent?: "bad" | "good";
 }) {
   return (
-    <div className={`pr-stat${accent ? ` pr-stat-${accent}` : ""}`}>
+    <div className={`change-stat${accent ? ` change-stat-${accent}` : ""}`}>
       <span>{label}</span>
       <b>{value}</b>
     </div>
@@ -254,12 +283,14 @@ function MigrationRow({
   const delta = (after ?? 0) - (before ?? 0);
   return (
     <button
-      className="pr-row"
+      className="change-row"
       type="button"
       onClick={() => onSelectPath(path)}
     >
-      <span className="pr-path">{path}</span>
-      <span className={`mono pr-delta${delta > 0 ? " is-worse" : " is-better"}`}>
+      <span className="change-path">{path}</span>
+      <span
+        className={`mono change-delta${delta > 0 ? " is-worse" : " is-better"}`}
+      >
         {before ?? 0} → {after ?? 0} ({delta > 0 ? `+${delta}` : delta})
       </span>
     </button>

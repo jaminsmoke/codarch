@@ -71,7 +71,7 @@ export interface AddonViewState {
   /** Fichero seleccionado. */
   file?: string;
   /** Pestaña del panel derecho. */
-  tab?: "file" | "lenses" | "rules" | "pr";
+  tab?: "file" | "rules" | "changes";
   /** Símbolo abierto. */
   symbol?: string;
   /** Si los bloques enseñan su nombre. */
@@ -194,15 +194,18 @@ export function parseAddonView(input: unknown, path: string): AddonView {
   rejectUnknown(state, STATE_KEYS, `${path}.state`);
 
   const tab = optionalString(state.tab, `${path}.state.tab`);
+  // Las vistas guardadas de antes del ADR 0059 decían `lenses` y `pr`; se
+  // aceptan y se guardan con el nombre de ahora.
+  const normalizedTab =
+    tab === "lenses" ? "rules" : tab === "pr" ? "changes" : tab;
   if (
-    tab !== undefined &&
-    tab !== "file" &&
-    tab !== "lenses" &&
-    tab !== "rules" &&
-    tab !== "pr"
+    normalizedTab !== undefined &&
+    normalizedTab !== "file" &&
+    normalizedTab !== "rules" &&
+    normalizedTab !== "changes"
   ) {
     throw new AddonError(
-      `${path}.state.tab debe ser file, lenses, rules o pr`
+      `${path}.state.tab debe ser file, rules o changes`
     );
   }
 
@@ -219,7 +222,7 @@ export function parseAddonView(input: unknown, path: string): AddonView {
       color: optionalString(state.color, `${path}.state.color`),
       focus: optionalString(state.focus, `${path}.state.focus`),
       file: optionalString(state.file, `${path}.state.file`),
-      tab: tab as "file" | "lenses" | "rules" | "pr" | undefined,
+      tab: normalizedTab as "file" | "rules" | "changes" | undefined,
       symbol: optionalString(state.symbol, `${path}.state.symbol`),
       labels: state.labels as boolean | undefined
     }

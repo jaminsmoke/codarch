@@ -30,7 +30,8 @@ const APPS = [
 const ARMAZON = [
   "MapCanvas",
   "Inspector",
-  "PrPanel",
+  "ChangesPanel",
+  "RulesPanel",
   "DebtList",
   "HeatList",
   "HotList",

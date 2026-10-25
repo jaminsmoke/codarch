@@ -14,6 +14,23 @@
 
 import type { AddonViewState } from "@codarch/addons";
 
+/**
+ * Las pestañas del panel derecho.
+ *
+ * Tres desde el ADR 0059: el fichero, sus reglas (con las lentes dentro) y los
+ * cambios del snapshot. `lenses` y `pr` eran los nombres viejos y se siguen
+ * aceptando para no romper enlaces ni vistas guardadas.
+ */
+export type InspectorTab = "file" | "rules" | "changes";
+
+/** Lee una pestaña, con los nombres viejos traducidos a los de ahora. */
+export function parseInspectorTab(value: string | null): InspectorTab | null {
+  if (value === "file" || value === "rules" || value === "changes") return value;
+  if (value === "lenses") return "rules";
+  if (value === "pr") return "changes";
+  return null;
+}
+
 export interface ViewState {
   /** Métrica que decide el área del treemap. */
   areaMetric: string | null;
@@ -24,7 +41,7 @@ export interface ViewState {
   /** Ruta del fichero seleccionado. */
   filePath: string | null;
   /** Pestaña del panel derecho. */
-  tab: "file" | "lenses" | "rules" | "pr" | null;
+  tab: InspectorTab | null;
   /** El símbolo abierto: el nombre de la función, la clase o el tipo. */
   symbolName: string | null;
   /** Si los bloques muestran su nombre aunque no quepa entero. */
@@ -80,10 +97,7 @@ export function parseViewState(search: string): ViewState {
     colorMode: readParam(params, "color"),
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
-    tab:
-      tab === "file" || tab === "lenses" || tab === "rules" || tab === "pr"
-        ? tab
-        : null,
+    tab: parseInspectorTab(tab),
     symbolName: readParam(params, "symbol"),
     showLabels: params.has("labels") ? params.get("labels") !== "0" : null
   };

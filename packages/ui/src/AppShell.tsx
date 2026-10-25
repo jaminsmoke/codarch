@@ -14,9 +14,8 @@ import {
   LanguageSample,
   Legend
 } from "./panels";
-import PrPanel from "./PrPanel";
+import ChangesPanel from "./ChangesPanel";
 import RulesPanel from "./RulesPanel";
-import { LensPanel } from "./LensPanel";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -131,7 +130,7 @@ export function AppShell({
     app.applyView(viewStateFromSaved(saved.state));
   };
 
-  // En la pestaña de lentes se salta de un fichero a otro sin salir de ella.
+  // En Reglas se salta de un fichero a otro sin salir de la pestaña.
   const selectInPlace = (path: string) => {
     const index =
       view.model?.files.findIndex((file) => file.path === path) ?? -1;
@@ -478,15 +477,6 @@ export function AppShell({
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "lenses"}
-              className={`tab${tab === "lenses" ? " is-active" : ""}`}
-              onClick={() => setTab("lenses")}
-            >
-              Lentes
-            </button>
-            <button
-              type="button"
-              role="tab"
               aria-selected={tab === "rules"}
               className={`tab${tab === "rules" ? " is-active" : ""}`}
               onClick={() => setTab("rules")}
@@ -502,11 +492,12 @@ export function AppShell({
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "pr"}
-              className={`tab${tab === "pr" ? " is-active" : ""}`}
-              onClick={() => setTab("pr")}
+              aria-selected={tab === "changes"}
+              className={`tab${tab === "changes" ? " is-active" : ""}`}
+              onClick={() => setTab("changes")}
             >
-              PR {report ? <i className="tab-dot" title="Reporte cargado" /> : null}
+              Cambios{" "}
+              {report ? <i className="tab-dot" title="Reporte cargado" /> : null}
             </button>
           </div>
           {tab === "file" ? (
@@ -522,25 +513,20 @@ export function AppShell({
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
             />
-          ) : tab === "lenses" ? (
-            <LensPanel
-              model={view.model}
-              file={selectedFile}
-              migration={migration}
-              report={report}
-              symbols={selectedSymbols}
-              onSelectPath={selectInPlace}
-            />
           ) : tab === "rules" ? (
             <RulesPanel
               report={report}
               source={reportSource}
               error={reportError}
               onLoad={onLoadReport}
-              onSelectPath={selectPath}
+              onSelectPath={selectInPlace}
+              file={selectedFile}
+              model={view.model}
+              migration={migration}
+              symbols={selectedSymbols}
             />
           ) : (
-            <PrPanel
+            <ChangesPanel
               report={report}
               source={reportSource}
               error={reportError}

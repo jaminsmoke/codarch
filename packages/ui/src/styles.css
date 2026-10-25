@@ -1771,17 +1771,17 @@ button {
   background: #26333b;
 }
 
-.pr-panel h2 {
+.change-panel h2 {
   margin-bottom: 4px;
 }
 
-.pr-checksums {
+.change-checksums {
   margin-bottom: 14px;
   font-size: 10px;
   color: var(--muted);
 }
 
-.pr-grid {
+.change-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-top: 1px solid var(--line);
@@ -1789,13 +1789,13 @@ button {
   margin-bottom: 16px;
 }
 
-.pr-stat {
+.change-stat {
   padding: 9px 10px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
-.pr-stat span {
+.change-stat span {
   display: block;
   font: 500 8.5px/1.1 var(--mono);
   letter-spacing: 0.08em;
@@ -1803,37 +1803,37 @@ button {
   color: var(--muted);
 }
 
-.pr-stat b {
+.change-stat b {
   display: block;
   margin-top: 3px;
   font: 600 15px/1.1 var(--display);
   letter-spacing: -0.02em;
 }
 
-.pr-stat-bad b {
+.change-stat-bad b {
   color: var(--debt);
 }
 
 /* La deuda de migración que baja es buena; la que sube, mala. */
-.pr-stat-good b {
+.change-stat-good b {
   color: var(--patina);
 }
 
-.pr-delta.is-worse {
+.change-delta.is-worse {
   color: var(--debt);
 }
 
-.pr-delta.is-better {
+.change-delta.is-better {
   color: var(--patina);
 }
 
-.pr-section {
+.change-section {
   margin-top: 13px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
-.pr-rule-summary {
+.change-summary {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 13px;
@@ -1842,7 +1842,7 @@ button {
   color: var(--muted);
 }
 
-.pr-rule-summary b {
+.change-summary b {
   color: var(--ink);
 }
 
@@ -2063,10 +2063,6 @@ button {
   font-weight: 600;
 }
 
-.lens-empty h2 {
-  margin-top: 6px;
-}
-
 .lens-index {
   display: grid;
   gap: 10px;
@@ -2091,13 +2087,38 @@ button {
   text-align: right;
 }
 
-/* La pestaña de reglas: la arquitectura del cambio (ADR 0058). */
+/* La pestaña de reglas: el fichero y el cambio (ADR 0058 y ADR 0059). */
 .rules-panel h2 {
   margin-bottom: 4px;
 }
 
-.rules-empty h2 {
-  margin-top: 6px;
+.rules-hint {
+  margin-top: 8px;
+}
+
+.rules-hint .lens-index {
+  margin-top: 14px;
+}
+
+/* La parte del fichero es la vieja pestaña Lentes: empieza sin el aire de
+   arriba que separaba secciones cuando era una pestaña entera. */
+.rules-file > .lens-section:first-child {
+  margin-top: 12px;
+}
+
+.rules-change {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.rules-change > .eyebrow {
+  margin-bottom: 8px;
+}
+
+.rules-empty-title {
+  margin: 10px 0 2px;
+  font: 600 13px/1.2 var(--sans);
 }
 
 .rules-meta {
@@ -2189,12 +2210,12 @@ button {
   background: var(--debt);
 }
 
-.pr-rows {
+.change-rows {
   display: grid;
   gap: 1px;
 }
 
-.pr-row {
+.change-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
@@ -2207,11 +2228,11 @@ button {
   cursor: pointer;
 }
 
-.pr-row:hover {
+.change-row:hover {
   background: rgba(47, 111, 237, 0.06);
 }
 
-.pr-path {
+.change-path {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2219,12 +2240,12 @@ button {
   color: var(--ink-soft);
 }
 
-.pr-delta {
+.change-delta {
   font-size: 9.5px;
   color: var(--muted);
 }
 
-.pr-cycle {
+.change-cycle {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
   gap: 6px;
@@ -2232,7 +2253,7 @@ button {
   font-size: 10.5px;
 }
 
-.pr-error {
+.panel-error {
   margin-top: 10px;
   color: var(--debt);
   font-size: 11px;

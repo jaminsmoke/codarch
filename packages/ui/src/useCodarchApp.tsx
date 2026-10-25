@@ -23,6 +23,7 @@ import type { Plataforma } from "./platform";
 import { localStore, type ViewPreferences } from "./storage";
 import {
   isColorModeAvailable,
+  type InspectorTab,
   type ViewState as AppViewState
 } from "./viewState";
 
@@ -40,7 +41,7 @@ export interface CodarchAppState {
   report: DiffReport | null;
   reportSource: string | null;
   reportError: string | null;
-  tab: "file" | "lenses" | "rules" | "pr";
+  tab: InspectorTab;
   focusPath: string | null;
   progress: string | null;
   chain: SymbolChain | null;
@@ -99,7 +100,7 @@ export interface CodarchAppActions {
   setColorMode: (mode: string) => void;
   setQuery: (query: string) => void;
   setFocusPath: (path: string | null) => void;
-  setTab: (tab: "file" | "lenses" | "rules" | "pr") => void;
+  setTab: (tab: InspectorTab) => void;
   setSettingsOpen: (open: boolean) => void;
   setZoom: (zoom: number) => void;
   setCenter: (center: { x: number; y: number }) => void;
@@ -193,7 +194,7 @@ export function useCodarchApp(
   const [report, setReport] = useState<DiffReport | null>(null);
   const [reportSource, setReportSource] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"file" | "lenses" | "rules" | "pr">("file");
+  const [tab, setTab] = useState<InspectorTab>("file");
   // `loadReport` se crea una vez: el ref le deja saber en qué pestaña está el
   // usuario sin volver a crearla en cada render.
   const tabRef = useRef(tab);
@@ -358,8 +359,8 @@ export function useCodarchApp(
       setReportSource(label);
       setReportError(null);
       // Al cargar desde Reglas el usuario ya está en la vista que quiere ver;
-      // desde el resto, el reporte se enseña en PR.
-      if (focus && tabRef.current !== "rules") setTab("pr");
+      // desde el resto, el reporte se enseña en Cambios.
+      if (focus && tabRef.current !== "rules") setTab("changes");
       return true;
     },
     []
@@ -604,7 +605,7 @@ export function useCodarchApp(
           if (index !== undefined && index >= 0) selectIndex(index);
         },
         focus: (path: string) => setFocusPath(path),
-        setTab: (tab: "file" | "lenses" | "rules" | "pr") => setTab(tab)
+        setTab: (tab: InspectorTab) => setTab(tab)
       },
       preferences: { areaMetric, colorMode },
       colorFor: (index: number) => {

@@ -15,9 +15,11 @@ export {
   EMPTY_VIEW_STATE,
   buildSearch,
   isColorModeAvailable,
+  parseInspectorTab,
   parseSourceRequest,
   parseViewState,
   viewStateFromSaved,
+  type InspectorTab,
   type SavedViewState,
   type SourceRequest,
   type ViewState
@@ -56,5 +58,6 @@ export {
   Legend,
   Metric
 } from "./panels";
-export { default as PrPanel } from "./PrPanel";
+export { default as ChangesPanel } from "./ChangesPanel";
+export { default as RulesPanel } from "./RulesPanel";
 export { findFolder } from "./tree";

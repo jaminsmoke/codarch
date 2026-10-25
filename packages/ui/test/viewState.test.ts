@@ -14,7 +14,7 @@ const view: ViewState = {
   colorMode: "risk",
   focusPath: "src/app",
   filePath: "src/app/main.ts",
-  tab: "pr",
+  tab: "changes",
   symbolName: null,
   showLabels: null
 };
@@ -27,7 +27,7 @@ const source: SourceRequest = {
 describe("estado de vista en la URL", () => {
   it("lee el estado de vista de la query string", () => {
     expect(
-      parseViewState("?area=rloc&color=structure&focus=src/app&file=src/app/main.ts&tab=pr")
+      parseViewState("?area=rloc&color=structure&focus=src/app&file=src/app/main.ts&tab=changes")
     ).toEqual({ ...view, colorMode: "structure" });
   });
 
@@ -35,12 +35,17 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=inventario").tab).toBeNull();
   });
 
-  it("reconoce la pestaña de lentes", () => {
-    expect(parseViewState("?tab=lenses").tab).toBe("lenses");
-  });
-
   it("reconoce la pestaña de reglas", () => {
     expect(parseViewState("?tab=rules").tab).toBe("rules");
+  });
+
+  it("reconoce la pestaña de cambios", () => {
+    expect(parseViewState("?tab=changes").tab).toBe("changes");
+  });
+
+  it("traduce los nombres viejos de las pestañas", () => {
+    expect(parseViewState("?tab=lenses").tab).toBe("rules");
+    expect(parseViewState("?tab=pr").tab).toBe("changes");
   });
 
   it("ignora valores vacíos", () => {
@@ -66,7 +71,7 @@ describe("estado de vista en la URL", () => {
 
   it("construye una query string con el estado de vista", () => {
     expect(buildSearch(view, source)).toBe(
-      "?area=rloc&color=risk&focus=src/app&file=src/app/main.ts&tab=pr" +
+      "?area=rloc&color=risk&focus=src/app&file=src/app/main.ts&tab=changes" +
         "&src=https://example.test/snapshot.cc.json"
     );
   });

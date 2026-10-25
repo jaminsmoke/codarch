@@ -133,7 +133,7 @@ export default function FolderPicker({
           </button>
         </div>
 
-        {error ? <p className="pr-error">{error}</p> : null}
+        {error ? <p className="panel-error">{error}</p> : null}
 
         <div className="folder-list" aria-busy={loading}>
           {loading ? <div className="folder-empty">Leyendo carpeta…</div> : null}

@@ -96,10 +96,34 @@ describe("una vista guardada", () => {
     ).toBe("rules");
   });
 
+  it("acepta la pestaña de cambios", () => {
+    expect(
+      parseAddonView(
+        { id: "x", title: "X", state: { tab: "changes" } },
+        "views[0]"
+      ).state.tab
+    ).toBe("changes");
+  });
+
+  it("traduce las pestañas de las vistas viejas", () => {
+    expect(
+      parseAddonView(
+        { id: "x", title: "X", state: { tab: "lenses" } },
+        "views[0]"
+      ).state.tab
+    ).toBe("rules");
+    expect(
+      parseAddonView(
+        { id: "x", title: "X", state: { tab: "pr" } },
+        "views[0]"
+      ).state.tab
+    ).toBe("changes");
+  });
+
   it("una pestaña que no existe es un error", () => {
     expect(() =>
       parseAddonView({ id: "x", title: "X", state: { tab: "otra" } }, "views[0]")
-    ).toThrow(/file, lenses, rules o pr/);
+    ).toThrow(/file, rules o changes/);
   });
 
   it("una clave desconocida en el estado es un error", () => {

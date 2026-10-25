@@ -10,7 +10,7 @@ import {
   symbolSummary,
   violationsForPath
 } from "./lenses";
-import { sourceLabel } from "./rules";
+import { RuleRow } from "./RuleRow";
 
 type Signal = "complexity" | "churn" | "size";
 
@@ -20,15 +20,21 @@ const SIGNAL_LABEL: Record<Signal, string> = {
   size: "Tamaño"
 };
 
+/** El fichero del que se leen las lentes. */
+const MAX_VIOLATIONS = 8;
+const MAX_EDGES = 6;
+
 /**
- * La pestaña de lentes: por qué este fichero tiene el riesgo que tiene.
+ * Las lentes del fichero, dentro de la pestaña Reglas (ADR 0059).
  *
- * No repite la tabla de métricas del inspector: la explica. El riesgo se
+ * No repiten la tabla de métricas del inspector: la explican. El riesgo se
  * desglosa con las mismas señales y pesos que usa el mapa, la lente de dominio
  * solo aparece cuando hay reporte cargado (las reglas viven ahí, no en el
- * snapshot) y la migración viene del propio `cc.json` (ADR 0057).
+ * snapshot) y la migración viene del propio `cc.json` (ADR 0057). Antes era una
+ * pestaña; ahora es la mitad de arriba de Reglas, con el fichero seleccionado
+ * como contexto.
  */
-export function LensPanel({
+export function FileLens({
   model,
   file,
   migration,
@@ -37,42 +43,12 @@ export function LensPanel({
   onSelectPath
 }: {
   model: RenderModel | null;
-  file: RenderFile | null;
+  file: RenderFile;
   migration: CcMigrationLens | null;
   report: DiffReport | null;
   symbols: CcSymbol[];
   onSelectPath: (path: string) => void;
 }) {
-  if (!file) {
-    return (
-      <section className="lens-panel lens-empty">
-        <h2>Lentes del fichero</h2>
-        <p className="muted small">
-          Selecciona una celda para ver <b>por qué</b> tiene ese riesgo, qué
-          reglas de dominio toca y qué deuda de migración arrastra.
-        </p>
-        <div className="lens-index">
-          <div>
-            <b>Riesgo</b>
-            <span>complejidad, churn y tamaño</span>
-          </div>
-          <div>
-            <b>Dominio</b>
-            <span>reglas del reporte cargado</span>
-          </div>
-          <div>
-            <b>Migración</b>
-            <span>deuda y cruces FFI</span>
-          </div>
-          <div>
-            <b>Símbolos</b>
-            <span>funciones y complejidad</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const parts = file.riskParts;
   const missing = (Object.keys(SIGNAL_LABEL) as Signal[]).filter(
     (signal) => parts[signal].weight === 0
@@ -85,12 +61,7 @@ export function LensPanel({
   const summary = symbolSummary(symbols);
 
   return (
-    <section className="lens-panel">
-      <div className="inspector-path" title={file.path}>
-        {file.path}
-      </div>
-      <h2>{file.name}</h2>
-
+    <div className="rules-file">
       <div className="lens-section">
         <div className="eyebrow">Riesgo</div>
         <div className="lens-risk-head">
@@ -167,54 +138,22 @@ export function LensPanel({
               ) : null}
             </div>
             <div className="violation-list">
-              {violations.slice(0, 8).map(({ status, violation }) => (
-                <button
+              {violations.slice(0, MAX_VIOLATIONS).map(({ status, violation }) => (
+                <RuleRow
                   key={`${status}-${violation.key}`}
-                  type="button"
-                  className={`violation violation-${violation.severity}`}
-                  title={violation.files.join(", ")}
-                  onClick={() => {
-                    const other =
-                      violation.files.find((path) => path !== file.path) ??
-                      violation.files[0];
-                    if (other) onSelectPath(other);
-                  }}
-                >
-                  <i />
-                  <span>
-                    <b>
-                      {violation.rule}
-                      <em
-                        className="violation-source"
-                        title="De dónde sale la regla"
-                      >
-                        {sourceLabel(violation.source)}
-                      </em>
-                      {status === "introduced" ? (
-                        <em className="violation-source lens-new">nueva</em>
-                      ) : null}
-                    </b>
-                    <small>{violation.message}</small>
-                    {violation.metric ? (
-                      <small className="mono">
-                        {violation.metric.name} ={" "}
-                        {formatCompact(violation.metric.value)}
-                        {violation.metric.max !== undefined
-                          ? ` · máx. ${formatCompact(violation.metric.max)}`
-                          : ""}
-                        {violation.metric.min !== undefined
-                          ? ` · mín. ${formatCompact(violation.metric.min)}`
-                          : ""}
-                      </small>
-                    ) : null}
-                  </span>
-                </button>
+                  violation={violation}
+                  status={status}
+                  onSelectPath={onSelectPath}
+                  otherThan={file.path}
+                  showStatus
+                />
               ))}
             </div>
-            {violations.length > 8 ? (
-              <div className="muted tiny">
-                y {violations.length - 8} reglas más en este fichero.
-              </div>
+            {violations.length > MAX_VIOLATIONS ? (
+              <p className="muted tiny">
+                y {violations.length - MAX_VIOLATIONS} reglas más en este
+                fichero.
+              </p>
             ) : null}
           </>
         )}
@@ -223,13 +162,9 @@ export function LensPanel({
       <div className="lens-section">
         <div className="eyebrow">Migración</div>
         {!migration ? (
-          <p className="muted small">
-            Este snapshot no trae lente de migración.
-          </p>
+          <p className="muted small">Este snapshot no trae lente de migración.</p>
         ) : !node ? (
-          <p className="muted small">
-            La lente no tiene datos de este fichero.
-          </p>
+          <p className="muted small">La lente no tiene datos de este fichero.</p>
         ) : (
           <>
             <div className="inspector-status">
@@ -252,7 +187,7 @@ export function LensPanel({
               <p className="muted small">Sin cruces FFI en este fichero.</p>
             ) : (
               <div className="lens-edges">
-                {edges.slice(0, 6).map((edge) => (
+                {edges.slice(0, MAX_EDGES).map((edge) => (
                   <button
                     key={`${edge.direction}-${edge.path}-${edge.kind}`}
                     type="button"
@@ -268,10 +203,10 @@ export function LensPanel({
                     </span>
                   </button>
                 ))}
-                {edges.length > 6 ? (
-                  <div className="muted tiny">
-                    y {edges.length - 6} cruces más.
-                  </div>
+                {edges.length > MAX_EDGES ? (
+                  <span className="muted tiny">
+                    y {edges.length - MAX_EDGES} cruces más.
+                  </span>
                 ) : null}
               </div>
             )}
@@ -294,14 +229,12 @@ export function LensPanel({
               <p className="muted small">
                 El más complejo:{" "}
                 <b className="lens-symbol">{summary.mostComplex.name}</b>{" "}
-                <span className="mono">
-                  {summary.mostComplex.complexity}
-                </span>
+                <span className="mono">{summary.mostComplex.complexity}</span>
               </p>
             ) : null}
           </>
         )}
       </div>
-    </section>
+    </div>
   );
 }
