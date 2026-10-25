@@ -254,6 +254,21 @@ describe("analyzeRepository con git", () => {
     expect(head.snapshot.meta.checksum).not.toBe(base.snapshot.meta.checksum);
   });
 
+  it("el snapshot lleva el commit del repo", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    const withGit = analyzeRepository(root);
+    const without = analyzeRepository(root, { git: false });
+
+    // El commit existe para `inspect` y para el historial; sin git no se inventa.
+    expect(withGit.snapshot.meta.commitHash).toMatch(/^[0-9a-f]{40}$/);
+    expect(without.snapshot.meta.commitHash).toBeUndefined();
+  });
+
   it("no emite churn cuando git está desactivado", () => {
     const root = tempRepo();
     initRepo(root);

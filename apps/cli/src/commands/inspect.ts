@@ -6,7 +6,7 @@ import {
   topByMetric,
   type CcMigrationLens
 } from "@codarch/schema";
-import { formatBytes, readJsonFile } from "../io";
+import { fileProblem, formatBytes, readJsonFile } from "../io";
 
 export interface InspectOptions {
   file?: string;
@@ -45,6 +45,15 @@ function readMigrationLens(value: unknown): CcMigrationLens | null {
 export function runInspect(options: InspectOptions): number {
   if (!options.file) {
     console.error("falta la ruta del fichero cc.json\n\n  codarch inspect <fichero.cc.json[.gz]>");
+    return 1;
+  }
+
+  // Una carpeta aquí es un EISDIR que no explica nada; se dice qué se espera.
+  const problem = fileProblem(options.file);
+  if (problem) {
+    console.error(
+      `inspect necesita un fichero cc.json: ${problem}\n\n  codarch inspect <fichero.cc.json[.gz]>`
+    );
     return 1;
   }
 

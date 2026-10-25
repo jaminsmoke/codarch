@@ -5,7 +5,8 @@ import {
   dialog,
   ipcMain,
   shell,
-  type MenuItemConstructorOptions
+  type MenuItemConstructorOptions,
+  type OpenDialogOptions
 } from "electron";
 import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
@@ -31,6 +32,7 @@ import { readRepoPreferences, writeRepoPreferences } from "./preferences";
 import { sameSnapshot, snapshotChecksum } from "./snapshot-state";
 import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
+import { documentTitle } from "./title";
 import { canAutoUpdate, resolveUpdateFeed } from "./updates";
 
 /**
@@ -91,6 +93,9 @@ function createWindow(): void {
   });
 
   void window.loadFile(path.join(RENDERER_DIST, "index.html"));
+  // El `<title>` del renderer pisaba el de la ventana al cargar: aquí manda
+  // `updateTitle`, que es el único que sabe qué proyecto está abierto.
+  window.on("page-title-updated", (event) => event.preventDefault());
   window.once("ready-to-show", () => window?.show());
   // El renderer se entera del estado de la vigilancia por este aviso; si llega
   // antes de que escuche (o la ventana se recarga), la cabecera se quedaría en
@@ -108,6 +113,11 @@ function createWindow(): void {
 
 function send(target: DesktopTarget): void {
   window?.webContents.send("codarch:target", target);
+}
+
+/** El título dice qué se está mirando, no solo que es CodArch. */
+function updateTitle(label: string | null): void {
+  window?.setTitle(documentTitle(label));
 }
 
 /** El proceso principal vigila el repo abierto, si puede. */
@@ -248,30 +258,41 @@ async function configureUpdates(): Promise<void> {
 }
 
 /**
+ * Dice por qué no se pudo abrir.
+ *
+ * Antes, una ruta que no existía o un análisis que se caía cerraban el
+ * diálogo y dejaban la app como estaba: parecía que «no hace nada». El aviso
+ * va a la consola y a la pantalla, que es lo único que se ve desde un .deb.
+ */
+function failOpen(title: string, message: string): void {
+  console.error(`${title}: ${message}`);
+  dialog.showErrorBox(title, message);
+}
+
+/**
  * Abre una ruta: si es una carpeta se analiza, si es un JSON se decide si es un
  * snapshot o un reporte.
  */
 async function openTarget(target: string): Promise<void> {
   if (!existsSync(target)) {
-    send({
-      kind: "report",
-      report: null,
-      label: target
-    });
+    failOpen("No se pudo abrir", `No existe ${target}.`);
     return;
   }
 
   if (statSync(target).isDirectory()) {
     const denied = protectedRootReason(target);
     if (denied) {
-      console.error(`no se analiza ${denied}`);
-      send({ kind: "report", report: null, label: target });
+      failOpen(
+        "No se pudo analizar",
+        `CodArch no analiza ${denied}: elige la carpeta de un proyecto.`
+      );
       return;
     }
     const persisted = readPersistedSnapshot(target);
     // Si lo guardado ya es el estado del repo, aún no hay nada que reanalizar.
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
+      updateTitle(target);
       send({ kind: "snapshot", snapshot: persisted, label: target });
       // Lo guardado se pinta al instante, pero el repo sigue vivo: se vigila y
       // se reanaliza detrás, como al restaurar el último proyecto. Sin esto,
@@ -285,12 +306,31 @@ async function openTarget(target: string): Promise<void> {
       outcome = await repoAnalyzer().analyze(target);
     } catch (cause) {
       // El proceso que analiza puede caerse: se dice y no se deja la app muda.
-      console.error(`no se pudo analizar ${target}: ${(cause as Error).message}`);
-      send({ kind: "report", report: null, label: target });
+      failOpen(
+        "No se pudo analizar",
+        `${target}: ${(cause as Error).message}`
+      );
       return;
     }
-    if (outcome.kind === "unchanged") return;
+    if (outcome.kind === "unchanged") {
+      // Sin cambios respecto a lo guardado: se pinta lo guardado. Antes se
+      // volvía sin avisar y la ventana se quedaba como estaba.
+      const saved = readPersistedSnapshot(target);
+      if (saved && isSnapshot(saved)) {
+        lastRoot = target;
+        updateTitle(target);
+        send({ kind: "snapshot", snapshot: saved, label: target });
+        watchRoot(target);
+        return;
+      }
+      failOpen(
+        "No se pudo abrir",
+        `${target}: el análisis no encontró cambios y no hay snapshot guardado que pintar.`
+      );
+      return;
+    }
     lastRoot = target;
+    updateTitle(target);
     ensureStateIgnored(target);
     writeSnapshot(target, outcome.snapshot);
     watchRoot(target);
@@ -302,7 +342,14 @@ async function openTarget(target: string): Promise<void> {
   // mezclar su historial ni su libro de cadenas con este snapshot (ADR 0050).
   stopWatching();
   lastRoot = null;
-  const raw = JSON.parse(readFileSync(target, "utf8")) as unknown;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(target, "utf8")) as unknown;
+  } catch (cause) {
+    failOpen("No se pudo abrir el fichero", `${target}: ${(cause as Error).message}`);
+    return;
+  }
+  updateTitle(target);
   if (isSnapshot(raw)) {
     send({ kind: "snapshot", snapshot: raw, label: target });
     return;
@@ -468,32 +515,35 @@ function restoreProject(root: string): {
 
 function buildMenu(): Menu {
   const isMac = process.platform === "darwin";
+  /** En Windows y Linux el `&` marca el mnemónico: Alt+A abre Archivo. */
+  const accel = (label: string): string => (isMac ? label : `&${label}`);
   const template: MenuItemConstructorOptions[] = [];
 
   if (isMac) {
     template.push({
       label: app.name,
       submenu: [
-        { role: "about" },
+        { role: "about", label: "Acerca de CodArch" },
         { type: "separator" },
-        { role: "services" },
+        { role: "services", label: "Servicios" },
         { type: "separator" },
-        { role: "hide" },
-        { role: "hideOthers" },
-        { role: "unhide" },
+        { role: "hide", label: "Ocultar CodArch" },
+        { role: "hideOthers", label: "Ocultar otros" },
+        { role: "unhide", label: "Mostrar todo" },
         { type: "separator" },
-        { role: "quit" }
+        { role: "quit", label: "Salir de CodArch" }
       ]
     });
   }
 
+  // Los `role` traen su rótulo en inglés: se les pone el nuestro.
   template.push({
-    label: "Archivo",
+    label: accel("Archivo"),
     submenu: [
       {
         label: "Analizar carpeta…",
         accelerator: "CmdOrCtrl+O",
-        click: () => void pickFolder()
+        click: () => void openPickedFolder()
       },
       {
         label: "Ajustes…",
@@ -503,43 +553,45 @@ function buildMenu(): Menu {
       {
         label: "Abrir cc.json…",
         accelerator: "CmdOrCtrl+Shift+O",
-        click: () => void pickFile()
+        click: () => void openPickedFile()
       },
       { type: "separator" },
-      isMac ? { role: "close" } : { role: "quit" }
+      isMac
+        ? { role: "close", label: "Cerrar" }
+        : { role: "quit", label: "Salir" }
     ]
   });
 
   template.push({
-    label: "Edición",
+    label: accel("Edición"),
     submenu: [
-      { role: "undo" },
-      { role: "redo" },
+      { role: "undo", label: "Deshacer" },
+      { role: "redo", label: "Rehacer" },
       { type: "separator" },
-      { role: "cut" },
-      { role: "copy" },
-      { role: "paste" },
-      { role: "selectAll" }
+      { role: "cut", label: "Cortar" },
+      { role: "copy", label: "Copiar" },
+      { role: "paste", label: "Pegar" },
+      { role: "selectAll", label: "Seleccionar todo" }
     ]
   });
 
   template.push({
-    label: "Ver",
+    label: accel("Ver"),
     submenu: [
-      { role: "reload" },
-      { role: "forceReload" },
-      { role: "toggleDevTools" },
+      { role: "reload", label: "Recargar" },
+      { role: "forceReload", label: "Forzar recarga" },
+      { role: "toggleDevTools", label: "Herramientas de desarrollo" },
       { type: "separator" },
-      { role: "resetZoom" },
-      { role: "zoomIn" },
-      { role: "zoomOut" },
+      { role: "resetZoom", label: "Tamaño real" },
+      { role: "zoomIn", label: "Acercar" },
+      { role: "zoomOut", label: "Alejar" },
       { type: "separator" },
-      { role: "togglefullscreen" }
+      { role: "togglefullscreen", label: "Pantalla completa" }
     ]
   });
 
   template.push({
-    label: "Ayuda",
+    label: accel("Ayuda"),
     submenu: [
       {
         label: "Documentación",
@@ -551,27 +603,69 @@ function buildMenu(): Menu {
   return Menu.buildFromTemplate(template);
 }
 
+/** Del menú se abre lo que se elige: antes se elegía la carpeta y se perdía. */
+async function openPickedFolder(): Promise<void> {
+  const folder = await pickFolder();
+  if (folder) await openTarget(folder);
+}
+
+async function openPickedFile(): Promise<void> {
+  const file = await pickFile();
+  if (file) await openTarget(file);
+}
+
+/**
+ * Abre el diálogo del sistema y devuelve la ruta elegida.
+ *
+ * Hay portales de Linux que cierran el diálogo con la lista vacía y sin
+ * marcarlo como cancelado. Antes eso se traducía en «no pasa nada»: ahora se
+ * dice y se ofrece la salida por terminal.
+ */
+async function pickPaths(options: OpenDialogOptions): Promise<string | null> {
+  if (!window) return null;
+  const ask = async (parent: BrowserWindow | null) => {
+    const result = parent
+      ? await dialog.showOpenDialog(parent, options)
+      : await dialog.showOpenDialog(options);
+    return result;
+  };
+
+  let result = await ask(window);
+  // Hay portales de Linux (xdg-desktop-portal) que devuelven el diálogo
+  // cerrado y sin rutas cuando lleva ventana padre. Sin padre vuelve a
+  // funcionar, así que se reintenta una vez antes de darse por vencido.
+  if (!result.canceled && result.filePaths.length === 0) {
+    result = await ask(null);
+  }
+  if (result.canceled) return null;
+  const picked = result.filePaths[0];
+  if (!picked) {
+    console.error("el diálogo no devolvió ninguna ruta");
+    dialog.showErrorBox(
+      "No se pudo elegir la carpeta",
+      "El diálogo del sistema se cerró sin devolver una ruta. Prueba a abrirla desde la terminal con «codarch serve <carpeta>»."
+    );
+    return null;
+  }
+  console.log(`se abre ${picked}`);
+  return picked;
+}
+
 /** Elige una carpeta con el diálogo del sistema. */
 async function pickFolder(): Promise<string | null> {
-  if (!window) return null;
-  const result = await dialog.showOpenDialog(window, {
+  return pickPaths({
     title: "Elige la carpeta del repositorio",
     properties: ["openDirectory"]
   });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  return result.filePaths[0] ?? null;
 }
 
 /** Elige un fichero JSON con el diálogo del sistema. */
 async function pickFile(): Promise<string | null> {
-  if (!window) return null;
-  const result = await dialog.showOpenDialog(window, {
+  return pickPaths({
     title: "Elige un cc.json o un report.json",
     properties: ["openFile"],
     filters: [{ name: "CodArch", extensions: ["json"] }]
   });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  return result.filePaths[0] ?? null;
 }
 
 /** La ruta con la que se lanzó la app, si la hay. */

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { CcJsonError, parseCcJson, type CcJson, type HistoryEntry } from "@codarch/schema";
+import { directoryProblem } from "../io";
 import { compareSnapshots } from "./compare";
 import {
   historyLocation,
@@ -32,6 +33,12 @@ function num(value: number): string {
 
 export function runHistory(options: HistoryCommandOptions): number {
   const root = path.resolve(options.root ?? ".");
+  // «No hay fotos» y «esa carpeta no existe» no son lo mismo.
+  const problem = directoryProblem(root);
+  if (problem) {
+    console.error(`historial: ${problem}`);
+    return 1;
+  }
   const index = readHistoryIndex(root);
 
   if (options.from && options.to) {

@@ -22,6 +22,35 @@ export function readJsonFile(file: string): LoadedJson {
   }
 }
 
+/**
+ * Qué le pasa a una ruta que debería ser una carpeta.
+ *
+ * El motivo se enseña tal cual, o `null` si la ruta sirve. Se comprueba antes
+ * de tocar nada: un `mkdir` recursivo creaba la carpeta que se había escrito
+ * mal y dejaba un snapshot vacío dentro.
+ */
+export function directoryProblem(target: string): string | null {
+  let stat: ReturnType<typeof fs.statSync>;
+  try {
+    stat = fs.statSync(target);
+  } catch {
+    return `no existe ${target}`;
+  }
+  return stat.isDirectory() ? null : `${target} no es una carpeta`;
+}
+
+/** La misma comprobación para una ruta que debería ser un fichero. */
+export function fileProblem(target: string): string | null {
+  let stat: ReturnType<typeof fs.statSync>;
+  try {
+    stat = fs.statSync(target);
+  } catch {
+    return `no existe ${target}`;
+  }
+  if (stat.isDirectory()) return `${target} es una carpeta`;
+  return stat.isFile() ? null : `${target} no es un fichero`;
+}
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;

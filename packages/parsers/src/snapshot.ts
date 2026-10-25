@@ -37,6 +37,8 @@ export interface SnapshotInput {
   files: readonly SnapshotFile[];
   graph: GraphResult;
   migration?: MigrationResult;
+  /** El commit del repo cuando se analizó, si lo hay (lo pone el CLI con git). */
+  commitHash?: string;
 }
 
 const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
@@ -338,6 +340,8 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     meta: {
       projectName: input.projectName,
       apiVersion: CC_JSON_VERSION,
+      // El commit no entra en el checksum: dos clones del mismo código pesan igual.
+      ...(input.commitHash ? { commitHash: input.commitHash } : {}),
       checksum: checksumFor([root], lenses)
     },
     files: [root],

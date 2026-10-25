@@ -9,7 +9,7 @@ import {
 import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
-import { formatBytes } from "../io";
+import { directoryProblem, formatBytes } from "../io";
 import { saveHistory } from "@codarch/schema";
 
 export interface AnalyzeCommandOptions {
@@ -48,6 +48,13 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     return 1;
   }
 
+  // Antes de tocar nada: una ruta mal escrita no se crea, se dice.
+  const problem = directoryProblem(root);
+  if (problem) {
+    console.error(`no se puede analizar ${problem}`);
+    return 1;
+  }
+
   let ignore = options.ignore ?? [];
 
   try {
@@ -76,6 +83,16 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   } catch (error) {
     console.error(`no se pudo analizar ${root}: ${(error as Error).message}`);
     return 1;
+  }
+
+  // Un repo que no es TS/JS da un snapshot vacío y nadie se entera: se dice.
+  if (result.files === 0) {
+    console.warn(
+      `aviso: no hay ningún fichero TypeScript/JavaScript en ${root}; el snapshot sale vacío`
+    );
+    console.warn(
+      "  CodArch v1 dibuja TS/JS; otro lenguaje cuenta en la lente de migración, no en el mapa."
+    );
   }
 
   let cc;

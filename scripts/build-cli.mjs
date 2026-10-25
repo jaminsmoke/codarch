@@ -61,9 +61,17 @@ const published = {
   license: cliPackage.license,
   type: "module",
   bin: {
-    codarch: "index.js"
+    codarch: "bin.js"
   },
-  files: ["index.js", "styles.css", "client.js", "web", "LICENSE", "README.md"],
+  files: [
+    "bin.js",
+    "index.js",
+    "styles.css",
+    "client.js",
+    "web",
+    "LICENSE",
+    "README.md"
+  ],
   engines: {
     node: ">=22"
   },
@@ -88,5 +96,21 @@ const published = {
 };
 
 await writeFile(path.join(DIST, "package.json"), `${JSON.stringify(published, null, 2)}\n`);
+
+// El arranque comprueba Node antes de cargar nada: con Node 20 el `install` de
+// `tree-sitter` falla y la CLI moría con un error nativo que no decía nada.
+// Aquí la versión se mira primero y el resto se importa después.
+const BIN = `#!/usr/bin/env node
+const major = Number(process.versions.node.split(".")[0]);
+if (!(major >= 22)) {
+  console.error(
+    \`CodArch necesita Node 22 o superior; este es \${process.versions.node}.\`
+  );
+  console.error("Instala Node 22 y vuelve a instalar: npm i -g codarch");
+  process.exit(1);
+}
+await import("./index.js");
+`;
+await writeFile(path.join(DIST, "bin.js"), BIN, { mode: 0o755 });
 
 console.log(`ok · CLI empaquetado en ${path.relative(ROOT, DIST)} (codarch@${version})`);

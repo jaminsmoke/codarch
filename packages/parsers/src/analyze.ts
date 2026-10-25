@@ -62,6 +62,8 @@ export function analyzeRepository(
 ): AnalyzeResult {
   const fileSystem = options.fileSystem ?? new NodeFileSystem(rootInput);
   const useGit = options.git !== false;
+  // El commit viaja en el snapshot: `inspect` lo enseña y el historial lo apunta.
+  const commitHash = useGit ? (gitHead(rootInput) ?? undefined) : undefined;
 
   const result = analyzeFiles({
     fileSystem,
@@ -72,6 +74,7 @@ export function analyzeRepository(
     extensions: options.extensions,
     parser: new TypeScriptParser(),
     cache: options.cache,
+    commitHash,
     churn: (relativePaths) => {
       const git = churnWithCache(
         rootInput,

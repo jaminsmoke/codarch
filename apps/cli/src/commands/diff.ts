@@ -4,7 +4,7 @@ import { ruleConfigAddon } from "@codarch/addons";
 import { loadAddons } from "@codarch/addons/node";
 import { CcJsonError, parseCcJson, type CcJson } from "@codarch/schema";
 import { defaultConfigPath } from "../config";
-import { readJsonFile } from "../io";
+import { fileProblem, readJsonFile } from "../io";
 import { compareSnapshots } from "./compare";
 
 export type FailOn =
@@ -77,6 +77,12 @@ export function runDiff(options: DiffCommandOptions): number {
 }
 
 function loadSnapshot(file: string): CcJson | null {
+  const problem = fileProblem(file);
+  if (problem) {
+    console.error(`diff compara dos snapshots cc.json: ${problem}`);
+    return null;
+  }
+
   let loaded;
   try {
     loaded = readJsonFile(file);

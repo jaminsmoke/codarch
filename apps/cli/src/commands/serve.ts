@@ -15,6 +15,7 @@ import {
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
 import { loadProjectIgnore } from "../config";
+import { directoryProblem } from "../io";
 import { chainsPayload } from "./chains-payload";
 import { VERSION } from "../version";
 
@@ -82,6 +83,13 @@ export function runServe(options: ServeOptions): number {
     console.error(
       `codarch no analiza ${denied}: elige la carpeta de un proyecto`
     );
+    return 1;
+  }
+
+  // Un servidor sobre una ruta que no existe sirve el vacío: mejor decirlo.
+  const problem = directoryProblem(root);
+  if (problem) {
+    console.error(`no se puede servir ${problem}`);
     return 1;
   }
   const webRoot = options.web === false ? null : findWebRoot();

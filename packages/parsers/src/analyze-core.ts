@@ -61,6 +61,8 @@ export interface AnalyzeCoreOptions {
    * que hace hoy porque analiza una vez la carpeta que se elige.
    */
   cache?: ParseCache;
+  /** El commit del repo, si el puerto de ficheros lo conoce (el CLI con git). */
+  commitHash?: string;
   /**
    * Métricas de historial por ruta relativa.
    *
@@ -361,7 +363,8 @@ export function analyzeFiles(
     projectName,
     files: parsedFiles,
     graph,
-    migration
+    migration,
+    commitHash: options.commitHash
   });
 
   let folders = 0;
