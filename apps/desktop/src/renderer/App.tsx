@@ -101,6 +101,12 @@ export default function App() {
         }
         return;
       }
+      if (target.kind === "head") {
+        // Lo tocado desde el último commit (ADR 0072): va a Cambios sin mover
+        // la pestaña, porque llega en segundo plano tras cada análisis.
+        loadReport(target.report, target.label, false);
+        return;
+      }
       if (target.report === null) {
         setError(`No se pudo abrir ${target.label}`);
         return;

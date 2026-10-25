@@ -65,6 +65,23 @@ function symbolTitle(path: string, symbols: SymbolChanges): string {
   return `${path} · ${shown.join(" · ")}`;
 }
 
+/**
+ * Si el reporte trae algo que enseñar: ficheros, aristas, ciclos o reglas.
+ *
+ * Las métricas y los símbolos no cuentan por sí solas: un cambio de métrica
+ * siempre viene con su fichero en `changed`.
+ */
+export function reportHasChanges(report: DiffReport): boolean {
+  const summary = report.summary;
+  const rules = report.rules.summary;
+  return (
+    summary.addedFiles + summary.removedFiles + summary.changedFiles > 0 ||
+    summary.addedEdges + summary.removedEdges > 0 ||
+    summary.introducedCycles + summary.fixedCycles > 0 ||
+    rules.introduced + rules.existing + rules.resolved > 0
+  );
+}
+
 interface ChangesPanelProps {
   report: DiffReport | null;
   source: string | null;
@@ -112,6 +129,20 @@ export default function ChangesPanel({
 
   const summary = report.summary;
   const rules = report.rules;
+  // Un HEAD sin diferencias no tiene nada que enseñar: lo dice, en vez de una
+  // lista vacía (ADR 0072).
+  if (!reportHasChanges(report)) {
+    return (
+      <section className="change-panel">
+        <div className="eyebrow">Cambios · {source ?? "HEAD"}</div>
+        <h2>Sin cambios desde el último commit</h2>
+        <p className="muted small">
+          El working tree coincide con su último commit en ficheros, aristas,
+          ciclos y reglas.
+        </p>
+      </section>
+    );
+  }
   const ruleSummary = rules.summary;
   const allViolations = [
     ...rules.violations.introduced,

@@ -1,5 +1,5 @@
-import { loadProjectIgnore } from "@codarch/metrics";
-import { AnalysisSession } from "@codarch/parsers";
+import { diffSnapshots, loadProjectIgnore, type DiffReport } from "@codarch/metrics";
+import { AnalysisSession, compareWorkingTreeWithHead } from "@codarch/parsers";
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
@@ -55,6 +55,25 @@ function sessionFor(root: string): AnalysisSession {
   return session;
 }
 
+/**
+ * Lo tocado desde el último commit (HEAD contra el working tree).
+ *
+ * Si el repo no tiene commits o el export falla, devuelve `null` y avisa: el
+ * análisis normal sigue.
+ */
+function headReportFor(root: string, warnings: string[]): DiffReport | null {
+  try {
+    const pair = compareWorkingTreeWithHead(root);
+    if (!pair) return null;
+    return diffSnapshots(pair.base, pair.head);
+  } catch (cause) {
+    warnings.push(
+      `no se pudo comparar con el último commit: ${(cause as Error).message}`
+    );
+    return null;
+  }
+}
+
 /** Analiza y traduce el resultado (o el fallo) a un mensaje. */
 export function analyze(request: AnalyzeRequest): AnalyzeResponse {
   try {
@@ -79,12 +98,15 @@ export function analyze(request: AnalyzeRequest): AnalyzeResponse {
       : session.refresh(hints, options);
     if (!result) return { id: request.id, ok: true, result: { kind: "unchanged" } };
 
+    // El reporte va antes que los avisos: si el HEAD falla, su aviso también sale.
+    const headReport = headReportFor(request.root, warnings);
     const outcome: AnalyzeOutcome = {
       kind: "snapshot",
       snapshot: result.snapshot,
       files: result.files,
       edges: result.edges,
-      warnings: [...warnings, ...result.warnings]
+      warnings: [...warnings, ...result.warnings],
+      headReport
     };
     return { id: request.id, ok: true, result: outcome };
   } catch (cause) {

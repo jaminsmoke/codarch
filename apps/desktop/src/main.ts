@@ -116,6 +116,17 @@ function send(target: DesktopTarget): void {
 }
 
 /**
+ * Manda lo tocado desde el último commit a la pestaña Cambios (ADR 0072).
+ *
+ * Sin commits o con el export roto, `report` es `null` y no se manda nada: la
+ * pestaña sigue mostrando lo que ya tuviera.
+ */
+function sendHeadReport(label: string, report: unknown | null): void {
+  if (!report) return;
+  send({ kind: "head", report, label });
+}
+
+/**
  * El título dice qué se está mirando, no solo que es CodArch.
  *
  * Manda el nombre del proyecto del snapshot; la carpeta es el respaldo cuando
@@ -199,6 +210,7 @@ async function refreshFromDisk(
     writeSnapshot(root, outcome.snapshot);
     // `refresh`: es el mismo repo, así que el renderer mantiene la vista.
     send({ kind: "snapshot", snapshot: outcome.snapshot, label: root, refresh: true });
+    sendHeadReport(root, outcome.headReport);
   } catch (cause) {
     console.error(`no se pudo reanalizar ${root}: ${(cause as Error).message}`);
   }
@@ -365,6 +377,7 @@ async function openTarget(target: string): Promise<void> {
     writeSnapshot(target, outcome.snapshot);
     watchRoot(target);
     send({ kind: "snapshot", snapshot: outcome.snapshot, label: target });
+    sendHeadReport(target, outcome.headReport);
     return;
   }
 

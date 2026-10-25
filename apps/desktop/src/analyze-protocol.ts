@@ -1,4 +1,5 @@
 import type { CcJson } from "@codarch/schema";
+import type { DiffReport } from "@codarch/metrics";
 
 /**
  * Lo que el proceso principal le pide al que analiza, y lo que le contesta.
@@ -32,6 +33,11 @@ export type AnalyzeOutcome =
       files: number;
       edges: number;
       warnings: string[];
+      /**
+       * Lo tocado desde el último commit: el HEAD contra el working tree.
+       * `null` si el repo no tiene commits o el export del HEAD falló.
+       */
+      headReport: DiffReport | null;
     }
   | { kind: "unchanged" };
 

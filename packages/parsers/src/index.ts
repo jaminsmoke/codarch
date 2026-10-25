@@ -22,7 +22,8 @@ export type {
   ChurnMetric,
   ChurnResult
 } from "./analyze-core";
-export { ChurnCache, collectGitChurn, gitHead, gitStatus } from "./git";
+export { ChurnCache, collectGitChurn, gitHead, gitStatus, withHeadExport } from "./git";
+export { compareWorkingTreeWithHead, type HeadComparison } from "./head-diff";
 export type {
   GitChange,
   GitChangeKind,

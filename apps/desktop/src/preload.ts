@@ -22,7 +22,9 @@ export type DesktopTarget =
        */
       refresh?: boolean;
     }
-  | { kind: "report"; report: unknown; label: string };
+  | { kind: "report"; report: unknown; label: string }
+  /** Lo tocado desde el último commit: el HEAD contra el working tree. */
+  | { kind: "head"; report: unknown; label: string };
 
 export interface DesktopAnalysis {
   snapshot: unknown;

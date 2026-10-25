@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 export interface GitChurnFile {
@@ -420,4 +421,42 @@ function runGit(
     };
   }
   return { ok: true, stdout: result.stdout ?? "", error: "" };
+}
+
+/**
+ * Exporta el HEAD a un directorio temporal y lo entrega a `use` (ADR 0072).
+ *
+ * `git archive` lee los objetos del repo y no toca el working tree ni el
+ * índice del usuario. El directorio se borra siempre, también si `use` falla:
+ * no quedan restos en el disco. Devuelve `null` si no hay HEAD o si el export
+ * falla; en ese caso `use` no se ejecuta.
+ */
+export function withHeadExport<T>(
+  rootInput: string,
+  use: (exportedRoot: string) => T
+): T | null {
+  const root = realPath(rootInput);
+  if (gitHead(root) === null) return null;
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-head-"));
+  try {
+    const archive = spawnSync("git", ["archive", "HEAD"], {
+      cwd: root,
+      maxBuffer: 512 * 1024 * 1024,
+      windowsHide: true
+    });
+    if (archive.error || archive.status !== 0 || !archive.stdout) {
+      return null;
+    }
+    const extract = spawnSync("tar", ["-x", "-C", dir], {
+      input: archive.stdout,
+      windowsHide: true
+    });
+    if (extract.error || extract.status !== 0) {
+      return null;
+    }
+    return use(dir);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 }

@@ -2,9 +2,14 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fileId } from "@codarch/schema";
-import { ChurnCache, analyzeRepository, collectGitChurn } from "../src/index";
+import {
+  ChurnCache,
+  analyzeRepository,
+  collectGitChurn,
+  withHeadExport
+} from "../src/index";
 
 const tempRoots: string[] = [];
 
@@ -282,3 +287,76 @@ describe("analyzeRepository con git", () => {
     expect(result.snapshot.meta.checksum).toMatch(/^[0-9a-f]{32}$/);
   });
 });
+
+describe("withHeadExport (ADR 0072)", () => {
+  it("exporta exactamente los ficheros del HEAD, sin tocar el working tree", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "-A"]);
+    git(root, ["commit", "-qm", "base"]);
+    // Un cambio sin commitear no debe aparecer en el export del HEAD.
+    fs.writeFileSync(path.join(root, "src", "a.ts"), "export const a = 99;\n", "utf8");
+
+    const exported = withHeadExport(root, (dir) => {
+      const files = listFiles(dir).sort();
+      const content = fs.readFileSync(path.join(dir, "src", "a.ts"), "utf8");
+      return { files, content };
+    });
+
+    expect(exported).not.toBeNull();
+    expect(exported?.files).toEqual(
+      execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+        .split("\n")
+        .filter(Boolean)
+        .sort()
+    );
+    // Windows puede exportar con CRLF (`core.autocrlf`): lo que importa es el
+    // contenido del HEAD, no el formato de fin de línea.
+    expect(exported?.content.replace(/\r\n/g, "\n")).toBe("export const a = 1;\n");
+    // El working tree conserva su cambio: el export no lo ha tocado.
+    expect(fs.readFileSync(path.join(root, "src", "a.ts"), "utf8")).toBe(
+      "export const a = 99;\n"
+    );
+  });
+
+  it("borra el directorio temporal aunque el análisis falle", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "-A"]);
+    git(root, ["commit", "-qm", "base"]);
+
+    let seen = "";
+    expect(() =>
+      withHeadExport(root, (dir) => {
+        seen = dir;
+        throw new Error("fallo a propósito");
+      })
+    ).toThrow("fallo a propósito");
+
+    expect(seen).not.toBe("");
+    expect(fs.existsSync(seen)).toBe(false);
+  });
+
+  it("devuelve null cuando el directorio no tiene commits", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+
+    const use = vi.fn(() => "nunca");
+    expect(withHeadExport(root, use)).toBeNull();
+    expect(use).not.toHaveBeenCalled();
+  });
+});
+
+/** Todos los ficheros bajo `dir`, con rutas relativas y `/`. */
+function listFiles(dir: string, prefix = ""): string[] {
+  const out: string[] = [];
+  for (const entry of fs.readdirSync(path.join(dir, prefix), { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) out.push(...listFiles(dir, rel));
+    else out.push(rel);
+  }
+  return out;
+}
