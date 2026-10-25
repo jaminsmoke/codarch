@@ -213,6 +213,11 @@ también `npm run sync:action` y actualizar el repo público.
   —riesgo, dominio, migración y símbolos del fichero seleccionado— y **PR** pasa a llamarse
   **Cambios**, porque el reporte es un diff de snapshots y no un pull request. `tab=changes` es el
   valor canónico; `lenses` y `pr` se siguen leyendo como alias.
+- M40 cerrada: la ficha del fichero se lee en una tabla (ADR 0060). Las métricas dejan de repetirse
+  entre la rejilla y la lista: una sola tabla, el riesgo primero, el área como marca y cada fila con
+  su barra hasta el p95. El color solo aparece cuando menos es mejor —75 % del p95 en ocre, el p95 en
+  deuda— y el riesgo tiene su semáforo en 40 y 70. Pulsar una fila pinta el mapa por esa métrica.
+  Deuda y cruces pasan a ser métricas curadas del modelo para tener su p95 siempre.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
