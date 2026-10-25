@@ -170,7 +170,7 @@ function comprobar() {
   validar(versiones);
 
   const esperado = manifiesto(versiones);
-  if (leerTexto(MANIFEST_FILE) !== esperado) {
+  if (leerTexto(MANIFEST_FILE).replace(/\r\n/g, "\n") !== esperado) {
     throw new Error(
       `${MANIFEST_FILE} no coincide con ${VERSIONS_FILE}: ejecuta npm run version`
     );
