@@ -97,6 +97,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `risk` | score compuesto, violaciones | derivada en render, no se almacena |
 | `migration` | LOC por lenguaje, estado, deuda y frontera FFI | sí (v1) |
 | `symbols` | lo que hay dentro de cada fichero: funciones, clases, tipos y variables del módulo | sí (M11) |
+| `structure` | miembros de clase e imports/exports del fichero | sí (M44) |
 | `domain` | palabras, frecuencia, tf-idf | después |
 | `evolution` | series temporales, acoplamiento temporal | después |
 
@@ -227,6 +228,32 @@ Decisiones (ADR 0025):
 - **El diff sigue siendo de ficheros**. Comparar símbolo a símbolo es un paso aparte (M12) ✓. Un
   símbolo cuenta como cambiado si cambia su tipo, su complejidad, sus líneas o el hash de su
   cuerpo ✓.
+
+### La estructura que no es símbolo
+
+Un fichero también contiene cosas que no son declaraciones del módulo: los **campos de una clase**,
+lo que **importa** y lo que **exporta**. La lente `structure` las guarda por fichero, sin darles
+identidad de símbolo (ADR 0064 ✓):
+
+```ts
+type CcStructureNode = {
+  members: Array<{ owner: string; name: string; line: number; from: 'field' | 'parameter' }>
+  imports: Array<{ source: string; names: string[]; kind: 'static' | 'dynamic' | 'require'; typeOnly: boolean }>
+  exports: Array<{ name: string; local?: string; source?: string; kind: 'declaration' | 'default' | 'named' | 'all' | 'namespace' }>
+}
+```
+
+- **Miembros**: campos (`static`, `private`, `readonly` incluidos) y propiedades del constructor,
+  agrupados por su clase. No tienen hash ni cadena: la clase ya es el símbolo.
+- **Superficie**: imports con `default`, `* as ns`, alias y `type`; exports con declaraciones,
+  `default`, `*`, `* as ns` y el origen de una reexportación.
+- **La ficha los enseña** en dos secciones plegables, **Superficie** y **Miembros**, también cuando
+  el fichero no tiene ningún símbolo. Un barrel deja de ser una ficha vacía.
+- **Quedan fuera** las claves de objetos de configuración, los espacios de nombres y el código
+  suelto de nivel superior: son datos o sentencias, no estructura del fichero ✓.
+
+La lente es aditiva: un snapshot anterior se lee como si no tuviera estructura y el checksum
+cambia porque hay contenido nuevo, no porque cambie la regla de identidad.
 
 ## Reglas y violaciones
 

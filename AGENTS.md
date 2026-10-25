@@ -230,6 +230,11 @@ también `npm run sync:action` y actualizar el repo público.
   módulo —constantes de texto, objetos de configuración, `let` con valor—, no las locales. El
   resumen gana `variables`, el MCP expone los seis tipos, el diff compara el hash del cuerpo y la
   ficha agrupa por tipo; la vida del símbolo se pliega como las demás secciones.
+- M44 cerrada: la ficha no esconde nada (ADR 0064). La lente `structure` guarda lo que no es
+  símbolo: los campos de clase y las propiedades del constructor, agrupados por clase, y la
+  superficie de imports y exports con alias, tipo y reexportaciones. La ficha estrena
+  **Superficie** y **Miembros**, dos secciones plegables que también aparecen en ficheros sin
+  símbolos. No toca la cadena ni el diff de símbolos; `cc.json` sigue en 2.x.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

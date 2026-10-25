@@ -98,6 +98,7 @@ Each lens is a map `id → data`. Unknown means it is preserved as-is when re-ex
 | `risk` | composite score, violations | derived at render time, not stored |
 | `migration` | LOC per language, status, debt and FFI boundary | yes (v1) |
 | `symbols` | what is inside each file: functions, classes, types and module variables | yes (M11) |
+| `structure` | class members and the file's imports/exports | yes (M44) |
 | `domain` | words, frequency, tf-idf | later |
 | `evolution` | time series, temporal coupling | later |
 
@@ -226,6 +227,32 @@ Decisions (ADR 0025):
   objects. Local variables are not: they are implementation and would flood the list (ADR 0063) ✓.
 - **The diff is still about files**. Comparing symbol by symbol is a separate step (M12) ✓. A
   symbol counts as changed when its kind, complexity, lines or body hash changes ✓.
+
+### The structure that is not a symbol
+
+A file also contains things that are not module declarations: a class's **fields**, what it
+**imports** and what it **exports**. The `structure` lens stores them per file without giving them
+symbol identity (ADR 0064 ✓):
+
+```ts
+type CcStructureNode = {
+  members: Array<{ owner: string; name: string; line: number; from: 'field' | 'parameter' }>
+  imports: Array<{ source: string; names: string[]; kind: 'static' | 'dynamic' | 'require'; typeOnly: boolean }>
+  exports: Array<{ name: string; local?: string; source?: string; kind: 'declaration' | 'default' | 'named' | 'all' | 'namespace' }>
+}
+```
+
+- **Members**: fields (including `static`, `private` and `readonly`) and constructor properties,
+  grouped by their class. They have no hash or chain: the class is already the symbol.
+- **Surface**: imports with `default`, `* as ns`, aliases and `type`; exports with declarations,
+  `default`, `*`, `* as ns` and the source of a re-export.
+- **The card shows them** in two collapsible sections, **Surface** and **Members**, even when the
+  file has no symbols. A barrel is no longer an empty card.
+- **Left out**: object configuration keys, namespaces and top-level loose code: they are data or
+  statements, not the file's structure ✓.
+
+The lens is additive: an older snapshot is read as having no structure, and the checksum changes
+because there is new content, not because the identity rule changed.
 
 ## Rules and violations
 

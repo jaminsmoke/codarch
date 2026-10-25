@@ -95,9 +95,9 @@ aditivos); la cadena de un símbolo sigue emparejando por cuerpo; y el orden de
   símbolos; a partir de ahí distingue un cuerpo de otro.
 - Los snapshots anteriores siguen cargando: si no traen `variables`, se lee
   como cero. Al reanalizar, el checksum cambia porque la lente es más completa.
-- Quedan fuera, por ahora, los espacios de nombres, los alias de importación y
-  los miembros de clase: el primero envuelve; los otros no son declaraciones
-  del módulo.
+- Quedan fuera de esta lente, por ahora, los espacios de nombres: envuelven
+  declaraciones, no son una declaración más. Los miembros de clase y los alias
+  de importación se resuelven en la lente `structure` (ADR 0064).
 
 ## Alternativas descartadas
 

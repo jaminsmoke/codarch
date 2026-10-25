@@ -84,6 +84,7 @@ flowchart TD
 | [0061](0061-0070/0061-el-marco-del-proyecto.md) | El proyecto vive en la cabecera y las secciones se pliegan | 2026-10-25 | aceptado | M41 |
 | [0062](0061-0070/0062-los-simbolos-tambien-se-pliegan.md) | Los símbolos también se pliegan | 2026-10-25 | aceptado | M42 |
 | [0063](0061-0070/0063-todos-los-simbolos.md) | Todos los símbolos del módulo | 2026-10-25 | aceptado | M43 |
+| [0064](0061-0070/0064-la-ficha-no-esconde-nada.md) | La ficha no esconde nada | 2026-10-25 | aceptado | M44 |
 
 ## Las carpetas
 
@@ -95,6 +96,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
 - **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049
 - **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
-- **0061-0070**: 0061, 0062, 0063
+- **0061-0070**: 0061, 0062, 0063, 0064
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).
