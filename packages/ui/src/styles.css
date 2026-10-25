@@ -1880,9 +1880,7 @@ button {
 }
 
 .symbol-code {
-  margin: 2px 0 6px 6px;
-  padding: 4px 0 0 8px;
-  border-left: 2px solid var(--line);
+  margin: 2px 0 6px;
 }
 
 .symbol-code-head {
@@ -1910,11 +1908,12 @@ button {
   margin: 0;
   overflow: auto;
   padding: 8px;
-  border: 1px solid var(--line);
+  border: 1px solid #1c2432;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.16);
-  color: var(--ink-soft);
+  background: #070a0f;
+  color: #d6deeb;
   font: 10.5px/1.45 var(--mono);
+  tab-size: 2;
 }
 
 .code-line {
@@ -1924,7 +1923,7 @@ button {
 }
 
 .code-line i {
-  color: var(--muted);
+  color: #566273;
   text-align: right;
   font-style: normal;
   user-select: none;
@@ -1934,12 +1933,61 @@ button {
   white-space: pre;
 }
 
-.code-line.is-symbol {
-  background: rgba(47, 111, 237, 0.1);
+/* Tokens de Prism sobre el fondo negro del editor. */
+.code-view .token.comment,
+.code-view .token.prolog,
+.code-view .token.doctype,
+.code-view .token.cdata {
+  color: #637777;
+  font-style: italic;
 }
 
-.code-line.is-symbol > span {
-  color: var(--ink);
+.code-view .token.punctuation {
+  color: #89ddff;
+}
+
+.code-view .token.property,
+.code-view .token.tag,
+.code-view .token.constant,
+.code-view .token.symbol,
+.code-view .token.deleted {
+  color: #f78c6c;
+}
+
+.code-view .token.boolean,
+.code-view .token.number {
+  color: #ff5874;
+}
+
+.code-view .token.selector,
+.code-view .token.attr-name,
+.code-view .token.string,
+.code-view .token.char,
+.code-view .token.builtin {
+  color: #ecc48d;
+}
+
+.code-view .token.operator,
+.code-view .token.entity,
+.code-view .token.url {
+  color: #89ddff;
+}
+
+.code-view .token.atrule,
+.code-view .token.attr-value,
+.code-view .token.keyword {
+  color: #c792ea;
+}
+
+.code-view .token.function,
+.code-view .token.class-name {
+  color: #82aaff;
+}
+
+.code-view .token.regex,
+.code-view .token.important,
+.code-view .token.variable {
+  color: #addb67;
 }
 
 .code-note {

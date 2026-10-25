@@ -23,6 +23,7 @@ import {
   surfaceCount,
   surfaceSummary
 } from "./structure";
+import { highlightLine } from "./highlight";
 import {
   CHURN_METRIC,
   EVENT_LABEL,
@@ -477,16 +478,15 @@ function InlineCode({
           <pre className="code-view" aria-label={`Código de ${target.name}`}>
             {snippet.lines.map((line, index) => {
               const lineNumber = snippet.start + index;
-              const inSymbol =
-                lineNumber >= target.line &&
-                lineNumber <= target.line + Math.max(1, target.lines ?? 1) - 1;
               return (
-                <span
-                  key={lineNumber}
-                  className={`code-line${inSymbol ? " is-symbol" : ""}`}
-                >
+                <span key={lineNumber} className="code-line">
                   <i>{lineNumber}</i>
-                  <span>{line || " "}</span>
+                  <span
+                    // Prism escapa el HTML del fuente antes de devolverlo.
+                    dangerouslySetInnerHTML={{
+                      __html: line ? highlightLine(line, target.path) : " "
+                    }}
+                  />
                 </span>
               );
             })}
