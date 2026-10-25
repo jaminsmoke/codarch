@@ -63,6 +63,12 @@ describe("paridad entre el parser nativo y el WASM", () => {
       expect(right.symbols, `símbolos distintos en ${relative}`).toEqual(
         left.symbols
       );
+      expect(right.members, `miembros distintos en ${relative}`).toEqual(
+        left.members
+      );
+      expect(right.exports, `exports distintos en ${relative}`).toEqual(
+        left.exports
+      );
     }
   });
 

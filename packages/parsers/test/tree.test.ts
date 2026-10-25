@@ -10,6 +10,7 @@ import {
   type SyntaxNodeLike
 } from "../src/ts/measure";
 import { collectSymbols } from "../src/ts/symbols";
+import { collectExports, collectMembers } from "../src/ts/structure";
 import { analyzeTree } from "../src/ts/tree";
 
 // `analyzeTree` recorre el árbol una sola vez para métricas, importaciones y
@@ -34,7 +35,9 @@ function inThreePasses(source: string, filePath: string) {
   return {
     metrics: measureSource(source, root),
     imports: collectImports(root),
-    symbols: collectSymbols(root)
+    symbols: collectSymbols(root),
+    members: collectMembers(root),
+    exports: collectExports(root)
   };
 }
 

@@ -149,11 +149,68 @@ export interface CcSymbolsLens {
   summary: CcSymbolsSummary;
 }
 
+/**
+ * Un campo de clase o una propiedad del constructor (ADR 0064).
+ *
+ * No es un símbolo: no tiene hash ni cadena. Vive bajo su clase.
+ */
+export interface CcMember {
+  owner: string;
+  name: string;
+  /** Línea 1-based. */
+  line: number;
+  /** Líneas que ocupa. */
+  lines?: number;
+  /** `field` si se declara en el cuerpo; `parameter` si viene del constructor. */
+  from: "field" | "parameter";
+}
+
+/** Un import del fichero, con los nombres que trae. */
+export interface CcSurfaceImport {
+  source: string;
+  /** `default as fs`, `* as path`, `a as b`, `type C`… */
+  names: string[];
+  kind: "static" | "dynamic" | "require";
+  typeOnly: boolean;
+  /** Línea 1-based. */
+  line: number;
+}
+
+/** Una salida del fichero: declaración exportada o reexportación. */
+export interface CcSurfaceExport {
+  /** El nombre con el que sale; `default`, `*` y `* as ns` también. */
+  name: string;
+  /** El nombre local cuando hay alias o un `default` con nombre. */
+  local?: string;
+  /** El módulo de origen en una reexportación. */
+  source?: string;
+  kind: "declaration" | "default" | "named" | "all" | "namespace";
+  typeOnly?: boolean;
+  /** Línea 1-based. */
+  line: number;
+}
+
+/**
+ * Lo que el fichero enseña sin ser símbolo: sus miembros de clase y su
+ * superficie de imports y exports (ADR 0064).
+ */
+export interface CcStructureNode {
+  members: CcMember[];
+  imports: CcSurfaceImport[];
+  exports: CcSurfaceExport[];
+}
+
+/** La lente de estructura, opcional como las demás. */
+export interface CcStructureLens {
+  nodes: Record<string, CcStructureNode>;
+}
+
 export interface CcLenses {
   metrics?: CcMetricsLens;
   dependency?: CcDependencyLens;
   migration?: CcMigrationLens;
   symbols?: CcSymbolsLens;
+  structure?: CcStructureLens;
   /** Lentes desconocidas se preservan: una herramienta nueva no rompe a una vieja. */
   [name: string]: unknown;
 }

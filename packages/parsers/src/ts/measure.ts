@@ -1,4 +1,6 @@
 import type { ImportKind, Metrics, ParsedImport } from "../types";
+import { importedNames } from "./structure";
+import { stringLiteralValue } from "./strings";
 
 /**
  * Subconjunto de la API de nodos de tree-sitter que usa la medición.
@@ -203,11 +205,13 @@ export function collectImports(root: SyntaxNodeLike): ParsedImport[] {
         const isRequire = node.namedChildren.some(
           (child) => child.type === "import_require_clause"
         );
+        const names = importedNames(node);
         imports.push({
           specifier,
           kind: isRequire ? "require" : "static",
           typeOnly: node.children.some((child) => child.type === "type"),
-          line: node.startPosition.row + 1
+          line: node.startPosition.row + 1,
+          ...(names.length > 0 ? { names } : {})
         });
       }
     } else if (node.type === "export_statement") {
@@ -267,44 +271,4 @@ export function callImportKind(node: SyntaxNodeLike): ImportKind | null {
   return null;
 }
 
-export function stringLiteralValue(node: SyntaxNodeLike): string | null {
-  if (node.type === "string") {
-    return decodeStringBody(node.text.slice(1, -1));
-  }
-  if (node.type === "template_string") {
-    const hasSubstitution = node.namedChildren.some(
-      (child) => child.type === "template_substitution"
-    );
-    if (!hasSubstitution) return decodeStringBody(node.text.slice(1, -1));
-  }
-  return null;
-}
-
-function decodeStringBody(body: string): string {
-  return body.replace(
-    /\\(u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|([\s\S]))/g,
-    (_match, _escaped, braced, four, two, character) => {
-      if (braced) return String.fromCodePoint(Number.parseInt(braced, 16));
-      if (four) return String.fromCharCode(Number.parseInt(four, 16));
-      if (two) return String.fromCharCode(Number.parseInt(two, 16));
-      switch (character) {
-        case "n":
-          return "\n";
-        case "r":
-          return "\r";
-        case "t":
-          return "\t";
-        case "b":
-          return "\b";
-        case "f":
-          return "\f";
-        case "v":
-          return "\v";
-        case "0":
-          return "\0";
-        default:
-          return character;
-      }
-    }
-  );
-}
+export { stringLiteralValue } from "./strings";

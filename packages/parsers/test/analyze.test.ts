@@ -54,6 +54,28 @@ describe("analyzeRepository", () => {
     );
   });
 
+  it("guarda la estructura que no es símbolo y es determinista", () => {
+    const first = analyzeRepository(fixture, { git: false });
+    const second = analyzeRepository(fixture, { git: false });
+    const structure = first.snapshot.lenses?.structure;
+    if (!structure) throw new Error("falta la lente de estructura");
+
+    expect(structure.nodes).toEqual(second.snapshot.lenses?.structure?.nodes);
+    expect(Object.values(structure.nodes).length).toBeGreaterThan(0);
+    expect(Object.values(structure.nodes).flatMap((node) => node.imports)).toContainEqual(
+      expect.objectContaining({
+        source: "./lib/a.js",
+        names: ["a"]
+      })
+    );
+    expect(Object.values(structure.nodes).flatMap((node) => node.exports)).toContainEqual(
+      expect.objectContaining({
+        name: "a",
+        kind: "declaration"
+      })
+    );
+  });
+
   it("cuenta ficheros, carpetas, aristas y ciclos", () => {
     const result = analyzeRepository(fixture, { git: false });
     expect(result.files).toBe(15);

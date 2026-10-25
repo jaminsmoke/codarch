@@ -1,4 +1,10 @@
-import type { Metrics, ParsedImport, ParsedSymbol } from "../types";
+import type {
+  Metrics,
+  ParsedExport,
+  ParsedImport,
+  ParsedMember,
+  ParsedSymbol
+} from "../types";
 import {
   FUNCTION_TYPES,
   callImportKind,
@@ -15,6 +21,11 @@ import {
   declaratorKind,
   describeSymbol
 } from "./symbols";
+import {
+  exportSurface,
+  importedNames,
+  membersOfClass
+} from "./structure";
 
 /**
  * Todo lo que sale de un fichero, en **un solo recorrido** del árbol.
@@ -33,6 +44,10 @@ export interface TreeAnalysis {
   metrics: Metrics;
   imports: ParsedImport[];
   symbols: ParsedSymbol[];
+  /** Campos y propiedades del constructor, agrupados por clase (ADR 0064). */
+  members: ParsedMember[];
+  /** Declaraciones exportadas y reexportaciones. */
+  exports: ParsedExport[];
 }
 
 /**
@@ -46,6 +61,8 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
   const codeLines = new Set<number>();
   const imports: ParsedImport[] = [];
   const symbols: ParsedSymbol[] = [];
+  const members: ParsedMember[] = [];
+  const exports: ParsedExport[] = [];
   /**
    * Complejidad ya medida, por posición (los nodos son envoltorios nuevos en
    * cada acceso, así que no sirven como clave).
@@ -96,14 +113,17 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
         const isRequire = node.namedChildren.some(
           (child) => child.type === "import_require_clause"
         );
+        const names = importedNames(node);
         imports.push({
           specifier,
           kind: isRequire ? "require" : "static",
           typeOnly: children.some((child) => child.type === "type"),
-          line: node.startPosition.row + 1
+          line: node.startPosition.row + 1,
+          ...(names.length > 0 ? { names } : {})
         });
       }
     } else if (node.type === "export_statement") {
+      exports.push(...exportSurface(node));
       const sourceNode = node.childForFieldName("source");
       const specifier = sourceNode ? stringLiteralValue(sourceNode) : null;
       if (specifier !== null) {
@@ -146,6 +166,7 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
             complexityAt.get(positionKey(node))
           )
         );
+        if (kind === "class") members.push(...membersOfClass(node, name));
       }
     } else if (node.type === "variable_declarator") {
       const nameNode = node.childForFieldName("name");
@@ -169,6 +190,9 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
           symbols.push(describeSymbol(name, "variable", node, nameNode));
         } else {
           symbols.push(describeSymbol(name, declared, value));
+          if (declared === "class") {
+            members.push(...membersOfClass(value, name));
+          }
         }
       }
     }
@@ -181,6 +205,8 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
   }
 
   symbols.sort((left, right) => left.line - right.line);
+  members.sort((left, right) => left.line - right.line);
+  exports.sort((left, right) => left.line - right.line);
 
   return {
     metrics: {
@@ -191,7 +217,9 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
       maxFunctionLength
     },
     imports,
-    symbols
+    symbols,
+    members,
+    exports
   };
 }
 

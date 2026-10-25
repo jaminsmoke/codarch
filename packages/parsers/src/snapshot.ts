@@ -9,19 +9,27 @@ import {
   type CcJson,
   type CcMigrationLens,
   type CcNode,
+  type CcStructureLens,
+  type CcStructureNode,
   type CcSymbol,
   type CcSymbolsLens,
   type CcSymbolsSummary
 } from "@codarch/schema/browser";
 import type { GraphResult } from "./graph";
 import type { MigrationResult } from "./migration";
-import type { ParsedSymbol } from "./types";
+import type { ParsedExport, ParsedImport, ParsedMember, ParsedSymbol } from "./types";
 
 export interface SnapshotFile {
   relativePath: string;
   metrics: Record<string, number>;
   /** Los símbolos del fichero; vacíos si el parser no los da. */
   symbols?: readonly ParsedSymbol[];
+  /** Los imports, con sus nombres (ADR 0064). */
+  imports?: readonly ParsedImport[];
+  /** Las declaraciones exportadas y reexportaciones. */
+  exports?: readonly ParsedExport[];
+  /** Campos y propiedades del constructor, por clase. */
+  members?: readonly ParsedMember[];
 }
 
 export interface SnapshotInput {
@@ -166,6 +174,8 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
   const metricNames = new Set<string>();
   /** Los símbolos de cada fichero, para la lente `symbols`. */
   const symbolNodes: Record<string, CcSymbol[]> = {};
+  /** La estructura que no es símbolo: miembros, imports y exports. */
+  const structureNodes: Record<string, CcStructureNode> = {};
   const symbolCounts = {
     functions: 0,
     classes: 0,
@@ -233,6 +243,28 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
         }
       }
     }
+
+    const members = (file.members ?? []).map((member) => ({ ...member }));
+    const imports = (file.imports ?? [])
+      .filter((imported) => imported.kind !== "export")
+      .map((imported) => ({
+        source: imported.specifier,
+        names: [...(imported.names ?? [])],
+        kind: imported.kind as "static" | "dynamic" | "require",
+        typeOnly: imported.typeOnly,
+        line: imported.line
+      }));
+    const exports = (file.exports ?? []).map((entry) => ({
+      name: entry.name,
+      ...(entry.local ? { local: entry.local } : {}),
+      ...(entry.source ? { source: entry.source } : {}),
+      kind: entry.kind,
+      ...(entry.typeOnly ? { typeOnly: true } : {}),
+      line: entry.line
+    }));
+    if (members.length > 0 || imports.length > 0 || exports.length > 0) {
+      structureNodes[node.id] = { members, imports, exports };
+    }
   }
 
   sortChildren(root);
@@ -280,6 +312,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     nodes: symbolNodes,
     summary: symbolsSummary
   };
+  const structureLens: CcStructureLens = { nodes: structureNodes };
 
   const lenses = {
     metrics: {
@@ -297,7 +330,8 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
       }
     },
     ...(migrationLens ? { migration: migrationLens } : {}),
-    symbols: symbolsLens
+    symbols: symbolsLens,
+    structure: structureLens
   };
 
   return {

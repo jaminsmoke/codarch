@@ -290,6 +290,9 @@ export function analyzeFiles(
     parsedFiles.push({
       relativePath: file.relativePath,
       symbols: parsed.symbols ?? [],
+      imports: parsed.imports,
+      exports: parsed.exports ?? [],
+      members: parsed.members ?? [],
       metrics: {
         ...parsed.metrics,
         imports: parsed.imports.length,

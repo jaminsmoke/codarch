@@ -125,8 +125,20 @@ import "./h";
 `;
 
     expect(parser.parse(source, "src/y.ts").imports).toEqual([
-      { specifier: "./a", kind: "static", typeOnly: false, line: 1 },
-      { specifier: "./b", kind: "static", typeOnly: true, line: 2 },
+      {
+        specifier: "./a",
+        kind: "static",
+        typeOnly: false,
+        line: 1,
+        names: ["default as x"]
+      },
+      {
+        specifier: "./b",
+        kind: "static",
+        typeOnly: true,
+        line: 2,
+        names: ["Y"]
+      },
       { specifier: "./c", kind: "export", typeOnly: false, line: 3 },
       { specifier: "./d", kind: "export", typeOnly: true, line: 4 },
       { specifier: "./e", kind: "dynamic", typeOnly: false, line: 5 },
