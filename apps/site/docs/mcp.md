@@ -94,10 +94,17 @@ Para no cargar reporte:
 | `-s`, `--snapshot <file>` | `.codarch/snapshot.cc.json` | Snapshot `cc.json` 2.x (o 1.x normalizable) |
 | `-r`, `--report <file>` | `.codarch/report.json` | Reporte del diff; si no existe, se sigue sin él |
 | `--no-report` | — | No cargar reporte |
+| `--head-report <file>` | `.codarch/head-report.json` | Lo tocado desde el último commit; si existe, manda sobre `--report` |
+| `--no-head-report` | — | No cargar ese reporte |
 | `-h`, `--help` | — | Ayuda |
 | `-v`, `--version` | — | Versión |
 
-Un `--report` explícito que no existe es un error. El reporte por defecto ausente no lo es.
+Un `--report` o un `--head-report` explícito que no existe es un error. El reporte por defecto
+ausente no lo es.
+
+El reporte HEAD describe el **working tree contra su último commit**, que es lo que la app enseña en
+**Cambios**; por eso se prefiere sobre `report.json`, que describe un PR. La respuesta de
+`get_architecture_map` dice en `reportSource` de dónde salen los cambios (`head`, `report` o `none`).
 
 ## Herramientas
 
@@ -260,15 +267,38 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 apps/mcp/
 ├── bin/codarch-mcp.mjs   lanzador sin ruido de npm
 ├── src/store.ts          índice del snapshot/reporte, rutas, riesgo, ciclos, agregados
-├── src/tools.ts          las nueve consultas
+├── src/tools.ts          las doce consultas
 ├── src/server.ts         registro MCP y esquemas de entrada
 ├── src/index.ts          entrada stdio y opciones
-└── test/                 34 tests, incluido transporte en memoria
+└── test/                 45 tests, incluido transporte en memoria
 ```
 
 El servidor carga e indexa una vez; las llamadas trabajan en memoria. `npm test` cubre las
 herramientas, el servidor y el transporte MCP en memoria. También hay una prueba manual con stdio
 frente a los artefactos de la acción.
+
+### `suggest_architecture`
+
+La consulta de `codarch suggest`: deduce del grafo qué capas tiene ya el código y qué reglas las
+protegerían. Devuelve el fragmento para `.codarch.yml` con su `configVersion`, las capas detectadas
+(con sus patrones y de qué dependen), las carpetas que no encajan, los perfiles del catálogo que
+mejor encajan y qué reglas de ese perfil incumple hoy el repo.
+
+Propone; el equipo decide. Las reglas salen como aviso.
+
+### `list_profiles`
+
+El catálogo de `codarch profiles`: cada perfil con para qué proyecto es, sus capas y sus reglas con
+la severidad con la que entran. Un perfil se elige en `.codarch.yml` con `profile: <id>`.
+
+### `verify_history`
+
+La comprobación de `codarch verify`: cada símbolo del snapshot tiene que ser la última versión de su
+cadena. Si el hash del cuerpo no es el de la cadena, el snapshot y la historia cuentan historias
+distintas. Devuelve `checked`, `projectHead` y los `mismatches` con su motivo; sin historial,
+`available: false` y el motivo.
+
+Usa el snapshot que el servidor ya cargó, no una segunda lectura del disco.
 
 ## Lo que no hace todavía
 

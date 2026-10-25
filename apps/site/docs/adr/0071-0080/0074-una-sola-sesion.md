@@ -49,7 +49,9 @@ atrás sin que nadie lo note.
 3. **El modelo lo produce el núcleo, no la app.** El CLI publica (HTTP en `serve`, ficheros con
    `analyze`/`diff`), el escritorio consume en proceso y el MCP lee el mismo contrato. La UI no es
    fuente de verdad.
-4. **El MCP se une después**, sobre el mismo contrato y como herramientas, no como vistas.
+4. **El MCP lee el mismo contrato**: snapshot, `report.json` y `head-report.json`, con la misma
+   preferencia que la app (el HEAD manda), y las consultas que solo tenía el CLI entran como
+   herramientas, no como vistas.
 
 ## Consecuencias
 
@@ -59,7 +61,9 @@ atrás sin que nadie lo note.
   `@codarch/parsers/browser`, que no toca el módulo nuevo.
 - La caché del reporte HEAD deja de ser estado del servidor: vive en el paquete. Dos procesos siguen
   teniendo dos cachés, que es lo correcto —cada uno analiza su raíz.
-- El MCP sigue leyendo por su cuenta hasta que se haga el paso 4; queda anotado en la hoja de ruta.
+- El MCP gana el reporte HEAD y lo prefiere, así que un agente que pregunte por los cambios ve los
+  mismos que la pestaña Cambios. Sus consultas nuevas (`suggest_architecture`, `list_profiles`,
+  `verify_history`) reutilizan el snapshot ya cargado en vez de releer el disco.
 
 ## Alternativas descartadas
 
@@ -78,7 +82,7 @@ atrás sin que nadie lo note.
 - [x] `analyzeRepo` y `headReportFor` en `@codarch/parsers`.
 - [x] `serve` usa el módulo compartido y pierde su copia.
 - [x] El worker del escritorio usa el módulo y pierde su copia.
-- [ ] El MCP lee el mismo contrato y gana las consultas que solo tiene el CLI (`suggest`, `verify`,
-      `profiles`).
+- [x] El MCP lee el mismo contrato (incluido el reporte HEAD) y gana las consultas que solo tenía el
+      CLI: `suggest_architecture`, `list_profiles` y `verify_history`.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

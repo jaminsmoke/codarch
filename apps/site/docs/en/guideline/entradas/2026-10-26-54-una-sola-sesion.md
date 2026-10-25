@@ -11,4 +11,4 @@ verdict: adr
 
 **Numbers**: about a hundred lines of flow in one place; `@codarch/parsers` gains a one-way dependency on `@codarch/metrics` and the browser is unaffected, since it enters through `parsers/browser`. Neither `cc.json`, nor the checksum, nor the `report.json` format change.
 
-**Verdict**: [ADR 0074](../../adr/0071-0080/0074-una-sola-sesion.md), done. The MCP is left: read the same contract and gain `suggest`, `verify` and `profiles`.
+**Verdict**: [ADR 0074](../../adr/0071-0080/0074-una-sola-sesion.md), done. The MCP enters through the same contract —snapshot, report and HEAD report, with HEAD winning as it does in the app— and gains the queries only the CLI had: `suggest_architecture`, `list_profiles` and `verify_history`, which reuses the snapshot already loaded instead of re-reading from disk.

@@ -18,7 +18,10 @@ export {
   findHotspots,
   getArchitectureMap,
   getProjectConfig,
-  listViolations
+  listProfiles,
+  listViolations,
+  suggestArchitecture,
+  verifyHistory
 } from "./tools";
 export {
   ArchitectureStore,
@@ -29,6 +32,7 @@ export type {
   DiffCounts,
   LoadStoreOptions,
   ReportFileState,
+  ReportSource,
   StatusViolation,
   StoreEdge,
   StoreFile,
@@ -51,10 +55,14 @@ export type {
   HotspotScope,
   ImpactDirection,
   ImpactNode,
+  ListProfilesResult,
   ListViolationsInput,
   ListViolationsResult,
   MapNode,
+  ProfileEntry,
   ProjectConfigResult,
+  SuggestArchitectureResult,
+  VerifyHistoryResult,
   ViolationStatusFilter
 } from "./tools";
 
@@ -70,6 +78,9 @@ Opciones:
   -s, --snapshot <file>  snapshot cc.json (por defecto .codarch/snapshot.cc.json)
   -r, --report <file>    report.json del diff (por defecto .codarch/report.json)
   --no-report            no cargar reporte
+  --head-report <file>   reporte del working tree contra HEAD
+                         (por defecto .codarch/head-report.json; manda sobre report)
+  --no-head-report       no cargar ese reporte
   --root <dir>           raíz del proyecto (por defecto el cwd)
   -h, --help             esta ayuda
   -v, --version          versión
@@ -89,6 +100,7 @@ interface CliOptions {
   root?: string;
   snapshot?: string;
   report?: string | null;
+  headReport?: string | null;
 }
 
 function parseArgs(argv: string[]): CliOptions | number {
@@ -115,6 +127,17 @@ function parseArgs(argv: string[]): CliOptions | number {
       options.report = arg.slice("--report=".length);
     } else if (arg === "--no-report") {
       options.report = null;
+    } else if (arg === "--head-report") {
+      const value = argv[++index];
+      if (!value) {
+        console.error("--head-report necesita una ruta");
+        return 1;
+      }
+      options.headReport = value;
+    } else if (arg.startsWith("--head-report=")) {
+      options.headReport = arg.slice("--head-report=".length);
+    } else if (arg === "--no-head-report") {
+      options.headReport = null;
     } else if (arg === "--root") {
       const value = argv[++index];
       if (!value) {
@@ -147,7 +170,8 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
     store = loadArchitectureStore({
       root: parsed.root,
       ...(parsed.snapshot ? { snapshot: parsed.snapshot } : {}),
-      ...(parsed.report !== undefined ? { report: parsed.report } : {})
+      ...(parsed.report !== undefined ? { report: parsed.report } : {}),
+      ...(parsed.headReport !== undefined ? { headReport: parsed.headReport } : {})
     });
   } catch (error) {
     const message =
@@ -166,7 +190,7 @@ export async function main(argv = process.argv.slice(2)): Promise<number> {
   console.error(
     `codarch-mcp ${VERSION} listo: ${store.snapshotPath}${
       store.reportPath ? ` + ${store.reportPath}` : " (sin reporte)"
-    }`
+    }${store.reportSource === "head" ? " (cambios desde HEAD)" : ""}`
   );
   return 0;
 }

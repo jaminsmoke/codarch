@@ -30,7 +30,7 @@ Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 c
 M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
-M51 closed, M52 not started, M53 closed, M54 in progress and M55 in progress.
+M51 closed, M52 not started, M53 closed, M54 closed and M55 closed.
 
 ## The phases
 
@@ -156,8 +156,8 @@ flowchart TD
 | M51 | The files of the change, in one list | closed | [ADR 0070](0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md#hoja-de-ruta) |
 | M52 | The change table goes from base to head | not started | [ADR 0071](0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
 | M53 | Changes since the last commit | closed | [ADR 0072](0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
-| M54 | One single interface | in progress | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
-| M55 | One single analysis session | in progress | [ADR 0074](0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
+| M54 | One single interface | closed | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
+| M55 | One single analysis session | closed | [ADR 0074](0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
 
 ## How to read this
 

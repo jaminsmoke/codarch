@@ -12,7 +12,10 @@ import {
   getMigrationPlan,
   getProjectConfig,
   getSymbolChain,
-  listViolations
+  listProfiles,
+  listViolations,
+  suggestArchitecture,
+  verifyHistory
 } from "./tools";
 
 const READ_ONLY = {
@@ -275,6 +278,42 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     () => invoke(() => getProjectConfig(store))
+  );
+
+  server.registerTool(
+    "suggest_architecture",
+    {
+      title: "Proponer capas y reglas",
+      description:
+        "Deduce del grafo de dependencias la arquitectura que el código ya tiene: qué carpetas están hacia dentro y cuáles hacia fuera, y qué reglas las protegerían. Devuelve el fragmento para .codarch.yml con su versión de configuración, las carpetas que no encajan en ninguna capa, y qué perfiles del catálogo encajan con el repo y qué reglas incumple hoy. Propone; el equipo decide.",
+      inputSchema: {},
+      annotations: READ_ONLY
+    },
+    () => invoke(() => suggestArchitecture(store))
+  );
+
+  server.registerTool(
+    "list_profiles",
+    {
+      title: "Catálogo de perfiles",
+      description:
+        "Lista los perfiles de arquitectura disponibles: para qué proyecto es cada uno, sus capas y sus reglas con la severidad con la que entran. Un perfil se elige en .codarch.yml con `profile: <id>` y sus reglas entran como aviso, no como bloqueo.",
+      inputSchema: {},
+      annotations: READ_ONLY
+    },
+    () => invoke(() => listProfiles())
+  );
+
+  server.registerTool(
+    "verify_history",
+    {
+      title: "Comprobar el historial",
+      description:
+        "Comprueba que cada símbolo del snapshot es la última versión de su cadena en el historial. Si el hash del cuerpo no es el de la cadena, el snapshot y la historia cuentan historias distintas. Devuelve cuántos símbolos se comprobaron y los que no cuadran, con su motivo.",
+      inputSchema: {},
+      annotations: READ_ONLY
+    },
+    () => invoke(() => verifyHistory(store))
   );
 
   return server;

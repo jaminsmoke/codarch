@@ -7,7 +7,10 @@ import {
   chainsPayload,
   historyFileName,
   historyLocation,
+  loadChains,
   parseHistoryIndex,
+  readHistoryIndex,
+  verifyChains,
   type ChainsPayload,
   type HistoryIndex
 } from "@codarch/schema";
@@ -15,11 +18,15 @@ import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { symbolRanking, symbolsOf } from "@codarch/schema";
 import {
+  CONFIG_VERSION,
   ConfigError,
+  DOMAIN_PROFILES,
   loadIgnoreConfig,
   loadRuleConfig,
+  suggestLayers,
   type LayerConfig,
-  type RuleConfigEntry
+  type RuleConfigEntry,
+  type Suggestion
 } from "@codarch/metrics";
 import { ruleConfigAddon, type RepoAddon } from "@codarch/addons";
 import { loadAddons, repoAddons } from "@codarch/addons/node";
@@ -1192,6 +1199,139 @@ export function explainModule(
       folderFiles.map((file) => file.path),
       10
     )
+  };
+}
+
+/**
+ * Qué arquitectura tiene ya el código, como propuesta para `.codarch.yml`.
+ *
+ * Es la consulta de `codarch suggest`: mira el grafo y deduce qué carpetas
+ * están hacia dentro y cuáles hacia fuera. Propone; el equipo decide (ADR 0023).
+ */
+export interface SuggestArchitectureResult {
+  available: boolean;
+  /** La versión de configuración que espera el fragmento propuesto. */
+  configVersion: number;
+  detected: Suggestion["detected"];
+  layers: Suggestion["layers"];
+  rules: Suggestion["rules"];
+  /** `layers` = deducido del grafo; `profile` = copiado del catálogo. */
+  proposal: Suggestion["proposal"];
+  profile: Suggestion["profile"];
+  /** Carpetas con código que no encajan en ninguna capa. */
+  ungrouped: Suggestion["ungrouped"];
+  notes: Suggestion["notes"];
+  /** Qué perfiles del catálogo encajan, de más a menos. */
+  fits: Suggestion["fits"];
+}
+
+export function suggestArchitecture(
+  store: ArchitectureStore
+): SuggestArchitectureResult {
+  const suggestion = suggestLayers(store.snapshot);
+  return {
+    available: true,
+    configVersion: CONFIG_VERSION,
+    detected: suggestion.detected,
+    layers: suggestion.layers,
+    rules: suggestion.rules,
+    proposal: suggestion.proposal,
+    profile: suggestion.profile,
+    ungrouped: suggestion.ungrouped,
+    notes: suggestion.notes,
+    fits: suggestion.fits
+  };
+}
+
+export interface ProfileRule {
+  name: string;
+  from: string;
+  to: string;
+  severity: string;
+  message: string | null;
+}
+
+export interface ProfileEntry {
+  id: string;
+  title: string;
+  description: string;
+  /** Para qué proyecto está pensado. */
+  when: string;
+  layers: Array<{ name: string; patterns: string[] }>;
+  rules: ProfileRule[];
+}
+
+export interface ListProfilesResult {
+  /** La versión de configuración que hay que declarar para usar un perfil. */
+  configVersion: number;
+  profiles: ProfileEntry[];
+}
+
+/** El catálogo de perfiles de arquitectura (la consulta de `codarch profiles`). */
+export function listProfiles(): ListProfilesResult {
+  return {
+    configVersion: CONFIG_VERSION,
+    profiles: DOMAIN_PROFILES.map((profile) => ({
+      id: profile.id,
+      title: profile.title,
+      description: profile.description,
+      when: profile.when,
+      layers: profile.layers.map((layer) => ({
+        name: layer.name,
+        patterns: layer.patterns
+      })),
+      rules: profile.rules.map((rule) => ({
+        name: rule.name,
+        from: rule.from,
+        to: rule.to,
+        severity: rule.severity,
+        message: rule.message ?? null
+      }))
+    }))
+  };
+}
+
+export interface VerifyHistoryResult {
+  available: boolean;
+  /** `true` si cada símbolo del snapshot es la última versión de su cadena. */
+  ok: boolean;
+  checked: number;
+  /** La cabeza del proyecto: los símbolos vivos del snapshot. */
+  projectHead: string;
+  mismatches: Array<{ path: string; name: string; reason: string }>;
+  reason?: string;
+}
+
+/**
+ * Comprueba que el snapshot encaja con la historia (ADR 0026).
+ *
+ * Usa el snapshot que el store ya cargó, no una segunda lectura del disco: es
+ * la misma comprobación que `codarch verify` sobre el mismo dato (ADR 0074).
+ */
+export function verifyHistory(
+  store: ArchitectureStore
+): VerifyHistoryResult {
+  const index = readHistoryIndex(store.root);
+  if (index.entries.length === 0) {
+    return {
+      available: false,
+      ok: false,
+      checked: 0,
+      projectHead: "",
+      mismatches: [],
+      reason:
+        "no hay historial en este repositorio; se guarda con `codarch analyze . --history`"
+    };
+  }
+
+  const chains = loadChains(store.root, index.entries);
+  const result = verifyChains(chains, store.snapshot);
+  return {
+    available: true,
+    ok: result.ok,
+    checked: result.checked,
+    projectHead: result.projectHead,
+    mismatches: result.mismatches
   };
 }
 

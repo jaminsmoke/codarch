@@ -68,6 +68,9 @@ export interface StoreEdge {
 
 export type ViolationStatus = "introduced" | "existing" | "resolved";
 
+/** Qué reporte describen los cambios: el del working tree o el de un PR. */
+export type ReportSource = "head" | "report" | null;
+
 export interface StatusViolation {
   status: ViolationStatus;
   violation: RuleViolation;
@@ -91,6 +94,14 @@ export interface StoreOptions {
   snapshotPath?: string | null;
   reportPath?: string | null;
   report?: DiffReport | null;
+  headReportPath?: string | null;
+  /**
+   * Lo tocado desde el último commit (ADR 0072).
+   *
+   * Manda sobre `report.json`: es el cambio que la app enseña en **Cambios**, y
+   * el MCP tiene que contestar lo mismo que la interfaz (ADR 0074).
+   */
+  headReport?: DiffReport | null;
 }
 
 export interface LoadStoreOptions {
@@ -98,6 +109,8 @@ export interface LoadStoreOptions {
   snapshot?: string;
   /** `null` desactiva el reporte; si falta, se busca `.codarch/report.json`. */
   report?: string | null;
+  /** `null` desactiva el reporte HEAD; si falta, se busca `.codarch/head-report.json`. */
+  headReport?: string | null;
 }
 
 export interface StoreSummary {
@@ -111,6 +124,8 @@ export interface StoreSummary {
   sizeMetric: string | null;
   metrics: string[];
   reportLoaded: boolean;
+  /** De dónde sale el reporte de cambios que están usando las consultas. */
+  reportSource: ReportSource;
 }
 
 /**
@@ -121,8 +136,12 @@ export class ArchitectureStore {
   readonly root: string;
   readonly snapshotPath: string | null;
   readonly reportPath: string | null;
+  readonly headReportPath: string | null;
   readonly snapshot: CcJson;
+  /** El reporte que describen las consultas de cambio: el HEAD si lo hay. */
   readonly report: DiffReport | null;
+  readonly headReport: DiffReport | null;
+  readonly reportSource: ReportSource;
   readonly rootName: string | null;
   readonly sizeMetric: string | null;
   readonly files: StoreFile[];
@@ -147,8 +166,18 @@ export class ArchitectureStore {
       ? path.resolve(options.snapshotPath)
       : null;
     this.reportPath = options.reportPath ? path.resolve(options.reportPath) : null;
+    this.headReportPath = options.headReportPath
+      ? path.resolve(options.headReportPath)
+      : null;
     this.snapshot = cc;
-    this.report = options.report ?? null;
+    // Lo tocado desde el último commit manda: es lo que la app enseña (ADR 0072).
+    this.headReport = options.headReport ?? null;
+    this.report = options.headReport ?? options.report ?? null;
+    this.reportSource = options.headReport
+      ? "head"
+      : options.report
+        ? "report"
+        : null;
     this.rootName = cc.files.length === 1 ? (cc.files[0]?.name ?? null) : null;
 
     const metrics = cc.lenses?.metrics?.attributes ?? {};
@@ -205,7 +234,8 @@ export class ArchitectureStore {
       edges: this.edges.length,
       sizeMetric: this.sizeMetric,
       metrics: this.coverage,
-      reportLoaded: this.report !== null
+      reportLoaded: this.report !== null,
+      reportSource: this.reportSource
     };
   }
 
@@ -637,11 +667,37 @@ export function loadArchitectureStore(
     throw new McpDataError(`no encuentro el reporte ${reportPath}`);
   }
 
+  // El reporte de HEAD es el que escribe el escritorio y el que sirve `serve`
+  // en `/data/head-report.json` (ADR 0072). Si está, manda sobre `report.json`.
+  const explicitHead = options.headReport !== undefined && options.headReport !== null;
+  const noHead = options.headReport === null;
+  const headPath = noHead
+    ? null
+    : explicitHead
+      ? path.resolve(root, options.headReport as string)
+      : path.resolve(root, ".codarch/head-report.json");
+  let headReport: DiffReport | null = null;
+  if (headPath && fs.existsSync(headPath)) {
+    let rawHead: unknown;
+    try {
+      rawHead = JSON.parse(fs.readFileSync(headPath, "utf8"));
+    } catch (error) {
+      throw new McpDataError(
+        `no se pudo leer ${headPath}: ${(error as Error).message}`
+      );
+    }
+    headReport = parseDiffReport(rawHead, headPath);
+  } else if (explicitHead) {
+    throw new McpDataError(`no encuentro el reporte HEAD ${headPath}`);
+  }
+
   return new ArchitectureStore(snapshot, {
     root,
     snapshotPath,
     reportPath: report ? reportPath : null,
-    report
+    report,
+    headReportPath: headReport ? headPath : null,
+    headReport
   });
 }
 

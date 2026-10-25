@@ -39,6 +39,53 @@ describe("loadArchitectureStore", () => {
     expect(store.files).toHaveLength(5);
   });
 
+  it("prefiere el reporte HEAD sobre report.json", () => {
+    const root = repository();
+    fs.mkdirSync(path.join(root, ".codarch"));
+    fs.writeFileSync(
+      path.join(root, ".codarch", "snapshot.cc.json"),
+      JSON.stringify(SNAPSHOT)
+    );
+    fs.writeFileSync(
+      path.join(root, ".codarch", "report.json"),
+      JSON.stringify(makeReport())
+    );
+    const head = makeReport();
+    head.hotspotMetric = "rloc";
+    fs.writeFileSync(
+      path.join(root, ".codarch", "head-report.json"),
+      JSON.stringify(head)
+    );
+
+    const store = loadArchitectureStore({ root });
+    // Lo tocado desde el último commit manda: es lo que enseña la app.
+    expect(store.reportSource).toBe("head");
+    expect(store.headReport?.hotspotMetric).toBe("rloc");
+    expect(store.summary().reportSource).toBe("head");
+  });
+
+  it("respeta --no-head-report aunque exista el reporte HEAD", () => {
+    const root = repository();
+    fs.mkdirSync(path.join(root, ".codarch"));
+    fs.writeFileSync(
+      path.join(root, ".codarch", "snapshot.cc.json"),
+      JSON.stringify(SNAPSHOT)
+    );
+    fs.writeFileSync(
+      path.join(root, ".codarch", "report.json"),
+      JSON.stringify(makeReport())
+    );
+    fs.writeFileSync(
+      path.join(root, ".codarch", "head-report.json"),
+      JSON.stringify(makeReport())
+    );
+
+    const store = loadArchitectureStore({ root, headReport: null });
+    expect(store.headReport).toBeNull();
+    expect(store.reportSource).toBe("report");
+    expect(store.reportPath).toContain("report.json");
+  });
+
   it("respeta --no-report aunque exista el reporte por defecto", () => {
     const root = repository();
     fs.mkdirSync(path.join(root, ".codarch"));

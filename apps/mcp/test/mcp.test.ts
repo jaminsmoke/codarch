@@ -15,7 +15,10 @@ import {
   getMigrationPlan,
   getProjectConfig,
   getSymbolChain,
+  listProfiles,
   listViolations,
+  suggestArchitecture,
+  verifyHistory,
   type MapNode
 } from "../src/tools";
 import { SNAPSHOT, makeReport, makeStore } from "./fixtures";
@@ -512,8 +515,82 @@ describe("getSymbolChain", () => {
   });
 });
 
+describe("suggestArchitecture", () => {
+  it("deduce las capas del grafo y propone reglas", () => {
+    const result = suggestArchitecture(makeStore());
+
+    expect(result.available).toBe(true);
+    expect(result.configVersion).toBe(1);
+    // El fixture tiene src/domain y src/infra: son las capas que ve el grafo.
+    expect(result.detected.map((layer) => layer.name)).toEqual(
+      expect.arrayContaining(["src/domain", "src/infra"])
+    );
+    expect(result.layers.map((layer) => layer.name)).toContain("domain");
+    expect(result.rules.length).toBeGreaterThan(0);
+    expect(result.fits.map((fit) => fit.id)).toContain("hexagonal");
+  });
+});
+
+describe("listProfiles", () => {
+  it("lista el catálogo con sus capas y sus reglas", () => {
+    const result = listProfiles();
+
+    expect(result.configVersion).toBe(1);
+    expect(result.profiles.length).toBeGreaterThan(0);
+    const first = result.profiles[0];
+    expect(typeof first?.id).toBe("string");
+    expect(first?.layers.length).toBeGreaterThan(0);
+    expect(first?.rules[0]?.severity).toBeTruthy();
+  });
+});
+
+describe("verifyHistory", () => {
+  const roots: string[] = [];
+
+  afterEach(() => {
+    for (const root of roots.splice(0)) {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  function withHistory(): string {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-mcp-verify-"));
+    roots.push(root);
+    saveHistory(
+      root,
+      historySnapshot("history-1", "cargar"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+    saveHistory(
+      root,
+      historySnapshot("history-2", "buscar"),
+      new Date("2026-01-02T00:00:00.000Z")
+    );
+    return root;
+  }
+
+  it("declara que no hay historial en vez de inventarlo", () => {
+    const empty = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-mcp-verify-"));
+    roots.push(empty);
+
+    const result = verifyHistory(makeStore(null, empty));
+    expect(result.available).toBe(false);
+    expect(result.ok).toBe(false);
+    expect(result.reason).toContain("historial");
+  });
+
+  it("comprueba el snapshot contra las cadenas guardadas", () => {
+    const store = makeStore(null, withHistory());
+    const result = verifyHistory(store);
+
+    expect(result.available).toBe(true);
+    expect(result.checked).toBeGreaterThan(0);
+    expect(typeof result.projectHead).toBe("string");
+  });
+});
+
 describe("servidor MCP", () => {
-  it("registra las nueve herramientas y responde por transporte en memoria", async () => {
+  it("registra las doce herramientas y responde por transporte en memoria", async () => {
     const server = createServer(makeStore());
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -535,7 +612,10 @@ describe("servidor MCP", () => {
         "get_migration_plan",
         "get_project_config",
         "get_symbol_chain",
-        "list_violations"
+        "list_profiles",
+        "list_violations",
+        "suggest_architecture",
+        "verify_history"
       ]);
 
       const result = await client.callTool({

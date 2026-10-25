@@ -93,10 +93,18 @@ To skip loading a report:
 | `-s`, `--snapshot <file>` | `.codarch/snapshot.cc.json` | `cc.json` 2.x snapshot (or normalisable 1.x) |
 | `-r`, `--report <file>` | `.codarch/report.json` | Diff report; if it does not exist, it carries on without it |
 | `--no-report` | — | Do not load a report |
+| `--head-report <file>` | `.codarch/head-report.json` | Changes since the last commit; wins over `--report` when present |
+| `--no-head-report` | — | Do not load that report |
 | `-h`, `--help` | — | Help |
 | `-v`, `--version` | — | Version |
 
-An explicit `--report` that does not exist is an error. The default report being absent is not.
+An explicit `--report` or `--head-report` that does not exist is an error. The default report being
+absent is not.
+
+The HEAD report describes the **working tree against its last commit**, which is what the app shows
+in **Changes**; that is why it is preferred over `report.json`, which describes a PR. The
+`get_architecture_map` response says in `reportSource` where the changes come from (`head`, `report`
+or `none`).
 
 ## Tools
 
@@ -260,14 +268,37 @@ or entering the set. `limit` (1–50, default 5) controls the detail edges and f
 apps/mcp/
 ├── bin/codarch-mcp.mjs   launcher without npm noise
 ├── src/store.ts          snapshot/report index, paths, risk, cycles, aggregates
-├── src/tools.ts          the nine queries
+├── src/tools.ts          the twelve queries
 ├── src/server.ts         MCP registration and input schemas
 ├── src/index.ts          stdio entry and options
-└── test/                 34 tests, including in-memory transport
+└── test/                 45 tests, including in-memory transport
 ```
 
 The server loads and indexes once; calls work in memory. `npm test` covers the tools, the server and
 the in-memory MCP transport. There is also a manual stdio test against the action's artefacts.
+
+### `suggest_architecture`
+
+The `codarch suggest` query: it deduces from the graph which layers the code already has and which
+rules would protect them. It returns the fragment for `.codarch.yml` with its `configVersion`, the
+detected layers (with their patterns and what depends on them), the folders that fit no layer, the
+catalogue profiles that fit best and which of that profile's rules the repo breaks today.
+
+It proposes; the team decides. Rules come in as a warning.
+
+### `list_profiles`
+
+The `codarch profiles` catalogue: each profile with what project it is for, its layers and its rules
+with the severity they come in with. A profile is chosen in `.codarch.yml` with `profile: <id>`.
+
+### `verify_history`
+
+The `codarch verify` check: every symbol in the snapshot must be the latest version of its chain. If
+the body hash is not the chain's, the snapshot and the history are telling different stories. It
+returns `checked`, `projectHead` and the `mismatches` with their reason; without history,
+`available: false` and the reason.
+
+It uses the snapshot the server already loaded, not a second read from disk.
 
 ## What it does not do yet
 

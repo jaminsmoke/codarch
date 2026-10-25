@@ -347,8 +347,15 @@ Herramientas:
 | `explain_module` | Dame métricas, aristas, ciclo, diff y violaciones de esta ruta. |
 | `get_migration_plan` | ¿Cuánta deuda de migración queda, dónde y cómo ha cambiado? |
 | `get_history` | ¿Cómo ha cambiado la arquitectura de este repo a lo largo del tiempo? |
+| `get_symbol_chain` | ¿Esta función es la misma que hace un año? ¿Cómo se llamaba antes? |
+| `get_project_config` | ¿Qué perfil, capas, reglas y addons rigen este repo? |
+| `suggest_architecture` | ¿Qué capas tiene ya el código y qué reglas las protegerían? |
+| `list_profiles` | ¿Qué perfiles del catálogo puedo elegir y qué traen? |
+| `verify_history` | ¿El snapshot encaja con la historia de cada símbolo? |
 
-Sin reporte, las consultas de cambios y violaciones devuelven `available: false` con un motivo. Las
+El reporte de HEAD (`.codarch/head-report.json`) manda sobre `report.json`: un agente ve los mismos
+cambios que la pestaña **Cambios**. Sin reporte, las consultas de cambios y violaciones devuelven
+`available: false` con un motivo. Las
 rutas son relativas al proyecto; también se aceptan ids. Se rechazan rutas absolutas y `..`. Toda la
 superficie es de solo lectura. Referencia completa en [`apps/site/docs/mcp.md`](apps/site/docs/mcp.md) y decisión en
 [ADR 0013](apps/site/docs/adr/0011-0020/0013-mcp-readonly.md).

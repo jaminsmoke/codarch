@@ -74,6 +74,7 @@ sirve desde cualquier estático.
 - [x] `codarch analyze` deja de escribir `map.html`.
 - [x] `codarch render` publica el build de la app web junto al snapshot.
 - [x] La Action publica esa carpeta como artefacto.
-- [ ] El MCP gana las consultas que hoy solo tiene el CLI, una por una.
+- [x] El MCP gana las consultas que hoy solo tiene el CLI: `suggest_architecture`, `list_profiles` y
+      `verify_history` (ADR 0074).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
