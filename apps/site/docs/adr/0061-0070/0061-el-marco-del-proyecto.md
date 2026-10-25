@@ -142,9 +142,9 @@ secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en 
 - [ ] Un guard en `@codarch/ui` que exija título, cuenta y resumen en toda sección nueva, con la
   misma comprobación en la web y en el escritorio. Hoy `sections.test.ts` solo prueba el
   almacenamiento.
-- [ ] Por decidir antes de hacerla: la tabla de métricas de **Cambios**. O la misma tabla que la
-  ficha —riesgo primero, área como marca, barra hasta el p95—, o una tabla **base → head** por
-  métrica; no son lo mismo y la segunda pide cabecera propia.
+- [ ] La tabla de métricas de **Cambios** va de **base → head**, con los totales en el reporte. Es
+  la decisión del [ADR 0071](0071-la-tabla-de-cambios-va-de-base-a-head.md), y se hace en la M52: no es
+  la tabla de la ficha, que mide un fichero y no un cambio.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
 
