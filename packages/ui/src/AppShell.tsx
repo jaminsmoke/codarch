@@ -1,8 +1,16 @@
-import { type DragEvent, type ReactNode, useMemo, useRef } from "react";
+import {
+  Fragment,
+  type DragEvent,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef
+} from "react";
 import type { AddonView as SavedView } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp, WatchState } from "./useCodarchApp";
 import { MapCanvas } from "./MapCanvas";
+import { folderTrail, parentFolder } from "./tree";
 import { viewStateFromSaved } from "./viewState";
 import {
   DebtList,
@@ -129,6 +137,38 @@ export function AppShell({
 
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
+  // Las migas salen del árbol entero, no de la ruta ni de lo que se ve: con
+  // el foco puesto, `mapRoots` ya es solo la carpeta abierta y no sabría cuál
+  // es su padre. Cada tramo es una carpeta que existe y se puede abrir.
+  const trail = useMemo(
+    () => (focusPath ? folderTrail(view.model?.roots ?? [], focusPath) : []),
+    [view.model, focusPath]
+  );
+  const upPath = focusPath
+    ? parentFolder(view.model?.roots ?? [], focusPath)
+    : null;
+
+  // Retroceso sube una carpeta, igual que la flecha de las migas. Se ignora
+  // al escribir en un campo: ahí la tecla borra, que es lo que toca.
+  useEffect(() => {
+    if (typeof window === "undefined" || !focusPath) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Backspace") return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+      event.preventDefault();
+      setFocusPath(upPath);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [focusPath, upPath, setFocusPath]);
+
   const applySavedView = (saved: SavedView) => {
     viewsMenuRef.current?.removeAttribute("open");
     app.applyView(viewStateFromSaved(saved.state));
@@ -223,13 +263,51 @@ export function AppShell({
           <h1 title={projectTitle}>{projectTitle}</h1>
         </div>
         {focusPath ? (
-          <div className="breadcrumb">
+          <nav className="breadcrumb" aria-label="Ruta del mapa">
+            <button
+              className="breadcrumb-up"
+              type="button"
+              onClick={() => setFocusPath(upPath)}
+              title={
+                upPath
+                  ? "Subir una carpeta (Retroceso)"
+                  : "Salir de la carpeta (Esc)"
+              }
+              aria-label="Volver"
+            >
+              ←
+            </button>
             <button type="button" onClick={() => setFocusPath(null)}>
               Todo
             </button>
-            <span>/</span>
-            <span>{focusPath}</span>
-          </div>
+            {trail.length > 0 ? (
+              trail.map((crumb, index) =>
+                index === trail.length - 1 ? (
+                  <Fragment key={crumb.path}>
+                    <span className="breadcrumb-sep">/</span>
+                    <span className="breadcrumb-current" aria-current="page">
+                      {crumb.name}
+                    </span>
+                  </Fragment>
+                ) : (
+                  <Fragment key={crumb.path}>
+                    <span className="breadcrumb-sep">/</span>
+                    <button
+                      type="button"
+                      onClick={() => setFocusPath(crumb.path)}
+                    >
+                      {crumb.name}
+                    </button>
+                  </Fragment>
+                )
+              )
+            ) : (
+              <>
+                <span className="breadcrumb-sep">/</span>
+                <span className="breadcrumb-current">{focusPath}</span>
+              </>
+            )}
+          </nav>
         ) : null}
         <div className="project-kpis">
           <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
@@ -401,17 +479,12 @@ export function AppShell({
           </div>
 
           <div className="stage-foot">
-            <div className="map-controls">
-              <button
-                type="button"
-                onClick={() => zoomAt(1.25)}
-                disabled={zoom >= 8}
-                title="Acercar"
-                aria-label="Acercar"
-              >
-                +
-              </button>
-              <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
+            {/* Los datos del proyecto ya están en la banda de arriba: aquí
+                solo el zoom, sin repetir ficheros, carpetas ni formato. */}
+            <div
+              className="map-controls"
+              title="Con el botón derecho apretado, arrastra para mover el mapa"
+            >
               <button
                 type="button"
                 onClick={() => zoomAt(1 / 1.25)}
@@ -421,26 +494,32 @@ export function AppShell({
               >
                 −
               </button>
+              <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
               <button
+                type="button"
+                onClick={() => zoomAt(1.25)}
+                disabled={zoom >= 8}
+                title="Acercar"
+                aria-label="Acercar"
+              >
+                +
+              </button>
+              <button
+                className="map-fit"
                 type="button"
                 onClick={fitMap}
                 disabled={zoom === 1}
                 title="Ver el mapa entero"
+                aria-label="Ver el mapa entero"
               >
-                Ajustar
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M6 2H2v4h1.5V3.5H6V2Zm4 0v1.5h2.5V6H14V2h-4ZM2 10v4h4v-1.5H3.5V10H2Zm10.5 0v2.5H10V14h4v-4h-1.5Z"
+                  />
+                </svg>
               </button>
-              <span
-                className="map-controls-hint"
-                title="Con el botón derecho apretado, arrastra para mover el mapa"
-              >
-                botón derecho: mover
-              </span>
             </div>
-            <span>
-              {view.model
-                ? `${view.model.fileCount} ficheros · ${view.model.folderCount} carpetas · ${view.model.meta.apiVersion}`
-                : "—"}
-            </span>
             {progress ? (
               <span className="progress-cell">
                 <span className="mono detail-note">{progress}</span>
