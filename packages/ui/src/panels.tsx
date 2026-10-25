@@ -5,6 +5,7 @@ import type {
   CcMigrationLens,
   CcMigrationNode,
   CcMigrationStatus,
+  CcMember,
   CcStructureNode,
   CcSymbol,
   HistoryEntry,
@@ -413,6 +414,99 @@ export function DebtList({
   );
 }
 
+/** Lo que se abre bajo una fila: un símbolo o un miembro de clase. */
+interface CodeTarget {
+  id: string;
+  name: string;
+  path: string;
+  line: number;
+  lines?: number;
+}
+
+function symbolTarget(file: RenderFile, symbol: CcSymbol): CodeTarget {
+  return {
+    id: `symbol:${symbol.kind}:${symbol.name}:${symbol.line}`,
+    name: symbol.name,
+    path: file.path,
+    line: symbol.line,
+    lines: symbol.lines
+  };
+}
+
+function memberTarget(
+  file: RenderFile,
+  owner: string,
+  member: CcMember
+): CodeTarget {
+  return {
+    id: `member:${owner}:${member.name}:${member.line}`,
+    name: `${owner}.${member.name}`,
+    path: file.path,
+    line: member.line,
+    lines: member.lines
+  };
+}
+
+function InlineCode({
+  state
+}: {
+  state: {
+    target: CodeTarget;
+    snippet: CodeSnippet | null;
+    loading: boolean;
+    error: string | null;
+  };
+}) {
+  const { target, snippet, loading, error } = state;
+  return (
+    <div className="symbol-code">
+      <div className="symbol-code-head">
+        <span>Código</span>
+        <span className="mono">
+          {snippet
+            ? `líneas ${snippet.start}–${snippet.end}`
+            : `línea ${target.line}`}
+        </span>
+      </div>
+      {loading ? (
+        <p className="muted small">Cargando el código…</p>
+      ) : error ? (
+        <p className="muted small">No se pudo leer el código: {error}</p>
+      ) : snippet && snippet.lines.length > 0 ? (
+        <>
+          <pre className="code-view" aria-label={`Código de ${target.name}`}>
+            {snippet.lines.map((line, index) => {
+              const lineNumber = snippet.start + index;
+              const inSymbol =
+                lineNumber >= target.line &&
+                lineNumber <= target.line + Math.max(1, target.lines ?? 1) - 1;
+              return (
+                <span
+                  key={lineNumber}
+                  className={`code-line${inSymbol ? " is-symbol" : ""}`}
+                >
+                  <i>{lineNumber}</i>
+                  <span>{line || " "}</span>
+                </span>
+              );
+            })}
+          </pre>
+          {snippet.end < snippet.total ? (
+            <p className="muted tiny code-note">
+              Se muestran las líneas {snippet.start}–{snippet.end} de{" "}
+              {snippet.total}.
+            </p>
+          ) : null}
+        </>
+      ) : (
+        <p className="muted small">
+          El código no está disponible en esta plataforma.
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function Inspector({
   model,
   file,
@@ -446,10 +540,11 @@ export function Inspector({
 }) {
   /**
    * El código del símbolo elegido (ADR 0067). Vive en el inspector y no en el
-   * hook: es un detalle de la ficha, no del proyecto.
+   * hook: es un detalle de la ficha, no del proyecto. Va pegado a su fila,
+   * como un desplegable más.
    */
   const [code, setCode] = useState<{
-    symbol: CcSymbol;
+    target: CodeTarget;
     snippet: CodeSnippet | null;
     loading: boolean;
     error: string | null;
@@ -480,22 +575,24 @@ export function Inspector({
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
   const lastChainVersion = chain?.versions[chain.versions.length - 1];
 
-  const openCode = async (symbol: CcSymbol): Promise<void> => {
-    const start = Math.max(1, symbol.line - 2);
-    const end = symbol.line + Math.max(1, symbol.lines ?? 1) - 1 + 2;
-    setCode({ symbol, snippet: null, loading: true, error: null });
+  const openCode = async (target: CodeTarget): Promise<void> => {
+    if (code?.target.id === target.id) {
+      setCode(null);
+      return;
+    }
+    const start = Math.max(1, target.line - 2);
+    const end = target.line + Math.max(1, target.lines ?? 1) - 1 + 2;
+    setCode({ target, snippet: null, loading: true, error: null });
     try {
-      const snippet = await onLoadCode({ path: file.path, start, end });
+      const snippet = await onLoadCode({ path: target.path, start, end });
       setCode((current) =>
-        current?.symbol.name === symbol.name &&
-        current.symbol.line === symbol.line
+        current?.target.id === target.id
           ? { ...current, snippet, loading: false }
           : current
       );
     } catch (cause) {
       setCode((current) =>
-        current?.symbol.name === symbol.name &&
-        current.symbol.line === symbol.line
+        current?.target.id === target.id
           ? {
               ...current,
               loading: false,
@@ -613,92 +710,54 @@ export function Inspector({
                 count={group.symbols.length}
                 className="symbol-group"
               >
-                {group.symbols.map((symbol) => (
-                  <button
-                    key={`${symbol.name}-${symbol.line}`}
-                    type="button"
-                    className={`symbol-row${
-                      chain?.name === symbol.name ? " is-selected" : ""
-                    }`}
-                    onClick={() => {
-                      onSelectSymbol(symbol.name);
-                      void openCode(symbol);
-                    }}
-                    title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
-                      symbol.line
-                    }${
-                      symbol.complexity !== undefined
-                        ? ` · complejidad ${symbol.complexity}`
-                        : ""
-                    }. Pulsa para ver su código y su vida.`}
-                  >
-                    <span className={`symbol-kind symbol-${symbol.kind}`}>
-                      {SYMBOL_LABEL[symbol.kind]}
-                    </span>
-                    <span className="symbol-name" title={symbol.name}>
-                      {symbol.name}
-                    </span>
-                    {symbol.complexity !== undefined ? (
-                      <span
-                        className="mono symbol-complexity"
-                        title="Complejidad ciclomática"
+                {group.symbols.map((symbol) => {
+                  const target = symbolTarget(file, symbol);
+                  const open = code?.target.id === target.id;
+                  return (
+                    <div key={`${symbol.name}-${symbol.line}`} className="symbol-entry">
+                      <button
+                        type="button"
+                        className={`symbol-row${
+                          chain?.name === symbol.name ? " is-selected" : ""
+                        }${open ? " is-open" : ""}`}
+                        aria-expanded={open}
+                        onClick={() => {
+                          onSelectSymbol(symbol.name);
+                          void openCode(target);
+                        }}
+                        title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
+                          symbol.line
+                        }${
+                          symbol.complexity !== undefined
+                            ? ` · complejidad ${symbol.complexity}`
+                            : ""
+                        }. Pulsa para ver su código y su vida.`}
                       >
-                        {symbol.complexity}
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
+                        <span className={`symbol-kind symbol-${symbol.kind}`}>
+                          {SYMBOL_LABEL[symbol.kind]}
+                        </span>
+                        <span className="symbol-name" title={symbol.name}>
+                          {symbol.name}
+                        </span>
+                        {symbol.complexity !== undefined ? (
+                          <span
+                            className="mono symbol-complexity"
+                            title="Complejidad ciclomática"
+                          >
+                            {symbol.complexity}
+                          </span>
+                        ) : null}
+                      </button>
+                      {open && code ? <InlineCode state={code} /> : null}
+                    </div>
+                  );
+                })}
               </CollapsibleSection>
             ))}
             <p className="muted tiny symbol-note">
               Agrupados por tipo y ordenados por complejidad. Pulsa uno para ver
               su código y seguir su vida.
             </p>
-          </div>
-        </CollapsibleSection>
-      ) : null}
-
-      {code ? (
-        <CollapsibleSection
-          key={`file-code-${code.symbol.name}-${code.symbol.line}`}
-          id={`file-code-${code.symbol.kind}-${code.symbol.line}-${code.symbol.name}`}
-          title={`Código de ${code.symbol.name}`}
-          count={code.snippet?.lines.length ?? code.symbol.lines ?? 1}
-          summary={`línea ${code.symbol.line}`}
-          defaultOpen
-        >
-          <div className="code-panel">
-            {code.loading ? (
-              <p className="muted small">Cargando el código…</p>
-            ) : code.error ? (
-              <p className="muted small">
-                No se pudo leer el código: {code.error}
-              </p>
-            ) : code.snippet && code.snippet.lines.length > 0 ? (
-              <>
-                <pre
-                  className="code-view"
-                  aria-label={`Código de ${code.symbol.name}`}
-                >
-                  {code.snippet.lines.map((line, index) => (
-                    <span key={code.snippet!.start + index} className="code-line">
-                      <i>{code.snippet!.start + index}</i>
-                      <span>{line || " "}</span>
-                    </span>
-                  ))}
-                </pre>
-                {code.snippet.end < code.snippet.total ? (
-                  <p className="muted tiny code-note">
-                    Se muestran las líneas {code.snippet.start}–
-                    {code.snippet.end} de {code.snippet.total}.
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <p className="muted small">
-                El código no está disponible en esta plataforma.
-              </p>
-            )}
           </div>
         </CollapsibleSection>
       ) : null}
@@ -804,20 +863,32 @@ export function Inspector({
                     {group.members.length}
                   </span>
                 </div>
-                {group.members.map((member) => (
-                  <div
-                    key={`${member.name}-${member.line}`}
-                    className="member-row"
-                    title={`${member.name} · línea ${member.line}`}
-                  >
-                    <span className="symbol-kind member-kind">
-                      {member.from === "parameter" ? "par" : "campo"}
-                    </span>
-                    <span className="symbol-name" title={member.name}>
-                      {member.name}
-                    </span>
-                  </div>
-                ))}
+                {group.members.map((member) => {
+                  const target = memberTarget(file, group.owner, member);
+                  const open = code?.target.id === target.id;
+                  return (
+                    <div
+                      key={`${member.name}-${member.line}`}
+                      className="member-entry"
+                    >
+                      <button
+                        type="button"
+                        className={`member-row${open ? " is-open" : ""}`}
+                        aria-expanded={open}
+                        onClick={() => void openCode(target)}
+                        title={`${member.name} · línea ${member.line}. Pulsa para ver su código.`}
+                      >
+                        <span className="symbol-kind member-kind">
+                          {member.from === "parameter" ? "par" : "campo"}
+                        </span>
+                        <span className="symbol-name" title={member.name}>
+                          {member.name}
+                        </span>
+                      </button>
+                      {open && code ? <InlineCode state={code} /> : null}
+                    </div>
+                  );
+                })}
               </div>
             ))}
             <p className="muted tiny symbol-note">

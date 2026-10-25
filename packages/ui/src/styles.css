@@ -1874,6 +1874,33 @@ button {
 }
 
 /* El código real de un símbolo, con sus números de línea. */
+.symbol-entry,
+.member-entry {
+  margin-bottom: 2px;
+}
+
+.symbol-code {
+  margin: 2px 0 6px 6px;
+  padding: 4px 0 0 8px;
+  border-left: 2px solid var(--line);
+}
+
+.symbol-code-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.symbol-row.is-open,
+.member-row.is-open {
+  background: rgba(47, 111, 237, 0.08);
+}
+
 .code-panel {
   padding-top: 4px;
 }
@@ -1905,6 +1932,14 @@ button {
 
 .code-line > span {
   white-space: pre;
+}
+
+.code-line.is-symbol {
+  background: rgba(47, 111, 237, 0.1);
+}
+
+.code-line.is-symbol > span {
+  color: var(--ink);
 }
 
 .code-note {
@@ -1968,7 +2003,7 @@ button {
 
 .symbol-row {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr) auto 10px;
   gap: 8px;
   align-items: center;
   padding: 3px 0;
@@ -1979,6 +2014,19 @@ button {
   background: transparent;
   text-align: left;
   cursor: pointer;
+}
+
+.symbol-row::after,
+.member-row::after {
+  content: "\25B8";
+  color: var(--muted);
+  font-size: 8px;
+  text-align: center;
+}
+
+.symbol-row.is-open::after,
+.member-row.is-open::after {
+  content: "\25BE";
 }
 
 .symbol-row:hover {
@@ -2151,12 +2199,26 @@ button {
 
 .member-row {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 34px minmax(0, 1fr) 10px;
   gap: 8px;
   align-items: center;
+  width: 100%;
   padding: 3px 0;
+  border: 0;
+  background: transparent;
   font-size: 11px;
   color: var(--ink-soft);
+  text-align: left;
+  cursor: pointer;
+}
+
+.member-row:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+.member-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
 }
 
 .member-kind {
