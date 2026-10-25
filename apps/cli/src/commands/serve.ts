@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { ConfigError, diffSnapshots, type DiffReport } from "@codarch/metrics";
 import {
   AnalysisSession,
@@ -17,6 +16,7 @@ import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
 import { loadProjectIgnore } from "../config";
 import { directoryProblem } from "../io";
+import { findWebRoot } from "../web-root";
 import { chainsPayload } from "./chains-payload";
 import { VERSION } from "../version";
 
@@ -595,25 +595,6 @@ function originAllowed(
   } catch {
     return false;
   }
-}
-
-function findWebRoot(): string | null {
-  const candidates = [
-    fileURLToPath(new URL("./web", import.meta.url)),
-    path.resolve(process.cwd(), "apps", "web", "dist"),
-    path.resolve(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "..",
-      "..",
-      "web",
-      "dist"
-    )
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(path.join(candidate, "index.html"))) return candidate;
-  }
-  return null;
 }
 
 function readReport(root: string): unknown | null {

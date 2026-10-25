@@ -75,7 +75,7 @@ The migration lens measures the progress: `rust` goes up, `migrationDebt` goes d
 ```bash
 npm run analyze -- .
 npm run inspect -- .codarch/snapshot.cc.json --metric migrationDebt --top 15
-npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o .codarch/migration.html
+npm run render -- .codarch/snapshot.cc.json -o .codarch/sitio
 ```
 
 ## Limits

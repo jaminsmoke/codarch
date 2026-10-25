@@ -69,12 +69,12 @@ npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3
 
 # Analizar un proyecto TypeScript/JavaScript
 npm run analyze -- .
-npm run analyze -- . -o .codarch --title "Mi proyecto"
+npm run analyze -- . -o .codarch --project "Mi proyecto"
 npm run analyze -- . --no-git      # sin historial de git
 
 # Inspeccionar y renderizar un cc.json existente
 npm run inspect -- samples/codecharta_visualization.cc.json.gz
-npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/map.html
+npm run render -- samples/codecharta_visualization.cc.json.gz -o samples/sitio
 
 # Comparar dos snapshots (por ejemplo, base y head de un PR)
 npm run diff -- base.cc.json head.cc.json -o report.json
@@ -87,7 +87,7 @@ npm run mcp -- --help
 
 # Lente de migración: deuda y frontera FFI
 npm run inspect -- .codarch/snapshot.cc.json --metric migrationDebt --top 10
-npm run render -- .codarch/snapshot.cc.json --area rloc --color migrationDebt -o .codarch/migration.html
+npm run render -- .codarch/snapshot.cc.json -o .codarch/sitio
 
 # App web (M5): arranca también el servidor de datos y lo para al cerrar Vite
 npm run web:dev
@@ -130,13 +130,15 @@ La imagen publicada es `ghcr.io/jaminsmoke/codarch-web:latest`; también se pued
 desde el repo con `docker build -t codarch-web .`. El contenedor no es un backend remoto: escucha
 solo en loopback y analiza el árbol montado (ADR 0044).
 
-`codarch analyze` escribe dos artefactos:
+`codarch analyze` escribe el snapshot:
 
 ```
 .codarch/
-├── snapshot.cc.json   # cc.json 2.0 determinista
-└── map.html           # treemap 2D autocontenido
+└── snapshot.cc.json   # cc.json 2.0 determinista
 ```
+
+La app que lo dibuja se publica aparte, con `codarch render <snapshot> -o <carpeta>`: copia el build
+de la web y deja el snapshot en `data/`. Es la misma interfaz que la web y el escritorio (ADR 0073).
 
 El snapshot incluye el árbol de ficheros/carpetas, 15 métricas de código y grafo, 2 métricas de
 historial cuando hay git (`number_of_commits`, `number_of_authors`), aristas internas con peso y
@@ -150,17 +152,17 @@ Salida de `analyze` sobre el fixture de test con `--no-git`:
 
   raíz         ...\packages\parsers\test\fixtures\repo
   snapshot     .codarch/fixture/snapshot.cc.json (17 KB)
-  mapa         .codarch/fixture/map.html (49 KB)
   estructura   15 ficheros · 7 carpetas · 13 aristas · 2 ciclos
   imports      2 externos · 0 builtins · 1 type-only · 2 sin resolver
   tiempo       30 ms
   historial    sin git; se omite churn
 ```
 
-El render produce un HTML único, sin servidor ni red, con treemap, búsqueda, inspector, dependencias
-entrantes/salientes y tres lentes: estructura, riesgo y métrica. El riesgo se calcula en
-`packages/metrics` y lo comparten el render y el MCP; no se almacena en el snapshot. Si falta
-churn o complejidad, los pesos se renormalizan.
+La app publicada es un sitio estático: se sirve desde cualquier carpeta (Pages, `npx serve`, el
+propio `codarch serve`) y trae treemap, búsqueda, inspector, dependencias entrantes/salientes y tres
+lentes: estructura, riesgo y métrica. El riesgo se calcula en `packages/metrics` y lo comparten la
+UI y el MCP; no se almacena en el snapshot. Si falta churn o complejidad, los pesos se
+renormalizan.
 
 ### 📜 La historia del repositorio
 
@@ -284,7 +286,7 @@ encaja** y avisa de las reglas que el código ya incumple. Propone, no decide.
 
 ### 💬 GitHub Action
 
-La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, `map.html` y
+La acción analiza el merge-base y el head de un PR, publica `snapshot.cc.json`, la app y
 `report.json` como artefacto, y actualiza un comentario con el diff. El mismo commit puede ejecutarse
 en modo aviso (`fail-on: none`) o bloqueo (`fail-on: violations|cycles|hotspots|any`); la severidad
 de cada regla se decide en `.codarch.yml`.

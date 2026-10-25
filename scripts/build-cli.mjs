@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CLI_DIR = path.join(ROOT, "apps", "cli");
 const DIST = path.join(CLI_DIR, "dist");
-const RENDER_SRC = path.join(ROOT, "packages", "render", "src");
 
 const cliPackage = JSON.parse(await readFile(path.join(CLI_DIR, "package.json"), "utf8"));
 // La versión del CLI se declara en `versions.json` (ADR 0065).
@@ -40,9 +39,6 @@ await build({
   ]
 });
 
-// `html.ts` resuelve estos assets con import.meta.url; viven junto al bundle.
-await copyFile(path.join(RENDER_SRC, "styles.css"), path.join(DIST, "styles.css"));
-await copyFile(path.join(RENDER_SRC, "client.js"), path.join(DIST, "client.js"));
 await copyFile(path.join(ROOT, "LICENSE"), path.join(DIST, "LICENSE"));
 await copyFile(path.join(CLI_DIR, "README.md"), path.join(DIST, "README.md"));
 
@@ -51,7 +47,7 @@ try {
   await cp(WEB_DIST, path.join(DIST, "web"), { recursive: true });
   console.log("ok · app web incluida en el paquete");
 } catch {
-  console.warn("aviso · no hay build web; `codarch serve` no estará disponible");
+  console.warn("aviso · no hay build web; `codarch serve` y `codarch render` no estarán disponibles");
 }
 
 const published = {
@@ -66,8 +62,6 @@ const published = {
   files: [
     "bin.js",
     "index.js",
-    "styles.css",
-    "client.js",
     "web",
     "LICENSE",
     "README.md"

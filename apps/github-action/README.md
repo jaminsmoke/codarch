@@ -67,7 +67,7 @@ en el PR, el diff muestra los ficheros que entran o salen.
 | Salida | Contenido |
 |---|---|
 | `report` | Ruta absoluta a `report.json`. |
-| `map` | Ruta absoluta a `map.html` del head. |
+| `map` | Ruta absoluta al `index.html` de la app publicada del head. |
 | `status` | `0` sin bloqueo, `2` política incumplida, `1` error. |
 
 ## Artefacto
@@ -76,10 +76,8 @@ El artefacto contiene:
 
 ```
 base/snapshot.cc.json
-base/map.html
 head/snapshot.cc.json
-head/map.html
-map.html
+head/app/index.html          # la app de verdad, con datos en head/app/data/
 report.json
 ```
 

@@ -29,8 +29,8 @@ Today CodArch has:
 Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 closed, M27 closed,
 M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
-closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed and
-M51 closed.
+closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
+M51 closed, M52 not started, M53 closed and M54 in progress.
 
 ## The phases
 
@@ -65,6 +65,7 @@ flowchart TD
     M47 --> M48["M48 · Editor and dependencies"]
     M48 --> M50["M50 · Two tabs"]
     M50 --> M51["M51 · The files of the change, in one list"]
+    M51 --> M52["M52 · The table from base to head"]
   end
   subgraph lenses["Lenses: migration, domain, symbols, time"]
     M8["M8 · Migration where it was missing"] --> M9["M9 · Domain lens"]
@@ -153,6 +154,9 @@ flowchart TD
 | M49 | The card's language, across the report | in progress | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M50 | Two tabs: the file and the change | closed | [ADR 0069](0061-0070/0069-dos-pestanas.md#hoja-de-ruta) |
 | M51 | The files of the change, in one list | closed | [ADR 0070](0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md#hoja-de-ruta) |
+| M52 | The change table goes from base to head | not started | [ADR 0071](0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
+| M53 | Changes since the last commit | closed | [ADR 0072](0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
+| M54 | One single interface | in progress | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 
 ## How to read this
 

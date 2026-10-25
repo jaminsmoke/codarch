@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada y M51 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada y M54 en curso.
 
 ## Las fases
 
@@ -61,6 +61,9 @@ flowchart TD
     M47 --> M48["M48 · Editor y dependencias"]
     M48 --> M50["M50 · Dos pestañas"]
     M50 --> M51["M51 · Una lista de ficheros"]
+    M51 --> M52["M52 · La tabla base → head"]
+    M52 --> M53["M53 · Cambios desde el último commit"]
+    M53 --> M54["M54 · Una sola interfaz"]
   end
   subgraph lentes["Lentes: migración, dominio, símbolos, tiempo"]
     M8["M8 · La migración donde faltaba"] --> M9["M9 · Lente de dominio"]
@@ -149,6 +152,9 @@ flowchart TD
 | M49 | El lenguaje de la ficha, en todo el reporte | en curso | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M50 | Dos pestañas: el fichero y el cambio | cerrada | [ADR 0069](0061-0070/0069-dos-pestanas.md#hoja-de-ruta) |
 | M51 | Los ficheros del cambio, en una lista | cerrada | [ADR 0070](0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md#hoja-de-ruta) |
+| M52 | La tabla de Cambios va de base a head | no empezada | [ADR 0071](0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
+| M53 | Cambios desde el último commit | cerrada | [ADR 0072](0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
+| M54 | Una sola interfaz | en curso | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

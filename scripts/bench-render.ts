@@ -1,5 +1,5 @@
 import { parseCcJson } from "@codarch/schema";
-import { buildRenderModel, renderHtml } from "@codarch/render";
+import { buildRenderModel, layoutMap } from "@codarch/render";
 
 const FILE_COUNT = 5_000;
 const FOLDERS = 50;
@@ -47,13 +47,13 @@ function fixture(files: number): unknown {
 
 const raw = fixture(FILE_COUNT);
 const times: number[] = [];
-let bytes = 0;
+let nodes = 0;
 
 for (let run = 0; run < RUNS; run++) {
   const started = performance.now();
   const model = buildRenderModel(parseCcJson(raw));
-  const html = renderHtml(model);
-  bytes = Buffer.byteLength(html, "utf8");
+  // Lo que la app pinta: el modelo y su treemap (ADR 0073).
+  nodes = layoutMap(model.roots).length;
   times.push(performance.now() - started);
 }
 
@@ -67,5 +67,5 @@ console.log(`  CodArch · benchmark de render
   ejecuciones  ${RUNS}
   mediana      ${format.format(median)} ms
   mínimo       ${format.format(times[0] ?? 0)} ms
-  html         ${format.format(bytes / 1024)} KB
+  nodos        ${format.format(nodes)}
 `);

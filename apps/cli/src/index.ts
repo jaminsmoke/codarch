@@ -40,7 +40,6 @@ Opciones de analyze:
   --config <file>    alcance YAML (por defecto .codarch.yml si existe)
   --no-config        no leer el alcance del YAML
   --project <nombre> nombre del proyecto en el snapshot
-  --title <texto>    título del mapa
   --no-git           no leer churn del historial git
   --history          guardar la foto en el historial del repo (.codarch-history/)
   -h, --help         esta ayuda
@@ -54,10 +53,7 @@ Opciones de inspect:
   -v, --version     versión
 
 Opciones de render:
-  -o, --out <html>  fichero de salida (por defecto, junto al cc.json)
-  --area <métrica>  métrica que decide el área (por defecto rloc)
-  --color <modo>    risk | structure | <métrica> (por defecto risk)
-  --title <texto>   título del proyecto en el mapa
+  -o, --out <dir>   carpeta de salida (por defecto, junto al cc.json)
   -h, --help        esta ayuda
 
 Opciones de diff:
@@ -125,10 +121,10 @@ Opciones de history:
 
 Ejemplos:
   codarch analyze .
-  codarch analyze . -o .codarch --title "Mi proyecto"
+  codarch analyze . -o .codarch --project "Mi proyecto"
   codarch inspect samples/codecharta_visualization.cc.json.gz
   codarch render samples/codecharta_visualization.cc.json.gz
-  codarch render mapa.cc.json -o mapa.html --area rloc --color maxComplexity
+  codarch render mapa.cc.json -o publico
   codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
   codarch serve .
   codarch serve . --no-watch
@@ -181,15 +177,6 @@ function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
       options.projectName = value;
     } else if (arg.startsWith("--project=")) {
       options.projectName = arg.slice("--project=".length);
-    } else if (arg === "--title") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--title necesita un texto");
-        return 1;
-      }
-      options.title = value;
-    } else if (arg.startsWith("--title=")) {
-      options.title = arg.slice("--title=".length);
     } else if (arg === "--no-git") {
       options.git = false;
     } else if (arg === "--history") {
@@ -480,9 +467,7 @@ function parseInspect(args: string[]): InspectOptions | number {
     } else {
       positional.push(arg);
     }
-  }
-
-  options.file = positional[0];
+  }      options.file = positional[0];
   return options;
 }
 
@@ -502,33 +487,6 @@ function parseRender(args: string[]): RenderCommandOptions | number {
       options.out = value;
     } else if (arg.startsWith("--out=")) {
       options.out = arg.slice("--out=".length);
-    } else if (arg === "--area") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--area necesita un nombre de métrica");
-        return 1;
-      }
-      options.area = value;
-    } else if (arg.startsWith("--area=")) {
-      options.area = arg.slice("--area=".length);
-    } else if (arg === "--color") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--color necesita risk, structure o una métrica");
-        return 1;
-      }
-      options.color = value;
-    } else if (arg.startsWith("--color=")) {
-      options.color = arg.slice("--color=".length);
-    } else if (arg === "--title") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--title necesita un texto");
-        return 1;
-      }
-      options.title = value;
-    } else if (arg.startsWith("--title=")) {
-      options.title = arg.slice("--title=".length);
     } else if (arg === "--help" || arg === "-h") {
       console.log(USAGE);
       return 0;

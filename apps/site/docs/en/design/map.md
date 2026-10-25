@@ -131,8 +131,8 @@ The inspector answers "what about this file?", not "do you want to see a donut?"
 ## 9. Comparison with CodeCharta (M0)
 
 The same `samples/codecharta_visualization.cc.json.gz` was compared with CodeCharta Visualization
-2.9.0 (`area=rloc`, `height=complexity`, `color=complexity`) and with CodArch
-(`--area rloc --color complexity`).
+2.9.0 (`area=rloc`, `height=complexity`, `color=complexity`) and with CodArch (area by `rloc`,
+colour by `complexity`).
 
 | Signal | CodArch | CodeCharta |
 |---|---|---|

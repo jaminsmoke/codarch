@@ -6,7 +6,6 @@ import {
   ensureGitignoreEntry,
   protectedRootReason
 } from "@codarch/parsers";
-import { buildRenderModel, renderHtml, RenderError } from "@codarch/render";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
 import { directoryProblem, formatBytes } from "../io";
@@ -20,7 +19,6 @@ export interface AnalyzeCommandOptions {
   config?: string;
   noConfig?: boolean;
   projectName?: string;
-  title?: string;
   /** `false` desactiva churn de git. */
   git?: boolean;
   /** Guarda la foto en el historial del repo. */
@@ -111,7 +109,6 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     options.out ?? path.join(rootPath, ".codarch")
   );
   const snapshotPath = path.join(outDirectory, "snapshot.cc.json");
-  const mapPath = path.join(outDirectory, "map.html");
 
   try {
     // El estado es local: si `.codarch/` nace aquí, se ignora en el repo. Si
@@ -136,29 +133,6 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     return 1;
   }
 
-  let mapBytes = 0;
-  let mapError: string | null = null;
-
-  if (result.files > 0) {
-    try {
-      const model = buildRenderModel(cc, {
-        areaMetric: "rloc",
-        color: "risk",
-        title: options.title
-      });
-      const html = renderHtml(model);
-      fs.writeFileSync(mapPath, html, "utf8");
-      mapBytes = Buffer.byteLength(html, "utf8");
-    } catch (error) {
-      mapError =
-        error instanceof RenderError
-          ? error.message
-          : (error as Error).message;
-    }
-  } else {
-    mapError = "no hay ficheros TypeScript/JavaScript que dibujar";
-  }
-
   const snapshotBytes = Buffer.byteLength(
     fs.readFileSync(snapshotPath),
     "utf8"
@@ -170,11 +144,6 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   lines.push("");
   lines.push(field("raíz", path.resolve(root)));
   lines.push(field("snapshot", `${snapshotPath} (${formatBytes(snapshotBytes)})`));
-  if (mapError) {
-    lines.push(field("mapa", `omitido (${mapError})`));
-  } else {
-    lines.push(field("mapa", `${mapPath} (${formatBytes(mapBytes)})`));
-  }
   lines.push(
     field(
       "estructura",

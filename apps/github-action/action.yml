@@ -44,7 +44,7 @@ inputs:
     required: false
     default: "."
   title:
-    description: Título visible del mapa.
+    description: Nombre del proyecto en el snapshot.
     required: false
     default: "CodArch"
   top:
@@ -57,7 +57,7 @@ outputs:
     description: Ruta al report.json.
     value: ${{ steps.paths.outputs.report }}
   map:
-    description: Ruta al map.html del head.
+    description: Ruta al index.html de la app publicada del head.
     value: ${{ steps.paths.outputs.map }}
   status:
     description: "0 sin bloqueo, 2 política incumplida, 1 error."
@@ -87,7 +87,7 @@ runs:
         } >> "$GITHUB_ENV"
         {
           echo "report=$ARTIFACT_DIR/report.json"
-          echo "map=$ARTIFACT_DIR/head/map.html"
+          echo "map=$ARTIFACT_DIR/head/app/index.html"
         } >> "$GITHUB_OUTPUT"
 
     - uses: actions/setup-node@v7
@@ -156,7 +156,7 @@ runs:
         fi
         node "$CODARCH_CLI" analyze "$CODARCH_BASE_DIR" \
           -o "$CODARCH_ARTIFACT_DIR/base" \
-          --title "${CODARCH_TITLE_INPUT:-CodArch} · base" \
+          --project "${CODARCH_TITLE_INPUT:-CodArch} · base" \
           "${CONFIG_ARGS[@]}"
 
     - name: Analizar head
@@ -180,9 +180,11 @@ runs:
         fi
         node "$CODARCH_CLI" analyze "$CODARCH_ROOT" \
           -o "$CODARCH_ARTIFACT_DIR/head" \
-          --title "${CODARCH_TITLE_INPUT:-CodArch} · head" \
+          --project "${CODARCH_TITLE_INPUT:-CodArch} · head" \
           "${CONFIG_ARGS[@]}"
-        cp "$CODARCH_ARTIFACT_DIR/head/map.html" "$CODARCH_ARTIFACT_DIR/map.html"
+        # La app publicada es la misma que sirve `codarch serve`, no un visor aparte (ADR 0073).
+        node "$CODARCH_CLI" render "$CODARCH_ARTIFACT_DIR/head/snapshot.cc.json" \
+          -o "$CODARCH_ARTIFACT_DIR/head/app"
 
     - name: Comparar y aplicar política
       shell: bash

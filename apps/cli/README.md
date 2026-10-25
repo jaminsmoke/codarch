@@ -29,17 +29,17 @@ pasar `--no-git`.
 ## Uso
 
 ```bash
-# Snapshot + mapa en .codarch/
+# Snapshot en .codarch/
 codarch analyze .
 
-# Elegir salida y título
-codarch analyze . -o .codarch --title "Mi proyecto"
+# Elegir salida y nombre del proyecto
+codarch analyze . -o .codarch --project "Mi proyecto"
 
 # Inspeccionar un cc.json existente (CodeCharta 1.x o 2.x)
 codarch inspect mapa.cc.json --top 10
 
-# Renderizar un cc.json sin volver a analizar
-codarch render mapa.cc.json -o mapa.html --area rloc --color risk
+# Publicar la app con un cc.json dentro, sin volver a analizar
+codarch render mapa.cc.json -o publico      # publico/data/snapshot.cc.json + la app
 
 # Comparar base y head, y bloquear el PR si hay violaciones nuevas
 codarch diff base.cc.json head.cc.json -o report.json --config .codarch.yml --fail-on violations
@@ -57,9 +57,9 @@ codarch serve . --no-web        # modo API para Vite u otro frontend
 codarch serve . --port 8080
 ```
 
-`serve` usa el mismo analizador que `analyze`, sirve la app web incluida en el paquete y expone el
-snapshot en `/data/snapshot.cc.json`; si existe `.codarch/report.json`, también lo sirve para la vista
-de PR. El watch es **live por defecto**: reanaliza al guardar y refresca por SSE. No monitoriza GitHub
+`serve` usa el mismo analizador que `analyze`, sirve la app web incluida en el paquete (la misma de
+la web y el escritorio, ADR 0073) y expone el snapshot en `/data/snapshot.cc.json`; si existe
+`.codarch/report.json`, también lo sirve para la vista de PR. El watch es **live por defecto**: reanaliza al guardar y refresca por SSE. No monitoriza GitHub
 ni sustituye a la acción: es un visor local, y no está pensado para exponerse fuera de loopback.
 
 ## Lente de migración
@@ -69,7 +69,7 @@ las métricas `migrationDebt` (complejidad × consumidores) y `ffiCrossings`.
 
 ```bash
 codarch inspect .codarch/snapshot.cc.json --metric migrationDebt --top 10
-codarch render .codarch/snapshot.cc.json --area rloc --color migrationDebt -o migration.html
+codarch render .codarch/snapshot.cc.json -o publico   # la app abre con la lente de migración
 ```
 
 Rust se mide con un escáner léxico; las aristas napi no se inventan si el glue generado no está en el
