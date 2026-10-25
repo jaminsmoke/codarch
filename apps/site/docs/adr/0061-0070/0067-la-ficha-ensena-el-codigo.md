@@ -112,7 +112,7 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - [x] Icono de ayuda por métrica.
 - [ ] Llevar el código al MCP o al reporte, si un agente lo pide.
 - [x] Resaltado de sintaxis con Prism y fondo de editor.
-- [ ] Salto a la línea del editor.
+- [x] Salto a la línea del editor (ADR 0068).
 - [x] Código de los miembros de clase, no solo de los símbolos.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

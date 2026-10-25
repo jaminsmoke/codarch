@@ -248,6 +248,10 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
   cuerpo real, con límites y sin salir del repo. Al pulsar un símbolo se abre su código plegable
   justo debajo de la fila, con fondo de editor y resaltado con Prism; los grupos de símbolos se
   pliegan y cada métrica lleva un icono `?` con su explicación.
+- M48 cerrada: la ficha abre el editor y sus dependencias (ADR 0068). El bloque de código salta a
+  `vscode://file/…:línea` en escritorio y web servida, con **Copiar ruta** como salida universal.
+  La pestaña Fichero gana **Dependencias**: **Importa** y **Lo usan**, desde el grafo que ya
+  existía, sin tocar el snapshot.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
