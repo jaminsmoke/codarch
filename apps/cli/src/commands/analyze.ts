@@ -229,7 +229,11 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
         ? `${num(result.git.commits)} commits · ${num(
             result.git.authors
           )} autores${result.git.shallow ? " · shallow" : ""}`
-        : "sin git; se omite churn"
+        : // Sin ficheros TS/JS no hay a qué atribuir commits: decir «sin git»
+          // en un repo git era mentira.
+          result.files === 0
+          ? "sin ficheros TS/JS; se omite churn"
+          : "sin git; se omite churn"
     )
   );
 
@@ -256,5 +260,7 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
 
   lines.push("");
   console.log(lines.join("\n"));
-  return 0;
+  // Un mapa vacío no es un análisis correcto: se dice con código de error para
+  // que un script no crea que ha mapeado un repo de Python.
+  return result.files === 0 ? 1 : 0;
 }

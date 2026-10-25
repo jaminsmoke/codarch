@@ -99,17 +99,22 @@ describe("una carpeta donde se espera un fichero", () => {
 });
 
 describe("un repo sin TypeScript ni JavaScript", () => {
-  it("analyze avisa de que el snapshot sale vacío", () => {
+  it("analyze avisa, falla y no dice «sin git»", () => {
     silence();
     const root = tempDir();
     fs.writeFileSync(path.join(root, "app.py"), "print('hola')\n", "utf8");
+    const log = vi.spyOn(console, "log");
     const warning = vi.spyOn(console, "warn");
 
-    expect(runAnalyze({ root, help: false })).toBe(0);
+    // Un mapa vacío no es un análisis correcto: código 1.
+    expect(runAnalyze({ root, help: false })).toBe(1);
     expect(
       warning.mock.calls.some(([message]) =>
         String(message).includes("el snapshot sale vacío")
       )
     ).toBe(true);
+    const lines = log.mock.calls.map(([line]) => String(line)).join("\n");
+    expect(lines).toContain("sin ficheros TS/JS");
+    expect(lines).not.toContain("sin git");
   });
 });
