@@ -12,6 +12,7 @@ import type {
   SymbolHeat
 } from "@codarch/schema/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
+import type { CodeRequest, CodeSnippet } from "./platform";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
 import { groupSymbols, symbolSummary } from "./symbols";
@@ -423,6 +424,7 @@ export function Inspector({
   structure,
   chain,
   onSelectSymbol,
+  onLoadCode,
   onColorMode
 }: {
   model: RenderModel | null;
@@ -437,9 +439,26 @@ export function Inspector({
   structure: CcStructureNode | null;
   chain: SymbolChain | null;
   onSelectSymbol: (name: string) => void;
+  /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
+  onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
 }) {
+  /**
+   * El código del símbolo elegido (ADR 0067). Vive en el inspector y no en el
+   * hook: es un detalle de la ficha, no del proyecto.
+   */
+  const [code, setCode] = useState<{
+    symbol: CcSymbol;
+    snippet: CodeSnippet | null;
+    loading: boolean;
+    error: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    setCode(null);
+  }, [file?.nodeId]);
+
   if (!file) {
     return (
       <section className="inspector-empty">
@@ -460,6 +479,32 @@ export function Inspector({
 
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
   const lastChainVersion = chain?.versions[chain.versions.length - 1];
+
+  const openCode = async (symbol: CcSymbol): Promise<void> => {
+    const start = Math.max(1, symbol.line - 2);
+    const end = symbol.line + Math.max(1, symbol.lines ?? 1) - 1 + 2;
+    setCode({ symbol, snippet: null, loading: true, error: null });
+    try {
+      const snippet = await onLoadCode({ path: file.path, start, end });
+      setCode((current) =>
+        current?.symbol.name === symbol.name &&
+        current.symbol.line === symbol.line
+          ? { ...current, snippet, loading: false }
+          : current
+      );
+    } catch (cause) {
+      setCode((current) =>
+        current?.symbol.name === symbol.name &&
+        current.symbol.line === symbol.line
+          ? {
+              ...current,
+              loading: false,
+              error: cause instanceof Error ? cause.message : String(cause)
+            }
+          : current
+      );
+    }
+  };
 
   return (
     <section className="inspector-file">
@@ -512,10 +557,18 @@ export function Inspector({
                     active ? " is-active" : ""
                   }${row.value === null ? " is-empty" : ""}`}
                   aria-pressed={active}
-                  title={`${row.hint}. Pulsa para pintar el mapa.`}
+                  title={`${row.description} ${row.hint}. Pulsa para pintar el mapa.`}
+                  aria-label={`${row.title}: ${row.description} ${row.hint}. Pulsa para pintar el mapa.`}
                   onClick={() => onColorMode(row.risk ? "risk" : row.key)}
                 >
                   <span className="metrics-label">
+                    <span
+                      className="metric-help"
+                      title={row.description}
+                      aria-hidden="true"
+                    >
+                      ?
+                    </span>
                     {row.title}
                     {row.area ? (
                       <em
@@ -553,14 +606,13 @@ export function Inspector({
         >
           <div className="symbol-list">
             {groupSymbols(symbols).map((group) => (
-              <div key={group.kind} className="symbol-group">
-                <div className="symbol-group-head">
-                  <span>{group.title}</span>
-                  <span className="symbol-group-line" aria-hidden="true" />
-                  <span className="mono symbol-group-count">
-                    {group.symbols.length}
-                  </span>
-                </div>
+              <CollapsibleSection
+                key={group.kind}
+                id={`file-symbols-${group.kind}`}
+                title={group.title}
+                count={group.symbols.length}
+                className="symbol-group"
+              >
                 {group.symbols.map((symbol) => (
                   <button
                     key={`${symbol.name}-${symbol.line}`}
@@ -568,14 +620,17 @@ export function Inspector({
                     className={`symbol-row${
                       chain?.name === symbol.name ? " is-selected" : ""
                     }`}
-                    onClick={() => onSelectSymbol(symbol.name)}
+                    onClick={() => {
+                      onSelectSymbol(symbol.name);
+                      void openCode(symbol);
+                    }}
                     title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
                       symbol.line
                     }${
                       symbol.complexity !== undefined
                         ? ` · complejidad ${symbol.complexity}`
                         : ""
-                    }. Ver la vida de este símbolo.`}
+                    }. Pulsa para ver su código y su vida.`}
                   >
                     <span className={`symbol-kind symbol-${symbol.kind}`}>
                       {SYMBOL_LABEL[symbol.kind]}
@@ -593,12 +648,57 @@ export function Inspector({
                     ) : null}
                   </button>
                 ))}
-              </div>
+              </CollapsibleSection>
             ))}
             <p className="muted tiny symbol-note">
-              Agrupados por tipo y ordenados por complejidad. Pulsa uno para
-              seguir su vida.
+              Agrupados por tipo y ordenados por complejidad. Pulsa uno para ver
+              su código y seguir su vida.
             </p>
+          </div>
+        </CollapsibleSection>
+      ) : null}
+
+      {code ? (
+        <CollapsibleSection
+          key={`file-code-${code.symbol.name}-${code.symbol.line}`}
+          id={`file-code-${code.symbol.kind}-${code.symbol.line}-${code.symbol.name}`}
+          title={`Código de ${code.symbol.name}`}
+          count={code.snippet?.lines.length ?? code.symbol.lines ?? 1}
+          summary={`línea ${code.symbol.line}`}
+          defaultOpen
+        >
+          <div className="code-panel">
+            {code.loading ? (
+              <p className="muted small">Cargando el código…</p>
+            ) : code.error ? (
+              <p className="muted small">
+                No se pudo leer el código: {code.error}
+              </p>
+            ) : code.snippet && code.snippet.lines.length > 0 ? (
+              <>
+                <pre
+                  className="code-view"
+                  aria-label={`Código de ${code.symbol.name}`}
+                >
+                  {code.snippet.lines.map((line, index) => (
+                    <span key={code.snippet!.start + index} className="code-line">
+                      <i>{code.snippet!.start + index}</i>
+                      <span>{line || " "}</span>
+                    </span>
+                  ))}
+                </pre>
+                {code.snippet.end < code.snippet.total ? (
+                  <p className="muted tiny code-note">
+                    Se muestran las líneas {code.snippet.start}–
+                    {code.snippet.end} de {code.snippet.total}.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <p className="muted small">
+                El código no está disponible en esta plataforma.
+              </p>
+            )}
           </div>
         </CollapsibleSection>
       ) : null}

@@ -20,7 +20,7 @@ import { mapColorFor, metricIndexOf } from "./map";
 import { orderedMetrics } from "./metrics";
 import { readMigration, readReport } from "./data";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
-import type { Plataforma } from "./platform";
+import type { Plataforma, CodeRequest, CodeSnippet } from "./platform";
 import { localStore, type ViewPreferences } from "./storage";
 import {
   isColorModeAvailable,
@@ -85,6 +85,8 @@ export interface CodarchAppActions {
   openReportFile: () => Promise<void>;
   selectIndex: (index: number | null) => void;
   openSymbolChain: (name: string, path: string) => Promise<void>;
+  /** Lee el código real de un símbolo, si la plataforma puede (ADR 0067). */
+  leerCodigo: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /**
    * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
    *
@@ -737,6 +739,12 @@ export function useCodarchApp(
     [plataforma]
   );
 
+  const leerCodigo = useCallback(
+    async (request: CodeRequest): Promise<CodeSnippet | null> =>
+      plataforma.codigo ? plataforma.codigo(request) : null,
+    [plataforma]
+  );
+
   // Al cambiar de métrica se conserva el fichero elegido si sigue existiendo.
   /* eslint-disable react-hooks/set-state-in-effect -- la selección se deriva del modelo; el efecto la mantiene al cambiar de métrica */
   useEffect(() => {
@@ -864,6 +872,7 @@ export function useCodarchApp(
     abrirReporte,
     selectIndex,
     openSymbolChain,
+    leerCodigo,
     zoomAt,
     panMap,
     fitMap,

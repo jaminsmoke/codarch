@@ -90,6 +90,7 @@ export function AppShell({
   const {
     selectIndex,
     openSymbolChain,
+    leerCodigo,
     zoomAt,
     panMap,
     fitMap,
@@ -518,6 +519,7 @@ export function AppShell({
               onSelectSymbol={(name) => {
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
+              onLoadCode={leerCodigo}
               onColorMode={setColorMode}
             />
           ) : tab === "rules" ? (

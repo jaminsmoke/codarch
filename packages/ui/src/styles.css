@@ -1312,6 +1312,20 @@ button {
   text-overflow: ellipsis;
 }
 
+.metric-help {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font: 600 8px/1 var(--mono);
+  cursor: help;
+}
+
 .metrics-area {
   flex: none;
   padding: 0 4px;
@@ -1836,6 +1850,65 @@ button {
 
 .symbol-group + .symbol-group {
   margin-top: 7px;
+}
+
+/* Cada grupo de símbolos es una sección plegable (ADR 0067). */
+.symbol-group.collapsible {
+  margin-top: 6px;
+}
+
+.symbol-group > .collapsible-head {
+  padding: 5px 0;
+  border-top: 0;
+}
+
+.symbol-group > .collapsible-head .collapsible-title {
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.symbol-group > .collapsible-body {
+  padding-bottom: 0;
+}
+
+/* El código real de un símbolo, con sus números de línea. */
+.code-panel {
+  padding-top: 4px;
+}
+
+.code-view {
+  max-height: 340px;
+  margin: 0;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--ink-soft);
+  font: 10.5px/1.45 var(--mono);
+}
+
+.code-line {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.code-line i {
+  color: var(--muted);
+  text-align: right;
+  font-style: normal;
+  user-select: none;
+}
+
+.code-line > span {
+  white-space: pre;
+}
+
+.code-note {
+  margin: 4px 0 0;
 }
 
 .symbol-group-head {

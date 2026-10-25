@@ -75,6 +75,8 @@ export interface RenderSection {
 export interface RenderMetric {
   key: string;
   title: string;
+  /** Explicación breve del descriptor, si el snapshot la trae. */
+  description?: string;
   /** -1: menos es mejor. 1: más es mejor. 0: sin dirección declarada. */
   direction: number;
   min: number;
@@ -245,6 +247,21 @@ function metricTitle(
   return key;
 }
 
+function metricDescription(
+  attributes: Record<string, unknown> | undefined,
+  key: string
+): string | undefined {
+  const descriptor = attributes?.[key];
+  if (
+    isRecord(descriptor) &&
+    typeof descriptor.description === "string" &&
+    descriptor.description
+  ) {
+    return descriptor.description;
+  }
+  return undefined;
+}
+
 function metricDirection(
   attributes: Record<string, unknown> | undefined,
   key: string
@@ -399,6 +416,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     return {
       key,
       title: metricTitle(descriptors, key),
+      description: metricDescription(descriptors, key),
       direction: metricDirection(descriptors, key),
       min,
       max,

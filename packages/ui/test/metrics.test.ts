@@ -228,4 +228,19 @@ describe("las filas de la ficha del fichero", () => {
     );
     expect(rows[1]?.title).toBe("Líneas de código");
   });
+
+  it("lleva la explicación de la métrica a la fila", () => {
+    const rows = fileMetricRows(
+      model(
+        [metric("rloc", { description: "Líneas con al menos un token" })],
+        [file([5])]
+      ),
+      file([5]),
+      "rloc",
+      () => "Líneas de código"
+    );
+
+    expect(rows[1]?.description).toBe("Líneas con al menos un token");
+    expect(rows[0]?.description).toContain("Combinación");
+  });
 });

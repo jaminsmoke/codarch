@@ -130,6 +130,8 @@ export interface FileMetricRow {
   area: boolean;
   /** El riesgo es derivado, no una métrica del snapshot. */
   risk: boolean;
+  /** Explicación breve de qué mide, para el icono de ayuda. */
+  description: string;
   /** Lo que cuenta el tooltip: la escala y la cobertura. */
   hint: string;
 }
@@ -157,6 +159,8 @@ export function fileMetricRows(
     state: riskState(file.risk),
     area: false,
     risk: true,
+    description:
+      "Combinación de complejidad, churn y tamaño, normalizada por el p95 del proyecto.",
     hint:
       `${Math.round(file.risk * 100)} de 100 · ` +
       `complejidad ${formatCompact(places.complexity.value)} (p95 ${formatCompact(places.complexity.p95)}) · ` +
@@ -176,6 +180,7 @@ export function fileMetricRows(
       state: metricState(value, metric),
       area: metric.key === areaMetric,
       risk: false,
+      description: metric.description ?? "Métrica del modelo.",
       hint:
         `mín. ${formatCompact(metric.min)} · p95 ${formatCompact(metric.p95)} · ` +
         `máx. ${formatCompact(metric.actualMax)} · ` +
