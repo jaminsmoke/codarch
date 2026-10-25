@@ -25,7 +25,7 @@ const versions = JSON.parse(
 const shared = {
   bundle: true,
   define: {
-    __CODARCH_VERSION__: JSON.stringify(versions.product)
+    __CODARCH_VERSION__: JSON.stringify(versions.desktop)
   },
   platform: "node",
   target: "node22",

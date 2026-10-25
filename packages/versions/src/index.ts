@@ -13,12 +13,24 @@
 export {
   CC_JSON_VERSION,
   CHAIN_LEDGER_VERSION,
+  CLI_VERSION,
   CONFIG_VERSION,
+  DESKTOP_VERSION,
+  DOCKER_VERSION,
+  ENGINE_VERSION,
   HISTORY_VERSION,
-  PRODUCT_VERSION,
-  REPORT_SCHEMA_VERSION
+  MCP_VERSION,
+  REPORT_SCHEMA_VERSION,
+  WEB_VERSION
 } from "./manifest.ts";
-export { nextProductVersion, type ReleaseKind } from "./release.ts";
+export { nextVersion, type ReleaseKind } from "./release.ts";
+export {
+  COMPONENT_ORDER,
+  impactedComponents,
+  type ComponentName,
+  type ImpactResult,
+  type WorkspaceInfo
+} from "./impact.ts";
 
 /** Una versión partida: `mayor.menor.parche`, con prerelease opcional. */
 export interface ParsedVersion {

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codarch/parsers": "*",
     "@codarch/render": "*",
     "@codarch/schema": "*",
     "@codarch/ui": "*",

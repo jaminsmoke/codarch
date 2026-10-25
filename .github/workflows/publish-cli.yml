@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 concurrency:
@@ -31,7 +31,7 @@ jobs:
       - name: Leer la versión
         id: version
         run: |
-          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('versions.json', 'utf8')).product)")
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('versions.json', 'utf8')).cli)")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "codarch@$VERSION"
 
@@ -60,3 +60,21 @@ jobs:
       - name: Publicar en npm
         if: steps.published.outputs.exists == 'false'
         run: node scripts/publish-cli.mjs
+
+      # La acción instala una versión publicada: el pin se mueve después de
+      # npm, nunca antes (ADR 0041). El repo público de la acción se
+      # sincroniza aparte con `npm run sync:action`.
+      - name: Actualizar el pin de la acción
+        run: node scripts/pin-action.mjs "${{ steps.version.outputs.version }}"
+
+      - name: Guardar el pin
+        run: |
+          if git diff --quiet apps/github-action/action.yml; then
+            echo "el pin ya estaba al día"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/github-action/action.yml
+          git commit -m "chore: pin codarch ${{ steps.version.outputs.version }} en la acción"
+          git push origin HEAD:main

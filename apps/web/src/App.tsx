@@ -34,7 +34,7 @@ import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
 import { fetchJson, fetchJsonStrict } from "./http";
 import { plataformaWeb } from "./plataforma";
-import { PRODUCT_VERSION } from "@codarch/versions";
+import { WEB_VERSION } from "@codarch/versions";
 
 export default function App() {
   const plataforma = useMemo(() => plataformaWeb(), []);
@@ -321,11 +321,10 @@ export default function App() {
   /**
    * La versión que se enseña.
    *
-   * Con servidor, la que sirve el CLI; sin él, la del producto: la web no
-   * lleva versión propia y no hay nada que subir aparte (ADR 0041).
+   * Con servidor, la que sirve el CLI; sin él, la de la web (ADR 0065).
    */
   const appVersion = useMemo(
-    () => serverVersion ?? PRODUCT_VERSION,
+    () => serverVersion ?? WEB_VERSION,
     [serverVersion]
   );
 

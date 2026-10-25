@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Subir versiones y lanzar canales
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Solo hace falta para ejecutar `scripts/auto-release.ts`; no se
+      # necesitan los binarios nativos ni Electron.
+      - name: Instalar dependencias
+        run: npm ci --ignore-scripts
+
+      - name: Calcular, subir y lanzar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npx tsx scripts/auto-release.ts

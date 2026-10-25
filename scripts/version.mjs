@@ -2,13 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Una versión por componente, declarada una vez (ADR 0041).
+// Una versión por componente y una por formato (ADR 0065).
 //
 // `versions.json` es la fuente. De ahí salen el manifiesto que importa el
 // código (`@codarch/versions`) y las versiones de los package.json. Sin
 // argumentos, comprueba que todo cuadre; con argumentos, actualiza.
 //
-//   npm run version -- 0.4.0-alpha.1      # la versión del producto
+//   npm run version -- --cli 0.4.0        # solo el CLI
+//   npm run version -- --desktop minor    # no: aquí van versiones exactas
+//   npm run version -- 0.4.0              # todos los componentes
 //   npm run version -- --schema 2.1       # el formato cc.json
 //   npm run version -- --report 1.4       # el reporte
 //   npm run version -- --config 2         # .codarch.yml
@@ -20,21 +22,56 @@ const VERSIONS_FILE = "versions.json";
 const MANIFEST_FILE = "packages/versions/src/manifest.ts";
 const LOCK_FILE = "package-lock.json";
 
-const PACKAGES = [
-  { file: "package.json", label: "el producto" },
-  { file: "apps/cli/package.json", label: "el CLI" },
-  { file: "apps/desktop/package.json", label: "el escritorio" },
-  { file: "apps/mcp/package.json", label: "el MCP" },
-  { file: "apps/web/package.json", label: "la web" }
-];
+/** Los componentes que se publican o se enseñan, cada uno con su versión. */
+const COMPONENTS = {
+  engine: {
+    option: "--engine",
+    label: "el motor",
+    file: "package.json",
+    lock: ""
+  },
+  cli: {
+    option: "--cli",
+    label: "el CLI",
+    file: "apps/cli/package.json",
+    lock: "apps/cli"
+  },
+  desktop: {
+    option: "--desktop",
+    label: "el escritorio",
+    file: "apps/desktop/package.json",
+    lock: "apps/desktop"
+  },
+  web: {
+    option: "--web",
+    label: "la web",
+    file: "apps/web/package.json",
+    lock: "apps/web"
+  },
+  mcp: {
+    option: "--mcp",
+    label: "el MCP",
+    file: "apps/mcp/package.json",
+    lock: "apps/mcp"
+  },
+  docker: {
+    option: "--docker",
+    label: "Docker",
+    file: null,
+    lock: null
+  }
+};
 
 // Las carpetas con paquetes del repo. Los que no se publican no llevan versión
-// propia: se quedan en `0.0.0` y la versión la pone el producto (ADR 0041 y
-// ADR 0051).
+// propia: se quedan en `0.0.0` y la versión la pone su componente (ADR 0065).
 const WORKSPACES = ["apps", "packages", "plugins"];
 
 function paquetesSinVersionPropia() {
-  const propios = new Set(PACKAGES.map((target) => target.file));
+  const propios = new Set(
+    Object.values(COMPONENTS)
+      .map((component) => component.file)
+      .filter((file) => file !== null)
+  );
   const files = [];
   for (const folder of WORKSPACES) {
     let entries;
@@ -89,25 +126,35 @@ const escribirTexto = (relativo, texto) => {
 
 /** El manifiesto que importa el código: mismas claves, nombres técnicos. */
 function manifiesto(versiones) {
-  return [
+  const lines = [
     "/**",
     " * Generado por `scripts/version.mjs` desde `versions.json`.",
     " * No editar a mano: `npm run version` lo reescribe.",
     " */",
-    "",
-    `export const PRODUCT_VERSION = ${JSON.stringify(versiones.product)} as const;`,
+    ""
+  ];
+  for (const key of Object.keys(COMPONENTS)) {
+    lines.push(
+      `export const ${key.toUpperCase()}_VERSION = ${JSON.stringify(versiones[key])} as const;`
+    );
+  }
+  lines.push(
     `export const CC_JSON_VERSION = ${JSON.stringify(versiones.ccJson)} as const;`,
     `export const REPORT_SCHEMA_VERSION = ${JSON.stringify(versiones.report)} as const;`,
     `export const CONFIG_VERSION = ${JSON.stringify(versiones.config)} as const;`,
     `export const HISTORY_VERSION = ${JSON.stringify(versiones.history)} as const;`,
-    `export const CHAIN_LEDGER_VERSION = ${JSON.stringify(versiones.chainLedger)} as const;`,
-    ""
-  ].join("\n");
+    `export const CHAIN_LEDGER_VERSION = ${JSON.stringify(versiones.chainLedger)} as const;`
+  );
+  return `${lines.join("\n")}\n`;
 }
 
 function validar(versiones) {
-  if (!PRODUCT.test(versiones.product)) {
-    throw new Error(`la versión del producto no es semver: ${versiones.product}`);
+  for (const [key, component] of Object.entries(COMPONENTS)) {
+    if (!PRODUCT.test(versiones[key])) {
+      throw new Error(
+        `${component.label} no es una versión semver: ${versiones[key]}`
+      );
+    }
   }
   for (const [campo, regla] of Object.entries(FIELDS)) {
     const valor = versiones[campo];
@@ -129,11 +176,12 @@ function comprobar() {
     );
   }
 
-  for (const target of PACKAGES) {
-    const version = leer(target.file).version;
-    if (version !== versiones.product) {
+  for (const [key, component] of Object.entries(COMPONENTS)) {
+    if (!component.file) continue;
+    const version = leer(component.file).version;
+    if (version !== versiones[key]) {
       throw new Error(
-        `${target.label} está en ${version ?? "(sin versión)"}, pero el producto está en ${versiones.product}`
+        `${component.label} está en ${version ?? "(sin versión)"}, pero su versión es ${versiones[key]}`
       );
     }
   }
@@ -142,27 +190,34 @@ function comprobar() {
     const version = leer(file).version;
     if (version !== "0.0.0") {
       throw new Error(
-        `${file} está en ${version ?? "(sin versión)"}; los paquetes que no se publican llevan 0.0.0 y la versión la pone el producto`
+        `${file} está en ${version ?? "(sin versión)"}; los paquetes que no se publican llevan 0.0.0`
       );
     }
   }
 
   const lock = leer(LOCK_FILE);
-  if (lock.version !== versiones.product) {
+  if (lock.version !== versiones.engine) {
     throw new Error(
-      `${LOCK_FILE} está en ${lock.version}, pero el producto está en ${versiones.product}`
+      `${LOCK_FILE} está en ${lock.version}, pero el motor está en ${versiones.engine}`
     );
   }
   for (const key of LOCK_PACKAGES) {
+    const component =
+      key === ""
+        ? COMPONENTS.engine
+        : Object.values(COMPONENTS).find((entry) => entry.lock === key);
+    if (!component) continue;
     const version = lock.packages?.[key]?.version;
-    if (version !== versiones.product) {
+    if (version !== versiones[componentKey(component)]) {
       throw new Error(
-        `${LOCK_FILE} (${key || "raíz"}) está en ${version ?? "(sin versión)"}, pero el producto está en ${versiones.product}`
+        `${LOCK_FILE} (${key || "raíz"}) está en ${version ?? "(sin versión)"}, y le toca ${versiones[componentKey(component)]}`
       );
     }
   }
 
-  console.log(`  ${"el producto".padEnd(16)} ${versiones.product}`);
+  for (const [key, component] of Object.entries(COMPONENTS)) {
+    console.log(`  ${component.label.padEnd(16)} ${versiones[key]}`);
+  }
   console.log(`  ${"cc.json".padEnd(16)} ${versiones.ccJson}`);
   console.log(`  ${"el reporte".padEnd(16)} ${versiones.report}`);
   console.log(`  ${".codarch.yml".padEnd(16)} ${versiones.config}`);
@@ -171,9 +226,15 @@ function comprobar() {
   console.log("ok · las versiones cuadran");
 }
 
+function componentKey(component) {
+  return Object.keys(COMPONENTS).find(
+    (key) => COMPONENTS[key] === component
+  );
+}
+
 function leerArgumentos(args) {
-  let product = null;
   const cambios = {};
+  let all = null;
 
   const siguiente = (indice, opcion) => {
     const valor = args[indice + 1];
@@ -186,9 +247,15 @@ function leerArgumentos(args) {
   for (let indice = 0; indice < args.length; indice++) {
     const arg = args[indice];
 
-    if (arg === "--product") {
-      if (product !== null) throw new Error("la versión del producto está repetida");
-      product = siguiente(indice, arg);
+    const componente = Object.entries(COMPONENTS).find(
+      ([, regla]) => regla.option === arg
+    );
+    if (componente) {
+      const [clave, regla] = componente;
+      if (clave in cambios) {
+        throw new Error(`${regla.label} está repetido`);
+      }
+      cambios[clave] = siguiente(indice, arg);
       indice++;
       continue;
     }
@@ -210,28 +277,25 @@ function leerArgumentos(args) {
     if (arg.startsWith("--")) {
       throw new Error(`opción desconocida: ${arg}`);
     }
-    if (product !== null) {
+    if (all !== null) {
       throw new Error(`sobra un argumento: ${arg}`);
     }
-    product = arg;
+    all = arg;
   }
 
-  return { product, cambios };
+  if (all !== null) {
+    for (const key of Object.keys(COMPONENTS)) cambios[key] = all;
+  }
+
+  return cambios;
 }
 
-function actualizar({ product, cambios }) {
+function actualizar(cambios) {
   const versiones = leer(VERSIONS_FILE);
   validar(versiones);
 
-  if (product === null && Object.keys(cambios).length === 0) {
+  if (Object.keys(cambios).length === 0) {
     throw new Error("no hay nada que actualizar");
-  }
-
-  if (product !== null) {
-    if (!PRODUCT.test(product)) {
-      throw new Error(`no es una versión: ${product} (debe ser 1.2.3)`);
-    }
-    versiones.product = product;
   }
 
   for (const [campo, valor] of Object.entries(cambios)) {
@@ -242,23 +306,27 @@ function actualizar({ product, cambios }) {
   escribir(VERSIONS_FILE, versiones);
   escribirTexto(MANIFEST_FILE, manifiesto(versiones));
 
-  if (product !== null) {
-    for (const target of PACKAGES) {
-      const datos = leer(target.file);
-      datos.version = product;
-      escribir(target.file, datos);
-    }
-
-    const lock = leer(LOCK_FILE);
-    lock.version = product;
-    for (const key of LOCK_PACKAGES) {
-      if (lock.packages?.[key]) lock.packages[key].version = product;
-    }
-    escribir(LOCK_FILE, lock);
+  for (const [key, component] of Object.entries(COMPONENTS)) {
+    if (!component.file || !(key in cambios)) continue;
+    const datos = leer(component.file);
+    datos.version = versiones[key];
+    escribir(component.file, datos);
   }
 
+  const lock = leer(LOCK_FILE);
+  lock.version = versiones.engine;
+  for (const key of LOCK_PACKAGES) {
+    const component =
+      key === ""
+        ? COMPONENTS.engine
+        : Object.values(COMPONENTS).find((entry) => entry.lock === key);
+    if (!component || !lock.packages?.[key]) continue;
+    lock.packages[key].version = versiones[componentKey(component)];
+  }
+  escribir(LOCK_FILE, lock);
+
   comprobar();
-  console.log(`ok · versiones actualizadas`);
+  console.log("ok · versiones actualizadas");
 }
 
 try {

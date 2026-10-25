@@ -3,15 +3,20 @@ import { describe, expect, it } from "vitest";
 import {
   CC_JSON_VERSION,
   CHAIN_LEDGER_VERSION,
+  CLI_VERSION,
   CONFIG_VERSION,
+  DESKTOP_VERSION,
+  DOCKER_VERSION,
+  ENGINE_VERSION,
   HISTORY_VERSION,
-  PRODUCT_VERSION,
-  REPORT_SCHEMA_VERSION
+  MCP_VERSION,
+  REPORT_SCHEMA_VERSION,
+  WEB_VERSION
 } from "../src/index";
 
 /**
- * Las versiones de los componentes se declaran una vez (ADR 0041): el
- * manifiesto sale de `versions.json` y los package.json lo siguen.
+ * Una versión por componente (ADR 0065): el manifiesto sale de
+ * `versions.json` y cada package.json sigue la suya.
  */
 
 function read(relative: string): Record<string, unknown> {
@@ -24,7 +29,12 @@ describe("las versiones declaradas", () => {
   it("el manifiesto y versions.json dicen lo mismo", () => {
     const declared = read("../../../versions.json");
 
-    expect(declared.product).toBe(PRODUCT_VERSION);
+    expect(declared.engine).toBe(ENGINE_VERSION);
+    expect(declared.cli).toBe(CLI_VERSION);
+    expect(declared.desktop).toBe(DESKTOP_VERSION);
+    expect(declared.web).toBe(WEB_VERSION);
+    expect(declared.mcp).toBe(MCP_VERSION);
+    expect(declared.docker).toBe(DOCKER_VERSION);
     expect(declared.ccJson).toBe(CC_JSON_VERSION);
     expect(declared.report).toBe(REPORT_SCHEMA_VERSION);
     expect(declared.config).toBe(CONFIG_VERSION);
@@ -32,15 +42,14 @@ describe("las versiones declaradas", () => {
     expect(declared.chainLedger).toBe(CHAIN_LEDGER_VERSION);
   });
 
-  it("los package.json del producto no se separan", () => {
-    for (const file of [
-      "../../../package.json",
-      "../../../apps/cli/package.json",
-      "../../../apps/desktop/package.json",
-      "../../../apps/mcp/package.json"
-    ]) {
-      expect(read(file).version).toBe(PRODUCT_VERSION);
-    }
+  it("cada package.json lleva la versión de su componente", () => {
+    expect(read("../../../package.json").version).toBe(ENGINE_VERSION);
+    expect(read("../../../apps/cli/package.json").version).toBe(CLI_VERSION);
+    expect(read("../../../apps/desktop/package.json").version).toBe(
+      DESKTOP_VERSION
+    );
+    expect(read("../../../apps/web/package.json").version).toBe(WEB_VERSION);
+    expect(read("../../../apps/mcp/package.json").version).toBe(MCP_VERSION);
   });
 
   it("los formatos tienen una forma estable", () => {

@@ -11,7 +11,7 @@ const RENDER_SRC = path.join(ROOT, "packages", "render", "src");
 const cliPackage = JSON.parse(await readFile(path.join(CLI_DIR, "package.json"), "utf8"));
 // La versión es una para el producto y se declara en `versions.json` (ADR 0041).
 const versions = JSON.parse(await readFile(path.join(ROOT, "versions.json"), "utf8"));
-const version = versions.product;
+const version = versions.cli;
 
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });

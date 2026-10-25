@@ -11,12 +11,12 @@ import {
  * Decide si el push actual tiene que construir y publicar el escritorio.
  *
  * La fuente de la versión es `versions.json` (ADR 0041). La referencia es el
- * último release del escritorio en GitHub. Si la versión del producto no es
+ * último release del escritorio en GitHub. Si la versión del escritorio no es
  * mayor, no se construye: un push de código que no sube versión no debe gastar
  * dos builds de Electron.
  */
 export interface DesktopReleasePlan {
-  /** La versión del producto en `versions.json`. */
+  /** La versión del escritorio en `versions.json`. */
   version: string;
   /** La última versión publicada, o `null` si no hay ningún release. */
   latest: string | null;
@@ -82,9 +82,9 @@ function main(): void {
   const root = path.resolve(import.meta.dirname, "..");
   const versions = JSON.parse(
     fs.readFileSync(path.join(root, "versions.json"), "utf8")
-  ) as { product: string };
+  ) as { desktop: string };
   const plan = planDesktopRelease(
-    versions.product,
+    versions.desktop,
     readTags(),
     process.env.GITHUB_EVENT_NAME ?? ""
   );

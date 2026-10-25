@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parse } from "yaml";
-import { compareVersions, PRODUCT_VERSION } from "@codarch/versions";
+import { compareVersions, CLI_VERSION } from "@codarch/versions";
 
 const root = path.resolve(import.meta.dirname, "..");
 const actionPath = path.join(root, "apps", "github-action", "action.yml");
@@ -14,7 +14,7 @@ const workflowPath = path.join(root, ".github", "workflows", "codarch.yml");
 const SEMVER = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;
 
 const action = parse(fs.readFileSync(actionPath, "utf8"));
-const cliVersion = PRODUCT_VERSION;
+const cliVersion = CLI_VERSION;
 assert.match(cliVersion, SEMVER, "la versión del producto no es semver");
 assert.equal(action.runs?.using, "composite");
 assert.equal(action.inputs?.["fail-on"]?.default, "none");

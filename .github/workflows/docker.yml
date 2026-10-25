@@ -47,7 +47,7 @@ jobs:
 
       - name: Leer la versión del producto
         id: version
-        run: echo "version=$(node -p 'require("./versions.json").product')" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(node -p 'require("./versions.json").docker')" >> "$GITHUB_OUTPUT"
 
       - name: Entrar en GHCR
         if: github.event_name != 'pull_request'
