@@ -15,6 +15,21 @@ export interface ResultadoAnalisis {
   preferences?: ViewPreferences | null;
 }
 
+/** Lo que se pide para enseñar el código de un símbolo (ADR 0067). */
+export interface CodeRequest {
+  path: string;
+  start: number;
+  end: number;
+}
+
+export interface CodeSnippet {
+  path: string;
+  start: number;
+  end: number;
+  total: number;
+  lines: string[];
+}
+
 /**
  * Adaptador de plataforma para `useCodarchApp`.
  *
@@ -50,6 +65,8 @@ export interface Plataforma {
   borrarProyecto: () => void;
   /** Las cadenas de los símbolos. */
   cadenas?: (symbol: string) => Promise<unknown | null>;
+  /** El código real de un símbolo, si la plataforma puede leerlo (ADR 0067). */
+  codigo?: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** La línea del tiempo del repo, si la plataforma la sirve. */
   historial?: () => Promise<HistoryEntry[] | null>;
   /** El calor de los símbolos, si la plataforma lo sirve. */

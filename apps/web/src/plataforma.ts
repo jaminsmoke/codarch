@@ -1,5 +1,6 @@
-import type { Plataforma, SavedProject } from "@codarch/ui";
+import type { Plataforma, SavedProject, CodeSnippet } from "@codarch/ui";
 import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
+import { sourceFromMemory } from "./analysis/reader";
 import { fetchJson } from "./http";
 import {
   clearProject,
@@ -27,6 +28,19 @@ export function plataformaWeb(): Plataforma {
     borrarProyecto: () => clearProject(),
     cadenas: async (symbol) =>
       fetchJson(`data/chains.json?symbol=${encodeURIComponent(symbol)}`),
+    codigo: async (request) => {
+      const remote = await fetchJson(
+        `api/source?path=${encodeURIComponent(request.path)}&start=${request.start}&end=${request.end}`
+      );
+      if (
+        remote &&
+        typeof remote === "object" &&
+        Array.isArray((remote as { lines?: unknown }).lines)
+      ) {
+        return remote as CodeSnippet;
+      }
+      return sourceFromMemory(request.path, request.start, request.end);
+    },
     historial: async () => {
       const raw = await fetchJson("data/history.json");
       if (!raw || typeof raw !== "object") return null;

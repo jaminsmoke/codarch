@@ -72,6 +72,34 @@ export interface ReadOptions {
 
 const DEFAULT_LIMIT = 20_000;
 
+/**
+ * Los ficheros de la última lectura del navegador, para enseñar el código de
+ * un símbolo después de analizar (ADR 0067). No se guardan en el snapshot.
+ */
+let lastSources: Map<string, string> | null = null;
+
+/** El código de un símbolo a partir de los ficheros del navegador. */
+export function sourceFromMemory(
+  path: string,
+  start: number,
+  end: number
+): { path: string; start: number; end: number; total: number; lines: string[] } | null {
+  const normalized = path.replaceAll("\\", "/").replace(/^\/+/, "");
+  const source = lastSources?.get(`/${normalized}`) ?? lastSources?.get(normalized);
+  if (source === undefined) return null;
+  const all = source.split(/\r?\n/);
+  const total = all.length;
+  const first = Math.max(1, Math.trunc(start) || 1);
+  const last = Math.min(total, Math.max(first, Math.trunc(end) || first), first + 399);
+  return {
+    path: normalized,
+    start: first,
+    end: last,
+    total,
+    lines: all.slice(first - 1, last)
+  };
+}
+
 export async function readDirectoryToMemory(
   root: DirectoryHandleLike,
   options: ReadOptions = {}
@@ -117,6 +145,7 @@ export async function readDirectoryToMemory(
     );
   }
 
+  lastSources = files;
   return { fileSystem: new MemoryFileSystem(files), count };
 }
 

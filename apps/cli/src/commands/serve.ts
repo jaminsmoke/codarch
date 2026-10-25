@@ -8,6 +8,7 @@ import {
   analyzeRepository,
   ensureGitignoreEntry,
   protectedRootReason,
+  readSourceSnippet,
   watchRepository,
   type RepositoryWatcher
 } from "@codarch/parsers";
@@ -276,6 +277,23 @@ export function runServe(options: ServeOptions): number {
         } catch (error) {
           sendError(response, 400, (error as Error).message);
         }
+        return;
+      }
+
+      if (pathname === "/api/source") {
+        const relative = url.searchParams.get("path");
+        if (!relative) {
+          sendError(response, 400, "falta path");
+          return;
+        }
+        const start = Number(url.searchParams.get("start") ?? "1");
+        const end = Number(url.searchParams.get("end") ?? "400");
+        const snippet = readSourceSnippet(state.root, relative, start, end);
+        if (!snippet) {
+          sendError(response, 404, "no hay código para esa ruta");
+          return;
+        }
+        sendJson(response, snippet);
         return;
       }
 

@@ -13,6 +13,7 @@ import { autoUpdater } from "electron-updater";
 import {
   ensureGitignoreEntry,
   protectedRootReason,
+  readSourceSnippet,
   watchRepository
 } from "@codarch/parsers";
 import type { RepositoryWatcher } from "@codarch/parsers";
@@ -677,6 +678,23 @@ ipcMain.handle("codarch:read-json", async (_event, file: string) => {
     throw new Error(`No se pudo leer ${file}: ${(cause as Error).message}`);
   }
 });
+
+/** Lee el código de un símbolo del repo abierto (ADR 0067). */
+ipcMain.handle(
+  "codarch:read-source",
+  (
+    _event,
+    request: { path?: unknown; start?: unknown; end?: unknown } | null
+  ) => {
+    if (!lastRoot || !request || typeof request.path !== "string") return null;
+    return readSourceSnippet(
+      lastRoot,
+      request.path,
+      typeof request.start === "number" ? request.start : 1,
+      typeof request.end === "number" ? request.end : 400
+    );
+  }
+);
 
 /** Guarda las preferencias de vista en el `.codarch/` del repo (ADR 0053). */
 ipcMain.handle(

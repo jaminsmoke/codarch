@@ -150,12 +150,14 @@ export function describeSymbol(
     name,
     kind,
     line: node.startPosition.row + 1,
+    // La ficha necesita el cuerpo entero para enseñar el código del símbolo
+    // (ADR 0067): no solo las funciones tienen líneas.
+    lines: node.endPosition.row - node.startPosition.row + 1,
     hash: bodyHash(node, nameNode)
   };
 
   if (kind === "function") {
     symbol.complexity = complexity ?? functionComplexity(node);
-    symbol.lines = node.endPosition.row - node.startPosition.row + 1;
   }
 
   return symbol;

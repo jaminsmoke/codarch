@@ -89,6 +89,7 @@ export function plataformaEscritorio(): Plataforma {
       clearLastRoot();
     },
     cadenas: (symbol) => desktop().chains(symbol),
+    codigo: (request) => desktop().source(request),
     historial: async () => {
       const index = await desktop().history();
       return index && Array.isArray(index.entries) ? index.entries : null;

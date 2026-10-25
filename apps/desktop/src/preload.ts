@@ -68,6 +68,21 @@ export interface DesktopInstallResult {
   error: string | null;
 }
 
+/** El trozo de código que se pide para un símbolo (ADR 0067). */
+export interface SourceRequest {
+  path: string;
+  start: number;
+  end: number;
+}
+
+export interface SourceSnippet {
+  path: string;
+  start: number;
+  end: number;
+  total: number;
+  lines: string[];
+}
+
 const api = {
   /** La versión de la app. */
   version: VERSION,
@@ -81,6 +96,9 @@ const api = {
   /** Lee un JSON del disco. */
   readJson: (file: string): Promise<unknown> =>
     ipcRenderer.invoke("codarch:read-json", file),
+  /** Lee las líneas de un símbolo del repo abierto (ADR 0067). */
+  source: (request: SourceRequest): Promise<SourceSnippet | null> =>
+    ipcRenderer.invoke("codarch:read-source", request),
   /** Restaura snapshot, reporte y addons de `.codarch/` del repo. */
   restoreProject: (root: string): Promise<DesktopRestore | null> =>
     ipcRenderer.invoke("codarch:restore-project", root),
