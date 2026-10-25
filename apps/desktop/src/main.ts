@@ -27,6 +27,7 @@ import {
 import type { DesktopTarget } from "./preload";
 import { createAnalyzer, type RepoAnalyzer } from "./analyzer";
 import { readRepoPreferences, writeRepoPreferences } from "./preferences";
+import { sameSnapshot, snapshotChecksum } from "./snapshot-state";
 import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
 import { canAutoUpdate } from "./updates";
@@ -118,11 +119,12 @@ function sendWatch(live: boolean): void {
 }
 
 /**
- * Vigila la raíz abierta y reanaliza al guardar.
+ * Vigila la raíz abierta y avisa al análisis de lo que cambió.
  *
- * El mapa cambia con el repo sin volver a analizarlo a mano. Se reescribe
- * `.codarch/` solo si el checksum cambió, y el renderer recibe el snapshot
- * nuevo por el mismo canal que «abrir con» (ADR 0050).
+ * El mapa cambia con el repo sin volver a analizarlo a mano. Si el pulso dice
+ * que no hay nada nuevo, no se analiza ni se escribe (ADR 0056); si lo hay, se
+ * reescribe `.codarch/` cuando el checksum cambió y el renderer recibe el
+ * snapshot por el mismo canal que «abrir con» (ADR 0050).
  */
 function watchRoot(root: string): void {
   const denied = protectedRootReason(root);
@@ -140,7 +142,7 @@ function watchRoot(root: string): void {
   watchingRoot = root;
   try {
     repositoryWatcher = watchRepository(root, {
-      onChange: () => void refreshFromDisk(root)
+      onChange: (paths) => void refreshFromDisk(root, paths)
     });
     sendWatch(true);
   } catch (cause) {
@@ -155,18 +157,26 @@ function stopWatching(): void {
   watchingRoot = null;
 }
 
-/** Reanaliza y, si el código cambió, reescribe el estado y avisa. */
-async function refreshFromDisk(root: string): Promise<void> {
+/**
+ * Reanaliza solo si el pulso trae algo nuevo, y avisa si el mapa cambió.
+ *
+ * El que decide es el proceso que analiza (sesión y pulso, ADR 0056): aquí
+ * llega `unchanged` y no se toca el disco. Cuando hay snapshot nuevo, se
+ * escribe en `.codarch/` solo si su checksum no es el que ya está guardado.
+ */
+async function refreshFromDisk(
+  root: string,
+  hints: readonly string[] = []
+): Promise<void> {
   if (!isDirectory(root)) return;
   try {
-    const result = await repoAnalyzer().analyze(root);
-    const stored = readPersistedSnapshot(root) as {
-      meta?: { checksum?: string };
-    } | null;
-    if (stored?.meta?.checksum === result.snapshot.meta.checksum) return;
-    writeSnapshot(root, result.snapshot);
+    const outcome = await repoAnalyzer().refresh(root, hints);
+    if (outcome.kind === "unchanged") return;
+    const checksum = snapshotChecksum(outcome.snapshot);
+    if (checksum !== null && persistedChecksum(root) === checksum) return;
+    writeSnapshot(root, outcome.snapshot);
     // `refresh`: es el mismo repo, así que el renderer mantiene la vista.
-    send({ kind: "snapshot", snapshot: result.snapshot, label: root, refresh: true });
+    send({ kind: "snapshot", snapshot: outcome.snapshot, label: root, refresh: true });
   } catch (cause) {
     console.error(`no se pudo reanalizar ${root}: ${(cause as Error).message}`);
   }
@@ -231,6 +241,7 @@ async function openTarget(target: string): Promise<void> {
       return;
     }
     const persisted = readPersistedSnapshot(target);
+    // Si lo guardado ya es el estado del repo, aún no hay nada que reanalizar.
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
       send({ kind: "snapshot", snapshot: persisted, label: target });
@@ -241,20 +252,21 @@ async function openTarget(target: string): Promise<void> {
       setTimeout(() => void refreshFromDisk(target), 400);
       return;
     }
-    let result;
+    let outcome;
     try {
-      result = await repoAnalyzer().analyze(target);
+      outcome = await repoAnalyzer().analyze(target);
     } catch (cause) {
       // El proceso que analiza puede caerse: se dice y no se deja la app muda.
       console.error(`no se pudo analizar ${target}: ${(cause as Error).message}`);
       send({ kind: "report", report: null, label: target });
       return;
     }
+    if (outcome.kind === "unchanged") return;
     lastRoot = target;
     ensureStateIgnored(target);
-    writeSnapshot(target, result.snapshot);
+    writeSnapshot(target, outcome.snapshot);
     watchRoot(target);
-    send({ kind: "snapshot", snapshot: result.snapshot, label: target });
+    send({ kind: "snapshot", snapshot: outcome.snapshot, label: target });
     return;
   }
 
@@ -312,7 +324,32 @@ function writeCodarchJson(root: string, name: string, value: unknown): boolean {
 
 /** Escribe el snapshot en `.codarch/` del repo. */
 function writeSnapshot(root: string, snapshot: unknown): boolean {
-  return writeCodarchJson(root, "snapshot.cc.json", snapshot);
+  const written = writeCodarchJson(root, "snapshot.cc.json", snapshot);
+  const checksum = snapshotChecksum(snapshot);
+  if (written && checksum !== null) {
+    storedChecksums.set(root, checksum);
+  }
+  return written;
+}
+
+/**
+ * El checksum que ya está en `.codarch/snapshot.cc.json`, en memoria.
+ *
+ * Leer el fichero en cada pulso serían 400 KB por aviso; se lee una vez y se
+ * actualiza al escribir. Si algo lo cambia por fuera, el siguiente pulso real
+ * lo reescribe.
+ */
+const storedChecksums = new Map<string, string>();
+
+function persistedChecksum(root: string): string {
+  const known = storedChecksums.get(root);
+  if (known !== undefined) return known;
+  const stored = readPersistedSnapshot(root) as {
+    meta?: { checksum?: string };
+  } | null;
+  const checksum = stored?.meta?.checksum ?? "";
+  storedChecksums.set(root, checksum);
+  return checksum;
 }
 
 /**
@@ -363,7 +400,15 @@ function persistProject(
 ): boolean {
   if (!isDirectory(root)) return false;
   ensureStateIgnored(root);
-  if (!writeSnapshot(root, snapshot)) return false;
+  // Si el análisis ya dejó ese mismo snapshot en `.codarch/`, no se vuelve a
+  // serializar: el renderer manda el proyecto al abrir, y el live lo escribe
+  // aquí antes de avisar. El reporte, si viene, se escribe igual.
+  if (
+    !sameSnapshot(snapshot, persistedChecksum(root)) &&
+    !writeSnapshot(root, snapshot)
+  ) {
+    return false;
+  }
   if (report !== null && report !== undefined) {
     writeCodarchJson(root, "report.json", report);
   }
@@ -603,16 +648,19 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
     throw new Error(`CodArch no analiza ${denied}; abre la carpeta de un proyecto`);
   }
   const started = Date.now();
-  const result = await repoAnalyzer().analyze(root);
+  const outcome = await repoAnalyzer().analyze(root);
+  if (outcome.kind === "unchanged") {
+    throw new Error("el análisis no devolvió un snapshot");
+  }
   lastRoot = root;
   ensureStateIgnored(root);
-  writeSnapshot(root, result.snapshot);
+  writeSnapshot(root, outcome.snapshot);
   watchRoot(root);
   return {
-    snapshot: result.snapshot,
-    files: result.files,
-    edges: result.edges,
-    warnings: result.warnings,
+    snapshot: outcome.snapshot,
+    files: outcome.files,
+    edges: outcome.edges,
+    warnings: outcome.warnings,
     durationMs: Date.now() - started,
     // Los addons que el repo declara (ADR 0029): sus vistas guardadas se
     // ofrecen en el mapa, sin leer nada más desde el renderer.

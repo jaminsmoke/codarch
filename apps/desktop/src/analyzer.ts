@@ -14,11 +14,19 @@ import type {
  * corre se agrupan. Así el vigilante puede avisar diez veces de una ráfaga de
  * guardados sin lanzar diez análisis.
  *
+ * Las pistas del vigilante se acumulan por raíz y viajan con la petición: si
+ * llegan dos avisos mientras uno corre, la repetición ve los dos ficheros. Un
+ * «analiza» del usuario marca la raíz como forzada, porque ahí no se puede
+ * contestar «no cambió».
+ *
  * Si el proceso auxiliar se cae, sus peticiones fallan y la siguiente vuelve a
  * arrancarlo: un análisis roto no deja la app sin analizar hasta reiniciar.
  */
 
 export interface RepoAnalyzer {
+  /** Analiza solo si el pulso trae algo nuevo; si no, `unchanged`. */
+  refresh(root: string, hints?: readonly string[]): Promise<AnalyzeOutcome>;
+  /** Analiza aunque no haya cambiado nada. */
   analyze(root: string): Promise<AnalyzeOutcome>;
   /** Corta el proceso auxiliar (al cerrar la app). */
   close(): void;
@@ -34,6 +42,10 @@ export function createAnalyzer(workerPath: string): RepoAnalyzer {
       reject: (cause: unknown) => void;
     }
   >();
+  /** Las rutas que el vigilante avisó y aún no se han mandado, por raíz. */
+  const hints = new Map<string, Set<string>>();
+  /** Las raíces que el usuario pidió analizar: la próxima no se salta. */
+  const forced = new Set<string>();
 
   /** Rechaza todo lo que esperaba respuesta (el proceso se fue). */
   const failWaiting = (cause: Error): void => {
@@ -63,21 +75,45 @@ export function createAnalyzer(workerPath: string): RepoAnalyzer {
   const ask = (root: string): Promise<AnalyzeOutcome> =>
     new Promise<AnalyzeOutcome>((resolve, reject) => {
       const id = nextId++;
+      const request: AnalyzeRequest = {
+        id,
+        root,
+        hints: [...(hints.get(root) ?? [])],
+        force: forced.has(root)
+      };
       waiting.set(id, { resolve, reject });
       try {
-        const request: AnalyzeRequest = { id, root };
         (worker ?? spawn()).postMessage(request);
       } catch (cause) {
         waiting.delete(id);
         reject(cause);
+        return;
       }
+      // Ya viajan con esta petición: lo que llegue mientras corre se acumula
+      // para la repetición, no se pierde.
+      hints.delete(root);
+      forced.delete(root);
     });
 
   /** Una sola cosa a la vez; la cola vive en `PendingAnalyses`. */
   const queue = new PendingAnalyses<AnalyzeOutcome>(ask);
 
   return {
-    analyze: (root) => queue.analyze(root),
+    refresh: (root, paths = []) => {
+      if (paths.length > 0) {
+        let pending = hints.get(root);
+        if (!pending) {
+          pending = new Set();
+          hints.set(root, pending);
+        }
+        for (const path of paths) pending.add(path);
+      }
+      return queue.analyze(root);
+    },
+    analyze: (root) => {
+      forced.add(root);
+      return queue.analyze(root);
+    },
     close: () => {
       const running = worker;
       worker = null;

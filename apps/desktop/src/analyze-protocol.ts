@@ -13,15 +13,27 @@ export interface AnalyzeRequest {
   /** Correlaciona la respuesta con la petición. */
   id: number;
   root: string;
+  /**
+   * Las rutas que avisó el vigilante.
+   *
+   * Con git sobran —git sabe mejor qué cambió, y un commit no toca el árbol—,
+   * pero sin git son la única pista de qué mirar (ADR 0056).
+   */
+  hints?: string[];
+  /** `true` cuando lo pide el usuario: analiza aunque nada haya cambiado. */
+  force?: boolean;
 }
 
-/** Lo que el análisis devuelve; el snapshot entra en `.codarch/` en el principal. */
-export interface AnalyzeOutcome {
-  snapshot: CcJson;
-  files: number;
-  edges: number;
-  warnings: string[];
-}
+/** El snapshot nuevo, o la constancia de que no hay nada que rehacer. */
+export type AnalyzeOutcome =
+  | {
+      kind: "snapshot";
+      snapshot: CcJson;
+      files: number;
+      edges: number;
+      warnings: string[];
+    }
+  | { kind: "unchanged" };
 
 export type AnalyzeResponse =
   | { id: number; ok: true; result: AnalyzeOutcome }

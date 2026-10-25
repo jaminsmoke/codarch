@@ -1,4 +1,5 @@
-import { analyzeRepository } from "@codarch/parsers";
+import { loadProjectIgnore } from "@codarch/metrics";
+import { AnalysisSession } from "@codarch/parsers";
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
@@ -35,15 +36,55 @@ if (!parent) {
   });
 }
 
+/**
+ * La sesión de cada raíz.
+ *
+ * El proceso vive mientras vive la app, así que guardar aquí el parseo y el
+ * churn es lo que hace que un guardado cueste ~100 ms en vez de ~2 800
+ * (ADR 0056). Y la sesión, además, sabe si el pulso traía algo nuevo: si no,
+ * contesta sin tocar el disco.
+ */
+const sessions = new Map<string, AnalysisSession>();
+
+function sessionFor(root: string): AnalysisSession {
+  let session = sessions.get(root);
+  if (!session) {
+    session = new AnalysisSession(root, { git: true });
+    sessions.set(root, session);
+  }
+  return session;
+}
+
 /** Analiza y traduce el resultado (o el fallo) a un mensaje. */
 export function analyze(request: AnalyzeRequest): AnalyzeResponse {
   try {
-    const result = analyzeRepository(request.root, { git: true });
+    const session = sessionFor(request.root);
+    // El alcance que declara el repo (ADR 0038): sin esto el escritorio
+    // analizaría ficheros que el CLI y `serve` excluyen, y su checksum no
+    // cuadraría con el suyo.
+    const warnings: string[] = [];
+    let ignore: string[] = [];
+    try {
+      ignore = loadProjectIgnore(request.root);
+    } catch (cause) {
+      warnings.push(
+        `no se pudo leer .codarch.yml: ${(cause as Error).message}`
+      );
+    }
+
+    const options = { git: true, ignore };
+    const hints = request.hints ?? [];
+    const result = request.force
+      ? session.analyze(hints, options)
+      : session.refresh(hints, options);
+    if (!result) return { id: request.id, ok: true, result: { kind: "unchanged" } };
+
     const outcome: AnalyzeOutcome = {
+      kind: "snapshot",
       snapshot: result.snapshot,
       files: result.files,
       edges: result.edges,
-      warnings: result.warnings
+      warnings: [...warnings, ...result.warnings]
     };
     return { id: request.id, ok: true, result: outcome };
   } catch (cause) {

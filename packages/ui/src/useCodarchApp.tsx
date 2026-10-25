@@ -393,15 +393,19 @@ export function useCodarchApp(
       if (!loadReport(raw, label)) return false;
       const saved = plataforma.leerProyecto();
       if (saved) {
+        // Si lo que se ve es el proyecto guardado (o su refresco del live), el
+        // snapshot de la vista manda; una foto del historial no lo pisa.
+        const snapshot = cc && source === saved.label ? cc : saved.snapshot;
         void plataforma.escribirProyecto({
           ...saved,
+          snapshot,
           report: raw,
           reportLabel: label
         });
       }
       return true;
     },
-    [loadReport, plataforma]
+    [cc, loadReport, plataforma, source]
   );
 
   const analyzeFolder = useCallback(async () => {
@@ -796,17 +800,13 @@ export function useCodarchApp(
     };
   }, [loadSnapshot, loadReport, plataforma]);
 
-  useEffect(() => {
-    if (!cc || !plataforma.restaurarProyecto) return;
-    const saved = plataforma.leerProyecto();
-    if (saved) {
-      void plataforma.escribirProyecto({
-        ...saved,
-        snapshot: cc,
-        label: source
-      });
-    }
-  }, [cc, source, plataforma]);
+  // No hay un efecto que reescriba el proyecto cuando cambia `cc` a propósito:
+  // cada camino que carga un snapshot ya lo guarda donde toca —«Abrir cc.json»,
+  // soltar un fichero, cargar por URL y analizar una carpeta—, y el refresco del
+  // live lo escribe el proceso que analiza. Reescribirlo aquí mandaba el
+  // snapshot entero por IPC en cada guardado para dejar el disco igual que ya
+  // estaba, y convertir una foto del historial en «proyecto» rompía la
+  // vigilancia del repo (ADR 0048, ADR 0056).
 
   const state: CodarchAppState = {
     cc,
