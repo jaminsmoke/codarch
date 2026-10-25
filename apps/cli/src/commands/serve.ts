@@ -209,8 +209,11 @@ export function runServe(options: ServeOptions): number {
     updatedAt: state.updatedAt
   });
 
-  // El handler atrapa sus errores y el servidor no espera la promesa.
-  const server = http.createServer(async (request, response) => {
+  // El handler atrapa sus errores; el servidor no espera la promesa.
+  const handle = async (
+    request: http.IncomingMessage,
+    response: http.ServerResponse
+  ): Promise<void> => {
     try {
       const host = request.headers.host ?? `${options.host}:${options.port}`;
       const url = new URL(request.url ?? "/", `http://${host}`);
@@ -385,6 +388,10 @@ export function runServe(options: ServeOptions): number {
         response.end();
       }
     }
+  };
+
+  const server = http.createServer((request, response) => {
+    void handle(request, response);
   });
 
   if (state.watch) {
