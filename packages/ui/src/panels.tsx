@@ -13,6 +13,7 @@ import type {
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
+import { symbolSummary } from "./symbols";
 import {
   CHURN_METRIC,
   EVENT_LABEL,
@@ -533,36 +534,48 @@ export function Inspector({
       </CollapsibleSection>
 
       {symbols.length > 0 ? (
-        <div className="symbol-list">
-          <div className="eyebrow">Símbolos</div>
-          {symbols.slice(0, 12).map((symbol) => (
-            <button
-              key={`${symbol.name}-${symbol.line}`}
-              type="button"
-              className={`symbol-row${chain?.name === symbol.name ? " is-selected" : ""}`}
-              onClick={() => onSelectSymbol(symbol.name)}
-              title="Ver la vida de este símbolo"
-            >
-              <span className={`symbol-kind symbol-${symbol.kind}`}>
-                {SYMBOL_LABEL[symbol.kind]}
-              </span>
-              <span className="symbol-name" title={symbol.name}>
-                {symbol.name}
-              </span>
-              {symbol.complexity !== undefined ? (
-                <span
-                  className="mono symbol-complexity"
-                  title="Complejidad ciclomática"
-                >
-                  {symbol.complexity}
+        <CollapsibleSection
+          id="file-symbols"
+          title="Símbolos"
+          count={symbols.length}
+          summary={symbolSummary(symbols)}
+        >
+          <div className="symbol-list">
+            {symbols.map((symbol) => (
+              <button
+                key={`${symbol.name}-${symbol.line}`}
+                type="button"
+                className={`symbol-row${chain?.name === symbol.name ? " is-selected" : ""}`}
+                onClick={() => onSelectSymbol(symbol.name)}
+                title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
+                  symbol.line
+                }${
+                  symbol.complexity !== undefined
+                    ? ` · complejidad ${symbol.complexity}`
+                    : ""
+                }. Ver la vida de este símbolo.`}
+              >
+                <span className={`symbol-kind symbol-${symbol.kind}`}>
+                  {SYMBOL_LABEL[symbol.kind]}
                 </span>
-              ) : null}
-            </button>
-          ))}
-          {symbols.length > 12 ? (
-            <div className="symbol-more">y {symbols.length - 12} más</div>
-          ) : null}
-        </div>
+                <span className="symbol-name" title={symbol.name}>
+                  {symbol.name}
+                </span>
+                {symbol.complexity !== undefined ? (
+                  <span
+                    className="mono symbol-complexity"
+                    title="Complejidad ciclomática"
+                  >
+                    {symbol.complexity}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+            <p className="muted tiny symbol-note">
+              Ordenados por complejidad. Pulsa uno para seguir su vida.
+            </p>
+          </div>
+        </CollapsibleSection>
       ) : null}
 
       {chain ? (
