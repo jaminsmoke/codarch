@@ -1,25 +1,14 @@
 # CodArch GitHub Action
 
-Repositorio público: [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action).
+Vive en el monorepo público [`jaminsmoke/codarch`](https://github.com/jaminsmoke/codarch), en `apps/github-action`.
 
 Analiza el commit base y el head de un pull request, escribe un `report.json` determinista, publica el
 mapa como artefacto y actualiza un comentario en el PR.
 
-La acción instala el CLI publicado en npm (`codarch@0.3.1-alpha.3` por defecto), así que no necesita el
+La acción instala el CLI publicado en npm (`codarch@0.3.21` por defecto), así que no necesita el
 código de CodArch en el workspace ni ejecuta `npm ci` sobre el proyecto analizado. La decisión está en
-[ADR 0012](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0011-0020/0012-github-action.md) y
-[ADR 0014](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0011-0020/0014-distribucion-cli-npm.md).
-
-> [!NOTE]
-> El producto está en **alpha** ✓ ([ADR 0032](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0031-0040/0032-las-versiones-y-las-actualizaciones.md)):
-> las alphas se publican en npm con la etiqueta `next` ✓, así que la acción instala por defecto la
-> alpha actual ✓. Para instalar la última versión normal:
->
-> ```yaml
-> - uses: jaminsmoke/codarch-action@v1
->   with:
->     version: 0.2.0
-> ```
+[ADR 0012](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/adr/0011-0020/0012-github-action.md) y
+[ADR 0014](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/adr/0011-0020/0014-distribucion-cli-npm.md).
 
 ## Uso
 
@@ -41,7 +30,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: jaminsmoke/codarch-action@v1
+      - uses: jaminsmoke/codarch/apps/github-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fail-on: none # aviso; usa violations, cycles, hotspots o any para bloquear
@@ -64,7 +53,7 @@ el análisis y el artefacto funcionan, pero el comentario se omite con un warnin
 | `comment` | `true` | Publica o actualiza el comentario del PR. |
 | `artifact-name` | `codarch` | Nombre del artefacto. |
 | `node-version` | `22` | Versión de Node. |
-| `version` | `0.2.0` | Versión exacta de `codarch` que se instala desde npm. |
+| `version` | `0.3.21` | Versión exacta de `codarch` que se instala desde npm. |
 | `working-directory` | `.` | Directorio del proyecto. |
 | `title` | `CodArch` | Título del mapa. |
 | `top` | `10` | Hotspots incluidos en el reporte. |

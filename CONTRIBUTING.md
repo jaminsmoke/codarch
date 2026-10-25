@@ -26,10 +26,10 @@ npm run lint
 npm run typecheck
 npx vitest run
 npm run check:action
-npm run version       # las versiones del producto, el CLI y el escritorio: cuadran
+npm run version       # motor, CLI, escritorio, web, MCP y Docker: cuadran
 ```
 
-Si tocas la acción ✓, también `npm run sync:action` ✓ y el repo público ✓.
+Si tocas la acción, `npm run check:action`; el pin y el tag `v1` se mueven al publicar el CLI.
 
 ## Cómo se decide
 

@@ -13,7 +13,7 @@ packages/   schema · parsers · metrics · layouts · render · plugin-api · a
 apps/       cli · mcp · github-action · web (M5) · desktop (M7) · site (M23)
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
 apps/site/docs/       adr/ (carpetas de diez: 0001-0010, 0011-0020, 0021-0030, 0031-0040, 0041-0050; roadmap.md dentro) · model.md · rules.md · mcp.md · migration.md · guideline/
-scripts/    bench-* · build-cli · pack-cli · desktop-release · sync-action · check-action
+scripts/    bench-* · build-cli · pack-cli · desktop-release · auto-release · check-action
 ```
 
 ## Idioma y estilo
@@ -51,7 +51,6 @@ npm run release        # sube el parche de todos; para uno: -- --cli minor (ADR 
 npm run release -- --cli minor --dry-run  # enseña el plan sin tocar nada
 npm run build:cli      # bundle ESM en apps/cli/dist
 npm run pack:cli       # tarball en .codarch/pack
-npm run sync:action    # regenera .codarch/action-repo (repo público)
 npm run docs           # abre la guía en el navegador (la del sitio, en el 5175)
 npm run web:dev        # app web + codarch serve automático, se para con Vite
 npm run site:dev       # la web del proyecto (apps/site/docs/adr/… en el 5175)
@@ -62,8 +61,7 @@ docker compose up --build  # app web local en 127.0.0.1:4173 (ADR 0044)
 docker build -t codarch-web .  # imagen local sin Compose
 ```
 
-Antes de cada push: lint, typecheck, tests y `check:action`. Si el cambio toca la acción, ejecutar
-también `npm run sync:action` y actualizar el repo público.
+Antes de cada push: lint, typecheck, tests y `check:action`.
 
 ## Reglas de trabajo
 
@@ -84,14 +82,13 @@ también `npm run sync:action` y actualizar el repo público.
    es el changelog y no hay sidecars (ADR 0047).
 7. **MCP.** El cliente debe lanzar `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
-8. **Acción.** La fuente es `apps/github-action`. El repo público
-   [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action) se genera con
-   `npm run sync:action`; no editar allí. Tras sincronizar, mover el tag mayor `v1`.
+8. **Acción.** La fuente es `apps/github-action`. Se usa por subruta:
+   `jaminsmoke/codarch/apps/github-action@v1`. El tag `v1` vive en el monorepo y lo mueve el workflow
+   de publicación del CLI después de npm.
 9. **Entrega.** El parche lo sube `.github/workflows/release.yml` después de CI verde en `main`:
    calcula el impacto por dependencias y lanza solo los canales afectados. `minor`/`major` se piden
    a mano con `npm run release -- --<componente> minor|major`. El CLI se publica con Trusted
-   Publishing, sin OTP; al publicarse, el workflow actualiza el pin de la acción. El repo público de
-   la acción se sincroniza aparte con `npm run sync:action` y se mueve el tag mayor `v1`.
+   Publishing, sin OTP; al publicarse, el workflow actualiza el pin de la acción.
 10. **Idiomas.** El idioma por defecto es el español. Las cadenas de la UI viven en
     `apps/site/src/content/i18n/<idioma>.json` (la colección `i18n` de Starlight) y el contenido en
     `apps/site/docs/<idioma>/`. Añadir un idioma es
@@ -243,11 +240,15 @@ también `npm run sync:action` y actualizar el repo público.
   canales (`publish-cli`, `desktop`, `docker`). La web viaja dentro del CLI, así que un cambio de
   web también sube el CLI. Los `minor`/`major` siguen a mano con
   `npm run release -- --<componente> minor|major`, y los ajustes estrenan **Componentes**.
+- M46 cerrada: la acción vuelve al monorepo (ADR 0066). Se usa por subruta
+  (`apps/github-action@v1`), el tag `v1` se mueve al publicar el CLI y desaparece `sync:action` y la
+  copia pública generada; `codarch-action` queda archivado.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
-- Repos: `jaminsmoke/codarch` público; `jaminsmoke/codarch-action` público;
-  `jaminsmoke/codarch-action-smoke` privado para pruebas externas.
+- Repos: `jaminsmoke/codarch` público, con la acción en `apps/github-action` y el tag `v1`;
+  `jaminsmoke/codarch-action-smoke` privado. `jaminsmoke/codarch-action` queda archivado y ya no
+  se sincroniza.
 
 ## No objetivos de v1
 

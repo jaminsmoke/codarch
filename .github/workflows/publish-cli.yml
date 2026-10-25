@@ -62,8 +62,7 @@ jobs:
         run: node scripts/publish-cli.mjs
 
       # La acción instala una versión publicada: el pin se mueve después de
-      # npm, nunca antes (ADR 0041). El repo público de la acción se
-      # sincroniza aparte con `npm run sync:action`.
+      # npm, nunca antes (ADR 0041). La acción vive en este repo (ADR 0066).
       - name: Actualizar el pin de la acción
         run: node scripts/pin-action.mjs "${{ steps.version.outputs.version }}"
 
@@ -78,3 +77,10 @@ jobs:
           git add apps/github-action/action.yml
           git commit -m "chore: pin codarch ${{ steps.version.outputs.version }} en la acción"
           git push origin HEAD:main
+
+      # `uses: jaminsmoke/codarch/apps/github-action@v1`. El tag se mueve
+      # después de publicar, igual que el pin.
+      - name: Mover el tag v1 de la acción
+        run: |
+          git tag -f v1 HEAD
+          git push -f origin v1

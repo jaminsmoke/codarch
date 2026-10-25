@@ -22,7 +22,6 @@
     "build:cli": "node scripts/build-cli.mjs",
     "pack:cli": "npm run web:build && npm run build:cli && node scripts/pack-cli.mjs",
     "publish:cli": "npm run web:build && npm run build:cli && node scripts/publish-cli.mjs",
-    "sync:action": "node scripts/sync-action.mjs",
     "docs": "node scripts/docs.mjs",
     "version": "node scripts/version.mjs",
     "release": "node scripts/release.ts",

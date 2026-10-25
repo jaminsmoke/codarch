@@ -10,7 +10,7 @@
 > necesitas que no se rompa ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓ y su checksum ✓.
 
 **Qué hay hoy:** el CLI `codarch` ✓ (publicado en npm ✓), la GitHub Action pública ✓
-(`jaminsmoke/codarch-action@v1` ✓, que funciona desde otros repositorios ✓), el MCP de solo lectura
+(`jaminsmoke/codarch/apps/github-action@v1` ✓, que funciona desde otros repositorios ✓), el MCP de solo lectura
 ✓, la app web ✓ y la app de escritorio ✓. La lente de migración ✓ mide lenguajes ✓, puentes ✓ y
 deuda ✓; el diff habla **símbolo a símbolo** ✓ y su cadena sobrevive a los renombrados ✓; la web
 analiza una carpeta **en el navegador** ✓ con el mismo checksum ✓ que el CLI ✓; los plugins ✓ y los
@@ -52,7 +52,7 @@ y el registro en la guía—, el modelo en [`apps/site/docs/model.md`](apps/site
 | **App web del mapa** | dentro del CLI | `codarch serve .` |
 | **App web en Docker** | GHCR | `docker compose up --build` |
 | **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores Windows/Linux sin firmar |
-| **GitHub Action** | [`jaminsmoke/codarch-action@v1`](https://github.com/jaminsmoke/codarch-action) | `uses: jaminsmoke/codarch-action@v1` |
+| **GitHub Action** | [`jaminsmoke/codarch/apps/github-action@v1`](https://github.com/jaminsmoke/codarch/tree/main/apps/github-action) | `uses: jaminsmoke/codarch/apps/github-action@v1` |
 
 El CLI se publica en **npmjs**, no en GitHub Packages. La web del proyecto es un **deployment** de
 Pages, no un release. La app web del mapa viaja dentro del CLI: su versión es la del CLI; la imagen
@@ -109,7 +109,6 @@ npm test
 npm run build:cli
 npm run pack:cli
 npm run publish:cli
-npm run sync:action             # regenera el repo público codarch-action
 ```
 
 ### La app web con Docker
@@ -297,16 +296,14 @@ permissions:
 steps:
   - uses: actions/checkout@v7
     with: { fetch-depth: 0 }
-  - uses: jaminsmoke/codarch-action@v1
+  - uses: jaminsmoke/codarch/apps/github-action@v1
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       fail-on: none
 ```
 
 La acción instala `codarch` desde npm; no necesita el código de CodArch en el workspace ni ejecuta
-`npm ci` sobre el proyecto analizado. Vive en el repo público
-[`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action), generado desde
-`apps/github-action` con `npm run sync:action`. El workflow de ejemplo es
+`npm ci` sobre el proyecto analizado. Vive en `apps/github-action` del monorepo público. El workflow de ejemplo es
 [`.github/workflows/codarch.yml`](.github/workflows/codarch.yml).
 
 ### 🤖 MCP para agentes

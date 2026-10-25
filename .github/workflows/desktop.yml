@@ -147,4 +147,4 @@ jobs:
 
             - **Web del proyecto:** https://jaminsmoke.github.io/codarch
             - **CLI:** `npm install -g codarch@next` · https://www.npmjs.com/package/codarch
-            - **GitHub Action:** https://github.com/jaminsmoke/codarch-action
+            - **GitHub Action:** https://github.com/jaminsmoke/codarch/tree/main/apps/github-action
