@@ -1,5 +1,29 @@
 import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
+import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
+import { RuleRow } from "./RuleRow";
+import { countBySource, type RuleStatus } from "./rules";
+
+/** El orden en el que se leen los tres grupos de reglas. */
+/**
+ * El orden en el que se leen los tres grupos de reglas.
+ *
+ * La cuenta en palabras del encabezado («3 nuevas») ya dice cuándo un grupo
+ * está vacío, así que no se repite con una frase debajo.
+ */
+const GROUPS: Array<{
+  status: RuleStatus;
+  title: string;
+  one: string;
+  many: string;
+}> = [
+  { status: "introduced", title: "Nuevas", one: "nueva", many: "nuevas" },
+  { status: "existing", title: "Existentes", one: "existente", many: "existentes" },
+  { status: "resolved", title: "Resueltas", one: "resuelta", many: "resueltas" }
+];
+
+/** Un grupo largo se corta aquí; el reporte sigue teniendo el resto. */
+const MAX_ROWS = 25;
 
 interface ChangesPanelProps {
   report: DiffReport | null;
@@ -12,10 +36,15 @@ interface ChangesPanelProps {
 /**
  * La pestaña de cambios: qué se ha movido entre base y head.
  *
- * Ficheros, aristas, ciclos, migración, símbolos y las listas de ficheros
- * tocados. Las reglas y los hotspots no están aquí: tienen su propia pestaña
- * (ADR 0058). Se llamaba PR y sugería un pull request pendiente de mergear; el
- * reporte es un diff de snapshots, con git o sin él (ADR 0059).
+ * Empieza por lo que rompe —las reglas del cambio, con sus nuevas, existentes y
+ * resueltas— y sigue con los hotspots, la migración, los símbolos, los ciclos y
+ * los ficheros tocados. Las reglas viven aquí y no en una pestaña propia desde
+ * el ADR 0069: son del cambio, no del fichero.
+ *
+ * Cada bloque es una sección plegable de la ficha, con su punto de color, su
+ * cuenta y un resumen que dice lo importante cuando está cerrada (ADR 0069).
+ * Las subsecciones de reglas usan el mismo encabezado que Dominio y Migración
+ * en el fichero, y las listas, el ritmo de filas de la tabla de Métricas.
  */
 export default function ChangesPanel({
   report,
@@ -42,6 +71,15 @@ export default function ChangesPanel({
   }
 
   const summary = report.summary;
+  const rules = report.rules;
+  const ruleSummary = rules.summary;
+  const allViolations = [
+    ...rules.violations.introduced,
+    ...rules.violations.existing,
+    ...rules.violations.resolved
+  ];
+  const sources = countBySource(allViolations);
+  const hotspots = report.hotspots;
   const changed = report.files.changed.slice(0, 6);
   const added = report.files.added.slice(0, 5);
   const cycles = report.cycles.introduced.slice(0, 4);
@@ -50,6 +88,19 @@ export default function ChangesPanel({
   const decreased = migration?.files.decreased.slice(0, 6) ?? [];
   const symbols = report.symbols;
   const symbolFiles = symbols?.files.slice(0, 6) ?? [];
+
+  /** El reparto de reglas del cambio, para el resumen de la sección plegada. */
+  const ruleParts = [
+    ruleSummary.introduced > 0
+      ? `${ruleSummary.introduced} nueva${ruleSummary.introduced === 1 ? "" : "s"}`
+      : null,
+    ruleSummary.existing > 0
+      ? `${ruleSummary.existing} existente${ruleSummary.existing === 1 ? "" : "s"}`
+      : null,
+    ruleSummary.resolved > 0
+      ? `${ruleSummary.resolved} resuelta${ruleSummary.resolved === 1 ? "" : "s"}`
+      : null
+  ].filter((part) => part !== null);
 
   return (
     <section className="change-panel">
@@ -90,9 +141,129 @@ export default function ChangesPanel({
         ) : null}
       </div>
 
+      <CollapsibleSection
+        id="change-rules"
+        title="Reglas"
+        className="section-changes-rules"
+        count={allViolations.length}
+        summary={ruleParts.join(" · ") || "sin violaciones"}
+      >
+        {!rules.configured ? (
+          <p className="muted small">
+            Este reporte no trae reglas de arquitectura. Añádelas a{" "}
+            <code>.codarch.yml</code> para que el diff las evalúe.
+          </p>
+        ) : (
+          <>
+            <p className="rules-meta">
+              {ruleSummary.introducedWarnings} aviso
+              {ruleSummary.introducedWarnings === 1 ? "" : "s"} nuevo
+              {ruleSummary.introducedWarnings === 1 ? "" : "s"} ·{" "}
+              {ruleSummary.rules} regla{ruleSummary.rules === 1 ? "" : "s"} en{" "}
+              {ruleSummary.layers} capa{ruleSummary.layers === 1 ? "" : "s"}
+              {rules.profile ? (
+                <>
+                  {" "}
+                  · perfil <b>{rules.profile}</b>
+                </>
+              ) : null}
+              {sources.length > 0 ? (
+                <>
+                  {" "}
+                  · origen{"\u00a0"}
+                  {sources.map((entry, index) => (
+                    <span key={entry.source}>
+                      {index > 0 ? " · " : ""}
+                      {entry.label} <b>{entry.count}</b>
+                    </span>
+                  ))}
+                </>
+              ) : null}
+            </p>
+
+            {GROUPS.map((group) => {
+              const rows = rules.violations[group.status];
+              return (
+                <div className="rule-group" key={group.status}>
+                  <GroupHead
+                    label={group.title}
+                    summary={
+                      rows.length === 0
+                        ? "ninguna"
+                        : `${rows.length} ${rows.length === 1 ? group.one : group.many}`
+                    }
+                  />
+                  {rows.length === 0 ? null : (
+                    <div className="violation-list">
+                      {rows.slice(0, MAX_ROWS).map((violation) => (
+                        <RuleRow
+                          key={violation.key}
+                          violation={violation}
+                          status={group.status}
+                          onSelectPath={onSelectPath}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {rows.length > MAX_ROWS ? (
+                    <p className="muted tiny">
+                      y {rows.length - MAX_ROWS} más en el reporte.
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </>
+        )}
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        id="change-hotspots"
+        title="Hotspots"
+        className="section-hotspots"
+        count={hotspots.length}
+        summary={report.hotspotMetric ?? "métrica"}
+      >
+        <p className="rules-meta">
+          Los que más se mueven en{" "}
+          <b>{report.hotspotMetric ?? "la métrica del cambio"}</b>.
+        </p>
+        {hotspots.length === 0 ? (
+          <p className="muted small">
+            Ningún fichero destaca en la métrica del cambio.
+          </p>
+        ) : (
+          <div className="change-rows">
+            {hotspots.map((hotspot) => (
+              <button
+                key={`${hotspot.id}-${hotspot.metric}`}
+                type="button"
+                className="change-row"
+                title={hotspot.path}
+                onClick={() => onSelectPath(hotspot.path)}
+              >
+                <span className="change-path">{hotspot.path}</span>
+                <span
+                  className={`mono change-delta${
+                    hotspot.delta > 0 ? " is-worse" : ""
+                  }`}
+                >
+                  {formatCompact(hotspot.base)} → {formatCompact(hotspot.head)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </CollapsibleSection>
+
       {migration ? (
-        <div className="change-section">
-          <div className="eyebrow">Migración</div>
+        <CollapsibleSection
+          id="change-migration"
+          title="Migración"
+          className="section-changes-migration"
+          count={increased.length + decreased.length}
+          summary={`deuda ${formatCompact(migration.debt.base)} → ${formatCompact(migration.debt.head)}`}
+        >
           <div className="change-summary">
             <span>
               deuda <b>{migration.debt.base}</b> → <b>{migration.debt.head}</b>
@@ -105,9 +276,11 @@ export default function ChangesPanel({
             </span>
           </div>
           {increased.length === 0 && decreased.length === 0 ? (
-            <p className="muted small">La deuda de migración no ha cambiado.</p>
+            <p className="muted small">
+              La deuda de migración no ha cambiado.
+            </p>
           ) : (
-            <div className="violation-list">
+            <div className="change-rows">
               {increased.map((file) => (
                 <MigrationRow
                   key={file.id}
@@ -128,13 +301,18 @@ export default function ChangesPanel({
               ))}
             </div>
           )}
-        </div>
+        </CollapsibleSection>
       ) : null}
 
       {symbols && symbolFiles.length > 0 ? (
-        <div className="change-section">
-          <div className="eyebrow">Símbolos</div>
-          <div className="violation-list">
+        <CollapsibleSection
+          id="change-symbols"
+          title="Símbolos"
+          className="section-changes-symbols"
+          count={symbolFiles.length}
+          summary={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
+        >
+          <div className="symbol-list">
             {symbolFiles.map((file) => (
               <div key={file.id} className="symbol-file">
                 <button
@@ -170,12 +348,16 @@ export default function ChangesPanel({
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
       ) : null}
 
       {cycles.length > 0 ? (
-        <div className="change-section">
-          <div className="eyebrow">Ciclos nuevos</div>
+        <CollapsibleSection
+          id="change-cycles"
+          title="Ciclos nuevos"
+          className="section-cycles"
+          count={report.cycles.introduced.length}
+        >
           <div className="change-rows">
             {cycles.map((cycle, index) => (
               <div key={index} className="change-cycle">
@@ -189,35 +371,47 @@ export default function ChangesPanel({
               </div>
             ))}
           </div>
-        </div>
+          {report.cycles.introduced.length > cycles.length ? (
+            <p className="muted tiny">
+              +{report.cycles.introduced.length - cycles.length} más
+            </p>
+          ) : null}
+        </CollapsibleSection>
       ) : null}
 
-      <div className="change-section">
-        <div className="eyebrow">Ficheros modificados</div>
+      <CollapsibleSection
+        id="change-files"
+        title="Ficheros modificados"
+        className="section-changed"
+        count={report.files.changed.length}
+      >
         {changed.length === 0 ? (
           <p className="muted small">Sin ficheros modificados.</p>
         ) : (
           <div className="change-rows">
-            {changed.map((file) => (
-              <button
-                key={file.id}
-                type="button"
-                className="change-row"
-                title={file.path}
-                onClick={() => onSelectPath(file.path)}
-              >
-                <span className="change-path">{file.path}</span>
-                <span className="mono change-delta">
-                  {file.changes
-                    .slice(0, 2)
-                    .map(
-                      (change) =>
-                        `${change.metric} ${change.delta === null ? "±" : change.delta > 0 ? `+${formatCompact(change.delta)}` : formatCompact(change.delta)}`
-                    )
-                    .join(" · ")}
-                </span>
-              </button>
-            ))}
+            {changed.map((file) => {
+              // El delta se corta cuando no cabe, así que la fila lleva el texto
+              // completo en el tooltip.
+              const deltas = file.changes
+                .slice(0, 2)
+                .map(
+                  (change) =>
+                    `${change.metric} ${change.delta === null ? "±" : change.delta > 0 ? `+${formatCompact(change.delta)}` : formatCompact(change.delta)}`
+                )
+                .join(" · ");
+              return (
+                <button
+                  key={file.id}
+                  type="button"
+                  className="change-row"
+                  title={`${file.path} · ${deltas}`}
+                  onClick={() => onSelectPath(file.path)}
+                >
+                  <span className="change-path">{file.path}</span>
+                  <span className="mono change-delta">{deltas}</span>
+                </button>
+              );
+            })}
           </div>
         )}
         {report.files.changed.length > changed.length ? (
@@ -225,11 +419,15 @@ export default function ChangesPanel({
             +{report.files.changed.length - changed.length} más
           </p>
         ) : null}
-      </div>
+      </CollapsibleSection>
 
       {added.length > 0 ? (
-        <div className="change-section">
-          <div className="eyebrow">Ficheros nuevos</div>
+        <CollapsibleSection
+          id="change-added"
+          title="Ficheros nuevos"
+          className="section-added"
+          count={report.files.added.length}
+        >
           <div className="change-rows">
             {added.map((file) => (
               <button
@@ -246,7 +444,12 @@ export default function ChangesPanel({
               </button>
             ))}
           </div>
-        </div>
+          {report.files.added.length > added.length ? (
+            <p className="muted tiny">
+              +{report.files.added.length - added.length} más
+            </p>
+          ) : null}
+        </CollapsibleSection>
       ) : null}
     </section>
   );

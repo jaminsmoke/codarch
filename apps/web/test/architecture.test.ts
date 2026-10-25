@@ -31,7 +31,6 @@ const ARMAZON = [
   "MapCanvas",
   "Inspector",
   "ChangesPanel",
-  "RulesPanel",
   "DebtList",
   "HeatList",
   "HotList",

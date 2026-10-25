@@ -15,7 +15,6 @@ import {
   Legend
 } from "./panels";
 import ChangesPanel from "./ChangesPanel";
-import RulesPanel from "./RulesPanel";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -483,27 +482,19 @@ export function AppShell({
             <button
               type="button"
               role="tab"
-              aria-selected={tab === "rules"}
-              className={`tab${tab === "rules" ? " is-active" : ""}`}
-              onClick={() => setTab("rules")}
-            >
-              Reglas{" "}
-              {report?.rules.summary.introduced ? (
-                <i
-                  className="tab-dot tab-dot-alert"
-                  title={`${report.rules.summary.introduced} violaciones nuevas`}
-                />
-              ) : null}
-            </button>
-            <button
-              type="button"
-              role="tab"
               aria-selected={tab === "changes"}
               className={`tab${tab === "changes" ? " is-active" : ""}`}
               onClick={() => setTab("changes")}
             >
               Cambios{" "}
-              {report ? <i className="tab-dot" title="Reporte cargado" /> : null}
+              {report?.rules.summary.introduced ? (
+                <i
+                  className="tab-dot tab-dot-alert"
+                  title={`${report.rules.summary.introduced} violaciones nuevas`}
+                />
+              ) : report ? (
+                <i className="tab-dot" title="Reporte cargado" />
+              ) : null}
             </button>
           </div>
           {tab === "file" ? (
@@ -517,6 +508,8 @@ export function AppShell({
               symbols={selectedSymbols}
               structure={selectedStructure}
               chain={chain}
+              report={report}
+              migration={migration}
               onSelectSymbol={(name) => {
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
@@ -524,18 +517,6 @@ export function AppShell({
               onOpenEditor={abrirEnEditor}
               onSelectPath={selectInPlace}
               onColorMode={setColorMode}
-            />
-          ) : tab === "rules" ? (
-            <RulesPanel
-              report={report}
-              source={reportSource}
-              error={reportError}
-              onLoad={onLoadReport}
-              onSelectPath={selectInPlace}
-              file={selectedFile}
-              model={view.model}
-              migration={migration}
-              symbols={selectedSymbols}
             />
           ) : (
             <ChangesPanel

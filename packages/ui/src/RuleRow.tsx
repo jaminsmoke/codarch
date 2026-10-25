@@ -52,6 +52,13 @@ export function RuleRow({
     !violation.message.includes(violation.cycle.nodes[0]?.path ?? "")
       ? violation.cycle
       : null;
+  // En la ficha del fichero el prefijo con su propia ruta sobra: el mensaje
+  // empieza por «ruta: » y el lector ya sabe en qué fichero está. El texto
+  // completo sigue en el tooltip de la fila.
+  const message =
+    otherThan && violation.message.startsWith(`${otherThan}: `)
+      ? violation.message.slice(otherThan.length + 2)
+      : violation.message;
 
   return (
     <button
@@ -63,7 +70,9 @@ export function RuleRow({
       <i />
       <span>
         <b>
-          {violation.rule}
+          <span className="violation-name" title={violation.rule}>
+            {violation.rule}
+          </span>
           <em className="violation-source" title="De dónde sale la regla">
             {sourceLabel(violation.source)}
           </em>
@@ -73,7 +82,7 @@ export function RuleRow({
             </em>
           ) : null}
         </b>
-        <small>{violation.message}</small>
+        <small className="violation-message">{message}</small>
         {edge ? (
           <small className="rules-detail">
             {edge.from} → {edge.to}

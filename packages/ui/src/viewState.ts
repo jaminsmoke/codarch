@@ -17,17 +17,17 @@ import type { AddonViewState } from "@codarch/addons";
 /**
  * Las pestañas del panel derecho.
  *
- * Tres desde el ADR 0059: el fichero, sus reglas (con las lentes dentro) y los
- * cambios del snapshot. `lenses` y `pr` eran los nombres viejos y se siguen
- * aceptando para no romper enlaces ni vistas guardadas.
+ * Dos desde el ADR 0069: el fichero —con sus reglas de dominio y su migración
+ * dentro— y el cambio del snapshot. `rules`, `lenses` y `pr` eran los nombres
+ * viejos y se siguen leyendo para no romper enlaces ni vistas guardadas: las
+ * reglas del cambio viven ahora en Cambios.
  */
-export type InspectorTab = "file" | "rules" | "changes";
+export type InspectorTab = "file" | "changes";
 
 /** Lee una pestaña, con los nombres viejos traducidos a los de ahora. */
 export function parseInspectorTab(value: string | null): InspectorTab | null {
-  if (value === "file" || value === "rules" || value === "changes") return value;
-  if (value === "lenses") return "rules";
-  if (value === "pr") return "changes";
+  if (value === "file" || value === "changes") return value;
+  if (value === "rules" || value === "lenses" || value === "pr") return "changes";
   return null;
 }
 
@@ -119,7 +119,8 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
     colorMode: state.color ?? null,
     focusPath: state.focus ?? null,
     filePath: state.file ?? null,
-    tab: state.tab ?? null,
+    // Una vista guardada antes del ADR 0069 puede decir `rules`: se traduce.
+    tab: parseInspectorTab(state.tab ?? null),
     symbolName: state.symbol ?? null,
     showLabels: state.labels ?? null
   };

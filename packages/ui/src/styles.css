@@ -1197,6 +1197,10 @@ button {
 
 /* Cada sección de la ficha tiene su color, como las lentes del mapa: un punto
    en el título y nada más (2026-10-25). */
+.section-rules {
+  --section-tint: var(--debt);
+}
+
 .section-metrics {
   --section-tint: var(--ink);
 }
@@ -1221,18 +1225,44 @@ button {
   --section-tint: var(--rust);
 }
 
-.section-metrics > .collapsible-head::before,
-.section-symbols > .collapsible-head::before,
-.section-surface > .collapsible-head::before,
-.section-members > .collapsible-head::before,
-.section-deps > .collapsible-head::before,
-.section-chain > .collapsible-head::before {
+/* Cambios usa el mismo idioma de sección que la ficha (ADR 0069). */
+.section-changes-rules {
+  --section-tint: var(--debt);
+}
+
+.section-hotspots {
+  --section-tint: var(--ochre);
+}
+
+.section-changes-migration {
+  --section-tint: var(--rust);
+}
+
+.section-changes-symbols {
+  --section-tint: var(--cobalt);
+}
+
+.section-cycles {
+  --section-tint: var(--violet);
+}
+
+.section-changed {
+  --section-tint: var(--patina);
+}
+
+.section-added {
+  --section-tint: var(--ink);
+}
+
+/* Cualquier sección de primer nivel lleva su punto, del color que declare con
+   `--section-tint`; los grupos plegados dentro de Símbolos se quedan sin él. */
+.collapsible:not(.symbol-group) > .collapsible-head::before {
   content: "";
   flex: 0 0 auto;
   width: 5px;
   height: 5px;
   border-radius: 1px;
-  background: var(--section-tint);
+  background: var(--section-tint, var(--muted));
 }
 
 .collapsible-head:focus-visible {
@@ -1280,6 +1310,47 @@ button {
 
 .collapsible-body {
   padding-bottom: 2px;
+}
+
+/* Reglas es una sección con dos subsecciones —dominio y deuda de migración—.
+   La etiqueta lleva el tinte de la sección, la pleca la separa y la cuenta va
+   en palabras a la derecha: son subsecciones, no secciones hermanas. */
+.rule-group + .rule-group {
+  margin-top: 10px;
+}
+
+.rule-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0 3px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rule-group-title {
+  color: var(--section-tint, var(--muted));
+}
+
+.rule-group-summary {
+  min-width: 0;
+  overflow: hidden;
+  font: 500 9px/1.2 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La fórmula de la deuda, en una línea: la explicación larga vive en el title. */
+.rule-formula {
+  overflow: hidden;
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* La tabla de la ficha, compacta: cabecera en versalitas y una fila por línea,
@@ -2134,9 +2205,10 @@ button {
   color: var(--muted);
 }
 
-/* Los símbolos que cambiaron, en el panel del PR. */
+/* Los símbolos que cambiaron, en Cambios: un bloque por fichero y una fila
+   por símbolo, con el ritmo de las demás listas. */
 .symbol-file {
-  padding: 6px 0;
+  padding: 4px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -2607,12 +2679,6 @@ button {
   color: var(--patina);
 }
 
-.change-section {
-  margin-top: 13px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
 .change-summary {
   display: flex;
   flex-wrap: wrap;
@@ -2626,17 +2692,20 @@ button {
   color: var(--ink);
 }
 
+/* Una violación, con el ritmo de la tabla de Métricas: dos líneas como mucho,
+   el nombre con sus marcas y el mensaje en una sola línea que se corta con
+   puntos suspensivos. El texto entero vive en el tooltip de la fila. */
 .violation-list {
   display: grid;
-  gap: 4px;
+  gap: 1px;
 }
 
 .violation {
   display: grid;
-  grid-template-columns: 6px 1fr;
-  gap: 8px;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: 7px;
   width: 100%;
-  padding: 5px 0;
+  padding: 3px 4px 3px 0;
   border: 0;
   background: transparent;
   text-align: left;
@@ -2650,7 +2719,7 @@ button {
 .violation i {
   width: 6px;
   height: 6px;
-  margin-top: 5px;
+  margin-top: 4px;
   border-radius: 50%;
   background: var(--muted);
 }
@@ -2667,9 +2736,21 @@ button {
   background: var(--cobalt);
 }
 
+/* El nombre cede el ancho y las etiquetas nunca se recortan: el que trunca es
+   el nombre, no la marca de origen ni la de «nueva». */
 .violation b {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
   font: 600 11px/1.3 var(--sans);
+}
+
+.violation-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .violation > span {
@@ -2678,19 +2759,21 @@ button {
 
 .violation small {
   display: block;
+  overflow: hidden;
   color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Marca de las reglas que vienen de un perfil del catálogo. */
 .violation-source {
-  margin-left: 6px;
+  flex: none;
   padding: 1px 5px;
   border: 1px solid var(--line-strong);
   border-radius: 2px;
-  font: 500 8.5px/1.4 var(--mono);
+  font: 500 8.5px/1.2 var(--mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -2698,122 +2781,111 @@ button {
   vertical-align: 1px;
 }
 
-/* La pestaña de lentes: el porqué del riesgo y de la deuda (ADR 0057). */
-.lens-section {
-  margin-top: 18px;
+/* El porqué del riesgo y de la deuda, dentro de la ficha (ADR 0069). */
+.risk-breakdown {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
 }
 
-.lens-section + .lens-section {
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-
-.lens-risk-head {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-
-.lens-risk-value {
-  font: 600 32px/1 var(--display);
-  letter-spacing: -0.04em;
-}
-
-.lens-risk-unit {
-  font: 10px/1 var(--mono);
+.risk-head {
+  margin-bottom: 4px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.lens-bars {
+.risk-bars {
   display: grid;
-  gap: 7px;
+  gap: 2px;
 }
 
-.lens-bar-row {
+.risk-bar-row {
   display: grid;
-  grid-template-columns: 70px minmax(0, 1fr) 38px 30px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 54px 40px 30px;
+  gap: 8px;
   align-items: center;
   font-size: 10.5px;
   color: var(--ink-soft);
 }
 
-.lens-bar-row > .mono {
+.risk-bar-row > .mono {
   text-align: right;
   font-size: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
-.lens-weight {
+.risk-weight {
   font: 9px/1 var(--mono);
   color: var(--muted);
   text-align: right;
 }
 
-.lens-bar {
-  height: 5px;
+.risk-bar {
+  height: 4px;
   background: var(--line);
   overflow: hidden;
 }
 
-.lens-bar i {
+.risk-bar i {
   display: block;
   height: 100%;
   background: var(--rust);
 }
 
-.lens-section .tiny {
-  margin: 9px 0 0;
-  line-height: 1.4;
+.risk-note,
+.risk-p95 {
+  margin: 5px 0 0;
+  line-height: 1.35;
 }
 
-.lens-counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
+.risk-p95 {
+  font-size: 9px;
 }
 
-.lens-chip {
-  padding: 2px 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  font: 500 8.5px/1.4 var(--mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.lens-chip-new,
 .lens-new {
   color: var(--debt);
   border-color: var(--debt);
 }
 
+/* Los cruces FFI, una fila por arista: la flecha dice la dirección, la ruta va
+   en mono y el tipo de cruce se queda a la derecha. */
 .lens-edges {
   display: grid;
-  gap: 3px;
-  margin-top: 10px;
+  gap: 1px;
+  margin-top: 4px;
 }
 
 .lens-edge {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px;
-  align-items: baseline;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
   width: 100%;
-  padding: 3px 0;
+  padding: 3px 4px 3px 0;
   border: 0;
   background: transparent;
   text-align: left;
   cursor: pointer;
 }
 
+.lens-edge:hover {
+  background: rgba(18, 26, 32, 0.035);
+}
+
 .lens-edge:hover .lens-edge-path {
   color: var(--ink);
 }
 
+.lens-edge-dir {
+  font: 10px/1 var(--mono);
+  text-align: center;
+  color: var(--muted);
+}
+
 .lens-flag {
+  justify-self: end;
   padding: 1px 5px;
   border-radius: 2px;
   font: 500 8.5px/1.4 var(--mono);
@@ -2832,77 +2904,16 @@ button {
 }
 
 .lens-edge-path {
-  font: 10.5px/1.4 var(--mono);
-  color: var(--muted);
+  font: 10.5px/1.35 var(--mono);
+  color: var(--ink-soft);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.lens-symbol {
-  font-weight: 600;
-}
-
-.lens-index {
-  display: grid;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.lens-index > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 10.5px;
-}
-
-.lens-index b {
-  font-weight: 600;
-}
-
-.lens-index span {
-  color: var(--muted);
-  text-align: right;
-}
-
-/* La pestaña de reglas: el fichero y el cambio (ADR 0058 y ADR 0059). */
-.rules-panel h2 {
-  margin-bottom: 4px;
-}
-
-.rules-hint {
-  margin-top: 8px;
-}
-
-.rules-hint .lens-index {
-  margin-top: 14px;
-}
-
-/* La parte del fichero es la vieja pestaña Lentes: empieza sin el aire de
-   arriba que separaba secciones cuando era una pestaña entera. */
-.rules-file > .lens-section:first-child {
-  margin-top: 12px;
-}
-
-.rules-change {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.rules-change > .eyebrow {
-  margin-bottom: 8px;
-}
-
-.rules-empty-title {
-  margin: 10px 0 2px;
-  font: 600 13px/1.2 var(--sans);
-}
-
+/* Las reglas del cambio, dentro de Cambios (ADR 0069). */
 .rules-meta {
-  margin: -6px 0 10px;
+  margin: 0 0 6px;
   font-size: 10.5px;
   color: var(--muted);
 }
@@ -2911,79 +2922,18 @@ button {
   color: var(--ink);
 }
 
-.rules-sources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.rules-chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  padding: 2px 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  font: 500 8.5px/1.4 var(--mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.rules-chip b {
-  color: var(--ink);
-  font-size: 10px;
-}
-
-.rules-group {
-  margin-top: 13px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
-}
-
-.rules-group-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-
-.rules-group-head .eyebrow {
-  margin: 0;
-}
-
-.rules-count {
-  min-width: 18px;
-  padding: 1px 5px;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  font: 500 9px/1.4 var(--mono);
-  text-align: center;
-  color: var(--muted);
-}
-
-.rules-count-introduced {
-  color: var(--debt);
-  border-color: var(--debt);
-}
-
-.rules-count-resolved {
-  color: var(--patina);
-  border-color: var(--patina);
-}
-
 .rules-rule-resolved {
   opacity: 0.72;
 }
 
 .rules-detail {
   display: block;
-  margin-top: 2px;
-  font: 9.5px/1.4 var(--mono);
+  overflow: hidden;
+  margin-top: 1px;
+  font: 9.5px/1.35 var(--mono);
   color: var(--muted);
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tab-dot-alert {
@@ -2995,13 +2945,15 @@ button {
   gap: 1px;
 }
 
+/* La ruta lleva la voz: las dos columnas se reparten el ancho y el delta se
+   corta antes de comerse el nombre del fichero. */
 .change-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: 8px;
   align-items: center;
   width: 100%;
-  padding: 5px 0;
+  padding: 3px 0;
   border: 0;
   background: transparent;
   text-align: left;
@@ -3021,15 +2973,18 @@ button {
 }
 
 .change-delta {
+  overflow: hidden;
   font-size: 9.5px;
   color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .change-cycle {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
   gap: 6px;
-  padding: 4px 0;
+  padding: 3px 0;
   font-size: 10.5px;
 }
 

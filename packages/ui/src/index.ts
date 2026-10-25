@@ -59,5 +59,4 @@ export {
   Metric
 } from "./panels";
 export { default as ChangesPanel } from "./ChangesPanel";
-export { default as RulesPanel } from "./RulesPanel";
 export { findFolder } from "./tree";

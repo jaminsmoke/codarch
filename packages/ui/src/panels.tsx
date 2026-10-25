@@ -12,9 +12,11 @@ import type {
   SymbolChain,
   SymbolHeat
 } from "@codarch/schema/browser";
+import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "./platform";
 import { CollapsibleSection } from "./CollapsibleSection";
+import { RiskBreakdown, RulesSection } from "./FileSections";
 import { fileMetricRows } from "./metrics";
 import { groupSymbols, symbolSummary } from "./symbols";
 import {
@@ -552,6 +554,8 @@ export function Inspector({
   symbols,
   structure,
   chain,
+  report,
+  migration,
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
@@ -569,6 +573,10 @@ export function Inspector({
   /** Miembros, imports y exports del fichero (ADR 0064). */
   structure: CcStructureNode | null;
   chain: SymbolChain | null;
+  /** El reporte del diff: las reglas de dominio viven ahí (ADR 0069). */
+  report: DiffReport | null;
+  /** La lente de migración del snapshot, para los cruces FFI. */
+  migration: CcMigrationLens | null;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -760,8 +768,18 @@ export function Inspector({
             La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila
             para pintar el mapa.
           </p>
+          <RiskBreakdown file={file} />
         </div>
       </CollapsibleSection>
+
+      <RulesSection
+        report={report}
+        migration={migration}
+        node={migrationNode}
+        model={model}
+        file={file}
+        onSelectPath={onSelectPath}
+      />
 
       {symbols.length > 0 ? (
         <CollapsibleSection
@@ -1014,6 +1032,8 @@ export function Inspector({
           </div>
         </CollapsibleSection>
       ) : null}
+
+
 
       {structure && structure.members.length > 0 ? (
         <CollapsibleSection

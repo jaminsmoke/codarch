@@ -35,16 +35,15 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=inventario").tab).toBeNull();
   });
 
-  it("reconoce la pestaña de reglas", () => {
-    expect(parseViewState("?tab=rules").tab).toBe("rules");
-  });
-
-  it("reconoce la pestaña de cambios", () => {
+  it("reconoce las dos pestañas", () => {
+    expect(parseViewState("?tab=file").tab).toBe("file");
     expect(parseViewState("?tab=changes").tab).toBe("changes");
   });
 
-  it("traduce los nombres viejos de las pestañas", () => {
-    expect(parseViewState("?tab=lenses").tab).toBe("rules");
+  it("manda a Cambios los nombres de pestañas que ya no existen", () => {
+    // Reglas y Lentes se fundieron en Cambios (ADR 0069).
+    expect(parseViewState("?tab=rules").tab).toBe("changes");
+    expect(parseViewState("?tab=lenses").tab).toBe("changes");
     expect(parseViewState("?tab=pr").tab).toBe("changes");
   });
 
@@ -132,6 +131,11 @@ describe("estado de vista en la URL", () => {
       symbolName: null,
       showLabels: true
     });
+  });
+
+  it("una vista guardada con la pestaña vieja de reglas cae en Cambios", () => {
+    expect(viewStateFromSaved({ tab: "rules" }).tab).toBe("changes");
+    expect(viewStateFromSaved({ tab: "file" }).tab).toBe("file");
   });
 });
 

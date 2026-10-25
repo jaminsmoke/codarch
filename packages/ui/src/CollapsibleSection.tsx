@@ -3,6 +3,34 @@ import { localStore } from "./storage";
 import { readSectionClosed, writeSectionClosed } from "./sections";
 
 /**
+ * El encabezado de una subsección.
+ *
+ * Lleva el tinte de su sección en la etiqueta, la pleca flexible que ya
+ * separaba grupos y, a la derecha, la cuenta en palabras —«1 nueva · 1
+ * existente»—. Lo comparten la ficha del fichero y Cambios, para que una
+ * subsección se lea igual en las dos pestañas.
+ */
+export function GroupHead({
+  label,
+  summary
+}: {
+  label: string;
+  summary?: string;
+}) {
+  return (
+    <div className="rule-group-head">
+      <span className="rule-group-title">{label}</span>
+      <span className="symbol-group-line" aria-hidden="true" />
+      {summary ? (
+        <span className="rule-group-summary" title={summary}>
+          {summary}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Una sección que se puede plegar (ADR 0061).
  *
  * El título es un botón de verdad: `aria-expanded` y `aria-controls` dicen lo

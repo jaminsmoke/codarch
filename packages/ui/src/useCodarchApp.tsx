@@ -365,9 +365,9 @@ export function useCodarchApp(
       setReport(next);
       setReportSource(label);
       setReportError(null);
-      // Al cargar desde Reglas el usuario ya está en la vista que quiere ver;
-      // desde el resto, el reporte se enseña en Cambios.
-      if (focus && tabRef.current !== "rules") setTab("changes");
+      // El reporte se enseña en Cambios, que es donde viven sus reglas
+      // (ADR 0069); si ya se está ahí, no se mueve la pestaña.
+      if (focus && tabRef.current !== "changes") setTab("changes");
       return true;
     },
     []
