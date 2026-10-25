@@ -11,4 +11,4 @@ verdict: adr
 
 **Numbers**: from two repos and two copies to one. One push, one pin and one tag. The Marketplace listing is lost, since it requires `action.yml` at the repo root; if it ever matters, a root `action.yml` can delegate without bringing the separate repo back.
 
-**Verdict**: [ADR 0066](../../adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md), done. Updating `codarch-action-smoke` to the subpath is left for the next external test.
+**Verdict**: [ADR 0066](../../adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md), done. `codarch-action-smoke` already points to the subpath.

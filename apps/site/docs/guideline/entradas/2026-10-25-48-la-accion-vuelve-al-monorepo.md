@@ -11,4 +11,4 @@ verdict: adr
 
 **Números**: de dos repos y dos copias a uno solo. Un push, un pin y un tag. Se pierde el listado en Marketplace, que exige `action.yml` en la raíz; si algún día importa, se añade un `action.yml` raíz que delega, sin recuperar el repo separado.
 
-**Veredicto**: [ADR 0066](../../adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md), hecho. Queda actualizar `codarch-action-smoke` a la subruta en la siguiente prueba externa.
+**Veredicto**: [ADR 0066](../../adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md), hecho. `codarch-action-smoke` ya apunta a la subruta.
