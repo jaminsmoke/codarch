@@ -13,4 +13,4 @@ verdict: adr
 
 **About variables**: module-level `const` and `let` are captured. Those holding an arrow or a class appear under **Functions** or **Classes**, not **Variables**, because that is what they are. Locals, destructuring and valueless `let` are not captured. Namespaces, object keys and top-level loose code remain out for now.
 
-**Verdict**: [ADR 0067](../../adr/0061-0070/0067-la-ficha-ensena-el-codigo.md), done. Syntax highlighting and jumping to the editor line remain.
+**Verdict**: [ADR 0067](../../adr/0061-0070/0067-la-ficha-ensena-el-codigo.md), done. Code uses Prism on a black editor background, with no per-line boxes. Jumping to the editor line remains.

@@ -58,7 +58,9 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - Al pulsar un símbolo se abre **su propio bloque de código justo debajo de
   la fila**, con las líneas reales, números de línea y dos líneas de contexto
   arriba y abajo. Pulsar otra fila lo pliega y abre el de esa fila; los
-  miembros de clase hacen lo mismo desde **Miembros**.
+  miembros de clase hacen lo mismo desde **Miembros**. El fondo es negro, como
+  un editor, y el texto va resaltado con Prism; no hay fondos por línea que
+  compitan con el código.
 - Los grupos de **Símbolos** (Funciones, Clases, Interfaces, Tipos, Enums,
   Variables) son secciones plegables; el estado se recuerda por tipo.
 - En **Métricas**, cada fila lleva un icono `?` antes del nombre con la
@@ -109,7 +111,8 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - [x] Grupos de símbolos plegables.
 - [x] Icono de ayuda por métrica.
 - [ ] Llevar el código al MCP o al reporte, si un agente lo pide.
-- [ ] Resaltado de sintaxis y salto a la línea del editor.
+- [x] Resaltado de sintaxis con Prism y fondo de editor.
+- [ ] Salto a la línea del editor.
 - [x] Código de los miembros de clase, no solo de los símbolos.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
