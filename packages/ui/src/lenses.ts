@@ -132,15 +132,18 @@ export function ffiEdgesForFile(
 export interface SymbolSummary {
   count: number;
   functions: number;
+  variables: number;
   mostComplex: CcSymbol | null;
 }
 
 export function symbolSummary(symbols: readonly CcSymbol[]): SymbolSummary {
   let functions = 0;
+  let variables = 0;
   let mostComplex: CcSymbol | null = null;
 
   for (const symbol of symbols) {
     if (symbol.kind === "function") functions += 1;
+    if (symbol.kind === "variable") variables += 1;
     const complexity = symbol.complexity ?? 0;
     if (
       mostComplex === null ||
@@ -150,5 +153,5 @@ export function symbolSummary(symbols: readonly CcSymbol[]): SymbolSummary {
     }
   }
 
-  return { count: symbols.length, functions, mostComplex };
+  return { count: symbols.length, functions, variables, mostComplex };
 }

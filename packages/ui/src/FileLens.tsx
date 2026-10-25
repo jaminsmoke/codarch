@@ -224,6 +224,11 @@ export function FileLens({
               {summary.count} símbolo{summary.count === 1 ? "" : "s"} ·{" "}
               {summary.functions}{" "}
               {summary.functions === 1 ? "función" : "funciones"}
+              {summary.variables > 0
+                ? ` · ${summary.variables} ${
+                    summary.variables === 1 ? "variable" : "variables"
+                  }`
+                : ""}
             </p>
             {summary.mostComplex?.complexity ? (
               <p className="muted small">

@@ -1211,9 +1211,13 @@ button {
 }
 
 .collapsible-title {
+  min-width: 0;
+  overflow: hidden;
   font: 600 12px/1.2 var(--sans);
   letter-spacing: -0.01em;
   color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .collapsible-count {
@@ -1802,6 +1806,31 @@ button {
   padding-top: 2px;
 }
 
+.symbol-group + .symbol-group {
+  margin-top: 7px;
+}
+
+.symbol-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0 2px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.symbol-group-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.symbol-group-count {
+  color: var(--muted);
+}
+
 /* Los símbolos que cambiaron, en el panel del PR. */
 .symbol-file {
   padding: 6px 0;
@@ -1861,9 +1890,7 @@ button {
 
 /* La vida de un símbolo: sus versiones en el tiempo. */
 .chain-list {
-  border-top: 1px solid var(--line);
-  margin-top: 14px;
-  padding-top: 12px;
+  padding-top: 2px;
 }
 
 .chain-row {
@@ -1952,6 +1979,16 @@ button {
 .symbol-type {
   color: #0f766e;
   border-color: rgba(15, 118, 110, 0.35);
+}
+
+.symbol-enum {
+  color: #6d28d9;
+  border-color: rgba(109, 40, 217, 0.35);
+}
+
+.symbol-variable {
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.4);
 }
 
 .symbol-name {

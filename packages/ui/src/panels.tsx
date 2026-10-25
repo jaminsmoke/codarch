@@ -13,7 +13,7 @@ import type {
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
-import { symbolSummary } from "./symbols";
+import { groupSymbols, symbolSummary } from "./symbols";
 import {
   CHURN_METRIC,
   EVENT_LABEL,
@@ -449,6 +449,7 @@ export function Inspector({
   }
 
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
+  const lastChainVersion = chain?.versions[chain.versions.length - 1];
 
   return (
     <section className="inspector-file">
@@ -541,64 +542,88 @@ export function Inspector({
           summary={symbolSummary(symbols)}
         >
           <div className="symbol-list">
-            {symbols.map((symbol) => (
-              <button
-                key={`${symbol.name}-${symbol.line}`}
-                type="button"
-                className={`symbol-row${chain?.name === symbol.name ? " is-selected" : ""}`}
-                onClick={() => onSelectSymbol(symbol.name)}
-                title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
-                  symbol.line
-                }${
-                  symbol.complexity !== undefined
-                    ? ` · complejidad ${symbol.complexity}`
-                    : ""
-                }. Ver la vida de este símbolo.`}
-              >
-                <span className={`symbol-kind symbol-${symbol.kind}`}>
-                  {SYMBOL_LABEL[symbol.kind]}
-                </span>
-                <span className="symbol-name" title={symbol.name}>
-                  {symbol.name}
-                </span>
-                {symbol.complexity !== undefined ? (
-                  <span
-                    className="mono symbol-complexity"
-                    title="Complejidad ciclomática"
-                  >
-                    {symbol.complexity}
+            {groupSymbols(symbols).map((group) => (
+              <div key={group.kind} className="symbol-group">
+                <div className="symbol-group-head">
+                  <span>{group.title}</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {group.symbols.length}
                   </span>
-                ) : null}
-              </button>
+                </div>
+                {group.symbols.map((symbol) => (
+                  <button
+                    key={`${symbol.name}-${symbol.line}`}
+                    type="button"
+                    className={`symbol-row${
+                      chain?.name === symbol.name ? " is-selected" : ""
+                    }`}
+                    onClick={() => onSelectSymbol(symbol.name)}
+                    title={`${SYMBOL_LABEL[symbol.kind]} ${symbol.name} · línea ${
+                      symbol.line
+                    }${
+                      symbol.complexity !== undefined
+                        ? ` · complejidad ${symbol.complexity}`
+                        : ""
+                    }. Ver la vida de este símbolo.`}
+                  >
+                    <span className={`symbol-kind symbol-${symbol.kind}`}>
+                      {SYMBOL_LABEL[symbol.kind]}
+                    </span>
+                    <span className="symbol-name" title={symbol.name}>
+                      {symbol.name}
+                    </span>
+                    {symbol.complexity !== undefined ? (
+                      <span
+                        className="mono symbol-complexity"
+                        title="Complejidad ciclomática"
+                      >
+                        {symbol.complexity}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
             ))}
             <p className="muted tiny symbol-note">
-              Ordenados por complejidad. Pulsa uno para seguir su vida.
+              Agrupados por tipo y ordenados por complejidad. Pulsa uno para
+              seguir su vida.
             </p>
           </div>
         </CollapsibleSection>
       ) : null}
 
       {chain ? (
-        <div className="chain-list">
-          <div className="eyebrow">La vida de {chain.name}</div>
-          {chain.versions.map((version) => (
-            <div key={version.entry} className="chain-row">
-              <span className="mono chain-date">
-                {version.date.slice(0, 10)}
-              </span>
-              <span className="chain-events">
-                {version.events.map((event) => (
-                  <span key={event.type} className={`chain-event chain-${event.type}`}>
-                    {EVENT_LABEL[event.type]}
-                  </span>
-                ))}
-              </span>
-              <span className="chain-path" title={version.path}>
-                {version.path}
-              </span>
-            </div>
-          ))}
-        </div>
+        <CollapsibleSection
+          id="file-chain"
+          title={`La vida de ${chain.name}`}
+          count={chain.versions.length}
+          summary={
+            lastChainVersion
+              ? `última ${lastChainVersion.date.slice(0, 10)}`
+              : undefined
+          }
+        >
+          <div className="chain-list">
+            {chain.versions.map((version) => (
+              <div key={version.entry} className="chain-row">
+                <span className="mono chain-date">
+                  {version.date.slice(0, 10)}
+                </span>
+                <span className="chain-events">
+                  {version.events.map((event) => (
+                    <span key={event.type} className={`chain-event chain-${event.type}`}>
+                      {EVENT_LABEL[event.type]}
+                    </span>
+                  ))}
+                </span>
+                <span className="chain-path" title={version.path}>
+                  {version.path}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CollapsibleSection>
       ) : null}
     </section>
   );

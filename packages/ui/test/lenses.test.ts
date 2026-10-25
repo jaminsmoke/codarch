@@ -143,14 +143,16 @@ describe("symbolSummary", () => {
   const symbols: CcSymbol[] = [
     { name: "quieta", kind: "function", line: 1, complexity: 2 },
     { name: "compleja", kind: "function", line: 9, complexity: 18 },
+    { name: "LIMITE", kind: "variable", line: 14 },
     { name: "Tipo", kind: "type", line: 20 }
   ];
 
-  it("cuenta funciones y elige la más compleja", () => {
+  it("cuenta funciones y variables, y elige la más compleja", () => {
     const summary = symbolSummary(symbols);
 
-    expect(summary.count).toBe(3);
+    expect(summary.count).toBe(4);
     expect(summary.functions).toBe(2);
+    expect(summary.variables).toBe(1);
     expect(summary.mostComplex?.name).toBe("compleja");
   });
 
@@ -158,6 +160,7 @@ describe("symbolSummary", () => {
     expect(symbolSummary([])).toEqual({
       count: 0,
       functions: 0,
+      variables: 0,
       mostComplex: null
     });
   });
