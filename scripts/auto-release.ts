@@ -21,6 +21,9 @@ import {
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DRY = process.argv.includes("--dry-run");
+const RELEASE_COMMIT =
+  /^chore: release .*\d+\.\d+\.\d+|^chore\(release\): .*\d+\.\d+\.\d+/;
+
 const CHANNELS: Partial<Record<ComponentName, string>> = {
   cli: "publish-cli.yml",
   desktop: "desktop.yml",
@@ -71,7 +74,7 @@ function releaseBase(): string {
   const log = git(["log", "--format=%H%x00%s", "--max-count=200"]).split("\n");
   for (const line of log) {
     const [hash = "", subject = ""] = line.split("\0");
-    if (/^chore: release |^chore\(release\):/.test(subject)) return hash;
+    if (RELEASE_COMMIT.test(subject)) return hash;
   }
   return git(["rev-list", "--max-parents=0", "HEAD"]).split("\n").at(-1) ?? "";
 }
@@ -154,14 +157,14 @@ function main(): void {
 
   // Un release manual ya lo empujó una persona: los workflows normales ya se
   // han disparado; solo falta el CLI, que no escucha pushes.
-  if (/^chore: release /.test(subject)) {
+  if (RELEASE_COMMIT.test(subject) && subject.startsWith("chore: release ")) {
     if (/\bcli \d/.test(subject)) dispatch("publish-cli.yml");
     console.log("ok · release manual; canales ya disparados");
     return;
   }
   // El commit automático no vuelve a pasar por CI: si llegara aquí, no hay
   // nada que hacer.
-  if (subject.startsWith("chore(release):")) {
+  if (RELEASE_COMMIT.test(subject) && subject.startsWith("chore(release):")) {
     console.log("ok · commit de release automático; sin cambios");
     return;
   }
