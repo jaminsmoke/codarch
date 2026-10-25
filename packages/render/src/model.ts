@@ -145,6 +145,13 @@ const PALETTE = [
   "#cfc6c9"
 ];
 
+/**
+ * Las métricas que el modelo lleva siempre que el snapshot las tenga.
+ *
+ * La deuda de migración y los cruces FFI están aquí para que la ficha del
+ * fichero tenga su p95 y su barra aunque no sean el modo de color activo
+ * (ADR 0060); antes solo entraban al elegirlas para pintar el mapa.
+ */
 const CURATED_METRICS = [
   "rloc",
   "maxComplexity",
@@ -164,6 +171,8 @@ const CURATED_METRICS = [
   "inCycle",
   "cycleSize",
   "dependencyLevel",
+  "migrationDebt",
+  "ffiCrossings",
   "number_of_commits",
   "number_of_authors",
   "incoming_dependencies",

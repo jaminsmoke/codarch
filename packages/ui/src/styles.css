@@ -1108,9 +1108,144 @@ button {
   letter-spacing: -0.02em;
 }
 
-.metric-table {
+/* La tabla de métricas de la ficha del fichero (ADR 0060). */
+.metrics-table {
+  margin-top: 4px;
   border-top: 1px solid var(--line);
-  padding-top: 12px;
+  padding-top: 10px;
+}
+
+.metrics-head,
+.metrics-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 52px;
+  gap: 8px;
+  align-items: center;
+}
+
+.metrics-head {
+  padding: 0 4px 4px 7px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metrics-head span:nth-child(2) {
+  text-align: center;
+}
+
+.metrics-head span:last-child {
+  text-align: right;
+}
+
+.metrics-rows {
+  display: grid;
+  gap: 1px;
+}
+
+.metrics-row {
+  width: 100%;
+  padding: 3px 4px 3px 7px;
+  border: 0;
+  box-shadow: inset 2px 0 0 transparent;
+  background: transparent;
+  text-align: left;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.metrics-row:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+.metrics-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.metrics-row.is-active {
+  box-shadow: inset 2px 0 0 var(--cobalt);
+  background: rgba(47, 111, 237, 0.07);
+}
+
+.metrics-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.metrics-area {
+  flex: none;
+  padding: 0 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font: 500 8px/1.6 var(--mono);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metrics-bar {
+  height: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.metrics-bar i {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+}
+
+/* El color solo aparece cuando «menos es mejor» y el valor pesa (ADR 0060). */
+.metrics-watch .metrics-bar i {
+  background: var(--ochre);
+}
+
+.metrics-debt .metrics-bar i {
+  background: var(--debt);
+}
+
+.metrics-value {
+  justify-self: end;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font: 600 11px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.metrics-value em {
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.metrics-watch .metrics-value {
+  color: var(--ochre);
+}
+
+.metrics-debt .metrics-value {
+  color: var(--debt);
+}
+
+.metrics-row.is-empty .metrics-value {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.metrics-note {
+  margin: 7px 0 0;
+  line-height: 1.35;
 }
 
 /* El control del live, en el header ✓. */
@@ -1709,19 +1844,6 @@ button {
 .symbol-more {
   padding-top: 4px;
   font-size: 10px;
-  color: var(--muted);
-}
-
-.metric-table > div:not(.eyebrow) {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0;
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
-.metric-table span:last-child {
   color: var(--muted);
 }
 

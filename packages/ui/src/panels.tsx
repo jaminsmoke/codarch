@@ -11,6 +11,7 @@ import type {
   SymbolHeat
 } from "@codarch/schema/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
+import { fileMetricRows } from "./metrics";
 import {
   CHURN_METRIC,
   EVENT_LABEL,
@@ -407,19 +408,25 @@ export function Inspector({
   file,
   migrationNode,
   areaMetric,
+  colorMode,
   metricTitle,
   symbols,
   chain,
-  onSelectSymbol
+  onSelectSymbol,
+  onColorMode
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
   migrationNode: CcMigrationNode | null;
   areaMetric: string | null;
+  /** El modo de color activo: marca la fila que pinta el mapa. */
+  colorMode: string;
   metricTitle: (key: string) => string;
   symbols: CcSymbol[];
   chain: SymbolChain | null;
   onSelectSymbol: (name: string) => void;
+  /** Pinta el mapa por una métrica (o por el riesgo). */
+  onColorMode: (mode: string) => void;
 }) {
   if (!file) {
     return (
@@ -439,24 +446,7 @@ export function Inspector({
     );
   }
 
-  const areaMetricIndex = areaMetric
-    ? model?.metrics.findIndex((metric) => metric.key === areaMetric) ?? -1
-    : -1;
-  const areaValue =
-    areaMetricIndex >= 0 ? file.values[areaMetricIndex] ?? file.actualArea : file.actualArea;
-
-  const rows = model
-    ? model.metrics
-        .map((metric, index) => ({
-          key: metric.key,
-          title: metricTitle(metric.key),
-          value: file.values[index]
-        }))
-        .filter((row): row is { key: string; title: string; value: number } =>
-          row.value !== null && row.value !== undefined
-        )
-        .slice(0, 10)
-    : [];
+  const rows = fileMetricRows(model, file, areaMetric, metricTitle);
 
   return (
     <section className="inspector-file">
@@ -476,30 +466,60 @@ export function Inspector({
         </div>
       ) : null}
 
-      <div className="metric-grid">
-        <Metric label={areaMetric ? metricTitle(areaMetric) : "Área"} value={formatCompact(areaValue)} />
-        <Metric label="Riesgo" value={formatCompact(file.risk * 100)} />
-        <Metric label="Complejidad" value={formatCompact(file.complexity)} />
-        <Metric label="Churn" value={formatCompact(file.churn)} />
-        {migrationNode ? (
-          <>
-            <Metric label="Deuda" value={formatCompact(migrationNode.debt ?? 0)} />
-            <Metric label="Cruces FFI" value={formatCompact(migrationNode.crossings)} />
-          </>
-        ) : null}
-      </div>
-
-      {rows.length > 0 ? (
-        <div className="metric-table">
-          <div className="eyebrow">Métricas</div>
-          {rows.map((row) => (
-            <div key={row.key}>
-              <span>{row.title}</span>
-              <span className="mono">{formatCompact(row.value)}</span>
-            </div>
-          ))}
+      <div className="metrics-table">
+        <div className="eyebrow">Métricas</div>
+        <div className="metrics-head" aria-hidden="true">
+          <span>Métrica</span>
+          <span>Escala</span>
+          <span>Valor</span>
         </div>
-      ) : null}
+        <div
+          className="metrics-rows"
+          role="group"
+          aria-label="Métricas del fichero"
+        >
+          {rows.map((row) => {
+            const active = row.risk
+              ? colorMode === "risk"
+              : colorMode === row.key;
+            return (
+              <button
+                key={row.key}
+                type="button"
+                className={`metrics-row metrics-${row.state}${
+                  active ? " is-active" : ""
+                }${row.value === null ? " is-empty" : ""}`}
+                aria-pressed={active}
+                title={`${row.hint}. Pulsa para pintar el mapa.`}
+                onClick={() => onColorMode(row.risk ? "risk" : row.key)}
+              >
+                <span className="metrics-label">
+                  {row.title}
+                  {row.area ? (
+                    <em
+                      className="metrics-area"
+                      title="Esta métrica decide el área del mapa"
+                    >
+                      área
+                    </em>
+                  ) : null}
+                </span>
+                <span className="metrics-bar" aria-hidden="true">
+                  <i style={{ width: `${Math.round(row.share * 100)}%` }} />
+                </span>
+                <span className="metrics-value">
+                  {row.value === null ? "—" : formatCompact(row.value)}
+                  {row.risk && row.value !== null ? <em>/100</em> : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <p className="muted tiny metrics-note">
+          La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila
+          para pintar el mapa.
+        </p>
+      </div>
 
       {symbols.length > 0 ? (
         <div className="symbol-list">

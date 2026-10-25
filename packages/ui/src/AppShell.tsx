@@ -506,12 +506,14 @@ export function AppShell({
               file={selectedFile}
               migrationNode={selectedMigration}
               areaMetric={areaMetric}
+              colorMode={colorMode}
               metricTitle={metricTitle}
               symbols={selectedSymbols}
               chain={chain}
               onSelectSymbol={(name) => {
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
+              onColorMode={setColorMode}
             />
           ) : tab === "rules" ? (
             <RulesPanel
