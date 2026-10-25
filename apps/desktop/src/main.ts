@@ -33,7 +33,7 @@ import { sameSnapshot, snapshotChecksum } from "./snapshot-state";
 import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
 import { documentTitle } from "./title";
-import { canAutoUpdate, resolveUpdateFeed } from "./updates";
+import { canAutoUpdate, canSelfRestart, resolveUpdateFeed } from "./updates";
 
 /**
  * Proceso principal de la app de escritorio.
@@ -252,9 +252,28 @@ async function configureUpdates(): Promise<void> {
     console.error(`actualización: ${error.message}`);
   });
   autoUpdater.on("update-downloaded", (info) => {
-    console.log(
-      `actualización ${info.version} descargada; se instalará al cerrar`
-    );
+    // El AppImage se reemplaza a sí mismo y arranca la versión nueva; el .deb
+    // lo instala el sistema al cerrar, con sus permisos (ADR 0045).
+    if (!canSelfRestart(process.env)) {
+      console.log(
+        `actualización ${info.version} descargada; se instalará al cerrar`
+      );
+      return;
+    }
+    console.log(`actualización ${info.version} descargada`);
+    const choice = dialog.showMessageBoxSync({
+      type: "info",
+      title: "Actualización lista",
+      message: `CodArch ${info.version} ya está descargada.`,
+      detail:
+        "Puedes reiniciar ahora para usarla, o seguir trabajando y se aplicará al cerrar.",
+      buttons: ["Reiniciar ahora", "Al cerrar"],
+      defaultId: 0,
+      cancelId: 1
+    });
+    // `isForceRunAfter`: la versión nueva arranca sola, que es medio punto de
+    // la actualización desde el AppImage (el otro es no pedir permisos).
+    if (choice === 0) autoUpdater.quitAndInstall(true, true);
   });
   if ((await pointToLatestRelease()) === null) {
     console.warn(

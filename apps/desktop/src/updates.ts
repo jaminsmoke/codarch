@@ -14,6 +14,17 @@ export function canAutoUpdate(
 }
 
 /**
+ * Si la app puede reemplazarse y volver a abrirse sin permisos.
+ *
+ * Solo el AppImage: electron-updater escribe el binario nuevo en la carpeta
+ * del usuario y lo ejecuta. El `.deb` lo instala el sistema, con `dpkg` y su
+ * contraseña, así que ahí la actualización se aplica al cerrar (ADR 0045).
+ */
+export function canSelfRestart(env: NodeJS.ProcessEnv): boolean {
+  return typeof env.APPIMAGE === "string" && env.APPIMAGE !== "";
+}
+
+/**
  * Dónde están los metadatos de una release.
  *
  * electron-updater busca `latest.yml` en Windows y `latest-linux.yml` en Linux

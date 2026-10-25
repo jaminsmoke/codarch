@@ -107,6 +107,8 @@ jobs:
             apps/desktop/release/*-setup.exe
             apps/desktop/release/*-setup.exe.blockmap
             apps/desktop/release/*.deb
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.AppImage.blockmap
             apps/desktop/release/latest*.yml
           if-no-files-found: error
 
@@ -139,8 +141,14 @@ jobs:
             un desarrollador identificado. Es lo esperado mientras no haya
             certificado de firma.
 
-            En Windows y Linux la app descarga la versión nueva y la instala al
-            cerrar. macOS no se publica todavía: su instalación y actualización
+            En Windows la app descarga la versión nueva y la instala al cerrar.
+
+            En Linux hay dos formatos: el **.deb** instala la app en el sistema
+            y al actualizarse pide permisos de administrador; el **AppImage** no
+            necesita instalarse ni permisos, se actualiza solo y puede
+            reiniciarse en el momento con la versión nueva.
+
+            macOS no se publica todavía: su instalación y actualización
             necesitan firma y notarización, que no son gratuitas.
 
             El resto de CodArch, en su canal:

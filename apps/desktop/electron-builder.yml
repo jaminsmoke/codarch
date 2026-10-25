@@ -59,10 +59,13 @@ nsis:
 # notarización no es una experiencia que se pueda prometer (ADR 0045).
 
 linux:
-  # El .deb instala la app en el sistema; el AppImage es un ejecutable portable
-  # y no se publica como instalador (ADR 0045).
+  # Dos formatos por razones distintas (ADR 0045): el .deb instala la app en el
+  # sistema y al actualizarse pide permisos; el AppImage es el único que
+  # electron-updater puede reemplazar sin root y volver a abrir la app.
   target:
     - target: deb
+      arch: [x64]
+    - target: AppImage
       arch: [x64]
   category: Development
   maintainer: jaminsmoke <jaminsmoke@gmail.com>

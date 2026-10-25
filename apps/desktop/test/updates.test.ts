@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { canAutoUpdate, releaseUrl, resolveUpdateFeed } from "../src/updates";
+import {
+  canAutoUpdate,
+  canSelfRestart,
+  releaseUrl,
+  resolveUpdateFeed
+} from "../src/updates";
 
 /** Un `fetch` que devuelve la lista de releases que le den. */
 function releases(items: unknown[]) {
@@ -23,6 +28,17 @@ describe("actualizaciones automáticas", () => {
   it("no se activan en desarrollo", () => {
     expect(canAutoUpdate("win32", false)).toBe(false);
     expect(canAutoUpdate("linux", false)).toBe(false);
+  });
+});
+
+describe("reiniciar para aplicar la actualización", () => {
+  it("solo el AppImage puede hacerlo solo", () => {
+    expect(canSelfRestart({ APPIMAGE: "/home/ana/CodArch.AppImage" })).toBe(true);
+  });
+
+  it("un .deb o una app sin empaquetar esperan al cierre", () => {
+    expect(canSelfRestart({})).toBe(false);
+    expect(canSelfRestart({ APPIMAGE: "" })).toBe(false);
   });
 });
 
