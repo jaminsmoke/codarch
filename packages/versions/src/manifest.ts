@@ -5,7 +5,7 @@
 
 export const ENGINE_VERSION = "0.3.32" as const;
 export const CLI_VERSION = "0.3.32" as const;
-export const DESKTOP_VERSION = "0.3.32" as const;
+export const DESKTOP_VERSION = "0.3.33" as const;
 export const WEB_VERSION = "0.3.32" as const;
 export const MCP_VERSION = "0.3.24" as const;
 export const DOCKER_VERSION = "0.3.32" as const;
