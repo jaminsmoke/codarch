@@ -1,4 +1,4 @@
-import type { DiffReport, RuleViolation } from "@codarch/metrics/browser";
+import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
 
 interface PrPanelProps {
@@ -23,7 +23,7 @@ export default function PrPanel({
         <h2>Sin reporte</h2>
         <p className="muted small">
           Carga el <code>report.json</code> que genera <code>codarch diff</code> o la GitHub
-          Action para ver cambios, reglas y hotspots.
+          Action para ver los cambios del snapshot.
         </p>
         <button className="button dark" type="button" onClick={onLoad}>
           Abrir reporte
@@ -34,11 +34,8 @@ export default function PrPanel({
   }
 
   const summary = report.summary;
-  const rules = report.rules;
-  const introduced = rules.violations.introduced;
   const changed = report.files.changed.slice(0, 6);
   const added = report.files.added.slice(0, 5);
-  const hotspots = report.hotspots.slice(0, 6);
   const cycles = report.cycles.introduced.slice(0, 4);
   const migration = report.migration;
   const increased = migration?.files.increased.slice(0, 6) ?? [];
@@ -148,66 +145,6 @@ export default function PrPanel({
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="pr-section">
-        <div className="eyebrow">Reglas</div>        {rules.configured ? (
-          <>
-            <div className="pr-rule-summary">
-              <span>
-                <b>{rules.summary.introduced}</b> nuevas
-              </span>
-              <span>
-                <b>{rules.summary.existing}</b> existentes
-              </span>
-              <span>
-                <b>{rules.summary.resolved}</b> resueltas
-              </span>
-              {rules.profile ? (
-                <span title="Perfil del catálogo aplicado">
-                  perfil <b>{rules.profile}</b>
-                </span>
-              ) : null}
-            </div>
-            {introduced.length === 0 ? (
-              <p className="muted small">Sin violaciones nuevas.</p>
-            ) : (
-              <div className="violation-list">
-                {introduced.slice(0, 5).map((violation) => (
-                  <Violation
-                    key={violation.key}
-                    violation={violation}
-                    onSelectPath={onSelectPath}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="muted small">Sin configuración de reglas en este reporte.</p>
-        )}
-      </div>
-
-      {hotspots.length > 0 ? (
-        <div className="pr-section">
-          <div className="eyebrow">Hotspots · {report.hotspotMetric ?? "métrica"}</div>
-          <div className="pr-rows">
-            {hotspots.map((hotspot) => (
-              <button
-                key={`${hotspot.id}-${hotspot.metric}`}
-                type="button"
-                className="pr-row"
-                title={hotspot.path}
-                onClick={() => onSelectPath(hotspot.path)}
-              >
-                <span className="pr-path">{hotspot.path}</span>
-                <span className="mono pr-delta">
-                  {formatCompact(hotspot.base)} → {formatCompact(hotspot.head)}
-                </span>
-              </button>
             ))}
           </div>
         </div>
@@ -324,37 +261,6 @@ function MigrationRow({
       <span className="pr-path">{path}</span>
       <span className={`mono pr-delta${delta > 0 ? " is-worse" : " is-better"}`}>
         {before ?? 0} → {after ?? 0} ({delta > 0 ? `+${delta}` : delta})
-      </span>
-    </button>
-  );
-}
-
-function Violation({
-  violation,
-  onSelectPath
-}: {
-  violation: RuleViolation;
-  onSelectPath: (path: string) => void;
-}) {
-  const path = violation.files[0] ?? violation.edge?.from;
-  return (
-    <button
-      type="button"
-      className={`violation violation-${violation.severity}`}
-      onClick={() => path && onSelectPath(path)}
-      title={violation.files.join(", ")}
-    >
-      <i />
-      <span>
-        <b>
-          {violation.rule}
-          {violation.source === "profile" ? (
-            <em className="violation-source" title="Viene de un perfil del catálogo">
-              perfil
-            </em>
-          ) : null}
-        </b>
-        <small>{violation.message}</small>
       </span>
     </button>
   );

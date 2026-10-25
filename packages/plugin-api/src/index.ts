@@ -78,8 +78,8 @@ export interface PluginActions {
   select(path: string): void;
   /** Enfoca una carpeta por su ruta. */
   focus(path: string): void;
-  /** Cambia la pestaña del panel derecho (`file`, `lenses` o `pr`). */
-  setTab(tab: "file" | "lenses" | "pr"): void;
+  /** Cambia la pestaña del panel derecho (`file`, `lenses`, `rules` o `pr`). */
+  setTab(tab: "file" | "lenses" | "rules" | "pr"): void;
 }
 
 /** El estado de la vista en la URL. */
@@ -95,7 +95,7 @@ export interface PluginUrlState {
   colorMode: string;
   focusPath: string | null;
   filePath: string | null;
-  tab: "file" | "lenses" | "pr" | null;
+  tab: "file" | "lenses" | "rules" | "pr" | null;
 }
 
 /**

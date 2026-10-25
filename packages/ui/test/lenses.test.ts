@@ -4,7 +4,6 @@ import type { CcMigrationLens, CcSymbol } from "@codarch/schema/browser";
 import {
   countViolations,
   ffiEdgesForFile,
-  sourceLabel,
   symbolSummary,
   violationsForPath
 } from "../src/lenses";
@@ -137,14 +136,6 @@ describe("ffiEdgesForFile", () => {
   it("sin lente o sin nodo no hay aristas", () => {
     expect(ffiEdgesForFile(null, "a", files)).toEqual([]);
     expect(ffiEdgesForFile(migration, null, files)).toEqual([]);
-  });
-});
-
-describe("sourceLabel", () => {
-  it("nombra de dónde sale la regla", () => {
-    expect(sourceLabel("config")).toBe("equipo");
-    expect(sourceLabel("profile")).toBe("perfil");
-    expect(sourceLabel("addon:vista-3d")).toBe("vista-3d");
   });
 });
 

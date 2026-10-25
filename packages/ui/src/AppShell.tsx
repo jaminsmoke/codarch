@@ -15,6 +15,7 @@ import {
   Legend
 } from "./panels";
 import PrPanel from "./PrPanel";
+import RulesPanel from "./RulesPanel";
 import { LensPanel } from "./LensPanel";
 
 /**
@@ -486,6 +487,21 @@ export function AppShell({
             <button
               type="button"
               role="tab"
+              aria-selected={tab === "rules"}
+              className={`tab${tab === "rules" ? " is-active" : ""}`}
+              onClick={() => setTab("rules")}
+            >
+              Reglas{" "}
+              {report?.rules.summary.introduced ? (
+                <i
+                  className="tab-dot tab-dot-alert"
+                  title={`${report.rules.summary.introduced} violaciones nuevas`}
+                />
+              ) : null}
+            </button>
+            <button
+              type="button"
+              role="tab"
               aria-selected={tab === "pr"}
               className={`tab${tab === "pr" ? " is-active" : ""}`}
               onClick={() => setTab("pr")}
@@ -514,6 +530,14 @@ export function AppShell({
               report={report}
               symbols={selectedSymbols}
               onSelectPath={selectInPlace}
+            />
+          ) : tab === "rules" ? (
+            <RulesPanel
+              report={report}
+              source={reportSource}
+              error={reportError}
+              onLoad={onLoadReport}
+              onSelectPath={selectPath}
             />
           ) : (
             <PrPanel

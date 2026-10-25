@@ -127,18 +127,8 @@ export function ffiEdgesForFile(
 }
 
 /**
- * De dónde sale una regla, en una palabra.
- *
- * Las de un addon llevan su nombre en el `source` (`addon:vista-3d`): la ficha
- * lo enseña tal cual para que se sepa a quién pedirle cuentas.
+ * Lo que la lente de símbolos aporta a la ficha, sin repetir la lista entera.
  */
-export function sourceLabel(source: RuleViolation["source"]): string {
-  if (source === "config") return "equipo";
-  if (source === "profile") return "perfil";
-  return source.slice("addon:".length);
-}
-
-/** Lo que la lente de símbolos aporta a la ficha, sin repetir la lista entera. */
 export interface SymbolSummary {
   count: number;
   functions: number;

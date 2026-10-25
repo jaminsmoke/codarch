@@ -87,10 +87,19 @@ describe("una vista guardada", () => {
     });
   });
 
+  it("acepta la pestaña de reglas", () => {
+    expect(
+      parseAddonView(
+        { id: "x", title: "X", state: { tab: "rules" } },
+        "views[0]"
+      ).state.tab
+    ).toBe("rules");
+  });
+
   it("una pestaña que no existe es un error", () => {
     expect(() =>
       parseAddonView({ id: "x", title: "X", state: { tab: "otra" } }, "views[0]")
-    ).toThrow(/file, lenses o pr/);
+    ).toThrow(/file, lenses, rules o pr/);
   });
 
   it("una clave desconocida en el estado es un error", () => {

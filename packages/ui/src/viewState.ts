@@ -24,7 +24,7 @@ export interface ViewState {
   /** Ruta del fichero seleccionado. */
   filePath: string | null;
   /** Pestaña del panel derecho. */
-  tab: "file" | "lenses" | "pr" | null;
+  tab: "file" | "lenses" | "rules" | "pr" | null;
   /** El símbolo abierto: el nombre de la función, la clase o el tipo. */
   symbolName: string | null;
   /** Si los bloques muestran su nombre aunque no quepa entero. */
@@ -81,7 +81,9 @@ export function parseViewState(search: string): ViewState {
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
     tab:
-      tab === "file" || tab === "lenses" || tab === "pr" ? tab : null,
+      tab === "file" || tab === "lenses" || tab === "rules" || tab === "pr"
+        ? tab
+        : null,
     symbolName: readParam(params, "symbol"),
     showLabels: params.has("labels") ? params.get("labels") !== "0" : null
   };

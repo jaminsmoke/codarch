@@ -7,10 +7,10 @@ import { STATUS_COLOR, STATUS_LABEL } from "./labels";
 import {
   countViolations,
   ffiEdgesForFile,
-  sourceLabel,
   symbolSummary,
   violationsForPath
 } from "./lenses";
+import { sourceLabel } from "./rules";
 
 type Signal = "complexity" | "churn" | "size";
 

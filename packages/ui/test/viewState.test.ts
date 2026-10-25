@@ -39,6 +39,10 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=lenses").tab).toBe("lenses");
   });
 
+  it("reconoce la pestaña de reglas", () => {
+    expect(parseViewState("?tab=rules").tab).toBe("rules");
+  });
+
   it("ignora valores vacíos", () => {
     expect(parseViewState("?area=&color=%20%20")).toEqual({
       areaMetric: null,
