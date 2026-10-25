@@ -1,5 +1,12 @@
 import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
+import {
+  changeFileGroups,
+  deltaLabel,
+  filesSummary,
+  rowTitle,
+  type ChangeFileRow
+} from "./changeFiles";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
 import { RuleRow } from "./RuleRow";
 import { countBySource, type RuleStatus } from "./rules";
@@ -71,8 +78,8 @@ interface ChangesPanelProps {
  *
  * Empieza por lo que rompe —las reglas del cambio, con sus nuevas, existentes y
  * resueltas— y sigue con los hotspots, la migración, los símbolos, los ciclos y
- * los ficheros tocados. Las reglas viven aquí y no en una pestaña propia desde
- * el ADR 0069: son del cambio, no del fichero.
+ * una sola lista de ficheros (ADR 0070). Las reglas viven aquí y no en una
+ * pestaña propia desde el ADR 0069: son del cambio, no del fichero.
  *
  * Cada bloque es una sección plegable de la ficha, con su punto de color, su
  * cuenta y un resumen que dice lo importante cuando está cerrada (ADR 0069).
@@ -113,8 +120,8 @@ export default function ChangesPanel({
   ];
   const sources = countBySource(allViolations);
   const hotspots = report.hotspots;
-  const changed = report.files.changed.slice(0, 6);
-  const added = report.files.added.slice(0, 5);
+  const fileGroups = changeFileGroups(report.files);
+  const totalFiles = fileGroups.reduce((sum, group) => sum + group.count, 0);
   const cycles = report.cycles.introduced.slice(0, 4);
   const migration = report.migration;
   const increased = migration?.files.increased.slice(0, 6) ?? [];
@@ -144,35 +151,29 @@ export default function ChangesPanel({
         {report.head.checksum.slice(0, 8) || "head"}
       </div>
 
-      <div className="change-grid">
-        <ChangeStat
-          label="Ficheros"
-          value={`+${summary.addedFiles} −${summary.removedFiles} ~${summary.changedFiles}`}
-        />
-        <ChangeStat
-          label="Aristas"
-          value={`+${summary.addedEdges} −${summary.removedEdges}`}
-        />
-        <ChangeStat
-          label="Ciclos"
-          value={`+${summary.introducedCycles} −${summary.fixedCycles}`}
-          accent={summary.introducedCycles > 0 ? "bad" : undefined}
-        />
-        <ChangeStat label="Hotspots" value={formatCompact(summary.hotspots)} />
-        {migration ? (
-          <ChangeStat
-            label="Deuda migración"
-            value={formatCompact(migration.debt.head)}
-            accent={migration.debt.delta > 0 ? "bad" : "good"}
-          />
-        ) : null}
-        {symbols ? (
-          <ChangeStat
-            label="Símbolos"
-            value={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
-          />
-        ) : null}
-      </div>
+      {summary.addedEdges +
+      summary.removedEdges +
+      summary.introducedCycles +
+      summary.fixedCycles >
+      0 ? (
+        <div className="change-line">
+          <span>
+            Aristas <b className="mono">+{summary.addedEdges}</b>{" "}
+            <b className="mono">−{summary.removedEdges}</b>
+          </span>{" "}
+          <span>
+            Ciclos{" "}
+            <b
+              className={`mono${
+                summary.introducedCycles > 0 ? " is-worse" : ""
+              }`}
+            >
+              +{summary.introducedCycles}
+            </b>{" "}
+            <b className="mono">−{summary.fixedCycles}</b>
+          </span>
+        </div>
+      ) : null}
 
       <CollapsibleSection
         id="change-rules"
@@ -394,94 +395,85 @@ export default function ChangesPanel({
 
       <CollapsibleSection
         id="change-files"
-        title="Ficheros modificados"
-        className="section-changed"
-        count={report.files.changed.length}
+        title="Ficheros"
+        className="section-files"
+        count={totalFiles}
+        summary={filesSummary(fileGroups)}
       >
-        {changed.length === 0 ? (
-          <p className="muted small">Sin ficheros modificados.</p>
+        {totalFiles === 0 ? (
+          <p className="muted small">Sin ficheros tocados.</p>
         ) : (
-          <div className="change-rows">
-            {changed.map((file) => {
-              // El delta se corta cuando no cabe, así que la fila lleva el texto
-              // completo en el tooltip.
-              const deltas = file.changes
-                .slice(0, 2)
-                .map(
-                  (change) =>
-                    `${change.metric} ${change.delta === null ? "±" : change.delta > 0 ? `+${formatCompact(change.delta)}` : formatCompact(change.delta)}`
-                )
-                .join(" · ");
-              return (
-                <button
-                  key={file.id}
-                  type="button"
-                  className="change-row"
-                  title={`${file.path} · ${deltas}`}
-                  onClick={() => onSelectPath(file.path)}
-                >
-                  <span className="change-path">{file.path}</span>
-                  <span className="mono change-delta">{deltas}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {report.files.changed.length > changed.length ? (
-          <p className="muted tiny">
-            +{report.files.changed.length - changed.length} más
-          </p>
-        ) : null}
-      </CollapsibleSection>
-
-      {added.length > 0 ? (
-        <CollapsibleSection
-          id="change-added"
-          title="Ficheros nuevos"
-          className="section-added"
-          count={report.files.added.length}
-        >
-          <div className="change-rows">
-            {added.map((file) => (
-              <button
-                key={file.id}
-                type="button"
-                className="change-row"
-                title={file.path}
-                onClick={() => onSelectPath(file.path)}
+          fileGroups
+            .filter((group) => group.count > 0)
+            .map((group) => (
+              <div
+                key={group.status}
+                className={`change-group is-${group.status}`}
               >
-                <span className="change-path">{file.path}</span>
-                <span className="mono change-delta">
-                  +{formatCompact(file.metrics.rloc ?? file.metrics.loc ?? 0)}
-                </span>
-              </button>
-            ))}
-          </div>
-          {report.files.added.length > added.length ? (
-            <p className="muted tiny">
-              +{report.files.added.length - added.length} más
-            </p>
-          ) : null}
-        </CollapsibleSection>
-      ) : null}
+                <GroupHead label={group.title} summary={String(group.count)} />
+                <div className="change-rows">
+                  {group.files.map((file) => (
+                    <FileChangeRow
+                      key={file.id}
+                      file={file}
+                      letter={group.letter}
+                      onSelectPath={onSelectPath}
+                    />
+                  ))}
+                </div>
+                {group.rest > 0 ? (
+                  <p className="muted tiny">+{group.rest} más</p>
+                ) : null}
+              </div>
+            ))
+        )}
+      </CollapsibleSection>
     </section>
   );
 }
 
-function ChangeStat({
-  label,
-  value,
-  accent
+/**
+ * Una fila de **Ficheros**: la letra del estado, la ruta y el delta (ADR 0070).
+ *
+ * El eliminado no es un botón: no está en el snapshot del head y no hay ficha
+ * que abrir. La fila lo dice en el tooltip en vez de fingir que lleva a algo.
+ */
+function FileChangeRow({
+  file,
+  letter,
+  onSelectPath
 }: {
-  label: string;
-  value: string;
-  accent?: "bad" | "good";
+  file: ChangeFileRow;
+  letter: "A" | "M" | "D";
+  onSelectPath: (path: string) => void;
 }) {
+  const body = (
+    <>
+      <span className={`change-status is-${file.status}`} aria-hidden="true">
+        {letter}
+      </span>
+      <span className="change-path">{file.path}</span>
+      <span className="mono change-delta">{deltaLabel(file)}</span>
+    </>
+  );
+
+  if (file.status === "removed") {
+    return (
+      <div className="change-row file-row is-static" title={rowTitle(file)}>
+        {body}
+      </div>
+    );
+  }
+
   return (
-    <div className={`change-stat${accent ? ` change-stat-${accent}` : ""}`}>
-      <span>{label}</span>
-      <b>{value}</b>
-    </div>
+    <button
+      type="button"
+      className="change-row file-row"
+      title={rowTitle(file)}
+      onClick={() => onSelectPath(file.path)}
+    >
+      {body}
+    </button>
   );
 }
 

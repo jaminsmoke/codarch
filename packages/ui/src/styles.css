@@ -1277,11 +1277,9 @@ button {
   --section-tint: var(--violet);
 }
 
-.section-changed {
-  --section-tint: var(--patina);
-}
-
-.section-added {
+/* Ficheros lleva los tres estados dentro: el color vive en la fila, no en el
+   punto de la sección (ADR 0070). */
+.section-files {
   --section-tint: var(--ink);
 }
 
@@ -2630,42 +2628,23 @@ button {
   color: var(--muted);
 }
 
-.change-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-  margin-bottom: 16px;
-}
-
-.change-stat {
-  padding: 9px 10px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.change-stat span {
-  display: block;
-  font: 500 8.5px/1.1 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+/* Lo que no tiene sección propia —aristas y ciclos— cabe en una línea (ADR 0070). */
+.change-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 14px;
+  font-size: 10.5px;
   color: var(--muted);
 }
 
-.change-stat b {
-  display: block;
-  margin-top: 3px;
-  font: 600 15px/1.1 var(--display);
-  letter-spacing: -0.02em;
+.change-line b {
+  color: var(--ink);
+  font-weight: 600;
 }
 
-.change-stat-bad b {
+.change-line b.is-worse {
   color: var(--debt);
-}
-
-/* La deuda de migración que baja es buena; la que sube, mala. */
-.change-stat-good b {
-  color: var(--patina);
 }
 
 .change-delta.is-worse {
@@ -2959,6 +2938,56 @@ button {
 
 .change-row:hover {
   background: rgba(47, 111, 237, 0.06);
+}
+
+/* La fila de Ficheros: letra, ruta y delta, en la misma columna para los tres
+   grupos (ADR 0070). */
+.file-row {
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+/* Un eliminado no está en el head: no hay ficha que abrir. */
+.file-row.is-static {
+  cursor: default;
+}
+
+.file-row.is-static:hover {
+  background: transparent;
+}
+
+.change-status {
+  font: 600 9px/1 var(--mono);
+  text-align: center;
+}
+
+.change-status.is-added {
+  color: var(--patina);
+}
+
+.change-status.is-changed {
+  color: var(--ochre);
+}
+
+.change-status.is-removed {
+  color: var(--debt);
+}
+
+/* Cada grupo tiñe su cabecera con el color de su estado. */
+.change-group.is-added {
+  --section-tint: var(--patina);
+}
+
+.change-group.is-changed {
+  --section-tint: var(--ochre);
+}
+
+.change-group.is-removed {
+  --section-tint: var(--debt);
+}
+
+.change-group + .change-group {
+  margin-top: 9px;
 }
 
 .change-path {

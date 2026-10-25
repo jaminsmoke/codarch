@@ -89,6 +89,8 @@ flowchart TD
 | [0066](0061-0070/0066-la-accion-vuelve-al-monorepo.md) | La acción vuelve al monorepo | 2026-10-25 | aceptado | M46 |
 | [0067](0061-0070/0067-la-ficha-ensena-el-codigo.md) | La ficha enseña el código del símbolo | 2026-10-25 | aceptado | M47 |
 | [0068](0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md) | La ficha abre el editor y sus dependencias | 2026-10-25 | aceptado | M48 |
+| [0069](0061-0070/0069-dos-pestanas.md) | Dos pestañas: el fichero y el cambio | 2026-10-25 | aceptado | M50 |
+| [0070](0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md) | Los ficheros del cambio, en una sola lista | 2026-10-25 | aceptado | M51 |
 
 ## Las carpetas
 
@@ -100,6 +102,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
 - **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049
 - **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
-- **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068
+- **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).
