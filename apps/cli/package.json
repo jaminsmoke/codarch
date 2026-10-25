@@ -1,6 +1,6 @@
 {
   "name": "@codarch/cli",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "Mapa de arquitectura para equipos y agentes de IA",
   "license": "MIT",
   "private": true,
