@@ -4,6 +4,7 @@ import { AppShell, OpenMenu, useCodarchApp } from "@codarch/ui";
 import { desktop } from "./bridge";
 import { plataformaEscritorio } from "./plataforma";
 import type { CodarchDesktop } from "../preload";
+import { documentTitle } from "../title";
 import Settings from "./Settings";
 
 export default function App() {
@@ -39,6 +40,15 @@ export default function App() {
   useEffect(() => {
     return desktop().onOpenSettings(() => setSettingsOpen(true));
   }, [setSettingsOpen]);
+
+  // El título dice el proyecto abierto, no «CodArch» a secas. Se pone también
+  // en el documento porque hay gestores de ventanas en Linux que prefieren
+  // ese título al que fija el proceso principal.
+  useEffect(() => {
+    document.title = cc
+      ? documentTitle(source, cc.meta.projectName ?? null)
+      : "CodArch";
+  }, [source, cc]);
 
   // La cabecera dice si el proceso principal vigila el repo (ADR 0050).
   useEffect(() => {

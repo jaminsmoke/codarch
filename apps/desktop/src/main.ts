@@ -93,9 +93,9 @@ function createWindow(): void {
   });
 
   void window.loadFile(path.join(RENDERER_DIST, "index.html"));
-  // El `<title>` del renderer pisaba el de la ventana al cargar: aquí manda
-  // `updateTitle`, que es el único que sabe qué proyecto está abierto.
-  window.on("page-title-updated", (event) => event.preventDefault());
+  // Sin bloquear `page-title-updated`: el renderer pone el mismo título que
+  // `updateTitle` (ADR 0045), y hay gestores de ventanas de Linux que solo
+  // hacen caso al título del documento. Los dos dicen lo mismo a propósito.
   window.once("ready-to-show", () => window?.show());
   // El renderer se entera del estado de la vigilancia por este aviso; si llega
   // antes de que escuche (o la ventana se recarga), la cabecera se quedaría en
@@ -115,9 +115,20 @@ function send(target: DesktopTarget): void {
   window?.webContents.send("codarch:target", target);
 }
 
-/** El título dice qué se está mirando, no solo que es CodArch. */
-function updateTitle(label: string | null): void {
-  window?.setTitle(documentTitle(label));
+/**
+ * El título dice qué se está mirando, no solo que es CodArch.
+ *
+ * Manda el nombre del proyecto del snapshot; la carpeta es el respaldo cuando
+ * todavía no hay snapshot que leer.
+ */
+function updateTitle(label: string | null, projectName?: string | null): void {
+  const title = documentTitle(label, projectName);
+  window?.setTitle(title);
+  // El documento lo lleva el renderer; aquí se deja igual por si el título de
+  // la página llega antes que su efecto y el gestor de ventanas lo prefiere.
+  void window?.webContents
+    .executeJavaScript(`document.title = ${JSON.stringify(title)};`)
+    .catch(() => undefined);
 }
 
 /** El proceso principal vigila el repo abierto, si puede. */
@@ -292,7 +303,7 @@ async function openTarget(target: string): Promise<void> {
     // Si lo guardado ya es el estado del repo, aún no hay nada que reanalizar.
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
-      updateTitle(target);
+      updateTitle(target, projectNameOf(persisted));
       send({ kind: "snapshot", snapshot: persisted, label: target });
       // Lo guardado se pinta al instante, pero el repo sigue vivo: se vigila y
       // se reanaliza detrás, como al restaurar el último proyecto. Sin esto,
@@ -318,7 +329,7 @@ async function openTarget(target: string): Promise<void> {
       const saved = readPersistedSnapshot(target);
       if (saved && isSnapshot(saved)) {
         lastRoot = target;
-        updateTitle(target);
+        updateTitle(target, projectNameOf(saved));
         send({ kind: "snapshot", snapshot: saved, label: target });
         watchRoot(target);
         return;
@@ -330,7 +341,7 @@ async function openTarget(target: string): Promise<void> {
       return;
     }
     lastRoot = target;
-    updateTitle(target);
+    updateTitle(target, projectNameOf(outcome.snapshot));
     ensureStateIgnored(target);
     writeSnapshot(target, outcome.snapshot);
     watchRoot(target);
@@ -349,12 +360,21 @@ async function openTarget(target: string): Promise<void> {
     failOpen("No se pudo abrir el fichero", `${target}: ${(cause as Error).message}`);
     return;
   }
-  updateTitle(target);
+  updateTitle(target, projectNameOf(raw));
   if (isSnapshot(raw)) {
     send({ kind: "snapshot", snapshot: raw, label: target });
     return;
   }
   send({ kind: "report", report: raw, label: target });
+}
+
+/** El nombre del proyecto de un snapshot, si lo trae. */
+function projectNameOf(value: unknown): string | null {
+  if (!isSnapshot(value)) return null;
+  const meta = (value as { meta?: { projectName?: unknown } }).meta;
+  return typeof meta?.projectName === "string" && meta.projectName.trim() !== ""
+    ? meta.projectName
+    : null;
 }
 
 /** Un `cc.json` tiene `meta` y `files`; un reporte, `base` y `summary`. */
@@ -546,8 +566,9 @@ function buildMenu(): Menu {
         click: () => void openPickedFolder()
       },
       {
+        // Sin `accelerator`: Electron pinta «Ctrl+Comma» en Linux y Windows,
+        // que no es lo que dice la tecla. El atajo lo atiende la UI.
         label: "Ajustes…",
-        accelerator: "CmdOrCtrl+,",
         click: () => window?.webContents.send("codarch:open-settings")
       },
       {

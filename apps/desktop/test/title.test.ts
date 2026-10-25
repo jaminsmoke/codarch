@@ -24,4 +24,16 @@ describe("el título de la ventana", () => {
       "CodArch · snapshot.cc.json"
     );
   });
+
+  it("manda el nombre del proyecto sobre el de la carpeta", () => {
+    expect(documentTitle("/home/ana/clones/mi-repo", "Motor de pagos")).toBe(
+      "CodArch · Motor de pagos"
+    );
+  });
+
+  it("un nombre de proyecto vacío no pisa la carpeta", () => {
+    expect(documentTitle("/home/ana/clones/mi-repo", "   ")).toBe(
+      "CodArch · mi-repo"
+    );
+  });
 });
