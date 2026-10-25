@@ -11,6 +11,8 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-10-22
 
+**Actualizado por:** [ADR 0065](../0061-0070/0065-cada-componente-su-version.md) - cada componente lleva su versión y el parche se publica solo.
+
 ## Contexto
 
 El producto ya tiene versiones ✓, pero cada una por su cuenta ✓ y sin regla ✓:

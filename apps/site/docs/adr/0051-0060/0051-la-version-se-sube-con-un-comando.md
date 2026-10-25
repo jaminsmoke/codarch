@@ -11,6 +11,8 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-10-24
 
+**Actualizado por:** [ADR 0065](../0061-0070/0065-cada-componente-su-version.md) - el parche se sube solo por componente; el comando queda para lo manual.
+
 ## Contexto
 
 ADR 0041 dejó una versión para el producto en `versions.json`, un manifiesto generado y un

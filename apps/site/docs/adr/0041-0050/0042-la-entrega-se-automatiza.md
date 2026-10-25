@@ -11,6 +11,8 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-10-23
 
+**Actualizado por:** [ADR 0065](../0061-0070/0065-cada-componente-su-version.md) - cada componente lleva su versión y el parche se publica solo.
+
 ## Contexto
 
 La entrega dependía de una persona y de su memoria. El CLI se publicaba a mano con `npm publish`,

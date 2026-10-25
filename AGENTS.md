@@ -46,8 +46,9 @@ npm run lint:types     # eslint con tipos: hooks y promesas
 npm run typecheck      # tsc --noEmit
 npx vitest run         # suite completa
 npm run check:action   # action.yml + workflow + comentario
-npm run version        # las versiones del producto, el CLI, el escritorio y la web: cuadran
-npm run release        # sube el parche y prepara la release (-- minor | major | --dry-run)
+npm run version        # las versiones de motor, CLI, escritorio, web, MCP y Docker: cuadran
+npm run release        # sube el parche de todos; para uno: -- --cli minor (ADR 0065)
+npm run release -- --cli minor --dry-run  # enseña el plan sin tocar nada
 npm run build:cli      # bundle ESM en apps/cli/dist
 npm run pack:cli       # tarball en .codarch/pack
 npm run sync:action    # regenera .codarch/action-repo (repo público)
@@ -86,11 +87,11 @@ también `npm run sync:action` y actualizar el repo público.
 8. **Acción.** La fuente es `apps/github-action`. El repo público
    [`jaminsmoke/codarch-action`](https://github.com/jaminsmoke/codarch-action) se genera con
    `npm run sync:action`; no editar allí. Tras sincronizar, mover el tag mayor `v1`.
-9. **Release del CLI.** Subir la versión ✓ (`npm run version -- <x>` ✓ ✓), `npm run web:build` ✓,
-   `npm run build:cli` ✓, `npm run pack:cli` ✓, probar el tarball en un proyecto limpio ✓,
-   `npm run publish:cli` ✓ (la etiqueta la decide la versión ✓: alpha → `next` ✓, estable →
-   `latest` ✓ ✓; requiere OTP ✓), actualizar el input `version` de la acción ✓, sincronizar ✓ y
-   mover `v1` ✓.
+9. **Entrega.** El parche lo sube `.github/workflows/release.yml` después de CI verde en `main`:
+   calcula el impacto por dependencias y lanza solo los canales afectados. `minor`/`major` se piden
+   a mano con `npm run release -- --<componente> minor|major`. El CLI se publica con Trusted
+   Publishing, sin OTP; al publicarse, el workflow actualiza el pin de la acción. El repo público de
+   la acción se sincroniza aparte con `npm run sync:action` y se mueve el tag mayor `v1`.
 10. **Idiomas.** El idioma por defecto es el español. Las cadenas de la UI viven en
     `apps/site/src/content/i18n/<idioma>.json` (la colección `i18n` de Starlight) y el contenido en
     `apps/site/docs/<idioma>/`. Añadir un idioma es
@@ -235,6 +236,13 @@ también `npm run sync:action` y actualizar el repo público.
   superficie de imports y exports con alias, tipo y reexportaciones. La ficha estrena
   **Superficie** y **Miembros**, dos secciones plegables que también aparecen en ficheros sin
   símbolos. No toca la cadena ni el diff de símbolos; `cc.json` sigue en 2.x.
+- M45 cerrada: cada componente su versión (ADR 0065). `versions.json` deja de tener `product` y
+  guarda `engine`, `cli`, `desktop`, `web`, `mcp` y `docker`; cada `package.json` lleva la suya y
+  `@codarch/versions` exporta una constante por componente. Un coordinador tras CI verde calcula
+  el impacto por el grafo de dependencias, sube el parche de lo afectado en un commit y lanza los
+  canales (`publish-cli`, `desktop`, `docker`). La web viaja dentro del CLI, así que un cambio de
+  web también sube el CLI. Los `minor`/`major` siguen a mano con
+  `npm run release -- --<componente> minor|major`, y los ajustes estrenan **Componentes**.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
