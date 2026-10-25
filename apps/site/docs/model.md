@@ -214,7 +214,8 @@ type CcSymbol = {
 ```
 
 La lente guarda `nodes` (los símbolos de cada fichero, por su id) y un `summary` con el total, el
-reparto por tipo y la función más compleja del repo.
+reparto por tipo y la función más compleja del repo. Todos los símbolos guardan su rango de líneas,
+no solo las funciones (ADR 0067).
 
 Decisiones (ADR 0025):
 

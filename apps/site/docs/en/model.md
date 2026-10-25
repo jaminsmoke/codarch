@@ -215,7 +215,8 @@ type CcSymbol = {
 ```
 
 The lens stores `nodes` (the symbols of each file, by its id) and a `summary` with the total, the
-split by type and the most complex function in the repo.
+split by type and the most complex function in the repo. Every symbol keeps its line span, not only
+functions (ADR 0067).
 
 Decisions (ADR 0025):
 

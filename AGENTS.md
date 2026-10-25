@@ -243,6 +243,10 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
 - M46 cerrada: la acción vuelve al monorepo (ADR 0066). Se usa por subruta
   (`apps/github-action@v1`), el tag `v1` se mueve al publicar el CLI y desaparece `sync:action` y la
   copia pública generada; `codarch-action` queda archivado.
+- M47 cerrada: la ficha enseña el código del símbolo (ADR 0067). Todos los símbolos guardan sus
+  líneas; el servidor local, el escritorio y la web (memoria del análisis de carpeta) sirven el
+  cuerpo real, con límites y sin salir del repo. Al pulsar un símbolo se abre su código plegable;
+  los grupos de símbolos se pliegan y cada métrica lleva un icono `?` con su explicación.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.

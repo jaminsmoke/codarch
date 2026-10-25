@@ -85,8 +85,8 @@ aditivos); la cadena de un símbolo sigue emparejando por cuerpo; y el orden de
   usa el resto del módulo aparecen con su nombre y su línea.
 - La lista crece. Por eso se agrupa y el resumen dice el reparto; el filtro por
   nombre sigue en la hoja de ruta para ficheros con cientos de símbolos.
-- Las variables no tienen complejidad ni líneas: la fila enseña su tipo y su
-  nombre, y la cadena sigue su cuerpo como el de cualquier símbolo.
+- Las variables no tienen complejidad; sus líneas se guardan para enseñar el
+  código del símbolo (ADR 0067).
 - Un cambio de valor en una constante ya se ve en el reporte, el comentario del
   PR y el MCP.
 - Los métodos y las clases recuperan un hash de cuerpo con contenido. El suyo

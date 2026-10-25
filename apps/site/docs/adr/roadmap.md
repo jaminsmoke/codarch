@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada y M46 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada y M47 cerrada.
 
 ## Las fases
 
@@ -57,6 +57,7 @@ flowchart TD
     M43 --> M44["M44 · La ficha no esconde nada"]
     M44 --> M45["M45 · Cada componente su versión"]
     M45 --> M46["M46 · La acción vuelve al monorepo"]
+    M46 --> M47["M47 · La ficha enseña el código"]
   end
   subgraph lentes["Lentes: migración, dominio, símbolos, tiempo"]
     M8["M8 · La migración donde faltaba"] --> M9["M9 · Lente de dominio"]
@@ -140,6 +141,7 @@ flowchart TD
 | M44 | La ficha no esconde nada | cerrada | [ADR 0064](0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta) |
 | M45 | Cada componente su versión | cerrada | [ADR 0065](0061-0070/0065-cada-componente-su-version.md#hoja-de-ruta) |
 | M46 | La acción vuelve al monorepo | cerrada | [ADR 0066](0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta) |
+| M47 | La ficha enseña el código | cerrada | [ADR 0067](0061-0070/0067-la-ficha-ensena-el-codigo.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 
