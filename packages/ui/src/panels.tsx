@@ -13,7 +13,7 @@ import type {
   SymbolHeat
 } from "@codarch/schema/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
-import type { CodeRequest, CodeSnippet } from "./platform";
+import type { CodeRequest, CodeSnippet, EditorRequest } from "./platform";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
 import { groupSymbols, symbolSummary } from "./symbols";
@@ -449,7 +449,8 @@ function memberTarget(
 }
 
 function InlineCode({
-  state
+  state,
+  onOpenEditor
 }: {
   state: {
     target: CodeTarget;
@@ -457,8 +458,29 @@ function InlineCode({
     loading: boolean;
     error: string | null;
   };
+  onOpenEditor: (request: EditorRequest) => Promise<boolean>;
 }) {
   const { target, snippet, loading, error } = state;
+  const [message, setMessage] = useState<string | null>(null);
+
+  const openEditor = async (): Promise<void> => {
+    const ok = await onOpenEditor({ path: target.path, line: target.line });
+    setMessage(
+      ok
+        ? null
+        : "No se pudo abrir el editor. Copia la ruta y pégala en tu editor."
+    );
+  };
+
+  const copyPath = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(`${target.path}:${target.line}`);
+      setMessage("Ruta copiada.");
+    } catch {
+      setMessage(`No se pudo copiar. La ruta es ${target.path}:${target.line}`);
+    }
+  };
+
   return (
     <div className="symbol-code">
       <div className="symbol-code-head">
@@ -468,7 +490,20 @@ function InlineCode({
             ? `líneas ${snippet.start}–${snippet.end}`
             : `línea ${target.line}`}
         </span>
+        <span className="symbol-code-actions">
+          <button type="button" onClick={() => void openEditor()}>
+            Editor
+          </button>
+          <button type="button" onClick={() => void copyPath()}>
+            Copiar ruta
+          </button>
+        </span>
       </div>
+      {message ? (
+        <p className="muted tiny" role="status">
+          {message}
+        </p>
+      ) : null}
       {loading ? (
         <p className="muted small">Cargando el código…</p>
       ) : error ? (
@@ -519,6 +554,8 @@ export function Inspector({
   chain,
   onSelectSymbol,
   onLoadCode,
+  onOpenEditor,
+  onSelectPath,
   onColorMode
 }: {
   model: RenderModel | null;
@@ -535,6 +572,10 @@ export function Inspector({
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
+  /** Abre el fichero en el editor del usuario (ADR 0068). */
+  onOpenEditor: (request: EditorRequest) => Promise<boolean>;
+  /** Abre otro fichero del grafo desde Dependencias. */
+  onSelectPath: (path: string) => void;
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
 }) {
@@ -574,6 +615,23 @@ export function Inspector({
 
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
   const lastChainVersion = chain?.versions[chain.versions.length - 1];
+
+  const relatedFiles = (direction: "out" | "in"): RenderFile[] => {
+    if (!model) return [];
+    const found = new Map<string, RenderFile>();
+    for (const edge of model.edges) {
+      const owner = direction === "out" ? edge.from : edge.to;
+      if (owner !== file.index) continue;
+      const other = direction === "out" ? edge.to : edge.from;
+      const target = model.files[other];
+      if (target) found.set(target.path, target);
+    }
+    return [...found.values()].sort((left, right) =>
+      left.path.localeCompare(right.path)
+    );
+  };
+  const outgoing = relatedFiles("out");
+  const incoming = relatedFiles("in");
 
   const openCode = async (target: CodeTarget): Promise<void> => {
     if (code?.target.id === target.id) {
@@ -748,7 +806,7 @@ export function Inspector({
                           </span>
                         ) : null}
                       </button>
-                      {open && code ? <InlineCode state={code} /> : null}
+                      {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
                   );
                 })}
@@ -846,6 +904,68 @@ export function Inspector({
         </CollapsibleSection>
       ) : null}
 
+      {outgoing.length + incoming.length > 0 ? (
+        <CollapsibleSection
+          id="file-dependencies"
+          title="Dependencias"
+          count={outgoing.length + incoming.length}
+          summary={`${outgoing.length} salidas · ${incoming.length} entradas`}
+        >
+          <div className="dependency-list">
+            {outgoing.length > 0 ? (
+              <div className="dependency-group">
+                <div className="symbol-group-head">
+                  <span>Importa</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {outgoing.length}
+                  </span>
+                </div>
+                {outgoing.map((entry) => (
+                  <button
+                    key={entry.path}
+                    type="button"
+                    className="dependency-row"
+                    onClick={() => onSelectPath(entry.path)}
+                    title={`Abrir ${entry.path}`}
+                  >
+                    <span className="mono dependency-path">{entry.path}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {incoming.length > 0 ? (
+              <div className="dependency-group">
+                <div className="symbol-group-head">
+                  <span>Lo usan</span>
+                  <span className="symbol-group-line" aria-hidden="true" />
+                  <span className="mono symbol-group-count">
+                    {incoming.length}
+                  </span>
+                </div>
+                {incoming.map((entry) => (
+                  <button
+                    key={entry.path}
+                    type="button"
+                    className="dependency-row"
+                    onClick={() => onSelectPath(entry.path)}
+                    title={`Abrir ${entry.path}`}
+                  >
+                    <span className="mono dependency-path">{entry.path}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            <p className="muted tiny symbol-note">
+              Aristas del grafo de imports. Pulsa una ruta para abrir ese
+              fichero.
+            </p>
+          </div>
+        </CollapsibleSection>
+      ) : null}
+
       {structure && structure.members.length > 0 ? (
         <CollapsibleSection
           id="file-members"
@@ -885,7 +1005,7 @@ export function Inspector({
                           {member.name}
                         </span>
                       </button>
-                      {open && code ? <InlineCode state={code} /> : null}
+                      {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
                   );
                 })}

@@ -8,7 +8,7 @@
 
 export { readMigration, readReport } from "./data";
 export { AppShell, type AppShellProps } from "./AppShell";
-export type { Plataforma, CodeRequest, CodeSnippet } from "./platform";
+export type { Plataforma, CodeRequest, CodeSnippet, EditorRequest } from "./platform";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export {
   EMPTY_SOURCE_REQUEST,

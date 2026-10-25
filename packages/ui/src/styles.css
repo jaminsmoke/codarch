@@ -1885,6 +1885,7 @@ button {
 
 .symbol-code-head {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 3px;
@@ -1892,6 +1893,27 @@ button {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.symbol-code-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.symbol-code-actions button {
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font: 500 8.5px/1.5 var(--mono);
+  cursor: pointer;
+}
+
+.symbol-code-actions button:hover {
+  color: var(--ink);
+  border-color: var(--muted);
 }
 
 .symbol-row.is-open,
@@ -2271,6 +2293,43 @@ button {
 
 .member-kind {
   font-size: 8px;
+}
+
+/* Las aristas del fichero en el grafo (ADR 0068). */
+.dependency-list {
+  padding-top: 2px;
+}
+
+.dependency-group + .dependency-group {
+  margin-top: 7px;
+}
+
+.dependency-row {
+  display: block;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dependency-row:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+.dependency-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.dependency-path {
+  display: block;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .symbol-name {

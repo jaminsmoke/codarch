@@ -696,6 +696,35 @@ ipcMain.handle(
   }
 );
 
+/** Abre el fichero en VS Code, en la línea pedida (ADR 0068). */
+ipcMain.handle(
+  "codarch:open-editor",
+  async (
+    _event,
+    request: { path?: unknown; line?: unknown } | null
+  ) => {
+    if (!lastRoot || !request || typeof request.path !== "string") return false;
+    const root = path.resolve(lastRoot);
+    const file = path.resolve(root, request.path);
+    const prefix = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+    if (!file.startsWith(prefix)) return false;
+    const line =
+      typeof request.line === "number" && request.line > 0
+        ? Math.trunc(request.line)
+        : 1;
+    const normalized = file.replaceAll("\\", "/");
+    const prefixUri = /^[A-Za-z]:\//.test(normalized)
+      ? "vscode://file/"
+      : "vscode://file";
+    try {
+      await shell.openExternal(`${prefixUri}${encodeURI(normalized)}:${line}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+);
+
 /** Guarda las preferencias de vista en el `.codarch/` del repo (ADR 0053). */
 ipcMain.handle(
   "codarch:persist-preferences",

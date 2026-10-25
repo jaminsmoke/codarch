@@ -30,6 +30,12 @@ export interface CodeSnippet {
   lines: string[];
 }
 
+/** Abrir un fichero en el editor del usuario (ADR 0068). */
+export interface EditorRequest {
+  path: string;
+  line: number;
+}
+
 /**
  * Adaptador de plataforma para `useCodarchApp`.
  *
@@ -67,6 +73,8 @@ export interface Plataforma {
   cadenas?: (symbol: string) => Promise<unknown | null>;
   /** El código real de un símbolo, si la plataforma puede leerlo (ADR 0067). */
   codigo?: (request: CodeRequest) => Promise<CodeSnippet | null>;
+  /** Abre un fichero en el editor del usuario, si la plataforma puede (ADR 0068). */
+  abrirEnEditor?: (request: EditorRequest) => Promise<boolean>;
   /** La línea del tiempo del repo, si la plataforma la sirve. */
   historial?: () => Promise<HistoryEntry[] | null>;
   /** El calor de los símbolos, si la plataforma lo sirve. */

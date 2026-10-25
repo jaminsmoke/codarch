@@ -91,6 +91,7 @@ export function AppShell({
     selectIndex,
     openSymbolChain,
     leerCodigo,
+    abrirEnEditor,
     zoomAt,
     panMap,
     fitMap,
@@ -520,6 +521,8 @@ export function AppShell({
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
               onLoadCode={leerCodigo}
+              onOpenEditor={abrirEnEditor}
+              onSelectPath={selectInPlace}
               onColorMode={setColorMode}
             />
           ) : tab === "rules" ? (

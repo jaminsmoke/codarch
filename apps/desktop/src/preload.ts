@@ -83,6 +83,11 @@ export interface SourceSnippet {
   lines: string[];
 }
 
+export interface EditorRequest {
+  path: string;
+  line: number;
+}
+
 const api = {
   /** La versión de la app. */
   version: VERSION,
@@ -99,6 +104,9 @@ const api = {
   /** Lee las líneas de un símbolo del repo abierto (ADR 0067). */
   source: (request: SourceRequest): Promise<SourceSnippet | null> =>
     ipcRenderer.invoke("codarch:read-source", request),
+  /** Abre un fichero en el editor del sistema (ADR 0068). */
+  openEditor: (request: EditorRequest): Promise<boolean> =>
+    ipcRenderer.invoke("codarch:open-editor", request),
   /** Restaura snapshot, reporte y addons de `.codarch/` del repo. */
   restoreProject: (root: string): Promise<DesktopRestore | null> =>
     ipcRenderer.invoke("codarch:restore-project", root),

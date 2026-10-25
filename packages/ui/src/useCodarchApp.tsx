@@ -20,7 +20,7 @@ import { mapColorFor, metricIndexOf } from "./map";
 import { orderedMetrics } from "./metrics";
 import { readMigration, readReport } from "./data";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
-import type { Plataforma, CodeRequest, CodeSnippet } from "./platform";
+import type { Plataforma, CodeRequest, CodeSnippet, EditorRequest } from "./platform";
 import { localStore, type ViewPreferences } from "./storage";
 import {
   isColorModeAvailable,
@@ -87,6 +87,8 @@ export interface CodarchAppActions {
   openSymbolChain: (name: string, path: string) => Promise<void>;
   /** Lee el código real de un símbolo, si la plataforma puede (ADR 0067). */
   leerCodigo: (request: CodeRequest) => Promise<CodeSnippet | null>;
+  /** Abre un fichero en el editor del usuario (ADR 0068). */
+  abrirEnEditor: (request: EditorRequest) => Promise<boolean>;
   /**
    * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
    *
@@ -745,6 +747,12 @@ export function useCodarchApp(
     [plataforma]
   );
 
+  const abrirEnEditor = useCallback(
+    async (request: EditorRequest): Promise<boolean> =>
+      plataforma.abrirEnEditor ? plataforma.abrirEnEditor(request) : false,
+    [plataforma]
+  );
+
   // Al cambiar de métrica se conserva el fichero elegido si sigue existiendo.
   /* eslint-disable react-hooks/set-state-in-effect -- la selección se deriva del modelo; el efecto la mantiene al cambiar de métrica */
   useEffect(() => {
@@ -873,6 +881,7 @@ export function useCodarchApp(
     selectIndex,
     openSymbolChain,
     leerCodigo,
+    abrirEnEditor,
     zoomAt,
     panMap,
     fitMap,

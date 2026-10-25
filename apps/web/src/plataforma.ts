@@ -1,4 +1,9 @@
-import type { Plataforma, SavedProject, CodeSnippet } from "@codarch/ui";
+import type {
+  CodeSnippet,
+  EditorRequest,
+  Plataforma,
+  SavedProject
+} from "@codarch/ui";
 import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import { sourceFromMemory } from "./analysis/reader";
 import { fetchJson } from "./http";
@@ -19,6 +24,15 @@ import {
  * progreso por fichero y cancelación, y se quedan donde se ven. Aquí solo va lo
  * que el hook necesita para el estado compartido.
  */
+/** El enlace `vscode://file/...` del fichero y la línea (ADR 0068). */
+function vscodeUri(root: string, path: string, line: number): string {
+  const full = `${root.replaceAll("\\", "/").replace(/\/$/, "")}/${path.replaceAll("\\", "/")}`;
+  const prefix = /^[A-Za-z]:\//.test(full)
+    ? "vscode://file/"
+    : "vscode://file";
+  return `${prefix}${encodeURI(full)}:${line}`;
+}
+
 export function plataformaWeb(): Plataforma {
   return {
     leerPreferencias: () => readPreferences(),
@@ -40,6 +54,16 @@ export function plataformaWeb(): Plataforma {
         return remote as CodeSnippet;
       }
       return sourceFromMemory(request.path, request.start, request.end);
+    },
+    abrirEnEditor: async (request: EditorRequest) => {
+      const raw = await fetchJson("data/meta.json");
+      const root =
+        raw && typeof raw === "object"
+          ? (raw as { rootPath?: unknown }).rootPath
+          : null;
+      if (typeof root !== "string" || !root) return false;
+      window.location.href = vscodeUri(root, request.path, request.line);
+      return true;
     },
     historial: async () => {
       const raw = await fetchJson("data/history.json");
