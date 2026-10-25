@@ -616,6 +616,16 @@ export function Inspector({
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
   const lastChainVersion = chain?.versions[chain.versions.length - 1];
 
+  /** La barra de complejidad, relativa al símbolo más pesado del fichero. */
+  const maxComplexity = symbols.reduce(
+    (max, symbol) => Math.max(max, symbol.complexity ?? 0),
+    0
+  );
+  const complexityShare = (value: number | undefined): number => {
+    if (!maxComplexity || value === undefined) return 0;
+    return Math.round((value / maxComplexity) * 100);
+  };
+
   const relatedFiles = (direction: "out" | "in"): RenderFile[] => {
     if (!model) return [];
     const found = new Map<string, RenderFile>();
@@ -682,6 +692,7 @@ export function Inspector({
       <CollapsibleSection
         id="file-metrics"
         title="Métricas"
+        className="section-metrics"
         count={rows.length}
         summary={
           rows[0]?.value === null || rows[0]?.value === undefined
@@ -756,17 +767,23 @@ export function Inspector({
         <CollapsibleSection
           id="file-symbols"
           title="Símbolos"
+          className="section-symbols"
           count={symbols.length}
           summary={symbolSummary(symbols)}
         >
           <div className="symbol-list">
+            <div className="card-head card-head-symbols" aria-hidden="true">
+              <span>Símbolo</span>
+              <span>Línea</span>
+              <span>Compl.</span>
+            </div>
             {groupSymbols(symbols).map((group) => (
               <CollapsibleSection
                 key={group.kind}
                 id={`file-symbols-${group.kind}`}
                 title={group.title}
                 count={group.symbols.length}
-                className="symbol-group"
+                className={`symbol-group symbol-group-${group.kind}`}
               >
                 {group.symbols.map((symbol) => {
                   const target = symbolTarget(file, symbol);
@@ -791,20 +808,29 @@ export function Inspector({
                             : ""
                         }. Pulsa para ver su código y su vida.`}
                       >
-                        <span className={`symbol-kind symbol-${symbol.kind}`}>
-                          {SYMBOL_LABEL[symbol.kind]}
-                        </span>
                         <span className="symbol-name" title={symbol.name}>
                           {symbol.name}
                         </span>
-                        {symbol.complexity !== undefined ? (
-                          <span
-                            className="mono symbol-complexity"
-                            title="Complejidad ciclomática"
-                          >
-                            {symbol.complexity}
+                        <span className="mono symbol-line">{symbol.line}</span>
+                        <span
+                          className="symbol-score"
+                          title={
+                            symbol.complexity !== undefined
+                              ? `Complejidad ciclomática ${symbol.complexity}`
+                              : undefined
+                          }
+                        >
+                          <span className="symbol-bar" aria-hidden="true">
+                            <i
+                              style={{
+                                width: `${complexityShare(symbol.complexity)}%`
+                              }}
+                            />
                           </span>
-                        ) : null}
+                          <span className="mono symbol-complexity">
+                            {symbol.complexity ?? "—"}
+                          </span>
+                        </span>
                       </button>
                       {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
@@ -812,10 +838,6 @@ export function Inspector({
                 })}
               </CollapsibleSection>
             ))}
-            <p className="muted tiny symbol-note">
-              Agrupados por tipo y ordenados por complejidad. Pulsa uno para ver
-              su código y seguir su vida.
-            </p>
           </div>
         </CollapsibleSection>
       ) : null}
@@ -824,6 +846,7 @@ export function Inspector({
         <CollapsibleSection
           id="file-surface"
           title="Superficie"
+          className="section-surface"
           count={surfaceCount(structure)}
           summary={surfaceSummary(structure)}
         >
@@ -842,10 +865,20 @@ export function Inspector({
                     key={`${entry.line}-${entry.source}`}
                     className="surface-row"
                   >
+                    <span className="surface-dir" aria-hidden="true">
+                      →
+                    </span>
                     <span className="mono surface-source" title={entry.source}>
                       {entry.source}
                     </span>
-                    <span className="surface-names">
+                    <span
+                      className="surface-names"
+                      title={
+                        entry.names.length > 0
+                          ? entry.names.join(", ")
+                          : undefined
+                      }
+                    >
                       {entry.names.length > 0 ? (
                         entry.names.map((name) => (
                           <span key={name} className="surface-name">
@@ -855,6 +888,8 @@ export function Inspector({
                       ) : (
                         <span className="muted tiny">efecto secundario</span>
                       )}
+                    </span>
+                    <span className="surface-tags">
                       {entry.typeOnly ? (
                         <span className="surface-badge">type</span>
                       ) : null}
@@ -881,24 +916,38 @@ export function Inspector({
                     key={`${entry.line}-${entry.name}-${entry.source ?? ""}`}
                     className="surface-row"
                   >
+                    <span
+                      className="surface-dir surface-dir-out"
+                      aria-hidden="true"
+                    >
+                      ←
+                    </span>
                     <span className="surface-name">{entry.name}</span>
-                    {entry.local ? (
-                      <span className="muted tiny">desde {entry.local}</span>
-                    ) : null}
-                    {entry.source ? (
-                      <span className="mono surface-source">← {entry.source}</span>
-                    ) : null}
-                    {entry.typeOnly ? (
-                      <span className="surface-badge">type</span>
-                    ) : null}
+                    <span className="surface-detail">
+                      {entry.local ? (
+                        <span className="muted tiny">desde {entry.local}</span>
+                      ) : null}
+                      {entry.source ? (
+                        <span
+                          className="mono surface-source"
+                          title={entry.source}
+                        >
+                          {entry.source}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="surface-tags">
+                      {entry.typeOnly ? (
+                        <span className="surface-badge">type</span>
+                      ) : null}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : null}
 
-            <p className="muted tiny symbol-note">
-              Lo que el fichero importa y exporta. No son símbolos: no tienen
-              cadena.
+            <p className="muted tiny card-note">
+              No son símbolos: no tienen cadena.
             </p>
           </div>
         </CollapsibleSection>
@@ -908,6 +957,7 @@ export function Inspector({
         <CollapsibleSection
           id="file-dependencies"
           title="Dependencias"
+          className="section-deps"
           count={outgoing.length + incoming.length}
           summary={`${outgoing.length} salidas · ${incoming.length} entradas`}
         >
@@ -958,9 +1008,8 @@ export function Inspector({
               </div>
             ) : null}
 
-            <p className="muted tiny symbol-note">
-              Aristas del grafo de imports. Pulsa una ruta para abrir ese
-              fichero.
+            <p className="muted tiny card-note">
+              Pulsa una ruta para abrir ese fichero.
             </p>
           </div>
         </CollapsibleSection>
@@ -970,10 +1019,16 @@ export function Inspector({
         <CollapsibleSection
           id="file-members"
           title="Miembros"
+          className="section-members"
           count={structure.members.length}
           summary={memberSummary(structure.members)}
         >
           <div className="member-list">
+            <div className="card-head card-head-members" aria-hidden="true">
+              <span />
+              <span>Miembro</span>
+              <span>Línea</span>
+            </div>
             {groupMembers(structure.members).map((group) => (
               <div key={group.owner} className="member-group">
                 <div className="symbol-group-head">
@@ -1004,6 +1059,7 @@ export function Inspector({
                         <span className="symbol-name" title={member.name}>
                           {member.name}
                         </span>
+                        <span className="mono member-line">{member.line}</span>
                       </button>
                       {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
@@ -1011,9 +1067,8 @@ export function Inspector({
                 })}
               </div>
             ))}
-            <p className="muted tiny symbol-note">
-              Campos y propiedades del constructor. No son símbolos: viven
-              dentro de su clase.
+            <p className="muted tiny card-note">
+              Campos y propiedades del constructor; viven dentro de su clase.
             </p>
           </div>
         </CollapsibleSection>
@@ -1023,6 +1078,7 @@ export function Inspector({
         <CollapsibleSection
           id="file-chain"
           title={`La vida de ${chain.name}`}
+          className="section-chain"
           count={chain.versions.length}
           summary={
             lastChainVersion
