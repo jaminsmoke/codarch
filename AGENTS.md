@@ -218,6 +218,10 @@ también `npm run sync:action` y actualizar el repo público.
   su barra hasta el p95. El color solo aparece cuando menos es mejor —75 % del p95 en ocre, el p95 en
   deuda— y el riesgo tiene su semáforo en 40 y 70. Pulsar una fila pinta el mapa por esa métrica.
   Deuda y cruces pasan a ser métricas curadas del modelo para tener su p95 siempre.
+- M41 cerrada: el marco del proyecto (ADR 0061). El nombre y las cifras suben a una banda de 52 px
+  pegada a la cabecera, el breadcrumb la acompaña y el escenario pierde el `h1`, el rótulo **MAPA** y
+  las pestañas cuando no hay plugins. La ficha estrena secciones plegables: **Métricas** se abre y se
+  cierra con título en negrita, cuenta, resumen del riesgo y el estado guardado en el navegador.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
