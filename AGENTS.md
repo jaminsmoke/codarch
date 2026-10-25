@@ -222,6 +222,10 @@ también `npm run sync:action` y actualizar el repo público.
   pegada a la cabecera, el breadcrumb la acompaña y el escenario pierde el `h1`, el rótulo **MAPA** y
   las pestañas cuando no hay plugins. La ficha estrena secciones plegables: **Métricas** se abre y se
   cierra con título en negrita, cuenta, resumen del riesgo y el estado guardado en el navegador.
+- M42 cerrada: los símbolos también se pliegan (ADR 0062). La sección deja de cortar en doce y de
+  resumir con «y N más»: enseña todos los del fichero, con la cuenta en el título y la complejidad
+  máxima cuando está cerrada. Usa el mismo componente que Métricas, recuerda su estado y añade la
+  línea al tooltip.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
