@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DiffReport } from "@codarch/metrics/browser";
 import { REPORT_SCHEMA_VERSION } from "@codarch/versions";
-import { reportHasChanges } from "../src/ChangesPanel";
+import { historyRows, reportHasChanges } from "../src/ChangesPanel";
 
 /** Un reporte sin diferencias, con el tipo real para que el typecheck lo vigile. */
 function emptyReport(): DiffReport {
@@ -73,5 +73,46 @@ describe("reportHasChanges", () => {
     const report = emptyReport();
     report.rules.summary.existing = 2;
     expect(reportHasChanges(report)).toBe(true);
+  });
+});
+
+/** Una foto del histórico con lo mínimo que lee la fila. */
+function photo(date: string, rloc: number, files: number) {
+  return {
+    date,
+    checksum: date.replace(/\D/g, "").padEnd(32, "0"),
+    commit: "abc1234",
+    files,
+    rloc,
+    debt: 0,
+    commits: 1,
+    authors: 1,
+    hottest: []
+  };
+}
+
+describe("historyRows", () => {
+  it("ordena de la foto más nueva a la más vieja", () => {
+    const rows = historyRows([
+      photo("2026-10-01T10:00:00Z", 100, 10),
+      photo("2026-10-02T10:00:00Z", 120, 12)
+    ]);
+
+    expect(rows.map((row) => row.entry.rloc)).toEqual([120, 100]);
+  });
+
+  it("mide el delta de rloc contra la foto anterior, no contra el total", () => {
+    const rows = historyRows([
+      photo("2026-10-01T10:00:00Z", 100, 10),
+      photo("2026-10-02T10:00:00Z", 120, 12),
+      photo("2026-10-03T10:00:00Z", 118, 12)
+    ]);
+
+    // La más nueva bajó 2 líneas; la del medio subió 20; la primera no tiene con qué comparar.
+    expect(rows.map((row) => row.rlocDelta)).toEqual([-2, 20, null]);
+  });
+
+  it("sin fotos no hay filas", () => {
+    expect(historyRows([])).toEqual([]);
   });
 });

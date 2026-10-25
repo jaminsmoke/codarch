@@ -15,7 +15,6 @@ import { viewStateFromSaved } from "./viewState";
 import {
   DebtList,
   HeatList,
-  HistoryPanel,
   HotList,
   Inspector,
   Kpi,
@@ -394,15 +393,9 @@ export function AppShell({
 
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
 
-          {/* La historia y el calor son del repo abierto. Las dos listas se
-              cargan al montarse, así que al cambiar de proyecto se remontan:
-              sin esto se quedaban con las filas del repo anterior. */}
-          <HistoryPanel
-            key={`history:${source}`}
-            load={loadHistory}
-            onOpenSnapshot={onOpenHistory}
-          />
-
+          {/* El calor es del repo abierto. La lista se carga al montarse, así
+              que al cambiar de proyecto se remonta: sin esto se quedaba con las
+              filas del repo anterior. La historia vive en Cambios (ADR 0072). */}
           <HotList
             model={view.model}
             selectedIndex={selectedIndex}
@@ -612,6 +605,8 @@ export function AppShell({
               error={reportError}
               onLoad={onLoadReport}
               onSelectPath={selectPath}
+              loadHistory={loadHistory}
+              onOpenHistory={onOpenHistory}
             />
           )}
         </aside>
