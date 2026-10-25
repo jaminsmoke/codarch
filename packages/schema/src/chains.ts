@@ -537,7 +537,10 @@ export interface SymbolHeat {
 /**
  * Los símbolos más reescritos.
  *
- * Ordena por ruido total y, a empate, por cambios de verdad.
+ * Ordena por ruido total y, a empate, por cambios de verdad. Solo entran los
+ * que se han reescrito alguna vez: un símbolo creado en la primera foto y
+ * quieto desde entonces tiene ruido 0 y no es un «más reescrito». Sin este
+ * filtro la lista se llenaba de filas con 0 que parecían un fallo.
  */
 export function summarizeChains(
   chains: readonly SymbolChain[],
@@ -575,7 +578,7 @@ export function summarizeChains(
       left.name.localeCompare(right.name)
   );
 
-  return heat.slice(0, limit);
+  return heat.filter((entry) => entry.churn > 0).slice(0, limit);
 }
 
 /** El resultado de comprobar el snapshot contra el libro mayor. */

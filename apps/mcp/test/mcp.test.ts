@@ -40,7 +40,8 @@ function historySnapshot(checksum: string, renamed: string): CcJson {
       lines: 40,
       hash: "h-renamed"
     },
-    { name: "Guardar", kind: "interface", line: 3, hash: "h-guardar" }
+    // Cambia con cada foto para que cuente como reescrito y salga en el calor.
+    { name: "Guardar", kind: "interface", line: 3, hash: `h-guardar-${checksum}` }
   ];
   nodes.c = [
     {

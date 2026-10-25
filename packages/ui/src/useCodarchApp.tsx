@@ -789,6 +789,13 @@ export function useCodarchApp(
         return;
       }
 
+      // Ctrl+, (Cmd en mac) abre los ajustes, como en cualquier app de escritorio.
+      if ((event.metaKey || event.ctrlKey) && event.key === ",") {
+        event.preventDefault();
+        setSettingsOpen(true);
+        return;
+      }
+
       if (event.key !== "Escape") return;
       setFocusPath(null);
       selectedPathRef.current = null;

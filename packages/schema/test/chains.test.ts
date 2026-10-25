@@ -229,7 +229,8 @@ describe("la vida de un símbolo", () => {
 
   it("conserva el tipo del símbolo y lo repite en el calor", () => {
     const chains = buildChains([
-      step("1", [symbol("Cargador", "h1", { kind: "class" })])
+      step("1", [symbol("Cargador", "h1", { kind: "class" })]),
+      step("2", [symbol("Cargador", "h2", { kind: "class" })])
     ]);
 
     expect(symbols(chains)[0]?.kind).toBe("class");
@@ -259,12 +260,32 @@ describe("la consulta de cadenas", () => {
       snapshot([symbol("cargar", "h1")], "src/a.ts", "c1"),
       new Date("2026-01-01T00:00:00.000Z")
     );
+    saveHistory(
+      root,
+      snapshot([symbol("cargar", "h2")], "src/a.ts", "c2"),
+      new Date("2026-01-02T00:00:00.000Z")
+    );
 
     const payload = chainsPayload(root, null);
 
     expect(payload.available).toBe(true);
     expect(payload.chains).toEqual([]);
     expect(payload.heat.map((entry) => entry.name)).toContain("cargar");
+  });
+
+  it("no llama «más reescrito» a un símbolo que nunca cambió", () => {
+    const root = temporaryRoot();
+    saveHistory(
+      root,
+      snapshot([symbol("cargar", "h1"), symbol("guardar", "h2")], "src/a.ts", "c1"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+
+    const payload = chainsPayload(root, null);
+
+    // Con una sola foto todo nace: nada se ha reescrito, así que no hay calor.
+    expect(payload.available).toBe(true);
+    expect(payload.heat).toEqual([]);
   });
 
   it("busca por el nombre antiguo y nunca devuelve ficheros o el proyecto", () => {

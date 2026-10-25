@@ -394,7 +394,14 @@ export function AppShell({
 
           <Legend colorMode={colorMode} migration={migration} model={view.model} />
 
-          <HistoryPanel load={loadHistory} onOpenSnapshot={onOpenHistory} />
+          {/* La historia y el calor son del repo abierto. Las dos listas se
+              cargan al montarse, así que al cambiar de proyecto se remontan:
+              sin esto se quedaban con las filas del repo anterior. */}
+          <HistoryPanel
+            key={`history:${source}`}
+            load={loadHistory}
+            onOpenSnapshot={onOpenHistory}
+          />
 
           <HotList
             model={view.model}
@@ -403,6 +410,7 @@ export function AppShell({
           />
 
           <HeatList
+            key={`heat:${source}`}
             load={loadHeat}
             onSelectSymbol={(name, path) => {
               void openSymbolChain(name, path);
