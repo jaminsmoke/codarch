@@ -61,7 +61,7 @@ Opciones de render:
   -h, --help        esta ayuda
 
 Opciones de diff:
-  -o, --out <file>  reporte JSON (por defecto report.json)
+  -o, --out <file>  escribe el reporte JSON (sin esto no se escribe fichero)
   --top <n>         hotspots en el reporte (por defecto 10)
   --hotspot-metric <métrica>  por defecto maxComplexity, luego rloc
   --config <file>   reglas YAML (por defecto .codarch.yml si existe)
@@ -119,7 +119,7 @@ Opciones de version:
 Opciones de history:
   --from <foto>     foto con la que comparar (fecha o checksum)
   --to <foto>       foto contra la que comparar
-  -o, --out <file>  reporte JSON del diff
+  -o, --out <file>  escribe el reporte JSON del diff (sin esto, no se escribe)
   --json            salida machine-readable
   -h, --help        esta ayuda
 

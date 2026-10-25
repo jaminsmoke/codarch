@@ -16,7 +16,13 @@ import type { FailOn } from "./diff";
  */
 
 export interface CompareOptions {
-  /** Dónde se escribe el reporte. */
+  /**
+   * Dónde se escribe el reporte.
+   *
+   * Sin esto no se escribe ningún fichero: el informe se lee en la terminal y
+   * el JSON solo aparece si se pide con `-o`. Antes se dejaba un
+   * `report.json` en el directorio actual sin que nadie lo hubiera pedido.
+   */
   out?: string;
   top?: number;
   hotspotMetric?: string;
@@ -62,18 +68,21 @@ export function compareSnapshots(
     return 1;
   }
 
-  const outPath = path.resolve(options.out ?? "report.json");
+  let outPath: string | null = null;
   let reportBytes = 0;
-  try {
-    fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    const text = `${JSON.stringify(report, null, 2)}\n`;
-    fs.writeFileSync(outPath, text, "utf8");
-    reportBytes = Buffer.byteLength(text, "utf8");
-  } catch (error) {
-    console.error(
-      `no se pudo escribir ${outPath}: ${(error as Error).message}`
-    );
-    return 1;
+  if (options.out) {
+    outPath = path.resolve(options.out);
+    try {
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
+      const text = `${JSON.stringify(report, null, 2)}\n`;
+      fs.writeFileSync(outPath, text, "utf8");
+      reportBytes = Buffer.byteLength(text, "utf8");
+    } catch (error) {
+      console.error(
+        `no se pudo escribir ${outPath}: ${(error as Error).message}`
+      );
+      return 1;
+    }
   }
 
   const lines: string[] = [];
@@ -148,7 +157,14 @@ export function compareSnapshots(
         : "sin configuración"
     )
   );
-  lines.push(field("reporte", `${outPath} (${formatBytes(reportBytes)})`));
+  lines.push(
+    field(
+      "reporte",
+      outPath
+        ? `${outPath} (${formatBytes(reportBytes)})`
+        : "sin escribir · -o <fichero> para guardarlo"
+    )
+  );
 
   lines.push("");
   if (report.cycles.introduced.length === 0) {

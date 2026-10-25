@@ -160,6 +160,28 @@ describe("runDiff", () => {
     expect(runDiff({ help: false })).toBe(1);
   });
 
+  it("no escribe ningún reporte si no se pide con --out", () => {
+    const root = tempDir();
+    const basePath = path.join(root, "base.cc.json");
+    const headPath = path.join(root, "head.cc.json");
+    const cc = snapshot("proj", [{ path: "a.ts", metrics: { rloc: 1 } }], []);
+    fs.writeFileSync(basePath, JSON.stringify(cc), "utf8");
+    fs.writeFileSync(headPath, JSON.stringify(cc), "utf8");
+
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    expect(
+      runDiff({ base: basePath, head: headPath, top: 5, help: false })
+    ).toBe(0);
+    // Ni junto a los snapshots ni en el directorio desde el que se ejecuta.
+    expect(fs.existsSync(path.join(root, "report.json"))).toBe(false);
+    expect(fs.existsSync(path.join(process.cwd(), "report.json"))).toBe(false);
+    expect(
+      log.mock.calls.some(([line]) => String(line).includes("sin escribir"))
+    ).toBe(true);
+  });
+
   it("carga .codarch.yml y aplica la política de violaciones", () => {
     const root = tempDir();
     const basePath = path.join(root, "base.cc.json");
