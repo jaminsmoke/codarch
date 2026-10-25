@@ -36,6 +36,13 @@ export { ChangeGate, isLiveIgnored } from "./pulse";
 export type { Pulse } from "./pulse";
 export { AnalysisSession } from "./session";
 export type { SessionOptions } from "./session";
+export {
+  analyzeRepo,
+  forgetHeadReport,
+  headReportFor,
+  repoSession
+} from "./repo-session";
+export type { AnalyzeRepoOptions, RepoAnalysis } from "./repo-session";
 export { ParseCache } from "./cache";
 export type { CachedParse } from "./cache";
 export { buildSnapshot } from "./snapshot";

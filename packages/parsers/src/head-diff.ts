@@ -12,6 +12,16 @@ export interface HeadComparison {
   head: CcJson;
 }
 
+export interface HeadComparisonOptions {
+  /**
+   * El alcance del repo (ADR 0038).
+   *
+   * Sin esto, los dos lados incluyen ficheros que el mapa excluye y la pestaña
+   * Cambios enseña cambios que no están en el snapshot.
+   */
+  ignore?: readonly string[];
+}
+
 /**
  * Compara el working tree con su último commit.
  *
@@ -25,22 +35,25 @@ export interface HeadComparison {
  * Devuelve `null` si no hay commits o si el export del HEAD falla.
  */
 export function compareWorkingTreeWithHead(
-  rootInput: string
+  rootInput: string,
+  options: HeadComparisonOptions = {}
 ): HeadComparison | null {
   const projectName = workingTreeName(rootInput);
   const commitHash = gitHead(rootInput) ?? undefined;
+  const ignore = [...(options.ignore ?? [])];
 
   return withHeadExport(rootInput, (exportedRoot) => {
     const base = analyzeFiles({
       fileSystem: new NodeFileSystem(exportedRoot),
       root: "/",
       projectName,
+      ignore,
       parser: new TypeScriptParser(),
       commitHash,
       churn: (relativePaths) => collectGitChurn(rootInput, relativePaths)
     }).snapshot;
 
-    const head = analyzeRepository(rootInput, { projectName }).snapshot;
+    const head = analyzeRepository(rootInput, { projectName, ignore }).snapshot;
     return { base, head };
   });
 }

@@ -1,20 +1,20 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { ConfigError, diffSnapshots, type DiffReport } from "@codarch/metrics";
+import { ConfigError } from "@codarch/metrics";
 import {
-  AnalysisSession,
-  analyzeRepository,
-  compareWorkingTreeWithHead,
+  analyzeRepo,
   ensureGitignoreEntry,
+  headReportFor,
+  type RepoAnalysis,
   protectedRootReason,
   readSourceSnippet,
   watchRepository,
   type RepositoryWatcher
 } from "@codarch/parsers";
+import type { CcJson } from "@codarch/schema";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
-import { loadProjectIgnore } from "../config";
 import { directoryProblem } from "../io";
 import { findWebRoot } from "../web-root";
 import { chainsPayload } from "./chains-payload";
@@ -56,7 +56,7 @@ const IGNORED_BROWSE = new Set([
 
 export interface AnalysisState {
   root: string;
-  snapshot: ReturnType<typeof analyzeRepository>["snapshot"];
+  snapshot: CcJson;
   files: number;
   checksum: string;
   warnings: string[];
@@ -114,19 +114,6 @@ export function runServe(options: ServeOptions): number {
   let watcher: RepositoryWatcher | null = null;
   const clients = new Set<http.ServerResponse>();
 
-  /**
-   * Lo tocado desde el último commit (ADR 0072).
-   *
-   * Se calcula la primera vez que se pide y se guarda: el export del HEAD y su
-   * análisis cuestan segundos, y la pestaña Cambios no se abre en cada carga.
-   * `undefined` es «sin calcular»; cada análisis nuevo lo invalida.
-   */
-  let headReport: DiffReport | null | undefined;
-  const currentHeadReport = (): DiffReport | null => {
-    if (headReport === undefined) headReport = computeHeadReport(state.root);
-    return headReport;
-  };
-
   const startWatcher = (): string | null => {
     if (watcher) return null;
     try {
@@ -159,17 +146,11 @@ export function runServe(options: ServeOptions): number {
   const refresh = (hints: readonly string[] = []): void => {
     if (!state.watch) return;
     try {
-      const session = sessionFor(state.root);
-      const result = session.refresh(hints, {
-        git: true,
-        // El alcance se relee en cada análisis: guardar `.codarch.yml` también
-        // refresca el mapa (ADR 0038).
-        ignore: loadProjectIgnore(state.root)
-      });
-      if (!result) return;
+      // El alcance se relee en cada análisis y el reporte HEAD viejo se tira:
+      // las dos cosas las hace el flujo compartido (ADR 0074).
+      const result = analyzeRepo(state.root, { hints });
+      if (result.kind === "unchanged") return;
       state = stateFrom(state.root, result, state.watch);
-      // El árbol cambió: el HEAD de la vez anterior ya no sirve.
-      headReport = undefined;
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files
@@ -335,8 +316,10 @@ export function runServe(options: ServeOptions): number {
         // Lo tocado desde el último commit (ADR 0072). Lo calcula el servidor,
         // que tiene git; el fichero del escritorio es el respaldo si el cálculo
         // no es posible (un repo sin commits, por ejemplo).
-        const head =
-          currentHeadReport() ?? readCodarchJson(state.root, "head-report.json");
+        const warnings: string[] = [];
+        const computed = headReportFor(state.root, warnings);
+        for (const warning of warnings) console.error(`  ${warning}`);
+        const head = computed ?? readCodarchJson(state.root, "head-report.json");
         if (head === null) {
           response.writeHead(204, {
             "Cache-Control": "no-store",
@@ -494,37 +477,19 @@ export function runServe(options: ServeOptions): number {
   return 0;
 }
 
-/**
- * La sesión de análisis de cada raíz.
- *
- * El servidor vive mientras el usuario lo deja abierto: guardar un fichero
- * reparsea solo lo que cambió, y un pulso sin cambios no analiza (ADR 0056).
- */
-const sessions = new Map<string, AnalysisSession>();
-
-function sessionFor(root: string): AnalysisSession {
-  let session = sessions.get(root);
-  if (!session) {
-    session = new AnalysisSession(root, { git: true });
-    sessions.set(root, session);
-  }
-  return session;
-}
-
 /** Analiza la raíz entera: al arrancar, al cambiar de raíz y en los tests. */
 export function analyzeState(root: string, watch: boolean): AnalysisState {
-  // El servidor comparte el alcance con el CLI (ADR 0038): se relee en cada
-  // análisis, así que guardar `.codarch.yml` también refresca el mapa.
-  const result = sessionFor(root).analyze([], {
-    git: true,
-    ignore: loadProjectIgnore(root)
-  });
+  // La sesión y el alcance los lleva el flujo compartido (ADR 0074).
+  const result = analyzeRepo(root, { force: true });
+  if (result.kind === "unchanged") {
+    throw new Error("un análisis forzado no puede contestar que no hay cambios");
+  }
   return stateFrom(root, result, watch);
 }
 
 function stateFrom(
   root: string,
-  result: ReturnType<typeof analyzeRepository>,
+  result: Extract<RepoAnalysis, { kind: "snapshot" }>,
   watch: boolean
 ): AnalysisState {
   return {
@@ -599,24 +564,6 @@ function originAllowed(
 
 function readReport(root: string): unknown | null {
   return readCodarchJson(root, "report.json");
-}
-
-/**
- * Compara el working tree con su último commit, o `null` si no hay git.
- *
- * Es el mismo cálculo que hace el escritorio en su proceso de análisis, para
- * que las dos apps enseñen lo mismo con la web servida (ADR 0072).
- */
-function computeHeadReport(root: string): DiffReport | null {
-  try {
-    const pair = compareWorkingTreeWithHead(root);
-    return pair ? diffSnapshots(pair.base, pair.head) : null;
-  } catch (error) {
-    console.error(
-      `no se pudo comparar con el último commit: ${(error as Error).message}`
-    );
-    return null;
-  }
 }
 
 /** Un JSON de `.codarch/`, o `null` si falta o no se puede leer. */
