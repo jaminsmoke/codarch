@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada y M36 en curso.
+curso, M35 cerrada, M36 cerrada y M37 cerrada.
 
 ## Las fases
 
@@ -47,6 +47,7 @@ flowchart TD
     M5 --> M6["M6 · Análisis en el navegador"]
     M6 --> M7["M7 · App de escritorio"]
     M7 --> M26["M26 · La UI compartida"]
+    M26 --> M37["M37 · La ficha del fichero"]
   end
   subgraph lentes["Lentes: migración, dominio, símbolos, tiempo"]
     M8["M8 · La migración donde faltaba"] --> M9["M9 · Lente de dominio"]
@@ -119,7 +120,8 @@ flowchart TD
 | M33 | La orquestación compartida | cerrada | [ADR 0049](0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
 | M34 | El estado vive en el repositorio | en curso | [ADR 0050](0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
 | M35 | La segunda red del lint | cerrada | [ADR 0054](0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
-| M36 | El live no repite el análisis | en curso | [ADR 0056](0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta) |
+| M36 | El live no repite el análisis | cerrada | [ADR 0056](0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta) |
+| M37 | La ficha del fichero habla de sus lentes | cerrada | [ADR 0057](0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

@@ -196,11 +196,15 @@ también `npm run sync:action` y actualizar el repo público.
 - M35 cerrada: la segunda red del lint (ADR 0054). Oxlint sigue en cada guardado y ESLint añade
   hooks, accesibilidad, claves y promesas por área; `npm run lint:types` cubre las reglas que
   necesitan tipos y el CI corre las dos pasadas.
-- M36 en curso: el live no repite el análisis (ADR 0056). El parseo se reutiliza por fichero con su
+- M36 cerrada: el live no repite el análisis (ADR 0056). El parseo se reutiliza por fichero con su
   versión `tamaño:mtime` y el churn por `HEAD`; la vigilancia son **dos handles** por repo (el árbol
   recursivo y `.git`) y un pulso decide con `git status` —o con las versiones, sin git— si el aviso
   cambia el mapa. Un guardado cuesta ~100 ms de análisis en vez de 2 800 y el snapshot solo se
   reescribe cuando git ve algo distinto.
+- M37 cerrada: la ficha del fichero habla de sus lentes (ADR 0057). El inspector gana la pestaña
+  **Lentes**: el riesgo se desglosa en complejidad, churn y tamaño con su peso y su p95; las reglas
+  de dominio se cruzan por ruta desde el `report.json` cargado; la migración enseña deuda, cruces y
+  aristas FFI; y los símbolos se resumen. No cambia `cc.json` ni el checksum.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
