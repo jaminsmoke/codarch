@@ -212,6 +212,11 @@ export default function App() {
         }
         const servedReport = await fetchJson("data/report.json");
         if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
+        // Lo tocado desde el último commit (ADR 0072). Va después de report.json
+        // para prevalecer: la pestaña Cambios muestra la comparación con HEAD, y
+        // report.json queda como alternativa.
+        const servedHead = await fetchJson("data/head-report.json");
+        if (servedHead && !cancelled) loadReport(servedHead, "HEAD", false);
         await loadAddons();
         return;
       }

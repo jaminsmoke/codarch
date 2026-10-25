@@ -6,7 +6,7 @@ import { runAnalyze } from "../src/commands/analyze";
 import { runDiff } from "../src/commands/diff";
 import { runHistory } from "../src/commands/history";
 import { runInspect } from "../src/commands/inspect";
-import { runServe } from "../src/commands/serve";
+import { readCodarchJson, runServe } from "../src/commands/serve";
 
 /**
  * Una ruta mal escrita no se crea ni se sirve.
@@ -95,6 +95,31 @@ describe("una carpeta donde se espera un fichero", () => {
     expect(error.mock.calls[0]?.[0]).toContain("es una carpeta");
     // Un diff que no llega a comparar no deja un report.json a medias.
     expect(fs.existsSync(report)).toBe(false);
+  });
+});
+
+describe("el HEAD que sirve serve (ADR 0072)", () => {
+  it("lee head-report.json de .codarch y devuelve null si no existe", () => {
+    const root = tempDir();
+    const codarch = path.join(root, ".codarch");
+    fs.mkdirSync(codarch);
+    const report = { schemaVersion: "1.3", summary: { changedFiles: 1 } };
+    fs.writeFileSync(path.join(codarch, "head-report.json"), JSON.stringify(report));
+
+    expect(readCodarchJson(root, "head-report.json")).toEqual(report);
+    // Sin el fichero, la ruta contesta 204: aquí, null.
+    expect(readCodarchJson(tempDir(), "head-report.json")).toBeNull();
+  });
+
+  it("no toca report.json: el HEAD vive en su propio fichero", () => {
+    const root = tempDir();
+    const codarch = path.join(root, ".codarch");
+    fs.mkdirSync(codarch);
+    const served = { schemaVersion: "1.3", from: "serve" };
+    fs.writeFileSync(path.join(codarch, "report.json"), JSON.stringify(served));
+    fs.writeFileSync(path.join(codarch, "head-report.json"), JSON.stringify({ from: "head" }));
+
+    expect(readCodarchJson(root, "report.json")).toEqual(served);
   });
 });
 

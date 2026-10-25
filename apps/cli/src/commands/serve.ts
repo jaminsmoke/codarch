@@ -2,10 +2,11 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ConfigError } from "@codarch/metrics";
+import { ConfigError, diffSnapshots, type DiffReport } from "@codarch/metrics";
 import {
   AnalysisSession,
   analyzeRepository,
+  compareWorkingTreeWithHead,
   ensureGitignoreEntry,
   protectedRootReason,
   readSourceSnippet,
@@ -113,6 +114,19 @@ export function runServe(options: ServeOptions): number {
   let watcher: RepositoryWatcher | null = null;
   const clients = new Set<http.ServerResponse>();
 
+  /**
+   * Lo tocado desde el último commit (ADR 0072).
+   *
+   * Se calcula la primera vez que se pide y se guarda: el export del HEAD y su
+   * análisis cuestan segundos, y la pestaña Cambios no se abre en cada carga.
+   * `undefined` es «sin calcular»; cada análisis nuevo lo invalida.
+   */
+  let headReport: DiffReport | null | undefined;
+  const currentHeadReport = (): DiffReport | null => {
+    if (headReport === undefined) headReport = computeHeadReport(state.root);
+    return headReport;
+  };
+
   const startWatcher = (): string | null => {
     if (watcher) return null;
     try {
@@ -154,6 +168,8 @@ export function runServe(options: ServeOptions): number {
       });
       if (!result) return;
       state = stateFrom(state.root, result, state.watch);
+      // El árbol cambió: el HEAD de la vez anterior ya no sirve.
+      headReport = undefined;
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files
@@ -312,6 +328,24 @@ export function runServe(options: ServeOptions): number {
 
       if (pathname === "/data/meta.json") {
         sendJson(response, meta());
+        return;
+      }
+
+      if (pathname === "/data/head-report.json") {
+        // Lo tocado desde el último commit (ADR 0072). Lo calcula el servidor,
+        // que tiene git; el fichero del escritorio es el respaldo si el cálculo
+        // no es posible (un repo sin commits, por ejemplo).
+        const head =
+          currentHeadReport() ?? readCodarchJson(state.root, "head-report.json");
+        if (head === null) {
+          response.writeHead(204, {
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff"
+          });
+          response.end();
+          return;
+        }
+        sendJson(response, head);
         return;
       }
 
@@ -583,7 +617,30 @@ function findWebRoot(): string | null {
 }
 
 function readReport(root: string): unknown | null {
-  const file = path.join(root, ".codarch", "report.json");
+  return readCodarchJson(root, "report.json");
+}
+
+/**
+ * Compara el working tree con su último commit, o `null` si no hay git.
+ *
+ * Es el mismo cálculo que hace el escritorio en su proceso de análisis, para
+ * que las dos apps enseñen lo mismo con la web servida (ADR 0072).
+ */
+function computeHeadReport(root: string): DiffReport | null {
+  try {
+    const pair = compareWorkingTreeWithHead(root);
+    return pair ? diffSnapshots(pair.base, pair.head) : null;
+  } catch (error) {
+    console.error(
+      `no se pudo comparar con el último commit: ${(error as Error).message}`
+    );
+    return null;
+  }
+}
+
+/** Un JSON de `.codarch/`, o `null` si falta o no se puede leer. */
+export function readCodarchJson(root: string, name: string): unknown | null {
+  const file = path.join(root, ".codarch", name);
   try {
     return JSON.parse(fs.readFileSync(file, "utf8")) as unknown;
   } catch (error) {

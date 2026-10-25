@@ -121,9 +121,16 @@ function send(target: DesktopTarget): void {
  * Sin commits o con el export roto, `report` es `null` y no se manda nada: la
  * pestaña sigue mostrando lo que ya tuviera.
  */
-function sendHeadReport(label: string, report: unknown | null): void {
+/** Dónde se guarda lo tocado desde el último commit (ADR 0072). */
+const HEAD_REPORT_FILE = "head-report.json";
+
+function sendHeadReport(root: string, report: unknown | null): void {
   if (!report) return;
-  send({ kind: "head", report, label });
+  // Se guarda en `.codarch/` para que la web lea lo mismo que el escritorio.
+  // Un fichero propio: `report.json` lo escribe también `codarch serve` y no
+  // debe cambiar por debajo de quien lo use (ADR 0072).
+  writeCodarchJson(root, HEAD_REPORT_FILE, report);
+  send({ kind: "head", report, label: root });
 }
 
 /**

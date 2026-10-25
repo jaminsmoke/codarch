@@ -93,10 +93,11 @@ interface ChangesPanelProps {
 /**
  * La pestaña de cambios: qué se ha movido entre base y head.
  *
- * Empieza por lo que rompe —las reglas del cambio, con sus nuevas, existentes y
- * resueltas— y sigue con los hotspots, la migración, los símbolos, los ciclos y
- * una sola lista de ficheros (ADR 0070). Las reglas viven aquí y no en una
- * pestaña propia desde el ADR 0069: son del cambio, no del fichero.
+ * Empieza por una línea de cifras y por los ficheros tocados, que es lo que se
+ * viene a ver, y deja el resto —reglas, hotspots, migración, símbolos y ciclos—
+ * plegado: su cuenta se lee en el encabezado sin abrir nada. Las reglas viven
+ * aquí y no en una pestaña propia desde el ADR 0069: son del cambio, no del
+ * fichero.
  *
  * Cada bloque es una sección plegable de la ficha, con su punto de color, su
  * cuenta y un resumen que dice lo importante cuando está cerrada (ADR 0069).
@@ -175,41 +176,83 @@ export default function ChangesPanel({
 
   return (
     <section className="change-panel">
-      <div className="eyebrow">Cambios · {source ?? "report.json"}</div>
-      <h2>Cambios de arquitectura</h2>
-      <div className="change-checksums mono">
-        {report.base.checksum.slice(0, 8) || "base"} →{" "}
-        {report.head.checksum.slice(0, 8) || "head"}
+      <div className="eyebrow">
+        Cambios · {source ?? "report.json"}{" "}
+        <span className="mono">
+          {report.base.checksum.slice(0, 8) || "base"}→
+          {report.head.checksum.slice(0, 8) || "head"}
+        </span>
+      </div>
+      <h2>Cambios</h2>
+
+      {/* Una sola línea de cifras: el resto sobra hasta que se abre. */}
+      <div className="change-summary">
+        <span>
+          ficheros{" "}
+          <b className="mono">
+            +{summary.addedFiles} −{summary.removedFiles} ~{summary.changedFiles}
+          </b>
+        </span>
+        <span>
+          aristas <b className="mono">+{summary.addedEdges} −{summary.removedEdges}</b>
+        </span>
+        <span>
+          ciclos{" "}
+          <b
+            className={`mono${summary.introducedCycles > 0 ? " is-worse" : ""}`}
+          >
+            +{summary.introducedCycles} −{summary.fixedCycles}
+          </b>
+        </span>
+        {allViolations.length > 0 ? (
+          <span>
+            reglas <b className="mono">{allViolations.length}</b>
+          </span>
+        ) : null}
       </div>
 
-      {summary.addedEdges +
-      summary.removedEdges +
-      summary.introducedCycles +
-      summary.fixedCycles >
-      0 ? (
-        <div className="change-line">
-          <span>
-            Aristas <b className="mono">+{summary.addedEdges}</b>{" "}
-            <b className="mono">−{summary.removedEdges}</b>
-          </span>{" "}
-          <span>
-            Ciclos{" "}
-            <b
-              className={`mono${
-                summary.introducedCycles > 0 ? " is-worse" : ""
-              }`}
-            >
-              +{summary.introducedCycles}
-            </b>{" "}
-            <b className="mono">−{summary.fixedCycles}</b>
-          </span>
-        </div>
-      ) : null}
+      {/* Lo tocado, primero: es lo que se viene a ver a esta pestaña. */}
+      <CollapsibleSection
+        id="change-files"
+        title="Ficheros"
+        className="section-files"
+        count={totalFiles}
+        summary={filesSummary(fileGroups)}
+      >
+        {totalFiles === 0 ? (
+          <p className="muted small">Sin ficheros tocados.</p>
+        ) : (
+          fileGroups
+            .filter((group) => group.count > 0)
+            .map((group) => (
+              <div
+                key={group.status}
+                className={`change-group is-${group.status}`}
+              >
+                <GroupHead label={group.title} summary={String(group.count)} />
+                <div className="change-rows">
+                  {group.files.map((file) => (
+                    <FileChangeRow
+                      key={file.id}
+                      file={file}
+                      letter={group.letter}
+                      onSelectPath={onSelectPath}
+                    />
+                  ))}
+                </div>
+                {group.rest > 0 ? (
+                  <p className="muted tiny">+{group.rest} más</p>
+                ) : null}
+              </div>
+            ))
+        )}
+      </CollapsibleSection>
 
       <CollapsibleSection
         id="change-rules"
         title="Reglas"
         className="section-changes-rules"
+        defaultOpen={false}
         count={allViolations.length}
         summary={ruleParts.join(" · ") || "sin violaciones"}
       >
@@ -286,6 +329,7 @@ export default function ChangesPanel({
         id="change-hotspots"
         title="Hotspots"
         className="section-hotspots"
+        defaultOpen={false}
         count={hotspots.length}
         summary={report.hotspotMetric ?? "métrica"}
       >
@@ -326,6 +370,7 @@ export default function ChangesPanel({
           id="change-migration"
           title="Migración"
           className="section-changes-migration"
+          defaultOpen={false}
           count={increased.length + decreased.length}
           summary={`deuda ${formatCompact(migration.debt.base)} → ${formatCompact(migration.debt.head)}`}
         >
@@ -374,6 +419,7 @@ export default function ChangesPanel({
           id="change-symbols"
           title="Símbolos"
           className="section-changes-symbols"
+          defaultOpen={false}
           count={symbolFiles.length}
           summary={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
         >
@@ -401,6 +447,7 @@ export default function ChangesPanel({
           id="change-cycles"
           title="Ciclos nuevos"
           className="section-cycles"
+          defaultOpen={false}
           count={report.cycles.introduced.length}
         >
           <div className="change-rows">
@@ -424,41 +471,6 @@ export default function ChangesPanel({
         </CollapsibleSection>
       ) : null}
 
-      <CollapsibleSection
-        id="change-files"
-        title="Ficheros"
-        className="section-files"
-        count={totalFiles}
-        summary={filesSummary(fileGroups)}
-      >
-        {totalFiles === 0 ? (
-          <p className="muted small">Sin ficheros tocados.</p>
-        ) : (
-          fileGroups
-            .filter((group) => group.count > 0)
-            .map((group) => (
-              <div
-                key={group.status}
-                className={`change-group is-${group.status}`}
-              >
-                <GroupHead label={group.title} summary={String(group.count)} />
-                <div className="change-rows">
-                  {group.files.map((file) => (
-                    <FileChangeRow
-                      key={file.id}
-                      file={file}
-                      letter={group.letter}
-                      onSelectPath={onSelectPath}
-                    />
-                  ))}
-                </div>
-                {group.rest > 0 ? (
-                  <p className="muted tiny">+{group.rest} más</p>
-                ) : null}
-              </div>
-            ))
-        )}
-      </CollapsibleSection>
     </section>
   );
 }
