@@ -103,7 +103,19 @@ lo que se decidió ese día ✅:
 
 ### M23 — La web del proyecto
 
-**Estado:** en curso. La web está publicada con la portada, la guía y los documentos; faltan el dominio propio y la búsqueda.
+**Estado:** en curso. La web está publicada y navegable, con búsqueda y en dos idiomas; falta el
+**dominio propio**, que empieza por una compra y un DNS.
+
+- [x] El sitio generado del markdown: portada, documentos, ADR y guía, una página por documento con
+  su índice y sus vecinos (ADR 0046).
+- [x] Publicado en GitHub Pages por `web.yml`, con `site: https://jaminsmoke.github.io` y
+  `base: /codarch` en `apps/site/astro.config.mjs`.
+- [x] **Búsqueda** con Pagefind sobre el sitio entero, y sitemap de las 173 páginas.
+- [x] Los dos idiomas —`/en/`, `/en/guia/` y los documentos de producto— con una sola ruta por
+  vista (M31).
+- [ ] **El dominio propio**: apuntar el DNS a GitHub Pages y quitar el `base` del config de Astro,
+  que cambia todas las rutas internas y el sitemap; después, redirigir
+  `jaminsmoke.github.io/codarch` para no romper los enlaces que ya existen.
 
 ### Ideas abiertas
 

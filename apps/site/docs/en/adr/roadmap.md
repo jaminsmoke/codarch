@@ -29,7 +29,7 @@ Today CodArch has:
 Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 closed, M27 closed,
 M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
-closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 not started and M50
+closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress and M50
 closed.
 
 ## The phases
@@ -149,7 +149,7 @@ flowchart TD
 | M46 | The action returns to the monorepo | closed | [ADR 0066](0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta) |
 | M47 | The card shows the code | closed | [ADR 0067](0061-0070/0067-la-ficha-ensena-el-codigo.md#hoja-de-ruta) |
 | M48 | The card opens the editor and its dependencies | closed | [ADR 0068](0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta) |
-| M49 | The card's language, across the report | not started | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
+| M49 | The card's language, across the report | in progress | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M50 | Two tabs: the file and the change | closed | [ADR 0069](0061-0070/0069-dos-pestanas.md#hoja-de-ruta) |
 
 ## How to read this

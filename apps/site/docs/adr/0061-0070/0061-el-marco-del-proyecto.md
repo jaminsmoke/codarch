@@ -125,16 +125,27 @@ modelo de métricas. Todo es lectura y disposición.
 
 ### M49 — El lenguaje de la ficha, en todo el reporte
 
-**Estado:** sin empezar. Nace de la criba del backlog del 2026-10-25: la tabla de métricas y las
-secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en tres ADR.
+**Estado:** en curso. Nace de la criba del backlog del 2026-10-25: la tabla de métricas y las
+secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en tres ADR. La M50
+([ADR 0069](0069-dos-pestanas.md)) cumplió la mitad al llevar el pliegue a la ficha y a **Cambios**.
 
-- [ ] La tabla de métricas de **Cambios** usa la misma tabla que la ficha: riesgo primero, área como
-  marca, barra hasta el p95 y color solo cuando menos es mejor.
-- [ ] **Reglas** y los bloques del raíl pliegan con `CollapsibleSection`, con título, cuenta y
-  resumen como Métricas.
-- [ ] La vida del símbolo y la ficha del reporte siguen el mismo patrón.
-- [ ] El plegado se recuerda por sección, también en las vistas del reporte.
-- [ ] Tests en `@codarch/ui` y la misma comprobación en las dos apps; ninguna sección nueva sin título
-  con cuenta y resumen.
+- [x] **Reglas** y los bloques del fichero y de **Cambios** pliegan con `CollapsibleSection`, con
+  título, cuenta y resumen como Métricas (M50).
+- [x] La vida del símbolo sigue el patrón: `file-chain`, con su cuenta y la última fecha al
+  plegarse. La vista del reporte ya no es una ficha aparte —`tab=pr` se lee como `changes`—, así que
+  no queda nada suelto por ahí.
+- [x] El plegado se recuerda por sección: `sections.ts` guarda el estado en el almacenamiento local
+  con el identificador de cada sección, también al cambiar de fichero.
+- [ ] Los diez bloques del raíl dejan su encabezado suelto y pliegan igual: **Vista**, **Estratos**,
+  **Leyenda**, **Historia**, **Más tocados**, **Más reescritos** y **Deuda de migración**. El
+  resumen tiene que caber en los ~260 px del raíl: una cifra corta, no la frase de la ficha.
+- [ ] Un guard en `@codarch/ui` que exija título, cuenta y resumen en toda sección nueva, con la
+  misma comprobación en la web y en el escritorio. Hoy `sections.test.ts` solo prueba el
+  almacenamiento.
+- [ ] Por decidir antes de hacerla: la tabla de métricas de **Cambios**. O la misma tabla que la
+  ficha —riesgo primero, área como marca, barra hasta el p95—, o una tabla **base → head** por
+  métrica; no son lo mismo y la segunda pide cabecera propia.
+
+El registro de lo hecho vive en el [feed de la guía](/guia/).
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
