@@ -161,7 +161,7 @@ function main(): void {
   }
   // El commit automático no vuelve a pasar por CI: si llegara aquí, no hay
   // nada que hacer.
-  if (/^chore\(release\):/.test(subject)) {
+  if (subject.startsWith("chore(release):")) {
     console.log("ok · commit de release automático; sin cambios");
     return;
   }
