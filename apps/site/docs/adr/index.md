@@ -75,6 +75,15 @@ flowchart TD
 | [0052](0051-0060/0052-solo-hacia-abajo-y-nunca-el-sistema.md) | Solo hacia abajo y nunca el sistema | 2026-10-24 | aceptado | se aplica en el análisis |
 | [0053](0051-0060/0053-la-configuracion-no-se-mezcla.md) | La configuración de la app no se mezcla con la del repo | 2026-10-24 | aceptado | se aplica en la entrega |
 | [0054](0051-0060/0054-el-lint-por-app.md) | El lint, por app y por tipo de código | 2026-10-24 | aceptado | M35 |
+| [0055](0051-0060/0055-el-3d-se-dibuja-con-webgl2.md) | El 3D se dibuja con WebGL2 propio | 2026-10-24 | aceptado | M15 |
+| [0056](0051-0060/0056-el-live-no-repite-el-analisis.md) | El live no repite el análisis | 2026-10-24 | aceptado | M36 |
+| [0057](0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md) | La ficha del fichero habla de sus lentes | 2026-10-25 | aceptado | M37 |
+| [0058](0051-0060/0058-las-reglas-tienen-su-pestana.md) | Las reglas tienen su pestaña | 2026-10-25 | aceptado | M38 |
+| [0059](0051-0060/0059-tres-pestanas.md) | Tres pestañas y adiós al nombre PR | 2026-10-25 | aceptado | M39 |
+| [0060](0051-0060/0060-la-ficha-se-lee-en-una-tabla.md) | La ficha del fichero se lee en una tabla | 2026-10-25 | aceptado | M40 |
+| [0061](0061-0070/0061-el-marco-del-proyecto.md) | El proyecto vive en la cabecera y las secciones se pliegan | 2026-10-25 | aceptado | M41 |
+| [0062](0061-0070/0062-los-simbolos-tambien-se-pliegan.md) | Los símbolos también se pliegan | 2026-10-25 | aceptado | M42 |
+| [0063](0061-0070/0063-todos-los-simbolos.md) | Todos los símbolos del módulo | 2026-10-25 | aceptado | M43 |
 
 ## Las carpetas
 
@@ -85,5 +94,7 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0021-0030**: 0021, 0022, 0023, 0024, 0025, 0026, 0027, 0028, 0029, 0030
 - **0031-0040**: 0031, 0032, 0033, 0034, 0035, 0036, 0037, 0038, 0039, 0040
 - **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049
+- **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
+- **0061-0070**: 0061, 0062, 0063
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

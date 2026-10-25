@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada y M42 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada y M43 cerrada.
 
 ## Las fases
 
@@ -53,6 +53,7 @@ flowchart TD
     M39 --> M40["M40 · Una tabla de métricas"]
     M40 --> M41["M41 · El marco del proyecto"]
     M41 --> M42["M42 · Los símbolos también se pliegan"]
+    M42 --> M43["M43 · Todos los símbolos del módulo"]
   end
   subgraph lentes["Lentes: migración, dominio, símbolos, tiempo"]
     M8["M8 · La migración donde faltaba"] --> M9["M9 · Lente de dominio"]
@@ -132,6 +133,7 @@ flowchart TD
 | M40 | Una tabla de métricas | cerrada | [ADR 0060](0051-0060/0060-la-ficha-se-lee-en-una-tabla.md#hoja-de-ruta) |
 | M41 | El marco del proyecto | cerrada | [ADR 0061](0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M42 | Los símbolos también se pliegan | cerrada | [ADR 0062](0061-0070/0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta) |
+| M43 | Todos los símbolos del módulo | cerrada | [ADR 0063](0061-0070/0063-todos-los-simbolos.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

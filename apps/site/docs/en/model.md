@@ -97,7 +97,7 @@ Each lens is a map `id → data`. Unknown means it is preserved as-is when re-ex
 | `dependency` | edges, levels, cycles, layers | yes |
 | `risk` | composite score, violations | derived at render time, not stored |
 | `migration` | LOC per language, status, debt and FFI boundary | yes (v1) |
-| `symbols` | what is inside each file: functions, classes, types | yes (M11) |
+| `symbols` | what is inside each file: functions, classes, types and module variables | yes (M11) |
 | `domain` | words, frequency, tf-idf | later |
 | `evolution` | time series, temporal coupling | later |
 
@@ -221,9 +221,11 @@ Decisions (ADR 0025):
 - **The parser collects it in the same walk** that measures the metrics: it costs no second pass ✓.
 - **The code is shared with the browser** ✓, so the snapshot checksum does not change and the
   browser/CLI parity still holds ✓.
-- **Only symbols with a shape**: functions, classes, interfaces, types and enums. Not constants:
-  they are data, not structure ✓.
-- **The diff is still about files**. Comparing function by function is a separate step (M12) ✓.
+- **Every named declaration in the module**: functions, classes, interfaces, types, enums and
+  variables (`const`, `let` or `var` with a value), including string constants and configuration
+  objects. Local variables are not: they are implementation and would flood the list (ADR 0063) ✓.
+- **The diff is still about files**. Comparing symbol by symbol is a separate step (M12) ✓. A
+  symbol counts as changed when its kind, complexity, lines or body hash changes ✓.
 
 ## Rules and violations
 
@@ -342,8 +344,9 @@ Rules:
   debt. Its deltas are `head - base` as in the rest of the report: in debt, a negative delta is
   good.
 - The `symbols` section compares the symbols lens of the base with that of the head: per file, the
-  symbols that were added, removed or changed, with their complexity before and after. It matches
-  by name within the same file; recognising renames and moves is the chain's job (ADR 0026).
+  symbols that were added, removed or changed, with their complexity before and after. A body change
+  also counts, even when complexity and lines do not change. It matches by name within the same
+  file; recognising renames and moves is the chain's job (ADR 0026).
 - `schemaVersion` goes up when the report's shape changes. Readers reconstruct reports from previous
   versions to the current one, so the newest is always used: what could not be measured (the
   migration section in a `1.0`) is marked `null` instead of inventing zeros.

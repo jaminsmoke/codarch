@@ -96,7 +96,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `dependency` | aristas, niveles, ciclos, capas | sí |
 | `risk` | score compuesto, violaciones | derivada en render, no se almacena |
 | `migration` | LOC por lenguaje, estado, deuda y frontera FFI | sí (v1) |
-| `symbols` | lo que hay dentro de cada fichero: funciones, clases, tipos | sí (M11) |
+| `symbols` | lo que hay dentro de cada fichero: funciones, clases, tipos y variables del módulo | sí (M11) |
 | `domain` | palabras, frecuencia, tf-idf | después |
 | `evolution` | series temporales, acoplamiento temporal | después |
 
@@ -220,9 +220,13 @@ Decisiones (ADR 0025):
 - **El parser la recoge en el mismo paseo** que mide las métricas: no cuesta un segundo análisis ✓.
 - **El código es compartido con el navegador** ✓, así que el checksum del snapshot no cambia y la
   paridad navegador/CLI sigue valiendo ✓.
-- **Solo los símbolos con forma**: funciones, clases, interfaces, tipos y enums. Las constantes no:
-  son datos, no estructura ✓.
-- **El diff sigue siendo de ficheros**. Comparar función a función es un paso aparte (M12) ✓.
+- **Todas las declaraciones con nombre del módulo**: funciones, clases, interfaces, tipos, enums y
+  variables (`const`, `let` o `var` con valor), también las constantes de texto y los objetos de
+  configuración. Las variables locales no: son implementación y llenarían la lista de ruido
+  (ADR 0063) ✓.
+- **El diff sigue siendo de ficheros**. Comparar símbolo a símbolo es un paso aparte (M12) ✓. Un
+  símbolo cuenta como cambiado si cambia su tipo, su complejidad, sus líneas o el hash de su
+  cuerpo ✓.
 
 ## Reglas y violaciones
 
@@ -340,9 +344,9 @@ Reglas:
   Sus deltas son `head - base` como en el resto del reporte: en la deuda, un delta negativo es
   bueno.
 - La sección `symbols` compara la lente de símbolos de la base con la del head: por fichero, los
-  símbolos que se añadieron, se quitaron o cambiaron, con su complejidad antes y después. Empareja
-  por nombre dentro del mismo fichero; reconocer renombrados y mudanzas es trabajo de la cadena
-  (ADR 0026).
+  símbolos que se añadieron, se quitaron o cambiaron, con su complejidad antes y después. Un cambio
+  de cuerpo también cuenta, aunque la complejidad y las líneas no cambien. Empareja por nombre
+  dentro del mismo fichero; reconocer renombrados y mudanzas es trabajo de la cadena (ADR 0026).
 - `schemaVersion` sube cuando cambia la forma del reporte. Los lectores reconstruyen los reportes de
   versiones anteriores a la actual, así que siempre se usa la más nueva: lo que no se pudo medir
   (la sección de migración en un `1.0`) se marca con `null` en vez de inventar ceros.
