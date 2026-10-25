@@ -40,7 +40,7 @@ export interface CodarchAppState {
   report: DiffReport | null;
   reportSource: string | null;
   reportError: string | null;
-  tab: "file" | "pr";
+  tab: "file" | "lenses" | "pr";
   focusPath: string | null;
   progress: string | null;
   chain: SymbolChain | null;
@@ -99,7 +99,7 @@ export interface CodarchAppActions {
   setColorMode: (mode: string) => void;
   setQuery: (query: string) => void;
   setFocusPath: (path: string | null) => void;
-  setTab: (tab: "file" | "pr") => void;
+  setTab: (tab: "file" | "lenses" | "pr") => void;
   setSettingsOpen: (open: boolean) => void;
   setZoom: (zoom: number) => void;
   setCenter: (center: { x: number; y: number }) => void;
@@ -193,7 +193,7 @@ export function useCodarchApp(
   const [report, setReport] = useState<DiffReport | null>(null);
   const [reportSource, setReportSource] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"file" | "pr">("file");
+  const [tab, setTab] = useState<"file" | "lenses" | "pr">("file");
   const [focusPath, setFocusPath] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [chain, setChain] = useState<SymbolChain | null>(null);
@@ -596,7 +596,7 @@ export function useCodarchApp(
           if (index !== undefined && index >= 0) selectIndex(index);
         },
         focus: (path: string) => setFocusPath(path),
-        setTab: (tab: "file" | "pr") => setTab(tab)
+        setTab: (tab: "file" | "lenses" | "pr") => setTab(tab)
       },
       preferences: { areaMetric, colorMode },
       colorFor: (index: number) => {

@@ -35,6 +35,10 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=inventario").tab).toBeNull();
   });
 
+  it("reconoce la pestaña de lentes", () => {
+    expect(parseViewState("?tab=lenses").tab).toBe("lenses");
+  });
+
   it("ignora valores vacíos", () => {
     expect(parseViewState("?area=&color=%20%20")).toEqual({
       areaMetric: null,

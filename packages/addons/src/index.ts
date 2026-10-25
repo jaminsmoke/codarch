@@ -71,7 +71,7 @@ export interface AddonViewState {
   /** Fichero seleccionado. */
   file?: string;
   /** Pestaña del panel derecho. */
-  tab?: "file" | "pr";
+  tab?: "file" | "lenses" | "pr";
   /** Símbolo abierto. */
   symbol?: string;
   /** Si los bloques enseñan su nombre. */
@@ -194,8 +194,13 @@ export function parseAddonView(input: unknown, path: string): AddonView {
   rejectUnknown(state, STATE_KEYS, `${path}.state`);
 
   const tab = optionalString(state.tab, `${path}.state.tab`);
-  if (tab !== undefined && tab !== "file" && tab !== "pr") {
-    throw new AddonError(`${path}.state.tab debe ser file o pr`);
+  if (
+    tab !== undefined &&
+    tab !== "file" &&
+    tab !== "lenses" &&
+    tab !== "pr"
+  ) {
+    throw new AddonError(`${path}.state.tab debe ser file, lenses o pr`);
   }
 
   if (state.labels !== undefined && typeof state.labels !== "boolean") {
@@ -211,7 +216,7 @@ export function parseAddonView(input: unknown, path: string): AddonView {
       color: optionalString(state.color, `${path}.state.color`),
       focus: optionalString(state.focus, `${path}.state.focus`),
       file: optionalString(state.file, `${path}.state.file`),
-      tab: tab as "file" | "pr" | undefined,
+      tab: tab as "file" | "lenses" | "pr" | undefined,
       symbol: optionalString(state.symbol, `${path}.state.symbol`),
       labels: state.labels as boolean | undefined
     }

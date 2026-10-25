@@ -90,7 +90,7 @@ describe("una vista guardada", () => {
   it("una pestaña que no existe es un error", () => {
     expect(() =>
       parseAddonView({ id: "x", title: "X", state: { tab: "otra" } }, "views[0]")
-    ).toThrow(/file o pr/);
+    ).toThrow(/file, lenses o pr/);
   });
 
   it("una clave desconocida en el estado es un error", () => {

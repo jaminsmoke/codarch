@@ -1913,6 +1913,179 @@ button {
   line-height: 1.35;
 }
 
+/* La pestaña de lentes: el porqué del riesgo y de la deuda (ADR 0057). */
+.lens-section {
+  margin-top: 18px;
+}
+
+.lens-section + .lens-section {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.lens-risk-head {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.lens-risk-value {
+  font: 600 32px/1 var(--display);
+  letter-spacing: -0.04em;
+}
+
+.lens-risk-unit {
+  font: 10px/1 var(--mono);
+  color: var(--muted);
+}
+
+.lens-bars {
+  display: grid;
+  gap: 7px;
+}
+
+.lens-bar-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) 38px 30px;
+  gap: 6px;
+  align-items: center;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.lens-bar-row > .mono {
+  text-align: right;
+  font-size: 10px;
+}
+
+.lens-weight {
+  font: 9px/1 var(--mono);
+  color: var(--muted);
+  text-align: right;
+}
+
+.lens-bar {
+  height: 5px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.lens-bar i {
+  display: block;
+  height: 100%;
+  background: var(--rust);
+}
+
+.lens-section .tiny {
+  margin: 9px 0 0;
+  line-height: 1.4;
+}
+
+.lens-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.lens-chip {
+  padding: 2px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font: 500 8.5px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lens-chip-new,
+.lens-new {
+  color: var(--debt);
+  border-color: var(--debt);
+}
+
+.lens-edges {
+  display: grid;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.lens-edge {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lens-edge:hover .lens-edge-path {
+  color: var(--ink);
+}
+
+.lens-flag {
+  padding: 1px 5px;
+  border-radius: 2px;
+  font: 500 8.5px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lens-wasm {
+  color: var(--cobalt);
+  border: 1px solid var(--cobalt);
+}
+
+.lens-native {
+  color: var(--ochre);
+  border: 1px solid var(--ochre);
+}
+
+.lens-edge-path {
+  font: 10.5px/1.4 var(--mono);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lens-symbol {
+  font-weight: 600;
+}
+
+.lens-empty h2 {
+  margin-top: 6px;
+}
+
+.lens-index {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.lens-index > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10.5px;
+}
+
+.lens-index b {
+  font-weight: 600;
+}
+
+.lens-index span {
+  color: var(--muted);
+  text-align: right;
+}
+
 .pr-rows {
   display: grid;
   gap: 1px;

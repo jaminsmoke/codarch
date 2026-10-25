@@ -15,6 +15,7 @@ import {
   Legend
 } from "./panels";
 import PrPanel from "./PrPanel";
+import { LensPanel } from "./LensPanel";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -127,6 +128,13 @@ export function AppShell({
   const applySavedView = (saved: SavedView) => {
     viewsMenuRef.current?.removeAttribute("open");
     app.applyView(viewStateFromSaved(saved.state));
+  };
+
+  // En la pestaña de lentes se salta de un fichero a otro sin salir de ella.
+  const selectInPlace = (path: string) => {
+    const index =
+      view.model?.files.findIndex((file) => file.path === path) ?? -1;
+    if (index >= 0) selectIndex(index);
   };
 
   return (
@@ -469,6 +477,15 @@ export function AppShell({
             <button
               type="button"
               role="tab"
+              aria-selected={tab === "lenses"}
+              className={`tab${tab === "lenses" ? " is-active" : ""}`}
+              onClick={() => setTab("lenses")}
+            >
+              Lentes
+            </button>
+            <button
+              type="button"
+              role="tab"
               aria-selected={tab === "pr"}
               className={`tab${tab === "pr" ? " is-active" : ""}`}
               onClick={() => setTab("pr")}
@@ -488,6 +505,15 @@ export function AppShell({
               onSelectSymbol={(name) => {
                 void openSymbolChain(name, selectedFile?.path ?? "");
               }}
+            />
+          ) : tab === "lenses" ? (
+            <LensPanel
+              model={view.model}
+              file={selectedFile}
+              migration={migration}
+              report={report}
+              symbols={selectedSymbols}
+              onSelectPath={selectInPlace}
             />
           ) : (
             <PrPanel
