@@ -1802,6 +1802,33 @@ button {
   font-weight: 500;
 }
 
+/* Las piezas versionadas, en la sección Componentes (ADR 0065). */
+.component-list {
+  display: grid;
+  gap: 8px;
+}
+
+.component-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.component-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.component-name {
+  font: 600 12px/1.2 var(--sans);
+  color: var(--ink);
+}
+
+.component-row p {
+  margin: 3px 0 0;
+}
+
 /* Los símbolos del fichero: lo que hay dentro. */
 .symbol-list {
   padding-top: 2px;

@@ -48,6 +48,14 @@ export interface SettingsUpdateAdapter {
   note: ReactNode;
 }
 
+/** Una pieza versionada, para la sección Componentes (ADR 0065). */
+export interface SettingsComponent {
+  name: string;
+  version: string;
+  /** Cómo se actualiza y quién la reinicia. */
+  detail: string;
+}
+
 export interface SettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -77,6 +85,8 @@ export interface SettingsProps {
   };
   /** La versión de CodArch que está corriendo. */
   version: string;
+  /** Las piezas versionadas y cómo se actualizan (ADR 0065). */
+  components: readonly SettingsComponent[];
   /** De dónde se comprueba la actualización de la app. */
   updates: SettingsUpdateAdapter;
   /** Si la plataforma tiene WebGL2, para los requisitos de un plugin. */
@@ -108,6 +118,7 @@ type Section =
   | "plugins"
   | "addons"
   | "actualizaciones"
+  | "componentes"
   | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
@@ -116,6 +127,7 @@ const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "plugins", label: "Plugins" },
   { id: "addons", label: "Addons" },
   { id: "actualizaciones", label: "Actualizaciones" },
+  { id: "componentes", label: "Componentes" },
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
@@ -135,6 +147,7 @@ export default function Settings({
   storageAvailable,
   watch,
   version,
+  components,
   updates,
   webgl2,
   webgpu,
@@ -489,6 +502,30 @@ export default function Settings({
                     </p>
                   ) : null}
                   {updates.note}
+                </>
+              ) : null}
+
+              {section === "componentes" ? (
+                <>
+                  <p className="muted small">
+                    Cada pieza avanza por su cuenta. El motor es lo que comparten;
+                    lo demás se actualiza por su canal.
+                  </p>
+                  <div className="component-list">
+                    {components.map((component) => (
+                      <div key={component.name} className="component-row">
+                        <div className="component-head">
+                          <span className="component-name">{component.name}</span>
+                          <b className="mono">{component.version}</b>
+                        </div>
+                        <p className="muted tiny">{component.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="muted small">
+                    La app no instala el CLI global: actualizarlo es del usuario.
+                    Los procesos que lo usan se reinician al terminar.
+                  </p>
                 </>
               ) : null}
 
