@@ -63,9 +63,10 @@ qué repositorio mirar. Un instalador sin ese archivo **no se actualiza nunca**,
 silencio, así que el workflow comprueba después de empaquetar que está ahí y que el canal existe
 (`scripts/check-desktop-package.mjs`).
 
-El tag de la release es `v<versión>` (`v0.3.1-alpha.2`), no `desktop-v<versión>`:
-`electron-updater` lee las etiquetas del feed de GitHub como versiones semver y descarta las que no
-lo son. El planificador acepta las dos formas para seguir leyendo el historial `desktop-v*`.
+El tag de la release es `v<versión>` (`v0.3.1-alpha.2`), no `desktop-v<versión>`: el nombre del
+tag acaba en la URL de descarga y la app lo compara como versión semver. Las etiquetas que no llevan
+versión —el `v1` de la acción, que vive en el mismo repositorio— se descartan al elegir release. El
+planificador acepta las dos formas para seguir leyendo el historial `desktop-v*`.
 
 ### 3. Windows y Linux se actualizan solos
 
@@ -74,6 +75,14 @@ La app usa `electron-updater` cuando está empaquetada:
 - al arrancar, comprueba si hay una versión nueva y la descarga en segundo plano;
 - la instala al cerrar, o cuando el usuario acepte el aviso;
 - si no hay red o la comprobación falla, la app sigue funcionando y no molesta.
+
+**La etiqueta la resuelve la app, no el feed.** Con `allowPrerelease` activo y una versión instalada
+estable, `electron-updater` se queda con la primera entrada del feed de GitHub, y ese feed también
+trae etiquetas que no son releases. La app pregunta la lista de releases, descarta los borradores y
+las etiquetas sin versión, se queda con la mayor y fija la base de descarga en
+`releases/download/v<versión>`; a partir de ahí el canal es el de siempre (`latest.yml` en Windows,
+`latest-linux.yml` en Linux). Si la lista no se puede leer, la comprobación automática se salta y se
+reintenta en el siguiente arranque.
 
 En Windows el instalador es por usuario y no necesita administrador. En Linux la actualización del
 `.deb` la aplica `electron-updater` con `dpkg`/`apt`; si la app no corre como root, el sistema pide
@@ -124,3 +133,5 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Comprobar en el CI que el instalador lleva `app-update.yml` y `latest*.yml`.
 - [x] Actualizar desde los ajustes con un botón que descarga, instala y reinicia la app.
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.
+- [x] Fijar la base de descarga a la release resuelta, para que una etiqueta sin versión no deje la
+  comprobación en 404.

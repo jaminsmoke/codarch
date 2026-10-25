@@ -31,7 +31,7 @@ import { readRepoPreferences, writeRepoPreferences } from "./preferences";
 import { sameSnapshot, snapshotChecksum } from "./snapshot-state";
 import { parsePreferences } from "@codarch/ui/storage";
 import { VERSION } from "./version";
-import { canAutoUpdate } from "./updates";
+import { canAutoUpdate, resolveUpdateFeed } from "./updates";
 
 /**
  * Proceso principal de la app de escritorio.
@@ -189,7 +189,27 @@ async function refreshFromDisk(
  * Windows y Linux instalan el paquete nuevo al cerrar ✓. macOS espera a tener
  * firma y notarización ✓; mientras tanto, la release sigue en los ajustes ✓.
  */
-function configureUpdates(): void {
+/**
+ * Apunta electron-updater a la release que hemos resuelto nosotros.
+ *
+ * Sin esto, la app mira la primera entrada del feed de GitHub, que no siempre
+ * es una release con instaladores: desde que existe el `v1` de la acción, ese
+ * feed empieza por una etiqueta sin `latest.yml` y la comprobación acababa en
+ * 404. Devuelve la versión encontrada, o `null` si no se pudo preguntar.
+ */
+async function pointToLatestRelease(): Promise<string | null> {
+  try {
+    const feed = await resolveUpdateFeed(UPDATE_REPO, VERSION, fetch);
+    if (!feed) return null;
+    autoUpdater.setFeedURL({ provider: "generic", url: feed.url });
+    return feed.version;
+  } catch (error) {
+    console.error(`actualización: ${(error as Error).message}`);
+    return null;
+  }
+}
+
+async function configureUpdates(): Promise<void> {
   if (!canAutoUpdate(process.platform, app.isPackaged)) return;
 
   // Sin `resources/app-update.yml` electron-updater no sabe a qué release
@@ -215,7 +235,14 @@ function configureUpdates(): void {
       `actualización ${info.version} descargada; se instalará al cerrar`
     );
   });
-  void autoUpdater.checkForUpdatesAndNotify().catch((error: Error) => {
+  if ((await pointToLatestRelease()) === null) {
+    console.warn(
+      "actualización: no se pudo resolver la última release; se reintenta en el siguiente arranque"
+    );
+    return;
+  }
+
+  await autoUpdater.checkForUpdatesAndNotify().catch((error: Error) => {
     console.error(`no se pudo comprobar la actualización: ${error.message}`);
   });
 }
@@ -566,7 +593,7 @@ app.whenReady().then(() => {
   console.log(`· menú nativo: ${menu.items.map((item) => item.label).join(" · ")}`);
   const fromArgv = pathFromArgv(process.argv);
   createWindow();
-  configureUpdates();
+  void configureUpdates();
   if (fromArgv) {
     // "Abrir con" en Windows y Linux: la ruta viene en los argumentos.
     window?.webContents.once("did-finish-load", () => void openTarget(fromArgv));
@@ -802,6 +829,9 @@ ipcMain.handle("codarch:install-update", async () => {
     return { ok: false, error: "esta instalación no puede actualizarse sola" };
   }
   try {
+    if ((await pointToLatestRelease()) === null) {
+      return { ok: false, error: "no se pudo encontrar la última release en GitHub" };
+    }
     const resultado = await autoUpdater.checkForUpdates();
     if (!resultado?.isUpdateAvailable) {
       return { ok: false, error: "no hay ninguna versión nueva" };
