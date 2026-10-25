@@ -204,7 +204,12 @@ async function refreshFromDisk(
   if (!isDirectory(root)) return;
   try {
     const outcome = await repoAnalyzer().refresh(root, hints);
-    if (outcome.kind === "unchanged") return;
+    if (outcome.kind === "unchanged") {
+      // El snapshot no cambió, pero el HEAD se reenvía: la pestaña Cambios no
+      // puede quedarse con un reporte viejo (ADR 0072).
+      sendHeadReport(root, outcome.headReport);
+      return;
+    }
     const checksum = snapshotChecksum(outcome.snapshot);
     if (checksum !== null && persistedChecksum(root) === checksum) return;
     writeSnapshot(root, outcome.snapshot);
@@ -362,6 +367,7 @@ async function openTarget(target: string): Promise<void> {
         lastRoot = target;
         updateTitle(target, projectNameOf(saved));
         send({ kind: "snapshot", snapshot: saved, label: target });
+        sendHeadReport(target, outcome.headReport);
         watchRoot(target);
         return;
       }

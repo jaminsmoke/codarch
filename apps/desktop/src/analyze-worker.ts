@@ -74,6 +74,16 @@ function headReportFor(root: string, warnings: string[]): DiffReport | null {
   }
 }
 
+/**
+ * El último reporte HEAD de cada raíz (ADR 0072).
+ *
+ * `refresh` contesta `unchanged` cuando el pulso no trae nada nuevo, y entonces
+ * el HEAD tampoco ha cambiado: se reutiliza en vez de rehacer el export. Se
+ * renueva en cada análisis real, así que nunca queda más viejo que el último
+ * cambio que el pulso vio.
+ */
+const headReports = new Map<string, DiffReport | null>();
+
 /** Analiza y traduce el resultado (o el fallo) a un mensaje. */
 export function analyze(request: AnalyzeRequest): AnalyzeResponse {
   try {
@@ -96,10 +106,19 @@ export function analyze(request: AnalyzeRequest): AnalyzeResponse {
     const result = request.force
       ? session.analyze(hints, options)
       : session.refresh(hints, options);
-    if (!result) return { id: request.id, ok: true, result: { kind: "unchanged" } };
+    if (!result) {
+      // Nada nuevo: el HEAD sigue igual. Se devuelve el último, para que la
+      // pestaña Cambios no se quede con un reporte viejo.
+      return {
+        id: request.id,
+        ok: true,
+        result: { kind: "unchanged", headReport: headReports.get(request.root) ?? null }
+      };
+    }
 
     // El reporte va antes que los avisos: si el HEAD falla, su aviso también sale.
     const headReport = headReportFor(request.root, warnings);
+    headReports.set(request.root, headReport);
     const outcome: AnalyzeOutcome = {
       kind: "snapshot",
       snapshot: result.snapshot,

@@ -39,7 +39,11 @@ export type AnalyzeOutcome =
        */
       headReport: DiffReport | null;
     }
-  | { kind: "unchanged" };
+  /**
+   * Nada nuevo: el snapshot sigue igual, pero el reporte HEAD se devuelve
+   * igualmente, porque la pestaña Cambios no debe quedarse con uno viejo.
+   */
+  | { kind: "unchanged"; headReport: DiffReport | null };
 
 export type AnalyzeResponse =
   | { id: number; ok: true; result: AnalyzeOutcome }
