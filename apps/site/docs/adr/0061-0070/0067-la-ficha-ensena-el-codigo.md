@@ -55,9 +55,10 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 
 ### 3. La ficha
 
-- Al pulsar un símbolo se abre una sección **Código de …** con las líneas
-  reales, números de línea y dos líneas de contexto arriba y abajo. Es
-  plegable y recuerda su estado por símbolo.
+- Al pulsar un símbolo se abre **su propio bloque de código justo debajo de
+  la fila**, con las líneas reales, números de línea y dos líneas de contexto
+  arriba y abajo. Pulsar otra fila lo pliega y abre el de esa fila; los
+  miembros de clase hacen lo mismo desde **Miembros**.
 - Los grupos de **Símbolos** (Funciones, Clases, Interfaces, Tipos, Enums,
   Variables) son secciones plegables; el estado se recuerda por tipo.
 - En **Métricas**, cada fila lleva un icono `?` antes del nombre con la
@@ -79,7 +80,7 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - El servidor local expone una lectura **de solo lectura** y limitada al root;
   no es un servidor de ficheros arbitrario.
 - En un snapshot cargado sin repo (un `cc.json` suelto) no hay código que
-  enseñar: la sección lo dice, no inventa.
+  enseñar: el bloque lo dice, no inventa.
 - El icono `?` hace visible la explicación sin depender de que el usuario
   descubra el hover.
 - Los grupos plegados permiten dejar abierto solo el tipo que interesa.
@@ -109,6 +110,6 @@ repo, extensiones que no son código y los directorios que el análisis no mira
 - [x] Icono de ayuda por métrica.
 - [ ] Llevar el código al MCP o al reporte, si un agente lo pide.
 - [ ] Resaltado de sintaxis y salto a la línea del editor.
-- [ ] Código de los miembros de clase, no solo de los símbolos.
+- [x] Código de los miembros de clase, no solo de los símbolos.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).

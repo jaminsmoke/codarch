@@ -13,4 +13,4 @@ verdict: adr
 
 **Sobre las variables**: los `const` y `let` del módulo sí se capturan. Los que guardan una flecha o una clase aparecen en **Funciones** o **Clases**, no en **Variables**, porque eso es lo que son. No se capturan los locales, la desestructuración ni los `let` sin valor. Quedan fuera, por ahora, los espacios de nombres, las claves de objetos y el código suelto de nivel superior.
 
-**Veredicto**: [ADR 0067](../../adr/0061-0070/0067-la-ficha-ensena-el-codigo.md), hecho. Quedan el resaltado de sintaxis, el salto a la línea del editor y el código de los miembros de clase.
+**Veredicto**: [ADR 0067](../../adr/0061-0070/0067-la-ficha-ensena-el-codigo.md), hecho. Quedan el resaltado de sintaxis y el salto a la línea del editor.
