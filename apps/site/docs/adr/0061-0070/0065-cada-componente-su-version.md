@@ -165,6 +165,8 @@ usuario.
 - `versions.json` y el manifiesto cambian de forma; los scripts, los builds y
   los tests se actualizan en el mismo tramo.
 - La app puede decir qué versión de cada pieza está usando sin adivinar.
+- El pin de la acción se actualiza después de que npm acepte la versión; el
+  repositorio público de la acción se sincroniza a mano con `sync:action`.
 
 ## Alternativas descartadas
 
@@ -182,14 +184,14 @@ usuario.
 
 ### M45 — Cada componente su versión
 
-- [ ] `versions.json` con motor y componentes; `product` fuera.
-- [ ] Manifiesto y builds leen la versión de su componente.
-- [ ] Impacto por grafo de dependencias, con tests.
-- [ ] Coordinador tras CI verde: parche, commit y dispatch por canal.
-- [ ] Publicación automática del CLI y release de escritorio solo si toca.
-- [ ] Docker con su propia etiqueta.
-- [ ] Sección **Componentes** en los ajustes de las dos apps.
-- [ ] `npm run release -- --<componente> minor|major` para lo manual.
-- [ ] Primera pasada: npm al día con la versión actual.
+- [x] `versions.json` con motor y componentes; `product` fuera.
+- [x] Manifiesto y builds leen la versión de su componente.
+- [x] Impacto por grafo de dependencias, con tests.
+- [x] Coordinador tras CI verde: parche, commit y dispatch por canal.
+- [x] Publicación automática del CLI y release de escritorio solo si toca.
+- [x] Docker con su propia etiqueta.
+- [x] Sección **Componentes** en los ajustes de las dos apps.
+- [x] `npm run release -- --<componente> minor|major` para lo manual.
+- [x] Primera pasada: npm al día con la versión actual.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
