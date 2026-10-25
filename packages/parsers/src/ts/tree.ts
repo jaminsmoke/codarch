@@ -10,9 +10,9 @@ import {
   type SyntaxNodeLike
 } from "./measure";
 import {
-  CLASS_VALUES,
   DECLARATION_KINDS,
-  FUNCTION_VALUES,
+  MODULE_SCOPE_WRAPPERS,
+  declaratorKind,
   describeSymbol
 } from "./symbols";
 
@@ -56,10 +56,15 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
   let maxComplexity = 0;
   let maxFunctionLength = 0;
 
-  const stack: SyntaxNodeLike[] = [root];
+  const stack: Array<{ node: SyntaxNodeLike; moduleScope: boolean }> = [
+    { node: root, moduleScope: true }
+  ];
 
   while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
+    const { node, moduleScope } = stack.pop() as {
+      node: SyntaxNodeLike;
+      moduleScope: boolean;
+    };
 
     // Hojas: líneas con código. Los comentarios son hojas y no cuentan.
     if (node.childCount === 0) {
@@ -144,24 +149,34 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
       }
     } else if (node.type === "variable_declarator") {
       const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
+      const name = nameNode?.type === "identifier" ? nameNode.text : null;
       const value = node.childForFieldName("value");
-      if (name && value) {
-        if (FUNCTION_VALUES.has(value.type)) {
+      const declared = declaratorKind(value, moduleScope);
+      if (name && value && declared) {
+        if (declared === "function") {
           // La flecha todavía no se visitó (viene después): se mide aquí y se
           // guarda para que las métricas no la midan otra vez.
           symbols.push(
-            describeSymbol(name, "function", value, undefined, complexityOf(value, complexityAt))
+            describeSymbol(
+              name,
+              "function",
+              value,
+              undefined,
+              complexityOf(value, complexityAt)
+            )
           );
-        } else if (CLASS_VALUES.has(value.type)) {
-          symbols.push(describeSymbol(name, "class", value));
+        } else if (declared === "variable") {
+          symbols.push(describeSymbol(name, "variable", node, nameNode));
+        } else {
+          symbols.push(describeSymbol(name, declared, value));
         }
       }
     }
 
     // Al revés, para visitar el fuente en orden.
+    const childScope = moduleScope && MODULE_SCOPE_WRAPPERS.has(node.type);
     for (let index = children.length - 1; index >= 0; index--) {
-      stack.push(children[index] as SyntaxNodeLike);
+      stack.push({ node: children[index] as SyntaxNodeLike, moduleScope: childScope });
     }
   }
 

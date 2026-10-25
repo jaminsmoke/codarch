@@ -82,6 +82,10 @@ export interface ArchitectureMap {
     functions: number;
     classes: number;
     interfaces: number;
+    types: number;
+    enums: number;
+    /** Variables del módulo: constantes y declaraciones con valor. */
+    variables: number;
     mostComplex: Array<{
       path: string;
       name: string;
@@ -357,6 +361,9 @@ export function getArchitectureMap(
       functions: store.snapshot.lenses?.symbols?.summary.functions ?? 0,
       classes: store.snapshot.lenses?.symbols?.summary.classes ?? 0,
       interfaces: store.snapshot.lenses?.symbols?.summary.interfaces ?? 0,
+      types: store.snapshot.lenses?.symbols?.summary.types ?? 0,
+      enums: store.snapshot.lenses?.symbols?.summary.enums ?? 0,
+      variables: store.snapshot.lenses?.symbols?.summary.variables ?? 0,
       mostComplex: symbolRanking(store.snapshot, 5).map((symbol) => ({
         // Las rutas del store no llevan el nombre de la raíz.
         path: store.files.find((file) => file.id === symbol.id)?.path ?? symbol.path,

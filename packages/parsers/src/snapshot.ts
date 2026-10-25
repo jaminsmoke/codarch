@@ -220,7 +220,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
         else if (symbol.kind === "interface") symbolCounts.interfaces++;
         else if (symbol.kind === "type") symbolCounts.types++;
         else if (symbol.kind === "enum") symbolCounts.enums++;
-        else symbolCounts.variables++;
+        else if (symbol.kind === "variable") symbolCounts.variables++;
 
         if (symbol.kind === "function" && symbol.complexity !== undefined) {
           if (!mostComplex || symbol.complexity > mostComplex.complexity) {
@@ -273,6 +273,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     interfaces: symbolCounts.interfaces,
     types: symbolCounts.types,
     enums: symbolCounts.enums,
+    variables: symbolCounts.variables,
     mostComplex
   };
   const symbolsLens: CcSymbolsLens = {

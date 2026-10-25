@@ -34,6 +34,7 @@ interface SymbolSpec {
     complexity?: number;
     lines?: number;
     line?: number;
+    hash?: string;
   }>;
 }
 
@@ -93,7 +94,8 @@ function snapshot(
       kind: symbol.kind,
       line: symbol.line ?? 1,
       ...(symbol.complexity === undefined ? {} : { complexity: symbol.complexity }),
-      ...(symbol.lines === undefined ? {} : { lines: symbol.lines })
+      ...(symbol.lines === undefined ? {} : { lines: symbol.lines }),
+      ...(symbol.hash === undefined ? {} : { hash: symbol.hash })
     }));
   }
 
@@ -126,6 +128,7 @@ function snapshot(
                 interfaces: 0,
                 types: 0,
                 enums: 0,
+                variables: 0,
                 mostComplex: null
               }
             }
@@ -510,6 +513,57 @@ describe("diffSnapshots", () => {
     const viejo = symbols.find((symbol) => symbol.name === "viejo");
     expect(viejo?.status).toBe("removed");
     expect(viejo?.head).toBeNull();
+  });
+
+  it("detecta un cambio de cuerpo aunque la complejidad y las líneas no cambien", () => {
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 10 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [
+            {
+              name: "LIMITE",
+              kind: "variable",
+              line: 1,
+              hash: "hash-viejo"
+            }
+          ]
+        }
+      ]
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 10 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [
+            {
+              name: "LIMITE",
+              kind: "variable",
+              line: 1,
+              hash: "hash-nuevo"
+            }
+          ]
+        }
+      ]
+    );
+
+    const symbols = diffSnapshots(base, head).symbols;
+    if (!symbols) throw new Error("falta la sección de símbolos");
+
+    expect(symbols.summary.changed).toBe(1);
+    expect(symbols.files[0]?.symbols[0]).toMatchObject({
+      name: "LIMITE",
+      kind: "variable",
+      status: "changed"
+    });
   });
 
   it("no inventa símbolos: sin la lente, la sección es null", () => {

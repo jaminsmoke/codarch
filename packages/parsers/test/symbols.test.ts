@@ -80,6 +80,39 @@ describe("TypeScriptParser · símbolos", () => {
     expect(symbols.map((symbol) => symbol.complexity)).toEqual([2, 2, 2]);
   });
 
+  it("da un hash propio a cada cuerpo, también a los métodos", () => {
+    const source = [
+      "class Factura {",
+      "  cobrar() {",
+      "    return 1;",
+      "  }",
+      "",
+      "  anular() {",
+      "    return 2;",
+      "  }",
+      "}"
+    ].join("\n");
+
+    const symbols = parser.parse(source, "src/metodos.ts").symbols ?? [];
+    const hashes = symbols.map((symbol) => symbol.hash ?? "");
+
+    // El hash vacío haría que todos los métodos fueran el mismo símbolo.
+    expect(hashes.every((hash) => hash.length === 64)).toBe(true);
+    expect(new Set(hashes).size).toBe(hashes.length);
+    expect(hashes).not.toContain(
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
+  });
+
+  it("el hash de una variable sigue su valor, no su nombre", () => {
+    const primero = parser.parse("const LIMITE = 10;", "src/a.ts").symbols ?? [];
+    const segundo = parser.parse("const LIMITE = 20;", "src/a.ts").symbols ?? [];
+    const renombrada = parser.parse("const TOPE = 10;", "src/a.ts").symbols ?? [];
+
+    expect(primero[0]?.hash).not.toBe(segundo[0]?.hash);
+    expect(primero[0]?.hash).toBe(renombrada[0]?.hash);
+  });
+
   it("un callback anónimo suma en el fichero pero no es un símbolo", () => {
     const source =
       "function outer() { [1].map((x) => x > 0 ? x : 0); }";
@@ -117,14 +150,48 @@ describe("TypeScriptParser · símbolos", () => {
 
     expect(symbols.map((symbol) => `${symbol.kind}:${symbol.name}`)).toEqual([
       "function:doblar",
+      "variable:CONSTANTE",
       "function:principal"
     ]);
   });
 
-  it("no lista las constantes: son datos, no estructura", () => {
-    const source = ["const LIMITE = 10;", "let contador = 0;"].join("\n");
+  it("lista las variables del módulo, también textos y objetos", () => {
+    const source = [
+      "export const LIMITE = 10;",
+      'export const SALUDO = "hola";',
+      "const CONFIG = { reintentos: 3 };",
+      "let contador = 0;",
+      "let pendiente;",
+      "const { a } = CONFIG;",
+      "const [b] = [1];"
+    ].join("\n");
 
-    expect(parser.parse(source, "src/datos.ts").symbols).toEqual([]);
+    const symbols = parser.parse(source, "src/datos.ts").symbols ?? [];
+
+    expect(symbols.map((symbol) => `${symbol.kind}:${symbol.name}`)).toEqual([
+      "variable:LIMITE",
+      "variable:SALUDO",
+      "variable:CONFIG",
+      "variable:contador"
+    ]);
+  });
+
+  it("no lista las variables locales, pero sí las funciones locales", () => {
+    const source = [
+      "function outer() {",
+      "  const local = 1;",
+      "  const inner = () => local;",
+      "  let pendiente = 0;",
+      "  return inner();",
+      "}"
+    ].join("\n");
+
+    const symbols = parser.parse(source, "src/local.ts").symbols ?? [];
+
+    expect(symbols.map((symbol) => `${symbol.kind}:${symbol.name}`)).toEqual([
+      "function:outer",
+      "function:inner"
+    ]);
   });
 
   it("da la línea 1-based de cada símbolo", () => {

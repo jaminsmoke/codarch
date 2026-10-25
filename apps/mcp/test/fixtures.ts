@@ -98,6 +98,7 @@ export const SNAPSHOT: CcJson = {
         interfaces: 1,
         types: 0,
         enums: 0,
+        variables: 0,
         mostComplex: {
           path: "src/domain/c.ts",
           name: "resolver",

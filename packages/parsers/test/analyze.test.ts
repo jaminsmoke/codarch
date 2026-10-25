@@ -29,6 +29,31 @@ describe("analyzeRepository", () => {
     expect(stats.orphanMetricNodes).toBe(0);
   });
 
+  it("cuenta las variables del módulo en la lente de símbolos", () => {
+    const result = analyzeRepository(fixture, { git: false });
+    const summary = result.snapshot.lenses?.symbols?.summary;
+    if (!summary) throw new Error("falta la lente de símbolos");
+
+    expect(summary.variables).toBeGreaterThan(0);
+    expect(summary.symbols).toBe(
+      summary.functions +
+        summary.classes +
+        summary.interfaces +
+        summary.types +
+        summary.enums +
+        summary.variables
+    );
+    expect(
+      Object.values(result.snapshot.lenses?.symbols?.nodes ?? {}).flat()
+    ).toContainEqual(
+      expect.objectContaining({
+        name: "b",
+        kind: "variable",
+        line: 1
+      })
+    );
+  });
+
   it("cuenta ficheros, carpetas, aristas y ciclos", () => {
     const result = analyzeRepository(fixture, { git: false });
     expect(result.files).toBe(15);

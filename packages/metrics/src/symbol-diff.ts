@@ -11,6 +11,10 @@ import type { IndexedSnapshot } from "./diff";
  * En M12 el emparejamiento es por nombre (dentro del mismo fichero ✓): el caso
  * común ✓. Reconocer un renombrado o una mudanza es trabajo de la cadena
  * (ADR 0026 ✓).
+ *
+ * Un símbolo cambia cuando cambia su tipo, su complejidad, sus líneas o el
+ * hash de su cuerpo (ADR 0063 ✓): una constante que pasa de `10` a `20` sin
+ * cambiar de tamaño también es un cambio ✓.
  */
 
 /** Un símbolo en uno de los dos lados. */
@@ -159,7 +163,8 @@ function compareSymbols(
     const touched =
       before.kind !== symbol.kind ||
       before.complexity !== symbol.complexity ||
-      before.lines !== symbol.lines;
+      before.lines !== symbol.lines ||
+      before.hash !== symbol.hash;
     if (!touched) continue;
 
     changes.push({

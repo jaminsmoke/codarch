@@ -79,6 +79,7 @@ function snapshot(
           interfaces: 0,
           types: 0,
           enums: 0,
+          variables: 0,
           mostComplex: null
         }
       }

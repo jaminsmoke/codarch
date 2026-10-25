@@ -13,9 +13,11 @@ import {
  * dos mil líneas son el mismo mapa hasta que se mira dentro: el segundo tiene
  * muchas más funciones, y eso no sale de ningún agregado.
  *
- * Solo se listan los símbolos con **forma**: funciones, clases, interfaces,
- * tipos y enums. Las constantes no: son datos, no estructura, y una lista de
- * treinta `const` esconde la función que de verdad importa.
+ * Se listan todas las declaraciones con nombre que el modelo conoce:
+ * funciones, clases, interfaces, tipos, enums y variables. Una variable del
+ * módulo es un símbolo —también una constante de texto o un objeto de
+ * configuración—, pero una variable local no: vive dentro de una función y
+ * llenaría la lista de ruido (ADR 0063).
  */
 
 /** Nodos que declaran un símbolo con nombre propio. */
@@ -40,6 +42,41 @@ export const FUNCTION_VALUES = new Set([
 export const CLASS_VALUES = new Set(["class", "class_expression"]);
 
 /**
+ * Nodos que no abren un ámbito propio: el módulo, el `export`, la declaración
+ * `declare` y los envoltorios de `const`/`let`/`var`. Al bajar por ellos, una
+ * variable sigue siendo del módulo.
+ *
+ * Un bloque, una función o una clase no están aquí: lo que declare dentro no
+ * es un símbolo del fichero, salvo que sea una función o una clase (ADR 0063).
+ */
+export const MODULE_SCOPE_WRAPPERS = new Set([
+  "program",
+  "export_statement",
+  "ambient_declaration",
+  "lexical_declaration",
+  "variable_declaration"
+]);
+
+/**
+ * El tipo de símbolo que declara un `variable_declarator`, o `null` si no es
+ * uno.
+ *
+ * Una flecha o una clase guardadas en una constante son una función o una
+ * clase, en cualquier ámbito. Cualquier otro valor solo cuenta en el módulo:
+ * `const LIMITE = 10` es un símbolo; `const total = 0` dentro de una función,
+ * no.
+ */
+export function declaratorKind(
+  value: SyntaxNodeLike | null,
+  moduleScope: boolean
+): ParsedSymbol["kind"] | null {
+  if (!value) return null;
+  if (FUNCTION_VALUES.has(value.type)) return "function";
+  if (CLASS_VALUES.has(value.type)) return "class";
+  return moduleScope ? "variable" : null;
+}
+
+/**
  * Los símbolos del fichero, en el orden en que aparecen.
  *
  * Comparte código con el parser del navegador: los dos dan la misma lista,
@@ -51,10 +88,15 @@ export const CLASS_VALUES = new Set(["class", "class_expression"]);
  */
 export function collectSymbols(root: SyntaxNodeLike): ParsedSymbol[] {
   const symbols: ParsedSymbol[] = [];
-  const stack: SyntaxNodeLike[] = [root];
+  const stack: Array<{ node: SyntaxNodeLike; moduleScope: boolean }> = [
+    { node: root, moduleScope: true }
+  ];
 
   while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
+    const { node, moduleScope } = stack.pop() as {
+      node: SyntaxNodeLike;
+      moduleScope: boolean;
+    };
 
     const kind = DECLARATION_KINDS[node.type];
     if (kind) {
@@ -62,19 +104,30 @@ export function collectSymbols(root: SyntaxNodeLike): ParsedSymbol[] {
       const name = nameNode?.text;
       if (name) symbols.push(describeSymbol(name, kind, node, nameNode));
     } else if (node.type === "variable_declarator") {
+      // Solo un identificador es un nombre propio; `const { a } = ...` declara
+      // un enlace, no un símbolo con nombre (ADR 0063).
       const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
+      const name = nameNode?.type === "identifier" ? nameNode.text : null;
       const value = node.childForFieldName("value");
-      if (name && value) {
-        if (FUNCTION_VALUES.has(value.type)) {
-          symbols.push(describeSymbol(name, "function", value));
-        } else if (CLASS_VALUES.has(value.type)) {
-          symbols.push(describeSymbol(name, "class", value));
-        }
+      const declared = declaratorKind(value, moduleScope);
+      if (name && value && declared) {
+        const symbolNode = declared === "variable" ? node : value;
+        symbols.push(
+          describeSymbol(
+            name,
+            declared,
+            symbolNode,
+            declared === "variable" ? nameNode : undefined
+          )
+        );
       }
     }
 
-    for (const child of node.children) stack.push(child);
+    const children = node.children;
+    const childScope = moduleScope && MODULE_SCOPE_WRAPPERS.has(node.type);
+    for (let index = children.length - 1; index >= 0; index--) {
+      stack.push({ node: children[index] as SyntaxNodeLike, moduleScope: childScope });
+    }
   }
 
   return symbols.sort((a, b) => a.line - b.line);
@@ -134,8 +187,14 @@ function bodyHash(node: SyntaxNodeLike, skip?: SyntaxNodeLike | null): string {
     // Se compara por posición y no por identidad: en el parser del navegador
     // cada acceso a un nodo devuelve un envoltorio nuevo ✗, y el mismo código
     // tiene que dar el mismo hash en los dos ✓.
+    //
+    // Solo se salta una **hoja**. En un método, en una variable y en muchos
+    // tipos el nodo empieza en la misma columna que su nombre; si se saltara
+    // el nodo entero, el hash saldría vacío y dos cuerpos distintos serían el
+    // mismo símbolo ✗ (ADR 0063).
     if (
       skip &&
+      current.childCount === 0 &&
       current.startPosition.row === skip.startPosition.row &&
       current.startPosition.column === skip.startPosition.column
     ) {

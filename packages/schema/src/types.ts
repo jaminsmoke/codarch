@@ -132,6 +132,8 @@ export interface CcSymbolsSummary {
   interfaces: number;
   types: number;
   enums: number;
+  /** Variables del módulo: constantes y `let`/`var` con valor (ADR 0063). */
+  variables: number;
   /** La función más compleja del repo, si la hay. */
   mostComplex: { path: string; name: string; complexity: number } | null;
 }
