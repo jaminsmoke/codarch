@@ -16,6 +16,9 @@
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  /* El alto del marco de la app: cabecera y banda del proyecto (ADR 0061). */
+  --topbar-h: 64px;
+  --band-h: 52px;
 }
 
 * {
@@ -83,7 +86,7 @@ button {
 .topbar {
   position: relative;
   z-index: 20;
-  min-height: 64px;
+  min-height: var(--topbar-h);
   padding: 0 20px;
   display: grid;
   grid-template-columns: minmax(250px, auto) 1fr auto;
@@ -117,18 +120,11 @@ button {
 .snapshot-meta {
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 12px;
   text-align: center;
-}
-
-.snapshot-meta .project {
-  font: 600 12px/1.2 var(--sans);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
 .snapshot-meta .mono {
@@ -480,7 +476,7 @@ button {
 .shell {
   display: grid;
   grid-template-columns: 258px minmax(0, 1fr) 302px;
-  min-height: calc(100dvh - 64px);
+  min-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   background: var(--line);
   gap: 1px;
 }
@@ -774,33 +770,101 @@ button {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 20px 22px 14px;
+  padding: 14px 22px 12px;
   background: var(--paper);
 }
 
-.stage-head {
+/* La banda del proyecto: pegada a la cabecera, con el nombre y las cifras.
+   Es el marco que antes ocupaba el alto del escenario y se lleva la lectura
+   del proyecto fuera del mapa (ADR 0061). */
+.project-band {
+  position: relative;
+  z-index: 19;
+  height: var(--band-h);
+  padding: 0 20px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 22px;
-  margin-bottom: 14px;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  background: #1b262e;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: #f3f6f5;
 }
 
-.stage h1 {
+.project-ident {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.project-label {
+  font: 500 8px/1.1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #93a2a8;
+}
+
+.project-band h1 {
   margin: 0;
-  font: 650 31px/1.05 var(--display);
-  letter-spacing: -0.03em;
-  max-width: 620px;
+  max-width: 360px;
+  overflow: hidden;
+  font: 650 17px/1.1 var(--display);
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-band .breadcrumb {
+  min-width: 0;
+  margin-top: 0;
+  color: #93a2a8;
+}
+
+.project-band .breadcrumb button {
+  border-bottom-color: #5a6a72;
+  color: #f3f6f5;
+}
+
+.project-band .breadcrumb button:hover {
+  border-bottom-color: #f3f6f5;
+}
+
+.project-band .breadcrumb span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.stage-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(64px, auto));
-  gap: 15px;
+.project-kpis {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
   flex: none;
+}
+
+.project-kpis .kpi {
+  min-width: 62px;
+  padding: 0 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.project-kpis .kpi span {
+  font-size: 8px;
+  color: #93a2a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-kpis .kpi b {
+  font: 600 15px/1 var(--display);
+  color: #f3f6f5;
+}
+
+.project-kpis .kpi-debt b {
+  color: #ff9f9f;
 }
 
 .kpi {
@@ -1108,11 +1172,74 @@ button {
   letter-spacing: -0.02em;
 }
 
+/* Las secciones plegables (ADR 0061). El título es un botón: en negrita,
+   con su cuenta al lado y el resumen a la derecha cuando está cerrada. */
+.collapsible {
+  margin-top: 14px;
+}
+
+.collapsible-head {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 7px;
+  padding: 7px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collapsible-head:hover .collapsible-title {
+  color: var(--cobalt);
+}
+
+.collapsible-head:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.collapsible-chevron {
+  display: inline-flex;
+  color: var(--muted);
+  transition: transform 120ms ease;
+}
+
+.collapsible.is-closed .collapsible-chevron svg {
+  transform: rotate(-90deg);
+}
+
+.collapsible-title {
+  font: 600 12px/1.2 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.collapsible-count {
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8.5px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+.collapsible-summary {
+  margin-left: auto;
+  overflow: hidden;
+  font: 500 9.5px/1.2 var(--mono);
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsible-body {
+  padding-bottom: 2px;
+}
+
 /* La tabla de métricas de la ficha del fichero (ADR 0060). */
 .metrics-table {
-  margin-top: 4px;
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
+  margin-top: 2px;
 }
 
 .metrics-head,
@@ -2398,7 +2525,7 @@ code {
   }
 
   .shell {
-    height: calc(100dvh - 64px);
+    height: calc(100dvh - var(--topbar-h) - var(--band-h));
     min-height: 0;
   }
 
@@ -2425,12 +2552,12 @@ code {
   /* El mapa ocupa la pantalla aunque el inspector se apile debajo ✓: la página
      scrollea para el inspector ✓, pero el mapa no crece ✓. */
   .stage {
-    height: calc(100dvh - 64px);
+    height: calc(100dvh - var(--topbar-h) - var(--band-h));
   }
 
   /* Y el raíl tampoco estira la fila: scrollea él solo ✓. */
   .rail {
-    max-height: calc(100dvh - 64px);
+    max-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   }
 
   .map-frame {
@@ -2444,10 +2571,6 @@ code {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     gap: 30px;
-  }
-
-  .stage-kpis {
-    grid-template-columns: repeat(2, minmax(64px, auto));
   }
 }
 
@@ -2508,17 +2631,22 @@ code {
     display: block;
   }
 
-  .stage-head {
-    align-items: flex-start;
-    flex-direction: column;
+  .project-band {
+    padding: 0 14px;
     gap: 12px;
   }
 
-  .stage-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px 20px;
-    width: 100%;
-    justify-content: initial;
+  .project-band h1 {
+    max-width: 190px;
+  }
+
+  .project-kpis .kpi {
+    min-width: 0;
+    padding: 0 9px;
+  }
+
+  .project-kpis .kpi b {
+    font-size: 14px;
   }
 
   .map-frame,
@@ -2532,12 +2660,36 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .stage-kpis {
-    grid-template-columns: repeat(2, auto);
+  .project-band {
+    gap: 8px;
   }
 
-  .stage h1 {
-    font-size: 25px;
+  .project-band h1 {
+    max-width: 104px;
+    font-size: 15px;
+  }
+
+  .project-ident {
+    flex: 1 1 auto;
+  }
+
+  .project-kpis {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .project-kpis .kpi {
+    flex: 1 1 0;
+    padding: 0 5px;
+  }
+
+  .project-kpis .kpi span {
+    max-width: 100%;
+    font-size: 7px;
+  }
+
+  .project-kpis .kpi b {
+    font-size: 13px;
   }
 
   .stage-foot {

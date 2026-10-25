@@ -122,6 +122,8 @@ export function AppShell({
     loadHeat
   } = app;
   const viewsMenuRef = useRef<HTMLDetailsElement>(null);
+  const projectTitle =
+    view.model?.meta.title ?? cc?.meta.projectName ?? "Sin snapshot";
 
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
@@ -150,7 +152,6 @@ export function AppShell({
           <span className="brand-sub">atlas de arquitectura</span>
         </div>
         <div className="snapshot-meta">
-          <span className="project">{cc?.meta.projectName ?? "sin proyecto"}</span>
           <span className="mono">
             {source}
             {view.model?.meta.checksum
@@ -213,6 +214,35 @@ export function AppShell({
           </button>
         </div>
       </header>
+
+      <div className="project-band">
+        <div className="project-ident">
+          <span className="project-label">Proyecto</span>
+          <h1 title={projectTitle}>{projectTitle}</h1>
+        </div>
+        {focusPath ? (
+          <div className="breadcrumb">
+            <button type="button" onClick={() => setFocusPath(null)}>
+              Todo
+            </button>
+            <span>/</span>
+            <span>{focusPath}</span>
+          </div>
+        ) : null}
+        <div className="project-kpis">
+          <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
+          <Kpi label="carpetas" value={view.model?.folderCount ?? 0} />
+          <Kpi
+            label={view.model?.areaTitle ?? "área"}
+            value={view.model?.totalArea ?? 0}
+          />
+          <Kpi
+            label="deuda"
+            value={migration?.summary.migrationDebt ?? 0}
+            accent={migration ? "debt" : undefined}
+          />
+        </div>
+      </div>
 
       <div className="shell">
         <aside className="rail">
@@ -308,56 +338,29 @@ export function AppShell({
         </aside>
 
         <main className="stage">
-          <div className="stage-head">
-            <div>
-              <div className="eyebrow">Mapa</div>
-              <h1>{view.model?.meta.title ?? "Sin snapshot"}</h1>
-              {focusPath ? (
-                <div className="breadcrumb">
-                  <button type="button" onClick={() => setFocusPath(null)}>
-                    Todo
-                  </button>
-                  <span>/</span>
-                  <span>{focusPath}</span>
-                </div>
-              ) : null}
-            </div>
-            <div className="stage-kpis">
-              <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
-              <Kpi label="carpetas" value={view.model?.folderCount ?? 0} />
-              <Kpi
-                label={view.model?.areaTitle ?? "área"}
-                value={view.model?.totalArea ?? 0}
-              />
-              <Kpi
-                label="deuda"
-                value={migration?.summary.migrationDebt ?? 0}
-                accent={migration ? "debt" : undefined}
-              />
-            </div>
-          </div>
-
           {banner}
 
-          <div className="stage-tabs">
-            <button
-              type="button"
-              className={`stage-tab${pluginView === null ? " is-active" : ""}`}
-              onClick={() => setPluginView(null)}
-            >
-              Mapa
-            </button>
-            {pluginViews.map((view) => (
+          {pluginViews.length > 0 ? (
+            <div className="stage-tabs">
               <button
-                key={view.id}
                 type="button"
-                className={`stage-tab${pluginView === view.id ? " is-active" : ""}`}
-                onClick={() => setPluginView(view.id)}
+                className={`stage-tab${pluginView === null ? " is-active" : ""}`}
+                onClick={() => setPluginView(null)}
               >
-                {view.label}
+                Mapa
               </button>
-            ))}
-          </div>
+              {pluginViews.map((view) => (
+                <button
+                  key={view.id}
+                  type="button"
+                  className={`stage-tab${pluginView === view.id ? " is-active" : ""}`}
+                  onClick={() => setPluginView(view.id)}
+                >
+                  {view.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="map-frame">
             {loading ? (

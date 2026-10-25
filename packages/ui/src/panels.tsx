@@ -11,6 +11,7 @@ import type {
   SymbolHeat
 } from "@codarch/schema/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
+import { CollapsibleSection } from "./CollapsibleSection";
 import { fileMetricRows } from "./metrics";
 import {
   CHURN_METRIC,
@@ -466,60 +467,70 @@ export function Inspector({
         </div>
       ) : null}
 
-      <div className="metrics-table">
-        <div className="eyebrow">Métricas</div>
-        <div className="metrics-head" aria-hidden="true">
-          <span>Métrica</span>
-          <span>Escala</span>
-          <span>Valor</span>
+      <CollapsibleSection
+        id="file-metrics"
+        title="Métricas"
+        count={rows.length}
+        summary={
+          rows[0]?.value === null || rows[0]?.value === undefined
+            ? undefined
+            : `Riesgo ${rows[0].value}/100`
+        }
+      >
+        <div className="metrics-table">
+          <div className="metrics-head" aria-hidden="true">
+            <span>Métrica</span>
+            <span>Escala</span>
+            <span>Valor</span>
+          </div>
+          <div
+            className="metrics-rows"
+            role="group"
+            aria-label="Métricas del fichero"
+          >
+            {rows.map((row) => {
+              const active = row.risk
+                ? colorMode === "risk"
+                : colorMode === row.key;
+              return (
+                <button
+                  key={row.key}
+                  type="button"
+                  className={`metrics-row metrics-${row.state}${
+                    active ? " is-active" : ""
+                  }${row.value === null ? " is-empty" : ""}`}
+                  aria-pressed={active}
+                  title={`${row.hint}. Pulsa para pintar el mapa.`}
+                  onClick={() => onColorMode(row.risk ? "risk" : row.key)}
+                >
+                  <span className="metrics-label">
+                    {row.title}
+                    {row.area ? (
+                      <em
+                        className="metrics-area"
+                        title="Esta métrica decide el área del mapa"
+                      >
+                        área
+                      </em>
+                    ) : null}
+                  </span>
+                  <span className="metrics-bar" aria-hidden="true">
+                    <i style={{ width: `${Math.round(row.share * 100)}%` }} />
+                  </span>
+                  <span className="metrics-value">
+                    {row.value === null ? "—" : formatCompact(row.value)}
+                    {row.risk && row.value !== null ? <em>/100</em> : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="muted tiny metrics-note">
+            La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila
+            para pintar el mapa.
+          </p>
         </div>
-        <div
-          className="metrics-rows"
-          role="group"
-          aria-label="Métricas del fichero"
-        >
-          {rows.map((row) => {
-            const active = row.risk
-              ? colorMode === "risk"
-              : colorMode === row.key;
-            return (
-              <button
-                key={row.key}
-                type="button"
-                className={`metrics-row metrics-${row.state}${
-                  active ? " is-active" : ""
-                }${row.value === null ? " is-empty" : ""}`}
-                aria-pressed={active}
-                title={`${row.hint}. Pulsa para pintar el mapa.`}
-                onClick={() => onColorMode(row.risk ? "risk" : row.key)}
-              >
-                <span className="metrics-label">
-                  {row.title}
-                  {row.area ? (
-                    <em
-                      className="metrics-area"
-                      title="Esta métrica decide el área del mapa"
-                    >
-                      área
-                    </em>
-                  ) : null}
-                </span>
-                <span className="metrics-bar" aria-hidden="true">
-                  <i style={{ width: `${Math.round(row.share * 100)}%` }} />
-                </span>
-                <span className="metrics-value">
-                  {row.value === null ? "—" : formatCompact(row.value)}
-                  {row.risk && row.value !== null ? <em>/100</em> : null}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <p className="muted tiny metrics-note">
-          La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila
-          para pintar el mapa.
-        </p>
-      </div>
+      </CollapsibleSection>
 
       {symbols.length > 0 ? (
         <div className="symbol-list">
