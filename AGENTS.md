@@ -205,6 +205,10 @@ también `npm run sync:action` y actualizar el repo público.
   **Lentes**: el riesgo se desglosa en complejidad, churn y tamaño con su peso y su p95; las reglas
   de dominio se cruzan por ruta desde el `report.json` cargado; la migración enseña deuda, cruces y
   aristas FFI; y los símbolos se resumen. No cambia `cc.json` ni el checksum.
+- M38 cerrada: las reglas tienen su pestaña (ADR 0058). El inspector gana **Reglas**, que saca las
+  violaciones y los hotspots de la pestaña PR y enseña las nuevas, las existentes y las resueltas
+  con su origen, severidad y detalle, además de errores, avisos y reglas evaluadas. `tab=rules`
+  viaja en la URL y en las vistas guardadas; PR se queda con el resumen del cambio.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
