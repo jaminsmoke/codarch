@@ -52,7 +52,6 @@ const COMPONENT_DIRECTORIES: Partial<Record<ComponentName, string>> = {
 
 /** Ficheros de la raíz que afectan a todo. */
 const ROOT_ALL = new Set([
-  "package.json",
   "package-lock.json",
   "versions.json",
   "tsconfig.json"

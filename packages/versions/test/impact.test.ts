@@ -183,7 +183,8 @@ describe("el impacto de un cambio", () => {
   });
 
   it("un cambio de la raíz o del Dockerfile se trata aparte", () => {
-    expect(impact("package.json")).toEqual([
+    expect(impact("package.json")).toEqual([]);
+    expect(impact("tsconfig.json")).toEqual([
       "engine",
       "cli",
       "desktop",
