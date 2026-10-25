@@ -209,6 +209,10 @@ también `npm run sync:action` y actualizar el repo público.
   violaciones y los hotspots de la pestaña PR y enseña las nuevas, las existentes y las resueltas
   con su origen, severidad y detalle, además de errores, avisos y reglas evaluadas. `tab=rules`
   viaja en la URL y en las vistas guardadas; PR se queda con el resumen del cambio.
+- M39 cerrada: tres pestañas (ADR 0059). **Lentes** se integra como la primera mitad de **Reglas**
+  —riesgo, dominio, migración y símbolos del fichero seleccionado— y **PR** pasa a llamarse
+  **Cambios**, porque el reporte es un diff de snapshots y no un pull request. `tab=changes` es el
+  valor canónico; `lenses` y `pr` se siguen leyendo como alias.
 - M22 cerrada: el repo, con sus papeles (ADR 0033). La auditoría está hecha (MIT, sin secretos,
   dependencias permisivas) y ya están `SECURITY.md`, `CONTRIBUTING.md`, `NOTICE.md`, `TRADEMARK.md` y
   la nota de privacidad. El repo es público desde el 2026-10-22.
