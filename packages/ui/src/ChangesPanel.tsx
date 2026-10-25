@@ -25,6 +25,39 @@ const GROUPS: Array<{
 /** Un grupo largo se corta aquí; el reporte sigue teniendo el resto. */
 const MAX_ROWS = 25;
 
+/** Lo que se dice de un símbolo que apareció, se fue o cambió. */
+const SYMBOL_STATUS = {
+  added: "nuevo",
+  removed: "eliminado",
+  changed: "cambió"
+} as const;
+
+/** Los símbolos tocados de un fichero. */
+type SymbolChanges = NonNullable<DiffReport["symbols"]>["files"][number]["symbols"];
+
+/**
+ * El delta de un fichero, con el formato de la fila de Ficheros: `+2 −1 ~3`.
+ *
+ * Cuenta símbolos, no complejidad: el detalle de cada uno vive en la ficha del
+ * fichero, que es donde se puede abrir su código.
+ */
+function symbolDelta(symbols: SymbolChanges): string {
+  const of = (status: keyof typeof SYMBOL_STATUS): number =>
+    symbols.filter((symbol) => symbol.status === status).length;
+  return `+${of("added")} −${of("removed")} ~${of("changed")}`;
+}
+
+/** Lo que el tooltip cuenta de un fichero: sus símbolos, sin abrir nada. */
+function symbolTitle(path: string, symbols: SymbolChanges): string {
+  const shown = symbols
+    .slice(0, 4)
+    .map((symbol) => `${symbol.name} (${SYMBOL_STATUS[symbol.status]})`);
+  if (symbols.length > shown.length) {
+    shown.push(`y ${symbols.length - shown.length} más`);
+  }
+  return `${path} · ${shown.join(" · ")}`;
+}
+
 interface ChangesPanelProps {
   report: DiffReport | null;
   source: string | null;
@@ -312,40 +345,20 @@ export default function ChangesPanel({
           count={symbolFiles.length}
           summary={`+${symbols.summary.added} −${symbols.summary.removed} ~${symbols.summary.changed}`}
         >
-          <div className="symbol-list">
+          <div className="change-rows">
             {symbolFiles.map((file) => (
-              <div key={file.id} className="symbol-file">
-                <button
-                  type="button"
-                  className="symbol-file-path"
-                  onClick={() => onSelectPath(file.path)}
-                  title="Ver el fichero en el mapa"
-                >
-                  {file.path}
-                </button>
-                {file.symbols.slice(0, 4).map((symbol) => (
-                  <div
-                    key={`${symbol.name}-${symbol.status}`}
-                    className="symbol-change"
-                  >
-                    <span className={`symbol-kind symbol-${symbol.kind}`}>
-                      {symbol.kind === "function"
-                        ? "fn"
-                        : symbol.kind.slice(0, 3)}
-                    </span>
-                    <span className="symbol-name">{symbol.name}</span>
-                    <span className="mono">
-                      {symbol.status === "added"
-                        ? "nuevo"
-                        : symbol.status === "removed"
-                          ? "eliminado"
-                          : symbol.complexityDelta === null
-                            ? "cambió"
-                            : `${symbol.complexityDelta > 0 ? "+" : ""}${symbol.complexityDelta}`}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <button
+                key={file.id}
+                type="button"
+                className="change-row"
+                title={symbolTitle(file.path, file.symbols)}
+                onClick={() => onSelectPath(file.path)}
+              >
+                <span className="change-path">{file.path}</span>
+                <span className="mono change-delta">
+                  {symbolDelta(file.symbols)}
+                </span>
+              </button>
             ))}
           </div>
         </CollapsibleSection>

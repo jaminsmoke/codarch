@@ -2205,41 +2205,6 @@ button {
   color: var(--muted);
 }
 
-/* Los símbolos que cambiaron, en Cambios: un bloque por fichero y una fila
-   por símbolo, con el ritmo de las demás listas. */
-.symbol-file {
-  padding: 4px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.symbol-file-path {
-  display: block;
-  width: 100%;
-  margin-bottom: 4px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ink);
-  font: 500 11px/1.4 var(--mono);
-  text-align: left;
-  cursor: pointer;
-}
-
-.symbol-file-path:hover {
-  color: var(--accent, #2f6fed);
-  text-decoration: underline;
-}
-
-.symbol-change {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: center;
-  padding: 2px 0 2px 4px;
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-
 .symbol-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 34px 62px 10px;
