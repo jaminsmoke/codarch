@@ -4,7 +4,8 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
-  riskScores
+  riskBreakdown,
+  type RiskPart
 } from "@codarch/metrics/browser";
 
 export type Lens = "structure" | "risk" | "metric";
@@ -39,11 +40,29 @@ export interface RenderFile {
   /** Valor real de la métrica de área, sin el mínimo de 1. */
   actualArea: number;
   risk: number;
+  /** Las tres señales del riesgo, con su peso y su parte (ADR 0057). */
+  riskParts: RiskParts;
   complexity: number;
   churn: number;
   /** Valores alineados con `RenderModel.metrics`; `null` cuando la métrica no existe. */
   values: Array<number | null>;
 }
+
+export type RiskParts = Record<"complexity" | "churn" | "size", RiskPart>;
+
+/** El desglose de un fichero sin señales: el mapa lo rellena después. */
+const NO_SIGNAL: RiskPart = {
+  value: 0,
+  p95: 0,
+  norm: 0,
+  weight: 0,
+  share: 0
+};
+const NO_RISK_PARTS: RiskParts = {
+  complexity: NO_SIGNAL,
+  churn: NO_SIGNAL,
+  size: NO_SIGNAL
+};
 
 export interface RenderSection {
   key: string;
@@ -297,6 +316,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
       area: Math.max(1, rawArea ?? 0),
       actualArea: rawArea ?? 0,
       risk: 0,
+      riskParts: NO_RISK_PARTS,
       complexity: valueOf(values, complexityKey) ?? 0,
       churn: valueOf(values, churnKey) ?? 0,
       values: []
@@ -318,7 +338,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   // Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
   // Si falta una señal, los pesos se renormalizan: un proyecto sin historial
   // git no debe quedar con un máximo artificial de 68/100.
-  const risks = riskScores(
+  const risks = riskBreakdown(
     files.map((file) => ({
       complexity: file.complexity,
       churn: file.churn,
@@ -326,7 +346,10 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     }))
   );
   for (const [index, file] of files.entries()) {
-    file.risk = risks[index] ?? 0;
+    const breakdown = risks[index];
+    if (!breakdown) continue;
+    file.risk = breakdown.risk;
+    file.riskParts = breakdown.parts;
   }
 
   // Secciones: color categórico por las tres primeras partes de la ruta.

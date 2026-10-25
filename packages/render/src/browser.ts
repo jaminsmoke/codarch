@@ -7,6 +7,7 @@ export type {
   RenderModel,
   RenderOptions,
   RenderSection,
+  RiskParts,
   TreeNode
 } from "./model";
 export { buildRenderModel, RenderError } from "./model";

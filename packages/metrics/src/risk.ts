@@ -34,7 +34,48 @@ export interface RiskSignals {
   size: number;
 }
 
+/**
+ * Una señal del riesgo, ya explicada: de dónde sale y cuánto pesa.
+ *
+ * Existe para que la app pueda contar **por qué** un fichero tiene el riesgo
+ * que tiene sin repetir la fórmula en la UI (ADR 0057).
+ */
+export interface RiskPart {
+  /** El valor de la señal en este fichero. */
+  value: number;
+  /** El p95 del proyecto con el que se normaliza. */
+  p95: number;
+  /** `value / p95`, entre 0 y 1. */
+  norm: number;
+  /** Peso ya renormalizado: las señales presentes suman 1. */
+  weight: number;
+  /** Lo que aporta al riesgo antes de gamma: `norm × weight`. */
+  share: number;
+}
+
+export interface RiskBreakdown {
+  /** El riesgo final, 0..1, con gamma aplicada. */
+  risk: number;
+  parts: {
+    complexity: RiskPart;
+    churn: RiskPart;
+    size: RiskPart;
+  };
+}
+
 export function riskScores(files: readonly RiskSignals[]): number[] {
+  return riskBreakdown(files).map((entry) => entry.risk);
+}
+
+/**
+ * El riesgo de cada fichero con sus tres señales desglosadas.
+ *
+ * Es la misma cuenta que `riskScores`, pero devuelve también los valores
+ * normalizados y los pesos, que es lo que la ficha del fichero enseña.
+ */
+export function riskBreakdown(
+  files: readonly RiskSignals[]
+): RiskBreakdown[] {
   const complexityP95 = percentile(
     files.map((file) => file.complexity).filter((value) => value > 0),
     0.95
@@ -54,16 +95,40 @@ export function riskScores(files: readonly RiskSignals[]): number[] {
   const sizeWeight = sizeP95 > 0 ? RISK_WEIGHTS.size : 0;
   const totalWeight = complexityWeight + churnWeight + sizeWeight;
 
-  if (totalWeight === 0) return files.map(() => 0);
+  const weights =
+    totalWeight > 0
+      ? {
+          complexity: complexityWeight / totalWeight,
+          churn: churnWeight / totalWeight,
+          size: sizeWeight / totalWeight
+        }
+      : { complexity: 0, churn: 0, size: 0 };
 
   return files.map((file) => {
-    const raw =
-      (complexityWeight * norm(file.complexity, complexityP95) +
-        churnWeight * norm(file.churn, churnP95) +
-        sizeWeight * norm(file.size, sizeP95)) /
-      totalWeight;
-    return Math.pow(clamp01(raw), RISK_GAMMA);
+    const complexity = part(
+      file.complexity,
+      complexityP95,
+      weights.complexity
+    );
+    const churn = part(file.churn, churnP95, weights.churn);
+    const size = part(file.size, sizeP95, weights.size);
+    const raw = complexity.share + churn.share + size.share;
+    return {
+      risk: Math.pow(clamp01(raw), RISK_GAMMA),
+      parts: { complexity, churn, size }
+    };
   });
+}
+
+function part(value: number, p95: number, weight: number): RiskPart {
+  const normalized = norm(value, p95);
+  return {
+    value,
+    p95,
+    norm: normalized,
+    weight,
+    share: normalized * weight
+  };
 }
 
 export function firstMetric(

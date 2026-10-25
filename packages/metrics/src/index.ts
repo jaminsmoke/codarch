@@ -80,6 +80,7 @@ export {
   RISK_GAMMA,
   RISK_WEIGHTS,
   firstMetric,
+  riskBreakdown,
   riskScores
 } from "./risk";
-export type { RiskSignals } from "./risk";
+export type { RiskBreakdown, RiskPart, RiskSignals } from "./risk";

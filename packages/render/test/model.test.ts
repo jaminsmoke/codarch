@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { RISK_GAMMA } from "@codarch/metrics";
 import { parseCcJson } from "@codarch/schema";
 import { buildRenderModel, RenderError, type RenderOptions } from "../src/index";
 
@@ -66,6 +67,20 @@ describe("buildRenderModel", () => {
 
     expect(selected?.name).toBe("a.ts");
     expect(result.files.some((file) => file.risk >= 0.66)).toBe(true);
+  });
+
+  it("explica el riesgo con sus tres señales", () => {
+    const result = model();
+    const file = result.files.find((entry) => entry.name === "a.ts");
+    const parts = file?.riskParts;
+
+    expect(parts).toBeDefined();
+    expect(
+      parts!.complexity.weight + parts!.churn.weight + parts!.size.weight
+    ).toBeCloseTo(1);
+    const raw =
+      parts!.complexity.share + parts!.churn.share + parts!.size.share;
+    expect(file!.risk).toBeCloseTo(Math.pow(raw, RISK_GAMMA));
   });
 
   it("calcula secciones estables ordenadas por área", () => {

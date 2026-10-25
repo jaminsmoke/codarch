@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { riskScores } from "../src/index";
+import { RISK_GAMMA, riskBreakdown, riskScores } from "../src/index";
 
 describe("riskScores", () => {
   it("devuelve 0 cuando no hay señales", () => {
@@ -59,5 +59,76 @@ describe("riskScores", () => {
       { complexity: 9, churn: 8, size: 40 }
     ];
     expect(riskScores(input)).toEqual(riskScores(input));
+  });
+});
+
+describe("riskBreakdown", () => {
+  it("da el mismo riesgo que riskScores", () => {
+    const input = [
+      { complexity: 4, churn: 2, size: 20 },
+      { complexity: 9, churn: 8, size: 40 },
+      { complexity: 0, churn: 0, size: 0 }
+    ];
+    expect(riskBreakdown(input).map((entry) => entry.risk)).toEqual(
+      riskScores(input)
+    );
+  });
+
+  it("reparte los pesos entre las señales presentes", () => {
+    const [entry] = riskBreakdown([
+      { complexity: 10, churn: 5, size: 100 },
+      { complexity: 2, churn: 1, size: 10 }
+    ]);
+    const parts = entry!.parts;
+
+    expect(
+      parts.complexity.weight + parts.churn.weight + parts.size.weight
+    ).toBeCloseTo(1);
+    expect(parts.complexity.weight).toBeCloseTo(0.5);
+    expect(parts.churn.weight).toBeCloseTo(0.32);
+    expect(parts.size.weight).toBeCloseTo(0.18);
+  });
+
+  it("deja a cero la señal que no existe y renormaliza el resto", () => {
+    const files = Array.from({ length: 20 }, (_, index) => ({
+      complexity: index + 1,
+      churn: 0,
+      size: 0
+    }));
+    const breakdown = riskBreakdown(files);
+    const top = breakdown[19]!;
+
+    expect(top.parts.complexity.weight).toBeCloseTo(1);
+    expect(top.parts.churn.weight).toBe(0);
+    expect(top.parts.size.weight).toBe(0);
+    expect(top.parts.churn.share).toBe(0);
+  });
+
+  it("normaliza cada señal por su p95", () => {
+    const files = Array.from({ length: 20 }, (_, index) => ({
+      complexity: index + 1,
+      churn: index + 1,
+      size: (index + 1) * 10
+    }));
+    const [entry] = riskBreakdown(files);
+    const parts = entry!.parts;
+
+    expect(parts.complexity.p95).toBe(19);
+    expect(parts.churn.p95).toBe(19);
+    expect(parts.size.p95).toBe(190);
+    expect(parts.complexity.norm).toBeCloseTo(1 / 19);
+    expect(parts.churn.norm).toBeCloseTo(1 / 19);
+    expect(parts.size.norm).toBeCloseTo(10 / 190);
+  });
+
+  it("sus partes suman el riesgo antes de gamma", () => {
+    const [entry] = riskBreakdown([
+      { complexity: 10, churn: 4, size: 100 },
+      { complexity: 3, churn: 1, size: 20 }
+    ]);
+    const parts = entry!.parts;
+    const raw = parts.complexity.share + parts.churn.share + parts.size.share;
+
+    expect(entry!.risk).toBeCloseTo(Math.pow(raw, RISK_GAMMA));
   });
 });
