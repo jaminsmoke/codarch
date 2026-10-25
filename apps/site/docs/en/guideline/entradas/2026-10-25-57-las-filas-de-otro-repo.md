@@ -11,4 +11,4 @@ verdict: arreglo
 
 **Numbers**: three UI files, two desktop files and one CLI file; four new or adjusted tests (heat without zeros, title with a project name, `analyze` with exit code 1). Neither `cc.json`, nor the checksum, nor `report.json` change.
 
-**Verdict**: fix, done. What cannot be fixed from the package: installing on Node 20 will still fail compiling `tree-sitter` —Node 22 is required— and on Linux updating depends on the `.deb`, because the AppImage is not published (ADR 0045).
+**Verdict**: fix, done. What cannot be fixed from the package: installing on Node 20 will still fail compiling `tree-sitter` —Node 22 is required— and on Linux updating used to depend on the `.deb`; the AppImage came later (entry 58).

@@ -11,4 +11,4 @@ verdict: arreglo
 
 **Números**: tres ficheros de UI, dos del escritorio y uno de la CLI; cuatro tests nuevos o ajustados (calor sin ceros, título con nombre de proyecto, `analyze` con código 1). Ni `cc.json`, ni el checksum, ni `report.json` cambian.
 
-**Veredicto**: arreglo, hecho. Lo que no se arregla desde el paquete: instalar con Node 20 seguirá fallando al compilar `tree-sitter` —hace falta Node 22— y en Linux la actualización depende del `.deb`, porque el AppImage no se publica (ADR 0045).
+**Veredicto**: arreglo, hecho. Lo que no se arregla desde el paquete: instalar con Node 20 seguirá fallando al compilar `tree-sitter` —hace falta Node 22— y en Linux la actualización dependía del `.deb`; el AppImage llegó después (entrada 58).

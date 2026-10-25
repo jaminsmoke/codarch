@@ -1,6 +1,6 @@
 ---
 title: ADR 0045 — El escritorio se instala y se actualiza mejor
-description: El escritorio ya tiene instaladores (NSIS en Windows y deb en Linux) y una release automática cuando sube versions.json. También sabe comprobar si hay una versión nueva,…
+description: El escritorio tiene instaladores (NSIS en Windows, deb y AppImage en Linux) y una release automática cuando sube versions.json. También sabe comprobar si hay una versión nueva,…
 section: adr
 status: aceptado
 date: "2026-10-23"
@@ -37,16 +37,25 @@ No se va a pedir una cuenta de Apple para mantener un instalador que el sistema 
 - **Windows:** NSIS por usuario (`perMachine: false`), instalación en
   `%LOCALAPPDATA%\Programs\CodArch`, con opción de cambiar la carpeta, accesos directos y
   desinstalador. Es la ruta propia de la app, sin pedir administrador.
-- **Linux:** `.deb`, que instala la app en el sistema y deja su entrada de menú; no se publica un
-  AppImage portable.
+- **Linux:** `.deb`, que instala la app en el sistema y deja su entrada de menú, **y AppImage**,
+  que no se instala y es el formato con el que la app se reemplaza sola y se vuelve a abrir sin
+  pedir permisos.
 - **macOS:** fuera de la matriz de builds y de la release. Sin firma ni notarización, Gatekeeper
   bloquea la app y el actualizador no puede aplicarla; no se publica una experiencia que no
   funciona.
 
-**El release no lleva ejecutables portables.** El `codarch-<versión>-x64.exe` anterior era un
-portable que no se instalaba y no podía actualizarse como la app; se elimina. El AppImage tampoco
-se publica: es un ejecutable, no un instalador. Lo que se descarga es `codarch-<versión>-setup.exe`
-en Windows y `codarch-<versión>-amd64.deb` en Linux.
+**El release no lleva ejecutables portables de Windows.** El `codarch-<versión>-x64.exe` anterior
+no se instalaba y no podía actualizarse como la app; se elimina. El AppImage sí se publica, y no
+por ser portable: es el único formato de Linux que `electron-updater` puede sustituir **sin root**
+y relanzar por sí mismo. El `.deb` sigue siendo la instalación normal —entra en el menú y en el
+sistema—, pero actualizarlo pide contraseña, así que quien quiera olvidarse del tema usa el
+AppImage. Lo que se descarga es `codarch-<versión>-setup.exe` en Windows,
+`codarch-<versión>-amd64.deb` o `codarch-<versión>-x64.AppImage` en Linux.
+
+**Revisión (2026-10-25).** La primera versión de esta decisión dejaba el AppImage fuera porque «es
+un ejecutable, no un instalador». En un Linux normal eso obligaba a cada actualización del `.deb` a
+pasar por la contraseña de administrador, y la app no podía reiniciarse sola; el AppImage resuelve
+las dos cosas porque lo instala el propio actualizador en la carpeta del usuario.
 
 ### 2. La release trae metadatos de actualización
 
@@ -84,11 +93,14 @@ las etiquetas sin versión, se queda con la mayor y fija la base de descarga en
 `latest-linux.yml` en Linux). Si la lista no se puede leer, la comprobación automática se salta y se
 reintenta en el siguiente arranque.
 
-En Windows el instalador es por usuario y no necesita administrador. En Linux la actualización del
-`.deb` la aplica `electron-updater` con `dpkg`/`apt`; si la app no corre como root, el sistema pide
-permiso de administrador. La sección **Actualizaciones** de los ajustes enseña la versión y el
-enlace, y además ofrece **Actualizar y reiniciar**: descarga la versión nueva si no lo había hecho
-ya, la instala y vuelve a abrir la app, sin bajar el instalador a mano.
+En Windows el instalador es por usuario y no necesita administrador. En Linux depende del formato:
+desde el **AppImage** la app se reemplaza sola, sin permisos, y al descargar la versión nueva ofrece
+**Reiniciar ahora** o esperar al cierre —`quitAndInstall` escribe el binario nuevo y ejecuta la
+versión nueva—; desde el `.deb` la actualización la aplica `electron-updater` con `dpkg`/`apt` y el
+sistema pide permiso de administrador, así que se aplica al cerrar. La sección **Actualizaciones**
+de los ajustes enseña la versión y el enlace, y además ofrece **Actualizar y reiniciar**: descarga la
+versión nueva si no lo había hecho ya, la instala y vuelve a abrir la app, sin bajar el instalador a
+mano.
 
 macOS queda fuera hasta que haya firma y notarización. No se compila, no se sube y no se ofrece un
 DMG que el sistema vaya a bloquear.
@@ -102,9 +114,11 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 
 - Windows y Linux reciben las versiones nuevas sin volver a la página de releases.
 - macOS no se publica hasta que se firme; es una limitación del sistema y una decisión explícita.
-- Los releases incluyen más artefactos (`latest*.yml` y `.blockmap`), pero siguen siendo ligeros.
+- Los releases incluyen más artefactos (`latest*.yml`, `.blockmap` y el AppImage), pero siguen
+  siendo ligeros.
 - El instalador de Windows no pide administrador y queda en la carpeta del usuario; el `.deb` de
-  Linux sí pide permiso al actualizarse, como cualquier paquete del sistema.
+  Linux sí pide permiso al actualizarse, como cualquier paquete del sistema. El AppImage no: se
+  actualiza en la carpeta del usuario y puede reiniciarse solo.
 - Una actualización fallida no borra la versión que funciona: electron-updater solo instala después
   de descargar y verificar el paquete.
 
@@ -116,8 +130,10 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
   prometerlo sería peor. Se reevaluará si algún día hay firma.
 - **Publicar desde electron-builder en vez de dejar que el workflow suba los assets:** el workflow
   ya decide cuándo hay release y espera a los dos sistemas; duplicar esa decisión crearía carreras.
-- **Publicar AppImage y el portable de Windows:** son ejecutables que no se instalan; la app
-  instalada no puede actualizarlos. Se dejan fuera para que el release sea solo instaladores.
+- **Publicar el portable de Windows:** es un ejecutable que no se instala; la app instalada no
+  puede actualizarlo, así que sigue fuera.
+- **Dejar Linux solo con el `.deb`:** cada actualización necesita la contraseña de administrador y
+  la app no puede reiniciarse sola. El AppImage cuesta un artefacto más y quita las dos fricciones.
 - **Un paquete propio para cada Linux:** `.deb` cubre el caso de Debian/Ubuntu; rpm o pacman
   entrarán si se piden, con su decisión aparte.
 
@@ -135,3 +151,5 @@ sistema avisa. Cuando haya firma, se podrá reevaluar macOS y quitar los avisos 
 - [x] Dejar macOS fuera hasta que haya firma y notarización; no se publican DMG.
 - [x] Fijar la base de descarga a la release resuelta, para que una etiqueta sin versión no deje la
   comprobación en 404.
+- [x] Publicar el AppImage junto al `.deb` y subirlo en el workflow de escritorio.
+- [x] Ofrecer **Reiniciar ahora** al descargar una actualización cuando la app corre como AppImage.

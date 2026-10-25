@@ -53,13 +53,17 @@ instalador no viene de un desarrollador identificado; firmarlo cuesta dinero).
 |---|---|
 | Windows | `codarch-<versión>-setup.exe` (NSIS por usuario) |
 | Linux | `codarch-<versión>-amd64.deb` |
+| Linux | `codarch-<versión>-x64.AppImage` |
 
 En Windows el instalador deja la app en `%LOCALAPPDATA%\Programs\CodArch`, sin pedir
-administrador, y permite cambiar la carpeta. En Linux el `.deb` instala la app en el sistema. Los
-releases incluyen `latest*.yml` y `.blockmap` para las actualizaciones (ADR 0045).
+administrador, y permite cambiar la carpeta. En Linux el `.deb` instala la app en el sistema y el
+AppImage se ejecuta sin instalar nada. Los releases incluyen `latest*.yml` y `.blockmap` para las
+actualizaciones (ADR 0045).
 
-No se publican ejecutables portables: ni el `.exe` portable de Windows ni el AppImage de Linux.
-Un portable no se instala y la app instalada no puede actualizarlo.
+El **AppImage** es el formato que se actualiza solo y sin permisos: al descargar una versión nueva
+ofrece **Reiniciar ahora** o esperar al cierre. El `.deb` sí pide la contraseña de administrador al
+actualizarse, como cualquier paquete del sistema. No se publica el `.exe` portable de Windows: no se
+instala y la app instalada no puede actualizarlo.
 
 macOS no se publica: sin firma ni notarización, Gatekeeper bloquea la app y el actualizador no
 puede aplicarla. Se reevaluará si algún día hay certificado.
