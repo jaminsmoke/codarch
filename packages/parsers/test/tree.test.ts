@@ -227,20 +227,26 @@ describe("analyzeTree · una pasada, el mismo resultado", () => {
     });
   }
 
-  it("da lo mismo fichero a fichero en el código del propio repositorio", () => {
-    const files = repoFiles();
-    expect(files.length).toBeGreaterThan(100);
+  // El repo entero, dos veces por fichero: es el test largo de verdad, y con la
+  // suite en paralelo roza los cinco segundos por defecto.
+  it(
+    "da lo mismo fichero a fichero en el código del propio repositorio",
+    () => {
+      const files = repoFiles();
+      expect(files.length).toBeGreaterThan(100);
 
-    for (const file of files) {
-      const source = fs.readFileSync(file, "utf8");
-      const relative = path.relative(process.cwd(), file).replaceAll("\\", "/");
-      // La ruta va dentro del valor para que el fallo diga qué fichero es.
-      expect({ file: relative, ...inOnePass(source, file) }).toEqual({
-        file: relative,
-        ...inThreePasses(source, file)
-      });
-    }
-  });
+      for (const file of files) {
+        const source = fs.readFileSync(file, "utf8");
+        const relative = path.relative(process.cwd(), file).replaceAll("\\", "/");
+        // La ruta va dentro del valor para que el fallo diga qué fichero es.
+        expect({ file: relative, ...inOnePass(source, file) }).toEqual({
+          file: relative,
+          ...inThreePasses(source, file)
+        });
+      }
+    },
+    20_000
+  );
 
   it("es determinista: dos pasadas dan lo mismo", () => {
     const source = SAMPLES[3]!.source;

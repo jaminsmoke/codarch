@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ConfigError } from "@codarch/metrics";
 import {
+  AnalysisSession,
   analyzeRepository,
   ensureGitignoreEntry,
   protectedRootReason,
@@ -106,7 +107,9 @@ export function runServe(options: ServeOptions): number {
   const startWatcher = (): string | null => {
     if (watcher) return null;
     try {
-      watcher = watchRepository(state.root, { onChange: () => refresh() });
+      watcher = watchRepository(state.root, {
+        onChange: (paths) => refresh(paths)
+      });
       return null;
     } catch (error) {
       watcher = null;
@@ -124,11 +127,24 @@ export function runServe(options: ServeOptions): number {
     clients.clear();
   };
 
-  const refresh = (): void => {
+  /**
+   * Reanaliza si el pulso trae algo nuevo (ADR 0056).
+   *
+   * Un `git add`, un guardado sin cambios o compilar en `dist/` no llegan
+   * aquí: la sesión los reconoce y contesta sin analizar.
+   */
+  const refresh = (hints: readonly string[] = []): void => {
     if (!state.watch) return;
     try {
-      const next = analyzeState(state.root, state.watch);
-      state = next;
+      const session = sessionFor(state.root);
+      const result = session.refresh(hints, {
+        git: true,
+        // El alcance se relee en cada análisis: guardar `.codarch.yml` también
+        // refresca el mapa (ADR 0038).
+        ignore: loadProjectIgnore(state.root)
+      });
+      if (!result) return;
+      state = stateFrom(state.root, result, state.watch);
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files
@@ -194,7 +210,6 @@ export function runServe(options: ServeOptions): number {
   });
 
   // El handler atrapa sus errores y el servidor no espera la promesa.
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- Node no espera el callback
   const server = http.createServer(async (request, response) => {
     try {
       const host = request.headers.host ?? `${options.host}:${options.port}`;
@@ -412,11 +427,39 @@ export function runServe(options: ServeOptions): number {
   return 0;
 }
 
+/**
+ * La sesión de análisis de cada raíz.
+ *
+ * El servidor vive mientras el usuario lo deja abierto: guardar un fichero
+ * reparsea solo lo que cambió, y un pulso sin cambios no analiza (ADR 0056).
+ */
+const sessions = new Map<string, AnalysisSession>();
+
+function sessionFor(root: string): AnalysisSession {
+  let session = sessions.get(root);
+  if (!session) {
+    session = new AnalysisSession(root, { git: true });
+    sessions.set(root, session);
+  }
+  return session;
+}
+
+/** Analiza la raíz entera: al arrancar, al cambiar de raíz y en los tests. */
 export function analyzeState(root: string, watch: boolean): AnalysisState {
   // El servidor comparte el alcance con el CLI (ADR 0038): se relee en cada
   // análisis, así que guardar `.codarch.yml` también refresca el mapa.
-  const ignore = loadProjectIgnore(root);
-  const result = analyzeRepository(root, { git: true, ignore });
+  const result = sessionFor(root).analyze([], {
+    git: true,
+    ignore: loadProjectIgnore(root)
+  });
+  return stateFrom(root, result, watch);
+}
+
+function stateFrom(
+  root: string,
+  result: ReturnType<typeof analyzeRepository>,
+  watch: boolean
+): AnalysisState {
   return {
     root,
     snapshot: result.snapshot,

@@ -176,6 +176,211 @@ export function collectGitChurn(
   };
 }
 
+/**
+ * El churn de la pasada anterior, mientras el historial no cambie.
+ *
+ * `git log --numstat` cuesta cientos de milisegundos y no cambia si no hay
+ * commit nuevo: la clave es `HEAD` **y** la lista de ficheros analizados, que es
+ * lo que decide qué commits cuentan. Con un fichero nuevo o borrado se rehace,
+ * porque entonces cambia la respuesta (ADR 0056).
+ */
+export class ChurnCache {
+  private readonly entries = new Map<
+    string,
+    { head: string; files: string; result: GitChurnResult }
+  >();
+  private hits = 0;
+  private misses = 0;
+
+  get(root: string, files: readonly string[], head: string): GitChurnResult | null {
+    const entry = this.entries.get(root);
+    if (!entry || entry.head !== head) {
+      this.misses++;
+      return null;
+    }
+    if (entry.files !== files.join("\n")) {
+      this.misses++;
+      return null;
+    }
+    this.hits++;
+    return entry.result;
+  }
+
+  set(
+    root: string,
+    files: readonly string[],
+    head: string,
+    result: GitChurnResult
+  ): void {
+    this.entries.set(root, { head, files: files.join("\n"), result });
+  }
+
+  /** Aciertos y fallos: lo usan los tests y los diagnósticos. */
+  stats(): { hits: number; misses: number } {
+    return { hits: this.hits, misses: this.misses };
+  }
+}
+
+/**
+ * Qué ve git distinto de `HEAD`, para no reanalizar por ruido.
+ *
+ * `git status --porcelain=v2` contesta en decenas de milisegundos y trae la
+ * lista exacta: modificados, altas, bajas, renombrados (con las dos rutas) y
+ * sin seguimiento. Lo que git ignora no aparece, y eso es justo lo que el mapa
+ * también ignora: compilar en `dist/` ya no dispara un análisis (ADR 0056).
+ */
+export type GitChangeKind =
+  | "modified"
+  | "added"
+  | "deleted"
+  | "renamed"
+  | "untracked"
+  | "conflict";
+
+export interface GitChange {
+  /** Ruta relativa a la raíz analizada, con `/`. */
+  path: string;
+  kind: GitChangeKind;
+}
+
+export interface GitStatus {
+  /** `false` fuera de un repo, o si git no está instalado. */
+  available: boolean;
+  /** El commit actual; `null` en un repo sin commits todavía. */
+  head: string | null;
+  changes: GitChange[];
+  warnings: string[];
+}
+
+/**
+ * El estado del árbol de trabajo según git.
+ *
+ * `--no-optional-locks` importa: sin él, `git status` puede escribir el índice
+ * y despertar a nuestro propio vigilante, que es un bucle de análisis gratis.
+ */
+export function gitStatus(rootInput: string): GitStatus {
+  const root = realPath(rootInput);
+  const result = runGit(
+    root,
+    [
+      "--no-optional-locks",
+      "status",
+      "--porcelain=v2",
+      "--branch",
+      "--untracked-files=all",
+      "-z"
+    ],
+    64 * 1024 * 1024
+  );
+  if (!result.ok) {
+    return {
+      available: false,
+      head: null,
+      changes: [],
+      warnings: [`no se pudo leer el estado de git: ${result.error}`]
+    };
+  }
+  const parsed = parseGitStatus(result.stdout);
+  return { available: true, ...parsed, warnings: [] };
+}
+
+/**
+ * Traduce el `-z` de `--porcelain=v2`.
+ *
+ * Los registros van separados por NUL y un renombrado ocupa **dos**: el nuevo
+ * camino y, en el registro siguiente, el viejo. Con `-z` los caminos no van
+ * entrecomillados, así que pueden llevar espacios y tildes tal cual.
+ */
+function parseGitStatus(output: string): {
+  head: string | null;
+  changes: GitChange[];
+} {
+  const records = output.split("\0");
+  const changes: GitChange[] = [];
+  let head: string | null = null;
+
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
+    if (!record) continue;
+
+    if (record.startsWith("#")) {
+      if (record.startsWith("# branch.oid ")) {
+        const value = record.slice("# branch.oid ".length).trim();
+        head = value && value !== "(initial)" ? value : null;
+      }
+      continue;
+    }
+
+    const kind = record[0];
+    if (kind === "1") {
+      changes.push({
+        path: normalizeGitPath(tail(record, 8)),
+        kind: changeKind(record[2], record[3])
+      });
+      continue;
+    }
+    if (kind === "2") {
+      const path = normalizeGitPath(tail(record, 9));
+      changes.push({ path, kind: "renamed" });
+      const from = normalizeGitPath(records[index + 1] ?? "");
+      if (from) {
+        // El camino viejo ya no existe: cuenta como baja para el árbol.
+        changes.push({ path: from, kind: "deleted" });
+        index += 1;
+      }
+      continue;
+    }
+    if (kind === "u") {
+      changes.push({
+        path: normalizeGitPath(tail(record, 10)),
+        kind: "conflict"
+      });
+      continue;
+    }
+    if (kind === "?") {
+      changes.push({
+        path: normalizeGitPath(record.slice(2)),
+        kind: "untracked"
+      });
+      continue;
+    }
+    // `!` es lo ignorado: nunca entra en el mapa.
+  }
+
+  return { head, changes };
+}
+
+/** El campo X/Y de un registro `1`: `D` manda sobre el resto. */
+function changeKind(staged: string | undefined, worktree: string | undefined): GitChangeKind {
+  if (staged === "D" || worktree === "D") return "deleted";
+  if (staged === "A") return "added";
+  return "modified";
+}
+
+/** Lo que queda después de los primeros `fields` campos separados por espacios. */
+function tail(record: string, fields: number): string {
+  let index = 0;
+  for (let seen = 0; seen < fields; seen++) {
+    index = record.indexOf(" ", index);
+    if (index === -1) return "";
+    index += 1;
+  }
+  return record.slice(index);
+}
+
+/** Git siempre escribe `/`, también en Windows. */
+function normalizeGitPath(value: string): string {
+  return value.split("\\").join("/");
+}
+
+/** El commit actual, o `null` si el directorio no es un repo con commits. */
+export function gitHead(rootInput: string): string | null {
+  const result = runGit(realPath(rootInput), ["rev-parse", "HEAD"], 1024 * 1024);
+  if (!result.ok) return null;
+  const head = result.stdout.trim();
+  return head === "" ? null : head;
+}
+
 interface GitRunResult {
   ok: boolean;
   stdout: string;

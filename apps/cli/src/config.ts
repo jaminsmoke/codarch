@@ -1,14 +1,9 @@
-import { existsSync } from "node:fs";
 import path from "node:path";
-import { loadIgnoreConfig } from "@codarch/metrics";
+import { findProjectConfig, loadIgnoreConfig } from "@codarch/metrics";
 
 /** El `.codarch.yml` de una raíz de análisis, si existe. */
 export function defaultConfigPath(root = "."): string | undefined {
-  for (const file of [".codarch.yml", ".codarch.yaml"]) {
-    const candidate = path.resolve(root, file);
-    if (existsSync(candidate)) return candidate;
-  }
-  return undefined;
+  return findProjectConfig(root);
 }
 
 /**

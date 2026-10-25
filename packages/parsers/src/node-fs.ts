@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { DirectoryEntry, FileSystem } from "./fs";
+import type { DirectoryEntry, FileSystem, FileVersion } from "./fs";
 
 /**
  * Puerto de sistema de ficheros sobre `node:fs`.
@@ -43,6 +43,16 @@ export class NodeFileSystem implements FileSystem {
 
   exists(target: string): boolean {
     return fs.existsSync(this.native(target));
+  }
+
+  stat(target: string): FileVersion | null {
+    try {
+      const stats = fs.statSync(this.native(target));
+      if (!stats.isFile()) return null;
+      return { size: stats.size, mtimeMs: stats.mtimeMs };
+    } catch {
+      return null;
+    }
   }
 
   /** Ruta real en disco de una ruta virtual. */

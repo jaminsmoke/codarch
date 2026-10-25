@@ -29,6 +29,20 @@ export interface FileSystem {
   readDirectory(path: string): DirectoryEntry[];
   /** ¿Existe esta ruta? */
   exists(path: string): boolean;
+  /**
+   * Versión barata de un fichero: tamaño y fecha.
+   *
+   * La usa el análisis incremental para no volver a parsear lo que no cambió
+   * (ADR 0056). Es opcional: un puerto que no la sepa (memoria, navegador)
+   * simplemente analiza entero, que es lo que hace hoy.
+   */
+  stat?(path: string): FileVersion | null;
+}
+
+/** Con qué se decide si un fichero hay que volver a parsearlo. */
+export interface FileVersion {
+  size: number;
+  mtimeMs: number;
 }
 
 /** Ruta del directorio de un fichero virtual. */

@@ -1,7 +1,8 @@
 import { basename } from "node:path";
 import { analyzeFiles, type AnalyzeCoreResult } from "./analyze-core";
+import type { ParseCache } from "./cache";
 import type { FileSystem } from "./fs";
-import { collectGitChurn } from "./git";
+import { ChurnCache, collectGitChurn, gitHead } from "./git";
 import { NodeFileSystem } from "./node-fs";
 import { TypeScriptParser } from "./ts/parser";
 
@@ -23,6 +24,16 @@ export interface AnalyzeOptions {
   fileSystem?: FileSystem;
   /** Raíz virtual del análisis. */
   root?: string;
+  /**
+   * El parseo de la vez anterior, para reanalizar solo lo que cambió
+   * (ADR 0056). Sin caché, el análisis es completo.
+   */
+  cache?: ParseCache;
+  /**
+   * El churn de la vez anterior. Lo pasan los procesos que viven —el del
+   * escritorio y `serve`—; el CLI analiza una vez y no lo necesita.
+   */
+  churnCache?: ChurnCache;
 }
 
 export interface GitSummary {
@@ -60,8 +71,14 @@ export function analyzeRepository(
     ignore: options.ignore,
     extensions: options.extensions,
     parser: new TypeScriptParser(),
+    cache: options.cache,
     churn: (relativePaths) => {
-      const git = collectGitChurn(rootInput, relativePaths, { enabled: useGit });
+      const git = churnWithCache(
+        rootInput,
+        relativePaths,
+        useGit,
+        options.churnCache
+      );
       return {
         metrics: git.metrics,
         warnings: git.warnings,
@@ -83,4 +100,26 @@ export function analyzeRepository(
       shallow: churn?.shallow ?? false
     }
   };
+}
+
+/** El churn, de la caché si el historial y los ficheros no cambiaron. */
+function churnWithCache(
+  root: string,
+  files: readonly string[],
+  enabled: boolean,
+  cache: ChurnCache | undefined
+) {
+  if (!cache || !enabled) {
+    return collectGitChurn(root, files, { enabled });
+  }
+  const head = gitHead(root);
+  // Sin commit actual no hay clave fiable: se mide y no se guarda.
+  if (!head) return collectGitChurn(root, files, { enabled });
+
+  const cached = cache.get(root, files, head);
+  if (cached) return cached;
+
+  const measured = collectGitChurn(root, files, { enabled });
+  if (measured.enabled) cache.set(root, files, head, measured);
+  return measured;
 }

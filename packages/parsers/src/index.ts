@@ -22,8 +22,21 @@ export type {
   ChurnMetric,
   ChurnResult
 } from "./analyze-core";
-export { collectGitChurn } from "./git";
-export type { GitChurnFile, GitChurnOptions, GitChurnResult } from "./git";
+export { ChurnCache, collectGitChurn, gitHead, gitStatus } from "./git";
+export type {
+  GitChange,
+  GitChangeKind,
+  GitChurnFile,
+  GitChurnOptions,
+  GitChurnResult,
+  GitStatus
+} from "./git";
+export { ChangeGate, isLiveIgnored } from "./pulse";
+export type { Pulse } from "./pulse";
+export { AnalysisSession } from "./session";
+export type { SessionOptions } from "./session";
+export { ParseCache } from "./cache";
+export type { CachedParse } from "./cache";
 export { buildSnapshot } from "./snapshot";
 export type { SnapshotFile, SnapshotInput } from "./snapshot";
 export {
@@ -47,12 +60,14 @@ export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
 export { protectedRootReason, type RootGuardOptions } from "./safety";
 export {
+  GIT_CHANGED,
   watchRepository,
   type RepositoryWatcher,
+  type WatchMode,
   type WatchRepositoryOptions
 } from "./watch";
 export { MemoryFileSystem, directoryOf } from "./fs";
-export type { DirectoryEntry, FileSystem } from "./fs";
+export type { DirectoryEntry, FileSystem, FileVersion } from "./fs";
 export { NodeFileSystem } from "./node-fs";
 export * as path from "./path";
 export type {

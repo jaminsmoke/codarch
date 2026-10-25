@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { fileId } from "@codarch/schema";
-import { analyzeRepository, collectGitChurn } from "../src/index";
+import { ChurnCache, analyzeRepository, collectGitChurn } from "../src/index";
 
 const tempRoots: string[] = [];
 
@@ -132,6 +132,67 @@ describe("collectGitChurn", () => {
     expect(churn.enabled).toBe(false);
     expect(churn.metrics.size).toBe(0);
     expect(churn.warnings.join("\n")).toContain("no hay historial git");
+  });
+});
+
+describe("la caché de churn", () => {
+  it("reutiliza el churn mientras HEAD y los ficheros no cambien", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    const cache = new ChurnCache();
+    const primero = analyzeRepository(root, { churnCache: cache });
+    expect(cache.stats()).toEqual({ hits: 0, misses: 1 });
+
+    const segundo = analyzeRepository(root, { churnCache: cache });
+    expect(cache.stats()).toEqual({ hits: 1, misses: 1 });
+    expect(segundo.snapshot).toEqual(primero.snapshot);
+  });
+
+  it("se rehace con un commit nuevo y da el mismo snapshot que sin caché", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    const cache = new ChurnCache();
+    analyzeRepository(root, { churnCache: cache });
+    fs.writeFileSync(
+      path.join(root, "src", "a.ts"),
+      "export const a = 2;\n",
+      "utf8"
+    );
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "segundo"]);
+
+    const conCache = analyzeRepository(root, { churnCache: cache });
+    expect(cache.stats()).toEqual({ hits: 0, misses: 2 });
+    expect(conCache.git.commits).toBe(2);
+    expect(conCache.snapshot).toEqual(analyzeRepository(root).snapshot);
+  });
+
+  it("se rehace cuando cambia la lista de ficheros", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    const cache = new ChurnCache();
+    analyzeRepository(root, { churnCache: cache });
+    fs.writeFileSync(
+      path.join(root, "src", "c.ts"),
+      "export const c = 3;\n",
+      "utf8"
+    );
+
+    const conAlta = analyzeRepository(root, { churnCache: cache });
+    expect(cache.stats()).toEqual({ hits: 0, misses: 2 });
+    expect(conAlta.snapshot).toEqual(analyzeRepository(root).snapshot);
   });
 });
 

@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { CONFIG_VERSION } from "@codarch/versions";
 import { parse as parseYaml } from "yaml";
 import { findDomainProfile, domainProfileIds, type DomainProfile } from "./profiles";
@@ -357,6 +358,27 @@ export function loadRuleConfig(
 /** Solo el alcance: para quien analiza antes de tener reglas o addons. */
 export function loadIgnoreConfig(file: string): string[] {
   return withFile(file, parseIgnoreConfig);
+}
+
+/** El `.codarch.yml` de una raíz, si lo tiene. */
+export function findProjectConfig(root: string): string | undefined {
+  for (const file of [".codarch.yml", ".codarch.yaml"]) {
+    const candidate = path.resolve(root, file);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return undefined;
+}
+
+/**
+ * El alcance que el propio repositorio declara (ADR 0038).
+ *
+ * Lo usan todos los que analizan —CLI, `serve` y el escritorio—: el mismo
+ * `.codarch.yml` tiene que dar el mismo conjunto de ficheros, o el checksum de
+ * un sitio no cuadra con el de otro.
+ */
+export function loadProjectIgnore(root: string): string[] {
+  const file = findProjectConfig(root);
+  return file ? loadIgnoreConfig(file) : [];
 }
 
 function withFile<T>(file: string, read: (value: unknown) => T): T {

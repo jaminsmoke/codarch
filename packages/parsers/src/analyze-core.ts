@@ -3,6 +3,7 @@ import {
   type CcJson,
   type CcMigrationSummary
 } from "@codarch/schema/browser";
+import type { ParseCache } from "./cache";
 import type { FileSystem } from "./fs";
 import { buildGraph, type DependencyLink } from "./graph";
 import {
@@ -54,6 +55,13 @@ export interface AnalyzeCoreOptions {
   /** Parser de TS/JS: nativo en el CLI, WASM en el navegador. */
   parser: SourceParser;
   /**
+   * El parseo de la vez anterior, si hay (ADR 0056).
+   *
+   * Un puerto sin `stat` (el navegador) no la usa: analiza entero, que es lo
+   * que hace hoy porque analiza una vez la carpeta que se elige.
+   */
+  cache?: ParseCache;
+  /**
    * Métricas de historial por ruta relativa.
    *
    * El navegador no tiene git, así que no lo pasa: su snapshot sale sin
@@ -104,6 +112,8 @@ export interface AnalyzeCoreResult {
   migration: CcMigrationSummary;
   /** Resumen del historial, si lo hubo. */
   churn: ChurnResult | null;
+  /** Ficheros reutilizados de la caché y ficheros parseados de nuevo. */
+  cache: { hits: number; misses: number };
   durationMs: number;
 }
 
@@ -126,6 +136,8 @@ export function analyzeFiles(
     extensions: options.extensions ?? MIGRATION_EXTENSIONS
   });
   const warnings = [...walked.warnings];
+  // Los ficheros borrados no ocupan sitio en la caché.
+  options.cache?.retain(walked.files.map((file) => file.relativePath));
   const resolver = new ImportResolver(root, walked.files, fileSystem);
   warnings.push(...resolver.warnings);
 
@@ -139,6 +151,8 @@ export function analyzeFiles(
   let builtinImports = 0;
   let typeOnlyImports = 0;
   let processed = 0;
+  let cacheHits = 0;
+  let cacheMisses = 0;
 
   for (const file of walked.files) {
     processed += 1;
@@ -168,16 +182,25 @@ export function analyzeFiles(
       continue;
     }
 
-    let source: string;
-    try {
-      source = fileSystem.readFile(file.absolutePath);
-    } catch (error) {
-      warnings.push(
-        `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
-      );
-      continue;
+    // Si la versión no cambió, se reutiliza el parseo y no se lee el fichero.
+    const version = versionOf(fileSystem, file.absolutePath);
+    const cached = version
+      ? (options.cache?.get(file.relativePath, version) ?? null)
+      : null;
+
+    let source = "";
+    if (!cached) {
+      try {
+        source = fileSystem.readFile(file.absolutePath);
+      } catch (error) {
+        warnings.push(
+          `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
+        );
+        continue;
+      }
     }
 
+    // Rust se mide en cada pasada: son pocos ficheros y su medida es barata.
     if (language === "rust") {
       const measured = measureRustSource(source);
       parsedFiles.push({
@@ -197,13 +220,28 @@ export function analyzeFiles(
     }
 
     let parsed;
-    try {
-      parsed = parser.parse(source, file.relativePath);
-    } catch (error) {
-      warnings.push(
-        `no se pudo analizar ${file.relativePath}: ${(error as Error).message}`
+    let bridge: boolean;
+    if (cached) {
+      parsed = cached.parsed;
+      bridge = cached.bridge;
+      cacheHits++;
+    } else {
+      try {
+        parsed = parser.parse(source, file.relativePath);
+      } catch (error) {
+        warnings.push(
+          `no se pudo analizar ${file.relativePath}: ${(error as Error).message}`
+        );
+        continue;
+      }
+      bridge = jsIsBridge(
+        source,
+        parsed.imports.map((imported) => imported.specifier)
       );
-      continue;
+      cacheMisses++;
+      if (version && options.cache) {
+        options.cache.set(file.relativePath, { version, parsed, bridge });
+      }
     }
 
     let fileExternalImports = 0;
@@ -268,10 +306,7 @@ export function analyzeFiles(
       rloc: parsed.metrics.rloc ?? 0,
       maxComplexity: parsed.metrics.maxComplexity ?? 0,
       fanIn: 0,
-      bridge: jsIsBridge(
-        source,
-        parsed.imports.map((imported) => imported.specifier)
-      )
+      bridge
     });
   }
 
@@ -353,8 +388,15 @@ export function analyzeFiles(
     unresolvedImports: unresolved.length,
     migration: migration.summary,
     churn: churnResult,
+    cache: { hits: cacheHits, misses: cacheMisses },
     durationMs: Date.now() - started
   };
+}
+
+/** La versión del fichero, si el puerto sabe darla. */
+function versionOf(fileSystem: FileSystem, absolutePath: string): string | null {
+  const version = fileSystem.stat?.(absolutePath);
+  return version ? `${version.size}:${version.mtimeMs}` : null;
 }
 
 function readProjectName(

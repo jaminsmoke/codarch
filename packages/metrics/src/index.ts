@@ -2,7 +2,9 @@ export { CONFIG_VERSION } from "@codarch/versions";
 export { ConfigError, parseIgnoreConfig } from "./scope";
 export {
   ADDON_NAME,
+  findProjectConfig,
   loadIgnoreConfig,
+  loadProjectIgnore,
   loadRuleConfig,
   parseLayerList,
   parseProfileEntry,
