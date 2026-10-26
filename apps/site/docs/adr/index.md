@@ -100,6 +100,7 @@ flowchart TD
 | [0077](0071-0080/0077-el-diff-al-abrir-el-fichero.md) | El diff, al abrir el fichero | 2026-10-26 | aceptado | M58 |
 | [0078](0071-0080/0078-el-balance-de-deuda.md) | El balance de deuda | 2026-10-26 | aceptado | M59 |
 | [0079](0071-0080/0079-el-inspector-con-barra-de-actividad.md) | El inspector con barra de actividad | 2026-10-26 | aceptado | M60 |
+| [0080](0071-0080/0080-usar-y-construir.md) | Usar CodArch y cómo se construye | 2026-10-26 | aceptado | — |
 
 ## Las carpetas
 
@@ -112,6 +113,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0041-0050**: 0041, 0042, 0043, 0044, 0045, 0046, 0047, 0048, 0049
 - **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
-- **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079
+- **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](roadmap.md).

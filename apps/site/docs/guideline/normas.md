@@ -51,6 +51,14 @@ Y una entrada se **declara**: no se deduce del veredicto.
 - Los **plugins** tienen su propia hoja de ruta (dentro de su carpeta), porque son piezas
   aparte: el sistema de plugins no crece con cada plugin.
 
+## Dónde va cada documento
+- **Usar CodArch** (`section: producto`): lo que necesita quien instala y usa CodArch. Las páginas
+  nuevas van en `docs/usar/` y cada comando del CLI en `docs/usar/cli/` (ADR 0080).
+- **Cómo se construye** (`section: construir`): roadmap, modelo, diseño y migración; los ADR llevan
+  `section: adr` en su carpeta de diez.
+- **La guía**: ideas, arreglos y el registro de lo hecho, en `docs/guideline/entradas/`.
+- Cada página nueva lleva su gemela en `docs/en/` con la misma ruta relativa.
+
 ## Cómo se coloca una idea aquí
 1. Crear un fichero en `docs/guideline/entradas/` llamado `AAAA-MM-DD-NN-titulo.md`. El `NN` ordena
    las entradas del día; el título, en kebab-case, da el ancla.

@@ -51,6 +51,14 @@ in that order. And an entry **declares** its category: it is not inferred from t
 - **Plugins** have their own roadmap (inside their folder), because they are separate pieces: the
   plugin system does not grow with each plugin.
 
+## Where each document goes
+- **Using CodArch** (`section: producto`): what someone installing and using CodArch needs. New
+  pages go in `docs/usar/` and each CLI command in `docs/usar/cli/` (ADR 0080).
+- **How it is built** (`section: construir`): roadmap, model, design and migration; ADRs carry
+  `section: adr` in their folder of ten.
+- **The guide**: ideas, fixes and the record of what was done, in `docs/guideline/entradas/`.
+- Every new page carries its twin in `docs/en/` with the same relative path.
+
 ## How an idea is placed here
 1. Create a file in `docs/guideline/entradas/` named `YYYY-MM-DD-NN-title.md`. The `NN` orders the
    entries of the day; the title, in kebab-case, gives the anchor.

@@ -13,7 +13,7 @@ packages/   schema · parsers · metrics · layouts · render · plugin-api · a
 apps/       cli · mcp · github-action · web · desktop · site
 plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
 apps/site/docs/   adr/ (carpetas de diez: 0001-0010 … 0061-0070, con roadmap.md dentro) · model.md ·
-                  rules.md · mcp.md · migration.md · guideline/
+                  usar/ · rules.md · mcp.md · migration.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · desktop-release · auto-release · check-action
 ```
 
@@ -75,6 +75,10 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
    `description`, `section`, `sidebar`; en los ADR, `status` y `date`). Añadir el fichero basta para
    que salga en la web (ADR 0046) y el build falla si el esquema no cuadra. La guía es otra
    colección: `title`, `date`, `category` y `verdict` por idea, sin sidecars (ADR 0047).
+   **Dónde va cada uno** (ADR 0080): lo de uso (instalación, CLI, apps, reglas, acción, FAQ) va en
+   `docs/usar/` con `section: producto` y sale en «Usar CodArch»; lo de diseño (roadmap, modelo,
+   mapa, migración) lleva `section: construir` y sale en «Cómo se construye», junto a los ADR
+   (`section: adr`) y la guía. Cada página nueva lleva su gemela en `docs/en/`.
 7. **MCP.** El cliente lanza `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
 8. **Acción.** La fuente es `apps/github-action` y se usa por subruta
