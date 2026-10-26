@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { ConfigError } from "@codarch/metrics";
+import { ConfigError, type DiffReport } from "@codarch/metrics";
 import {
   analyzeRepo,
   ensureGitignoreEntry,
@@ -313,13 +313,7 @@ export function runServe(options: ServeOptions): number {
       }
 
       if (pathname === "/data/head-report.json") {
-        // Lo tocado desde el último commit (ADR 0072). Lo calcula el servidor,
-        // que tiene git; el fichero del escritorio es el respaldo si el cálculo
-        // no es posible (un repo sin commits, por ejemplo).
-        const warnings: string[] = [];
-        const computed = headReportFor(state.root, warnings);
-        for (const warning of warnings) console.error(`  ${warning}`);
-        const head = computed ?? readCodarchJson(state.root, "head-report.json");
+        const head = computeHeadReport(state.root);
         if (head === null) {
           response.writeHead(204, {
             "Cache-Control": "no-store",
@@ -564,6 +558,22 @@ function originAllowed(
 
 function readReport(root: string): unknown | null {
   return readCodarchJson(root, "report.json");
+}
+
+/**
+ * Lo tocado desde el último commit, tal como lo sirve la app (ADR 0072).
+ *
+ * Lo calcula el servidor, que tiene git; el `.codarch/head-report.json` del
+ * escritorio es el respaldo cuando el cálculo no es posible —un repo sin
+ * commits, por ejemplo—. El escritorio manda el suyo desde su proceso de
+ * análisis, y un test comprueba que las dos plataformas dicen lo mismo sobre
+ * el mismo árbol.
+ */
+export function computeHeadReport(root: string): DiffReport | null {
+  const warnings: string[] = [];
+  const computed = headReportFor(root, warnings);
+  for (const warning of warnings) console.error(`  ${warning}`);
+  return computed ?? (readCodarchJson(root, "head-report.json") as DiffReport | null);
 }
 
 /** Un JSON de `.codarch/`, o `null` si falta o no se puede leer. */
