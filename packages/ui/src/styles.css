@@ -1146,7 +1146,10 @@ button {
   margin: 6px 0 14px;
   font: 650 27px/1.08 var(--display);
   letter-spacing: -0.03em;
-  overflow-wrap: anywhere;
+  /* `anywhere` partía «CollapsibleSection.tsx» a mitad de palabra y dejaba un
+     «sx» colgando. La cabecera marca el punto de la extensión con `<wbr>` y
+     solo parte ahí cuando no cabe. */
+  overflow-wrap: break-word;
 }
 
 .inspector-path {
@@ -1220,6 +1223,24 @@ button {
   margin-top: 3px;
   font: 600 18px/1 var(--display);
   letter-spacing: -0.02em;
+}
+
+/* El galón de un desplegable: la misma caja en toda la app (ADR 0079).
+   Vale para una sección, un grupo de símbolos, un fichero del cambio o un
+   símbolo que enseña su código, y toma el tinte del sitio donde vive: el del
+   estado de la fila si lo hay y, si no, el de la sección. */
+.caret {
+  --caret-tint: var(--row-tint, var(--section-tint, var(--muted)));
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid color-mix(in srgb, var(--caret-tint) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--caret-tint) 8%, transparent);
+  color: var(--caret-tint);
+  font: 11px/1 var(--mono);
 }
 
 /* Las secciones plegables (ADR 0061). El título es un botón: en negrita,
@@ -1304,9 +1325,9 @@ button {
   --section-tint: var(--ink);
 }
 
-/* Cualquier sección de primer nivel lleva su punto, del color que declare con
-   `--section-tint`; los grupos plegados dentro de Símbolos se quedan sin él. */
-.collapsible:not(.symbol-group) > .collapsible-head::before {
+/* Cada sección lleva su punto, del color que declare con `--section-tint`; los
+   grupos de símbolos también, como cualquier plegable de la ficha. */
+.collapsible > .collapsible-head::before {
   content: "";
   flex: 0 0 auto;
   width: 5px;
@@ -1320,17 +1341,25 @@ button {
   outline-offset: 1px;
 }
 
-.collapsible-chevron {
-  display: inline-flex;
-  color: var(--muted);
-  transition: transform 120ms ease;
+/* El galón cierra la cabecera: el mismo control que el de una fila de Cambios.
+   Con resumen a la derecha, el resumen se lleva el hueco y el galón le sigue. */
+.collapsible-caret {
+  margin-left: auto;
 }
 
-.collapsible.is-closed .collapsible-chevron svg {
-  transform: rotate(-90deg);
+.collapsible-summary + .collapsible-caret {
+  margin-left: 8px;
+}
+
+.collapsible-head:hover .collapsible-caret {
+  background: color-mix(in srgb, var(--caret-tint) 20%, transparent);
 }
 
 .collapsible-title {
+  /* El título no encoge: primero se recorta el resumen, que tiene su elipsis.
+     Con `min-width:0` en los dos, el título perdía letras antes que el resumen. */
+  flex: 0 0 auto;
+  max-width: 62%;
   min-width: 0;
   overflow: hidden;
   font: 600 12px/1.2 var(--sans);
@@ -1349,6 +1378,8 @@ button {
 }
 
 .collapsible-summary {
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 55%;
   margin-left: auto;
   overflow: hidden;
@@ -1426,13 +1457,13 @@ button {
 
 .card-head-symbols {
   grid-template-columns: minmax(0, 1fr) 34px 62px;
-  /* La columna del chevron y el gap: así la cabecera cierra donde las filas. */
-  padding-right: 24px;
+  /* La columna del galón y el gap: así la cabecera cierra donde las filas. */
+  padding-right: 32px;
 }
 
 .card-head-members {
   grid-template-columns: 40px minmax(0, 1fr) 34px;
-  padding-right: 24px;
+  padding-right: 32px;
 }
 
 .card-note {
@@ -1448,8 +1479,11 @@ button {
 .metrics-head,
 .metrics-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px 52px;
-  gap: 8px;
+  /* La columna del nombre manda: con 54/52 «Nivel de dependencia» perdía
+     letras. Cada fila es su propia rejilla, así que el valor va fijo: con
+     `auto` la barra cambiaba de sitio en cada fila. «100/100» mide 42. */
+  grid-template-columns: minmax(0, 1fr) 46px 44px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -1500,6 +1534,17 @@ button {
   background: rgba(47, 111, 237, 0.07);
 }
 
+/* La métrica que decide el área del mapa se pinta entera: sin insignia, el
+   verde dice cuál manda en el tamaño. Si además es la del color, conserva la
+   muesca azul de la izquierda. */
+.metrics-row.is-area {
+  background: color-mix(in srgb, var(--patina) 14%, transparent);
+}
+
+.metrics-row.is-area:hover {
+  background: color-mix(in srgb, var(--patina) 22%, transparent);
+}
+
 .metrics-label {
   display: flex;
   align-items: center;
@@ -1522,18 +1567,6 @@ button {
   color: var(--muted);
   font: 600 8px/1 var(--mono);
   cursor: help;
-}
-
-.metrics-area {
-  flex: none;
-  padding: 0 4px;
-  border: 1px solid var(--line-strong);
-  border-radius: 2px;
-  font: 500 8px/1.6 var(--mono);
-  font-style: normal;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
 }
 
 .metrics-bar {
@@ -2047,42 +2080,29 @@ button {
   padding-top: 2px;
 }
 
-.symbol-group + .symbol-group {
-  margin-top: 4px;
+/* Cada grupo de símbolos es un plegable más, con el mismo tamaño y el mismo
+   punto que las secciones: antes era una tira de 8,5 px en versalitas y
+   desentonaba con los de Cambios (ADR 0067). El color del tipo vive en el
+   punto, no en el título. */
+.symbol-group-function {
+  --section-tint: var(--cobalt);
 }
 
-/* Cada grupo de símbolos es una sección plegable (ADR 0067). */
-.symbol-group.collapsible {
-  margin-top: 6px;
+.symbol-group-class {
+  --section-tint: var(--rust);
 }
 
-.symbol-group > .collapsible-head {
-  padding: 4px 6px 3px;
-  border-top: 0;
+.symbol-group-interface,
+.symbol-group-type {
+  --section-tint: var(--patina);
 }
 
-.symbol-group > .collapsible-head .collapsible-title {
-  font: 500 8.5px/1.2 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+.symbol-group-enum {
+  --section-tint: var(--violet);
 }
 
-.symbol-group-function > .collapsible-head .collapsible-title {
-  color: var(--cobalt);
-}
-
-.symbol-group-class > .collapsible-head .collapsible-title {
-  color: var(--rust);
-}
-
-.symbol-group-interface > .collapsible-head .collapsible-title,
-.symbol-group-type > .collapsible-head .collapsible-title {
-  color: var(--patina);
-}
-
-.symbol-group-enum > .collapsible-head .collapsible-title {
-  color: var(--violet);
+.symbol-group-variable {
+  --section-tint: #64748b;
 }
 
 .symbol-group > .collapsible-body {
@@ -2258,7 +2278,7 @@ button {
 
 .symbol-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px 62px 10px;
+  grid-template-columns: minmax(0, 1fr) 34px 62px 18px;
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -2270,19 +2290,6 @@ button {
   color: var(--ink-soft);
   cursor: pointer;
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
-}
-
-.symbol-row::after,
-.member-row::after {
-  content: "\25B8";
-  color: var(--muted);
-  font-size: 8px;
-  text-align: center;
-}
-
-.symbol-row.is-open::after,
-.member-row.is-open::after {
-  content: "\25BE";
 }
 
 .symbol-row:hover {
@@ -2449,6 +2456,67 @@ button {
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
 }
 
+/* Los nombres de un import van en su propia línea: en la columna de 96 px solo
+   se veía el primero y el resto se cortaba por la mitad. La fuente y sus
+   etiquetas se quedan arriba; los nombres usan el ancho entero. */
+.surface-row-imports {
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "dir source tags"
+    "dir names names";
+  row-gap: 3px;
+  align-items: start;
+}
+
+.surface-row-imports .surface-dir {
+  grid-area: dir;
+  padding-top: 2px;
+}
+
+.surface-row-imports .surface-source {
+  grid-area: source;
+}
+
+.surface-row-imports .surface-tags {
+  grid-area: tags;
+}
+
+.surface-row-imports .surface-names {
+  grid-area: names;
+  flex-wrap: wrap;
+  overflow: visible;
+  white-space: normal;
+  gap: 4px;
+}
+
+/* En una exportación manda el nombre: la ficha no encoge y el «desde …» cede.
+   Antes la columna del detalle se reservaba su 1fr aunque estuviera vacía y
+   dejaba el nombre en 103 px, recortado. */
+.surface-row-exports {
+  display: flex;
+  gap: 7px;
+}
+
+.surface-row-exports .surface-dir {
+  flex: none;
+  width: 12px;
+}
+
+.surface-row-exports .surface-name {
+  flex: 0 0 auto;
+}
+
+.surface-row-exports .surface-detail {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.surface-row-exports .surface-tags {
+  flex: none;
+  margin-left: auto;
+}
+
 .surface-dir {
   color: var(--patina);
   font: 600 10px/1 var(--mono);
@@ -2514,7 +2582,7 @@ button {
 
 .member-row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 34px 10px;
+  grid-template-columns: 40px minmax(0, 1fr) 34px 18px;
   gap: 8px;
   align-items: center;
   width: 100%;
@@ -3034,29 +3102,23 @@ button {
   cursor: default;
 }
 
-/* El galón del desplegable: hermano de la ruta, nunca hijo. Se ve antes de
-   pasar el ratón, porque un galón de 8 px había que adivinarlo. */
+/* El galón del desplegable: hermano de la ruta, nunca hijo. La caja es la de
+   `.caret`, con el tinte del estado de la fila y su propio cursor. */
 .file-ahead {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--row-tint) 38%, transparent);
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--row-tint) 8%, transparent);
-  color: var(--row-tint);
-  font: 11px/1 var(--mono);
   cursor: pointer;
 }
 
-.file-ahead:hover {
-  background: color-mix(in srgb, var(--row-tint) 22%, transparent);
+.file-ahead:hover .caret {
+  background: color-mix(in srgb, var(--caret-tint) 20%, transparent);
 }
 
 /* El hueco de una fila sin interior: reserva la columna y no promete nada. */
 .file-ahead.is-empty {
-  border-color: transparent;
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 0;
   background: transparent;
   cursor: default;
 }

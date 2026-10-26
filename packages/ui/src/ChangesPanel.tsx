@@ -13,7 +13,7 @@ import {
   type ChangeFileSymbols,
   type ChangeSymbol
 } from "./changeFiles";
-import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
+import { Caret, CollapsibleSection, GroupHead } from "./CollapsibleSection";
 import { CHURN_METRIC } from "./labels";
 import { balanceSummary, debtBalance } from "./balance";
 
@@ -591,7 +591,7 @@ function FileChangeRow({
         {hasInside ? (
           <button
             type="button"
-            className={`file-ahead${open ? " is-open" : ""}`}
+            className="file-ahead"
             aria-expanded={open}
             aria-label={`${open ? "Ocultar" : "Ver"} el interior de ${file.path}`}
             title={
@@ -599,7 +599,7 @@ function FileChangeRow({
             }
             onClick={onToggle}
           >
-            <span aria-hidden="true">{open ? "▾" : "▸"}</span>
+            <Caret open={open} />
           </button>
         ) : (
           // El hueco se reserva siempre: sin él, el delta de las filas que no

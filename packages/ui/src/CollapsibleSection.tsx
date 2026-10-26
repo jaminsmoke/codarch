@@ -31,11 +31,30 @@ export function GroupHead({
 }
 
 /**
+ * El galón de un desplegable, con la caja de 18 px de las filas de Cambios
+ * (ADR 0079).
+ *
+ * Es el mismo control en toda la app: una sección que se pliega, un grupo de
+ * símbolos, un fichero del cambio o un símbolo que enseña su código. El glifo
+ * basta; el `aria-expanded` lo lleva el botón que lo contiene.
+ */
+export function Caret({ open, className }: { open: boolean; className?: string }) {
+  return (
+    <span
+      className={`caret${className ? ` ${className}` : ""}`}
+      aria-hidden="true"
+    >
+      {open ? "▾" : "▸"}
+    </span>
+  );
+}
+
+/**
  * Una sección que se puede plegar (ADR 0061).
  *
  * El título es un botón de verdad: `aria-expanded` y `aria-controls` dicen lo
- * que hay debajo, y el chevron lo enseña. Cuando está cerrada, el resumen de la
- * derecha mantiene el dato importante a la vista sin abrir nada. El estado se
+ * que hay debajo, y el galón de la derecha lo enseña. Cuando está cerrada, el
+ * resumen mantiene el dato importante a la vista sin abrir nada. El estado se
  * recuerda entre pestañas y visitas porque vive en el almacenamiento local.
  */
 export function CollapsibleSection({
@@ -84,18 +103,6 @@ export function CollapsibleSection({
         aria-controls={panelId}
         onClick={toggle}
       >
-        <span className="collapsible-chevron" aria-hidden="true">
-          <svg viewBox="0 0 10 10" width="8" height="8">
-            <path
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M2 3.5 5 6.5 8 3.5"
-            />
-          </svg>
-        </span>
         <span className="collapsible-title">{title}</span>
         {count !== undefined ? (
           <span className="collapsible-count">{count}</span>
@@ -103,6 +110,7 @@ export function CollapsibleSection({
         {closed && summary ? (
           <span className="collapsible-summary">{summary}</span>
         ) : null}
+        <Caret open={!closed} className="collapsible-caret" />
       </button>
       <div id={panelId} className="collapsible-body" hidden={closed}>
         {children}

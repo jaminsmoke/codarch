@@ -15,7 +15,8 @@ import type {
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "./platform";
-import { CollapsibleSection } from "./CollapsibleSection";
+import { Caret, CollapsibleSection } from "./CollapsibleSection";
+import { splitFileName } from "./fileName";
 import { RiskBreakdown, RulesSection } from "./FileSections";
 import { fileMetricRows } from "./metrics";
 import { groupSymbols, symbolSummary } from "./symbols";
@@ -513,6 +514,7 @@ export function Inspector({
   }
 
   const rows = fileMetricRows(model, file, areaMetric, metricTitle);
+  const name = splitFileName(file.name);
   const lastChainVersion = chain?.versions[chain.versions.length - 1];
 
   /** La barra de complejidad, relativa al símbolo más pesado del fichero. */
@@ -575,7 +577,15 @@ export function Inspector({
       <div className="inspector-path" title={file.path}>
         {file.path}
       </div>
-      <h2>{file.name}</h2>
+      <h2>
+        {name.base}
+        {name.ext ? (
+          <>
+            <wbr />
+            {name.ext}
+          </>
+        ) : null}
+      </h2>
 
       {migrationNode ? (
         <div className="inspector-status">
@@ -619,11 +629,17 @@ export function Inspector({
                   key={row.key}
                   type="button"
                   className={`metrics-row metrics-${row.state}${
-                    active ? " is-active" : ""
-                  }${row.value === null ? " is-empty" : ""}`}
+                    row.area ? " is-area" : ""
+                  }${active ? " is-active" : ""}${
+                    row.value === null ? " is-empty" : ""
+                  }`}
                   aria-pressed={active}
-                  title={`${row.description} ${row.hint}. Pulsa para pintar el mapa.`}
-                  aria-label={`${row.title}: ${row.description} ${row.hint}. Pulsa para pintar el mapa.`}
+                  title={`${row.description} ${row.hint}.${
+                    row.area ? " Esta métrica decide el área del mapa." : ""
+                  } Pulsa para pintar el mapa.`}
+                  aria-label={`${row.title}: ${row.description} ${row.hint}.${
+                    row.area ? " Esta métrica decide el área del mapa." : ""
+                  } Pulsa para pintar el mapa.`}
                   onClick={() => onColorMode(row.risk ? "risk" : row.key)}
                 >
                   <span className="metrics-label">
@@ -635,14 +651,6 @@ export function Inspector({
                       ?
                     </span>
                     {row.title}
-                    {row.area ? (
-                      <em
-                        className="metrics-area"
-                        title="Esta métrica decide el área del mapa"
-                      >
-                        área
-                      </em>
-                    ) : null}
                   </span>
                   <span className="metrics-bar" aria-hidden="true">
                     <i style={{ width: `${Math.round(row.share * 100)}%` }} />
@@ -740,6 +748,7 @@ export function Inspector({
                             {symbol.complexity ?? "—"}
                           </span>
                         </span>
+                        <Caret open={open} />
                       </button>
                       {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
@@ -772,7 +781,7 @@ export function Inspector({
                 {structure.imports.map((entry) => (
                   <div
                     key={`${entry.line}-${entry.source}`}
-                    className="surface-row"
+                    className="surface-row surface-row-imports"
                   >
                     <span className="surface-dir" aria-hidden="true">
                       →
@@ -823,7 +832,7 @@ export function Inspector({
                 {structure.exports.map((entry) => (
                   <div
                     key={`${entry.line}-${entry.name}-${entry.source ?? ""}`}
-                    className="surface-row"
+                    className="surface-row surface-row-exports"
                   >
                     <span
                       className="surface-dir surface-dir-out"
@@ -971,6 +980,7 @@ export function Inspector({
                           {member.name}
                         </span>
                         <span className="mono member-line">{member.line}</span>
+                        <Caret open={open} />
                       </button>
                       {open && code ? <InlineCode state={code} onOpenEditor={onOpenEditor} /> : null}
                     </div>
