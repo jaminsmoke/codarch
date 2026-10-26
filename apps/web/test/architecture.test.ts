@@ -32,6 +32,7 @@ const ARMAZON = [
   "Inspector",
   "ChangesPanel",
   "HeatList",
+  "InspectorBar",
   "Kpi",
   "LanguageSample",
   "Legend",

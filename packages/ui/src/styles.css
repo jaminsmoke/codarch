@@ -480,10 +480,20 @@ button {
 
 .shell {
   display: grid;
-  grid-template-columns: 258px minmax(0, 1fr) 302px;
+  /* La barra del inspector ocupa su franja: la hoja conserva sus 302 px. */
+  grid-template-columns: 258px minmax(0, 1fr) 346px;
   min-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   background: var(--line);
   gap: 1px;
+}
+
+/* El panel y su barra de actividad, juntos: la hoja scrollea, la barra no. */
+.inspector-dock {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .rail,
@@ -499,7 +509,8 @@ button {
 }
 
 .inspector {
-  border-left: 1px solid var(--line);
+  flex: 1;
+  min-width: 0;
 }
 
 .panel-block {
@@ -2582,39 +2593,53 @@ button {
   color: var(--ink);
 }
 
-.tabs {
+/* La barra de actividad del inspector (ADR 0079): una franja fija, fuera del
+   scroll de la hoja, con un icono por apartado. */
+.inspector-bar {
   display: flex;
-  gap: 18px;
-  margin: -2px 0 16px;
-  border-bottom: 1px solid var(--line);
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 44px;
+  padding: 14px 0;
+  border-left: 1px solid var(--line);
+  background: var(--paper);
 }
 
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 0 9px;
+.inspector-tab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-radius: 3px;
   background: transparent;
   color: var(--muted);
-  font: 500 9.5px/1 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
 }
 
-.tab.is-active {
+.inspector-tab:hover {
+  background: rgba(47, 111, 237, 0.08);
   color: var(--ink);
-  border-bottom-color: var(--ink);
 }
 
-.tab-dot {
+.inspector-tab.is-active {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: inset 2px 0 0 var(--ink);
+}
+
+/* El punto de «hay cambios sin commitear» viaja en el icono. */
+.inspector-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: var(--rust);
-  display: inline-block;
 }
 
 .button.dark {
@@ -2920,10 +2945,6 @@ button {
   color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.tab-dot-alert {
-  background: var(--debt);
 }
 
 .change-rows {
@@ -3307,6 +3328,7 @@ code {
   }
 
   .rail,
+  .inspector-dock,
   .inspector {
     min-height: 0;
   }
@@ -3341,10 +3363,13 @@ code {
     min-height: 0;
   }
 
-  .inspector {
+  .inspector-dock {
     grid-column: 1 / -1;
     border-left: 0;
     border-top: 1px solid var(--line);
+  }
+
+  .inspector {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     gap: 30px;
@@ -3403,9 +3428,24 @@ code {
     gap: 18px;
   }
 
-  .inspector {
+  .inspector-dock {
     order: 3;
+    flex-direction: column-reverse;
+  }
+
+  .inspector {
     display: block;
+  }
+
+  /* En estrecho la barra se tumba encima de la hoja: mismo orden de documento,
+     mismo control a la vista. */
+  .inspector-bar {
+    flex-direction: row;
+    width: auto;
+    height: 44px;
+    padding: 0 12px;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .project-band {

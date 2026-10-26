@@ -20,6 +20,7 @@ import {
   Legend
 } from "./panels";
 import ChangesPanel, { reportHasChanges } from "./ChangesPanel";
+import { InspectorBar, inspectorLabel } from "./InspectorBar";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -537,68 +538,49 @@ export function AppShell({
           </div>
         </main>
 
-        <aside className="inspector">
-          <div className="tabs" role="tablist" aria-label="Panel derecho">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "file"}
-              className={`tab${tab === "file" ? " is-active" : ""}`}
-              onClick={() => setTab("file")}
-            >
-              Fichero
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "changes"}
-              className={`tab${tab === "changes" ? " is-active" : ""}`}
-              onClick={() => setTab("changes")}
-            >
-              Cambios{" "}
-              {report && reportHasChanges(report) ? (
-                <i
-                  className="tab-dot"
-                  title="Hay cambios desde el último commit"
-                />
-              ) : null}
-            </button>
-          </div>
-          {tab === "file" ? (
-            <Inspector
-              model={view.model}
-              file={selectedFile}
-              migrationNode={selectedMigration}
-              areaMetric={areaMetric}
-              colorMode={colorMode}
-              metricTitle={metricTitle}
-              symbols={selectedSymbols}
-              structure={selectedStructure}
-              chain={chain}
-              report={report}
-              migration={migration}
-              onSelectSymbol={(name) => {
-                void openSymbolChain(name, selectedFile?.path ?? "");
-              }}
-              onLoadCode={leerCodigo}
-              onOpenEditor={abrirEnEditor}
-              onSelectPath={selectInPlace}
-              onColorMode={setColorMode}
-            />
-          ) : (
-            <ChangesPanel
-              report={report}
-              model={view.model}
-              source={reportSource}
-              error={reportError}
-              onLoad={onLoadReport}
-              onSelectPath={selectPath}
-              loadHistory={loadHistory}
-              loadDiff={loadDiff}
-              onOpenHistory={onOpenHistory}
-            />
-          )}
-        </aside>
+        <div className="inspector-dock">
+          <aside className="inspector" aria-label={inspectorLabel(tab)}>
+            {tab === "file" ? (
+              <Inspector
+                model={view.model}
+                file={selectedFile}
+                migrationNode={selectedMigration}
+                areaMetric={areaMetric}
+                colorMode={colorMode}
+                metricTitle={metricTitle}
+                symbols={selectedSymbols}
+                structure={selectedStructure}
+                chain={chain}
+                report={report}
+                migration={migration}
+                onSelectSymbol={(name) => {
+                  void openSymbolChain(name, selectedFile?.path ?? "");
+                }}
+                onLoadCode={leerCodigo}
+                onOpenEditor={abrirEnEditor}
+                onSelectPath={selectInPlace}
+                onColorMode={setColorMode}
+              />
+            ) : (
+              <ChangesPanel
+                report={report}
+                model={view.model}
+                source={reportSource}
+                error={reportError}
+                onLoad={onLoadReport}
+                onSelectPath={selectPath}
+                loadHistory={loadHistory}
+                loadDiff={loadDiff}
+                onOpenHistory={onOpenHistory}
+              />
+            )}
+          </aside>
+          <InspectorBar
+            active={tab}
+            alert={Boolean(report && reportHasChanges(report))}
+            onSelect={setTab}
+          />
+        </div>
       </div>
 
       {settings}
