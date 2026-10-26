@@ -102,6 +102,7 @@ flowchart TD
 | [0079](0071-0080/0079-el-inspector-con-barra-de-actividad.md) | El inspector con barra de actividad | 2026-10-26 | aceptado | M60 |
 | [0080](0071-0080/0080-usar-y-construir.md) | Usar CodArch y cómo se construye | 2026-10-26 | enmendado por 0081 | — |
 | [0081](0081-0090/0081-documentacion-y-desarrollo.md) | Documentación y Desarrollo, dos zonas | 2026-10-26 | aceptado | — |
+| [0082](0081-0090/0082-el-marco-de-la-app.md) | El marco de la app | 2026-10-26 | aceptado | — |
 
 ## Las carpetas
 
@@ -115,6 +116,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
-- **0081-0090**: 0081
+- **0081-0090**: 0081, 0082
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
