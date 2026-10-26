@@ -1,7 +1,7 @@
 ---
 title: Roadmap
 description: Every milestone leaves the product working and verifiable. No big bang.
-section: producto
+section: construir
 sidebar:
   label: Roadmap
   order: 0

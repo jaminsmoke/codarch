@@ -1,10 +1,10 @@
 ---
 title: Diseño del mapa 2D
 description: "Implementado: treemap 2D server-side (viewBox 1400×900), lentes Estructura / Riesgo / Métrica, búsqueda, inspector, selección de fichero y carpeta, y aristas…"
-section: producto
+section: construir
 sidebar:
   label: Diseño del mapa 2D
-  order: 5
+  order: 2
 ---
 
 **Estado:** implementado en M0; desde M1 consume snapshots generados por `codarch analyze`.

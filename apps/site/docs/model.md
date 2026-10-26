@@ -1,7 +1,7 @@
 ---
 title: Modelo de datos
 description: Si el modelo está bien, el resto es barato. Esta es la pieza que hay que discutir antes de escribir código, porque cambiarla después contamina el CLI, el mapa, el bot y…
-section: producto
+section: construir
 sidebar:
   label: Modelo de datos
   order: 1

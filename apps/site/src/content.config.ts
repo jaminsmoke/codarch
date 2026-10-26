@@ -12,7 +12,7 @@ import { docsSchema, i18nSchema } from "@astrojs/starlight/schema";
  */
 
 const metadata = z.object({
-  section: z.enum(["producto", "adr"]),
+  section: z.enum(["usar", "construir", "adr"]),
   status: z.string().optional(),
   date: z.string().optional(),
   tags: z.array(z.string()).default([])

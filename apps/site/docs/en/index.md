@@ -1,17 +1,21 @@
 ---
 title: The documents
-description: CodArch's model, rules, roadmap and decisions, with their history and their pending work.
-section: producto
+description: "How to use CodArch and how it is built: installation, CLI, apps, rules, roadmap and decisions."
+section: usar
 sidebar:
   label: All the documents
   order: -1
 ---
 
-CodArch is explained in two places that are read together:
+CodArch is explained in two blocks (ADR 0080):
 
-- **The product**: the [roadmap](adr/roadmap.md), the [model](model.md), the [rules](rules.md), the
-  [MCP](mcp.md), the [migration](migration.md) and the [map design](design/map.md).
-- **The decisions**: each ADR in its folder of ten, with its roadmap inside and its changelog next
-  to it. Start with the [decision index](adr/index.md).
-
-The [guide](/guia/) keeps what is not a decision yet: ideas, fixes and what is waiting.
+- **Using CodArch**: what someone installing and using it needs. The [installation](installation.md),
+  [getting started](getting-started.md), the CLI with one page per command (start with
+  [`codarch analyze`](cli/analyze.md)), the [web app](webapp.md), the [desktop app](desktop.md), the
+  [`.codarch.yml` rules](rules.md), the [MCP](mcp.md), the [GitHub Action](github-action.md),
+  [updates](updates.md) and the [FAQ](faq.md).
+- **How it is built**: what explains the product from the inside. The [roadmap](adr/roadmap.md), the
+  [data model](model.md), the [map design](design/map.md), the [migration to Rust](migration.md),
+  the decisions (each ADR in its folder of ten, with its roadmap inside; start with the
+  [decision index](adr/index.md)) and the [guide](/guia/), which keeps what is not a decision yet:
+  ideas, fixes and what is waiting.

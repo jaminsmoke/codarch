@@ -1,7 +1,7 @@
 ---
 title: Data model
 description: If the model is right, the rest is cheap. This is the piece to argue about before writing code, because changing it later contaminates the CLI, the map, the bot and…
-section: producto
+section: construir
 sidebar:
   label: Data model
   order: 1

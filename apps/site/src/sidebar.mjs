@@ -7,8 +7,8 @@ import { parse as parseYaml } from "yaml";
  * La sidebar de Starlight se genera del frontmatter de `docs/` (ADR 0046).
  *
  * No hay una lista de documentos en el código: añadir un `.md` con su
- * frontmatter lo pone en su grupo. El producto va primero; los ADR se agrupan
- * por su carpeta de diez.
+ * frontmatter lo pone en su bloque: `usar` o `construir` (ADR 0080); los ADR
+ * se agrupan por su carpeta de diez.
  *
  * El inglés vive en `docs/en/` con las mismas rutas relativas. La lista es
  * única: Starlight le pone el prefijo del idioma a cada slug, y la etiqueta
@@ -75,17 +75,46 @@ const documentos = andar(DOCS)
   .map(leer)
   .filter((documento) => documento !== null);
 
-const producto = documentos
-  .filter((documento) => documento.datos.section === "producto")
-  .sort(
-    (a, b) =>
-      (a.datos.sidebar?.order ?? 0) - (b.datos.sidebar?.order ?? 0) ||
-      a.clave.localeCompare(b.clave)
-  )
-  .map(item);
+function orden(a, b) {
+  return (
+    (a.datos.sidebar?.order ?? 0) - (b.datos.sidebar?.order ?? 0) ||
+    a.clave.localeCompare(b.clave)
+  );
+}
 
-const decisiones = documentos
-  .filter((documento) => documento.datos.section === "adr")
+const enSeccion = (seccion) =>
+  documentos.filter((documento) => documento.datos.section === seccion);
+
+/** Cada comando del CLI tiene su página en `docs/cli/` y forman un grupo. */
+const ORDEN_CLI = 30;
+const esCli = (documento) => documento.clave.startsWith("docs/cli/");
+
+const comandos = enSeccion("usar").filter(esCli).sort(orden).map(item);
+
+const usar = [
+  ...enSeccion("usar")
+    .filter((documento) => !esCli(documento))
+    .map((documento) => ({
+      orden: documento.datos.sidebar?.order ?? 0,
+      clave: documento.clave,
+      entrada: item(documento)
+    })),
+  ...(comandos.length > 0
+    ? [
+        {
+          orden: ORDEN_CLI,
+          clave: "docs/cli",
+          entrada: { label: "CLI", translations: { en: "CLI" }, items: comandos }
+        }
+      ]
+    : [])
+]
+  .sort((a, b) => a.orden - b.orden || a.clave.localeCompare(b.clave))
+  .map(({ entrada }) => entrada);
+
+const construir = enSeccion("construir").sort(orden).map(item);
+
+const decisiones = enSeccion("adr")
   .filter((documento) => documento.clave !== "docs/adr/index")
   .reduce((grupos, documento) => {
     const partes = documento.clave.split("/");
@@ -102,37 +131,40 @@ const gruposDecisiones = [...decisiones.entries()]
   .map(([carpeta, lista]) => ({
     label: carpeta.replace("-", "–"),
     collapsed: true,
-    items: lista
-      .sort(
-        (a, b) =>
-          (a.datos.sidebar?.order ?? 0) - (b.datos.sidebar?.order ?? 0) ||
-          a.clave.localeCompare(b.clave)
-      )
-      .map(item)
+    items: lista.sort(orden).map(item)
   }));
 
 const indice = documentos.find(
   (documento) => documento.clave === "docs/adr/index"
 );
 
+/**
+ * Dos bloques (ADR 0080): lo que necesita quien usa CodArch y lo que explica
+ * cómo se construye. El `section` del frontmatter decide el bloque.
+ */
 export function sidebar() {
   return [
     {
-      label: "La guía",
-      translations: { en: "The guide" },
-      link: "/guia/"
+      label: "Usar CodArch",
+      translations: { en: "Using CodArch" },
+      items: usar
     },
     {
-      label: "El producto",
-      translations: { en: "The product" },
-      items: producto
-    },
-    {
-      label: "Las decisiones",
-      translations: { en: "The decisions" },
+      label: "Cómo se construye",
+      translations: { en: "How it is built" },
       items: [
-        ...(indice ? [item(indice)] : []),
-        ...gruposDecisiones
+        ...construir,
+        {
+          label: "Decisiones (ADR)",
+          translations: { en: "Decisions (ADR)" },
+          collapsed: true,
+          items: [...(indice ? [item(indice)] : []), ...gruposDecisiones]
+        },
+        {
+          label: "La guía",
+          translations: { en: "The guide" },
+          link: "/guia/"
+        }
       ]
     }
   ];

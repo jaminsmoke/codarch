@@ -1,10 +1,10 @@
 ---
 title: Architecture rules
 description: "codarch diff can evaluate a versioned policy in .codarch.yml. Rules are not stored in the snapshot: the snapshot says how the code is; the configuration says…"
-section: producto
+section: usar
 sidebar:
   label: Architecture rules
-  order: 2
+  order: 60
 ---
 
 `codarch diff` can evaluate a versioned policy in `.codarch.yml`. Rules are not stored in the

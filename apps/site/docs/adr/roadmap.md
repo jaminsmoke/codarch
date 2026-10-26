@@ -1,7 +1,7 @@
 ---
 title: Roadmap
 description: Cada milestone deja el producto funcionando y verificable. Nada de big-bang.
-section: producto
+section: construir
 sidebar:
   label: Roadmap
   order: 0

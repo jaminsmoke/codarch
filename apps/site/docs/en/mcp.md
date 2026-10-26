@@ -1,10 +1,10 @@
 ---
 title: "MCP: architecture for agents"
 description: "CodArch exposes its model to agents through a local, read-only MCP server over stdio. It does not analyse code inside MCP: it reads an already generated cc.json snapshot and,…"
-section: producto
+section: usar
 sidebar:
   label: "MCP: architecture for agents"
-  order: 3
+  order: 70
 ---
 
 CodArch exposes its model to agents through a **local, read-only MCP server over stdio**. It does not

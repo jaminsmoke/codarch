@@ -1,10 +1,10 @@
 ---
 title: Migration plan to Rust (M4)
 description: This document validates the migration lens on CodArch itself. The numbers come from codarch analyze . and change with the code; they are not a commitment, they are a snapshot…
-section: producto
+section: construir
 sidebar:
   label: Migration plan to Rust (M4)
-  order: 4
+  order: 3
 ---
 
 This document validates the migration lens on CodArch itself. The numbers come from
