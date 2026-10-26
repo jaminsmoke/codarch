@@ -14,7 +14,7 @@ diff's `report.json`. That way the agent sees the same facts as the CLI, the map
 The server is **not a `codarch` subcommand**: it is a separate binary, `codarch-mcp`, that the agent
 starts over stdio.
 
-:::note
+:::caution
 The `codarch` npm package installs only the `codarch` binary. Today `codarch-mcp` runs from a clone
 of the repository (`apps/mcp/bin/codarch-mcp.mjs`, after `npm ci`).
 :::

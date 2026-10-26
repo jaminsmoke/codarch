@@ -7,6 +7,7 @@ import { unified } from "@astrojs/markdown-remark";
 import { defineConfig } from "astro/config";
 import { redirecciones } from "./src/lib/redirecciones.mjs";
 import { rehypeDocLinks } from "./src/lib/rehype-doc-links.mjs";
+import { rehypeIdioma } from "./src/lib/rehype-idioma.mjs";
 import { sidebar } from "./src/sidebar.mjs";
 import { faviconDev } from "./vite-plugin-favicon.ts";
 import { rutasDocs } from "./vite-plugin-rutas.ts";
@@ -19,6 +20,7 @@ import { rutasDocs } from "./vite-plugin-rutas.ts";
  */
 
 const root = fileURLToPath(new URL(".", import.meta.url));
+const docsRoot = path.join(root, "docs");
 
 export default defineConfig({
   site: "https://jaminsmoke.github.io",
@@ -27,11 +29,12 @@ export default defineConfig({
   redirects: redirecciones(path.join(root, "docs"), "/codarch"),
   markdown: {
     processor: unified({
+      // Los avisos de Starlight (`:::note`) llegan hasta aquí como nodos de hast
+      // metidos en el árbol de mdast; sin dejarlos pasar, remark-rehype los
+      // envuelve en un `div` y la nota pierde su caja.
+      remarkRehype: { passThrough: ["element"] },
       rehypePlugins: [
-        [
-          rehypeDocLinks,
-          { docsRoot: path.join(root, "docs"), base: "/codarch" }
-        ]
+        [rehypeDocLinks, { docsRoot, base: "/codarch" }]
       ]
     })
   },
@@ -46,6 +49,11 @@ export default defineConfig({
         // El inglés vive en docs/en/; para otro idioma, añadirlo aquí y en i18n.ts.
         en: { label: "English", lang: "en" }
       },
+      // Los documentos viven en `docs/`, no en `src/content/docs` (ADR 0046),
+      // y Starlight solo transforma lo que cae en las carpetas que conoce: sin
+      // esto, sus avisos (`:::note`), sus enlaces de ancla y su apoyo a RTL se
+      // saltan el markdown y las notas salen como un párrafo suelto.
+      markdown: { processedDirs: ["./docs"] },
       customCss: ["./src/styles/starlight.css"],
       components: {
         Head: "./src/components/Head.astro",
@@ -65,7 +73,21 @@ export default defineConfig({
       ],
       pagefind: true,
       prerender: true
-    })
+    }),
+    // Starlight monta sus avisos y sus anclas después de leer el markdown, así
+    // que `rehypeIdioma` se engancha al cerrar la configuración —con la lista de
+    // plugins de Starlight ya puesta— para encontrarlos montados.
+    {
+      name: "codarch-idioma",
+      hooks: {
+        "astro:config:done": ({ config }) => {
+          config.markdown.processor.options.rehypePlugins.push([
+            rehypeIdioma,
+            { docsRoot }
+          ]);
+        }
+      }
+    }
   ],
   vite: {
     plugins: [tailwindcss(), rutasDocs(root), faviconDev(root)],

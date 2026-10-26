@@ -14,7 +14,7 @@ const estilos = readFileSync(
   "utf8"
 );
 
-const OSCURO = "@media (prefers-color-scheme: dark)";
+const OSCURO = ':root[data-theme="dark"]';
 const claro = estilos.slice(0, estilos.indexOf(OSCURO));
 const oscuro = estilos.slice(estilos.indexOf(OSCURO));
 

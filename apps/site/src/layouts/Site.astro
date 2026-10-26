@@ -1,6 +1,9 @@
 ---
 import "../styles.css";
+import Barra from "../components/Barra.astro";
 import Tema from "../components/Tema.astro";
+import { idiomaDe } from "../lib/i18n";
+import { CLAVE_TEMA } from "../lib/tema";
 
 interface Props {
   title?: string;
@@ -14,6 +17,7 @@ const {
   canonical
 } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const idioma = idiomaDe(Astro.currentLocale);
 ---
 
 <!doctype html>
@@ -24,6 +28,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <title>{title}</title>
     <meta name="description" content={description} />
     <Tema />
+    {/* El tema se aplica antes de pintar: sin esto se ve un fogonazo claro al
+        abrir la página guardada en oscuro. La clave es la de Starlight, así
+        que lo elegido en los documentos vale también aquí. */}
+    <script is:inline define:vars={{ clave: CLAVE_TEMA }}>
+      (() => {
+        const guardado = localStorage.getItem(clave);
+        const sistema = matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+        document.documentElement.dataset.theme =
+          guardado === "light" || guardado === "dark" ? guardado : sistema;
+      })();
+    </script>
     {canonical ? <link rel="canonical" href={canonical} /> : null}
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,6 +51,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     />
   </head>
   <body>
+    <div class="sitio-barra">
+      <Barra idioma={idioma} />
+    </div>
     <slot />
   </body>
 </html>
+
+<style is:global>
+  /* La barra se queda arriba; los pies y las islas van debajo. */
+  .sitio-barra {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+</style>

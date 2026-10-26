@@ -16,14 +16,19 @@
   --sl-color-accent-low: #f3e2db;
   --sl-color-accent: #d95d39;
   --sl-color-accent-high: #a83a1e;
-  --sl-color-white: #ffffff;
+  /* En Starlight «white» es la tinta y «black» el fondo, no dos colores:
+     cruzar los valores pintaba la barra lateral de blanco sobre papel y el
+     cajón de móvil oscuro dentro de una página clara. */
+  --sl-color-white: #121a20;
   --sl-color-gray-1: #35434c;
-  --sl-color-gray-2: #64727b;
+  /* El mismo gris que `--color-muted` en la web: con `#64727b` el texto
+     secundario se quedaba en 4,37:1 sobre el papel, y AA pide 4,5. */
+  --sl-color-gray-2: #55626a;
   --sl-color-gray-3: #9fadb4;
   --sl-color-gray-4: #c8d1d5;
   --sl-color-gray-5: #e2e8ea;
   --sl-color-gray-6: #eef1f2;
-  --sl-color-black: #121a20;
+  --sl-color-black: #eef1f2;
   --sl-color-bg: #eef1f2;
   --sl-color-bg-nav: rgba(238, 241, 242, 0.92);
   --sl-color-bg-sidebar: #eef1f2;
@@ -45,7 +50,8 @@
   --sl-color-gray-4: #43525b;
   --sl-color-gray-5: #2b363d;
   --sl-color-gray-6: #161e24;
-  --sl-color-black: #e7edf0;
+  --sl-color-white: #e7edf0;
+  --sl-color-black: #10161b;
   --sl-color-bg: #10161b;
   --sl-color-bg-nav: rgba(16, 22, 27, 0.92);
   --sl-color-bg-sidebar: #10161b;
@@ -57,28 +63,337 @@
   --sl-color-hairline-shade: #2b363d;
 }
 
-.sl-markdown-content h1,
-.sl-markdown-content h2,
-.sl-markdown-content h3,
-.sl-markdown-content h4,
+/*
+ * La voz de la guía (ADR 0046).
+ *
+ * La guía es la referencia del sitio: display en los títulos, texto de un rem
+ * con 1,65 de interlínea, 72 caracteres de línea, filetes de `hairline` y
+ * tablas con la celda dibujada. Los documentos traían la escala de Starlight
+ * —un h1 de 42 px en la sans, un h2 de 35 px—, así que al pasar de una zona a
+ * otra cambiaba el producto. Aquí se trae la escala de `.prosa`, de
+ * `styles.css`, con sus mismos valores.
+ */
+
+:root {
+  /* El panel de la casa (`--color-panel`): tabla, cita y bloques. */
+  --doc-panel: #f6f8f8;
+}
+
+:root {
+  --doc-cobalt: #2f6fed;
+  --doc-patina: #3f8f7a;
+  --doc-ochre: #d9a21b;
+  --doc-debt: #d64545;
+}
+
+:root[data-theme="dark"] {
+  --doc-panel: #161e24;
+  --doc-cobalt: #7aa2ff;
+  --doc-patina: #6fc0a8;
+  --doc-ochre: #e8bb52;
+  --doc-debt: #f07d7d;
+}
+
+.sl-markdown-content,
 .site-title {
+  font-family: var(--sl-font);
+}
+
+/* El título de la página vive fuera del contenido: es `h1#_top`. */
+.content-panel h1#_top {
+  margin: 0 0 0.75rem;
   font-family: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
-  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
 .sl-markdown-content {
   --sl-text-body: 1rem;
   --sl-text-body-sm: 0.9rem;
+  line-height: 1.65;
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4) {
+  font-family: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  color: var(--sl-color-text);
+}
+
+/* Starlight envuelve cada título para colgar a su lado el enlace de ancla: la
+   escala y el aire viven en la envoltura, y el título se queda sin margen por
+   arriba —si no, se suman los dos y el ritmo se estira—. */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+  margin-top: 2.6rem;
+  font-size: 1.4rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 1.4rem;
+  font-size: 1.05rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper.level-h4 {
+  margin-top: 1.2rem;
+  font-size: 0.96rem;
+}
+
+/* El h2 abre la sección con el filete de la guía, no solo con aire. */
+.sl-markdown-content h2 {
+  margin: 0 0 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--sl-color-hairline);
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sl-markdown-content h4 {
+  margin: 0 0 0.3rem;
+  font-size: 0.96rem;
+  font-weight: 600;
 }
 
 .sl-markdown-content :is(h2, h3) {
   scroll-margin-top: 6rem;
 }
 
-.sl-markdown-content table {
-  font-size: 0.9rem;
+.sl-markdown-content p {
+  max-width: 72ch;
+  margin: 0.9rem 0;
 }
 
-.sl-markdown-content code:not(:where(.not-content *)) {
-  border-radius: 0.35rem;
+.sl-markdown-content :is(ul, ol) {
+  margin: 0.5rem 0;
+  padding-inline-start: 1.25rem;
+}
+
+.sl-markdown-content li {
+  max-width: 72ch;
+  margin: 0.25rem 0;
+}
+
+.sl-markdown-content a {
+  color: var(--sl-color-text-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.sl-markdown-content a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.sl-markdown-content strong {
+  color: var(--sl-color-text);
+  font-weight: 600;
+}
+
+/* Los avisos (`:::note`, `:::tip`, `:::caution`, `:::danger`), con la forma de
+   la casa: el filete de 3 px de la cita y un tinte suave del mismo tono. Los
+   cuatro tonos son los de la paleta —cobalt, patina, ochre y debt—, no los
+   azules de Starlight, que no aparecen en ninguna otra parte del sitio. */
+.sl-markdown-content .starlight-aside {
+  margin: 1.1rem 0;
+  padding: 0.7rem 0.9rem 0.75rem;
+  border-inline-start: 3px solid var(--doc-tono, var(--sl-color-accent));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--doc-tono, var(--sl-color-accent)) 8%, transparent);
+  color: var(--sl-color-text);
+}
+
+.sl-markdown-content .starlight-aside--note {
+  --doc-tono: var(--doc-cobalt);
+}
+
+.sl-markdown-content .starlight-aside--tip {
+  --doc-tono: var(--doc-patina);
+}
+
+.sl-markdown-content .starlight-aside--caution {
+  --doc-tono: var(--doc-ochre);
+}
+
+.sl-markdown-content .starlight-aside--danger {
+  --doc-tono: var(--doc-debt);
+}
+
+/* El epígrafe, en la versalita mono que marca los epígrafes del sitio. */
+.sl-markdown-content .starlight-aside__title {
+  gap: 0.35rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-text);
+}
+
+.sl-markdown-content .starlight-aside__icon {
+  color: var(--doc-tono, var(--sl-color-accent));
+}
+
+.sl-markdown-content .starlight-aside__content > :first-child {
+  margin-top: 0.35rem;
+}
+
+/* La cita, con el filete y el tinte de la entrada de la guía. */
+.sl-markdown-content blockquote {
+  margin: 1rem 0;
+  padding: 0.55rem 0 0.55rem 1rem;
+  border-inline-start: 3px solid var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent) 5%, transparent);
+  color: var(--sl-color-gray-1);
+}
+
+.sl-markdown-content blockquote p {
+  max-width: 72ch;
+  margin: 0.3rem 0;
+}
+
+.sl-markdown-content hr {
+  border: 0;
+  border-top: 1px solid var(--sl-color-hairline);
+  margin: 2rem 0;
+}
+
+.sl-markdown-content img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/*
+ * La barra lateral, con la letra y los filetes de la cabecera.
+ *
+ * La cabecera del sitio (ADRs 0081 y la entrada 68 de la guía) es la misma en
+ * todas las páginas: IBM Plex Sans a 14 px, pastilla de 0,5 rem, un filete de
+ * `--sl-color-hairline` y el activo en el rust de la casa sobre un tinte suave,
+ * no sobre el rust entero. La lateral de los documentos seguía su propio
+ * criterio —16 px, filetes más claros, activo en sólido—; aquí toma el de la
+ * cabecera, y las etiquetas de grupo, que no tienen equivalente arriba, usan
+ * la versalita mono de los códigos de idioma.
+ */
+
+#starlight__sidebar ul {
+  --sl-sidebar-item-padding-inline: 0.6rem;
+}
+
+#starlight__sidebar ul a,
+#starlight__sidebar ul a.large {
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Los de primer nivel son los destinos de la zona: mismos que los de la
+   cabecera, con su peso para separarlos de los hijos. */
+#starlight__sidebar .top-level > li > a {
+  font-weight: 600;
+  color: var(--sl-color-text);
+}
+
+#starlight__sidebar ul a:hover,
+#starlight__sidebar ul a:focus-visible {
+  background-color: color-mix(in srgb, var(--sl-color-text) 6%, transparent);
+  color: var(--sl-color-text);
+}
+
+#starlight__sidebar ul a[aria-current="page"],
+#starlight__sidebar ul a[aria-current="page"]:hover,
+#starlight__sidebar ul a[aria-current="page"]:focus {
+  background-color: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+  color: var(--sl-color-text-accent);
+  font-weight: 600;
+}
+
+#starlight__sidebar ul a:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+/* Los grupos —CLI, Decisiones, cada carpeta de diez— en la versalita mono de
+   la cabecera, que es la que marca un epígrafe sin competir con los enlaces. */
+#starlight__sidebar summary .group-label .large {
+  font-family: var(--sl-font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-2);
+}
+
+#starlight__sidebar summary {
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+#starlight__sidebar summary:hover {
+  background-color: color-mix(in srgb, var(--sl-color-text) 6%, transparent);
+}
+
+#starlight__sidebar summary:hover .group-label .large {
+  color: var(--sl-color-text);
+}
+
+#starlight__sidebar summary .caret {
+  width: 1rem;
+  height: 1rem;
+  color: var(--sl-color-gray-3);
+}
+
+/* El árbol de los hijos lleva el mismo filete que la cabecera, no uno más
+   claro: son la misma línea. */
+#starlight__sidebar ul ul li {
+  border-inline-start-color: var(--sl-color-hairline);
+}
+
+/* La tabla, con la celda dibujada como en la guía: Starlight solo pinta la
+   línea de abajo de cada fila. */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1.1rem 0;
+  font-size: 0.92rem;
+}
+
+.sl-markdown-content :is(th, td) {
+  border: 1px solid var(--sl-color-hairline);
+  padding: 0.4rem 0.6rem;
+  text-align: start;
+  vertical-align: top;
+}
+
+.sl-markdown-content th {
+  background: var(--doc-panel);
+  font-weight: 600;
+}
+
+.sl-markdown-content :not(pre) > code {
+  border: 0;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--sl-color-text) 8%, transparent);
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+}
+
+/* Los bloques de código vienen enmarcados por expressive-code con esquinas de
+   un píxel; en la guía son tarjetas de 8 px. */
+.sl-markdown-content .expressive-code .frame {
+  overflow: clip;
+  border-radius: 8px;
 }

@@ -1,5 +1,12 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent
+} from "react";
 import { resumenDias, rutaDia, type DatosGuia } from "../lib/guia";
 import { idiomaDe } from "../lib/i18n";
 import Marco from "../Marco";
@@ -17,6 +24,9 @@ import Normas from "../react-pages/Normas";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const SITIO = "https://jaminsmoke.github.io";
+
+/** La línea del tiempo se carga solo en la guía. */
+const LineaTiempo = lazy(() => import("./LineaTiempo"));
 
 type Ruta =
   | { tipo: "dia"; fecha: string }
@@ -142,7 +152,12 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
   return (
     <div onClick={alClick}>
-      <Marco dias={dias} activo={activo} lang={lang}>
+      <Marco lang={lang}>
+        <Suspense
+          fallback={<div className="h-[3.05rem] border-t border-line/70" />}
+        >
+          <LineaTiempo dias={dias} activo={activo} lang={lang} />
+        </Suspense>
         <AnimatePresence mode="wait">
           <motion.div
             key={visita}

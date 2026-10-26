@@ -32,6 +32,34 @@ export function juntar(desde: string, destino: string): string {
 /** La raíz del sitio (`/codarch/` en GitHub Pages), sin la barra final. */
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+/** La raíz de un idioma: el español vive en la base y el inglés en `/en`. */
+export function raizDe(idioma: string): string {
+  return idioma === "en" ? `${BASE}/en` : BASE;
+}
+
+/** La misma página en el otro idioma, sin perder la ruta. */
+export function rutaIdioma(actual: string, destino: string): string {
+  const sinBase = actual.startsWith(BASE)
+    ? actual.slice(BASE.length)
+    : actual;
+  const sinIngles =
+    sinBase === "/en"
+      ? "/"
+      : sinBase.startsWith("/en/")
+        ? sinBase.slice(3)
+        : sinBase;
+  const resto = sinIngles || "/";
+  return destino === "en"
+    ? `${BASE}/en${resto === "/" ? "/" : resto}`
+    : `${BASE}${resto}`;
+}
+
+/** Si una ruta del menú de la cabecera es la página actual. */
+export function esActiva(raiz: string, ruta: string, actual: string): boolean {
+  if (ruta === "/") return actual === `${raiz}/` || actual === raiz;
+  return actual.startsWith(`${raiz}${ruta}`);
+}
+
 /**
  * Un enlace que **no** pasa por el router ✓ ✅: los del markdown son `<a>` ✓ ✅
  * y necesitan la raíz del sitio ✅ ✅.

@@ -1,0 +1,275 @@
+---
+import { idiomaDe, t, type Idioma } from "../lib/i18n";
+import { ENLACES } from "../lib/navegacion";
+import { esActiva, raizDe, rutaIdioma } from "../lib/rutas";
+import BotonTema from "./BotonTema.astro";
+
+/**
+ * La cabecera del sitio: una sola, para la portada, la guía y los documentos.
+ *
+ * Lleva la marca, los tres enlaces, el idioma y el tema —juntos, en el mismo
+ * grupo— y el enlace al repo, en ese orden. Lo que cambia de una página a otra
+ * entra por los `slot`: el buscador y el botón del menú, que existen en los
+ * documentos y no en las páginas propias. El menú va dentro de la barra, no
+ * flotando encima: así la barra tiene el mismo ancho en todo el sitio.
+ *
+ * Los estilos y los colores viven aquí dentro, no en `styles.css`: los
+ * documentos cargan solo la hoja de Starlight, y con tokens propios la barra
+ * es idéntica en las dos familias de páginas.
+ */
+
+const {
+  idioma: crudo,
+  ruta = Astro.url.pathname
+} = Astro.props as { idioma?: string; ruta?: string };
+
+const idioma: Idioma = idiomaDe(crudo);
+const raiz = raizDe(idioma);
+
+---
+
+<header class="barra">
+  <a class="barra-marca" href={`${raiz}/`}>
+    <span class="barra-nombre">CodArch</span>
+    <span class="barra-lema">{t(idioma, "marco.tagline")}</span>
+  </a>
+
+  <nav class="barra-nav" aria-label={t(idioma, "nav.aria")}>
+    {
+      ENLACES.map((enlace) => {
+        const activo = esActiva(raiz, enlace.ruta, ruta);
+        return (
+          <a
+            href={`${raiz}${enlace.ruta}`}
+            aria-current={activo ? "page" : undefined}
+            class:list={["barra-enlace", { activo }]}
+          >
+            {t(idioma, enlace.clave)}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <div class="barra-acciones">
+    <slot />
+
+    <div class="barra-preferencias">
+      <span class="barra-idioma" role="group" aria-label={t(idioma, "marco.idioma")}>
+        <a
+          href={rutaIdioma(ruta, "es")}
+          aria-current={idioma === "es" ? "true" : undefined}
+          lang="es"
+          class:list={["barra-idioma-enlace", { activo: idioma === "es" }]}>ES</a
+        >
+        <span class="barra-separador" aria-hidden="true">/</span>
+        <a
+          href={rutaIdioma(ruta, "en")}
+          aria-current={idioma === "en" ? "true" : undefined}
+          lang="en"
+          class:list={["barra-idioma-enlace", { activo: idioma === "en" }]}>EN</a
+        >
+      </span>
+
+      <BotonTema idioma={idioma} />
+    </div>
+
+    <a
+      class="barra-github"
+      href="https://github.com/jaminsmoke/codarch"
+      title={t(idioma, "marco.repo")}
+      aria-label={t(idioma, "marco.repo")}
+    >
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path
+          d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.5c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"
+        ></path>
+      </svg>
+    </a>
+
+    <slot name="menu" />
+  </div>
+</header>
+
+<style>
+  .barra {
+    --barra-papel: #eef1f2;
+    --barra-tinta: #121a20;
+    --barra-tenue: #55626a;
+    --barra-linea: #c8d1d5;
+    --barra-acento: #a83a1e;
+    --barra-acento-suave: #d95d39;
+
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid var(--barra-linea);
+    background: color-mix(in srgb, var(--barra-papel) 92%, transparent);
+    backdrop-filter: blur(10px);
+    color: var(--barra-tinta);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  :global(html[data-theme="dark"]) .barra {
+    --barra-papel: #10161b;
+    --barra-tinta: #e7edf0;
+    --barra-tenue: #93a2ab;
+    --barra-linea: #2b363d;
+    --barra-acento: #f08a6c;
+    --barra-acento-suave: #f08a6c;
+  }
+
+  .barra-marca {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .barra-nombre {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .barra-lema {
+    font-size: 0.8rem;
+    color: var(--barra-tenue);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .barra-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .barra-enlace {
+    padding: 0.3rem 0.75rem;
+    border-radius: 0.5rem;
+    color: var(--barra-tenue);
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .barra-enlace:hover {
+    background: color-mix(in srgb, var(--barra-tinta) 6%, transparent);
+    color: var(--barra-tinta);
+  }
+
+  .barra-enlace.activo {
+    background: color-mix(in srgb, var(--barra-acento) 12%, transparent);
+    color: var(--barra-acento);
+    font-weight: 600;
+  }
+
+  .barra-enlace:focus-visible,
+  .barra-idioma-enlace:focus-visible,
+  .barra-github:focus-visible {
+    outline: 2px solid var(--barra-acento-suave);
+    outline-offset: 2px;
+  }
+
+  .barra-acciones {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+  }
+
+  /* El idioma y el tema son una sola pieza: van juntos a la derecha, pegados
+     el uno al otro, para que la cabecera no cambie de orden entre zonas. */
+  .barra-preferencias {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--barra-linea);
+  }
+
+  .barra-idioma {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .barra-separador {
+    color: var(--barra-linea);
+  }
+
+  .barra-idioma-enlace {
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.35rem;
+    color: var(--barra-tenue);
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.15s ease;
+  }
+
+  .barra-idioma-enlace:hover {
+    color: var(--barra-tinta);
+  }
+
+  .barra-idioma-enlace.activo {
+    color: var(--barra-acento);
+    font-weight: 600;
+  }
+
+  .barra-github {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--barra-tenue);
+    transition: color 0.15s ease;
+  }
+
+  .barra-github:hover {
+    color: var(--barra-tinta);
+  }
+
+  .barra-github svg {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  /* La misma altura que la barra de los documentos (`--sl-nav-height`),
+     para que la cabecera no dé un salto al cambiar de zona. */
+  @media (min-width: 50rem) {
+    .barra {
+      min-height: 4rem;
+    }
+  }
+
+  @media (max-width: 50rem) {
+    .barra {
+      gap: 0.75rem;
+      padding: 0 1rem;
+    }
+
+    .barra-lema,
+    .barra-nav,
+    .barra-github {
+      display: none;
+    }
+  }
+</style>

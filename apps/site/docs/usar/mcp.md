@@ -14,7 +14,7 @@ No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si ex
 El servidor **no es un subcomando** de `codarch`: es un binario aparte, `codarch-mcp`, que el agente
 arranca por stdio.
 
-:::note
+:::caution
 El paquete `codarch` de npm instala solo el binario `codarch`. Hoy `codarch-mcp` se ejecuta desde
 un clon del repositorio (`apps/mcp/bin/codarch-mcp.mjs`, tras `npm ci`).
 :::

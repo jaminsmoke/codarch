@@ -39,30 +39,31 @@
   --radius-card: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-paper: #10161b;
-    --color-panel: #161e24;
-    --color-ink: #e7edf0;
-    --color-ink-soft: #c3ced4;
-    --color-muted: #93a2ab;
-    --color-line: #2b363d;
-    --color-line-strong: #43525b;
-    --color-cobalt: #7aa2ff;
-    --color-ochre: #e8bb52;
-    --color-rust: #f08a6c;
-    --color-rust-ink: #f08a6c;
-    /* En oscuro los tonos ya son claros: el de texto es el mismo. */
-    --color-cobalt-ink: #7aa2ff;
-    --color-ochre-ink: #e8bb52;
-    --color-patina-ink: #6fc0a8;
-    --color-violet-ink: #a893ff;
-    --color-debt-ink: #f07d7d;
-    --color-line-strong-ink: #8896a0;
-    --color-violet: #a893ff;
-    --color-patina: #6fc0a8;
-    --color-debt: #f07d7d;
-  }
+/* El tema se elige en la cabecera y se aplica con `data-theme` en el `<html>`,
+   igual que en los documentos: sin atributo no hay oscuro, y el script de la
+   plantilla lo pone antes de pintar (sistema o lo último elegido). */
+:root[data-theme="dark"] {
+  --color-paper: #10161b;
+  --color-panel: #161e24;
+  --color-ink: #e7edf0;
+  --color-ink-soft: #c3ced4;
+  --color-muted: #93a2ab;
+  --color-line: #2b363d;
+  --color-line-strong: #43525b;
+  --color-cobalt: #7aa2ff;
+  --color-ochre: #e8bb52;
+  --color-rust: #f08a6c;
+  --color-rust-ink: #f08a6c;
+  /* En oscuro los tonos ya son claros: el de texto es el mismo. */
+  --color-cobalt-ink: #7aa2ff;
+  --color-ochre-ink: #e8bb52;
+  --color-patina-ink: #6fc0a8;
+  --color-violet-ink: #a893ff;
+  --color-debt-ink: #f07d7d;
+  --color-line-strong-ink: #8896a0;
+  --color-violet: #a893ff;
+  --color-patina: #6fc0a8;
+  --color-debt: #f07d7d;
 }
 
 html {

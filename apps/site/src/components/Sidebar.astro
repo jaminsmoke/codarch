@@ -1,5 +1,4 @@
 ---
-import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
 import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
 import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
 import { zonaDeRuta } from "../lib/zonas.mjs";
@@ -10,6 +9,10 @@ import { zonaDeRuta } from "../lib/zonas.mjs";
  * Starlight conoce las dos zonas (`sidebar.mjs` devuelve los dos grupos, en
  * este orden: Documentación y Desarrollo); aquí solo se pinta el de la
  * página, sin su cabecera, porque el nombre de la zona ya está en el menú.
+ *
+ * No lleva el pie de Starlight con su tema y su idioma: la cabecera ya trae
+ * los dos, también en móvil, y dos juegos de los mismos mandos es justo lo que
+ * la cabecera única viene a quitar.
  */
 
 const { sidebar } = Astro.locals.starlightRoute;
@@ -23,7 +26,3 @@ const entradas = grupo && grupo.type === "group" ? grupo.entries : sidebar;
 <SidebarPersister>
   <SidebarSublist sublist={entradas} />
 </SidebarPersister>
-
-<div class="md:sl-hidden">
-  <MobileMenuFooter />
-</div>
