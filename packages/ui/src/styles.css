@@ -101,8 +101,7 @@ button {
   z-index: 20;
   min-height: var(--topbar-h);
   padding: 0 20px;
-  display: grid;
-  grid-template-columns: minmax(250px, auto) 1fr auto;
+  display: flex;
   align-items: center;
   gap: 22px;
   background: var(--frame);
@@ -110,10 +109,25 @@ button {
   border-bottom: 1px solid var(--frame-edge);
 }
 
+/* La marca: el icono del mapa en miniatura y, a su lado, el nombre con su
+   lema debajo. */
 .brand {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark-icon {
+  flex: none;
+  display: block;
+  border-radius: 2.4px;
+}
+
+.brand-lockup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -130,23 +144,28 @@ button {
   white-space: nowrap;
 }
 
-.snapshot-meta {
+/* El snapshot es del proyecto abierto: va en la banda, junto a su nombre. */
+.project-meta {
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  justify-content: center;
   gap: 12px;
-  text-align: center;
 }
 
-.snapshot-meta .mono {
+.project-meta .mono {
+  min-width: 0;
   font-size: 10px;
   color: #93a2a8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.project-meta .watch-indicator,
+.project-meta .refresh-notice {
+  flex: none;
 }
 
 .watch-indicator {
@@ -213,6 +232,7 @@ button {
 
 .topbar-actions {
   display: flex;
+  margin-left: auto;
   justify-content: flex-end;
   gap: 8px;
 }
@@ -790,6 +810,9 @@ button {
 }
 
 .project-ident {
+  /* El nombre del proyecto manda: no encoge cuando la banda se llena; los que
+     ceden son el snapshot y las migas, que tienen su elipsis. */
+  flex: none;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -3468,12 +3491,11 @@ code {
 
 @media (max-width: 820px) {
   .topbar {
-    grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
     padding: 10px 14px;
   }
 
-  .snapshot-meta {
+  .project-meta {
     display: none;
   }
 

@@ -151,6 +151,15 @@ export function AppShell({
     });
   const projectTitle =
     view.model?.meta.title ?? cc?.meta.projectName ?? "Sin snapshot";
+  // Lo que identifica al snapshot abierto, en una línea: la fuente y los dos
+  // checksums cortos que enseña la banda del proyecto.
+  const snapshotLine = `${source}${
+    view.model?.meta.checksum
+      ? ` · ${view.model.meta.checksum.slice(0, 8)}`
+      : ""
+  }${
+    view.model?.meta.commit ? ` · ${view.model.meta.commit.slice(0, 8)}` : ""
+  }`;
 
   const mapRoots = useMemo(() => detail?.roots ?? [], [detail]);
 
@@ -207,21 +216,11 @@ export function AppShell({
     >
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark">CODARCH</span>
-          <span className="brand-sub">atlas de arquitectura</span>
-        </div>
-        <div className="snapshot-meta">
-          <span className="mono">
-            {source}
-            {view.model?.meta.checksum
-              ? ` · ${view.model.meta.checksum.slice(0, 8)}`
-              : ""}
-            {view.model?.meta.commit
-              ? ` · ${view.model.meta.commit.slice(0, 8)}`
-              : ""}
+          <CodarchMark />
+          <span className="brand-lockup">
+            <span className="brand-mark">CODARCH</span>
+            <span className="brand-sub">atlas de arquitectura</span>
           </span>
-          <WatchIndicator watch={watch} />
-          <RefreshNotice at={refreshedAt} />
         </div>
         <div className="topbar-actions">
           {topbarActions}
@@ -260,6 +259,15 @@ export function AppShell({
         <div className="project-ident">
           <span className="project-label">Proyecto</span>
           <h1 title={projectTitle}>{projectTitle}</h1>
+        </div>
+        {/* El snapshot es del proyecto abierto, no de la app: vive en la banda,
+            junto a su nombre y a la vigilancia. */}
+        <div className="project-meta">
+          <span className="mono" title={snapshotLine}>
+            {snapshotLine}
+          </span>
+          <WatchIndicator watch={watch} />
+          <RefreshNotice at={refreshedAt} />
         </div>
         {focusPath ? (
           <nav className="breadcrumb" aria-label="Ruta del mapa">
@@ -602,7 +610,35 @@ export function AppShell({
   );
 }
 
-/** Lo que dice cada estado de vigilancia, en la cabecera. */
+/**
+ * La marca de la casa: el mapa en miniatura del icono de la app.
+ *
+ * Un bloque grande con su pieza en la esquina y una columna de tres al otro
+ * lado, separadas por las juntas del marco. Va dibujada y no como imagen
+ * porque la web y el escritorio sirven sus ficheros desde rutas distintas y la
+ * marca tiene que ser la misma en las dos.
+ */
+function CodarchMark() {
+  return (
+    <svg
+      className="brand-mark-icon"
+      viewBox="0 0 20 20"
+      width="22"
+      height="22"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect width="20" height="20" rx="2.4" fill="#121a20" />
+      <rect x="2.2" y="2.2" width="9.4" height="15.6" fill="#b9c9d0" />
+      <rect x="2.2" y="12.4" width="3.6" height="5.4" fill="#d95d39" />
+      <rect x="12.8" y="2.2" width="5" height="4.3" fill="#cbbfae" />
+      <rect x="12.8" y="7.5" width="5" height="4.3" fill="#a9c3a9" />
+      <rect x="12.8" y="13" width="5" height="4.8" fill="#c9bfd8" />
+    </svg>
+  );
+}
+
+/** Lo que dice cada estado de vigilancia, en la banda del proyecto. */
 const WATCH_LABEL: Record<WatchState, string> = {
   live: "live",
   paused: "live en pausa",
