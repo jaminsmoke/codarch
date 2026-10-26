@@ -6,7 +6,13 @@
  * para la página. Este módulo es puro: lo usan el build y los tests.
  */
 
-/** Los veredictos, con su color. */
+/**
+ * Los veredictos, con su color.
+ *
+ * `color` es la masa —el punto, el borde, el fondo del chip— e `ink` el tono
+ * con el que se escribe la etiqueta: el puro no llega a 4,5:1 en versalitas de
+ * 9 px, así que cada uno tiene su versión de lectura (ver `styles.css`).
+ */
 export type Veredicto =
   | "idea"
   | "fase"
@@ -17,14 +23,38 @@ export type Veredicto =
 
 export const VEREDICTOS: Record<
   Veredicto,
-  { texto: string; color: string }
+  { texto: string; color: string; ink: string }
 > = {
-  idea: { texto: "idea", color: "var(--color-violet)" },
-  fase: { texto: "fase", color: "var(--color-patina)" },
-  adr: { texto: "ADR", color: "var(--color-cobalt)" },
-  arreglo: { texto: "arreglo", color: "var(--color-ochre)" },
-  esperar: { texto: "esperar", color: "var(--color-muted)" },
-  otro: { texto: "nota", color: "var(--color-ink-soft)" }
+  idea: {
+    texto: "idea",
+    color: "var(--color-violet)",
+    ink: "var(--color-violet-ink)"
+  },
+  fase: {
+    texto: "fase",
+    color: "var(--color-patina)",
+    ink: "var(--color-patina-ink)"
+  },
+  adr: {
+    texto: "ADR",
+    color: "var(--color-cobalt)",
+    ink: "var(--color-cobalt-ink)"
+  },
+  arreglo: {
+    texto: "arreglo",
+    color: "var(--color-ochre)",
+    ink: "var(--color-ochre-ink)"
+  },
+  esperar: {
+    texto: "esperar",
+    color: "var(--color-muted)",
+    ink: "var(--color-muted)"
+  },
+  otro: {
+    texto: "nota",
+    color: "var(--color-ink-soft)",
+    ink: "var(--color-ink-soft)"
+  }
 };
 
 /** Los mismos veredictos, en inglés. */
@@ -64,17 +94,62 @@ export type Categoria =
 
 export const CATEGORIAS: Record<
   Categoria,
-  { texto: string; color: string; orden: number }
+  { texto: string; color: string; ink: string; orden: number }
 > = {
-  feature: { texto: "Novedades", color: "var(--color-cobalt)", orden: 0 },
-  fix: { texto: "Arreglos", color: "var(--color-ochre)", orden: 1 },
-  optimized: { texto: "Rendimiento", color: "var(--color-patina)", orden: 2 },
-  refactor: { texto: "Refactor", color: "var(--color-violet)", orden: 3 },
-  docs: { texto: "Docs", color: "var(--color-ink-soft)", orden: 4 },
-  chore: { texto: "Mantenimiento", color: "var(--color-muted)", orden: 5 },
-  security: { texto: "Seguridad", color: "var(--color-rust)", orden: 6 },
-  removed: { texto: "Quitado", color: "var(--color-debt)", orden: 7 },
-  otro: { texto: "Otros", color: "var(--color-line-strong)", orden: 8 }
+  feature: {
+    texto: "Novedades",
+    color: "var(--color-cobalt)",
+    ink: "var(--color-cobalt-ink)",
+    orden: 0
+  },
+  fix: {
+    texto: "Arreglos",
+    color: "var(--color-ochre)",
+    ink: "var(--color-ochre-ink)",
+    orden: 1
+  },
+  optimized: {
+    texto: "Rendimiento",
+    color: "var(--color-patina)",
+    ink: "var(--color-patina-ink)",
+    orden: 2
+  },
+  refactor: {
+    texto: "Refactor",
+    color: "var(--color-violet)",
+    ink: "var(--color-violet-ink)",
+    orden: 3
+  },
+  docs: {
+    texto: "Docs",
+    color: "var(--color-ink-soft)",
+    ink: "var(--color-ink-soft)",
+    orden: 4
+  },
+  chore: {
+    texto: "Mantenimiento",
+    color: "var(--color-muted)",
+    ink: "var(--color-muted)",
+    orden: 5
+  },
+  security: {
+    texto: "Seguridad",
+    color: "var(--color-rust)",
+    ink: "var(--color-rust-ink)",
+    orden: 6
+  },
+  removed: {
+    texto: "Quitado",
+    color: "var(--color-debt)",
+    ink: "var(--color-debt-ink)",
+    orden: 7
+  },
+  otro: {
+    texto: "Otros",
+    color: "var(--color-line-strong)",
+    ink: "var(--color-line-strong-ink)",
+    orden: 8
+  }
 };
 
 /** Las mismas categorías, en inglés. */

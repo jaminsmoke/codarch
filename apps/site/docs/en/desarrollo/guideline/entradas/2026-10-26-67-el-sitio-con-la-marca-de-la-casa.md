@@ -11,4 +11,6 @@ verdict: arreglo
 
 **Numbers**: links go from 4.01:1 to 5.62:1 on the paper; the active pill, from 3.63:1 to 5.08:1 on `accent-low`; the header's link, from 1.14:1 to 15.49:1. Measured with WCAG's contrast formula over the token values, before and after. Blue stays only where it is a category —the guide's «ADR» and «Novedades» labels—, which is a legend and not the mark.
 
+**The legend**: the guide's categories and verdicts are set in 9 px small caps and carry a colour of their own. The pure tone did not clear it —ochre sat at 2.76:1 on its chip—, so each family has two values like the accent: `color` for the dot and the border, `ink` for the letter. The reading ones run from 4.76:1 to 7.35:1 on paper and panel, and in dark they are the same light tones. The secondary grey (`--color-muted`) went one step down, from `#64727b` to `#55626a`, because the old tone sat at 4.37:1. `paleta.test.ts` resolves `styles.css`'s tokens and measures every label in both themes: with the old ochre, it fails.
+
 **Verdict**: a fix, with no phase and no ADR. The site has no themes of its own: it follows the system's with `prefers-color-scheme`, and its tokens live in `apps/site/src/styles.css` and `apps/site/src/styles/starlight.css`. When Ajustes › General picks a theme (entry 64, ADR 0082), these are the values to move, not to copy.

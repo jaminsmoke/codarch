@@ -7,7 +7,9 @@
   --color-panel: #f6f8f8;
   --color-ink: #121a20;
   --color-ink-soft: #35434c;
-  --color-muted: #64727b;
+  /* El gris de lo secundario, un paso más oscuro que antes: en el tono
+     anterior se quedaba en 4,4:1 sobre el papel y no pasaba AA. */
+  --color-muted: #55626a;
   --color-line: #c8d1d5;
   --color-line-strong: #9fadb4;
   --color-cobalt: #2f6fed;
@@ -17,6 +19,15 @@
      3,3:1 sobre el papel y no pasa AA; este llega a 5,6:1. El rust se queda
      para las masas —filetes, fondos, el año de la guía— y para el foco. */
   --color-rust-ink: #a83a1e;
+  /* Los mismos tonos, oscurecidos para texto pequeño: la leyenda de la guía
+     los usa en versalitas de 9 px, donde el tono puro no llega a AA. Cada uno
+     pasa 4,5:1 sobre el papel y sobre el panel (medido: de 4,76 a 7,35). */
+  --color-cobalt-ink: #1f4bb0;
+  --color-ochre-ink: #7f5a06;
+  --color-patina-ink: #2b6656;
+  --color-violet-ink: #5a3bc4;
+  --color-debt-ink: #ad2f2f;
+  --color-line-strong-ink: #5f6c74;
   --color-violet: #7b61ff;
   --color-patina: #3f8f7a;
   --color-debt: #d64545;
@@ -41,6 +52,13 @@
     --color-ochre: #e8bb52;
     --color-rust: #f08a6c;
     --color-rust-ink: #f08a6c;
+    /* En oscuro los tonos ya son claros: el de texto es el mismo. */
+    --color-cobalt-ink: #7aa2ff;
+    --color-ochre-ink: #e8bb52;
+    --color-patina-ink: #6fc0a8;
+    --color-violet-ink: #a893ff;
+    --color-debt-ink: #f07d7d;
+    --color-line-strong-ink: #8896a0;
     --color-violet: #a893ff;
     --color-patina: #6fc0a8;
     --color-debt: #f07d7d;
@@ -337,7 +355,8 @@ body {
   border: 1px solid color-mix(in srgb, var(--tono) 36%, var(--color-line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--tono) 10%, var(--color-panel));
-  color: color-mix(in srgb, var(--tono) 82%, var(--color-ink));
+  /* El texto lleva su tono de lectura; el punto y el borde, el de la masa. */
+  color: var(--tono-ink, var(--tono));
   font-family: var(--font-mono);
   font-size: 0.57rem;
   letter-spacing: 0.08em;
@@ -399,7 +418,7 @@ body {
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--tono) 75%, var(--color-ink));
+  color: var(--tono-ink, var(--tono));
 }
 
 .guia-grupo-cuenta {
@@ -532,7 +551,7 @@ body {
   border: 1px solid color-mix(in srgb, var(--tono) 36%, var(--color-line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--tono) 12%, transparent);
-  color: color-mix(in srgb, var(--tono) 76%, var(--color-ink));
+  color: var(--tono-ink, var(--tono));
   font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.08em;

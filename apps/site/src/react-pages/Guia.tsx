@@ -38,9 +38,12 @@ const ICONOS: Record<Veredicto, LucideIcon> = {
   otro: Pin
 };
 
-/** El color de una categoría o un veredicto, como variable de CSS. */
-function tono(color: string): CSSProperties {
-  return { "--tono": color } as CSSProperties;
+/**
+ * El color de una categoría o un veredicto, como variables de CSS: `--tono`
+ * para la masa y `--tono-ink` para el texto de la etiqueta.
+ */
+function tono(color: string, ink: string): CSSProperties {
+  return { "--tono": color, "--tono-ink": ink } as CSSProperties;
 }
 
 /** La etiqueta de un veredicto, con su icono y su color. */
@@ -54,7 +57,7 @@ function Etiqueta({
   const meta = VEREDICTOS[veredicto];
   const Icono = ICONOS[veredicto];
   return (
-    <span style={tono(meta.color)} className="guia-veredicto">
+    <span style={tono(meta.color, meta.ink)} className="guia-veredicto">
       <Icono aria-hidden="true" className="size-3" strokeWidth={2.2} />
       {nombreVeredicto(veredicto, lang)}
     </span>
@@ -203,7 +206,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                       type="button"
                       onClick={() => alternar(grupo.categoria)}
                       aria-pressed={activa}
-                      style={tono(categoria.color)}
+                      style={tono(categoria.color, categoria.ink)}
                       className={
                         activa ? "guia-chip" : "guia-chip guia-chip--inactivo"
                       }
@@ -241,7 +244,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
               <section
                 key={grupo.categoria}
                 aria-label={nombreCategoria(grupo.categoria, idioma)}
-                style={tono(categoria.color)}
+                style={tono(categoria.color, categoria.ink)}
                 className="guia-grupo"
               >
                 <h3 className="guia-grupo-cabecera">
