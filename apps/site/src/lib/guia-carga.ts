@@ -1,6 +1,6 @@
 import { getCollection } from "astro:content";
-import normas from "../../docs/guideline/normas.md?raw";
-import normasEn from "../../docs/en/guideline/normas.md?raw";
+import normas from "../../docs/desarrollo/guideline/normas.md?raw";
+import normasEn from "../../docs/en/desarrollo/guideline/normas.md?raw";
 import { prepararGuia } from "./guia-servidor";
 
 /**

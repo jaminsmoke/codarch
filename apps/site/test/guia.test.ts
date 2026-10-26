@@ -103,7 +103,7 @@ describe("prepararGuia", () => {
       .find((d) => d.fecha === "2026-10-22")
       ?.entradas.find((e) => e.titulo === "Un fix");
     expect(entrada?.html).toContain(
-      `href="${conBase("/docs/adr/0031-0040/0034-la-web-del-proyecto/")}"`
+      `href="${conBase("/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
     );
   });
 
@@ -123,12 +123,12 @@ describe("prepararGuia", () => {
 });
 
 describe("la guía en inglés", () => {
-  it("lleva los días a `/en/guia/` y deja la última fecha en la portada", () => {
+  it("lleva los días a `/en/desarrollo/guia/` y deja la última fecha en la portada", () => {
     expect(rutaDia("2026-10-21", "2026-10-22", "en")).toBe(
-      "/en/guia/2026-10-21/"
+      "/en/desarrollo/guia/2026-10-21/"
     );
-    expect(rutaDia("2026-10-22", "2026-10-22", "en")).toBe("/en/guia/");
-    expect(rutaDia("2026-10-21", "2026-10-22")).toBe("/guia/2026-10-21/");
+    expect(rutaDia("2026-10-22", "2026-10-22", "en")).toBe("/en/desarrollo/guia/");
+    expect(rutaDia("2026-10-21", "2026-10-22")).toBe("/desarrollo/guia/2026-10-21/");
   });
 
   it("escribe la fecha en el orden del inglés", () => {
@@ -146,21 +146,21 @@ describe("la guía en inglés", () => {
     expect(nombreCategoria("feature")).toBe("Novedades");
   });
 
-  it("lleva los enlaces de una entrada a `/en/docs/`", () => {
+  it("lleva los enlaces de una entrada a `/en/desarrollo/`", () => {
     const guia = prepararGuia(fuentes, normas, "en");
     const entrada = guia.dias
       .find((d) => d.fecha === "2026-10-22")
       ?.entradas.find((e) => e.titulo === "Un fix");
     expect(entrada?.html).toContain(
-      `href="${conBase("/en/docs/adr/0031-0040/0034-la-web-del-proyecto/")}"`
+      `href="${conBase("/en/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
     );
   });
 });
 
 describe("la guía traducida", () => {
   const docs = path.resolve(import.meta.dirname, "../docs");
-  const entradasEs = path.join(docs, "guideline/entradas");
-  const entradasEn = path.join(docs, "en/guideline/entradas");
+  const entradasEs = path.join(docs, "desarrollo/guideline/entradas");
+  const entradasEn = path.join(docs, "en/desarrollo/guideline/entradas");
 
   it("tiene en inglés las mismas entradas que en español", () => {
     expect(fs.readdirSync(entradasEn).sort()).toEqual(
@@ -169,8 +169,8 @@ describe("la guía traducida", () => {
   });
 
   it("traduce las normas de la guía", () => {
-    const es = fs.readFileSync(path.join(docs, "guideline/normas.md"), "utf8");
-    const en = fs.readFileSync(path.join(docs, "en/guideline/normas.md"), "utf8");
+    const es = fs.readFileSync(path.join(docs, "desarrollo/guideline/normas.md"), "utf8");
+    const en = fs.readFileSync(path.join(docs, "en/desarrollo/guideline/normas.md"), "utf8");
     expect(es).toContain("## Los iconos");
     expect(en).toContain("## The icons");
     expect(en).not.toContain("## Los iconos");
@@ -180,7 +180,7 @@ describe("la guía traducida", () => {
 describe("la guía del repo", () => {
   const guideline = path.resolve(
     import.meta.dirname,
-    "../docs/guideline"
+    "../docs/desarrollo/guideline"
   );
   const entradas = fs
     .readdirSync(path.join(guideline, "entradas"))

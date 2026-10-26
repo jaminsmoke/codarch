@@ -61,8 +61,9 @@ export default function Marco({
 
   const enlaces: { ruta: string; clave: Clave }[] = [
     { ruta: "/", clave: "nav.inicio" },
-    { ruta: "/guia/", clave: "nav.guia" },
-    { ruta: "/docs/", clave: "nav.documentos" }
+    { ruta: "/docs/", clave: "nav.documentacion" },
+    // La guía vive dentro de Desarrollo (ADR 0081).
+    { ruta: "/desarrollo/", clave: "nav.desarrollo" }
   ];
 
   return (
@@ -156,16 +157,16 @@ export default function Marco({
           <span>{t(idioma, "marco.licencia")}</span>
           <span className="ml-auto flex gap-3">
             <a
-              href={`${raiz}/guia/`}
+              href={`${raiz}/docs/usar/instalacion/`}
               className="text-muted no-underline hover:text-cobalt"
             >
-              {t(idioma, "nav.guia")}
+              {t(idioma, "home.empezar")}
             </a>
             <a
-              href={`${raiz}/docs/`}
+              href={`${raiz}/desarrollo/`}
               className="text-muted no-underline hover:text-cobalt"
             >
-              {t(idioma, "nav.documentos")}
+              {t(idioma, "home.construye")}
             </a>
             <a href="https://github.com/jaminsmoke/codarch">
               {t(idioma, "marco.repo")}

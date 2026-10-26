@@ -23,7 +23,7 @@ import { useTitulo } from "../lib/titulo";
  * Un día de la guía, con su changelog (ADR 0035 · ADR 0047).
  *
  * La página del día pinta solo sus entradas; la línea del tiempo del header
- * lleva a los demás días. La cabecera solo se lee en `/guia/`.
+ * lleva a los demás días. La cabecera solo se lee en `/desarrollo/guia/`.
  */
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -153,7 +153,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
       ) : (
         <p className="mb-6 flex items-center gap-2 font-mono text-[0.66rem] tracking-[0.14em] text-muted uppercase">
           <a
-            href={`${BASE}/guia/`}
+            href={`${BASE}/desarrollo/guia/`}
             className="text-cobalt no-underline hover:underline"
           >
             {t(idioma, "guia.titulo")}
@@ -340,7 +340,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
           <span />
         )}
         <a
-          href={`${BASE}${idioma === "en" ? "/en" : ""}/guia/futuro/`}
+          href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`}
           className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-cobalt"
         >
           {t(idioma, "guia.futuro")}
@@ -360,7 +360,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
 
       <p className="mt-5 text-sm text-muted">
         <a
-          href={`${BASE}${idioma === "en" ? "/en" : ""}/guia/normas/`}
+          href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/normas/`}
           className="text-cobalt no-underline hover:underline"
         >
           {t(idioma, "guia.normas")}

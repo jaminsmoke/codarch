@@ -49,7 +49,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     })),
     {
       clave: "futuro",
-      ruta: `${idioma === "en" ? "/en" : ""}/guia/futuro/`,
+      ruta: `${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`,
       texto: t(idioma, "guia.futuro"),
       corto: "futuro",
       cuantas: 0,

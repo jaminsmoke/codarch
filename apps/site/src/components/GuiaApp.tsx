@@ -51,8 +51,8 @@ function parseRuta(
 /** La ruta canónica de una vista. */
 function rutaDe(ruta: Ruta, ultima: string, idioma: string): string {
   const prefijo = idioma === "en" ? "/en" : "";
-  if (ruta.tipo === "futuro") return `${prefijo}/guia/futuro/`;
-  if (ruta.tipo === "normas") return `${prefijo}/guia/normas/`;
+  if (ruta.tipo === "futuro") return `${prefijo}/desarrollo/guia/futuro/`;
+  if (ruta.tipo === "normas") return `${prefijo}/desarrollo/guia/normas/`;
   return rutaDia(ruta.fecha, ultima, idioma);
 }
 
@@ -62,7 +62,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
   const ultima = datos.dias.at(-1)?.fecha ?? "";
   const [ruta, setRuta] = useState<Ruta>(() =>
     parseRuta(
-      typeof window === "undefined" ? "/guia/" : window.location.pathname,
+      typeof window === "undefined" ? "/desarrollo/guia/" : window.location.pathname,
       datos,
       idioma
     )
@@ -126,7 +126,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
     const href = ancla.getAttribute("href");
     if (!href || href.startsWith("#")) return;
-    if (!href.startsWith(`${BASE}${idioma === "en" ? "/en" : ""}/guia`)) {
+    if (!href.startsWith(`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia`)) {
       return;
     }
 

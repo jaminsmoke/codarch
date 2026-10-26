@@ -1,5 +1,6 @@
 import claves from "virtual:docs-rutas";
 import { REPO } from "./markdown";
+import { GUIA, rutaWeb } from "./zonas.mjs";
 
 /**
  * Las direcciones de los documentos ✓ ✅.
@@ -9,7 +10,7 @@ import { REPO } from "./markdown";
  * a un ADR ✓ ✅ sin llevarse todos los documentos en el mismo paquete ✅ ✅.
  */
 
-/** Las claves que existen: `adr/0029-los-addons`, `model`, … */
+/** Las claves que existen: `desarrollo/adr/0021-0030/0029-los-addons`, `usar/webapp`, … */
 const conocidas = new Set<string>(claves);
 
 /** Si una clave es un documento del sitio ✓ ✅. */
@@ -46,8 +47,7 @@ export function urlCanonica(ruta: string): string {
 
 /** Cómo se llama un documento dentro del sitio ✓ ✅ (ruta del router ✓). */
 export function rutaDe(clave: string): string {
-  const slug = clave.replace(/(^|\/)index$/, "");
-  return slug ? `/docs/${slug}/` : "/docs/";
+  return rutaWeb(clave);
 }
 
 /**
@@ -76,7 +76,8 @@ export function resolver(
 
   if (/\.md$/i.test(relativa)) {
     const clave = relativa.replace(/\.md$/i, "");
-    if (clave.startsWith("guideline/")) return conBase(`${prefijo}/guia/${ancla}`);
+    if (clave.startsWith(`${GUIA}/`))
+      return conBase(`${prefijo}${rutaWeb(clave)}${ancla}`);
     if (conocidas.has(clave))
       return `${conBase(`${prefijo}${rutaDe(clave)}`)}${ancla}`;
   }

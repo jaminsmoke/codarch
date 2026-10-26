@@ -1,0 +1,29 @@
+---
+import MobileMenuFooter from "virtual:starlight/components/MobileMenuFooter";
+import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
+import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
+import { zonaDeRuta } from "../lib/zonas.mjs";
+
+/**
+ * Una sidebar por zona (ADR 0081).
+ *
+ * Starlight conoce las dos zonas (`sidebar.mjs` devuelve los dos grupos, en
+ * este orden: Documentación y Desarrollo); aquí solo se pinta el de la
+ * página, sin su cabecera, porque el nombre de la zona ya está en el menú.
+ */
+
+const { sidebar } = Astro.locals.starlightRoute;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const ruta = Astro.url.pathname.slice(base.length) || "/";
+const indice = zonaDeRuta(ruta) === "desarrollo" ? 1 : 0;
+const grupo = sidebar[indice];
+const entradas = grupo && grupo.type === "group" ? grupo.entries : sidebar;
+---
+
+<SidebarPersister>
+  <SidebarSublist sublist={entradas} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>

@@ -137,15 +137,15 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
         <div className="mt-6 flex flex-wrap items-center gap-6">
           <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
-            href={`${raiz}/guia/`}
+            href={`${raiz}/docs/usar/instalacion/`}
           >
-            {t(idioma, "home.guia")}
+            {t(idioma, "home.empezar")}
           </a>
           <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
-            href={`${raiz}/docs/`}
+            href={`${raiz}/desarrollo/`}
           >
-            {t(idioma, "home.docs")}
+            {t(idioma, "home.construye")}
           </a>
         </div>
       </motion.section>
@@ -225,10 +225,10 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
           </p>
         </div>
         <a
-          href={`${raiz}/docs/`}
+          href={`${raiz}/desarrollo/`}
           className="ml-auto rounded-full border border-line-strong bg-paper px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
         >
-          {t(idioma, "home.docs")}
+          {t(idioma, "home.construye")}
         </a>
       </motion.section>
     </div>

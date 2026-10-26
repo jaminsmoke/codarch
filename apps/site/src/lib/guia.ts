@@ -2,7 +2,7 @@
  * La guía: sus tipos, sus categorías y sus veredictos (ADR 0035 · ADR 0046).
  *
  * El contenido ya no se parte aquí: cada idea es un fichero en
- * `docs/guideline/entradas/` y `lib/guia-servidor.ts` lo convierte en datos
+ * `docs/desarrollo/guideline/entradas/` y `lib/guia-servidor.ts` lo convierte en datos
  * para la página. Este módulo es puro: lo usan el build y los tests.
  */
 
@@ -142,7 +142,7 @@ export function resumenDias(dias: Dia[]): ResumenDia[] {
   }));
 }
 
-/** La ruta de un día: el último vive en `/guia/`, los demás en su fecha. */
+/** La ruta de un día: el último vive en `/desarrollo/guia/`, los demás en su fecha. */
 export function rutaDia(
   fecha: string,
   ultima: string,
@@ -150,8 +150,8 @@ export function rutaDia(
 ): string {
   const prefijo = lang === "en" ? "/en" : "";
   return fecha === ultima
-    ? `${prefijo}/guia/`
-    : `${prefijo}/guia/${fecha}/`;
+    ? `${prefijo}/desarrollo/guia/`
+    : `${prefijo}/desarrollo/guia/${fecha}/`;
 }
 
 /** La guía entera: las normas, los días y lo que falta. */

@@ -27,39 +27,50 @@ function resolver(desde: string, href: string): string {
 }
 
 describe("los enlaces del markdown", () => {
-  it("lleva un documento relativo a su ruta de Starlight", () => {
-    expect(resolver("index.md", "adr/roadmap.md")).toBe(
-      "/codarch/docs/adr/roadmap/"
+  it("lleva un documento relativo a la ruta de su zona", () => {
+    expect(resolver("index.md", "usar/webapp.md")).toBe(
+      "/codarch/docs/usar/webapp/"
     );
-    expect(resolver("adr/index.md", "0001-0010/0001-clean-room-con-ccjson.md")).toBe(
-      "/codarch/docs/adr/0001-0010/0001-clean-room-con-ccjson/"
+    expect(resolver("index.md", "desarrollo/roadmap.md")).toBe(
+      "/codarch/desarrollo/roadmap/"
+    );
+    expect(
+      resolver("desarrollo/adr/index.md", "0001-0010/0001-clean-room-con-ccjson.md")
+    ).toBe("/codarch/desarrollo/adr/0001-0010/0001-clean-room-con-ccjson/");
+    expect(resolver("desarrollo/model.md", "../usar/reglas.md")).toBe(
+      "/codarch/docs/usar/reglas/"
+    );
+    expect(resolver("en/usar/mcp.md", "reglas.md")).toBe(
+      "/codarch/en/docs/usar/reglas/"
     );
   });
 
   it("conserva el ancla y resuelve las carpetas", () => {
-    expect(resolver("index.md", "model.md#el-modelo")).toBe(
-      "/codarch/docs/model/#el-modelo"
+    expect(resolver("index.md", "desarrollo/model.md#el-modelo")).toBe(
+      "/codarch/desarrollo/model/#el-modelo"
     );
     expect(
       resolver(
-        "adr/0041-0050/0046-los-documentos-con-starlight.md",
+        "desarrollo/adr/0041-0050/0046-los-documentos-con-starlight.md",
         "../../guideline/entradilla.md#futuro"
       )
-    ).toBe("/codarch/guia/#futuro");
+    ).toBe("/codarch/desarrollo/guia/#futuro");
   });
 
   it("añade la base a los enlaces internos absolutos", () => {
-    expect(resolver("model.md", "/guia/")).toBe("/codarch/guia/");
+    expect(resolver("desarrollo/model.md", "/desarrollo/guia/")).toBe(
+      "/codarch/desarrollo/guia/"
+    );
+    expect(resolver("en/desarrollo/model.md", "/docs/usar/mcp/")).toBe(
+      "/codarch/en/docs/usar/mcp/"
+    );
   });
 
   it("manda al repo lo que no es un documento", () => {
-    expect(resolver("model.md", "images/atlas.png")).toBe(
+    expect(resolver("desarrollo/model.md", "../images/atlas.png")).toBe(
       "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/images/atlas.png"
     );
-    expect(resolver("design/map.md", "../../design/preview-riesgo.png")).toBe(
-      "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/design/preview-riesgo.png"
-    );
-    expect(resolver("model.md", "../README.md")).toBe(
+    expect(resolver("desarrollo/model.md", "../../README.md")).toBe(
       "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/README.md"
     );
   });

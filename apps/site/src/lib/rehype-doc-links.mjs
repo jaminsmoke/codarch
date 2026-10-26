@@ -1,5 +1,6 @@
 import path from "node:path";
 import { visit } from "unist-util-visit";
+import { esRutaInterna, rutaWeb } from "./zonas.mjs";
 
 const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
 
@@ -7,7 +8,8 @@ const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
  * Convierte los enlaces relativos de `docs/` en rutas de Starlight.
  *
  * El markdown sigue escribiéndose como siempre (`../model.md`); el build lo
- * traduce a `/codarch/docs/model/` y conserva el ancla. Lo que no es un
+ * traduce a su ruta web según su zona (`/codarch/desarrollo/model/`,
+ * `/codarch/docs/usar/webapp/`; ADR 0081) y conserva el ancla. Lo que no es un
  * documento sale al repositorio, como antes (ADR 0046).
  *
  * Los documentos ingleses viven en `docs/en/` con las mismas rutas relativas,
@@ -40,11 +42,7 @@ export function rehypeDocLinks({ docsRoot, base }) {
       if (!ruta) return;
 
       if (ruta.startsWith("/")) {
-        const interna =
-          ruta === "/" ||
-          ruta.startsWith("/docs/") ||
-          ruta.startsWith("/guia/");
-        node.properties.href = interna
+        node.properties.href = esRutaInterna(ruta)
           ? `${prefijo}${ruta}`.replace(/\/\/+/g, "/")
           : href;
         return;
@@ -60,18 +58,8 @@ export function rehypeDocLinks({ docsRoot, base }) {
         return;
       }
 
-      if (destino.startsWith("guideline/")) {
-        node.properties.href = `${prefijo}/guia/${ancla}`.replace(
-          /\/\/+/g,
-          "/"
-        );
-        return;
-      }
-
       const clave = destino.replace(/\.md$/, "");
-      const sinIndice = clave.replace(/(^|\/)index$/, "");
-      const rutaWeb = sinIndice ? `/docs/${sinIndice}/` : "/docs/";
-      node.properties.href = `${prefijo}${rutaWeb}${ancla}`.replace(
+      node.properties.href = `${prefijo}${rutaWeb(clave)}${ancla}`.replace(
         /\/\/+/g,
         "/"
       );

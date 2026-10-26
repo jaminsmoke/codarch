@@ -2,13 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
+import { idDocumento } from "./lib/zonas.mjs";
 
 /**
  * La sidebar de Starlight se genera del frontmatter de `docs/` (ADR 0046).
  *
  * No hay una lista de documentos en el código: añadir un `.md` con su
- * frontmatter lo pone en su bloque: `producto` (Usar CodArch) o `construir` (ADR 0080); los ADR
- * se agrupan por su carpeta de diez.
+ * frontmatter lo pone en su zona (ADR 0081): `usar` (Documentación, `/docs/`)
+ * o `desarrollo` (Desarrollo, `/desarrollo/`); los ADR se agrupan por su
+ * carpeta de diez. Cada zona enseña solo su sidebar (`Sidebar.astro`).
  *
  * El inglés vive en `docs/en/` con las mismas rutas relativas. La lista es
  * única: Starlight le pone el prefijo del idioma a cada slug, y la etiqueta
@@ -44,7 +46,7 @@ function leer(archivo) {
     .split(path.sep)
     .join("/")
     .replace(/\.md$/, "");
-  return { clave: `docs/${relativa}`, relativa, datos };
+  return { clave: idDocumento(relativa), relativa, datos };
 }
 
 function etiqueta(clave, datos) {
@@ -89,10 +91,10 @@ const enSeccion = (seccion) =>
 const ORDEN_CLI = 20;
 const esCli = (documento) => documento.clave.startsWith("docs/usar/cli/");
 
-const comandos = enSeccion("producto").filter(esCli).sort(orden).map(item);
+const comandos = enSeccion("usar").filter(esCli).sort(orden).map(item);
 
 const usar = [
-  ...enSeccion("producto")
+  ...enSeccion("usar")
     .filter((documento) => !esCli(documento))
     .map((documento) => ({
       orden: documento.datos.sidebar?.order ?? 0,
@@ -112,13 +114,19 @@ const usar = [
   .sort((a, b) => a.orden - b.orden || a.clave.localeCompare(b.clave))
   .map(({ entrada }) => entrada);
 
-const construir = enSeccion("construir").sort(orden).map(item);
+const ADR = "desarrollo/adr/";
+const esAdr = (documento) => documento.clave.startsWith(ADR);
 
-const decisiones = enSeccion("adr")
-  .filter((documento) => documento.clave !== "docs/adr/index")
+const construir = enSeccion("desarrollo")
+  .filter((documento) => !esAdr(documento))
+  .sort(orden)
+  .map(item);
+
+const decisiones = enSeccion("desarrollo")
+  .filter(esAdr)
+  .filter((documento) => documento.clave !== `${ADR}index`)
   .reduce((grupos, documento) => {
-    const partes = documento.clave.split("/");
-    const carpeta = partes[2] ?? "";
+    const carpeta = documento.clave.slice(ADR.length).split("/")[0] ?? "";
     if (!/^\d{4}-\d{4}$/.test(carpeta)) return grupos;
     const lista = grupos.get(carpeta) ?? [];
     lista.push(documento);
@@ -135,37 +143,44 @@ const gruposDecisiones = [...decisiones.entries()]
   }));
 
 const indice = documentos.find(
-  (documento) => documento.clave === "docs/adr/index"
+  (documento) => documento.clave === `${ADR}index`
 );
 
+/** La zona «Documentación» (`/docs/`): lo que necesita quien usa CodArch. */
+export function sidebarUsar() {
+  return {
+    label: "Documentación",
+    translations: { en: "Documentation" },
+    items: usar
+  };
+}
+
+/** La zona «Desarrollo» (`/desarrollo/`): cómo se construye, los ADR y la guía. */
+export function sidebarDesarrollo() {
+  return {
+    label: "Desarrollo",
+    translations: { en: "Development" },
+    items: [
+      ...construir,
+      {
+        label: "Decisiones (ADR)",
+        translations: { en: "Decisions (ADR)" },
+        collapsed: true,
+        items: [...(indice ? [item(indice)] : []), ...gruposDecisiones]
+      },
+      {
+        label: "La guía",
+        translations: { en: "The guide" },
+        link: "/desarrollo/guia/"
+      }
+    ]
+  };
+}
+
 /**
- * Dos bloques (ADR 0080): lo que necesita quien usa CodArch y lo que explica
- * cómo se construye. El `section` del frontmatter decide el bloque: `producto` es «Usar CodArch».
+ * Las dos zonas (ADR 0081). Starlight recibe las dos para conocer todas las
+ * páginas; `Sidebar.astro` enseña solo la de la página actual.
  */
 export function sidebar() {
-  return [
-    {
-      label: "Usar CodArch",
-      translations: { en: "Using CodArch" },
-      items: usar
-    },
-    {
-      label: "Cómo se construye",
-      translations: { en: "How it is built" },
-      items: [
-        ...construir,
-        {
-          label: "Decisiones (ADR)",
-          translations: { en: "Decisions (ADR)" },
-          collapsed: true,
-          items: [...(indice ? [item(indice)] : []), ...gruposDecisiones]
-        },
-        {
-          label: "La guía",
-          translations: { en: "The guide" },
-          link: "/guia/"
-        }
-      ]
-    }
-  ];
+  return [sidebarUsar(), sidebarDesarrollo()];
 }

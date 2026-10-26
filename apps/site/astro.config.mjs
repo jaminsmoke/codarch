@@ -5,6 +5,7 @@ import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { unified } from "@astrojs/markdown-remark";
 import { defineConfig } from "astro/config";
+import { redirecciones } from "./src/lib/redirecciones.mjs";
 import { rehypeDocLinks } from "./src/lib/rehype-doc-links.mjs";
 import { sidebar } from "./src/sidebar.mjs";
 import { faviconDev } from "./vite-plugin-favicon.ts";
@@ -22,6 +23,8 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 export default defineConfig({
   site: "https://jaminsmoke.github.io",
   base: "/codarch",
+  // Las direcciones de antes de las dos zonas siguen funcionando (ADR 0081).
+  redirects: redirecciones(path.join(root, "docs"), "/codarch"),
   markdown: {
     processor: unified({
       rehypePlugins: [
@@ -46,8 +49,11 @@ export default defineConfig({
       customCss: ["./src/styles/starlight.css"],
       components: {
         Head: "./src/components/Head.astro",
-        Header: "./src/components/Header.astro"
+        Header: "./src/components/Header.astro",
+        Sidebar: "./src/components/Sidebar.astro",
+        MarkdownContent: "./src/components/MarkdownContent.astro"
       },
+      routeMiddleware: "./src/middleware-rutas.ts",
       sidebar: sidebar(),
       social: [
         {

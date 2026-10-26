@@ -1,11 +1,11 @@
 ---
-import GuiaApp from "../../../components/GuiaApp";
-import Site from "../../../layouts/Site.astro";
-import { cargarGuia } from "../../../lib/guia-carga";
-import { idiomaDe, t } from "../../../lib/i18n";
-import { urlCanonica } from "../../../lib/rutas";
+import GuiaApp from "../../../../components/GuiaApp";
+import Site from "../../../../layouts/Site.astro";
+import { cargarGuia } from "../../../../lib/guia-carga";
+import { idiomaDe, t } from "../../../../lib/i18n";
+import { urlCanonica } from "../../../../lib/rutas";
 
-/** Cómo se escribe la guía: `/guia/normas/` y `/en/guia/normas/`. */
+/** Cómo se escribe la guía: `/desarrollo/guia/normas/` y `/en/desarrollo/guia/normas/`. */
 export function getStaticPaths() {
   return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
 }
@@ -13,7 +13,7 @@ export function getStaticPaths() {
 const idioma = idiomaDe(Astro.params.lang);
 const datos = await cargarGuia(idioma);
 const canonical = urlCanonica(
-  idioma === "en" ? "/en/guia/normas/" : "/guia/normas/"
+  idioma === "en" ? "/en/desarrollo/guia/normas/" : "/desarrollo/guia/normas/"
 );
 ---
 

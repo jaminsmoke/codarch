@@ -41,7 +41,7 @@ export default function Normas({
         dangerouslySetInnerHTML={{ __html: normas }}
       />
       <a
-        href={`${raiz}/guia/`}
+        href={`${raiz}/desarrollo/guia/`}
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />

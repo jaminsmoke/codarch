@@ -12,7 +12,7 @@ import { resolver } from "./rutas";
 /**
  * La guía del repo, convertida en datos para la página (ADR 0046).
  *
- * Cada entrada es un fichero de `docs/guideline/entradas/`; aquí se ordena,
+ * Cada entrada es un fichero de `docs/desarrollo/guideline/entradas/`; aquí se ordena,
  * se agrupa y se le pasa el markdown a HTML. La web solo pinta el resultado.
  */
 
@@ -40,7 +40,7 @@ function prepararEntrada(fuente: FuenteGuia, lang: string): Entrada {
     fecha: fuente.data.date,
     resumen: recortar(primerParrafo(cuerpo), 220),
     html: renderizar(cuerpo, (destino) =>
-      resolver(`guideline/entradas/${fuente.id}.md`, destino, lang)
+      resolver(`desarrollo/guideline/entradas/${fuente.id}.md`, destino, lang)
     ).html
   };
 }
@@ -74,7 +74,7 @@ export function prepararGuia(
 
   return {
     normas: renderizar(normas, (destino) =>
-      resolver("guideline/normas.md", destino, lang)
+      resolver("desarrollo/guideline/normas.md", destino, lang)
     ).html,
     dias: diasDe(entradas),
     futuras: entradas.filter((entrada) => entrada.veredicto === "esperar")

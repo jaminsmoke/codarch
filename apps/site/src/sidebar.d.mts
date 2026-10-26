@@ -1,5 +1,6 @@
 export interface SidebarItem {
   label?: string;
+  translations?: Record<string, string>;
   link?: string;
   slug?: string;
   items?: SidebarItem[];
@@ -8,3 +9,5 @@ export interface SidebarItem {
 }
 
 export function sidebar(): SidebarItem[];
+export function sidebarUsar(): SidebarItem;
+export function sidebarDesarrollo(): SidebarItem;

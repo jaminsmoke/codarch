@@ -2,7 +2,7 @@
 import DefaultHeader from "@astrojs/starlight/components/Header.astro";
 
 /**
- * La cabecera de los documentos (ADR 0047).
+ * La cabecera de los documentos (ADR 0047 · ADR 0081).
  *
  * Starlight pone la búsqueda, el tema y el GitHub; aquí se añaden los enlaces
  * que ya tienen la portada y la guía, para no perder la navegación del sitio.
@@ -13,22 +13,27 @@ const t = Astro.locals.t;
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const ruta = Astro.url.pathname;
+// Los enlaces siguen el idioma de la página.
+const raiz = ruta.startsWith(`${base}/en/`) || ruta === `${base}/en`
+  ? `${base}/en`
+  : base;
 
+/** Inicio · Documentación · Desarrollo (ADR 0081); la guía está en Desarrollo. */
 const enlaces = [
   {
-    href: `${base}/`,
+    href: `${raiz}/`,
     texto: t("nav.inicio"),
-    activo: ruta === `${base}/` || ruta === base
+    activo: ruta === `${raiz}/` || ruta === raiz
   },
   {
-    href: `${base}/guia/`,
-    texto: t("nav.guia"),
-    activo: ruta.startsWith(`${base}/guia`)
+    href: `${raiz}/docs/`,
+    texto: t("nav.documentacion"),
+    activo: ruta.startsWith(`${raiz}/docs`)
   },
   {
-    href: `${base}/docs/`,
-    texto: t("nav.documentos"),
-    activo: ruta.startsWith(`${base}/docs`)
+    href: `${raiz}/desarrollo/`,
+    texto: t("nav.desarrollo"),
+    activo: ruta.startsWith(`${raiz}/desarrollo`)
   }
 ];
 ---

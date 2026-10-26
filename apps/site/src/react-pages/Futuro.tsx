@@ -54,7 +54,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
       <p className="mt-4 mb-8 max-w-2xl text-lg leading-relaxed text-ink-soft">
         {t(idioma, "guia.futuro.desc")}{" "}
         {t(idioma, "guia.futuro.desc.link")}{" "}
-        <a className="text-cobalt" href={`${raiz}/docs/adr/roadmap/`}>
+        <a className="text-cobalt" href={`${raiz}/desarrollo/roadmap/`}>
           {t(idioma, "guia.futuro.roadmap")}
         </a>
         .
@@ -108,7 +108,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
       </ul>
 
       <a
-        href={`${raiz}/guia/`}
+        href={`${raiz}/desarrollo/guia/`}
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />

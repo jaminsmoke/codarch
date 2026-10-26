@@ -2,17 +2,20 @@ import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 import { i18nLoader } from "@astrojs/starlight/loaders";
 import { docsSchema, i18nSchema } from "@astrojs/starlight/schema";
+import { ZONAS, idDocumento } from "./lib/zonas.mjs";
 
 /**
  * Los documentos siguen viviendo en `docs/` (ADR 0046).
  *
- * El loader les da un id `docs/...`, así que su ruta es `/docs/...`; la
- * carpeta `guideline` queda fuera porque la guía tiene su propia página.
+ * Hay dos zonas (ADR 0081): `docs/usar/` sale en `/docs/...` y
+ * `docs/desarrollo/` en `/desarrollo/...` (el id es la ruta, ver `zonas.mjs`);
+ * la carpeta `desarrollo/guideline` queda fuera porque la guía tiene su
+ * propia página.
  * El esquema obliga a que cada documento declare lo que el sitio necesita.
  */
 
 const metadata = z.object({
-  section: z.enum(["producto", "construir", "adr"]),
+  section: z.enum(ZONAS),
   status: z.string().optional(),
   date: z.string().optional(),
   tags: z.array(z.string()).default([])
@@ -40,23 +43,22 @@ export const collections = {
     loader: glob({
       base: "./docs",
       // El inglés vive en `docs/en/` y su id lleva el locale delante para que
-      // Starlight le dé la ruta `/en/docs/...` y su fallback al español.
-      pattern: ["**/*.md", "!guideline/**", "!en/guideline/**"],
-      generateId: ({ entry }) => {
-        const limpio = entry.replace(/\.md$/, "");
-        return limpio.startsWith("en/")
-          ? `en/docs/${limpio.slice(3)}`
-          : `docs/${limpio}`;
-      }
+      // Starlight le dé la ruta `/en/...` y su fallback al español.
+      pattern: [
+        "**/*.md",
+        "!desarrollo/guideline/**",
+        "!en/desarrollo/guideline/**"
+      ],
+      generateId: ({ entry }) => idDocumento(entry)
     }),
     schema: docsSchema({ extend: metadata })
   }),
   guia: defineCollection({
-    loader: glob({ base: "./docs/guideline/entradas", pattern: "**/*.md" }),
+    loader: glob({ base: "./docs/desarrollo/guideline/entradas", pattern: "**/*.md" }),
     schema: entradaGuia
   }),
   guiaEn: defineCollection({
-    loader: glob({ base: "./docs/en/guideline/entradas", pattern: "**/*.md" }),
+    loader: glob({ base: "./docs/en/desarrollo/guideline/entradas", pattern: "**/*.md" }),
     schema: entradaGuia
   }),
   /** Las cadenas de la interfaz: una entrada por idioma (Starlight). */
