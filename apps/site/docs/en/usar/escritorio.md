@@ -43,9 +43,13 @@ On top of the interface, the app has native menus: **Archivo** (file), **Edició
 
 ## Elige la carpeta del repositorio
 
-To analyse a repo, open it from the Archivo menu or from **ABRIR REPOSITORIO O ARCHIVO**. The native
-**Elige la carpeta del repositorio** (choose the repository folder) dialog opens.
+There are three ways to open a repo, from most to least common:
 
+- **ABRIR REPOSITORIO O ARCHIVO**: the header button opens a drop-down with **Analizar carpeta…**
+  (analyse folder), **Archivo cc.json…** (cc.json file) and **Reporte JSON…** (JSON report). It is the
+  main way and works the same as in the [web app](webapp.md#abrir-repositorio-o-archivo).
+  **Analizar carpeta…** opens the native **Elige la carpeta del repositorio** (choose the repository
+  folder) dialog. The Archivo menu has the same actions.
 - **Shortcuts**: `Ctrl+O` analyses a folder, `Ctrl+Shift+O` opens a JSON.
 - **A path on start**: the app accepts a folder, a `cc.json` or a `report.json` as an argument and
   opens it right after starting. The installers do not register file associations, so the app does

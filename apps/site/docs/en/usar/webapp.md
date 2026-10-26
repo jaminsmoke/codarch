@@ -65,7 +65,9 @@ Each block is a folder or a file. There is no «lenses» menu: they are the two 
 
 ## ABRIR REPOSITORIO O ARCHIVO
 
-The **ABRIR REPOSITORIO O ARCHIVO** (open repository or file) button has these options:
+This is the main way to open a repository, here and in the [desktop app](escritorio.md). The
+**ABRIR REPOSITORIO O ARCHIVO** (open repository or file) header button opens a drop-down with these
+options:
 
 - **Monitorizar carpeta (live)…**: analyses the folder and analyses again on save.
 - **Carpeta con .codarch…**: opens what is already in a repo's `.codarch/` folder.
@@ -75,6 +77,10 @@ The **ABRIR REPOSITORIO O ARCHIVO** (open repository or file) button has these o
 
 Below it are the **SNAPSHOT POR URL** and **REPORTE POR URL (OPCIONAL)** fields, with the
 **CARGAR POR URL** button.
+
+In the desktop app the same button offers **Analizar carpeta…**, **Archivo cc.json…** and **Reporte
+JSON…**. Only there are there also keyboard shortcuts (`Ctrl+O`, `Ctrl+Shift+O`) and the option to
+pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-carpeta-del-repositorio)).
 
 ## Inspector › Fichero
 

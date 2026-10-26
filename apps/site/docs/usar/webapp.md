@@ -59,7 +59,8 @@ Cada bloque es una carpeta o un fichero. No hay un menú de «lentes»: son los 
 
 ## ABRIR REPOSITORIO O ARCHIVO
 
-El botón **ABRIR REPOSITORIO O ARCHIVO** tiene estas opciones:
+Es la forma principal de abrir un repositorio, aquí y en el [escritorio](escritorio.md). El botón de
+la cabecera **ABRIR REPOSITORIO O ARCHIVO** abre un desplegable con estas opciones:
 
 - **Monitorizar carpeta (live)…**: analiza la carpeta y vuelve a analizar al guardar.
 - **Carpeta con .codarch…**: abre lo que ya hay en la carpeta `.codarch/` de un repo.
@@ -69,6 +70,10 @@ El botón **ABRIR REPOSITORIO O ARCHIVO** tiene estas opciones:
 
 Debajo están los campos **SNAPSHOT POR URL** y **REPORTE POR URL (OPCIONAL)**, con el botón
 **CARGAR POR URL**.
+
+En el escritorio el mismo botón ofrece **Analizar carpeta…**, **Archivo cc.json…** y **Reporte JSON…**.
+Solo allí hay, además, atajos de teclado (`Ctrl+O`, `Ctrl+Shift+O`) y se puede pasar la ruta como
+argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repositorio)).
 
 ## Inspector › Fichero
 

@@ -33,6 +33,15 @@ codarch serve .
 The web app ships inside the CLI: `serve` installs nothing, it serves it locally, analyses the repo
 and analyses again on save. See [Web app](webapp.md) and [`codarch serve`](cli/serve.md).
 
+To open another repository, in the web app or the desktop app:
+
+1. **ABRIR REPOSITORIO O ARCHIVO**, in the header: opens a drop-down with **Analizar carpeta…**,
+   **Archivo cc.json…** and **Reporte JSON…** (for the web app's options, see
+   [Web app](webapp.md#abrir-repositorio-o-archivo)).
+2. Desktop only: `Ctrl+O` analyses a folder and `Ctrl+Shift+O` opens a JSON.
+3. Desktop only: pass the path as an argument on start (see
+   [Desktop app](escritorio.md#elige-la-carpeta-del-repositorio)).
+
 ![The web app freshly opened with codarch serve on the CodArch repo, Risk lens, nothing selected](../../images/primeros-pasos-mapa.png)
 
 ## 3. Read the map

@@ -33,6 +33,15 @@ codarch serve .
 La webapp viaja dentro del CLI: `serve` no instala nada, la sirve en local, analiza el repo y vuelve a
 analizar al guardar. Ver [Webapp](webapp.md) y [`codarch serve`](cli/serve.md).
 
+Para abrir otro repositorio, en la webapp o en el escritorio:
+
+1. **ABRIR REPOSITORIO O ARCHIVO**, en la cabecera: abre un desplegable con **Analizar carpeta…**,
+   **Archivo cc.json…** y **Reporte JSON…** (en la webapp, ver sus opciones en
+   [Webapp](webapp.md#abrir-repositorio-o-archivo)).
+2. Solo en el escritorio: `Ctrl+O` analiza una carpeta y `Ctrl+Shift+O` abre un JSON.
+3. Solo en el escritorio: pasar la ruta como argumento al arrancar (ver
+   [Escritorio](escritorio.md#elige-la-carpeta-del-repositorio)).
+
 ![La webapp recién abierta con codarch serve sobre el repo de CodArch, con la lente Riesgo y nada seleccionado](../images/primeros-pasos-mapa.png)
 
 ## 3. Lee el mapa

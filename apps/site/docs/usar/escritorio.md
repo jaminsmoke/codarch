@@ -42,9 +42,12 @@ Además de la interfaz, la app tiene menús nativos: **Archivo**, **Edición**, 
 
 ## Elige la carpeta del repositorio
 
-Para analizar un repo, ábrelo desde el menú Archivo o desde **ABRIR REPOSITORIO O ARCHIVO**. Se abre
-el diálogo nativo **Elige la carpeta del repositorio**.
+Hay tres formas de abrir un repo, de más a menos habitual:
 
+- **ABRIR REPOSITORIO O ARCHIVO**: el botón de la cabecera abre un desplegable con **Analizar
+  carpeta…**, **Archivo cc.json…** y **Reporte JSON…**. Es la forma principal y funciona igual que en la
+  [webapp](webapp.md#abrir-repositorio-o-archivo). **Analizar carpeta…** abre el diálogo nativo
+  **Elige la carpeta del repositorio**. El menú Archivo tiene las mismas acciones.
 - **Atajos**: `Ctrl+O` analiza una carpeta, `Ctrl+Shift+O` abre un JSON.
 - **Una ruta al arrancar**: la app acepta como argumento una carpeta, un `cc.json` o un `report.json`
   y lo abre nada más arrancar. Los instaladores no registran asociaciones de ficheros, así que la app
