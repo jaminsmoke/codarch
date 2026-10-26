@@ -54,7 +54,10 @@ describe("las redirecciones", () => {
         path.join(docs, `${clave}.md`),
         path.join(docs, clave, "index.md")
       ].find((candidato) => fs.existsSync(candidato));
-      expect(fichero, destino).toBeDefined();
+      // Si alguna redirección deja de tener página, el error dice cuál.
+      if (!fichero) {
+        throw new Error(`la redirección a ${destino} no apunta a una página`);
+      }
       expect(rutaWeb(clave)).toBe(ruta);
     }
   });
