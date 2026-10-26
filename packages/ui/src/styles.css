@@ -18,6 +18,14 @@
      siguen por encima de 4,5:1 sobre su banda (medido: 4,60 y 4,77). */
   --diff-add: #0c713f;
   --diff-del: #bd1a1a;
+  /* El marco de la app: la cabecera y la barra de actividad del inspector. Va
+     oscuro aunque las hojas sean claras, y es lo que separa el armazón de lo
+     que se lee. Los tres valores viven aquí para que el día que se elija tema
+     se cambien en un sitio, no en cada regla. */
+  --frame: #121a20;
+  --frame-ink: #f3f6f5;
+  --frame-muted: #93a2a8;
+  --frame-edge: #05090c;
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
@@ -97,9 +105,9 @@ button {
   grid-template-columns: minmax(250px, auto) 1fr auto;
   align-items: center;
   gap: 22px;
-  background: var(--ink);
-  color: #f3f6f5;
-  border-bottom: 1px solid #05090c;
+  background: var(--frame);
+  color: var(--frame-ink);
+  border-bottom: 1px solid var(--frame-edge);
 }
 
 .brand {
@@ -2662,7 +2670,10 @@ button {
 }
 
 /* La barra de actividad del inspector (ADR 0079): una franja fija, fuera del
-   scroll de la hoja, con un icono por apartado. */
+   scroll de la hoja, con un icono por apartado. Lleva el color del marco
+   (ADR 0082), no el de las hojas: es la cabecera continuando por el borde
+   derecho, y así el armazón rodea el contenido en vez de dejar una tira
+   suelta del color del panel. */
 .inspector-bar {
   display: flex;
   flex: none;
@@ -2671,10 +2682,14 @@ button {
   gap: 4px;
   width: 44px;
   padding: 14px 0;
-  border-left: 1px solid var(--line);
-  background: var(--paper);
+  border-left: 1px solid var(--frame-edge);
+  background: var(--frame);
+  color: var(--frame-ink);
 }
 
+/* Los iconos se leen sobre el marco: gris claro en reposo (6,6:1), blanco al
+   pasar el ratón y en el apartado activo, que marca con una pleca clara en el
+   borde de dentro —la que antes era oscura sobre hoja clara. */
 .inspector-tab {
   position: relative;
   display: grid;
@@ -2684,19 +2699,19 @@ button {
   border: 0;
   border-radius: 3px;
   background: transparent;
-  color: var(--muted);
+  color: var(--frame-muted);
   cursor: pointer;
 }
 
 .inspector-tab:hover {
-  background: rgba(47, 111, 237, 0.08);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--frame-ink);
 }
 
 .inspector-tab.is-active {
-  background: var(--panel);
-  color: var(--ink);
-  box-shadow: inset 2px 0 0 var(--ink);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--frame-ink);
+  box-shadow: inset 2px 0 0 var(--frame-ink);
 }
 
 /* El punto de «hay cambios sin commitear» viaja en el icono. */
@@ -3507,7 +3522,7 @@ code {
     height: 44px;
     padding: 0 12px;
     border-left: 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--frame-edge);
   }
 
   .project-band {
