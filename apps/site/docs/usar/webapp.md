@@ -55,6 +55,9 @@ Cada bloque es una carpeta o un fichero. No hay un menú de «lentes»: son los 
 - **COLOR** decide cómo se pinta: Riesgo, Estructura, Color (commits), Estado de migración, Deuda de
   migración, entre otros. Al abrir un repo, la lente por defecto es Deuda de migración.
 
+El icono de capas, en la barra de herramientas de la izquierda, pliega ese panel y deja el mapa a
+pantalla completa; la app recuerda si estaba plegado.
+
 ![El panel VISTA con los selectores ÁREA y COLOR y el mapa pintado con la lente elegida](../images/webapp-mapa-lentes.png)
 
 ## ABRIR REPOSITORIO O ARCHIVO
@@ -120,8 +123,9 @@ codarch analyze --history
 
 ## Ajustes
 
-El icono de engranaje abre **Ajustes**, con sus secciones Vista, Proyecto, Plugins, Addons,
-Actualizaciones, Componentes y Diagnóstico.
+El engranaje del pie de la barra de herramientas —la franja de iconos a la izquierda del mapa— abre
+**Ajustes**, con sus secciones Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes y
+Diagnóstico.
 
 ![Ajustes con sus secciones](../images/webapp-ajustes.png)
 

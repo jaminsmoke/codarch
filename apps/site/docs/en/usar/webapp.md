@@ -61,6 +61,9 @@ Each block is a folder or a file. There is no «lenses» menu: they are the two 
   de migración (migration status), Deuda de migración (migration debt), among others. When a repo
   opens, the default lens is Deuda de migración.
 
+The layers icon, in the tool bar on the left, folds that panel away and leaves the map full screen; the
+app remembers whether it was folded.
+
 ![The VISTA panel with the ÁREA and COLOR selectors and the map painted with the chosen lens](../../images/webapp-mapa-lentes.png)
 
 ## ABRIR REPOSITORIO O ARCHIVO
@@ -128,8 +131,9 @@ codarch analyze --history
 
 ## Ajustes
 
-The gear icon opens **Ajustes** (settings), with its sections Vista, Proyecto, Plugins, Addons,
-Actualizaciones, Componentes and Diagnóstico.
+The gear at the foot of the tool bar —the strip of icons to the left of the map— opens **Ajustes**
+(settings), with its sections Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes and
+Diagnóstico.
 
 ![Ajustes with its sections](../../images/webapp-ajustes.png)
 
