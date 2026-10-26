@@ -10,28 +10,6 @@ import {
   type ChangeFileRow
 } from "./changeFiles";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
-import { RuleRow } from "./RuleRow";
-import { countBySource, type RuleStatus } from "./rules";
-
-/**
- * El orden en el que se leen los tres grupos de reglas.
- *
- * La cuenta en palabras del encabezado («3 nuevas») ya dice cuándo un grupo
- * está vacío, así que no se repite con una frase debajo.
- */
-const GROUPS: Array<{
-  status: RuleStatus;
-  title: string;
-  one: string;
-  many: string;
-}> = [
-  { status: "introduced", title: "Nuevas", one: "nueva", many: "nuevas" },
-  { status: "existing", title: "Existentes", one: "existente", many: "existentes" },
-  { status: "resolved", title: "Resueltas", one: "resuelta", many: "resueltas" }
-];
-
-/** Un grupo largo se corta aquí; el reporte sigue teniendo el resto. */
-const MAX_ROWS = 25;
 
 /** Cuántas fotos del histórico se enseñan sin pedir más. */
 const HISTORY_ROWS = 8;
@@ -70,19 +48,19 @@ function symbolTitle(path: string, symbols: SymbolChanges): string {
 }
 
 /**
- * Si el reporte trae algo que enseñar: ficheros, aristas, ciclos o reglas.
+ * Si el reporte trae algo que enseñar: ficheros, aristas o ciclos.
  *
- * Las métricas y los símbolos no cuentan por sí solas: un cambio de métrica
- * siempre viene con su fichero en `changed`.
+ * Las reglas no cuentan: no son un cambio del código sino una lectura de la
+ * configuración, y viven en la ficha del fichero (ADR 0075). Las métricas y
+ * los símbolos tampoco: un cambio de métrica siempre viene con su fichero en
+ * `changed`.
  */
 export function reportHasChanges(report: DiffReport): boolean {
   const summary = report.summary;
-  const rules = report.rules.summary;
   return (
     summary.addedFiles + summary.removedFiles + summary.changedFiles > 0 ||
     summary.addedEdges + summary.removedEdges > 0 ||
-    summary.introducedCycles + summary.fixedCycles > 0 ||
-    rules.introduced + rules.existing + rules.resolved > 0
+    summary.introducedCycles + summary.fixedCycles > 0
   );
 }
 
@@ -117,14 +95,18 @@ interface ChangesPanelProps {
 }
 
 /**
- * La pestaña de cambios: qué se ha movido entre base y head.
+ * La pestaña de cambios: lo que el árbol de trabajo tiene distinto de su
+ * último commit (ADR 0075).
+ *
+ * Solo pinta el reporte HEAD. Un `report.json` de dos fotos viejas no entra
+ * aquí: enseñaría cambios de hace semanas como si fueran de ahora.
  *
  * Empieza por una línea de cifras y por los ficheros tocados, que es lo que se
- * viene a ver, y deja el resto —reglas, migración, símbolos, ciclos e
- * histórico— plegado: su cuenta se lee en el encabezado sin abrir nada. Las
- * reglas viven aquí y no en una pestaña propia desde el ADR 0069: son del
- * cambio, no del fichero. Los hotspots van dentro de Ficheros porque son una
- * vista de esos mismos ficheros (ADR 0072).
+ * viene a ver, y deja el resto —símbolos, migración y ciclos— plegado: su
+ * cuenta se lee en el encabezado sin abrir nada. Las reglas no están: no son
+ * un cambio del código y viven en la ficha del fichero. Los hotspots van
+ * dentro de Ficheros porque son una vista de esos mismos ficheros (ADR 0072),
+ * y el histórico de fotos va al final, aparte, porque no es el cambio actual.
  */
 export default function ChangesPanel({
   report,
@@ -153,10 +135,15 @@ export default function ChangesPanel({
     return (
       <section className="change-panel">
         <div className="eyebrow">Cambios</div>
-        <h2>Sin reporte</h2>
+        <h2>Sin git en esta carpeta</h2>
         <p className="muted small">
-          Carga el <code>report.json</code> que genera <code>codarch diff</code>{" "}
-          o la GitHub Action para ver los cambios del snapshot.
+          Esta pestaña compara el árbol de trabajo con el último commit del
+          repositorio. Sin git ligado a la carpeta no hay nada con lo que
+          comparar, así que no hay cambios que enseñar ni forma de verlos en
+          vivo.
+        </p>
+        <p className="muted small">
+          Un <code>report.json</code> abierto a mano sí se puede ver.
         </p>
         <button className="button dark" type="button" onClick={onLoad}>
           Abrir reporte
@@ -167,7 +154,6 @@ export default function ChangesPanel({
   }
 
   const summary = report.summary;
-  const rules = report.rules;
   // Un HEAD sin diferencias no tiene nada que enseñar: lo dice, en vez de una
   // lista vacía (ADR 0072).
   if (!reportHasChanges(report)) {
@@ -176,20 +162,13 @@ export default function ChangesPanel({
         <div className="eyebrow">Cambios · {source ?? "HEAD"}</div>
         <h2>Sin cambios desde el último commit</h2>
         <p className="muted small">
-          El working tree coincide con su último commit en ficheros, aristas,
-          ciclos y reglas.
+          El árbol de trabajo coincide con su último commit en ficheros,
+          aristas y ciclos.
         </p>
       </section>
     );
   }
 
-  const ruleSummary = rules.summary;
-  const allViolations = [
-    ...rules.violations.introduced,
-    ...rules.violations.existing,
-    ...rules.violations.resolved
-  ];
-  const sources = countBySource(allViolations);
   const hotspots = report.hotspots;
   const fileGroups = changeFileGroups(report.files);
   const totalFiles = fileGroups.reduce((sum, group) => sum + group.count, 0);
@@ -201,23 +180,10 @@ export default function ChangesPanel({
   const symbolFiles = symbols?.files.slice(0, 6) ?? [];
   const photos = historyRows(history ?? []);
 
-  /** El reparto de reglas del cambio, para el resumen de la sección plegada. */
-  const ruleParts = [
-    ruleSummary.introduced > 0
-      ? `${ruleSummary.introduced} nueva${ruleSummary.introduced === 1 ? "" : "s"}`
-      : null,
-    ruleSummary.existing > 0
-      ? `${ruleSummary.existing} existente${ruleSummary.existing === 1 ? "" : "s"}`
-      : null,
-    ruleSummary.resolved > 0
-      ? `${ruleSummary.resolved} resuelta${ruleSummary.resolved === 1 ? "" : "s"}`
-      : null
-  ].filter((part) => part !== null);
-
   return (
     <section className="change-panel">
       <div className="eyebrow">
-        Cambios · {source ?? "report.json"}{" "}
+        Cambios · {source ?? "HEAD"}{" "}
         <span className="mono">
           {report.base.checksum.slice(0, 8) || "base"}→
           {report.head.checksum.slice(0, 8) || "head"}
@@ -242,11 +208,6 @@ export default function ChangesPanel({
             +{summary.introducedCycles} −{summary.fixedCycles}
           </b>
         </span>
-        {allViolations.length > 0 ? (
-          <span>
-            reglas <b className="mono">{allViolations.length}</b>
-          </span>
-        ) : null}
       </div>
 
       {/* Lo tocado, primero: es lo que se viene a ver a esta pestaña. */}
@@ -313,78 +274,8 @@ export default function ChangesPanel({
         ) : null}
       </CollapsibleSection>
 
-      {/* Sin reglas configuradas no hay sección: no se reserva el espacio. */}
-      {rules.configured ? (
-        <CollapsibleSection
-          id="change-rules"
-          title="Reglas"
-          className="section-changes-rules"
-          defaultOpen={false}
-          count={allViolations.length}
-          summary={ruleParts.join(" · ") || "sin violaciones"}
-        >
-          <p className="rules-meta">
-            {ruleSummary.introducedWarnings} aviso
-            {ruleSummary.introducedWarnings === 1 ? "" : "s"} nuevo
-            {ruleSummary.introducedWarnings === 1 ? "" : "s"} ·{" "}
-            {ruleSummary.rules} regla{ruleSummary.rules === 1 ? "" : "s"} en{" "}
-            {ruleSummary.layers} capa{ruleSummary.layers === 1 ? "" : "s"}
-            {rules.profile ? (
-              <>
-                {" "}
-                · perfil <b>{rules.profile}</b>
-              </>
-            ) : null}
-            {sources.length > 0 ? (
-              <>
-                {" "}
-                · origen{"\u00a0"}
-                {sources.map((entry, index) => (
-                  <span key={entry.source}>
-                    {index > 0 ? " · " : ""}
-                    {entry.label} <b>{entry.count}</b>
-                  </span>
-                ))}
-              </>
-            ) : null}
-          </p>
-
-          {GROUPS.map((group) => {
-            const rows = rules.violations[group.status];
-            return (
-              <div className="rule-group" key={group.status}>
-                <GroupHead
-                  label={group.title}
-                  summary={
-                    rows.length === 0
-                      ? "ninguna"
-                      : `${rows.length} ${rows.length === 1 ? group.one : group.many}`
-                  }
-                />
-                {rows.length === 0 ? null : (
-                  <div className="violation-list">
-                    {rows.slice(0, MAX_ROWS).map((violation) => (
-                      <RuleRow
-                        key={violation.key}
-                        violation={violation}
-                        status={group.status}
-                        onSelectPath={onSelectPath}
-                      />
-                    ))}
-                  </div>
-                )}
-                {rows.length > MAX_ROWS ? (
-                  <p className="muted tiny">
-                    y {rows.length - MAX_ROWS} más en el reporte.
-                  </p>
-                ) : null}
-              </div>
-            );
-          })}
-        </CollapsibleSection>
-      ) : null}
-
-      {migration ? (
+      {/* Sin ficheros que hayan movido la deuda no hay nada que contar. */}
+      {migration && increased.length + decreased.length > 0 ? (
         <CollapsibleSection
           id="change-migration"
           title="Migración"
@@ -492,12 +383,19 @@ export default function ChangesPanel({
       {photos.length > 0 ? (
         <CollapsibleSection
           id="change-history"
-          title="Histórico"
+          title="Histórico del repo"
           className="section-history"
           defaultOpen={false}
           count={photos.length}
           summary={`${photos[0]?.entry.files ?? 0} ficheros · ${formatCompact(photos[0]?.entry.rloc ?? 0)} rloc`}
         >
+          {/* No son los cambios de ahora: son las fotos que el repo guarda con
+              `codarch analyze --history` (ADR 0075). Se dice para que nadie
+              lea una fecha vieja como un cambio reciente. */}
+          <p className="muted tiny">
+            Fotos guardadas del repositorio, de la más nueva a la más vieja. No
+            son los cambios del último commit: eso está arriba.
+          </p>
           <div className="history-list">
             {photos.slice(0, HISTORY_ROWS).map(({ entry, rlocDelta }) => (
               <HistoryRow

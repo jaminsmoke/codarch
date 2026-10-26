@@ -193,7 +193,11 @@ export function analyzeFiles(
     let source = "";
     if (!cached) {
       try {
-        source = fileSystem.readFile(file.absolutePath);
+        // Las líneas no son código (ADR 0076): el mismo fichero con CRLF y con
+        // LF es el mismo fichero. Sin normalizar, el export del HEAD en Windows
+        // sale con CRLF y el árbol de trabajo con LF, y Cambios enseña ficheros
+        // que nadie ha tocado.
+        source = fileSystem.readFile(file.absolutePath).replace(/\r\n?/g, "\n");
       } catch (error) {
         warnings.push(
           `no se pudo leer ${file.relativePath}: ${(error as Error).message}`

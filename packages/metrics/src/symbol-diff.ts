@@ -137,16 +137,28 @@ export function buildSymbolReport(
   };
 }
 
-/** Compara los símbolos de un fichero, emparejando por nombre. */
+/**
+ * Compara los símbolos de un fichero, emparejando por nombre.
+ *
+ * Un fichero puede tener varios símbolos con el mismo nombre —dos
+ * `listener` anidados, el constructor de dos clases—: se emparejan por orden
+ * de aparición. Guardar solo uno hacía que el otro apareciera como cambiado
+ * en un fichero que nadie había tocado (ADR 0076).
+ */
 function compareSymbols(
   base: readonly CcSymbol[],
   head: readonly CcSymbol[]
 ): DiffSymbolChange[] {
   const changes: DiffSymbolChange[] = [];
-  const baseByName = new Map(base.map((symbol) => [symbol.name, symbol]));
+  const baseByName = new Map<string, CcSymbol[]>();
+  for (const symbol of base) {
+    const list = baseByName.get(symbol.name);
+    if (list) list.push(symbol);
+    else baseByName.set(symbol.name, [symbol]);
+  }
 
   for (const symbol of head) {
-    const before = baseByName.get(symbol.name);
+    const before = baseByName.get(symbol.name)?.shift();
     if (!before) {
       changes.push({
         name: symbol.name,
@@ -158,7 +170,6 @@ function compareSymbols(
       });
       continue;
     }
-    baseByName.delete(symbol.name);
 
     const touched =
       before.kind !== symbol.kind ||
@@ -177,15 +188,17 @@ function compareSymbols(
     });
   }
 
-  for (const symbol of baseByName.values()) {
-    changes.push({
-      name: symbol.name,
-      kind: symbol.kind,
-      status: "removed",
-      base: snapshotOf(symbol),
-      head: null,
-      complexityDelta: null
-    });
+  for (const symbols of baseByName.values()) {
+    for (const symbol of symbols) {
+      changes.push({
+        name: symbol.name,
+        kind: symbol.kind,
+        status: "removed",
+        base: snapshotOf(symbol),
+        head: null,
+        complexityDelta: null
+      });
+    }
   }
 
   return changes;

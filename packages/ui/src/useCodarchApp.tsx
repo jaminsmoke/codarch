@@ -365,8 +365,8 @@ export function useCodarchApp(
       setReport(next);
       setReportSource(label);
       setReportError(null);
-      // El reporte se enseña en Cambios, que es donde viven sus reglas
-      // (ADR 0069); si ya se está ahí, no se mueve la pestaña.
+      // El reporte se enseña en Cambios (ADR 0075); si ya se está ahí, no se
+      // mueve la pestaña.
       if (focus && tabRef.current !== "changes") setTab("changes");
       return true;
     },

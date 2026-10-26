@@ -33,6 +33,7 @@ import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
 import { fetchJson, fetchJsonStrict } from "./http";
+import { HEAD_REPORT_URL, servedReportUrl } from "./reports";
 import { plataformaWeb } from "./plataforma";
 import { WEB_VERSION } from "@codarch/versions";
 
@@ -210,13 +211,18 @@ export default function App() {
         ) {
           setServerVersion((meta as { version: string }).version);
         }
-        const servedReport = await fetchJson("data/report.json");
-        if (servedReport && !cancelled) loadReport(servedReport, "servidor local");
-        // Lo tocado desde el último commit (ADR 0072). Va después de report.json
-        // para prevalecer: la pestaña Cambios muestra la comparación con HEAD, y
-        // report.json queda como alternativa.
-        const servedHead = await fetchJson("data/head-report.json");
-        if (servedHead && !cancelled) loadReport(servedHead, "HEAD", false);
+        // Con servidor, Cambios es del repo y lo compara el servidor con HEAD
+        // (ADR 0075): `report.json` de dos fotos viejas no entra, porque
+        // enseñaría cambios de hace semanas como si fueran de ahora. Un
+        // artefacto estático sí trae su `report.json` como único cambio.
+        const servedReport = await fetchJson(servedReportUrl(meta !== null));
+        if (!cancelled) {
+          if (servedReport) {
+            loadReport(servedReport, meta !== null ? "HEAD" : "report.json", false);
+          } else {
+            resetReport();
+          }
+        }
         await loadAddons();
         return;
       }
@@ -250,7 +256,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [loadReport, loadSnapshot, loadAddons]);
+  }, [loadReport, loadSnapshot, loadAddons, resetReport]);
 
   useEffect(() => {
     if (serverMode !== "live" || typeof EventSource === "undefined") return;
@@ -259,8 +265,10 @@ export default function App() {
     events.addEventListener("update", async () => {
       const snapshot = await fetchJson("data/snapshot.cc.json");
       if (snapshot) loadSnapshot(snapshot, "servidor local", true);
-      const report = await fetchJson("data/report.json");
-      if (report) loadReport(report, "servidor local", false);
+      // El repo cambió: el reporte HEAD es lo que se ve en Cambios, y el
+      // servidor lo acaba de tirar de la caché (ADR 0075).
+      const report = await fetchJson(HEAD_REPORT_URL);
+      if (report) loadReport(report, "HEAD", false);
     });
     return () => events.close();
   }, [serverMode, loadReport, loadSnapshot]);

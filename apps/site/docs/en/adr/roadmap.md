@@ -18,7 +18,7 @@ Today CodArch has:
   deterministic checksum. It is the truth of the product and all apps share it.
 - **Rules** of architecture in `.codarch.yml`: layers, forbidden dependencies, thresholds and
   cycles, with severity and a blocking policy.
-- **MCP** read-only: nine queries for agents.
+- **MCP** read-only: twelve queries for agents.
 - **GitHub Action**: analyses the PR's base and head, comments the result and blocks if the policy
   fails.
 - **Web app**: map, inspector, PR view, level of detail for large repos and analysis of a folder in
@@ -30,7 +30,7 @@ Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 c
 M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
-M51 closed, M52 not started, M53 closed, M54 closed and M55 closed.
+M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed and M57 closed.
 
 ## The phases
 
@@ -158,6 +158,8 @@ flowchart TD
 | M53 | Changes since the last commit | closed | [ADR 0072](0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
 | M54 | One single interface | closed | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 | M55 | One single analysis session | closed | [ADR 0074](0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
+| M56 | Changes are git | closed | [ADR 0075](0071-0080/0075-cambios-es-de-git.md#hoja-de-ruta) |
+| M57 | Newlines are not code | closed | [ADR 0076](0071-0080/0076-las-lineas-no-son-codigo.md#hoja-de-ruta) |
 
 ## How to read this
 

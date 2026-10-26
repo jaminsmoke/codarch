@@ -69,10 +69,12 @@ describe("reportHasChanges", () => {
     expect(reportHasChanges(cycle)).toBe(true);
   });
 
-  it("una regla existente cuenta como cambio aunque no haya ficheros tocados", () => {
+  it("las reglas no cuentan: no son un cambio del código (ADR 0075)", () => {
     const report = emptyReport();
+    report.rules.configured = true;
     report.rules.summary.existing = 2;
-    expect(reportHasChanges(report)).toBe(true);
+    report.rules.summary.introduced = 1;
+    expect(reportHasChanges(report)).toBe(false);
   });
 });
 

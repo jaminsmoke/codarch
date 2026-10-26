@@ -57,6 +57,33 @@ describe("sistema de ficheros virtual", () => {
     expect(inMemory.snapshot.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
   });
 
+  it("las líneas no cambian el código: CRLF y LF dan el mismo snapshot", () => {
+    // El export del HEAD en Windows sale con CRLF y el árbol de trabajo con
+    // LF; sin normalizar, el checksum y los hashes de los símbolos cambian y
+    // Cambios enseña ficheros que nadie ha tocado (ADR 0076).
+    const lf = new MemoryFileSystem([
+      ["/src/a.ts", "export const a = 1;\nexport const b = 2;\n"]
+    ]);
+    const crlf = new MemoryFileSystem([
+      ["/src/a.ts", "export const a = 1;\r\nexport const b = 2;\r\n"]
+    ]);
+
+    const analyzedLf = analyzeFiles({ fileSystem: lf, root: "/", parser: new TypeScriptParser() });
+    const analyzedCrlf = analyzeFiles({
+      fileSystem: crlf,
+      root: "/",
+      parser: new TypeScriptParser()
+    });
+
+    expect(analyzedCrlf.snapshot.meta.checksum).toBe(analyzedLf.snapshot.meta.checksum);
+    expect(analyzedCrlf.snapshot.lenses?.metrics).toEqual(
+      analyzedLf.snapshot.lenses?.metrics
+    );
+    expect(analyzedCrlf.snapshot.lenses?.symbols).toEqual(
+      analyzedLf.snapshot.lenses?.symbols
+    );
+  });
+
   it("aplica los .gitignore y las exclusiones", () => {
     const memory = memoryFrom(FIXTURES);
     const result = analyzeFiles({

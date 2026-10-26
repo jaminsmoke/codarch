@@ -18,7 +18,7 @@ Hoy CodArch tiene:
   migración y checksum determinista. Es la verdad del producto y la comparten todas las apps.
 - **Reglas** de arquitectura en `.codarch.yml`: capas, prohibiciones, umbrales y ciclos, con severidad
   y política de bloqueo.
-- **MCP** de solo lectura: nueve consultas para agentes.
+- **MCP** de solo lectura: doce consultas para agentes.
 - **GitHub Action**: analiza base y head del PR, comenta el resultado y bloquea si la política falla.
 - **App web**: mapa, inspector, vista de PR, nivel de detalle para repos grandes y análisis de una
   carpeta en el navegador con el mismo checksum que el CLI.
@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada y M55 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada y M57 cerrada.
 
 ## Las fases
 
@@ -65,6 +65,8 @@ flowchart TD
     M52 --> M53["M53 · Cambios desde el último commit"]
     M53 --> M54["M54 · Una sola interfaz"]
     M54 --> M55["M55 · Una sola sesión"]
+    M55 --> M56["M56 · Cambios es de git"]
+    M56 --> M57["M57 · Las líneas no son código"]
   end
   subgraph lentes["Lentes: migración, dominio, símbolos, tiempo"]
     M8["M8 · La migración donde faltaba"] --> M9["M9 · Lente de dominio"]
@@ -157,6 +159,8 @@ flowchart TD
 | M53 | Cambios desde el último commit | cerrada | [ADR 0072](0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
 | M54 | Una sola interfaz | cerrada | [ADR 0073](0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 | M55 | Una sola sesión de análisis | cerrada | [ADR 0074](0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
+| M56 | Cambios es de git | cerrada | [ADR 0075](0071-0080/0075-cambios-es-de-git.md#hoja-de-ruta) |
+| M57 | Las líneas no son código | cerrada | [ADR 0076](0071-0080/0076-las-lineas-no-son-codigo.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

@@ -515,6 +515,44 @@ describe("diffSnapshots", () => {
     expect(viejo?.head).toBeNull();
   });
 
+  it("dos símbolos con el mismo nombre no se inventan un cambio", () => {
+    // Un fichero puede tener dos `listener` anidados o el constructor de dos
+    // clases (ADR 0076): se emparejan por orden, no se guarda solo el último.
+    const symbols: SymbolSpec[] = [
+      {
+        path: "src/a.ts",
+        symbols: [
+          { name: "listener", kind: "function", line: 3, complexity: 1, lines: 2 },
+          { name: "listener", kind: "function", line: 20, complexity: 1, lines: 2 }
+        ]
+      }
+    ];
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 40 } }],
+      [],
+      undefined,
+      symbols
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 40 } }],
+      [],
+      undefined,
+      symbols
+    );
+
+    const report = diffSnapshots(base, head);
+
+    expect(report.symbols?.files ?? []).toEqual([]);
+    expect(report.symbols?.summary).toEqual({
+      added: 0,
+      removed: 0,
+      changed: 0,
+      topFile: null
+    });
+  });
+
   it("detecta un cambio de cuerpo aunque la complejidad y las líneas no cambien", () => {
     const base = snapshot(
       "proj",

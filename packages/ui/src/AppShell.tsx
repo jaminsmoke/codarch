@@ -21,7 +21,7 @@ import {
   LanguageSample,
   Legend
 } from "./panels";
-import ChangesPanel from "./ChangesPanel";
+import ChangesPanel, { reportHasChanges } from "./ChangesPanel";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -567,13 +567,11 @@ export function AppShell({
               onClick={() => setTab("changes")}
             >
               Cambios{" "}
-              {report?.rules.summary.introduced ? (
+              {report && reportHasChanges(report) ? (
                 <i
-                  className="tab-dot tab-dot-alert"
-                  title={`${report.rules.summary.introduced} violaciones nuevas`}
+                  className="tab-dot"
+                  title="Hay cambios desde el último commit"
                 />
-              ) : report ? (
-                <i className="tab-dot" title="Reporte cargado" />
               ) : null}
             </button>
           </div>
