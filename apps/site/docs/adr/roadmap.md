@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada y M59 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada y M60 cerrada.
 
 ## Las fases
 
@@ -163,6 +163,7 @@ flowchart TD
 | M57 | Las líneas no son código | cerrada | [ADR 0076](0071-0080/0076-las-lineas-no-son-codigo.md#hoja-de-ruta) |
 | M58 | El diff, al abrir el fichero | cerrada | [ADR 0077](0071-0080/0077-el-diff-al-abrir-el-fichero.md#hoja-de-ruta) |
 | M59 | Balance de deuda | cerrada | [ADR 0078](0071-0080/0078-el-balance-de-deuda.md#hoja-de-ruta) |
+| M60 | El inspector con barra de actividad | cerrada | [ADR 0079](0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

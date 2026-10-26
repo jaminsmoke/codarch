@@ -94,4 +94,7 @@ reporte que ya existen.
 - [x] Dos pestañas; `rules` y `lenses` se leen como `changes` y el aviso se muda a Cambios.
 - [x] Tests de los alias y ninguna pestaña que no exista.
 
+La forma de las pestañas cambió después: los dos apartados siguen, pero se eligen desde una barra de
+actividad con iconos, fuera del scroll de la hoja ([ADR 0079](../0071-0080/0079-el-inspector-con-barra-de-actividad.md)).
+
 El registro de lo hecho vive en el [feed de la guía](/guia/).
