@@ -41,11 +41,29 @@ export interface RepositoryWatcher {
   close(): Promise<void>;
 }
 
+/**
+ * La raíz tal como la ve el sistema, con el nombre largo.
+ *
+ * En Windows `%TEMP%` puede llegar con el nombre corto (8.3) —`JAMINS~1`— y
+ * `fs.watch` recursivo **aborta el proceso**: libuv compara la ruta de cada
+ * evento con la del directorio vigilado y los prefijos no coinciden. El
+ * `realpath` la expande antes de abrir el handle, y de paso resuelve enlaces.
+ */
+function realRoot(root: string): string {
+  try {
+    return fs.realpathSync.native(root);
+  } catch {
+    return root;
+  }
+}
+
 export function watchRepository(
   root: string,
   options: WatchRepositoryOptions
 ): RepositoryWatcher {
   const delayMs = options.delayMs ?? 300;
+  // Los eventos llegan con la ruta larga: se vigila esa, no la que nos dieron.
+  const watched = realRoot(root);
   const pending = new Set<string>();
   const watchers: fs.FSWatcher[] = [];
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -82,7 +100,7 @@ export function watchRepository(
   let recursive = true;
   try {
     watchers.push(
-      fs.watch(root, { recursive: true }, (_event, filename) => {
+      fs.watch(watched, { recursive: true }, (_event, filename) => {
         if (filename) note(filename.toString());
       })
     );
@@ -92,14 +110,14 @@ export function watchRepository(
 
   if (!recursive) {
     for (const watcher of watchers) watcher.close();
-    return chokidarWatcherFor(root, delayMs, options);
+    return chokidarWatcherFor(watched, delayMs, options);
   }
 
   // Un commit no escribe en el árbol de trabajo: se escucha a git.
   let git = false;
   try {
     watchers.push(
-      fs.watch(path.join(root, ".git"), { recursive: false }, () => {
+      fs.watch(path.join(watched, ".git"), { recursive: false }, () => {
         gitChanged = true;
         schedule();
       })
