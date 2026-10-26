@@ -84,5 +84,7 @@ atrás sin que nadie lo note.
 - [x] El worker del escritorio usa el módulo y pierde su copia.
 - [x] El MCP lee el mismo contrato (incluido el reporte HEAD) y gana las consultas que solo tenía el
       CLI: `suggest_architecture`, `list_profiles` y `verify_history`.
+- [x] Un test compara el reporte HEAD de `serve` y el del escritorio sobre el mismo repo, para que
+      una vuelta atrás de cualquiera de las dos falle antes de llegar a `main`.
 
 El registro de lo hecho vive en el [feed de la guía](/guia/).
