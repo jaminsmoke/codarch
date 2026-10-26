@@ -43,17 +43,25 @@ function MapToolsIcon() {
   );
 }
 
-/** El engranaje de Ajustes, que antes estaba en la cabecera. */
+/**
+ * El engranaje de Ajustes, que antes estaba en la cabecera.
+ *
+ * A 16 px, un engranaje de trazo se convierte en una mancha de líneas. Este va
+ * relleno con el agujero del centro recortado por dentro: la silueta de ocho
+ * dientes se lee y el hueco del buje no se tapa.
+ */
 function SettingsIcon() {
   return (
-    <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+    <svg
+      viewBox="0 0 18 18"
+      width="16"
+      height="16"
+      aria-hidden="true"
+      focusable="false"
+    >
       <path
         fill="currentColor"
-        d="M8 5.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm0 1.6a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"
-      />
-      <path
-        fill="currentColor"
-        d="M6.6.9h2.8l.3 1.6c.4.1.8.3 1.1.5l1.4-.9 2 2-.9 1.4c.2.4.4.7.5 1.1l1.6.3v2.8l-1.6.3c-.1.4-.3.8-.5 1.1l.9 1.4-2 2-1.4-.9c-.4.2-.7.4-1.1.5l-.3 1.6H6.6l-.3-1.6c-.4-.1-.8-.3-1.1-.5l-1.4.9-2-2 .9-1.4c-.2-.4-.4-.7-.5-1.1l-1.6-.3V6.9l1.6-.3c.1-.4.3-.8.5-1.1l-.9-1.4 2-2 1.4.9c.3-.2.7-.4 1.1-.5L6.6.9Z"
+        d="M7.8 2.51L10.2 2.51L10.16 4.96A4.2 4.2 0 0 1 11.04 5.33L12.74 3.56L14.44 5.26L12.67 6.96A4.2 4.2 0 0 1 13.04 7.84L15.49 7.8L15.49 10.2L13.04 10.16A4.2 4.2 0 0 1 12.67 11.04L14.44 12.74L12.74 14.44L11.04 12.67A4.2 4.2 0 0 1 10.16 13.04L10.2 15.49L7.8 15.49L7.84 13.04A4.2 4.2 0 0 1 6.96 12.67L5.26 14.44L3.56 12.74L5.33 11.04A4.2 4.2 0 0 1 4.96 10.16L2.51 10.2L2.51 7.8L4.96 7.84A4.2 4.2 0 0 1 5.33 6.96L3.56 5.26L5.26 3.56L6.96 5.33A4.2 4.2 0 0 1 7.84 4.96ZM11.6 9a2.6 2.6 0 1 0 -5.2 0a2.6 2.6 0 1 0 5.2 0Z"
       />
     </svg>
   );
