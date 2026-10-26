@@ -1,7 +1,7 @@
 ---
 title: "codarch inspect"
 description: "Resume un snapshot cc.json en la terminal o en JSON."
-section: producto
+section: usar
 sidebar:
   label: "inspect"
   order: 22

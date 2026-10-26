@@ -1,7 +1,7 @@
 ---
 title: "FAQ"
 description: "Common questions: what to install, the web app, Docker, unsigned installers and privacy."
-section: producto
+section: usar
 sidebar:
   label: "FAQ"
   order: 90

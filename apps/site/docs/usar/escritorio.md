@@ -1,7 +1,7 @@
 ---
 title: "App de escritorio"
 description: "Instaladores para Windows y Linux: el mismo mapa, analizando con git contra el disco."
-section: producto
+section: usar
 sidebar:
   label: "App de escritorio"
   order: 41
@@ -27,18 +27,51 @@ firmar**; ver [Preguntas frecuentes](preguntas-frecuentes.md#windows-o-linux-avi
 
 ![La release v0.3.37 en GitHub con sus instaladores: .deb, setup.exe y AppImage](../images/escritorio-release.png)
 
-## Qué aporta frente a la webapp
+## La ventana
 
-- **Diálogos nativos** para elegir carpeta o fichero.
-- **Menú nativo y atajos**: `Ctrl+O` analiza una carpeta, `Ctrl+Shift+O` abre un JSON.
+La ventana muestra la misma interfaz que la [webapp](webapp.md): el panel VISTA, el mapa y el
+inspector.
+
+![La app de escritorio con un repo abierto](../images/escritorio-ventana.png)
+
+## Menús Archivo, Edición, Ver y Ayuda
+
+Además de la interfaz, la app tiene menús nativos: **Archivo**, **Edición**, **Ver** y **Ayuda**.
+
+![La barra de menús nativa con el menú Archivo desplegado](../images/escritorio-menus.png)
+
+## Elige la carpeta del repositorio
+
+Para analizar un repo, ábrelo desde el menú Archivo o desde **ABRIR REPOSITORIO O ARCHIVO**. Se abre
+el diálogo nativo **Elige la carpeta del repositorio**.
+
+- **Atajos**: `Ctrl+O` analiza una carpeta, `Ctrl+Shift+O` abre un JSON.
 - **"Abrir con"**: abrir una carpeta, un `cc.json` o un `report.json` desde el explorador la analiza y
   la muestra.
-- El estado del repo se guarda en su carpeta `.codarch/`.
+
+![El diálogo «Elige la carpeta del repositorio»](../images/escritorio-abrir-carpeta.png)
 
 ![La app de escritorio en Linux tras analizar una carpeta, con el mapa dibujado y el menú Archivo desplegado](../images/escritorio-mapa.png)
 
-## Actualizar
+## La carpeta .codarch/
 
-La app busca versiones nuevas en las Releases y se actualiza sola. El AppImage lo hace sin permisos;
-el `.deb` pide la contraseña de administrador, como cualquier paquete. Ver
+El estado del repo se guarda en su carpeta `.codarch/`, no en la app. En el repo de ejemplo contiene:
+
+| Fichero | Qué es |
+|---|---|
+| `snapshot.cc.json` | el último snapshot |
+| `head-report.json` | lo tocado desde el último commit |
+| `chains.json` | el libro de cadenas de símbolos |
+| `preferences.json` | las preferencias de la vista |
+| `map.html` | el mapa exportado |
+
+![`ls -la .codarch/` en un terminal, con los cinco ficheros](../images/escritorio-codarch-carpeta.png)
+
+## Ajustes › Actualizaciones
+
+Las actualizaciones solo aparecen en **Ajustes › Actualizaciones**: ahí se ve la versión instalada y
+si está al día. No hay banner; si hay una versión nueva, el aviso sale en esa sección. El AppImage se
+actualiza sin permisos; el `.deb` pide la contraseña de administrador, como cualquier paquete. Ver
 [Actualizaciones](actualizaciones.md).
+
+![Ajustes › Actualizaciones con la versión 0.3.37 al día](../images/escritorio-actualizaciones.png)

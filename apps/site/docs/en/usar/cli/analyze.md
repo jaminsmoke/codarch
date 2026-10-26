@@ -1,7 +1,7 @@
 ---
 title: "codarch analyze"
 description: "Analyses a repository and writes the cc.json snapshot."
-section: producto
+section: usar
 sidebar:
   label: "analyze"
   order: 21

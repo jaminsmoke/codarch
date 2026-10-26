@@ -1,21 +1,27 @@
 ---
-title: Los documentos
-description: "Cómo usar CodArch y cómo se construye: instalación, CLI, apps, reglas, roadmap y decisiones."
-section: producto
+title: Documentación
+description: "Cómo instalar y usar CodArch: instalación, primeros pasos, CLI, webapp, escritorio, reglas, MCP y GitHub Action."
+section: usar
 sidebar:
-  label: Todos los documentos
+  label: Introducción
   order: -1
 ---
 
-CodArch se explica en dos bloques (ADR 0080):
+![La webapp de CodArch con un repositorio abierto](images/primeros-pasos-app.png)
 
-- **Usar CodArch**: lo que necesita quien lo instala y lo usa. La [instalación](usar/instalacion.md), los
-  [primeros pasos](usar/primeros-pasos.md), el CLI con una página por comando (empieza por
-  [`codarch analyze`](usar/cli/analyze.md)), la [webapp](usar/webapp.md), la [app de escritorio](usar/escritorio.md),
-  las [reglas de `.codarch.yml`](rules.md), el [MCP](mcp.md), la [GitHub Action](usar/github-action.md),
-  las [actualizaciones](usar/actualizaciones.md) y las [preguntas frecuentes](usar/preguntas-frecuentes.md).
-- **Cómo se construye**: lo que explica por dentro el producto. El [roadmap](adr/roadmap.md), el
-  [modelo de datos](model.md), el [diseño del mapa](design/map.md), la
-  [migración a Rust](migration.md), las decisiones (cada ADR en su carpeta de diez, con su hoja de
-  ruta dentro; empieza por el [índice de decisiones](adr/index.md)) y la [guía](/guia/), que guarda
-  lo que todavía no es una decisión: ideas, arreglos y lo que espera.
+CodArch dibuja el mapa de la arquitectura de tu repositorio y te dice qué cambia en cada pull request.
+Esta documentación es para quien lo instala y lo usa:
+
+- **Empezar**: la [instalación](usar/instalacion.md) (npm, Docker o escritorio) y los
+  [primeros pasos](usar/primeros-pasos.md).
+- **El CLI**: una página por comando; empieza por [`codarch analyze`](usar/cli/analyze.md).
+- **Las apps**: la [webapp](usar/webapp.md) y la [app de escritorio](usar/escritorio.md), pantalla a pantalla.
+- **Integraciones**: las [reglas de `.codarch.yml`](usar/reglas.md), el [MCP](usar/mcp.md) para agentes y la
+  [GitHub Action](usar/github-action.md).
+- **Mantenerlo**: las [actualizaciones](usar/actualizaciones.md) y las
+  [preguntas frecuentes](usar/preguntas-frecuentes.md).
+
+:::note[Para saber más]
+Cómo está construido CodArch (roadmap, modelo de datos, decisiones y la guía) vive en
+[Desarrollo](desarrollo/index.md).
+:::

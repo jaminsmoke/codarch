@@ -1,11 +1,13 @@
 ---
 title: "Getting started"
 description: "From the first analysis to the map in five minutes: analyse, open the web app and read the result."
-section: producto
+section: usar
 sidebar:
   label: "Getting started"
   order: 15
 ---
+
+![The web app freshly opened: the default lens, Deuda de migración, and the first file selected](../../images/primeros-pasos-app.png)
 
 This page assumes CodArch is already installed through one of its three paths (see
 [Installation](instalacion.md)). The examples use the CLI; with Docker or the desktop app the result
@@ -35,14 +37,16 @@ and analyses again on save. See [Web app](webapp.md) and [`codarch serve`](cli/s
 
 ## 3. Read the map
 
-- Each block is a folder or a file; the area is the chosen metric and the colour, the lens.
-- Clicking a file opens the **inspector**: metrics, symbols and incoming and outgoing dependencies.
+- Each block is a folder or a file. Size and colour are chosen with the **ÁREA** and **COLOR**
+  selectors of the **VISTA** panel; on opening, the colour is Deuda de migración (migration debt).
+- Clicking a file, the right-hand **inspector** shows it on its **Fichero** (file) tab: metrics,
+  symbols and incoming and outgoing dependencies.
 - Search finds files and symbols by name.
 
 ![The map with a file selected and the inspector open on its card, with the symbol list](../../images/primeros-pasos-inspector.png)
 
 ## 4. Next steps
 
-- Write a policy in [`.codarch.yml`](../rules.md) and check it with [`codarch diff`](cli/diff.md).
+- Write a policy in [`.codarch.yml`](reglas.md) and check it with [`codarch diff`](cli/diff.md).
 - Put the map on every pull request with the [GitHub Action](github-action.md).
-- Let your agent ask about the architecture with the [MCP](../mcp.md).
+- Let your agent ask about the architecture with the [MCP](mcp.md).

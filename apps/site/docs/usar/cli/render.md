@@ -1,7 +1,7 @@
 ---
 title: "codarch render"
 description: "Publica la webapp estática con un snapshot dentro, lista para servir."
-section: producto
+section: usar
 sidebar:
   label: "render"
   order: 23

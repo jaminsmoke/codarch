@@ -1,7 +1,7 @@
 ---
 title: "Updates"
 description: "How CodArch updates in each install option: npm, Docker and the desktop app."
-section: producto
+section: usar
 sidebar:
   label: "Updates"
   order: 30

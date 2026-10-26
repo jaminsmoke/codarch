@@ -1,7 +1,7 @@
 ---
 title: "codarch serve"
 description: "Analiza un repositorio y sirve la webapp en local, refrescándola al cambiar ficheros."
-section: producto
+section: usar
 sidebar:
   label: "serve"
   order: 25

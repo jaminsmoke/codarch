@@ -1,7 +1,7 @@
 ---
 title: "codarch diff"
 description: "Compares two snapshots and, on request, fails on new cycles, violations or hotspots."
-section: producto
+section: usar
 sidebar:
   label: "diff"
   order: 24

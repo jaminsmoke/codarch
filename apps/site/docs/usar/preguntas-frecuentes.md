@@ -1,7 +1,7 @@
 ---
 title: "Preguntas frecuentes"
 description: "Dudas habituales: qué instalar, la webapp, Docker, los instaladores sin firmar y la privacidad."
-section: producto
+section: usar
 sidebar:
   label: "Preguntas frecuentes"
   order: 90

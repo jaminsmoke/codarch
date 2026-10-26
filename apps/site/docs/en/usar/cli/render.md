@@ -1,7 +1,7 @@
 ---
 title: "codarch render"
 description: "Publishes the static webapp with a snapshot inside, ready to serve."
-section: producto
+section: usar
 sidebar:
   label: "render"
   order: 23

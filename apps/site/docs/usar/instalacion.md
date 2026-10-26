@@ -1,7 +1,7 @@
 ---
 title: "Instalación"
 description: "Tres formas de instalar CodArch: el paquete de npm (CLI y webapp), la imagen Docker de la webapp y el instalador de escritorio."
-section: producto
+section: usar
 sidebar:
   label: "Instalación"
   order: 10
@@ -39,7 +39,7 @@ cambian los ficheros.
 
 ![Terminal con `codarch serve .` en marcha y la webapp abierta en el navegador](../images/cli-serve.png)
 
-Todas las opciones están en [`codarch serve`](/docs/usar/cli/serve/).
+Todas las opciones están en [`codarch serve`](cli/serve.md).
 
 ## 2. Solo la webapp con Docker
 
@@ -90,5 +90,5 @@ Los instaladores **no están firmados**: Windows SmartScreen puede avisar al abr
 
 ## Siguiente paso
 
-- [Referencia del CLI](/docs/usar/cli/analyze/)
-- [Actualizaciones](/docs/usar/actualizaciones/)
+- [Referencia del CLI](cli/analyze.md)
+- [Actualizaciones](actualizaciones.md)

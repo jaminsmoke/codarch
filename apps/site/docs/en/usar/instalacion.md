@@ -1,7 +1,7 @@
 ---
 title: "Installation"
 description: "Three ways to install CodArch: the npm package (CLI and webapp), the webapp Docker image and the desktop installer."
-section: producto
+section: usar
 sidebar:
   label: "Installation"
   order: 10
@@ -39,7 +39,7 @@ files change.
 
 ![Terminal running `codarch serve .` and the webapp open in the browser](../../images/cli-serve.png)
 
-All options are in [`codarch serve`](/en/docs/usar/cli/serve/).
+All options are in [`codarch serve`](cli/serve.md).
 
 ## 2. The webapp alone with Docker
 
@@ -89,5 +89,5 @@ The installers are **not signed**: Windows SmartScreen may warn when opening the
 
 ## Next
 
-- [CLI reference](/en/docs/usar/cli/analyze/)
-- [Updates](/en/docs/usar/actualizaciones/)
+- [CLI reference](cli/analyze.md)
+- [Updates](actualizaciones.md)

@@ -1,7 +1,7 @@
 ---
 title: "codarch serve"
 description: "Analyses a repository and serves the webapp locally, refreshing it when files change."
-section: producto
+section: usar
 sidebar:
   label: "serve"
   order: 25

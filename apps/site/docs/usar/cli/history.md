@@ -1,7 +1,7 @@
 ---
 title: "codarch history"
 description: "Lista las fotos guardadas del repositorio y compara dos de ellas."
-section: producto
+section: usar
 sidebar:
   label: "history"
   order: 26

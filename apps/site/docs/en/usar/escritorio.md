@@ -1,7 +1,7 @@
 ---
 title: "Desktop app"
 description: "Installers for Windows and Linux: the same map, analysing with git against the disk."
-section: producto
+section: usar
 sidebar:
   label: "Desktop app"
   order: 41
@@ -27,18 +27,52 @@ are **unsigned**; see the [FAQ](preguntas-frecuentes.md#windows-or-linux-warn-th
 
 ![The v0.3.37 release on GitHub with its installers: .deb, setup.exe and AppImage](../../images/escritorio-release.png)
 
-## What it adds over the web app
+## The window
 
-- **Native dialogs** to pick a folder or a file.
-- **Native menu and shortcuts**: `Ctrl+O` analyses a folder, `Ctrl+Shift+O` opens a JSON.
+The window shows the same interface as the [web app](webapp.md): the VISTA panel, the map and the
+inspector. The interface is in Spanish; this page uses the names as they appear on screen.
+
+![The desktop app with a repo open](../../images/escritorio-ventana.png)
+
+## Archivo, Edición, Ver and Ayuda menus
+
+On top of the interface, the app has native menus: **Archivo** (file), **Edición** (edit), **Ver**
+(view) and **Ayuda** (help).
+
+![The native menu bar with the Archivo menu open](../../images/escritorio-menus.png)
+
+## Elige la carpeta del repositorio
+
+To analyse a repo, open it from the Archivo menu or from **ABRIR REPOSITORIO O ARCHIVO**. The native
+**Elige la carpeta del repositorio** (choose the repository folder) dialog opens.
+
+- **Shortcuts**: `Ctrl+O` analyses a folder, `Ctrl+Shift+O` opens a JSON.
 - **"Open with"**: opening a folder, a `cc.json` or a `report.json` from the file explorer analyses
   and shows it.
-- The repo state is saved in its `.codarch/` folder.
+
+![The «Elige la carpeta del repositorio» dialog](../../images/escritorio-abrir-carpeta.png)
 
 ![The desktop app on Linux after analysing a folder, with the map drawn and the File menu open](../../images/escritorio-mapa.png)
 
-## Updating
+## The .codarch/ folder
 
-The app looks for new versions in the Releases and updates itself. The AppImage does it without
-permissions; the `.deb` asks for the administrator password, like any package. See
-[Updates](actualizaciones.md).
+The repo state is saved in its `.codarch/` folder, not in the app. In the example repo it contains:
+
+| File | What it is |
+|---|---|
+| `snapshot.cc.json` | the latest snapshot |
+| `head-report.json` | what was touched since the last commit |
+| `chains.json` | the symbol chain ledger |
+| `preferences.json` | the view preferences |
+| `map.html` | the exported map |
+
+![`ls -la .codarch/` in a terminal, with the five files](../../images/escritorio-codarch-carpeta.png)
+
+## Ajustes › Actualizaciones
+
+Updates only show up in **Ajustes › Actualizaciones** (settings › updates): it shows the installed
+version and whether it is up to date. There is no banner; when a new version exists, the notice
+appears in that section. The AppImage updates without permissions; the `.deb` asks for the
+administrator password, like any package. See [Updates](actualizaciones.md).
+
+![Ajustes › Actualizaciones with version 0.3.37 up to date](../../images/escritorio-actualizaciones.png)

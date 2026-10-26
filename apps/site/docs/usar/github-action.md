@@ -1,15 +1,15 @@
 ---
 title: "GitHub Action"
 description: "El mapa y el diff de arquitectura en cada pull request, en modo aviso o bloqueo."
-section: producto
+section: usar
 sidebar:
   label: "GitHub Action"
   order: 60
 ---
 
 La acción analiza la base y el head de cada pull request, sube el mapa y el reporte como artefacto y
-deja un comentario con el diff de arquitectura. Decisiones: [ADR 0012](../adr/0011-0020/0012-github-action.md)
-y [ADR 0015](../adr/0011-0020/0015-accion-publica-separada.md) (hoy se usa por subruta del monorepo).
+deja un comentario con el diff de arquitectura. Hoy se usa por subruta del
+monorepo.
 
 ## Uso
 
@@ -48,7 +48,7 @@ jobs:
 | `fail-on` | Bloquea cuando |
 |---|---|
 | `none` (por defecto) | nunca: comenta y sube el artefacto |
-| `violations` | hay violaciones nuevas de [`.codarch.yml`](../rules.md) |
+| `violations` | hay violaciones nuevas de [`.codarch.yml`](reglas.md) |
 | `cycles` | aparecen ciclos nuevos |
 | `hotspots` | aparecen hotspots nuevos |
 | `any` | cualquiera de los anteriores |
@@ -66,3 +66,7 @@ La lista completa con sus valores por defecto está en `apps/github-action/actio
 
 En PRs desde forks el token suele ser de solo lectura: el comentario se omite con un warning, pero el
 análisis y el artefacto siguen funcionando.
+
+:::note[Para saber más]
+Las decisiones detrás de esta página: [ADR 0012 — GitHub Action para PRs](../desarrollo/adr/0011-0020/0012-github-action.md), [ADR 0015 — Acción pública separada](../desarrollo/adr/0011-0020/0015-accion-publica-separada.md).
+:::

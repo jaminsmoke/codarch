@@ -1,7 +1,7 @@
 ---
 title: "codarch analyze"
 description: "Analiza un repositorio y escribe el snapshot cc.json."
-section: producto
+section: usar
 sidebar:
   label: "analyze"
   order: 21

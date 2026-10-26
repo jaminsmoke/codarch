@@ -1,7 +1,7 @@
 ---
 title: "codarch history"
 description: "Lists the repository's saved snapshots and compares two of them."
-section: producto
+section: usar
 sidebar:
   label: "history"
   order: 26

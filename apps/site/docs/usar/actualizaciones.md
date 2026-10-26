@@ -1,7 +1,7 @@
 ---
 title: "Actualizaciones"
 description: "Cómo se actualiza CodArch en cada forma de instalación: npm, Docker y la app de escritorio."
-section: producto
+section: usar
 sidebar:
   label: "Actualizaciones"
   order: 30

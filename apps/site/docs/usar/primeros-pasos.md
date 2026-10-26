@@ -1,11 +1,13 @@
 ---
 title: "Primeros pasos"
 description: "Del primer análisis al mapa en cinco minutos: analizar, abrir la webapp y leer el resultado."
-section: producto
+section: usar
 sidebar:
   label: "Primeros pasos"
   order: 15
 ---
+
+![La webapp recién abierta: la lente por defecto, Deuda de migración, y el primer fichero seleccionado](../images/primeros-pasos-app.png)
 
 Esta página da por hecho que ya tienes CodArch instalado por una de sus tres vías (ver
 [Instalación](instalacion.md)). Los ejemplos usan el CLI; con Docker o el escritorio el resultado es el
@@ -35,14 +37,16 @@ analizar al guardar. Ver [Webapp](webapp.md) y [`codarch serve`](cli/serve.md).
 
 ## 3. Lee el mapa
 
-- Cada bloque es una carpeta o un fichero; el área es la métrica elegida y el color, la lente.
-- Al pulsar un fichero se abre el **inspector**: métricas, símbolos y dependencias entrantes y salientes.
+- Cada bloque es una carpeta o un fichero. El tamaño y el color se eligen con los selectores **ÁREA** y
+  **COLOR** del panel **VISTA**; al abrir, el color es Deuda de migración.
+- Al pulsar un fichero, el **inspector** de la derecha lo muestra en su pestaña **Fichero**: métricas,
+  símbolos y dependencias entrantes y salientes.
 - La búsqueda encuentra ficheros y símbolos por nombre.
 
 ![El mapa con un fichero seleccionado y el inspector abierto en su ficha, con la lista de símbolos](../images/primeros-pasos-inspector.png)
 
 ## 4. Siguientes pasos
 
-- Escribe una política en [`.codarch.yml`](../rules.md) y compárala con [`codarch diff`](cli/diff.md).
+- Escribe una política en [`.codarch.yml`](reglas.md) y compárala con [`codarch diff`](cli/diff.md).
 - Pon el mapa en cada pull request con la [GitHub Action](github-action.md).
-- Deja que tu agente pregunte por la arquitectura con el [MCP](../mcp.md).
+- Deja que tu agente pregunte por la arquitectura con el [MCP](mcp.md).

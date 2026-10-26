@@ -1,7 +1,7 @@
 ---
 title: "codarch diff"
 description: "Compara dos snapshots y, si se pide, falla con ciclos, violaciones o hotspots nuevos."
-section: producto
+section: usar
 sidebar:
   label: "diff"
   order: 24
