@@ -3,8 +3,10 @@ import {
   type DragEvent,
   type ReactNode,
   useEffect,
+  useId,
   useMemo,
-  useRef
+  useRef,
+  useState
 } from "react";
 import type { AddonView as SavedView } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
@@ -21,6 +23,9 @@ import {
 } from "./panels";
 import ChangesPanel, { reportHasChanges } from "./ChangesPanel";
 import { InspectorBar, inspectorLabel } from "./InspectorBar";
+import { ToolBar, toolLabel } from "./ToolBar";
+import { localStore } from "./storage";
+import { readSectionClosed, writeSectionClosed } from "./sections";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -89,6 +94,7 @@ export function AppShell({
     center,
     showLabels,
     pluginView,
+    settingsOpen,
     watch,
     refreshedAt
   } = app.state;
@@ -131,6 +137,18 @@ export function AppShell({
     loadDiff
   } = app;
   const viewsMenuRef = useRef<HTMLDetailsElement>(null);
+  const toolsId = useId();
+  // Las herramientas se pliegan desde su icono, como la barra lateral de un
+  // editor: el mapa gana el ancho de la hoja. El estado se recuerda entre
+  // visitas, igual que el de una sección (ADR 0061 · ADR 0083).
+  const [toolsClosed, setToolsClosed] = useState(() =>
+    readSectionClosed(localStore(), "tool-dock", false)
+  );
+  const toggleTools = () =>
+    setToolsClosed((current) => {
+      writeSectionClosed(localStore(), "tool-dock", !current);
+      return !current;
+    });
   const projectTitle =
     view.model?.meta.title ?? cc?.meta.projectName ?? "Sin snapshot";
 
@@ -235,24 +253,6 @@ export function AppShell({
             </details>
           ) : null}
           {topbarTrailing}
-          <button
-            className="button ghost icon-button"
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            title="Ajustes"
-            aria-label="Ajustes"
-          >
-            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M8 5.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm0 1.6a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z"
-              />
-              <path
-                fill="currentColor"
-                d="M6.6.9h2.8l.3 1.6c.4.1.8.3 1.1.5l1.4-.9 2 2-.9 1.4c.2.4.4.7.5 1.1l1.6.3v2.8l-1.6.3c-.1.4-.3.8-.5 1.1l.9 1.4-2 2-1.4-.9c-.4.2-.7.4-1.1.5l-.3 1.6H6.6l-.3-1.6c-.4-.1-.8-.3-1.1-.5l-1.4.9-2-2 .9-1.4c-.2-.4-.4-.7-.5-1.1l-1.6-.3V6.9l1.6-.3c.1-.4.3-.8.5-1.1l-.9-1.4 2-2 1.4.9c.3-.2.7-.4 1.1-.5L6.6.9Z"
-              />
-            </svg>
-          </button>
         </div>
       </header>
 
@@ -324,89 +324,103 @@ export function AppShell({
       </div>
 
       <div className="shell">
-        <aside className="rail">
-          <section className="panel-block">
-            <div className="eyebrow">Vista</div>
-            <label className="field">
-              <span>Área</span>
-              <select
-                value={areaMetric ?? ""}
-                onChange={(event) => setAreaMetric(event.target.value)}
-              >
-                {metricOptions.map((key) => (
-                  <option key={key} value={key}>
-                    {metricTitle(key)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>Color</span>
-              <select
-                value={colorMode}
-                onChange={(event) => setColorMode(event.target.value)}
-              >
-                <option value="risk">Riesgo</option>
-                <option value="structure">Estructura</option>
-                {hasChurn ? <option value="churn">Calor (commits)</option> : null}
-                {migration ? (
-                  <option value="status">Estado de migración</option>
-                ) : null}
-                {metricOptions.map((key) => (
-                  <option key={key} value={key}>
-                    {metricTitle(key)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field search-field">
-              <span>Buscar</span>
-              <input
-                ref={searchRef}
-                type="search"
-                placeholder="ruta o fichero…"
-                title="Pulsa / para buscar; Enter abre el primer resultado"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" || !view.model) return;
-                  const needle = query.trim().toLowerCase();
-                  if (!needle) return;
-                  const match = view.model.files.find((file) =>
-                    file.path.toLowerCase().includes(needle)
-                  );
-                  if (match) {
-                    selectIndex(match.index);
-                    setTab("file");
-                  }
-                }}
-              />
-            </label>
-            {query ? (
-              <div className="muted tiny">
-                {matches} de {view.model?.fileCount ?? 0} ficheros
-              </div>
-            ) : null}
-          </section>
-
-          <LanguageSample model={view.model} migration={migration} />
-
-          <Legend colorMode={colorMode} migration={migration} model={view.model} />
-
-          {/* El calor es del repo abierto. La lista se carga al montarse, así
-              que al cambiar de proyecto se remonta: sin esto se quedaba con las
-              filas del repo anterior. La historia vive en Cambios (ADR 0072). */}
-          <HeatList
-            key={`heat:${source}`}
-            load={loadHeat}
-            onSelectSymbol={(name, path) => {
-              void openSymbolChain(name, path);
-            }}
+        <div className={`tool-dock${toolsClosed ? " is-folded" : ""}`}>
+          <ToolBar
+            open={!toolsClosed}
+            settingsOpen={settingsOpen}
+            panelId={toolsId}
+            onToggleOpen={toggleTools}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
+          <aside
+            className="toolbar"
+            id={toolsId}
+            aria-label={toolLabel("map")}
+            hidden={toolsClosed}
+          >
+            <section className="panel-block">
+              <div className="eyebrow">Vista</div>
+              <label className="field">
+                <span>Área</span>
+                <select
+                  value={areaMetric ?? ""}
+                  onChange={(event) => setAreaMetric(event.target.value)}
+                >
+                  {metricOptions.map((key) => (
+                    <option key={key} value={key}>
+                      {metricTitle(key)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Color</span>
+                <select
+                  value={colorMode}
+                  onChange={(event) => setColorMode(event.target.value)}
+                >
+                  <option value="risk">Riesgo</option>
+                  <option value="structure">Estructura</option>
+                  {hasChurn ? <option value="churn">Calor (commits)</option> : null}
+                  {migration ? (
+                    <option value="status">Estado de migración</option>
+                  ) : null}
+                  {metricOptions.map((key) => (
+                    <option key={key} value={key}>
+                      {metricTitle(key)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field search-field">
+                <span>Buscar</span>
+                <input
+                  ref={searchRef}
+                  type="search"
+                  placeholder="ruta o fichero…"
+                  title="Pulsa / para buscar; Enter abre el primer resultado"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" || !view.model) return;
+                    const needle = query.trim().toLowerCase();
+                    if (!needle) return;
+                    const match = view.model.files.find((file) =>
+                      file.path.toLowerCase().includes(needle)
+                    );
+                    if (match) {
+                      selectIndex(match.index);
+                      setTab("file");
+                    }
+                  }}
+                />
+              </label>
+              {query ? (
+                <div className="muted tiny">
+                  {matches} de {view.model?.fileCount ?? 0} ficheros
+                </div>
+              ) : null}
+            </section>
 
-          {/* La deuda y los ficheros más tocados ya no tienen lista aquí:
-              viven en Cambios, con el diff delante (ADR 0078). */}
-        </aside>
+            <LanguageSample model={view.model} migration={migration} />
+
+            <Legend colorMode={colorMode} migration={migration} model={view.model} />
+
+            {/* El calor es del repo abierto. La lista se carga al montarse, así
+                que al cambiar de proyecto se remonta: sin esto se quedaba con las
+                filas del repo anterior. La historia vive en Cambios (ADR 0072). */}
+            <HeatList
+              key={`heat:${source}`}
+              load={loadHeat}
+              onSelectSymbol={(name, path) => {
+                void openSymbolChain(name, path);
+              }}
+            />
+
+            {/* La deuda y los ficheros más tocados ya no tienen lista aquí:
+                viven en Cambios, con el diff delante (ADR 0078). */}
+          </aside>
+        </div>
 
         <main className="stage">
           {banner}

@@ -488,8 +488,11 @@ button {
 
 .shell {
   display: grid;
-  /* La barra del inspector ocupa su franja: la hoja conserva sus 302 px. */
-  grid-template-columns: 258px minmax(0, 1fr) 346px;
+  /* Las barras de actividad ocupan su franja y las hojas conservan la suya: la
+     de herramientas a la izquierda y la del inspector a la derecha. El ancho de
+     la izquierda lo pone su dock —barra de 44 más hoja de 258—, así que al
+     plegar las herramientas el mapa se queda con esos 258 px (ADR 0083). */
+  grid-template-columns: auto minmax(0, 1fr) 346px;
   min-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   background: var(--line);
   gap: 1px;
@@ -504,7 +507,22 @@ button {
   background: var(--panel);
 }
 
-.rail,
+/* El dock de herramientas es el espejo izquierdo del del inspector (ADR 0083):
+   la barra pegada al borde y la hoja al lado, con el mismo reparto. */
+.tool-dock {
+  display: flex;
+  /* Barra más hoja; al plegar, solo la barra y el mapa gana el resto. */
+  width: max-content;
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
+}
+
+.tool-dock.is-folded .toolbar {
+  display: none;
+}
+
+.toolbar,
 .inspector {
   background: var(--panel);
   padding: 20px 18px;
@@ -512,7 +530,12 @@ button {
   min-height: 0;
 }
 
-.rail {
+.toolbar {
+  /* El ancho es fijo: sin él, el texto largo del panel estira el dock y el mapa
+     pierde lo que no debe. */
+  flex: 0 0 258px;
+  width: 258px;
+  max-width: 258px;
   border-right: 1px solid var(--line);
 }
 
@@ -1655,18 +1678,6 @@ button {
 }
 
 /* El botón de ajustes, en el header ✓. */
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  padding: 0;
-}
-
-.icon-button svg {
-  display: block;
-}
-
 /* Los controles de zoom: al pie del escenario, fuera del mapa ✓. */
 .map-controls {
   display: flex;
@@ -1923,25 +1934,6 @@ button {
 }
 
 /* Los ajustes: un diálogo con secciones. */
-.rail-settings {
-  align-self: flex-end;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.rail-settings:hover {
-  color: var(--ink);
-  border-color: var(--ink-soft);
-}
-
 .settings-overlay {
   position: fixed;
   inset: 0;
@@ -2669,12 +2661,13 @@ button {
   color: var(--ink);
 }
 
-/* La barra de actividad del inspector (ADR 0079): una franja fija, fuera del
-   scroll de la hoja, con un icono por apartado. Lleva el color del marco
-   (ADR 0082), no el de las hojas: es la cabecera continuando por el borde
-   derecho, y así el armazón rodea el contenido en vez de dejar una tira
-   suelta del color del panel. */
-.inspector-bar {
+/* Las dos barras de actividad —la del inspector (ADR 0079) y la de las
+   herramientas (ADR 0083)—: una franja fija, fuera del scroll de su hoja, con
+   un icono por apartado. Llevan el color del marco (ADR 0082), no el de las
+   hojas: son la cabecera continuando por los bordes, y así el armazón rodea el
+   contenido en vez de dejar tiras sueltas del color del panel. */
+.inspector-bar,
+.tool-bar {
   display: flex;
   flex: none;
   flex-direction: column;
@@ -2682,15 +2675,29 @@ button {
   gap: 4px;
   width: 44px;
   padding: 14px 0;
-  border-left: 1px solid var(--frame-edge);
   background: var(--frame);
   color: var(--frame-ink);
+}
+
+/* La pleca va en la junta con la hoja, no en el canto de la ventana. */
+.inspector-bar {
+  border-left: 1px solid var(--frame-edge);
+}
+
+.tool-bar {
+  border-right: 1px solid var(--frame-edge);
+}
+
+/* Ajustes cierra la barra por abajo, aparte de las herramientas. */
+.tool-spacer {
+  margin-top: auto;
 }
 
 /* Los iconos se leen sobre el marco: gris claro en reposo (6,6:1), blanco al
    pasar el ratón y en el apartado activo, que marca con una pleca clara en el
    borde de dentro —la que antes era oscura sobre hoja clara. */
-.inspector-tab {
+.inspector-tab,
+.tool-tab {
   position: relative;
   display: grid;
   place-items: center;
@@ -2703,12 +2710,14 @@ button {
   cursor: pointer;
 }
 
-.inspector-tab:hover {
+.inspector-tab:hover,
+.tool-tab:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--frame-ink);
 }
 
-.inspector-tab.is-active {
+.inspector-tab.is-active,
+.tool-tab.is-active {
   background: rgba(255, 255, 255, 0.1);
   color: var(--frame-ink);
   box-shadow: inset 2px 0 0 var(--frame-ink);
@@ -3404,7 +3413,8 @@ code {
     min-height: 0;
   }
 
-  .rail,
+  .tool-dock,
+  .toolbar,
   .inspector-dock,
   .inspector {
     min-height: 0;
@@ -3422,7 +3432,7 @@ code {
 
 @media (max-width: 1180px) {
   .shell {
-    grid-template-columns: 226px minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
   /* El mapa ocupa la pantalla aunque el inspector se apile debajo ✓: la página
@@ -3431,8 +3441,11 @@ code {
     height: calc(100dvh - var(--topbar-h) - var(--band-h));
   }
 
-  /* Y el raíl tampoco estira la fila: scrollea él solo ✓. */
-  .rail {
+  /* Y la hoja de herramientas tampoco estira la fila: scrollea ella sola ✓. */
+  .toolbar {
+    flex-basis: 226px;
+    width: 226px;
+    max-width: 226px;
     max-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   }
 
@@ -3496,13 +3509,37 @@ code {
     padding: 16px 12px 12px;
   }
 
-  .rail {
+  /* El dock de herramientas se apila: la barra se tumba encima de su hoja, con
+     el mismo orden de documento que el del inspector. */
+  .tool-dock {
     order: 2;
-    border-right: 0;
-    border-top: 1px solid var(--line);
+    flex-direction: column;
+    width: auto;
+  }
+
+  .toolbar {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .tool-bar {
+    flex-direction: row;
+    width: auto;
+    height: 44px;
+    padding: 0 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--frame-edge);
+  }
+
+  .tool-spacer {
+    margin-top: 0;
+    margin-left: auto;
   }
 
   .inspector-dock {
@@ -3550,7 +3587,7 @@ code {
 }
 
 @media (max-width: 560px) {
-  .rail {
+  .toolbar {
     grid-template-columns: 1fr;
   }
 
