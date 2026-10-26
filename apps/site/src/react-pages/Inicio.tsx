@@ -45,7 +45,7 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
           className="font-display text-5xl leading-[1.05] font-bold tracking-tight"
         >
           {t(idioma, "home.h1.a")}
-          <span className="text-cobalt">{t(idioma, "home.h1.b")}</span>
+          <span className="text-rust-ink">{t(idioma, "home.h1.b")}</span>
           {t(idioma, "home.h1.c")}
         </motion.h1>
 
@@ -90,7 +90,7 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
               codarch serve .
             </code>
             <a
-              className="font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
+              className="font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
               href="https://www.npmjs.com/package/codarch"
             >
               {t(idioma, "home.npm")} →

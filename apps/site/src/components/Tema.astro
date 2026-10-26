@@ -1,0 +1,21 @@
+---
+/**
+ * El color de la barra del navegador.
+ *
+ * Es el del papel —el mismo `--color-paper` de `styles.css`—, no un azul que
+ * la página no usa en ninguna parte: así la pestaña y la página no se
+ * contradicen. Va en un componente porque lo necesitan las dos plantillas del
+ * sitio (la de la portada y la guía, y la de los documentos).
+ */
+---
+
+<meta
+  name="theme-color"
+  content="#eef1f2"
+  media="(prefers-color-scheme: light)"
+/>
+<meta
+  name="theme-color"
+  content="#10161b"
+  media="(prefers-color-scheme: dark)"
+/>

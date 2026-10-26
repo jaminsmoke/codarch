@@ -13,6 +13,10 @@
   --color-cobalt: #2f6fed;
   --color-ochre: #d9a21b;
   --color-rust: #d95d39;
+  /* El acento de la marca, oscurecido para texto: el rust puro se queda en
+     3,3:1 sobre el papel y no pasa AA; este llega a 5,6:1. El rust se queda
+     para las masas —filetes, fondos, el año de la guía— y para el foco. */
+  --color-rust-ink: #a83a1e;
   --color-violet: #7b61ff;
   --color-patina: #3f8f7a;
   --color-debt: #d64545;
@@ -36,6 +40,7 @@
     --color-cobalt: #7aa2ff;
     --color-ochre: #e8bb52;
     --color-rust: #f08a6c;
+    --color-rust-ink: #f08a6c;
     --color-violet: #a893ff;
     --color-patina: #6fc0a8;
     --color-debt: #f07d7d;
@@ -59,7 +64,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-cobalt) 30%, transparent);
+  background: color-mix(in srgb, var(--color-rust) 30%, transparent);
 }
 
 /* El contenido que viene del markdown (la guía). */
@@ -150,7 +155,7 @@ body {
 }
 
 .prosa a {
-  color: var(--color-cobalt);
+  color: var(--color-rust-ink);
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
 }
@@ -185,8 +190,8 @@ body {
 .prosa blockquote {
   margin: 1rem 0;
   padding: 0.55rem 0 0.55rem 1rem;
-  border-left: 3px solid var(--color-cobalt);
-  background: color-mix(in srgb, var(--color-cobalt) 5%, transparent);
+  border-left: 3px solid var(--color-rust);
+  background: color-mix(in srgb, var(--color-rust) 5%, transparent);
   color: var(--color-ink-soft);
 }
 
@@ -244,12 +249,12 @@ body {
   margin: 0 0 3.5rem;
   padding: 1.15rem 1.35rem 1rem;
   border: 1px solid var(--color-line);
-  border-left: 3px solid var(--color-cobalt);
+  border-left: 3px solid var(--color-rust);
   border-radius: 0 12px 12px 0;
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--color-cobalt) 6%, transparent),
+      color-mix(in srgb, var(--color-rust) 6%, transparent),
       transparent 55%
     ),
     var(--color-panel);
@@ -305,7 +310,7 @@ body {
   font-variant-numeric: tabular-nums;
   line-height: 0.82;
   letter-spacing: -0.04em;
-  color: var(--color-cobalt);
+  color: var(--color-rust);
 }
 
 .guia-fecha-mes {
@@ -447,7 +452,7 @@ body {
 }
 
 .guia-entrada-disparador:focus-visible {
-  outline: 2px solid var(--color-cobalt);
+  outline: 2px solid var(--color-rust);
   outline-offset: 2px;
   border-radius: 4px;
 }

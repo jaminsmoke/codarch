@@ -94,7 +94,7 @@ export default function Marco({
                   className={[
                     "rounded-lg px-3 py-1.5 text-sm no-underline transition-colors",
                     activa
-                      ? "bg-cobalt/12 font-semibold text-cobalt"
+                      ? "bg-rust/15 font-semibold text-rust-ink"
                       : "text-ink-soft hover:bg-ink/6 hover:text-ink"
                   ].join(" ")}
                 >
@@ -123,7 +123,7 @@ export default function Marco({
                   className={[
                     "rounded-md px-1.5 py-0.5 font-mono text-[0.68rem] tracking-[0.08em] uppercase no-underline transition-colors",
                     idioma === codigo
-                      ? "font-semibold text-cobalt"
+                      ? "font-semibold text-rust-ink"
                       : "text-muted hover:text-ink"
                   ].join(" ")}
                 >
@@ -158,13 +158,13 @@ export default function Marco({
           <span className="ml-auto flex gap-3">
             <a
               href={`${raiz}/docs/usar/instalacion/`}
-              className="text-muted no-underline hover:text-cobalt"
+              className="text-muted no-underline hover:text-rust-ink"
             >
               {t(idioma, "home.empezar")}
             </a>
             <a
               href={`${raiz}/desarrollo/`}
-              className="text-muted no-underline hover:text-cobalt"
+              className="text-muted no-underline hover:text-rust-ink"
             >
               {t(idioma, "home.construye")}
             </a>

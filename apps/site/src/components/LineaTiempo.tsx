@@ -92,7 +92,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                       paso.futuro
                         ? "border-t border-dashed border-line-strong/70"
                         : i <= indice
-                          ? "h-px bg-gradient-to-r from-cobalt/20 to-cobalt/50"
+                          ? "h-px bg-gradient-to-r from-rust/20 to-rust/50"
                           : "h-px bg-line"
                     )}
                   />
@@ -117,7 +117,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                     ease: [0.22, 0.61, 0.36, 1]
                   }}
                   className={clsx(
-                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase no-underline transition-colors duration-300 outline-offset-2 outline-cobalt focus-visible:outline-2 sm:text-[0.75rem]",
+                    "relative flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.06em] whitespace-nowrap uppercase no-underline transition-colors duration-300 outline-offset-2 outline-rust focus-visible:outline-2 sm:text-[0.75rem]",
                     esActivo
                       ? clsx(
                           "border-transparent",
@@ -142,7 +142,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                         "absolute inset-0 rounded-full",
                         paso.futuro
                           ? "border border-line-strong bg-ink/[0.06]"
-                          : "bg-gradient-to-b from-cobalt to-cobalt/90 shadow-[0_8px_20px_-10px_var(--color-cobalt)]"
+                          : "bg-gradient-to-b from-rust-ink to-rust-ink/90 shadow-[0_8px_20px_-10px_var(--color-rust-ink)]"
                       )}
                     />
                   ) : null}
@@ -191,7 +191,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
             <a
               href={`${BASE}${anterior.ruta}`}
               aria-label={t(idioma, "guia.paso.anterior")}
-              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
+              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronLeft
                 aria-hidden="true"
@@ -212,7 +212,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
             <a
               href={`${BASE}${siguiente.ruta}`}
               aria-label={t(idioma, "guia.paso.siguiente")}
-              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-cobalt hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
+              className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronRight
                 aria-hidden="true"

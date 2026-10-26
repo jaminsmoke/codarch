@@ -120,7 +120,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
       {esUltimo ? (
         <header className="mb-10">
-          <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
+          <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
             {t(idioma, "guia.registro")}
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
@@ -154,7 +154,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
         <p className="mb-6 flex items-center gap-2 font-mono text-[0.66rem] tracking-[0.14em] text-muted uppercase">
           <a
             href={`${BASE}/desarrollo/guia/`}
-            className="text-cobalt no-underline hover:underline"
+            className="text-rust-ink no-underline hover:underline"
           >
             {t(idioma, "guia.titulo")}
           </a>
@@ -331,7 +331,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
         {anterior ? (
           <a
             href={`${BASE}${rutaDia(anterior.fecha, ultima, idioma)}`}
-            className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
+            className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
             <ArrowLeft aria-hidden="true" className="size-3" />
             {fechaCorta(anterior.fecha, idioma)}
@@ -341,14 +341,14 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
         )}
         <a
           href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`}
-          className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-cobalt"
+          className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-rust-ink"
         >
           {t(idioma, "guia.futuro")}
         </a>
         {siguiente ? (
           <a
             href={`${BASE}${rutaDia(siguiente.fecha, ultima, idioma)}`}
-            className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
+            className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
             {fechaCorta(siguiente.fecha, idioma)}
             <ArrowRight aria-hidden="true" className="size-3" />
@@ -361,7 +361,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
       <p className="mt-5 text-sm text-muted">
         <a
           href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/normas/`}
-          className="text-cobalt no-underline hover:underline"
+          className="text-rust-ink no-underline hover:underline"
         >
           {t(idioma, "guia.normas")}
         </a>

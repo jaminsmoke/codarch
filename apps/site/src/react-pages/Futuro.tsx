@@ -39,7 +39,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
-      <p className="font-mono text-xs tracking-[0.22em] text-cobalt uppercase">
+      <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
         {t(idioma, "guia.registro")}
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
@@ -54,7 +54,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
       <p className="mt-4 mb-8 max-w-2xl text-lg leading-relaxed text-ink-soft">
         {t(idioma, "guia.futuro.desc")}{" "}
         {t(idioma, "guia.futuro.desc.link")}{" "}
-        <a className="text-cobalt" href={`${raiz}/desarrollo/roadmap/`}>
+        <a className="text-rust-ink" href={`${raiz}/desarrollo/roadmap/`}>
           {t(idioma, "guia.futuro.roadmap")}
         </a>
         .
@@ -97,7 +97,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
               </p>
               <a
                 href={`${BASE}${rutaDia(entrada.fecha, ultima, idioma)}#${entrada.id}`}
-                className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline"
+                className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline"
               >
                 <ArrowDown aria-hidden="true" className="size-3" />
                 {t(idioma, "guia.leer")}
@@ -109,7 +109,7 @@ export default function Futuro({ futuras, dias, lang = "es" }: Props) {
 
       <a
         href={`${raiz}/desarrollo/guia/`}
-        className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
+        className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />
         {t(idioma, "guia.volver")}
