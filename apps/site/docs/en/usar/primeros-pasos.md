@@ -31,8 +31,7 @@ codarch serve .
 The web app ships inside the CLI: `serve` installs nothing, it serves it locally, analyses the repo
 and analyses again on save. See [Web app](webapp.md) and [`codarch serve`](cli/serve.md).
 
-> 📸 **Pending screenshot (primeros-pasos-mapa):** the web app freshly opened with `codarch serve .`
-> on the CodArch repo, **Risk** lens, nothing selected.
+![The web app freshly opened with codarch serve on the CodArch repo, Risk lens, nothing selected](../../images/primeros-pasos-mapa.png)
 
 ## 3. Read the map
 
@@ -40,8 +39,7 @@ and analyses again on save. See [Web app](webapp.md) and [`codarch serve`](cli/s
 - Clicking a file opens the **inspector**: metrics, symbols and incoming and outgoing dependencies.
 - Search finds files and symbols by name.
 
-> 📸 **Pending screenshot (primeros-pasos-inspector):** the same map with a file selected and the
-> inspector open on its card, with the symbol list visible.
+![The map with a file selected and the inspector open on its card, with the symbol list](../../images/primeros-pasos-inspector.png)
 
 ## 4. Next steps
 

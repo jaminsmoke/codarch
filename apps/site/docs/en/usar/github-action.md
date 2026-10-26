@@ -44,9 +44,6 @@ jobs:
   comment instead of creating another.
 - **An artifact** (`codarch`): the base and head snapshots, the head map and `report.json`.
 
-> 📸 **Pending screenshot (action-comentario):** the CodArch comment on a test PR with a
-> `domain → infra` violation, with the diff table and the artifact link visible.
-
 ## Warn or block
 
 | `fail-on` | Blocks when |

@@ -44,8 +44,7 @@ docker compose up --build
 CODARCH_REPO=/path/to/repo docker compose up --build   # to look at another repo
 ```
 
-> 📸 **Pending screenshot (webapp-docker):** the web app at `http://localhost:4173` served by the
-> `ghcr.io/jaminsmoke/codarch-web:latest` container, with a repo mounted and the **Structure** lens.
+![The web app at http://localhost:4173 served by the ghcr.io/jaminsmoke/codarch-web:latest container with a repo mounted](../../images/webapp-docker.png)
 
 ## What it stores
 

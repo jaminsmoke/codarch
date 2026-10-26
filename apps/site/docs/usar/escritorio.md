@@ -20,13 +20,12 @@ Descarga el instalador de tu sistema desde las
 |---|---|---|
 | Windows | `codarch-<versión>-setup.exe` (NSIS) | instala por usuario en `%LOCALAPPDATA%\Programs\CodArch`, sin pedir administrador |
 | Linux | `codarch-<versión>-amd64.deb` | instala la app en el sistema, con su entrada de menú |
-| Linux | `codarch-<versión>-x64.AppImage` | se ejecuta sin instalar nada (`chmod +x` y abrir) |
+| Linux | `codarch-<versión>-x86_64.AppImage` | se ejecuta sin instalar nada (`chmod +x` y abrir) |
 
 macOS no se publica: sin firma ni notarización, Gatekeeper bloquea la app. Los instaladores van **sin
 firmar**; ver [Preguntas frecuentes](preguntas-frecuentes.md#windows-o-linux-avisan-de-que-el-instalador-no-está-firmado).
 
-> 📸 **Captura pendiente (escritorio-release):** la página de la última release en GitHub con la
-> lista de assets (`.exe`, `.deb`, `.AppImage`) visible.
+![La release v0.3.37 en GitHub con sus instaladores: .deb, setup.exe y AppImage](../images/escritorio-release.png)
 
 ## Qué aporta frente a la webapp
 
@@ -36,8 +35,7 @@ firmar**; ver [Preguntas frecuentes](preguntas-frecuentes.md#windows-o-linux-avi
   la muestra.
 - El estado del repo se guarda en su carpeta `.codarch/`.
 
-> 📸 **Captura pendiente (escritorio-mapa):** la app de escritorio en Windows recién analizada una
-> carpeta con `Ctrl+O`, el mapa dibujado y el menú **Archivo** desplegado.
+![La app de escritorio en Linux tras analizar una carpeta, con el mapa dibujado y el menú Archivo desplegado](../images/escritorio-mapa.png)
 
 ## Actualizar
 

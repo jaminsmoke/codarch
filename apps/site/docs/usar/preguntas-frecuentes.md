@@ -33,10 +33,6 @@ alpha. En Windows, SmartScreen puede decir que la app no es de un desarrollador 
 (`chmod +x codarch-*.AppImage`). Descarga siempre desde las
 [Releases oficiales](https://github.com/jaminsmoke/codarch/releases).
 
-> 📸 **Captura pendiente (faq-smartscreen):** el aviso de Windows SmartScreen al abrir
-> `codarch-<versión>-setup.exe`, con **Más información** ya pulsado y el botón **Ejecutar de todas
-> formas** visible.
-
 ## ¿Hay versión para macOS?
 
 No. Sin firma ni notarización Gatekeeper bloquea la app y el actualizador no puede aplicarla. En macOS

@@ -43,9 +43,6 @@ jobs:
   comentario en vez de crear otro.
 - **Un artefacto** (`codarch`): los snapshots de base y head, el mapa del head y `report.json`.
 
-> 📸 **Captura pendiente (action-comentario):** el comentario de CodArch en un PR de prueba con una
-> violación `domain → infra`, con la tabla del diff y el enlace al artefacto visibles.
-
 ## Aviso o bloqueo
 
 | `fail-on` | Bloquea cuando |

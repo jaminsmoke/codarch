@@ -31,8 +31,7 @@ codarch serve .
 La webapp viaja dentro del CLI: `serve` no instala nada, la sirve en local, analiza el repo y vuelve a
 analizar al guardar. Ver [Webapp](webapp.md) y [`codarch serve`](cli/serve.md).
 
-> 📸 **Captura pendiente (primeros-pasos-mapa):** la webapp recién abierta con `codarch serve .`
-> sobre el repo de CodArch, lente **Riesgo**, sin nada seleccionado.
+![La webapp recién abierta con codarch serve sobre el repo de CodArch, con la lente Riesgo y nada seleccionado](../images/primeros-pasos-mapa.png)
 
 ## 3. Lee el mapa
 
@@ -40,8 +39,7 @@ analizar al guardar. Ver [Webapp](webapp.md) y [`codarch serve`](cli/serve.md).
 - Al pulsar un fichero se abre el **inspector**: métricas, símbolos y dependencias entrantes y salientes.
 - La búsqueda encuentra ficheros y símbolos por nombre.
 
-> 📸 **Captura pendiente (primeros-pasos-inspector):** el mismo mapa con un fichero seleccionado y
-> el inspector abierto en su ficha, con la lista de símbolos visible.
+![El mapa con un fichero seleccionado y el inspector abierto en su ficha, con la lista de símbolos](../images/primeros-pasos-inspector.png)
 
 ## 4. Siguientes pasos
 

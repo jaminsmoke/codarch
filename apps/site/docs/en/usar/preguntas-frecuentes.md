@@ -33,9 +33,6 @@ alpha. On Windows, SmartScreen may say the app is not from an identified develop
 → Run anyway**. On Linux, the AppImage needs execute permission (`chmod +x codarch-*.AppImage`).
 Always download from the [official Releases](https://github.com/jaminsmoke/codarch/releases).
 
-> 📸 **Pending screenshot (faq-smartscreen):** the Windows SmartScreen warning when opening
-> `codarch-<version>-setup.exe`, with **More info** already clicked and the **Run anyway** button visible.
-
 ## Is there a macOS version?
 
 No. Without signing or notarisation Gatekeeper blocks the app and the updater cannot apply it. On

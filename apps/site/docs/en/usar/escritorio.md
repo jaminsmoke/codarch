@@ -20,13 +20,12 @@ Download your system's installer from the
 |---|---|---|
 | Windows | `codarch-<version>-setup.exe` (NSIS) | per-user install in `%LOCALAPPDATA%\Programs\CodArch`, no administrator needed |
 | Linux | `codarch-<version>-amd64.deb` | installs the app system-wide, with its menu entry |
-| Linux | `codarch-<version>-x64.AppImage` | runs without installing anything (`chmod +x` and open) |
+| Linux | `codarch-<version>-x86_64.AppImage` | runs without installing anything (`chmod +x` and open) |
 
 macOS is not published: without signing or notarisation, Gatekeeper blocks the app. The installers
 are **unsigned**; see the [FAQ](preguntas-frecuentes.md#windows-or-linux-warn-that-the-installer-is-not-signed).
 
-> 📸 **Pending screenshot (escritorio-release):** the latest release page on GitHub with the asset
-> list (`.exe`, `.deb`, `.AppImage`) visible.
+![The v0.3.37 release on GitHub with its installers: .deb, setup.exe and AppImage](../../images/escritorio-release.png)
 
 ## What it adds over the web app
 
@@ -36,8 +35,7 @@ are **unsigned**; see the [FAQ](preguntas-frecuentes.md#windows-or-linux-warn-th
   and shows it.
 - The repo state is saved in its `.codarch/` folder.
 
-> 📸 **Pending screenshot (escritorio-mapa):** the desktop app on Windows right after analysing a
-> folder with `Ctrl+O`, the map drawn and the **File** menu open.
+![The desktop app on Linux after analysing a folder, with the map drawn and the File menu open](../../images/escritorio-mapa.png)
 
 ## Updating
 
