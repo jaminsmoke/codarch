@@ -14,6 +14,7 @@ import { autoUpdater } from "electron-updater";
 import {
   ensureGitignoreEntry,
   protectedRootReason,
+  readFileDiff,
   readSourceSnippet,
   watchRepository
 } from "@codarch/parsers";
@@ -882,6 +883,12 @@ ipcMain.handle(
     );
   }
 );
+
+/** El diff de un fichero contra el último commit (ADR 0077). */
+ipcMain.handle("codarch:read-diff", (_event, request: { path?: unknown } | null) => {
+  if (!lastRoot || !request || typeof request.path !== "string") return null;
+  return readFileDiff(lastRoot, request.path);
+});
 
 /** Abre el fichero en VS Code, en la línea pedida (ADR 0068). */
 ipcMain.handle(

@@ -20,7 +20,13 @@ import { mapColorFor, metricIndexOf } from "./map";
 import { orderedMetrics } from "./metrics";
 import { readMigration, readReport } from "./data";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
-import type { Plataforma, CodeRequest, CodeSnippet, EditorRequest } from "./platform";
+import type {
+  Plataforma,
+  CodeRequest,
+  CodeSnippet,
+  EditorRequest,
+  FileDiffView
+} from "./platform";
 import { localStore, type ViewPreferences } from "./storage";
 import {
   isColorModeAvailable,
@@ -173,6 +179,8 @@ export interface CodarchApp {
   loadHistory: () => Promise<HistoryEntry[] | null>;
   /** El calor de los símbolos, si la plataforma lo sabe leer. */
   loadHeat: () => Promise<SymbolHeat[] | null>;
+  /** El diff de un fichero contra el último commit (ADR 0077). */
+  loadDiff: (path: string) => Promise<FileDiffView | null>;
 }
 
 export interface CodarchAppOptions {
@@ -741,6 +749,12 @@ export function useCodarchApp(
     [plataforma]
   );
 
+  const loadDiff = useCallback(
+    async (path: string): Promise<FileDiffView | null> =>
+      plataforma.diff ? plataforma.diff(path) : null,
+    [plataforma]
+  );
+
   const leerCodigo = useCallback(
     async (request: CodeRequest): Promise<CodeSnippet | null> =>
       plataforma.codigo ? plataforma.codigo(request) : null,
@@ -943,6 +957,7 @@ export function useCodarchApp(
     addonsWithViews,
     applyView,
     loadHistory,
-    loadHeat
+    loadHeat,
+    loadDiff
   };
 }

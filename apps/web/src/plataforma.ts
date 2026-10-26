@@ -1,6 +1,7 @@
 import type {
   CodeSnippet,
   EditorRequest,
+  FileDiffView,
   Plataforma,
   SavedProject
 } from "@codarch/ui";
@@ -54,6 +55,12 @@ export function plataformaWeb(): Plataforma {
         return remote as CodeSnippet;
       }
       return sourceFromMemory(request.path, request.start, request.end);
+    },
+    diff: async (path) => {
+      const raw = await fetchJson(`api/diff?path=${encodeURIComponent(path)}`);
+      if (!raw || typeof raw !== "object") return null;
+      const rows = (raw as { rows?: unknown }).rows;
+      return Array.isArray(rows) ? (raw as FileDiffView) : null;
     },
     abrirEnEditor: async (request: EditorRequest) => {
       const raw = await fetchJson("data/meta.json");

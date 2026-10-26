@@ -36,6 +36,26 @@ export interface EditorRequest {
   line: number;
 }
 
+/** Una línea de la vista de diferencias. */
+export interface FileDiffRow {
+  type: "same" | "add" | "del" | "gap";
+  text: string;
+  /** Línea en la base, 1-based; `null` si la línea no está ahí. */
+  baseLine: number | null;
+  headLine: number | null;
+}
+
+/** El diff de un fichero contra el último commit (ADR 0077). */
+export interface FileDiffView {
+  path: string;
+  status: "added" | "removed" | "changed";
+  /** `null` cuando el fichero era demasiado grande para medirlo. */
+  added: number | null;
+  removed: number | null;
+  rows: FileDiffRow[];
+  truncated: boolean;
+}
+
 /**
  * Adaptador de plataforma para `useCodarchApp`.
  *
@@ -75,6 +95,8 @@ export interface Plataforma {
   codigo?: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** Abre un fichero en el editor del usuario, si la plataforma puede (ADR 0068). */
   abrirEnEditor?: (request: EditorRequest) => Promise<boolean>;
+  /** El diff de un fichero contra el último commit, si lo puede leer (ADR 0077). */
+  diff?: (path: string) => Promise<FileDiffView | null>;
   /** La línea del tiempo del repo, si la plataforma la sirve. */
   historial?: () => Promise<HistoryEntry[] | null>;
   /** El calor de los símbolos, si la plataforma lo sirve. */

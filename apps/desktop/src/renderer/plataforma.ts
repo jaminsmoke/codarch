@@ -11,7 +11,7 @@ import {
   writePreferences
 } from "./storage";
 import { restaurarSesion } from "./restore";
-import type { Plataforma, SavedProject } from "@codarch/ui";
+import type { FileDiffView, Plataforma, SavedProject } from "@codarch/ui";
 import type { SymbolHeat } from "@codarch/schema/browser";
 
 /**
@@ -90,6 +90,7 @@ export function plataformaEscritorio(): Plataforma {
     },
     cadenas: (symbol) => desktop().chains(symbol),
     codigo: (request) => desktop().source(request),
+    diff: async (path) => (await desktop().diff(path)) as FileDiffView | null,
     abrirEnEditor: (request) => desktop().openEditor(request),
     historial: async () => {
       const index = await desktop().history();

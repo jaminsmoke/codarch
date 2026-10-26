@@ -90,6 +90,21 @@ export interface EditorRequest {
   line: number;
 }
 
+/** Lo que devuelve el diff de un fichero contra el último commit. */
+export interface FileDiffView {
+  path: string;
+  status: "added" | "removed" | "changed";
+  added: number | null;
+  removed: number | null;
+  rows: Array<{
+    type: "same" | "add" | "del" | "gap";
+    text: string;
+    baseLine: number | null;
+    headLine: number | null;
+  }>;
+  truncated: boolean;
+}
+
 const api = {
   /** La versión de la app. */
   version: VERSION,
@@ -106,6 +121,9 @@ const api = {
   /** Lee las líneas de un símbolo del repo abierto (ADR 0067). */
   source: (request: SourceRequest): Promise<SourceSnippet | null> =>
     ipcRenderer.invoke("codarch:read-source", request),
+  /** El diff de un fichero contra el último commit (ADR 0077). */
+  diff: (path: string): Promise<unknown | null> =>
+    ipcRenderer.invoke("codarch:read-diff", { path }),
   /** Abre un fichero en el editor del sistema (ADR 0068). */
   openEditor: (request: EditorRequest): Promise<boolean> =>
     ipcRenderer.invoke("codarch:open-editor", request),

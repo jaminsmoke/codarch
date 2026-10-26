@@ -8,6 +8,7 @@ import {
   headReportFor,
   type RepoAnalysis,
   protectedRootReason,
+  readFileDiff,
   readSourceSnippet,
   watchRepository,
   type RepositoryWatcher
@@ -299,6 +300,21 @@ export function runServe(options: ServeOptions): number {
           return;
         }
         sendJson(response, snippet);
+        return;
+      }
+
+      if (pathname === "/api/diff") {
+        const relative = url.searchParams.get("path");
+        if (!relative) {
+          sendError(response, 400, "falta path");
+          return;
+        }
+        const diff = readFileDiff(state.root, relative);
+        if (!diff) {
+          sendError(response, 404, "no hay diff para esa ruta");
+          return;
+        }
+        sendJson(response, diff);
         return;
       }
 
