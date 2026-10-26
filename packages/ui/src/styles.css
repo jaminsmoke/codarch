@@ -4,7 +4,9 @@
   --panel: #f6f8f8;
   --ink: #121a20;
   --ink-soft: #35434c;
-  --muted: #64727b;
+  /* La tinta tenue se mide como el resto: 5,0:1 sobre el panel y 4,7:1 sobre
+     el papel. El valor anterior se quedaba en 4,4:1 sobre el panel. */
+  --muted: #5f6d76;
   --line: #c8d1d5;
   --line-strong: #9fadb4;
   --cobalt: #2f6fed;
@@ -18,10 +20,47 @@
      siguen por encima de 4,5:1 sobre su banda (medido: 4,60 y 4,77). */
   --diff-add: #0c713f;
   --diff-del: #bd1a1a;
+  /* Las hojas de la app: lo que se escribe encima del papel —campos, listas,
+     menús—, la pista de una barra, los velos de lo elegido y lo que se hunde.
+     Son los colores que cambian de lado en el tema oscuro (ADR 0084). */
+  --sheet: #ffffff;
+  --sheet-soft: #f8fafa;
+  --track: #e0e6e8;
+  --shade: rgba(18, 26, 32, 0.05);
+  --shade-soft: rgba(18, 26, 32, 0.035);
+  --shade-strong: rgba(18, 26, 32, 0.07);
+  --veil: rgba(255, 255, 255, 0.04);
+  --sunken: rgba(0, 0, 0, 0.14);
+  --glow: rgba(255, 255, 255, 0.55);
+  --highlight: rgba(255, 255, 255, 0.8);
+  --shadow: rgba(18, 26, 32, 0.18);
+  --shadow-soft: rgba(18, 26, 32, 0.05);
+  --shadow-deep: rgba(18, 26, 32, 0.28);
+  --button: #f3f6f5;
+  --button-hover: #ffffff;
+  --button-ink: #121a20;
+  /* Las rampas de la leyenda: el extremo frío se mide contra el papel. */
+  --ramp-cold: #ebe7df;
+  --ramp-cool: #b9c9cf;
+  --ramp-deep: #355b6b;
+  /* Los estados de un símbolo y de su cadena, que son texto sobre la hoja. */
+  --state-teal: #0f766e;
+  --state-rust: #c2410c;
+  --state-blue: #2f6fed;
+  --state-violet: #6d28d9;
+  --state-slate: #64748b;
+  /* Lo que se dibuja sobre el papel del mapa. Las teselas llevan color
+     semántico y no cambian de tema; la retícula y las carpetas, sí. */
+  --cell-ink: #121a20;
+  --cell-edge: rgba(18, 26, 32, 0.26);
+  --folder-fill: rgba(18, 26, 32, 0.022);
+  --folder-edge: rgba(18, 26, 32, 0.25);
+  --folder-ink: rgba(18, 26, 32, 0.62);
+  --grid-line: rgba(18, 26, 32, 0.045);
   /* El marco de la app: la cabecera y la barra de actividad del inspector. Va
      oscuro aunque las hojas sean claras, y es lo que separa el armazón de lo
-     que se lee. Los tres valores viven aquí para que el día que se elija tema
-     se cambien en un sitio, no en cada regla. */
+     que se lee. Los cuatro valores viven aquí para que un tema los cambie en
+     un sitio, no en cada regla (ADR 0082). */
   --frame: #121a20;
   --frame-ink: #f3f6f5;
   --frame-muted: #93a2a8;
@@ -32,6 +71,67 @@
   /* El alto del marco de la app: cabecera y banda del proyecto (ADR 0061). */
   --topbar-h: 64px;
   --band-h: 52px;
+}
+
+/*
+ * El tema oscuro (ADR 0084): las hojas bajan y las tintas suben; los datos, no.
+ *
+ * Los colores con significado —las teselas del mapa, los lenguajes, los estados
+ * de migración, el verde y el rojo de un diff— se quedan donde están: un tema
+ * elige los colores, no los invierte. Lo que cambia es el papel, las tintas y
+ * lo que se dibuja sobre la hoja. Cada valor está medido en `tema.test.ts`
+ * contra papel, panel y hoja; un token que no pase 4,5:1 rompe la suite.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0e151a;
+  --panel: #131c22;
+  --ink: #e9eff1;
+  --ink-soft: #c3ced3;
+  --muted: #93a3ab;
+  --line: #26343c;
+  --line-strong: #3d4f59;
+  --cobalt: #7ba4ff;
+  --ochre: #e2b64a;
+  --rust: #f08a6c;
+  --violet: #ab97ff;
+  --patina: #6cc4a8;
+  --debt: #ff8b8b;
+  --diff-add: #4ed693;
+  --diff-del: #ff8f8f;
+  --sheet: #0a1116;
+  --sheet-soft: #0b1319;
+  --track: #22303a;
+  --shade: rgba(240, 246, 247, 0.06);
+  --shade-soft: rgba(240, 246, 247, 0.04);
+  --shade-strong: rgba(240, 246, 247, 0.09);
+  --veil: rgba(255, 255, 255, 0.07);
+  --sunken: rgba(0, 0, 0, 0.28);
+  --glow: rgba(255, 255, 255, 0.05);
+  --highlight: rgba(255, 255, 255, 0.06);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-soft: rgba(0, 0, 0, 0.35);
+  --shadow-deep: rgba(0, 0, 0, 0.62);
+  --button: #22313b;
+  --button-hover: #2c3d49;
+  --button-ink: #eef4f5;
+  --ramp-cold: #2a3740;
+  --ramp-cool: #6f858f;
+  --ramp-deep: #cfdae0;
+  --state-teal: #6cd0b4;
+  --state-rust: #f09b6b;
+  --state-blue: #7fa6ff;
+  --state-violet: #b39bff;
+  --state-slate: #9fb0bb;
+  --folder-fill: rgba(240, 246, 247, 0.045);
+  --folder-edge: rgba(240, 246, 247, 0.28);
+  --folder-ink: rgba(236, 243, 244, 0.72);
+  --grid-line: rgba(240, 246, 247, 0.06);
+  /* El armazón no se aclara: se oscurece. El borde sigue siendo el borde. */
+  --frame: #080d11;
+  --frame-ink: #eef4f5;
+  --frame-muted: #93a2a8;
+  --frame-edge: #020507;
 }
 
 * {
@@ -92,7 +192,7 @@ button {
 .app {
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 18% 4%, rgba(255, 255, 255, 0.55), transparent 34%),
+    radial-gradient(circle at 18% 4%, var(--glow), transparent 34%),
     var(--paper);
 }
 
@@ -242,9 +342,9 @@ button {
 }
 
 .button {
-  border: 1px solid #f3f6f5;
-  background: #f3f6f5;
-  color: var(--ink);
+  border: 1px solid var(--button);
+  background: var(--button);
+  color: var(--button-ink);
   border-radius: 2px;
   padding: 8px 12px;
   font: 600 11px/1 var(--mono);
@@ -255,7 +355,7 @@ button {
 }
 
 .button:hover {
-  background: #ffffff;
+  background: var(--button-hover);
 }
 
 .button.ghost {
@@ -280,7 +380,7 @@ button {
 }
 
 .open-menu[open] > summary {
-  background: #ffffff;
+  background: var(--button-hover);
 }
 
 .open-menu-panel {
@@ -293,7 +393,7 @@ button {
   padding: 4px;
   border: 1px solid var(--line-strong);
   background: var(--panel);
-  box-shadow: 0 14px 30px rgba(18, 26, 32, 0.18);
+  box-shadow: 0 14px 30px var(--shadow);
 }
 
 .open-menu-panel button {
@@ -391,7 +491,7 @@ button {
   padding: 20px;
   border: 1px solid var(--line-strong);
   background: var(--panel);
-  box-shadow: 0 24px 60px rgba(18, 26, 32, 0.28);
+  box-shadow: 0 24px 60px var(--shadow-deep);
 }
 
 .modal h2 {
@@ -411,7 +511,7 @@ button {
   min-width: 0;
   padding: 7px 8px;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--sheet);
   color: var(--ink);
   font: 11px/1.3 var(--mono);
 }
@@ -419,7 +519,7 @@ button {
 .folder-up {
   width: 32px;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--sheet);
   color: var(--ink);
   font-size: 16px;
   cursor: pointer;
@@ -436,7 +536,7 @@ button {
   margin-bottom: 12px;
   overflow: auto;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--sheet);
 }
 
 .folder-entry {
@@ -446,7 +546,7 @@ button {
   width: 100%;
   padding: 7px 10px;
   border: 0;
-  border-bottom: 1px solid rgba(200, 209, 213, 0.55);
+  border-bottom: 1px solid var(--line);
   background: transparent;
   color: var(--ink);
   text-align: left;
@@ -604,7 +704,7 @@ button {
   appearance: none;
   border: 1px solid var(--line);
   border-radius: 2px;
-  background: #ffffff;
+  background: var(--sheet);
   color: var(--ink);
   padding: 7px 8px;
   font-size: 12px;
@@ -769,11 +869,22 @@ button {
 }
 
 .gradient.risk {
-  background: linear-gradient(90deg, #ebe7df 0%, #e9cd98 35%, #d68a54 65%, #a42e2c 100%);
+  background: linear-gradient(
+    90deg,
+    var(--ramp-cold) 0%,
+    #e9cd98 35%,
+    #d68a54 65%,
+    #a42e2c 100%
+  );
 }
 
 .gradient.metric {
-  background: linear-gradient(90deg, #ebe7df 0%, #b9c9cf 50%, #355b6b 100%);
+  background: linear-gradient(
+    90deg,
+    var(--ramp-cold) 0%,
+    var(--ramp-cool) 50%,
+    var(--ramp-deep) 100%
+  );
 }
 
 .gradient-labels {
@@ -921,10 +1032,10 @@ button {
   flex: 1;
   min-height: 440px;
   border: 1px solid var(--line-strong);
-  background: #f8fafa;
+  background: var(--sheet-soft);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 10px 30px rgba(18, 26, 32, 0.05);
+    0 1px 0 var(--highlight) inset,
+    0 10px 30px var(--shadow-soft);
   overflow: hidden;
 }
 
@@ -965,7 +1076,7 @@ button {
 }
 
 .folder-block:hover {
-  fill: rgba(18, 26, 32, 0.05);
+  fill: var(--shade);
 }
 
 .folder-block:focus-visible {
@@ -1144,7 +1255,7 @@ button {
 
 .mini-track {
   height: 5px;
-  background: #e0e6e8;
+  background: var(--track);
   overflow: hidden;
 }
 
@@ -1734,7 +1845,7 @@ button {
 }
 
 .map-controls button:hover:not(:disabled) {
-  background: rgba(18, 26, 32, 0.07);
+  background: var(--shade-strong);
   color: var(--ink);
 }
 
@@ -1892,7 +2003,7 @@ button {
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--shade);
   cursor: pointer;
   position: relative;
 }
@@ -1953,7 +2064,7 @@ button {
   font-family: var(--mono);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(18, 26, 32, 0.62);
+  color: var(--folder-ink);
 }
 
 /* Los ajustes: un diálogo con secciones. */
@@ -1974,7 +2085,7 @@ button {
   max-height: min(560px, calc(100vh - 64px));
   display: flex;
   flex-direction: column;
-  background: var(--panel, #151d24);
+  background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
@@ -2024,7 +2135,7 @@ button {
   gap: 1px;
   padding: 10px 8px;
   border-right: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.14);
+  background: var(--sunken);
 }
 
 .settings-section {
@@ -2039,7 +2150,7 @@ button {
 }
 
 .settings-section:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--veil);
   color: var(--ink);
 }
 
@@ -2069,6 +2180,37 @@ button {
 .settings-row b {
   color: var(--ink);
   font-weight: 500;
+}
+
+/* El tema: tres pastillas en una cuna, como un control segmentado (ADR 0084). */
+.theme-options {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--sunken);
+}
+
+.theme-option {
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 10.5px/1 var(--sans);
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: var(--veil);
+  color: var(--ink);
+}
+
+.theme-option.is-active {
+  background: var(--button);
+  color: var(--button-ink);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
 }
 
 /* Las piezas versionadas, en la sección Componentes (ADR 0065). */
@@ -2125,7 +2267,7 @@ button {
 }
 
 .symbol-group-variable {
-  --section-tint: #64748b;
+  --section-tint: var(--state-slate);
 }
 
 .symbol-group > .collapsible-body {
@@ -2391,24 +2533,24 @@ button {
 }
 
 .chain-created {
-  color: #0f766e;
-  border-color: rgba(15, 118, 110, 0.4);
+  color: var(--state-teal);
+  border-color: color-mix(in srgb, var(--state-teal) 40%, transparent);
 }
 
 .chain-changed {
-  color: #c2410c;
-  border-color: rgba(194, 65, 12, 0.4);
+  color: var(--state-rust);
+  border-color: color-mix(in srgb, var(--state-rust) 40%, transparent);
 }
 
 .chain-renamed,
 .chain-moved {
-  color: #2f6fed;
-  border-color: rgba(47, 111, 237, 0.4);
+  color: var(--state-blue);
+  border-color: color-mix(in srgb, var(--state-blue) 40%, transparent);
 }
 
 .chain-removed {
   color: var(--rust);
-  border-color: rgba(190, 60, 40, 0.4);
+  border-color: color-mix(in srgb, var(--rust) 40%, transparent);
 }
 
 .chain-path {
@@ -2431,29 +2573,29 @@ button {
 }
 
 .symbol-function {
-  color: #2f6fed;
-  border-color: rgba(47, 111, 237, 0.4);
+  color: var(--state-blue);
+  border-color: color-mix(in srgb, var(--state-blue) 40%, transparent);
 }
 
 .symbol-class {
-  color: #c2410c;
-  border-color: rgba(194, 65, 12, 0.35);
+  color: var(--state-rust);
+  border-color: color-mix(in srgb, var(--state-rust) 35%, transparent);
 }
 
 .symbol-interface,
 .symbol-type {
-  color: #0f766e;
-  border-color: rgba(15, 118, 110, 0.35);
+  color: var(--state-teal);
+  border-color: color-mix(in srgb, var(--state-teal) 35%, transparent);
 }
 
 .symbol-enum {
-  color: #6d28d9;
-  border-color: rgba(109, 40, 217, 0.35);
+  color: var(--state-violet);
+  border-color: color-mix(in srgb, var(--state-violet) 35%, transparent);
 }
 
 .symbol-variable {
-  color: #64748b;
-  border-color: rgba(100, 116, 139, 0.4);
+  color: var(--state-slate);
+  border-color: color-mix(in srgb, var(--state-slate) 40%, transparent);
 }
 
 .surface-list,
@@ -2765,7 +2907,7 @@ button {
 }
 
 .button.dark:hover {
-  background: #26333b;
+  background: color-mix(in srgb, var(--ink) 88%, var(--paper));
 }
 
 .change-panel h2 {
@@ -2997,7 +3139,7 @@ button {
 }
 
 .lens-edge:hover {
-  background: rgba(18, 26, 32, 0.035);
+  background: var(--shade-soft);
 }
 
 .lens-edge:hover .lens-edge-path {

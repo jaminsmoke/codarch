@@ -124,10 +124,16 @@ codarch analyze --history
 ## Ajustes
 
 El engranaje del pie de la barra de herramientas —la franja de iconos a la izquierda del mapa— abre
-**Ajustes**, con sus secciones Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes y
-Diagnóstico.
+**Ajustes**, con sus secciones General, Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes
+y Diagnóstico.
 
 ![Ajustes con sus secciones](../images/webapp-ajustes.png)
+
+## Ajustes › General
+
+**General** elige el tema de la app: **Claro**, **Oscuro** o **El sistema**. Es una preferencia de
+esta máquina —no viaja en `.codarch/` ni cambia el análisis—, y las teselas del mapa conservan sus
+colores: lo que cambia es el papel.
 
 ## Ajustes › Plugins y Ajustes › Addons
 

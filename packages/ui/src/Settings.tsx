@@ -8,6 +8,7 @@ import {
 } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
 import { summarizePlugins } from "./pluginState";
+import type { Tema } from "./theme";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -59,6 +60,9 @@ export interface SettingsComponent {
 export interface SettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** El tema de la app: claro, oscuro o el del sistema (ADR 0084). */
+  tema: Tema;
+  onTema: (tema: Tema) => void;
   /** La métrica que decide el área del mapa. */
   areaMetric: string | null;
   onAreaMetric: (value: string) => void;
@@ -113,6 +117,7 @@ export interface SettingsProps {
 }
 
 type Section =
+  | "general"
   | "vista"
   | "proyecto"
   | "plugins"
@@ -122,6 +127,7 @@ type Section =
   | "diagnostico";
 
 const SECTIONS: Array<{ id: Section; label: string }> = [
+  { id: "general", label: "General" },
   { id: "vista", label: "Vista" },
   { id: "proyecto", label: "Proyecto" },
   { id: "plugins", label: "Plugins" },
@@ -131,9 +137,22 @@ const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
+/** Las tres opciones del tema, en el orden en que se ofrecen (ADR 0084). */
+const TEMA_OPTIONS: Array<{ value: Tema; label: string; hint: string }> = [
+  {
+    value: "system",
+    label: "El sistema",
+    hint: "El tema que pide el sistema; si cambia, la app cambia con él"
+  },
+  { value: "light", label: "Claro", hint: "Papel claro en cualquier sistema" },
+  { value: "dark", label: "Oscuro", hint: "Papel oscuro en cualquier sistema" }
+];
+
 export default function Settings({
   open,
   onOpenChange,
+  tema,
+  onTema,
   areaMetric,
   onAreaMetric,
   colorMode,
@@ -159,7 +178,7 @@ export default function Settings({
   showLabels,
   onShowLabels
 }: SettingsProps) {
-  const [section, setSection] = useState<Section>("vista");
+  const [section, setSection] = useState<Section>("general");
   const [update, setUpdate] = useState<SettingsUpdateInfo | null>(null);
   const [checking, setChecking] = useState(false);
 
@@ -230,6 +249,35 @@ export default function Settings({
             </nav>
 
             <div className="settings-content">
+              {section === "general" ? (
+                <>
+                  <div className="settings-row">
+                    <span>Tema</span>
+                    <div className="theme-options" role="group" aria-label="Tema">
+                      {TEMA_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          aria-pressed={tema === option.value}
+                          className={`theme-option${
+                            tema === option.value ? " is-active" : ""
+                          }`}
+                          title={option.hint}
+                          onClick={() => onTema(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="muted small">
+                    El tema es de esta máquina: no viaja en <code>.codarch/</code>{" "}
+                    ni cambia el análisis. Las teselas del mapa conservan sus
+                    colores; lo que cambia es el papel.
+                  </p>
+                </>
+              ) : null}
+
               {section === "vista" ? (
                 <>
                   <label className="field">

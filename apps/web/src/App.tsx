@@ -19,6 +19,7 @@ import {
   parseSourceRequest,
   parseViewState,
   useCodarchApp,
+  useTema,
   type SourceRequest,
   type ViewState as UrlViewState
 } from "@codarch/ui";
@@ -40,6 +41,8 @@ import { WEB_VERSION } from "@codarch/versions";
 export default function App() {
   const plataforma = useMemo(() => plataformaWeb(), []);
   const app = useCodarchApp(plataforma, { sourceInicial: "sin proyecto" });
+  // El tema es de la máquina y lo comparten todos los ajustes (ADR 0084).
+  const { tema, setTema } = useTema();
   const {
     areaMetric,
     colorMode,
@@ -776,6 +779,8 @@ export default function App() {
           <Settings
             open={settingsOpen}
             onOpenChange={setSettingsOpen}
+            tema={tema}
+            onTema={setTema}
             areaMetric={areaMetric}
             onAreaMetric={(value) => setAreaMetric(value)}
             colorMode={colorMode}

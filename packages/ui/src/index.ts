@@ -18,6 +18,20 @@ export type {
 } from "./platform";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export {
+  CLAVE_TEMA,
+  TEMAS,
+  aplicarTema,
+  aplicarTemaGuardado,
+  escribirTema,
+  leerTema,
+  parseTema,
+  prefiereOscuro,
+  temaEfectivo,
+  type Tema,
+  type TemaEfectivo
+} from "./theme";
+export { useTema, type TemaApp } from "./useTema";
+export {
   EMPTY_SOURCE_REQUEST,
   EMPTY_VIEW_STATE,
   buildSearch,

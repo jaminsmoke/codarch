@@ -132,10 +132,16 @@ codarch analyze --history
 ## Ajustes
 
 The gear at the foot of the tool bar —the strip of icons to the left of the map— opens **Ajustes**
-(settings), with its sections Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes and
-Diagnóstico.
+(settings), with its sections General, Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes
+and Diagnóstico.
 
 ![Ajustes with its sections](../../images/webapp-ajustes.png)
+
+## Ajustes › General
+
+**General** picks the app's theme: **Claro**, **Oscuro** or **El sistema**. It is a preference of this
+machine —it does not travel in `.codarch/` and does not change the analysis— and the map's tiles keep
+their colours: what changes is the paper.
 
 ## Ajustes › Plugins and Ajustes › Addons
 

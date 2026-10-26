@@ -81,7 +81,8 @@ De paso, los colores del armazón estaban escritos a mano en cada regla (`#f3f6f
 
 - [x] La barra de actividad con el color del marco, su pleca oscura y sus estados sobre oscuro.
 - [x] Los colores del marco en cuatro tokens; la cabecera tira de ellos.
-- [ ] El tema —claro, oscuro, el del sistema— en Ajustes → General, anotado en la guía como idea.
+- [x] El tema —claro, oscuro, el del sistema— en Ajustes → General, anotado en la guía como idea
+      ([ADR 0084](0084-el-tema-de-la-app.md)).
 - [ ] Rehacer las capturas de la webapp y de primeros pasos que enseñan el inspector.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

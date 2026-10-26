@@ -103,7 +103,7 @@ const MapContent = memo(function MapContent({
             width={Math.max(1, rect.w)}
             height={Math.max(1, rect.h)}
             fill={fill}
-            stroke={selected ? "#121a20" : "rgba(18,26,32,.26)"}
+            stroke={selected ? "var(--cell-ink)" : "var(--cell-edge)"}
             strokeWidth={selected ? 2 : 0.55}
             opacity={matched ? 1 : 0.13}
             role="button"
@@ -160,8 +160,8 @@ const MapContent = memo(function MapContent({
           y={rect.y}
           width={Math.max(1, rect.w)}
           height={Math.max(1, rect.h)}
-          fill="rgba(18,26,32,.022)"
-          stroke="rgba(18,26,32,.25)"
+          fill="var(--folder-fill)"
+          stroke="var(--folder-edge)"
           strokeWidth={0.7}
           role="button"
           data-cell-key={node.key}
@@ -463,7 +463,7 @@ export function MapCanvas({
             <path
               d="M 48 0 L 0 0 0 48"
               fill="none"
-              stroke="rgba(18,26,32,.045)"
+              stroke="var(--grid-line)"
               strokeWidth="1"
             />
           </pattern>
