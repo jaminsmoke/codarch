@@ -97,7 +97,7 @@ sale tiene su checksum (sin historial, como el del CLI con `--no-git`).
 ## Snapshots grandes
 
 Un treemap de 20.000 ficheros no se lee: son 20.000 celdas de un píxel. El mapa se poda por tamaño
-(la decisión está en [ADR 0019](https://github.com/jaminsmoke/codarch/blob/main/docs/adr/0011-0020/0019-nivel-de-detalle-del-mapa.md)):
+(la decisión está en [ADR 0019](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/desarrollo/adr/0011-0020/0019-nivel-de-detalle-del-mapa.md)):
 
 - Una carpeta con más de 800 ficheros no se expande: sus hijos se dibujan como bloques.
 - Un bloque se pulsa para entrar en la carpeta; el breadcrumb permite volver.

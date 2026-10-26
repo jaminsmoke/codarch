@@ -73,7 +73,7 @@ codarch render .codarch/snapshot.cc.json -o publico   # la app abre con la lente
 ```
 
 Rust se mide con un escáner léxico; las aristas napi no se inventan si el glue generado no está en el
-fuente. Ver [`docs/migration.md`](https://github.com/jaminsmoke/codarch/blob/main/docs/migration.md).
+fuente. Ver [`apps/site/docs/desarrollo/migration.md`](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/desarrollo/migration.md).
 
 ## Reglas
 
@@ -103,8 +103,8 @@ rules:
 ## Integración
 
 - GitHub Action repo-local: [`apps/github-action`](https://github.com/jaminsmoke/codarch/tree/main/apps/github-action).
-- MCP de solo lectura para agentes: [`docs/mcp.md`](https://github.com/jaminsmoke/codarch/blob/main/docs/mcp.md).
-- Modelo y formato: [`docs/model.md`](https://github.com/jaminsmoke/codarch/blob/main/docs/model.md).
+- MCP de solo lectura para agentes: [`apps/site/docs/usar/mcp.md`](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/usar/mcp.md).
+- Modelo y formato: [`apps/site/docs/desarrollo/model.md`](https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs/desarrollo/model.md).
 
 ## Licencia
 

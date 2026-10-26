@@ -22,16 +22,16 @@ scripts/    bench-* · build-cli · pack-cli · desktop-release · auto-release 
 - Documentación, UI y mensajes de producto: español. Código, nombres de API, tests y commits:
   inglés técnico, con commits convencionales (`feat:`, `fix:`, `docs:`, `chore:`, `test:`).
 - Los documentos llevan un set **pequeño** de iconos, con la leyenda en
-  `apps/site/docs/guideline/normas.md`: 🧭 decisión · 🗺️ hoja de ruta · 🧪 idea · ⚖️ veredicto ·
+  `apps/site/docs/desarrollo/guideline/normas.md`: 🧭 decisión · 🗺️ hoja de ruta · 🧪 idea · ⚖️ veredicto ·
   ✅ hecho · 🟡 en curso · ⬜ sin empezar · 🔧 arreglo · ⏳ esperar. ✓ y ✗ significan **hecho** y
   **no hecho**, y no se mezclan con los iconos.
 - Mermaid cuando el diagrama diga algo que el texto no dice de un vistazo.
 - Cambios pequeños y deterministas. Nada de timestamps, rutas absolutas ni orden de filesystem en
   snapshots.
-- Decisiones de modelo o de producto: ADR en `apps/site/docs/adr/` (carpetas de diez) **antes** de
+- Decisiones de modelo o de producto: ADR en `apps/site/docs/desarrollo/adr/` (carpetas de diez) **antes** de
   codificar. Cada ADR lleva su `## Hoja de ruta` con lo abierto y lo que está en curso; el registro
-  de lo hecho vive en el **feed de la guía** (`apps/site/docs/guideline/entradas/`, ADR 0047).
-  `apps/site/docs/adr/roadmap.md` **indexa** las fases: una línea por fase con su decisión. Las
+  de lo hecho vive en el **feed de la guía** (`apps/site/docs/desarrollo/guideline/entradas/`, ADR 0047).
+  `apps/site/docs/desarrollo/roadmap.md` **indexa** las fases: una línea por fase con su decisión. Las
   ideas que no son fase viven en la guía, una por fichero, con su fecha y su veredicto. Un plugin
   tiene su propia hoja de ruta en su carpeta.
 
@@ -71,14 +71,17 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
    `npm audit fix --force`: actualizar de forma controlada y repetir la suite.
 5. **Scripts nativos.** npm 12 bloquea install scripts no aprobados. Si añades esbuild/tree-sitter u
    otro addon, actualiza `allowScripts` con la versión exacta.
-6. **Documentos.** Cada `.md` de `apps/site/docs/` (salvo `guideline/`) lleva frontmatter (`title`,
-   `description`, `section`, `sidebar`; en los ADR, `status` y `date`). Añadir el fichero basta para
-   que salga en la web (ADR 0046) y el build falla si el esquema no cuadra. La guía es otra
+6. **Documentos.** Cada `.md` de `apps/site/docs/` (salvo `desarrollo/guideline/`) lleva frontmatter
+   (`title`, `description`, `section`, `sidebar`; en los ADR, `status` y `date`). Añadir el fichero
+   basta para que salga en la web (ADR 0046) y el build falla si el esquema no cuadra. La guía es otra
    colección: `title`, `date`, `category` y `verdict` por idea, sin sidecars (ADR 0047).
-   **Dónde va cada uno** (ADR 0080): lo de uso (instalación, CLI, apps, reglas, acción, FAQ) va en
-   `docs/usar/` con `section: producto` y sale en «Usar CodArch»; lo de diseño (roadmap, modelo,
-   mapa, migración) lleva `section: construir` y sale en «Cómo se construye», junto a los ADR
-   (`section: adr`) y la guía. Cada página nueva lleva su gemela en `docs/en/`.
+   **Dónde va cada uno** (ADR 0081, que enmienda 0080): lo de **uso** (instalación, CLI, apps,
+   reglas, MCP, acción, FAQ) va en `docs/usar/` con `section: usar` y sale en **Documentación**
+   (`/docs/`); lo de **construcción** (roadmap, modelo, mapa, migración, ADR en
+   `docs/desarrollo/adr/` y la guía en `docs/desarrollo/guideline/`) va en `docs/desarrollo/` con
+   `section: desarrollo` y sale en **Desarrollo** (`/desarrollo/`). Las páginas de uso no enlazan ADR
+   salvo en una nota «Para saber más». Cada página de interfaz lleva al menos una captura en
+   `docs/images/`. Cada página nueva lleva su gemela en `docs/en/`.
 7. **MCP.** El cliente lanza `node apps/mcp/bin/codarch-mcp.mjs`, no `npm run mcp`: npm puede
    contaminar `stdout`, que está reservado al protocolo.
 8. **Acción.** La fuente es `apps/github-action` y se usa por subruta
@@ -93,7 +96,7 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
     un idioma es copiar la carpeta, traducirla y añadirlo a `locales` (Starlight) e `i18n` (Astro);
     las cadenas que falten caen al español. No se generan traducciones automáticamente.
 11. **`AGENTS.md` son reglas, no un diario.** Aquí no se acumula lo hecho: el estado de las fases
-    está en `apps/site/docs/adr/roadmap.md`, lo abierto en las hojas de ruta de los ADR y lo hecho
+    está en `apps/site/docs/desarrollo/roadmap.md`, lo abierto en las hojas de ruta de los ADR y lo hecho
     en la guía. Si algo hay que contarlo, va allí.
 
 ## Estado
@@ -101,7 +104,7 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
 El producto va por `0.3.26`. Fases abiertas: **M23** (dominio propio y búsqueda de la web), **M31**
 (los ADR en inglés), **M34** (la app dice qué raíz analiza; pausa del escritorio) y **M49** (el
 lenguaje de la ficha en todo el reporte). **M24** (índice SQLite) sigue aparcada. El detalle está en
-`apps/site/docs/adr/roadmap.md` y en la guía; este fichero no lo repite.
+`apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo repite.
 
 ## No objetivos de v1
 

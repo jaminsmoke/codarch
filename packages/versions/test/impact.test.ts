@@ -179,7 +179,7 @@ describe("el impacto de un cambio", () => {
       "web",
       "docker"
     ]);
-    expect(impact("apps/site/docs/model.md")).toEqual([]);
+    expect(impact("apps/site/docs/desarrollo/model.md")).toEqual([]);
   });
 
   it("un cambio de la raíz o del Dockerfile se trata aparte", () => {

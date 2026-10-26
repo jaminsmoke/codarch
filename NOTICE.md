@@ -8,7 +8,7 @@ Este proyecto es software libre ✓ bajo la licencia [MIT](LICENSE) ✓. Aquí e
 **CodeCharta** ✓ (<https://github.com/MaibornWolff/codecharta> ✓) — el proyecto de referencia ✓.
 Su formato `cc.json` ✓ se usa como **frontera de interoperabilidad** ✓: CodArch lo **lee** ✓ y lo
 **escribe** ✓, y el motor ✓ es propio ✓
-([ADR 0001](apps/site/docs/adr/0001-0010/0001-clean-room-con-ccjson.md) ✓, *clean-room* ✓). No hay código
+([ADR 0001](apps/site/docs/desarrollo/adr/0001-0010/0001-clean-room-con-ccjson.md) ✓, *clean-room* ✓). No hay código
 derivado ✓ de CodeCharta ✓; su licencia es BSD-3-Clause ✓ y se reconoce aquí ✓.
 
 Las muestras que usa el repositorio ✓ (`npm run samples` ✓) vienen de CodeCharta ✓ y **no**
