@@ -1,3 +1,10 @@
+import fs from "node:fs";
+import path from "node:path";
+import {
+  diffSnapshots,
+  type DiffReport,
+  type FileSource
+} from "@codarch/metrics";
 import type { CcJson } from "@codarch/schema";
 import { analyzeFiles } from "./analyze-core";
 import { analyzeRepository } from "./analyze";
@@ -10,6 +17,14 @@ export interface HeadComparison {
   base: CcJson;
   /** El working tree del usuario. */
   head: CcJson;
+  /**
+   * El reporte, ya con las líneas de cada símbolo.
+   *
+   * Se calcula aquí porque medirlas necesita las dos fuentes, y la base solo
+   * existe mientras dura el export: fuera de esta función ya no hay texto del
+   * HEAD que leer ✓.
+   */
+  report: DiffReport;
 }
 
 export interface HeadComparisonOptions {
@@ -54,8 +69,34 @@ export function compareWorkingTreeWithHead(
     }).snapshot;
 
     const head = analyzeRepository(rootInput, { projectName, ignore }).snapshot;
-    return { base, head };
+    return {
+      base,
+      head,
+      report: diffSnapshots(base, head, {
+        source: sourceReader(exportedRoot, rootInput)
+      })
+    };
   });
+}
+
+/**
+ * Lee la fuente de un lado para medir el cuerpo de un símbolo.
+ *
+ * La base es el export del HEAD (`/` es su raíz) y el head el directorio del
+ * usuario. Un fichero que no se puede leer —un símbolo borrado, un fichero
+ * binario— devuelve `null`: el reporte dirá que no lo midió.
+ */
+function sourceReader(baseRoot: string, headRoot: string): FileSource {
+  return (side, relativePath) => {
+    try {
+      return fs.readFileSync(
+        path.join(side === "base" ? baseRoot : headRoot, relativePath),
+        "utf8"
+      );
+    } catch {
+      return null;
+    }
+  };
 }
 
 /** El nombre del proyecto que pondría `analyze` en el working tree. */

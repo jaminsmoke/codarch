@@ -613,6 +613,124 @@ describe("diffSnapshots", () => {
     expect(report.symbols).toBeNull();
   });
 
+  it("con las fuentes a mano, mide las líneas que suma y resta cada símbolo", () => {
+    // La ficha enseña `cargar +2 −1`: eso no sale de dos `cc.json`, sale de
+    // leer los dos cuerpos y compararlos (ADR 0070).
+    const before = ["function cargar() {", "  return 1;", "}"].join("\n");
+    const after = [
+      "function cargar() {",
+      "  const uno = 1;",
+      "  return uno;",
+      "}"
+    ].join("\n");
+
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 3 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [{ name: "cargar", kind: "function", line: 1, lines: 3 }]
+        }
+      ]
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 4 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [{ name: "cargar", kind: "function", line: 1, lines: 4 }]
+        }
+      ]
+    );
+
+    const report = diffSnapshots(base, head, {
+      source: (side, path) =>
+        path === "src/a.ts" ? (side === "base" ? before : after) : null
+    });
+    const cargar = report.symbols?.files[0]?.symbols[0];
+
+    expect(cargar).toMatchObject({
+      name: "cargar",
+      status: "changed",
+      addedLines: 2,
+      removedLines: 1
+    });
+
+    // Dos veces lo mismo, dos veces igual: el reporte es determinista.
+    expect(
+      diffSnapshots(base, head, {
+        source: (side, path) =>
+          path === "src/a.ts" ? (side === "base" ? before : after) : null
+      })
+    ).toEqual(report);
+  });
+
+  it("sin fuentes, las líneas de un símbolo quedan sin medir", () => {
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 3 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [{ name: "cargar", kind: "function", line: 1, lines: 3 }]
+        }
+      ]
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 4 } }],
+      [],
+      undefined,
+      [
+        {
+          path: "src/a.ts",
+          symbols: [{ name: "cargar", kind: "function", line: 1, lines: 5 }]
+        }
+      ]
+    );
+
+    const cargar = diffSnapshots(base, head).symbols?.files[0]?.symbols[0];
+
+    // Lo que no se midió se dice con `null`, no con un cero.
+    expect(cargar).toMatchObject({ addedLines: null, removedLines: null });
+  });
+
+  it("un símbolo nuevo suma lo que ocupa y uno que se va resta lo suyo", () => {
+    const base = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 10 } }],
+      [],
+      undefined,
+      [{ path: "src/a.ts", symbols: [{ name: "viejo", kind: "function", lines: 8 }] }]
+    );
+    const head = snapshot(
+      "proj",
+      [{ path: "src/a.ts", metrics: { rloc: 12 } }],
+      [],
+      undefined,
+      [{ path: "src/a.ts", symbols: [{ name: "nuevo", kind: "function", lines: 5 }] }]
+    );
+
+    const symbols = diffSnapshots(base, head).symbols?.files[0]?.symbols ?? [];
+
+    expect(symbols.find((s) => s.name === "nuevo")).toMatchObject({
+      addedLines: 5,
+      removedLines: 0
+    });
+    expect(symbols.find((s) => s.name === "viejo")).toMatchObject({
+      addedLines: 0,
+      removedLines: 8
+    });
+  });
+
   it("los símbolos de un fichero borrado se van con él", () => {
     const base = snapshot(
       "proj",

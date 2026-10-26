@@ -15,7 +15,20 @@ import {
   type RuleInput,
   type RuleReport
 } from "./rules";
-import { buildSymbolReport, type DiffSymbolReport } from "./symbol-diff";
+import {
+  buildSymbolReport,
+  type DiffSymbolReport,
+  type FileSource
+} from "./symbol-diff";
+
+/**
+ * Cuántos ficheros con símbolos viajan en el reporte.
+ *
+ * La ficha abre el detalle fila a fila, así que el corte ya no puede ser el top
+ * de hotspots: cualquier fichero cambiado tiene que poder desplegarse. El
+ * límite de verdad lo pone `MAX_SYMBOL_CHANGES` dentro del reporte ✓.
+ */
+const SYMBOL_FILES = 400;
 
 export interface SnapshotSummary {
   projectName: string;
@@ -199,6 +212,14 @@ export interface DiffOptions {
   hotspotMetric?: string;
   /** Reglas de arquitectura; si falta, el reporte no evalúa violaciones. */
   rules?: RuleConfig;
+  /**
+   * Las fuentes de los dos lados.
+   *
+   * Sin esto el reporte sabe que un símbolo cambió y cuánto mide, pero no
+   * cuántas líneas entran y salen: eso hay que leerlo del texto, y desde dos
+   * `cc.json` no hay texto que leer ✓.
+   */
+  source?: FileSource;
 }
 
 interface IndexedEdge {
@@ -292,7 +313,13 @@ export function diffSnapshots(
     cycles: { introduced: introducedCycles, fixed: fixedCycles },
     hotspots,
     migration: buildMigrationReport(baseIndex, headIndex, top),
-    symbols: buildSymbolReport(baseIndex, headIndex, top)
+    symbols: buildSymbolReport(
+      baseIndex,
+      headIndex,
+      // La ficha abre el detalle de cualquier fila, no solo del top de hotspots.
+      Math.max(top, SYMBOL_FILES),
+      options.source
+    )
   };
 }
 /**

@@ -28,8 +28,16 @@ export type {
   DiffSymbolChange,
   DiffSymbolFile,
   DiffSymbolReport,
+  FileSource,
   SymbolSnapshot
 } from "./symbol-diff";
+export { countLineChanges, diffLines } from "./line-diff";
+export type {
+  DiffLineType,
+  DiffRow,
+  FileDiff,
+  LineChanges
+} from "./line-diff";
 export {
   REPORT_SCHEMA_VERSION,
   emptyMigrationReport,

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { fileId } from "@codarch/schema";
+import { REPORT_SCHEMA_VERSION } from "@codarch/versions";
 import { compareWorkingTreeWithHead } from "../src/head-diff";
 
 const tempRoots: string[] = [];
@@ -84,6 +85,28 @@ describe("compareWorkingTreeWithHead", () => {
     const pair = compareWorkingTreeWithHead(root);
 
     expect(pair?.head.meta.checksum).not.toBe(pair?.base.meta.checksum);
+  });
+
+  it("el reporte sale ya calculado, con las líneas de cada símbolo", () => {
+    // Lo que la ficha enseña en el desplegable (`cambiar +3 −2`) no se puede
+    // sacar de dos cc.json: el diff tiene que leer los dos textos mientras la
+    // base sigue exportada.
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root, "export function a() {\n  return 1;\n}\n");
+    git(root, ["add", "-A"]);
+    git(root, ["commit", "-qm", "base"]);
+    fs.writeFileSync(
+      path.join(root, "src", "a.ts"),
+      "export function a() {\n  const uno = 1;\n  return uno;\n}\n",
+      "utf8"
+    );
+
+    const report = compareWorkingTreeWithHead(root)?.report;
+    const symbol = report?.symbols?.files[0]?.symbols[0];
+
+    expect(symbol).toMatchObject({ name: "a", status: "changed", addedLines: 2, removedLines: 1 });
+    expect(report?.schemaVersion).toBe(REPORT_SCHEMA_VERSION);
   });
 
   it("el churn es el mismo en base y head: el fichero sin tocar no marca ruido", () => {

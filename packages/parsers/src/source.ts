@@ -46,18 +46,13 @@ const MAX_LINES = 400;
 const MAX_BYTES = 1_000_000;
 
 /**
- * Lee las líneas de un fichero del repo.
+ * La ruta relativa, normalizada, si tiene forma de fichero de código.
  *
- * No acepta rutas absolutas, `..` ni ficheros fuera del root. Solo ficheros
- * de código y solo los directorios que el análisis mira. Devuelve `null` si no
- * hay nada que enseñar; el error de verdad no se filtra al renderer.
+ * No mira el disco: un fichero borrado del árbol sigue teniendo una ruta que
+ * se puede pedir —su lado de la base— (ADR 0077). Devuelve `null` si la ruta
+ * es absoluta, se sale del repo o apunta a algo que el análisis no mira.
  */
-export function readSourceSnippet(
-  root: string,
-  relativePath: string,
-  start = 1,
-  end = MAX_LINES
-): SourceSnippet | null {
+export function normalizeSourcePath(relativePath: string): string | null {
   const normalized = relativePath.replaceAll("\\", "/").replace(/^\/+/, "");
   if (!normalized || normalized.includes("\0")) return null;
   if (normalized.startsWith("../") || normalized.includes("/../")) return null;
@@ -65,6 +60,20 @@ export function readSourceSnippet(
   const segments = normalized.split("/");
   if (segments.some((segment) => DENIED_SEGMENTS.has(segment))) return null;
   if (!SOURCE_EXTENSIONS.has(path.extname(normalized).toLowerCase())) return null;
+  return normalized;
+}
+
+/**
+ * El fichero de código del repo, si existe y está dentro de él.
+ *
+ * Resuelve enlaces para que un symlink no saque la lectura del repo.
+ */
+export function resolveSourceFile(
+  root: string,
+  relativePath: string
+): string | null {
+  const normalized = normalizeSourcePath(relativePath);
+  if (!normalized) return null;
 
   const rootPath = path.resolve(root);
   const file = path.resolve(rootPath, normalized);
@@ -80,6 +89,31 @@ export function readSourceSnippet(
       ? realRoot
       : `${realRoot}${path.sep}`;
     if (!realFile.startsWith(realPrefix)) return null;
+    return file;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lee las líneas de un fichero del repo.
+ *
+ * No acepta rutas absolutas, `..` ni ficheros fuera del root. Solo ficheros
+ * de código y solo los directorios que el análisis mira. Devuelve `null` si no
+ * hay nada que enseñar; el error de verdad no se filtra al renderer.
+ */
+export function readSourceSnippet(
+  root: string,
+  relativePath: string,
+  start = 1,
+  end = MAX_LINES
+): SourceSnippet | null {
+  const normalized = normalizeSourcePath(relativePath);
+  if (!normalized) return null;
+  const file = resolveSourceFile(root, normalized);
+  if (!file) return null;
+
+  try {
     const text = fs.readFileSync(file, "utf8");
     const all = text.split(/\r?\n/);
     const total = all.length;

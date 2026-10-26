@@ -66,7 +66,12 @@ export type {
 export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
 export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
-export { readSourceSnippet } from "./source";
+export {
+  normalizeSourcePath,
+  readSourceSnippet,
+  resolveSourceFile
+} from "./source";
+export { readFileDiff, type FileDiffView } from "./file-diff";
 export type { SourceSnippet } from "./source";
 export { protectedRootReason, type RootGuardOptions } from "./safety";
 export {

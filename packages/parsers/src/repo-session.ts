@@ -1,4 +1,4 @@
-import { diffSnapshots, loadProjectIgnore, type DiffReport } from "@codarch/metrics";
+import { loadProjectIgnore, type DiffReport } from "@codarch/metrics";
 import type { CcJson } from "@codarch/schema";
 import { compareWorkingTreeWithHead } from "./head-diff";
 import { AnalysisSession } from "./session";
@@ -110,8 +110,10 @@ export function headReportFor(
         // Sin alcance legible se compara el árbol entero; el aviso ya lo dio
         // el análisis.
       }
+      // El reporte lo trae la propia comparación: medir las líneas de cada
+      // símbolo necesita las dos fuentes, y la base solo vive ahí (ADR 0074).
       const pair = compareWorkingTreeWithHead(root, { ignore });
-      entry = { report: pair ? diffSnapshots(pair.base, pair.head) : null, error: null };
+      entry = { report: pair ? pair.report : null, error: null };
     } catch (cause) {
       entry = {
         report: null,

@@ -341,7 +341,9 @@ export function makeReport(): DiffReport {
               status: "changed",
               base: { complexity: 12, lines: 40, line: 20 },
               head: { complexity: 18, lines: 52, line: 24 },
-              complexityDelta: 6
+              complexityDelta: 6,
+              addedLines: 16,
+              removedLines: 4
             }
           ]
         }

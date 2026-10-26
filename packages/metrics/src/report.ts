@@ -5,6 +5,7 @@ import type {
   MigrationFileDebt,
   MigrationReport
 } from "./diff";
+import type { DiffSymbolReport } from "./symbol-diff";
 import type { RuleViolation } from "./rules";
 
 /**
@@ -97,7 +98,7 @@ export function parseReport(raw: unknown): DiffReport | null {
     ...report,
     schemaVersion: REPORT_SCHEMA_VERSION,
     migration: report.migration ?? null,
-    symbols: report.symbols ?? null,
+    symbols: symbolsWithLines(report.symbols),
     rules: {
       ...report.rules,
       profile: report.rules?.profile ?? null,
@@ -107,6 +108,29 @@ export function parseReport(raw: unknown): DiffReport | null {
         resolved: (report.rules?.violations?.resolved ?? []).map(withSource)
       }
     }
+  };
+}
+
+/**
+ * Un reporte anterior a 1.4 no medía las líneas de cada símbolo.
+ *
+ * Lo que no se midió se dice con `null`, no con un cero: la ficha enseñará el
+ * tamaño de cada lado en vez de un `+0 −0` que nadie comprobó (ADR 0070).
+ */
+function symbolsWithLines(
+  symbols: DiffSymbolReport | null | undefined
+): DiffSymbolReport | null {
+  if (!symbols) return null;
+  return {
+    ...symbols,
+    files: symbols.files.map((file) => ({
+      ...file,
+      symbols: file.symbols.map((symbol) => ({
+        ...symbol,
+        addedLines: symbol.addedLines ?? null,
+        removedLines: symbol.removedLines ?? null
+      }))
+    }))
   };
 }
 
