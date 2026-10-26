@@ -45,14 +45,15 @@ y el registro en la guía—, el modelo en [`apps/site/docs/model.md`](apps/site
 
 ## 🧭 Dónde está cada pieza
 
-| Pieza | Canal | Cómo se usa |
-|---|---|---|
-| **CLI** | [npm `codarch`](https://www.npmjs.com/package/codarch) | `npm install -g codarch@next` |
-| **Web del proyecto** | [GitHub Pages](https://jaminsmoke.github.io/codarch) | se publica sola con cada cambio de `main` |
-| **App web del mapa** | dentro del CLI | `codarch serve .` |
-| **App web en Docker** | GHCR | `docker compose up --build` |
-| **Escritorio** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | instaladores Windows/Linux sin firmar |
-| **GitHub Action** | [`jaminsmoke/codarch/apps/github-action@v1`](https://github.com/jaminsmoke/codarch/tree/main/apps/github-action) | `uses: jaminsmoke/codarch/apps/github-action@v1` |
+| Vía | Pieza | Canal | Cómo se usa |
+|---|---|---|---|
+| **1. CLI + webapp** (una instalación) | **CLI** | [npm `codarch`](https://www.npmjs.com/package/codarch) | `npm i -g codarch` |
+| | **Webapp del mapa** | dentro del CLI | se abre con `codarch serve .` (no es otra instalación) |
+| **2. Webapp sola con Docker** | **Imagen** | GHCR `ghcr.io/jaminsmoke/codarch-web` | `docker run --rm -p 127.0.0.1:4173:4173 -v "$PWD":/workspace:ro ghcr.io/jaminsmoke/codarch-web:latest` |
+| | **Desde el repo clonado** | este repositorio | `docker compose up --build` |
+| **3. App de escritorio** | **Instaladores** | [Releases del repo](https://github.com/jaminsmoke/codarch/releases) | Windows `.exe` (NSIS), Linux `.deb` y AppImage, sin firmar |
+| **Además** | **GitHub Action** | [`jaminsmoke/codarch/apps/github-action@v1`](https://github.com/jaminsmoke/codarch/tree/main/apps/github-action) | `uses: jaminsmoke/codarch/apps/github-action@v1` |
+| | **Web del proyecto** | [GitHub Pages](https://jaminsmoke.github.io/codarch) | se publica sola con cada cambio de `main` |
 
 El CLI se publica en **npmjs**, no en GitHub Packages. La web del proyecto es un **deployment** de
 Pages, no un release. La app web del mapa viaja dentro del CLI: su versión es la del CLI; la imagen

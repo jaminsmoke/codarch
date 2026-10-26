@@ -4,7 +4,8 @@ import { idiomaDe, t, type Clave } from "../lib/i18n";
 import { useTitulo } from "../lib/titulo";
 
 /**
- * La portada: qué es CodArch ✓, cómo se ve ✓ y cómo se instala ✓ ✅.
+ * La portada: qué es CodArch, cómo se ve y sus tres formas de instalarlo
+ * (CLI con la webapp, webapp en Docker, escritorio).
  */
 
 // Astro devuelve la imagen importada como `{ src, width, height }`; Vite, como
@@ -12,6 +13,13 @@ import { useTitulo } from "../lib/titulo";
 const atlas = captura as unknown as string | { src: string };
 const retrato = typeof atlas === "string" ? atlas : atlas.src;
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+/** La webapp sola, con la imagen publicada y el repo montado en solo lectura. */
+const DOCKER_RUN = [
+  "docker run --rm -p 127.0.0.1:4173:4173 \\",
+  '  -v "$PWD":/workspace:ro \\',
+  "  ghcr.io/jaminsmoke/codarch-web:latest"
+].join("\n");
 
 /** Las seis piezas del producto, como claves del diccionario. */
 const PIEZAS: { titulo: Clave; texto: Clave }[] = [
@@ -72,8 +80,14 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
             <p className="flex-1 text-sm text-ink-soft">
               {t(idioma, "home.cli.desc")}
             </p>
-            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
-              npm i -g codarch@next
+            <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
+              npm i -g codarch
+            </code>
+            <span className="text-xs text-muted">
+              {t(idioma, "home.cli.serve")}
+            </span>
+            <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
+              codarch serve .
             </code>
             <a
               className="font-mono text-[0.66rem] tracking-[0.1em] text-cobalt uppercase no-underline hover:underline"
@@ -90,13 +104,13 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
             <p className="flex-1 text-sm text-ink-soft">
               {t(idioma, "home.web.desc")}
             </p>
-            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
-              codarch serve .
+            <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
+              {DOCKER_RUN}
             </code>
             <span className="text-xs text-muted">
               {t(idioma, "home.web.docker")}
             </span>
-            <code className="block rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs text-ink">
+            <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
               docker compose up --build
             </code>
           </article>
