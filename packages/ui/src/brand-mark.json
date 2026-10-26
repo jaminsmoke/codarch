@@ -1,0 +1,11 @@
+{
+  "viewBox": 20,
+  "background": { "radius": 2.4, "fill": "#121a20" },
+  "blocks": [
+    { "x": 2.2, "y": 2.2, "width": 9.4, "height": 15.6, "fill": "#b9c9d0" },
+    { "x": 2.2, "y": 12.4, "width": 3.6, "height": 5.4, "fill": "#d95d39" },
+    { "x": 12.8, "y": 2.2, "width": 5, "height": 4.3, "fill": "#cbbfae" },
+    { "x": 12.8, "y": 7.5, "width": 5, "height": 4.3, "fill": "#a9c3a9" },
+    { "x": 12.8, "y": 13, "width": 5, "height": 4.8, "fill": "#c9bfd8" }
+  ]
+}

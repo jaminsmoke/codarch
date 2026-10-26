@@ -1,38 +1,40 @@
 /**
- * Genera los iconos de la app: un treemap mínimo con la paleta del producto.
+ * Genera los iconos de la app a partir de la marca que dibuja la cabecera.
  *
- * Se dibuja a mano sobre un búfer RGBA y se codifica en PNG (no hay
- * dependencias de imagen en el repo). El mismo diseño sirve para el icono del
- * escritorio, el favicon de la web y el instalador de cada plataforma.
+ * La geometría no vive aquí: se lee de `packages/ui/src/brand-mark.json`, que
+ * es también lo que pinta `CodarchMark` en la interfaz. Así el icono del
+ * escritorio, el favicon de la web y la marca de la cabecera son el mismo
+ * dibujo, y cambiar la marca no obliga a tocar dos sitios.
+ *
+ * Los PNG se dibujan a mano sobre un búfer RGBA (no hay dependencias de imagen
+ * en el repo) con supermuestreo y se codifican sin filtros; el SVG sale del
+ * mismo JSON.
  */
 
 import { deflateSync } from "node:zlib";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const MARK_FILE = path.join(ROOT, "packages/ui/src/brand-mark.json");
 
-const INK = [0x12, 0x1a, 0x20, 0xff];
-const PALETTE = {
-  a: [0xb9, 0xc4, 0xd0, 0xff],
-  b: [0xc9, 0xb8, 0xa8, 0xff],
-  c: [0xa9, 0xbf, 0xae, 0xff],
-  d: [0xc4, 0xb6, 0xc9, 0xff],
-  accent: [0xd9, 0x5d, 0x39, 0xff]
-};
+/** Muestras por eje al dibujar; el resultado se reduce al tamaño pedido. */
+const SUPERSAMPLE = 3;
+/** Aire alrededor de la marca en los PNG: los iconos no llegan al borde. */
+const MARGIN = 0.08;
 
-/** El diseño, en coordenadas de 512 y con margen. */
-const SHAPE = {
-  background: { x: 40, y: 40, size: 432, radius: 96 },
-  blocks: [
-    { x: 40, y: 40, w: 240, h: 432, color: "a" },
-    { x: 40, y: 352, w: 120, h: 120, color: "accent" },
-    { x: 296, y: 40, w: 176, h: 144, color: "b" },
-    { x: 296, y: 200, w: 176, h: 144, color: "c" },
-    { x: 296, y: 360, w: 176, h: 112, color: "d" }
-  ]
-};
+const MARK = JSON.parse(await readFile(MARK_FILE, "utf8"));
+
+function hexToRgba(hex) {
+  const value = hex.replace("#", "");
+  return [
+    parseInt(value.slice(0, 2), 16),
+    parseInt(value.slice(2, 4), 16),
+    parseInt(value.slice(4, 6), 16),
+    0xff
+  ];
+}
 
 function createCanvas(size) {
   return { size, data: Buffer.alloc(size * size * 4) };
@@ -55,7 +57,7 @@ function fillRect(canvas, x, y, w, h, color) {
   }
 }
 
-/** Esquina redondeada: el píbel entra si está dentro del radio. */
+/** Esquina redondeada: el píxel entra si está dentro del radio. */
 function insideRoundedRect(x, y, rect) {
   const { x: rx, y: ry, size, radius } = rect;
   if (x < rx || y < ry || x >= rx + size || y >= ry + size) return false;
@@ -71,32 +73,71 @@ function insideRoundedRect(x, y, rect) {
   return dx * dx + dy * dy <= radius * radius;
 }
 
-function draw(size) {
-  const canvas = createCanvas(size);
-  const scale = size / 512;
+/** Dibuja la marca en un búfer con `factor` muestras por eje. */
+function draw(size, factor) {
+  const canvas = createCanvas(size * factor);
+  const margin = Math.round(size * MARGIN * factor);
+  const span = canvas.size - margin * 2;
+  const scale = span / MARK.viewBox;
 
-  const background = SHAPE.background;
-  const bgX = Math.round(background.x * scale);
-  const bgY = Math.round(background.y * scale);
-  const bgSize = Math.round(background.size * scale);
-  const radius = Math.max(1, Math.round(background.radius * scale));
-  for (let y = bgY; y < bgY + bgSize; y += 1) {
-    for (let x = bgX; x < bgX + bgSize; x += 1) {
-      if (insideRoundedRect(x, y, { ...background, x: bgX, y: bgY, size: bgSize, radius })) {
-        putPixel(canvas, x, y, INK);
-      }
+  const background = {
+    x: margin,
+    y: margin,
+    size: span,
+    radius: MARK.background.radius * scale
+  };
+  const ink = hexToRgba(MARK.background.fill);
+  for (let y = margin; y < margin + span; y += 1) {
+    for (let x = margin; x < margin + span; x += 1) {
+      if (insideRoundedRect(x, y, background)) putPixel(canvas, x, y, ink);
     }
   }
 
-  for (const block of SHAPE.blocks) {
-    const x = Math.round(block.x * scale);
-    const y = Math.round(block.y * scale);
-    const w = Math.max(1, Math.round(block.w * scale));
-    const h = Math.max(1, Math.round(block.h * scale));
-    fillRect(canvas, x, y, w, h, PALETTE[block.color]);
+  for (const block of MARK.blocks) {
+    fillRect(
+      canvas,
+      Math.round(margin + block.x * scale),
+      Math.round(margin + block.y * scale),
+      Math.max(1, Math.round(block.width * scale)),
+      Math.max(1, Math.round(block.height * scale)),
+      hexToRgba(block.fill)
+    );
   }
 
   return canvas;
+}
+
+/** Reduce con la media de cada bloque de muestras, en alfa premultiplicado. */
+function downsample(canvas, factor) {
+  const size = canvas.size / factor;
+  const out = createCanvas(size);
+  const samples = factor * factor;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      let alpha = 0;
+      for (let dy = 0; dy < factor; dy += 1) {
+        for (let dx = 0; dx < factor; dx += 1) {
+          const from = ((y * factor + dy) * canvas.size + x * factor + dx) * 4;
+          const a = canvas.data[from + 3];
+          red += canvas.data[from] * a;
+          green += canvas.data[from + 1] * a;
+          blue += canvas.data[from + 2] * a;
+          alpha += a;
+        }
+      }
+      const to = (y * size + x) * 4;
+      out.data[to + 3] = Math.round(alpha / samples);
+      if (alpha > 0) {
+        out.data[to] = Math.round(red / alpha);
+        out.data[to + 1] = Math.round(green / alpha);
+        out.data[to + 2] = Math.round(blue / alpha);
+      }
+    }
+  }
+  return out;
 }
 
 const CRC_TABLE = (() => {
@@ -154,6 +195,35 @@ function encodePng(canvas) {
   ]);
 }
 
+/** El mismo dibujo en SVG, para el favicon: nítido a cualquier tamaño. */
+function markSvg() {
+  const { viewBox, background, blocks } = MARK;
+  const rect = (attributes) =>
+    `  <rect ${attributes.map(([name, value]) => `${name}="${value}"`).join(" ")}/>`;
+  const backgroundAttributes = [
+    ["width", viewBox],
+    ["height", viewBox],
+    ["rx", background.radius],
+    ["fill", background.fill]
+  ];
+  const lines = blocks.map((block) =>
+    rect([
+      ["x", block.x],
+      ["y", block.y],
+      ["width", block.width],
+      ["height", block.height],
+      ["fill", block.fill]
+    ])
+  );
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewBox} ${viewBox}" role="img" aria-label="CodArch">`,
+    rect(backgroundAttributes),
+    ...lines,
+    "</svg>",
+    ""
+  ].join("\n");
+}
+
 const targets = [
   { file: "apps/desktop/build/icon.png", size: 512 },
   { file: "apps/web/public/icon.png", size: 512 },
@@ -163,6 +233,11 @@ const targets = [
 for (const target of targets) {
   const destination = path.join(ROOT, target.file);
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, encodePng(draw(target.size)));
+  const png = encodePng(downsample(draw(target.size, SUPERSAMPLE), SUPERSAMPLE));
+  await writeFile(destination, png);
   console.log(`ok · ${target.file} (${target.size}px)`);
 }
+
+const favicon = path.join(ROOT, "apps/web/public/favicon.svg");
+await writeFile(favicon, markSvg());
+console.log("ok · apps/web/public/favicon.svg");

@@ -26,6 +26,7 @@ import { InspectorBar, inspectorLabel } from "./InspectorBar";
 import { ToolBar, toolLabel } from "./ToolBar";
 import { localStore } from "./storage";
 import { readSectionClosed, writeSectionClosed } from "./sections";
+import mark from "./brand-mark.json";
 
 /**
  * El armazón de la app: cabecera, barra lateral, mapa, inspector y ajustes.
@@ -614,26 +615,37 @@ export function AppShell({
  * La marca de la casa: el mapa en miniatura del icono de la app.
  *
  * Un bloque grande con su pieza en la esquina y una columna de tres al otro
- * lado, separadas por las juntas del marco. Va dibujada y no como imagen
- * porque la web y el escritorio sirven sus ficheros desde rutas distintas y la
- * marca tiene que ser la misma en las dos.
+ * lado, separadas por las juntas del marco. La geometría vive en
+ * `brand-mark.json`, que también lee el generador de iconos
+ * (`npm run icons`): la cabecera, el favicon y los iconos del escritorio son
+ * el mismo dibujo, no tres parecidos.
  */
 function CodarchMark() {
   return (
     <svg
       className="brand-mark-icon"
-      viewBox="0 0 20 20"
+      viewBox={`0 0 ${mark.viewBox} ${mark.viewBox}`}
       width="22"
       height="22"
       aria-hidden="true"
       focusable="false"
     >
-      <rect width="20" height="20" rx="2.4" fill="#121a20" />
-      <rect x="2.2" y="2.2" width="9.4" height="15.6" fill="#b9c9d0" />
-      <rect x="2.2" y="12.4" width="3.6" height="5.4" fill="#d95d39" />
-      <rect x="12.8" y="2.2" width="5" height="4.3" fill="#cbbfae" />
-      <rect x="12.8" y="7.5" width="5" height="4.3" fill="#a9c3a9" />
-      <rect x="12.8" y="13" width="5" height="4.8" fill="#c9bfd8" />
+      <rect
+        width={mark.viewBox}
+        height={mark.viewBox}
+        rx={mark.background.radius}
+        fill={mark.background.fill}
+      />
+      {mark.blocks.map((block) => (
+        <rect
+          key={`${block.x}-${block.y}`}
+          x={block.x}
+          y={block.y}
+          width={block.width}
+          height={block.height}
+          fill={block.fill}
+        />
+      ))}
     </svg>
   );
 }
