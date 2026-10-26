@@ -171,6 +171,11 @@ export default function ChangesPanel({
     };
   }, [loadHistory]);
 
+  // Los ficheros más tocados no se pierden al abrir un `cc.json` suelto: en
+  // Cambios solo se enseñan en el histórico, y sin git no hay histórico, así
+  // que el estado vacío los recupera. Con reporte no se repiten (ADR 0078).
+  const touched = touchedRows(model);
+
   if (!report) {
     return (
       <section className="change-panel">
@@ -189,6 +194,20 @@ export default function ChangesPanel({
           Abrir reporte
         </button>
         {error ? <p className="panel-error">{error}</p> : null}
+
+        {touched.length > 0 ? (
+          <div className="change-group">
+            <GroupHead
+              label="Más tocados"
+              summary={`${touched.length} ficheros`}
+            />
+            <p className="muted tiny">
+              Lo que el snapshot trae: los ficheros con más commits. No es un
+              cambio de ahora.
+            </p>
+            <TouchedRows rows={touched} onSelectPath={onSelectPath} />
+          </div>
+        ) : null}
       </section>
     );
   }
@@ -207,7 +226,6 @@ export default function ChangesPanel({
   const debtDelta = balance.debt ? balance.debt.head - balance.debt.base : 0;
   const symbols = report.symbols;
   const photos = historyRows(history ?? []);
-  const touched = touchedRows(model);
 
   return (
     <section className="change-panel">
@@ -470,31 +488,7 @@ export default function ChangesPanel({
             summary={touched.length > 0 ? `${touched.length} ficheros` : undefined}
           />
           {touched.length > 0 ? (
-            <div className="mini-list">
-              {touched.map((row) => (
-                <button
-                  key={row.path}
-                  type="button"
-                  className="mini-row"
-                  title={`${row.path} · ${row.commits} commits`}
-                  onClick={() => onSelectPath(row.path)}
-                >
-                  <span className="mini-name">{row.path}</span>
-                  <span className="mini-track" aria-hidden="true">
-                    <i
-                      style={{
-                        width: `${Math.max(
-                          4,
-                          (row.commits / (touched[0]?.commits ?? 1)) * 100
-                        )}%`,
-                        background: "var(--rust)"
-                      }}
-                    />
-                  </span>
-                  <span className="mono">{row.commits}</span>
-                </button>
-              ))}
-            </div>
+            <TouchedRows rows={touched} onSelectPath={onSelectPath} />
           ) : (
             <p className="muted small">
               Sin commits que contar en este repositorio.
@@ -788,6 +782,41 @@ function SymbolLines({ symbol }: { symbol: ChangeSymbol }) {
     <span className="mono symbol-delta">
       {before ?? "?"} → {after ?? "?"}
     </span>
+  );
+}
+
+/** Las filas de los más tocados, con su barra en la escala del primero. */
+function TouchedRows({
+  rows,
+  onSelectPath
+}: {
+  rows: Array<{ path: string; commits: number }>;
+  onSelectPath: (path: string) => void;
+}) {
+  const peak = rows[0]?.commits ?? 1;
+  return (
+    <div className="mini-list">
+      {rows.map((row) => (
+        <button
+          key={row.path}
+          type="button"
+          className="mini-row"
+          title={`${row.path} · ${row.commits} commits`}
+          onClick={() => onSelectPath(row.path)}
+        >
+          <span className="mini-name">{row.path}</span>
+          <span className="mini-track" aria-hidden="true">
+            <i
+              style={{
+                width: `${Math.max(4, (row.commits / peak) * 100)}%`,
+                background: "var(--rust)"
+              }}
+            />
+          </span>
+          <span className="mono">{row.commits}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 

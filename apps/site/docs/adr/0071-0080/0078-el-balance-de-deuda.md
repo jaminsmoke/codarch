@@ -59,7 +59,8 @@ se movió; los mismos datos, contados otra vez y peor.
 8. **Más tocados cambia de sitio.** La lista de los ficheros con más commits deja el raíl y pasa a
    **Histórico del repo**, junto a las fotos: cuenta lo que el repo lleva hecho, no lo que el árbol
    tiene ahora. El raíl se queda con las herramientas del mapa —**Vista**, **Estratos**, **Leyenda** y
-   **Más reescritos**—.
+   **Más reescritos**—. Un `cc.json` suelto, sin git, no tiene cambios con los que comparar: su estado
+   vacío recupera la lista, y con reporte no se repite.
 
 ## Consecuencias
 
@@ -71,6 +72,8 @@ se movió; los mismos datos, contados otra vez y peor.
   **Más tocados** se muda a **Histórico del repo**. La deuda se mira en **Cambios**, con el diff
   delante. El CSS de las barras se queda para las listas cortas —`.mini-*`, compartido con **Más
   reescritos**—. El mapa sigue coloreando por deuda y la ficha del fichero sigue contando la suya.
+- Un snapshot sin git conserva **Más tocados** en el estado vacío de **Cambios**: es la única ventana
+  donde la lista puede verse sin reporte, y con reporte no se duplica.
 - La pestaña deja de esconderse: con el árbol limpio se leen sus cuatro secciones, y cada una dice
   qué le falta. Un push ya no borra la pestaña.
 - El histórico espera a saber si hay fotos antes de pintarse: no enseña un vacío que un segundo
@@ -105,6 +108,8 @@ se movió; los mismos datos, contados otra vez y peor.
   barras se queda con las otras listas cortas.
 - [x] **Más tocados** pasa del raíl a **Histórico del repo**, con sus filas y su barra, y el título de
   la sección se queda aunque no haya fotos.
+- [x] Un `cc.json` sin git lo recupera en el estado vacío de **Cambios**, sin duplicarlo cuando hay
+  reporte.
 - [x] Títulos fijos: la pestaña no desaparece con el árbol limpio y cada grupo explica su vacío.
 - [x] Tests del reparto, del delta y su escala, de la escala de los hotspots, de los más tocados, del
   corte y de la falta de lente de migración.
