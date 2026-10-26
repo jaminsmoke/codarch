@@ -136,9 +136,10 @@ secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en 
   no queda nada suelto por ahí.
 - [x] El plegado se recuerda por sección: `sections.ts` guarda el estado en el almacenamiento local
   con el identificador de cada sección, también al cambiar de fichero.
-- [ ] Los diez bloques del raíl dejan su encabezado suelto y pliegan igual: **Vista**, **Estratos**,
-  **Leyenda**, **Historia**, **Más tocados**, **Más reescritos** y **Deuda de migración**. El
-  resumen tiene que caber en los ~260 px del raíl: una cifra corta, no la frase de la ficha.
+- [ ] Los bloques del raíl dejan su encabezado suelto y pliegan igual: **Vista**, **Estratos**,
+  **Leyenda** y **Más reescritos**. **Deuda de migración** y **Más tocados** ya no están en el raíl:
+  viven en **Cambios**, con el diff delante y junto al histórico (ADR 0078). El resumen tiene que
+  caber en los ~260 px del raíl: una cifra corta, no la frase de la ficha.
 - [ ] Un guard en `@codarch/ui` que exija título, cuenta y resumen en toda sección nueva, con la
   misma comprobación en la web y en el escritorio. Hoy `sections.test.ts` solo prueba el
   almacenamiento.

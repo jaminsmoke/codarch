@@ -41,7 +41,8 @@ Ficheros tiene una sola sección tras el ADR 0070 sin que Hotspots siga aparte.
    con la cuenta a la vista y el cuerpo cerrado. Si no las trae, la sección desaparece y la pestaña no
    reserva espacio para ella.
 4. **Hotspots entra en Ficheros.** Hotspots es una vista de los ficheros del cambio, así que va como
-   subsección de **Ficheros**, no como sección propia.
+   subsección de **Ficheros**, no como sección propia. Hoy vive en **Balance de deuda**, con los
+   diffs de deuda de migración (ADR 0078).
 5. **La pestaña se compacta.** Menos bloques plegables en la base; cada subsección usa el mismo
    encabezado (`GroupHead`) y la misma fila; la cabecera del cambio lleva lo que hoy ocupan tres
    bloques.

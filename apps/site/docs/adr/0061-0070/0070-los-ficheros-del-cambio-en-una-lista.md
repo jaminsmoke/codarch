@@ -76,7 +76,7 @@ Nuevos, modificados y eliminados se leen en **una sola sección, Ficheros**, que
   ADR 0060 ya decidió no repetir; el detalle vive en la ficha del fichero y en su sección.
 - **Pintar el diff de código por fichero.** El reporte no lleva contenidos —la base es un `cc.json`,
   que guarda métricas y rutas, no el texto de los ficheros—, así que exigiría cambiar el CLI y el
-  esquema. Fuera de este corte.
+  esquema. Fuera de este corte; hoy se lee bajo demanda al abrir la fila (ADR 0077).
 
 ## Hoja de ruta
 

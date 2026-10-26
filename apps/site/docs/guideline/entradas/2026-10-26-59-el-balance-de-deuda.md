@@ -1,0 +1,16 @@
+---
+title: El balance de deuda
+date: "2026-10-26"
+category: feature
+verdict: fase
+---
+
+**Qué era**: la deuda del cambio se contaba en tres sitios. Una sección **Migración** con las cifras —deuda `base → head`, cruces FFI, nativos— y los ficheros que subían o bajaban; **Hotspots** dentro de **Ficheros**, con los que más crecían en la métrica del reporte; y **Deuda de migración** en el raíl del mapa, una lista con barras de los que más debían, sin diff delante. Son lecturas del mismo peso: la deuda es `(maxComplexity + 1) × (1 + fanIn)` por fichero, así que crece donde crece la complejidad. Para contestar «¿por qué ha subido la deuda?» había que leer una sección, buscar los mismos ficheros en otra y, de paso, pasar por el raíl.
+
+**Qué cambió**: hay una sección **Balance de deuda**, después de Ficheros, con la línea de cifras del cambio y dos grupos: **Diffs de deuda** —los ficheros cuya deuda se movió, primero las subidas y luego las bajadas, con su `before → after` y una barra con cuánto, en la escala del mayor del grupo— y **Hotspots**, con la métrica del reporte y la misma fila con barra, escalada con su propio mayor. Las barras son las del raíl, con el color del signo: rojo si la deuda sube, verde si baja. **Deuda de migración** desaparece del raíl: una sola boca para la deuda, y con el diff delante. **Más tocados** también sale del raíl y pasa a **Histórico del repo**, junto a las fotos: cuenta lo que el repo lleva hecho, no lo que el árbol tiene ahora, y así el raíl se queda con las herramientas del mapa. **Ficheros** vuelve a ser la lista pura de nuevos, modificados y eliminados. Plegada, la sección dice lo que importa: `deuda 8,8k → 9k · 8 hotspots`. Sin lente de migración se queda solo con los hotspots, sin inventar una deuda a cero.
+
+**Números**: la pestaña no gana secciones —sale Migración, entra Balance— y **Ficheros** pierde un grupo; **Histórico del repo** gana un grupo y el raíl pierde dos bloques, uno con su componente y su export. El CSS de las barras se queda como `.mini-*`, compartido por las listas cortas. El corte de deuda era un `slice(0, 6)` que se callaba lo que dejaba fuera: ahora son seis por sentido y dice `+N más`. El reporte no cambia.
+
+**Y no se esconde**: con el árbol limpio la pestaña ya no cambia de forma. Se avisa de que coincide con el último commit y las cuatro secciones siguen ahí —**Ficheros**, **Balance de deuda**, **Ciclos nuevos** e **Histórico**— con sus títulos y una línea que explica cada vacío. El histórico espera a saber si hay fotos, para no enseñar un vacío que un segundo después tiene filas.
+
+**Veredicto**: [ADR 0078](../../adr/0071-0080/0078-el-balance-de-deuda.md), hecho. Comprobado en la app servida: con cambios, el raíl sin **Deuda de migración**, Ficheros con 32 ficheros y sin hotspots, el balance con sus dos grupos, las barras escaladas (100 %, 67 %, 31 %, 4 %) en los dos grupos, el rojo y el verde del signo, los valores `648 → 696 (+48)` sin recortar, y el histórico con **Más tocados** y sus barras al lado de las fotos. Los tests fijan el reparto, el delta con su escala, la escala propia de los hotspots, el orden estable de los más tocados, los dos cortes y los casos sin lente.

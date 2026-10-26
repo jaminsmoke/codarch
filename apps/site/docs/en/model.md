@@ -326,7 +326,7 @@ it computes it between two immutable snapshots. `rules` is optional; if missing,
 
 ```ts
 type DiffReport = {
-  schemaVersion: '1.3'
+  schemaVersion: '1.4'
   base: { projectName, checksum, files, folders, edges }
   head: { projectName, checksum, files, folders, edges }
   summary: {
@@ -375,6 +375,11 @@ Rules:
   symbols that were added, removed or changed, with their complexity before and after. A body change
   also counts, even when complexity and lines do not change. It matches by name within the same
   file; recognising renames and moves is the chain's job (ADR 0026).
+- Every symbol carries `addedLines` and `removedLines`, the lines it adds and removes. That is not
+  the file's `rloc` delta: `StartFn` can add 10 lines and remove 4 inside a file that grows 11 net.
+  They do not come from the snapshots, which store no code: they are measured by whoever has both
+  sources at hand —the HEAD comparison, with the exported base and the tree— and injected as
+  `source`. From two loose `cc.json` they stay `null`, which means "not measured", not zero.
 - `schemaVersion` goes up when the report's shape changes. Readers reconstruct reports from previous
   versions to the current one, so the newest is always used: what could not be measured (the
   migration section in a `1.0`) is marked `null` instead of inventing zeros.

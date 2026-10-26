@@ -30,7 +30,8 @@ Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 c
 M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
-M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed and M57 closed.
+M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed, M57 closed, M58 closed
+and M59 closed.
 
 ## The phases
 
@@ -160,6 +161,8 @@ flowchart TD
 | M55 | One single analysis session | closed | [ADR 0074](0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
 | M56 | Changes are git | closed | [ADR 0075](0071-0080/0075-cambios-es-de-git.md#hoja-de-ruta) |
 | M57 | Newlines are not code | closed | [ADR 0076](0071-0080/0076-las-lineas-no-son-codigo.md#hoja-de-ruta) |
+| M58 | The diff, when the file opens | closed | [ADR 0077](0071-0080/0077-el-diff-al-abrir-el-fichero.md#hoja-de-ruta) |
+| M59 | Debt balance | closed | [ADR 0078](0071-0080/0078-el-balance-de-deuda.md#hoja-de-ruta) |
 
 ## How to read this
 

@@ -33,7 +33,8 @@ fichero, que lista las violaciones que mencionan su ruta.
 
 1. **La pestaña es de git y de nada más.** Compara el árbol de trabajo con su último commit, que es
    lo que el servidor calcula y el escritorio escribe en `.codarch/head-report.json` (ADR 0072).
-   Con git y sin cambios, lo dice: «Sin cambios desde el último commit».
+   Con git y sin cambios, lo dice: «Sin cambios desde el último commit». Hoy lo dice sin esconder las
+   secciones, que siguen con su título y su vacío (ADR 0078).
 2. **Sin reporte HEAD no se cae a `report.json`.** Si no hay git —o su git no tiene commits— la
    pestaña lo dice: no hay nada con lo que comparar ni forma de ver los cambios en vivo. Un
    `report.json` solo se enseña si alguien lo abre a mano, y un artefacto estático (el mapa de un PR)
