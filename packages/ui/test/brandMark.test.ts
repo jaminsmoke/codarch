@@ -34,8 +34,11 @@ function pngSize(file: string): { width: number; height: number } {
 }
 
 describe("la marca de la casa", () => {
-  it("el favicon es el mismo dibujo que la cabecera", () => {
-    const svg = readFileSync(path.join(web, "favicon.svg"), "utf8");
+  it.each([
+    "apps/web/public/favicon.svg",
+    "apps/site/public/favicon.svg"
+  ])("%s es el mismo dibujo que la cabecera", (file) => {
+    const svg = readFileSync(path.join(root, file), "utf8");
     const [background = {}, ...blocks] = rects(svg);
 
     expect(Number(attr(background, "width"))).toBe(mark.viewBox);

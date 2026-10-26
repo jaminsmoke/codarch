@@ -3,8 +3,8 @@
  *
  * La geometría no vive aquí: se lee de `packages/ui/src/brand-mark.json`, que
  * es también lo que pinta `CodarchMark` en la interfaz. Así el icono del
- * escritorio, el favicon de la web y la marca de la cabecera son el mismo
- * dibujo, y cambiar la marca no obliga a tocar dos sitios.
+ * escritorio, el favicon de la web, el del sitio y la marca de la cabecera son
+ * el mismo dibujo, y cambiar la marca no obliga a tocar cuatro sitios.
  *
  * Los PNG se dibujan a mano sobre un búfer RGBA (no hay dependencias de imagen
  * en el repo) con supermuestreo y se codifican sin filtros; el SVG sale del
@@ -238,6 +238,10 @@ for (const target of targets) {
   console.log(`ok · ${target.file} (${target.size}px)`);
 }
 
-const favicon = path.join(ROOT, "apps/web/public/favicon.svg");
-await writeFile(favicon, markSvg());
-console.log("ok · apps/web/public/favicon.svg");
+for (const file of [
+  "apps/web/public/favicon.svg",
+  "apps/site/public/favicon.svg"
+]) {
+  await writeFile(path.join(ROOT, file), markSvg());
+  console.log(`ok · ${file}`);
+}
