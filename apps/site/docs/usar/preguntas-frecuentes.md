@@ -1,15 +1,15 @@
 ---
 title: "Preguntas frecuentes"
 description: "Dudas habituales: qué instalar, la webapp, Docker, los instaladores sin firmar y la privacidad."
-section: usar
+section: producto
 sidebar:
   label: "Preguntas frecuentes"
-  order: 100
+  order: 90
 ---
 
 ## ¿Qué instalo?
 
-Una de las tres vías de [Instalación](installation.md): el CLI con la webapp (`npm i -g codarch`), la
+Una de las tres vías de [Instalación](instalacion.md): el CLI con la webapp (`npm i -g codarch`), la
 webapp sola con Docker o la app de escritorio. Las tres producen el mismo `cc.json` con el mismo checksum.
 
 ## ¿`codarch serve` instala la webapp?

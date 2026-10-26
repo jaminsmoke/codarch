@@ -7,7 +7,7 @@ import { parse as parseYaml } from "yaml";
  * La sidebar de Starlight se genera del frontmatter de `docs/` (ADR 0046).
  *
  * No hay una lista de documentos en el código: añadir un `.md` con su
- * frontmatter lo pone en su bloque: `usar` o `construir` (ADR 0080); los ADR
+ * frontmatter lo pone en su bloque: `producto` (Usar CodArch) o `construir` (ADR 0080); los ADR
  * se agrupan por su carpeta de diez.
  *
  * El inglés vive en `docs/en/` con las mismas rutas relativas. La lista es
@@ -85,14 +85,14 @@ function orden(a, b) {
 const enSeccion = (seccion) =>
   documentos.filter((documento) => documento.datos.section === seccion);
 
-/** Cada comando del CLI tiene su página en `docs/cli/` y forman un grupo. */
-const ORDEN_CLI = 30;
-const esCli = (documento) => documento.clave.startsWith("docs/cli/");
+/** Cada comando del CLI tiene su página en `docs/usar/cli/` y forman un grupo. */
+const ORDEN_CLI = 20;
+const esCli = (documento) => documento.clave.startsWith("docs/usar/cli/");
 
-const comandos = enSeccion("usar").filter(esCli).sort(orden).map(item);
+const comandos = enSeccion("producto").filter(esCli).sort(orden).map(item);
 
 const usar = [
-  ...enSeccion("usar")
+  ...enSeccion("producto")
     .filter((documento) => !esCli(documento))
     .map((documento) => ({
       orden: documento.datos.sidebar?.order ?? 0,
@@ -103,7 +103,7 @@ const usar = [
     ? [
         {
           orden: ORDEN_CLI,
-          clave: "docs/cli",
+          clave: "docs/usar/cli",
           entrada: { label: "CLI", translations: { en: "CLI" }, items: comandos }
         }
       ]
@@ -140,7 +140,7 @@ const indice = documentos.find(
 
 /**
  * Dos bloques (ADR 0080): lo que necesita quien usa CodArch y lo que explica
- * cómo se construye. El `section` del frontmatter decide el bloque.
+ * cómo se construye. El `section` del frontmatter decide el bloque: `producto` es «Usar CodArch».
  */
 export function sidebar() {
   return [

@@ -1,15 +1,15 @@
 ---
 title: "FAQ"
 description: "Common questions: what to install, the web app, Docker, unsigned installers and privacy."
-section: usar
+section: producto
 sidebar:
   label: "FAQ"
-  order: 100
+  order: 90
 ---
 
 ## What do I install?
 
-One of the three [Installation](installation.md) paths: the CLI with the web app (`npm i -g codarch`),
+One of the three [Installation](instalacion.md) paths: the CLI with the web app (`npm i -g codarch`),
 the web app alone with Docker, or the desktop app. All three produce the same `cc.json` with the same
 checksum.
 

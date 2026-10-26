@@ -1,7 +1,7 @@
 ---
 title: "Webapp"
 description: "El mapa en el navegador: viene con el CLI y se abre con codarch serve, o sola con Docker."
-section: usar
+section: producto
 sidebar:
   label: "Webapp"
   order: 40

@@ -1,14 +1,14 @@
 ---
 title: "Getting started"
 description: "From the first analysis to the map in five minutes: analyse, open the web app and read the result."
-section: usar
+section: producto
 sidebar:
   label: "Getting started"
-  order: 20
+  order: 15
 ---
 
 This page assumes CodArch is already installed through one of its three paths (see
-[Installation](installation.md)). The examples use the CLI; with Docker or the desktop app the result
+[Installation](instalacion.md)). The examples use the CLI; with Docker or the desktop app the result
 is the same `cc.json`, with the same checksum.
 
 ## 1. Analyse your repository
@@ -45,6 +45,6 @@ and analyses again on save. See [Web app](webapp.md) and [`codarch serve`](cli/s
 
 ## 4. Next steps
 
-- Write a policy in [`.codarch.yml`](rules.md) and check it with [`codarch diff`](cli/diff.md).
+- Write a policy in [`.codarch.yml`](../rules.md) and check it with [`codarch diff`](cli/diff.md).
 - Put the map on every pull request with the [GitHub Action](github-action.md).
-- Let your agent ask about the architecture with the [MCP](mcp.md).
+- Let your agent ask about the architecture with the [MCP](../mcp.md).

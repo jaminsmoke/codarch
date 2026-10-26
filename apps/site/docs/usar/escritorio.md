@@ -1,10 +1,10 @@
 ---
 title: "App de escritorio"
 description: "Instaladores para Windows y Linux: el mismo mapa, analizando con git contra el disco."
-section: usar
+section: producto
 sidebar:
   label: "App de escritorio"
-  order: 50
+  order: 41
 ---
 
 La app de escritorio es CodArch en una ventana nativa (Electron). Analiza con el mismo motor que el
@@ -23,7 +23,7 @@ Descarga el instalador de tu sistema desde las
 | Linux | `codarch-<versión>-x64.AppImage` | se ejecuta sin instalar nada (`chmod +x` y abrir) |
 
 macOS no se publica: sin firma ni notarización, Gatekeeper bloquea la app. Los instaladores van **sin
-firmar**; ver [Preguntas frecuentes](faq.md#windows-o-linux-avisan-de-que-el-instalador-no-está-firmado).
+firmar**; ver [Preguntas frecuentes](preguntas-frecuentes.md#windows-o-linux-avisan-de-que-el-instalador-no-está-firmado).
 
 > 📸 **Captura pendiente (escritorio-release):** la página de la última release en GitHub con la
 > lista de assets (`.exe`, `.deb`, `.AppImage`) visible.
@@ -43,4 +43,4 @@ firmar**; ver [Preguntas frecuentes](faq.md#windows-o-linux-avisan-de-que-el-ins
 
 La app busca versiones nuevas en las Releases y se actualiza sola. El AppImage lo hace sin permisos;
 el `.deb` pide la contraseña de administrador, como cualquier paquete. Ver
-[Actualizaciones](updates.md).
+[Actualizaciones](actualizaciones.md).

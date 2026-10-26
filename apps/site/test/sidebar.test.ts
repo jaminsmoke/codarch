@@ -23,28 +23,28 @@ describe("la sidebar de los documentos", () => {
   it("pone lo que necesita quien usa CodArch en su orden", () => {
     expect(usar?.items?.map((item) => item.slug ?? item.label)).toEqual([
       "docs/index",
-      "docs/installation",
-      "docs/getting-started",
+      "docs/usar/instalacion",
+      "docs/usar/primeros-pasos",
       "CLI",
-      "docs/webapp",
-      "docs/desktop",
+      "docs/usar/actualizaciones",
+      "docs/usar/webapp",
+      "docs/usar/escritorio",
       "docs/rules",
       "docs/mcp",
-      "docs/github-action",
-      "docs/updates",
-      "docs/faq"
+      "docs/usar/github-action",
+      "docs/usar/preguntas-frecuentes"
     ]);
   });
 
   it("da una página a cada comando del CLI", () => {
     expect(cli?.items?.map((item) => item.slug)).toEqual([
-      "docs/cli/analyze",
-      "docs/cli/inspect",
-      "docs/cli/render",
-      "docs/cli/diff",
-      "docs/cli/serve",
-      "docs/cli/history",
-      "docs/cli/mcp"
+      "docs/usar/cli/analyze",
+      "docs/usar/cli/inspect",
+      "docs/usar/cli/render",
+      "docs/usar/cli/diff",
+      "docs/usar/cli/serve",
+      "docs/usar/cli/history",
+      "docs/usar/cli/mcp"
     ]);
   });
 

@@ -1,15 +1,15 @@
 ---
 title: "GitHub Action"
 description: "The architecture map and diff on every pull request, in warning or blocking mode."
-section: usar
+section: producto
 sidebar:
   label: "GitHub Action"
-  order: 80
+  order: 60
 ---
 
 The action analyses the base and head of each pull request, uploads the map and the report as an
 artifact and leaves a comment with the architecture diff. Decisions:
-[ADR 0012](adr/0011-0020/0012-github-action.md) and [ADR 0015](adr/0011-0020/0015-accion-publica-separada.md)
+[ADR 0012](../adr/0011-0020/0012-github-action.md) and [ADR 0015](../adr/0011-0020/0015-accion-publica-separada.md)
 (today it is used through a subpath of the monorepo).
 
 ## Usage
@@ -52,7 +52,7 @@ jobs:
 | `fail-on` | Blocks when |
 |---|---|
 | `none` (default) | never: it comments and uploads the artifact |
-| `violations` | there are new [`.codarch.yml`](rules.md) violations |
+| `violations` | there are new [`.codarch.yml`](../rules.md) violations |
 | `cycles` | new cycles appear |
 | `hotspots` | new hotspots appear |
 | `any` | any of the above |

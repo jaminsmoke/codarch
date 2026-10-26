@@ -1,7 +1,7 @@
 ---
 title: "Web app"
 description: "The map in the browser: it comes with the CLI and opens with codarch serve, or on its own with Docker."
-section: usar
+section: producto
 sidebar:
   label: "Web app"
   order: 40

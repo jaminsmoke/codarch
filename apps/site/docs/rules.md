@@ -1,10 +1,10 @@
 ---
 title: Reglas de arquitectura
 description: "codarch diff puede evaluar una política versionada en .codarch.yml. Las reglas no se guardan en el snapshot: el snapshot dice cómo es el código; la configuración dice…"
-section: usar
+section: producto
 sidebar:
   label: Reglas de arquitectura
-  order: 60
+  order: 50
 ---
 
 `codarch diff` puede evaluar una política versionada en `.codarch.yml`. Las reglas no se guardan en

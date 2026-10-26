@@ -1,14 +1,14 @@
 ---
 title: "Primeros pasos"
 description: "Del primer análisis al mapa en cinco minutos: analizar, abrir la webapp y leer el resultado."
-section: usar
+section: producto
 sidebar:
   label: "Primeros pasos"
-  order: 20
+  order: 15
 ---
 
 Esta página da por hecho que ya tienes CodArch instalado por una de sus tres vías (ver
-[Instalación](installation.md)). Los ejemplos usan el CLI; con Docker o el escritorio el resultado es el
+[Instalación](instalacion.md)). Los ejemplos usan el CLI; con Docker o el escritorio el resultado es el
 mismo `cc.json`, con el mismo checksum.
 
 ## 1. Analiza tu repositorio
@@ -45,6 +45,6 @@ analizar al guardar. Ver [Webapp](webapp.md) y [`codarch serve`](cli/serve.md).
 
 ## 4. Siguientes pasos
 
-- Escribe una política en [`.codarch.yml`](rules.md) y compárala con [`codarch diff`](cli/diff.md).
+- Escribe una política en [`.codarch.yml`](../rules.md) y compárala con [`codarch diff`](cli/diff.md).
 - Pon el mapa en cada pull request con la [GitHub Action](github-action.md).
-- Deja que tu agente pregunte por la arquitectura con el [MCP](mcp.md).
+- Deja que tu agente pregunte por la arquitectura con el [MCP](../mcp.md).

@@ -1,10 +1,10 @@
 ---
 title: "Desktop app"
 description: "Installers for Windows and Linux: the same map, analysing with git against the disk."
-section: usar
+section: producto
 sidebar:
   label: "Desktop app"
-  order: 50
+  order: 41
 ---
 
 The desktop app is CodArch in a native window (Electron). It analyses with the same engine as the
@@ -23,7 +23,7 @@ Download your system's installer from the
 | Linux | `codarch-<version>-x64.AppImage` | runs without installing anything (`chmod +x` and open) |
 
 macOS is not published: without signing or notarisation, Gatekeeper blocks the app. The installers
-are **unsigned**; see the [FAQ](faq.md#windows-or-linux-warn-that-the-installer-is-not-signed).
+are **unsigned**; see the [FAQ](preguntas-frecuentes.md#windows-or-linux-warn-that-the-installer-is-not-signed).
 
 > 📸 **Pending screenshot (escritorio-release):** the latest release page on GitHub with the asset
 > list (`.exe`, `.deb`, `.AppImage`) visible.
@@ -43,4 +43,4 @@ are **unsigned**; see the [FAQ](faq.md#windows-or-linux-warn-that-the-installer-
 
 The app looks for new versions in the Releases and updates itself. The AppImage does it without
 permissions; the `.deb` asks for the administrator password, like any package. See
-[Updates](updates.md).
+[Updates](actualizaciones.md).
