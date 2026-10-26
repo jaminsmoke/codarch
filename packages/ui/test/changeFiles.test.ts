@@ -3,7 +3,9 @@ import {
   MAX_FILES_PER_GROUP,
   changeFileGroups,
   deltaLabel,
+  deltaTone,
   filesSummary,
+  symbolCounts,
   formatDelta,
   pickChange,
   rowTitle,
@@ -31,6 +33,33 @@ function changed(path: string, changes: Array<[string, number | null, number | n
       head,
       delta: base === null || head === null ? null : head - base
     }))
+  };
+}
+
+/** Un símbolo tocado, con lo mínimo que lee la fila. */
+function symbolChange(
+  name: string,
+  status: "added" | "removed" | "changed",
+  addedLines: number | null = null,
+  removedLines: number | null = null
+) {
+  return {
+    name,
+    kind: "function" as const,
+    status,
+    base: null,
+    head: null,
+    complexityDelta: null,
+    addedLines,
+    removedLines
+  };
+}
+
+/** La sección de símbolos del reporte, con un solo fichero. */
+function symbolSection(path: string, symbols: ReturnType<typeof symbolChange>[]) {
+  return {
+    files: [{ id: `n:${path}`, path, symbols }],
+    summary: { added: 0, removed: 0, changed: 0, topFile: null }
   };
 }
 
@@ -121,6 +150,14 @@ describe("la lista de ficheros del cambio", () => {
     expect(formatDelta(null)).toBe("±");
   });
 
+  it("el delta se tiñe como un diff: suma en verde, resta en rojo y ± neutro", () => {
+    expect(deltaTone(84)).toBe(" is-positive");
+    expect(deltaTone(-48)).toBe(" is-negative");
+    // Cero y «no se pudo medir» no son ni una cosa ni la otra.
+    expect(deltaTone(0)).toBe("");
+    expect(deltaTone(null)).toBe("");
+  });
+
   it("el tooltip del modificado lleva todas las métricas que se movieron", () => {
     const groups = changeFileGroups(
       reportFiles({
@@ -135,6 +172,50 @@ describe("la lista de ficheros del cambio", () => {
     );
 
     expect(firstRow(groups, "changed").detail).toBe("rloc +12 · complexity −3");
+  });
+
+  it("cada fila lleva el interior de su fichero, contado por estado", () => {
+    const groups = changeFileGroups(
+      reportFiles({ changed: [changed("src/b.ts", [["rloc", 100, 112]])] }),
+      undefined,
+      symbolSection("src/b.ts", [
+        symbolChange("nuevo", "added", 5, 0),
+        symbolChange("viejo", "removed", 0, 3),
+        symbolChange("cargar", "changed", 2, 1)
+      ])
+    );
+
+    expect(firstRow(groups, "changed").symbols).toMatchObject({
+      added: 1,
+      removed: 1,
+      changed: 1
+    });
+    expect(firstRow(groups, "changed").symbols?.items.map((s) => s.name)).toEqual([
+      "nuevo",
+      "viejo",
+      "cargar"
+    ]);
+  });
+
+  it("un fichero sin símbolos se queda sin desplegable", () => {
+    const groups = changeFileGroups(
+      reportFiles({ added: [file("src/a.ts")] }),
+      undefined,
+      // El otro fichero sí trae símbolos: el cruce es por id, no por posición.
+      symbolSection("src/otro.ts", [symbolChange("x", "added", 1, 0)])
+    );
+
+    expect(firstRow(groups, "added").symbols).toBeNull();
+  });
+
+  it("symbolCounts reparte los símbolos por estado", () => {
+    expect(
+      symbolCounts([
+        symbolChange("a", "added"),
+        symbolChange("b", "changed"),
+        symbolChange("c", "changed")
+      ])
+    ).toEqual({ added: 1, removed: 0, changed: 2 });
   });
 
   it("ordena por ruta, sin depender del orden del reporte", () => {

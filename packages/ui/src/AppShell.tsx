@@ -13,9 +13,7 @@ import { MapCanvas } from "./MapCanvas";
 import { folderTrail, parentFolder } from "./tree";
 import { viewStateFromSaved } from "./viewState";
 import {
-  DebtList,
   HeatList,
-  HotList,
   Inspector,
   Kpi,
   LanguageSample,
@@ -128,7 +126,8 @@ export function AppShell({
     addonsWithViews,
     selectPath,
     loadHistory,
-    loadHeat
+    loadHeat,
+    loadDiff
   } = app;
   const viewsMenuRef = useRef<HTMLDetailsElement>(null);
   const projectTitle =
@@ -396,12 +395,6 @@ export function AppShell({
           {/* El calor es del repo abierto. La lista se carga al montarse, así
               que al cambiar de proyecto se remonta: sin esto se quedaba con las
               filas del repo anterior. La historia vive en Cambios (ADR 0072). */}
-          <HotList
-            model={view.model}
-            selectedIndex={selectedIndex}
-            onSelect={selectIndex}
-          />
-
           <HeatList
             key={`heat:${source}`}
             load={loadHeat}
@@ -410,12 +403,8 @@ export function AppShell({
             }}
           />
 
-          <DebtList
-            model={view.model}
-            migration={migration}
-            selectedIndex={selectedIndex}
-            onSelect={selectIndex}
-          />
+          {/* La deuda y los ficheros más tocados ya no tienen lista aquí:
+              viven en Cambios, con el diff delante (ADR 0078). */}
         </aside>
 
         <main className="stage">
@@ -599,11 +588,13 @@ export function AppShell({
           ) : (
             <ChangesPanel
               report={report}
+              model={view.model}
               source={reportSource}
               error={reportError}
               onLoad={onLoadReport}
               onSelectPath={selectPath}
               loadHistory={loadHistory}
+              loadDiff={loadDiff}
               onOpenHistory={onOpenHistory}
             />
           )}

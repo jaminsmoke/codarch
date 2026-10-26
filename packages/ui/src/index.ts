@@ -8,7 +8,14 @@
 
 export { readMigration, readReport } from "./data";
 export { AppShell, type AppShellProps } from "./AppShell";
-export type { Plataforma, CodeRequest, CodeSnippet, EditorRequest } from "./platform";
+export type {
+  Plataforma,
+  CodeRequest,
+  CodeSnippet,
+  EditorRequest,
+  FileDiffRow,
+  FileDiffView
+} from "./platform";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export {
   EMPTY_SOURCE_REQUEST,
@@ -47,11 +54,9 @@ export { mapColorFor, metricIndexOf } from "./map";
 export { orderedMetrics } from "./metrics";
 export { nextCell, type CellBox, type Direction } from "./navigation";
 export {
-  DebtList,
   HeatList,
   HistoryPanel,
   historyFileName,
-  HotList,
   Inspector,
   Kpi,
   LanguageSample,

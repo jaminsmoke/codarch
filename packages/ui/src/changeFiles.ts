@@ -15,6 +15,18 @@ export type ChangeStatus = "added" | "changed" | "removed";
 /** La letra de la fila, como en un cliente de git. */
 export type ChangeLetter = "A" | "M" | "D";
 
+/** Un símbolo tocado, tal y como lo trae el reporte. */
+export type ChangeSymbol = NonNullable<DiffReport["symbols"]>["files"][number]["symbols"][number];
+
+/** Lo que pasó dentro de un fichero. */
+export interface ChangeFileSymbols {
+  added: number;
+  removed: number;
+  changed: number;
+  /** Los símbolos tocados, para el desplegable de la fila. */
+  items: ChangeSymbol[];
+}
+
 /** Una fila de la sección **Ficheros**. */
 export interface ChangeFileRow {
   id: string;
@@ -26,6 +38,20 @@ export interface ChangeFileRow {
   delta: number | null;
   /** Todas las métricas que se movieron, para el tooltip. */
   detail: string;
+  /**
+   * El interior del fichero, si el reporte trae símbolos para él.
+   *
+   * `null` no es "no cambió": es "no hay detalle con el que contarlo" —un
+   * reporte sin lente de símbolos, o un fichero que no es TS/JS.
+   */
+  symbols: ChangeFileSymbols | null;
+}
+
+/** Cuántos símbolos hay de cada clase: lo que enseña la fila al desplegarse. */
+export function symbolCounts(items: readonly ChangeSymbol[]): Omit<ChangeFileSymbols, "items"> {
+  const of = (status: ChangeSymbol["status"]): number =>
+    items.filter((symbol) => symbol.status === status).length;
+  return { added: of("added"), removed: of("removed"), changed: of("changed") };
 }
 
 /** Un grupo de la lista, con su letra y su cuenta. */
@@ -65,6 +91,17 @@ export function formatDelta(delta: number | null): string {
   if (delta === 0) return "±0";
   const magnitude = formatCompact(Math.abs(delta));
   return delta > 0 ? `+${magnitude}` : `−${magnitude}`;
+}
+
+/**
+ * El tono del delta: lo que suma va en verde y lo que resta en rojo.
+ *
+ * Se lee como un diff, con el signo dentro del color. Un `±` no es ni una cosa
+ * ni la otra, así que no lleva tono y se queda en la tinta apagada.
+ */
+export function deltaTone(delta: number | null): "" | " is-positive" | " is-negative" {
+  if (delta === null || delta === 0) return "";
+  return delta > 0 ? " is-positive" : " is-negative";
 }
 
 /**
@@ -136,7 +173,8 @@ function rowOfAdded(file: DiffFile): ChangeFileRow {
     status: "added",
     metric: "rloc",
     delta,
-    detail: `rloc ${formatDelta(delta)}`
+    detail: `rloc ${formatDelta(delta)}`,
+    symbols: null
   };
 }
 
@@ -148,7 +186,8 @@ function rowOfChanged(file: ChangedFile): ChangeFileRow {
     status: "changed",
     metric: picked.metric,
     delta: picked.delta,
-    detail: changeDetail(file.changes) || `${picked.metric} ${formatDelta(picked.delta)}`
+    detail: changeDetail(file.changes) || `${picked.metric} ${formatDelta(picked.delta)}`,
+    symbols: null
   };
 }
 
@@ -160,7 +199,8 @@ function rowOfRemoved(file: DiffFile): ChangeFileRow {
     status: "removed",
     metric: "rloc",
     delta,
-    detail: `rloc ${formatDelta(delta)}`
+    detail: `rloc ${formatDelta(delta)}`,
+    symbols: null
   };
 }
 
@@ -173,12 +213,28 @@ function rowOfRemoved(file: DiffFile): ChangeFileRow {
  */
 export function changeFileGroups(
   files: DiffReport["files"],
-  limit = MAX_FILES_PER_GROUP
+  limit = MAX_FILES_PER_GROUP,
+  symbols: DiffReport["symbols"] = null
 ): ChangeFileGroup[] {
+  // El detalle de cada fila sale del mismo diff, así que se cruza por id: la
+  // ruta es solo la reserva por si un lado no lo trae.
+  const byId = new Map<string, ChangeSymbol[]>();
+  const byPath = new Map<string, ChangeSymbol[]>();
+  for (const file of symbols?.files ?? []) {
+    byId.set(file.id, file.symbols);
+    byPath.set(file.path, file.symbols);
+  }
+  const withSymbols = (row: ChangeFileRow): ChangeFileRow => {
+    const items = byId.get(row.id) ?? byPath.get(row.path);
+    return items && items.length > 0
+      ? { ...row, symbols: { ...symbolCounts(items), items } }
+      : row;
+  };
+
   const byStatus = {
-    added: [...files.added].sort(compareRows).map(rowOfAdded),
-    changed: [...files.changed].sort(compareRows).map(rowOfChanged),
-    removed: [...files.removed].sort(compareRows).map(rowOfRemoved)
+    added: [...files.added].sort(compareRows).map(rowOfAdded).map(withSymbols),
+    changed: [...files.changed].sort(compareRows).map(rowOfChanged).map(withSymbols),
+    removed: [...files.removed].sort(compareRows).map(rowOfRemoved).map(withSymbols)
   } satisfies Record<ChangeStatus, ChangeFileRow[]>;
 
   return GROUPS.map((group) => {

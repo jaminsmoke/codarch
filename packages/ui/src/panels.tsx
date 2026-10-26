@@ -27,7 +27,6 @@ import {
 } from "./structure";
 import { highlightLine } from "./highlight";
 import {
-  CHURN_METRIC,
   EVENT_LABEL,
   LANGUAGE_COLOR,
   STATUS_COLOR,
@@ -248,58 +247,6 @@ export function historyFileName(entry: { date: string; checksum: string }): stri
   return `${stamp}-${entry.checksum.slice(0, 8)}.cc.json`;
 }
 
-export function HotList({
-  model,
-  selectedIndex,
-  onSelect
-}: {
-  model: RenderModel | null;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-}) {
-  const index = model
-    ? model.metrics.findIndex((metric) => metric.key === CHURN_METRIC)
-    : -1;
-  if (!model || index < 0) return null;
-
-  const rows = model.files
-    .map((file) => ({ file, commits: file.values[index] ?? 0 }))
-    .filter((row) => row.commits > 0)
-    .sort((left, right) => right.commits - left.commits)
-    .slice(0, 8);
-  if (rows.length === 0) return null;
-
-  const max = rows[0]?.commits ?? 1;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Más tocados</div>
-      <div className="debt-list">
-        {rows.map(({ file, commits }) => (
-          <button
-            key={file.nodeId}
-            type="button"
-            className={`debt-row${selectedIndex === file.index ? " is-selected" : ""}`}
-            onClick={() => onSelect(file.index)}
-            title={file.path}
-          >
-            <span className="debt-name">{file.path}</span>
-            <span className="debt-track">
-              <i
-                style={{
-                  width: `${Math.max(4, (commits / max) * 100)}%`,
-                  background: "var(--rust)"
-                }}
-              />
-            </span>
-            <span className="mono">{commits}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /**
  * Los símbolos más reescritos.
  *
@@ -335,17 +282,17 @@ export function HeatList({
   return (
     <section className="panel-block">
       <div className="eyebrow">Más reescritos</div>
-      <div className="debt-list">
+      <div className="mini-list">
         {heat.map((entry) => (
           <button
             key={entry.id}
             type="button"
-            className="debt-row"
+            className="mini-row"
             onClick={() => onSelectSymbol(entry.name, entry.path)}
             title={`${entry.path} · ${entry.changes} cambios · ${entry.moves} mudanzas`}
           >
-            <span className="debt-name">{entry.name}</span>
-            <span className="debt-track">
+            <span className="mini-name">{entry.name}</span>
+            <span className="mini-track">
               <i
                 style={{
                   width: `${Math.max(4, (entry.churn / max) * 100)}%`,
@@ -354,62 +301,6 @@ export function HeatList({
               />
             </span>
             <span className="mono">{entry.churn}</span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export function DebtList({
-  model,
-  migration,
-  selectedIndex,
-  onSelect
-}: {
-  model: RenderModel | null;
-  migration: CcMigrationLens | null;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-}) {
-  if (!model || !migration) return null;
-
-  const rows = model.files
-    .map((file) => ({
-      file,
-      node: migration.nodes[file.nodeId]
-    }))
-    .filter((row): row is { file: RenderFile; node: CcMigrationNode } =>
-      Boolean(row.node?.debt)
-    )
-    .sort((left, right) => (right.node.debt ?? 0) - (left.node.debt ?? 0))
-    .slice(0, 8);
-  const max = rows[0]?.node.debt ?? 1;
-
-  if (rows.length === 0) return null;
-
-  return (
-    <section className="panel-block">
-      <div className="eyebrow">Deuda de migración</div>
-      <div className="debt-list">
-        {rows.map(({ file, node }) => (
-          <button
-            key={file.nodeId}
-            type="button"
-            className={`debt-row${selectedIndex === file.index ? " is-selected" : ""}`}
-            onClick={() => onSelect(file.index)}
-            title={file.path}
-          >
-            <span className="debt-name">{file.path}</span>
-            <span className="debt-track">
-              <i
-                style={{
-                  width: `${Math.max(4, ((node.debt ?? 0) / max) * 100)}%`,
-                  background: STATUS_COLOR[node.status]
-                }}
-              />
-            </span>
-            <span className="mono">{formatCompact(node.debt ?? 0)}</span>
           </button>
         ))}
       </div>

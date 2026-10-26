@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { DiffReport } from "@codarch/metrics/browser";
 import { REPORT_SCHEMA_VERSION } from "@codarch/versions";
-import { historyRows, reportHasChanges } from "../src/ChangesPanel";
+import type { RenderModel } from "@codarch/render/browser";
+import { historyRows, reportHasChanges, touchedRows } from "../src/ChangesPanel";
 
 /** Un reporte sin diferencias, con el tipo real para que el typecheck lo vigile. */
 function emptyReport(): DiffReport {
@@ -116,5 +117,56 @@ describe("historyRows", () => {
 
   it("sin fotos no hay filas", () => {
     expect(historyRows([])).toEqual([]);
+  });
+});
+
+/** Un modelo con una sola métrica y los commits de cada ruta. */
+function withChurn(
+  rows: Array<[string, number]>,
+  key = "number_of_commits"
+): RenderModel {
+  return {
+    metrics: [{ key }],
+    files: rows.map(([path, commits], index) => ({
+      index,
+      nodeId: `n:${path}`,
+      path,
+      values: [commits]
+    }))
+  } as unknown as RenderModel;
+}
+
+describe("touchedRows", () => {
+  it("ordena por commits y deja fuera los que no tienen ninguno", () => {
+    const rows = touchedRows(
+      withChurn([
+        ["src/a.ts", 3],
+        ["src/b.ts", 9],
+        ["src/c.ts", 0]
+      ])
+    );
+
+    expect(rows.map((row) => row.path)).toEqual(["src/b.ts", "src/a.ts"]);
+    expect(rows[0]?.commits).toBe(9);
+  });
+
+  it("corta en ocho filas", () => {
+    const many = Array.from({ length: 12 }, (_, index) => [`src/f${index}.ts`, index + 1] as [string, number]);
+    expect(touchedRows(withChurn(many))).toHaveLength(8);
+  });
+
+  it("desempata por ruta: el orden no depende del filesystem", () => {
+    const rows = touchedRows(
+      withChurn([
+        ["src/z.ts", 4],
+        ["src/a.ts", 4]
+      ])
+    );
+    expect(rows.map((row) => row.path)).toEqual(["src/a.ts", "src/z.ts"]);
+  });
+
+  it("sin snapshot o sin la métrica de commits no hay filas", () => {
+    expect(touchedRows(null)).toEqual([]);
+    expect(touchedRows(withChurn([["src/a.ts", 2]], "rloc"))).toEqual([]);
   });
 });
