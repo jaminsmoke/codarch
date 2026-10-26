@@ -1,6 +1,12 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { idDocumento, rutaWeb, zonaDeRuta } from "../src/lib/zonas.mjs";
+import {
+  etiquetaZona,
+  filtrosBusqueda,
+  idDocumento,
+  rutaWeb,
+  zonaDeRuta
+} from "../src/lib/zonas.mjs";
 import { clavesDocumentos } from "../vite-plugin-rutas";
 
 /**
@@ -53,5 +59,14 @@ describe("las rutas de cada zona (ADR 0081)", () => {
     expect(zonaDeRuta("/desarrollo/guia/")).toBe("desarrollo");
     expect(zonaDeRuta("/en/desarrollo/adr/")).toBe("desarrollo");
     expect(zonaDeRuta("/")).toBe(null);
+  });
+
+  it("abre la búsqueda filtrada por la zona de la página, en su idioma", () => {
+    expect(etiquetaZona("/docs/usar/webapp/")).toBe("Documentación");
+    expect(etiquetaZona("/en/desarrollo/model/")).toBe("Development");
+    expect(filtrosBusqueda("/docs/")).toEqual({ zona: ["Documentación"] });
+    expect(filtrosBusqueda("/en/docs/usar/mcp/")).toEqual({ zona: ["Documentation"] });
+    expect(filtrosBusqueda("/desarrollo/adr/")).toEqual({ zona: ["Desarrollo"] });
+    expect(filtrosBusqueda("/")).toEqual({});
   });
 });

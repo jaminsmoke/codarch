@@ -53,3 +53,29 @@ export function esRutaInterna(ruta) {
     ruta.startsWith("/desarrollo/")
   );
 }
+
+/**
+ * El nombre de cada zona en el filtro «zona» de la búsqueda, por idioma. Es lo
+ * que ve quien busca, así que va en el idioma de la página.
+ */
+export const ETIQUETAS_ZONA = {
+  es: { usar: "Documentación", desarrollo: "Desarrollo" },
+  en: { usar: "Documentation", desarrollo: "Development" }
+};
+
+/** La etiqueta de la zona de una ruta del sitio (sin base), o `null`. */
+export function etiquetaZona(ruta) {
+  const zona = zonaDeRuta(ruta);
+  if (!zona) return null;
+  const idioma = /^\/en(?=\/|$)/.test(ruta) ? "en" : "es";
+  return ETIQUETAS_ZONA[idioma][zona];
+}
+
+/**
+ * Los filtros con los que se abre la búsqueda en una ruta: los de su zona, para
+ * que buscar desde `/docs/` no devuelva solo ADR. Fuera de las zonas, ninguno.
+ */
+export function filtrosBusqueda(ruta) {
+  const etiqueta = etiquetaZona(ruta);
+  return etiqueta ? { zona: [etiqueta] } : {};
+}

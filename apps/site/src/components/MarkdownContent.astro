@@ -1,14 +1,15 @@
 ---
 import Default from "@astrojs/starlight/components/MarkdownContent.astro";
-import { zonaDeRuta } from "../lib/zonas.mjs";
+import { etiquetaZona } from "../lib/zonas.mjs";
 
 /**
  * El contenido de un documento, con su zona para la búsqueda (ADR 0081):
- * Pagefind ofrece el filtro «zona» con `usar` y `desarrollo`.
+ * Pagefind ofrece el filtro «zona» con el nombre de la zona en el idioma de la
+ * página, y la búsqueda lo aplica por defecto (`Search.astro`).
  */
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const zona = zonaDeRuta(Astro.url.pathname.slice(base.length) || "/");
+const zona = etiquetaZona(Astro.url.pathname.slice(base.length) || "/");
 ---
 
 <Default>

@@ -51,7 +51,8 @@ export default defineConfig({
         Head: "./src/components/Head.astro",
         Header: "./src/components/Header.astro",
         Sidebar: "./src/components/Sidebar.astro",
-        MarkdownContent: "./src/components/MarkdownContent.astro"
+        MarkdownContent: "./src/components/MarkdownContent.astro",
+        Search: "./src/components/Search.astro"
       },
       routeMiddleware: "./src/middleware-rutas.ts",
       sidebar: sidebar(),

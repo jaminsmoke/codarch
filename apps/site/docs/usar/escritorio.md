@@ -46,8 +46,11 @@ Para analizar un repo, ábrelo desde el menú Archivo o desde **ABRIR REPOSITORI
 el diálogo nativo **Elige la carpeta del repositorio**.
 
 - **Atajos**: `Ctrl+O` analiza una carpeta, `Ctrl+Shift+O` abre un JSON.
-- **"Abrir con"**: abrir una carpeta, un `cc.json` o un `report.json` desde el explorador la analiza y
-  la muestra.
+- **Una ruta al arrancar**: la app acepta como argumento una carpeta, un `cc.json` o un `report.json`
+  y lo abre nada más arrancar. Los instaladores no registran asociaciones de ficheros, así que la app
+  no sale sola en «Abrir con»: elígela a mano en ese menú del explorador o pásale la ruta desde un
+  terminal (`/opt/CodArch/codarch /ruta/al/repo` con el `.deb`, `./codarch-<versión>-x86_64.AppImage /ruta/al/repo`
+  con el AppImage).
 
 ![El diálogo «Elige la carpeta del repositorio»](../images/escritorio-abrir-carpeta.png)
 
@@ -55,17 +58,21 @@ el diálogo nativo **Elige la carpeta del repositorio**.
 
 ## La carpeta .codarch/
 
-El estado del repo se guarda en su carpeta `.codarch/`, no en la app. En el repo de ejemplo contiene:
+El estado del repo se guarda en su carpeta `.codarch/`, no en la app. Lo que escribe CodArch ahí:
 
 | Fichero | Qué es |
 |---|---|
 | `snapshot.cc.json` | el último snapshot |
 | `head-report.json` | lo tocado desde el último commit |
+| `report.json` | el reporte de un diff, solo si se ha cargado uno |
 | `chains.json` | el libro de cadenas de símbolos |
 | `preferences.json` | las preferencias de la vista |
-| `map.html` | el mapa exportado |
 
-![`ls -la .codarch/` en un terminal, con los cinco ficheros](../images/escritorio-codarch-carpeta.png)
+Las fotos del historial no van aquí, sino en `.codarch-history/`, en la raíz del repo. Un mapa
+estático tampoco: [`codarch render`](cli/render.md) copia la webapp entera a la carpeta que le digas,
+con el snapshot en `data/snapshot.cc.json`.
+
+![`ls -la .codarch/` en un terminal del repo de ejemplo, con snapshot.cc.json, head-report.json, chains.json y preferences.json; el map.html que también aparece es un resto de esa copia de trabajo y CodArch no lo escribe](../images/escritorio-codarch-carpeta.png)
 
 ## Ajustes › Actualizaciones
 

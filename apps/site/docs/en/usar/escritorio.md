@@ -47,8 +47,11 @@ To analyse a repo, open it from the Archivo menu or from **ABRIR REPOSITORIO O A
 **Elige la carpeta del repositorio** (choose the repository folder) dialog opens.
 
 - **Shortcuts**: `Ctrl+O` analyses a folder, `Ctrl+Shift+O` opens a JSON.
-- **"Open with"**: opening a folder, a `cc.json` or a `report.json` from the file explorer analyses
-  and shows it.
+- **A path on start**: the app accepts a folder, a `cc.json` or a `report.json` as an argument and
+  opens it right after starting. The installers do not register file associations, so the app does
+  not show up in «Open with» on its own: pick it by hand in that file-explorer menu or pass it the
+  path from a terminal (`/opt/CodArch/codarch /path/to/repo` with the `.deb`,
+  `./codarch-<version>-x86_64.AppImage /path/to/repo` with the AppImage).
 
 ![The «Elige la carpeta del repositorio» dialog](../../images/escritorio-abrir-carpeta.png)
 
@@ -56,17 +59,21 @@ To analyse a repo, open it from the Archivo menu or from **ABRIR REPOSITORIO O A
 
 ## The .codarch/ folder
 
-The repo state is saved in its `.codarch/` folder, not in the app. In the example repo it contains:
+The repo state is saved in its `.codarch/` folder, not in the app. What CodArch writes there:
 
 | File | What it is |
 |---|---|
 | `snapshot.cc.json` | the latest snapshot |
 | `head-report.json` | what was touched since the last commit |
+| `report.json` | a diff report, only if one was loaded |
 | `chains.json` | the symbol chain ledger |
 | `preferences.json` | the view preferences |
-| `map.html` | the exported map |
 
-![`ls -la .codarch/` in a terminal, with the five files](../../images/escritorio-codarch-carpeta.png)
+History snapshots do not go here but in `.codarch-history/`, at the repo root. Neither does a static
+map: [`codarch render`](cli/render.md) copies the whole web app to the folder you give it, with the
+snapshot in `data/snapshot.cc.json`.
+
+![`ls -la .codarch/` in a terminal of the example repo, with snapshot.cc.json, head-report.json, chains.json and preferences.json; the map.html also shown is a leftover in that working copy and CodArch does not write it](../../images/escritorio-codarch-carpeta.png)
 
 ## Ajustes › Actualizaciones
 

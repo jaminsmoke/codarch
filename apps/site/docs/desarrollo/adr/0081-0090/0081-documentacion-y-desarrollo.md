@@ -32,7 +32,10 @@ Las páginas de uso, además, enlazaban ADR en mitad de las instrucciones y casi
    «Anterior/Siguiente» no cruzan de zona.
 4. **Cabecera: Inicio · Documentación · Desarrollo.** La guía está dentro de Desarrollo. La portada
    y el pie llevan a «Empezar» (instalación) y «Cómo se construye» (`/desarrollo/`).
-5. **Búsqueda por zona.** Cada documento lleva el filtro de Pagefind `zona` (`usar` o `desarrollo`).
+5. **Búsqueda por zona.** Cada documento lleva el filtro de Pagefind `zona`, con el nombre de la zona
+   en el idioma de la página (Documentación/Desarrollo, Documentation/Development). La búsqueda se
+   abre con el filtro de la zona actual ya puesto, así que buscar «ADR» desde `/docs/` no devuelve
+   solo ADR; el panel de filtros de Pagefind permite quitarlo y ver la otra zona.
 6. **Las direcciones antiguas redirigen.** `/docs/adr/*`, `/docs/model`, `/docs/migration`,
    `/docs/design/map`, `/docs/rules`, `/docs/mcp`, `/docs/usar/cli/mcp` y `/guia/*`, también en
    `/en/`. Las dos páginas de MCP se unen en `docs/usar/mcp.md` y `rules.md` pasa a
