@@ -89,26 +89,40 @@ export function inspectorLabel(tab: InspectorTab): string {
 export function InspectorBar({
   active,
   alert,
+  closed = false,
+  panelId,
   onSelect
 }: {
   active: InspectorTab;
   /** Hay cambios sin commitear: el punto va sobre el icono de Cambios. */
   alert: boolean;
+  /** La hoja está plegada: la entrada activa es la que la vuelve a abrir. */
+  closed?: boolean;
+  /** La hoja que las entradas abren y pliegan. */
+  panelId?: string;
   onSelect: (tab: InspectorTab) => void;
 }) {
   return (
     <nav className="inspector-bar" aria-label="Inspector">
       {INSPECTOR_SECTIONS.map((section) => {
         const current = section.id === active;
+        // Plegada, ninguna entrada se marca como la hoja a la vista, igual que
+        // el dock de herramientas (ADR 0079 · ADR 0083).
+        const visible = current && !closed;
         const marked = alert && section.id === "changes";
+        const name = marked
+          ? `${section.label}, con cambios sin commitear`
+          : section.label;
         return (
           <button
             key={section.id}
             type="button"
-            className={`inspector-tab${current ? " is-active" : ""}`}
-            aria-current={current ? "page" : undefined}
+            className={`inspector-tab${visible ? " is-active" : ""}`}
+            aria-current={visible ? "page" : undefined}
+            aria-expanded={current ? !closed : undefined}
+            aria-controls={current ? panelId : undefined}
             aria-label={
-              marked ? `${section.label}, con cambios sin commitear` : section.label
+              current ? `${name}, ${closed ? "mostrar" : "ocultar"}` : name
             }
             title={`${section.label} · ${section.hint}`}
             onClick={() => onSelect(section.id)}

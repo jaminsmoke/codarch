@@ -44,6 +44,10 @@ cabecera del panel derecho. Con dos funcionaba; con el panel creciendo, no:
 5. **En estrecho, la barra se tumba.** Por debajo de 820 px el panel se apila a lo ancho y la barra
    pasa a una fila horizontal encima de él, con el mismo orden de documento: el control sigue a la
    vista sin robar alto al mapa.
+6. **La entrada abierta pliega la hoja.** Pulsar el apartado que ya está a la vista cierra el panel
+   y deja solo la barra; pulsarlo otra vez lo abre, y pulsar otro apartado lo cambia sin plegar. Es
+   el mismo gesto y la misma memoria que el icono del dock de herramientas (ADR 0083), y el plegado
+   no va a la URL: la URL dice qué apartado se lee, no cuánto ancho ocupa.
 
 ## Consecuencias
 
@@ -77,5 +81,7 @@ cabecera del panel derecho. Con dos funcionaba; con el panel creciendo, no:
 - [x] La barra se tumba en pantallas estrechas, encima del panel.
 - [x] Tests de la lista: una entrada por apartado, etiquetas únicas y orden estable.
 - [x] Comprobado en la app servida: la barra fija al hacer scroll y el cambio de hoja desde los iconos.
+- [x] La entrada abierta pliega la hoja y la vuelve a abrir, como el dock de herramientas; el plegado
+      se recuerda entre visitas y el mapa gana el ancho.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

@@ -14,7 +14,7 @@ import type { CodarchApp, WatchState } from "./useCodarchApp";
 import { MapCanvas } from "./MapCanvas";
 import { FileCodeView } from "./FileCodeView";
 import { folderTrail, parentFolder } from "./tree";
-import { viewStateFromSaved } from "./viewState";
+import { type InspectorTab, toggleInspector, viewStateFromSaved } from "./viewState";
 import {
   HeatList,
   Inspector,
@@ -154,6 +154,20 @@ export function AppShell({
       writeSectionClosed(localStore(), "tool-dock", !current);
       return !current;
     });
+  const inspectorId = useId();
+  // El inspector se pliega desde su entrada abierta, con el mismo gesto y la
+  // misma memoria que el dock de herramientas (ADR 0079 · ADR 0083).
+  const [inspectorClosed, setInspectorClosed] = useState(() =>
+    readSectionClosed(localStore(), "inspector-dock", false)
+  );
+  const selectInspectorTab = (next: InspectorTab) => {
+    const result = toggleInspector(tab, inspectorClosed, next);
+    setTab(result.tab);
+    if (result.closed !== inspectorClosed) {
+      writeSectionClosed(localStore(), "inspector-dock", result.closed);
+      setInspectorClosed(result.closed);
+    }
+  };
   const projectTitle =
     view.model?.meta.title ?? cc?.meta.projectName ?? "Sin snapshot";
   // Lo que identifica al snapshot abierto, en una línea: la fuente y los dos
@@ -619,8 +633,13 @@ export function AppShell({
           </div>
         </main>
 
-        <div className="inspector-dock">
-          <aside className="inspector" aria-label={inspectorLabel(tab)}>
+        <div className={`inspector-dock${inspectorClosed ? " is-folded" : ""}`}>
+          <aside
+            className="inspector"
+            id={inspectorId}
+            aria-label={inspectorLabel(tab)}
+            hidden={inspectorClosed}
+          >
             {tab === "file" ? (
               <Inspector
                 model={view.model}
@@ -662,7 +681,9 @@ export function AppShell({
           <InspectorBar
             active={tab}
             alert={Boolean(report && reportHasChanges(report))}
-            onSelect={setTab}
+            closed={inspectorClosed}
+            panelId={inspectorId}
+            onSelect={selectInspectorTab}
           />
         </div>
       </div>

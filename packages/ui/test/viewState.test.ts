@@ -4,6 +4,7 @@ import {
   isColorModeAvailable,
   parseSourceRequest,
   parseViewState,
+  toggleInspector,
   viewStateFromSaved,
   type SourceRequest,
   type ViewState
@@ -170,6 +171,33 @@ describe("estado de vista en la URL", () => {
   it("una vista guardada con la pestaña vieja de reglas cae en Cambios", () => {
     expect(viewStateFromSaved({ tab: "rules" }).tab).toBe("changes");
     expect(viewStateFromSaved({ tab: "file" }).tab).toBe("file");
+  });
+});
+
+describe("la barra del inspector (ADR 0079)", () => {
+  it("pliega la hoja al pulsar la entrada que ya está a la vista", () => {
+    expect(toggleInspector("file", false, "file")).toEqual({
+      tab: "file",
+      closed: true
+    });
+  });
+
+  it("la vuelve a abrir con la misma entrada", () => {
+    expect(toggleInspector("changes", true, "changes")).toEqual({
+      tab: "changes",
+      closed: false
+    });
+  });
+
+  it("otra entrada cambia de apartado y lo deja abierto", () => {
+    expect(toggleInspector("file", false, "changes")).toEqual({
+      tab: "changes",
+      closed: false
+    });
+    expect(toggleInspector("file", true, "changes")).toEqual({
+      tab: "changes",
+      closed: false
+    });
   });
 });
 

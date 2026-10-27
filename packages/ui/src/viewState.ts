@@ -32,6 +32,23 @@ export function parseInspectorTab(value: string | null): InspectorTab | null {
   return null;
 }
 
+/**
+ * Qué hace pulsar una entrada de la barra del inspector (ADR 0079).
+ *
+ * La entrada abierta pliega la hoja y la vuelve a abrir, el mismo gesto que
+ * el icono del dock de herramientas (ADR 0083). Una entrada distinta cambia
+ * de apartado y lo deja abierto. El plegado no va a la URL: la URL dice qué
+ * apartado se lee, no cuánto ancho ocupa.
+ */
+export function toggleInspector(
+  active: InspectorTab,
+  closed: boolean,
+  clicked: InspectorTab
+): { tab: InspectorTab; closed: boolean } {
+  if (clicked === active) return { tab: active, closed: !closed };
+  return { tab: clicked, closed: false };
+}
+
 export interface ViewState {
   /** Métrica que decide el área del treemap. */
   areaMetric: string | null;

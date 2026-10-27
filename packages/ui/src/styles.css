@@ -614,7 +614,7 @@ button {
      de herramientas a la izquierda y la del inspector a la derecha. El ancho de
      la izquierda lo pone su dock —barra de 44 más hoja de 258—, así que al
      plegar las herramientas el mapa se queda con esos 258 px (ADR 0083). */
-  grid-template-columns: auto minmax(0, 1fr) 346px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: calc(100dvh - var(--topbar-h) - var(--band-h));
   background: var(--line);
   gap: 1px;
@@ -630,7 +630,9 @@ button {
 }
 
 /* El dock de herramientas es el espejo izquierdo del del inspector (ADR 0083):
-   la barra pegada al borde y la hoja al lado, con el mismo reparto. */
+   la barra pegada al borde y la hoja al lado, con el mismo reparto. Los dos
+   docks dicen su ancho —barra más hoja— para que al plegar la hoja el mapa se
+   quede con lo que sobra (ADR 0079). */
 .tool-dock {
   display: flex;
   /* Barra más hoja; al plegar, solo la barra y el mapa gana el resto. */
@@ -641,6 +643,12 @@ button {
 }
 
 .tool-dock.is-folded .toolbar {
+  display: none;
+}
+
+/* El inspector se pliega desde su entrada abierta, como el dock de
+   herramientas (ADR 0079): la barra se queda y el mapa gana la hoja. */
+.inspector-dock.is-folded .inspector {
   display: none;
 }
 
@@ -662,7 +670,10 @@ button {
 }
 
 .inspector {
-  flex: 1;
+  /* El ancho lo dice el dock: al plegar la hoja, la columna se encoge. */
+  flex: 0 0 302px;
+  width: 302px;
+  max-width: 302px;
   min-width: 0;
 }
 
@@ -3723,6 +3734,10 @@ code {
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
     gap: 30px;
+    /* Apilado no hay dock que medir: la hoja ocupa el ancho de la fila. */
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
   }
 }
 
