@@ -9,9 +9,13 @@ import type { FileParseResult } from "./types";
  * —resolución, grafo, migración y snapshot—, que son milisegundos (ADR 0056).
  *
  * La clave es la **versión** del fichero (`tamaño:mtime`), no su contenido: si
- * la versión no cambió, se da por bueno. La caché es del proceso, no se
- * persiste y no cambia el checksum: el resultado tiene que ser el mismo que el
- * de un análisis completo.
+ * la versión no cambió, se da por bueno. No cambia el checksum: el resultado
+ * tiene que ser el mismo que el de un análisis completo.
+ *
+ * Vive en memoria del proceso que analiza, y un alcance la deja además en su
+ * `.codarch/` para que el análisis que lo contiene la lea hacia abajo
+ * (ADR 0089). Nunca se lee hacia arriba: un alcance parcial no hereda el
+ * estado de un alcance mayor.
  */
 export interface CachedParse {
   /** `tamaño:mtime` con el que se parseó. */
@@ -20,6 +24,14 @@ export interface CachedParse {
   /** Si el fichero puentea a otro lenguaje (`jsIsBridge`), ya medido. */
   bridge: boolean;
 }
+
+/**
+ * El formato del fichero donde un alcance guarda su caché de parseo.
+ *
+ * Se sube cuando el contenido guardado deja de valer para un lector viejo; un
+ * lector que no conoce el formato ignora la caché y parsea, que es seguro.
+ */
+export const PARSE_CACHE_FORMAT = 1;
 
 export class ParseCache {
   private readonly entries = new Map<string, CachedParse>();
@@ -46,6 +58,18 @@ export class ParseCache {
   /** Cuántos ficheros guarda. Lo usan los tests y los diagnósticos. */
   get size(): number {
     return this.entries.size;
+  }
+
+  /**
+   * Los parseos guardados, en orden de ruta.
+   *
+   * El orden es estable a propósito: de aquí sale el fichero que un alcance
+   * deja para que lo lea el que lo contiene (ADR 0089).
+   */
+  list(): Array<[string, CachedParse]> {
+    return [...this.entries.entries()].sort(([left], [right]) =>
+      left < right ? -1 : left > right ? 1 : 0
+    );
   }
 
   clear(): void {

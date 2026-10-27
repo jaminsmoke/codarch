@@ -7,6 +7,15 @@ import { analyzeTree } from "./tree";
 const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"] as const;
 
 /**
+ * La identidad del parser que guarda la caché de parseo (ADR 0089).
+ *
+ * Un alcance no reutiliza el parseo de otro parser: el mismo fuente puede dar
+ * otros números. Se exporta para que la caché se firme con el mismo nombre que
+ * declara el parser, sin que las dos cadenas puedan separarse.
+ */
+export const TS_PARSER_NAME = "typescript";
+
+/**
  * Parser TypeScript/JavaScript basado en tree-sitter nativo.
  *
  * Devuelve solo agregados por fichero. No retiene el árbol ni el fuente: el
@@ -17,7 +26,7 @@ const EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"
  * salen iguales en los dos.
  */
 export class TypeScriptParser implements SourceParser {
-  readonly name = "typescript";
+  readonly name = TS_PARSER_NAME;
   readonly extensions = EXTENSIONS;
 
   private readonly tsParser = new Parser();

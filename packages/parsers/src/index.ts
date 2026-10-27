@@ -1,4 +1,4 @@
-export { TypeScriptParser } from "./ts/parser";
+export { TS_PARSER_NAME, TypeScriptParser } from "./ts/parser";
 export { ImportResolver, isAssetSpecifier } from "./resolve";
 export type { ResolveResult } from "./resolve";
 export { buildGraph } from "./graph";
@@ -43,7 +43,7 @@ export {
   repoSession
 } from "./repo-session";
 export type { AnalyzeRepoOptions, RepoAnalysis } from "./repo-session";
-export { ParseCache } from "./cache";
+export { PARSE_CACHE_FORMAT, ParseCache } from "./cache";
 export type { CachedParse } from "./cache";
 export { buildSnapshot } from "./snapshot";
 export type { SnapshotFile, SnapshotInput } from "./snapshot";

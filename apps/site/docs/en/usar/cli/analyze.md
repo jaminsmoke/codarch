@@ -31,7 +31,9 @@ codarch analyze [path] [options]
 
 ## Output
 
-Writes `snapshot.cc.json` to the output folder. If it creates `.codarch/` at the root, it adds `.codarch/` to `.gitignore` (an existing folder is left alone). Prints a summary: root, snapshot path and size, files, folders, edges, cycles, imports (external, builtins, type-only, unresolved), migration and time.
+Writes `snapshot.cc.json` to the output folder. If it creates `.codarch/` at the root, it adds `.codarch/` to `.gitignore` (an existing folder is left alone). Prints a summary: root, snapshot path and size, files, folders, edges, cycles, imports (external, builtins, type-only, unresolved), migration, parse cache, nested scopes and time.
+
+The **parse cache** is left in `.codarch/parse-cache.json` and the **list of nested scopes** in `.codarch/scopes.json`: they are derived, they can be deleted, and they save the analysis that contains this scope from parsing again what is already parsed ([`codarch scopes`](scopes.md)).
 
 ![Output of `codarch analyze .` in the terminal](../../../images/cli-analyze.png)
 

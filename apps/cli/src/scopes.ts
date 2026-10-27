@@ -66,25 +66,50 @@ export function scopesFile(outDirectory: string): string {
  * `.codarch/` de la raíz. Un snapshot ilegible se salta: el estado de un
  * ancestro nunca se cae por un hijo roto.
  */
-export function discoverScopes(
+/**
+ * Las carpetas que tienen su propio `.codarch/` por debajo de la raíz.
+ *
+ * Es el descubrimiento sin abrir nada: sirve para saber qué alcances hay y
+ * para buscar su caché de parseo, que no depende de que su snapshot se lea.
+ */
+export function discoverScopePaths(
   root: string,
   ignore: readonly string[] = []
-): ScopeEntry[] {
+): string[] {
   const fileSystem = new NodeFileSystem(root);
   // Las mismas exclusiones que el análisis: una carpeta que el padre no mira
   // no es un alcance suyo. El recorrido devuelve los `.codarch/` y no entra.
   const { directories } = walkProjectDirectories(fileSystem, { ignore });
 
-  const scopes: ScopeEntry[] = [];
+  const paths: string[] = [];
   for (const directory of directories) {
     // `/apps/desktop/.codarch` → el alcance es `/apps/desktop`.
     const scopePath = path.posix.dirname(directory.relativePath);
     if (scopePath === "." || scopePath === "") continue;
+    paths.push(scopePath);
+  }
+
+  return paths;
+}
+
+/** La cabecera de cada alcance, saltando el que tenga el snapshot ilegible. */
+export function readScopes(
+  root: string,
+  scopePaths: readonly string[]
+): ScopeEntry[] {
+  const scopes: ScopeEntry[] = [];
+  for (const scopePath of scopePaths) {
     const scope = readScope(root, scopePath);
     if (scope) scopes.push(scope);
   }
-
   return scopes;
+}
+
+export function discoverScopes(
+  root: string,
+  ignore: readonly string[] = []
+): ScopeEntry[] {
+  return readScopes(root, discoverScopePaths(root, ignore));
 }
 
 /** La cabecera de un alcance, o `null` si su snapshot no se entiende. */

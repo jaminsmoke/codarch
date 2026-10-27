@@ -31,7 +31,9 @@ codarch analyze [ruta] [opciones]
 
 ## Salida
 
-Escribe `snapshot.cc.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore` (si la carpeta ya existía, no lo toca). Imprime un resumen: raíz, ruta y tamaño del snapshot, ficheros, carpetas, aristas, ciclos, imports (externos, builtins, type-only, sin resolver), migración y tiempo.
+Escribe `snapshot.cc.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore` (si la carpeta ya existía, no lo toca). Imprime un resumen: raíz, ruta y tamaño del snapshot, ficheros, carpetas, aristas, ciclos, imports (externos, builtins, type-only, sin resolver), migración, caché de parseo, alcances anidados y tiempo.
+
+La **caché de parseo** queda en `.codarch/parse-cache.json` y la **lista de alcances** anidados en `.codarch/scopes.json`: son derivadas, se pueden borrar, y sirven para que el análisis que contiene a este alcance no vuelva a parsear lo que ya está parseado ([`codarch scopes`](scopes.md)).
 
 ![Salida de `codarch analyze .` en la terminal](../../images/cli-analyze.png)
 

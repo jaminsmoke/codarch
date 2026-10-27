@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ConfigError } from "@codarch/metrics";
 import {
+  ParseCache,
   analyzeRepository,
   ensureGitignoreEntry,
   protectedRootReason
@@ -11,11 +12,14 @@ import { loadProjectIgnore } from "../config";
 import { directoryProblem, formatBytes } from "../io";
 import { saveHistory } from "@codarch/schema";
 import {
-  discoverScopes,
+  discoverScopePaths,
+  readScopes,
   scopeHasNewerFiles,
   scopesFile,
+  type ScopeEntry,
   writeScopeRegister
 } from "../scopes";
+import { loadDescendantParseCaches, writeParseCache } from "../parse-cache";
 
 export interface AnalyzeCommandOptions {
   root?: string;
@@ -76,13 +80,29 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     throw error;
   }
 
+  const rootPath = path.resolve(root);
+  // El parseo de esta pasada; los alcances de debajo aportan el suyo. Se lee
+  // hacia abajo y nunca hacia arriba (ADR 0089): una carpeta que el padre no
+  // mira no es un alcance suyo, y su caché no se usa.
+  const cache = new ParseCache();
+  let nested: ScopeEntry[] = [];
+  let reused = { scopes: 0, entries: 0 };
+  let scopePaths: string[] = [];
+  try {
+    scopePaths = discoverScopePaths(rootPath, ignore);
+    reused = loadDescendantParseCaches(cache, rootPath, scopePaths);
+  } catch {
+    // Sin alcances legibles se analiza entero: la caché es solo tiempo.
+  }
+
   let result;
 
   try {
     result = analyzeRepository(root, {
       ignore,
       projectName: options.projectName,
-      git: options.git
+      git: options.git,
+      cache
     });
   } catch (error) {
     console.error(`no se pudo analizar ${root}: ${(error as Error).message}`);
@@ -110,7 +130,6 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     throw error;
   }
 
-  const rootPath = path.resolve(root);
   const outDirectory = path.resolve(
     options.out ?? path.join(rootPath, ".codarch")
   );
@@ -181,10 +200,31 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
       )}`
     )
   );
+  // La caché de parseo de esta pasada, para el análisis que venga por encima.
+  try {
+    writeParseCache(outDirectory, rootPath, cache);
+    lines.push(
+      field(
+        "parseo",
+        `${num(result.cache.hits)} reutilizados · ${num(
+          result.cache.misses
+        )} parseados${
+          reused.entries > 0
+            ? ` · ${num(reused.entries)} de alcances de debajo`
+            : ""
+        }`
+      )
+    );
+  } catch (error) {
+    lines.push(
+      field("parseo", `no se pudo guardar la caché: ${(error as Error).message}`)
+    );
+  }
+
   // El padre apunta qué alcances tiene por debajo (ADR 0089). Solo se lee
   // hacia abajo: el `.codarch/` del hijo lo escribe quien analiza el hijo.
   try {
-    const nested = discoverScopes(rootPath, ignore);
+    nested = readScopes(rootPath, scopePaths);
     const stale = nested.filter((scope) =>
       scopeHasNewerFiles(rootPath, scope.path)
     ).length;

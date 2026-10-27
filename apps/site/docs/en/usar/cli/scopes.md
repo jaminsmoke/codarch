@@ -42,6 +42,10 @@ scope is written by whoever analyzes that scope. The register is derived and can
 The search uses the same exclusions as the analysis: a folder left out by `.gitignore` —or by the
 scope in `.codarch.yml`— does not count as a scope of the parent.
 
+Each scope also leaves its parse cache in `.codarch/parse-cache.json`, and the root's analysis reads
+its children's caches so it does not parse again what is already parsed. The `parseo` line of
+`codarch analyze` says how many files were reused.
+
 ## Examples
 
 ```sh

@@ -42,6 +42,10 @@ escribe quien analiza ese alcance. El registro es derivado y se puede borrar.
 La búsqueda usa las mismas exclusiones que el análisis: una carpeta que `.gitignore` —o el alcance de
 `.codarch.yml`— deja fuera no cuenta como alcance del padre.
 
+Cada alcance deja además su caché de parseo en `.codarch/parse-cache.json`, y el análisis de la raíz
+lee las de sus hijos para no volver a parsear lo que ya está parseado. La línea `parseo` de
+`codarch analyze` dice cuántos ficheros se reutilizaron.
+
 ## Ejemplos
 
 ```sh
