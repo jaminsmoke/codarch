@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { analyzeState, browseDirectories } from "../src/commands/serve";
 
 const tempDirs: string[] = [];
@@ -76,4 +76,29 @@ describe("analyzeState", () => {
     fs.writeFileSync(config, "version: 1\nignore: []\n");
     expect(analyzeState(root, false).files).toBe(2);
   });
+
+  it("guarda la caché de parseo y el servidor siguiente la encuentra", async () => {
+    const root = tempDir();
+    fs.mkdirSync(path.join(root, "src"));
+    fs.writeFileSync(path.join(root, "src", "a.ts"), "export const a = 1;\n");
+    fs.writeFileSync(path.join(root, "src", "b.ts"), "export const b = 2;\n");
+
+    const state = analyzeState(root, false);
+
+    // Lo que escribe el servidor es derivado: la caché de su propia pasada.
+    const payload = JSON.parse(
+      fs.readFileSync(path.join(root, ".codarch", "parse-cache.json"), "utf8")
+    ) as { root: string; entries: Record<string, unknown> };
+    expect(payload.root).toBe(path.resolve(root));
+    expect(Object.keys(payload.entries).sort()).toEqual([
+      "src/a.ts",
+      "src/b.ts"
+    ]);
+
+    // Un servidor nuevo —sesión nueva, como al reiniciar— la lee del disco y da
+    // el mismo checksum que el análisis en frío.
+    vi.resetModules();
+    const fresh = await import("../src/commands/serve");
+    expect(fresh.analyzeState(root, false).checksum).toBe(state.checksum);
+  }, 20_000);
 });

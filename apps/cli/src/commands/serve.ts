@@ -12,6 +12,7 @@ import {
   readSourceFile,
   readSourceSnippet,
   watchRepository,
+  writeParseCachePayload,
   type RepositoryWatcher
 } from "@codarch/parsers";
 import type { CcJson } from "@codarch/schema";
@@ -73,11 +74,13 @@ interface BrowseEntry {
 }
 
 /**
- * Servidor local de solo lectura: analiza el repo, sirve el build web y permite
- * cambiar la carpeta y el modo live desde la propia app.
+ * Servidor local: analiza el repo, sirve el build web y permite cambiar la
+ * carpeta y el modo live desde la propia app.
  *
  * No monitoriza GitHub ni es un servicio remoto: escucha en loopback por
- * defecto y no escribe en el repositorio.
+ * defecto y no toca el árbol de trabajo. Lo que escribe es estado derivado y
+ * ignorado —el libro de cadenas y la caché de parseo— dentro del `.codarch/`
+ * del repo (ADR 0050 y ADR 0089).
  */
 export function runServe(options: ServeOptions): number {
   const root = path.resolve(options.root ?? ".");
@@ -152,6 +155,7 @@ export function runServe(options: ServeOptions): number {
       // las dos cosas las hace el flujo compartido (ADR 0074).
       const result = analyzeRepo(state.root, { hints });
       if (result.kind === "unchanged") return;
+      storeParseCache(state.root, result);
       state = stateFrom(state.root, result, state.watch);
       broadcast(clients, "update", {
         checksum: state.checksum,
@@ -498,7 +502,29 @@ export function analyzeState(root: string, watch: boolean): AnalysisState {
   if (result.kind === "unchanged") {
     throw new Error("un análisis forzado no puede contestar que no hay cambios");
   }
+  storeParseCache(root, result);
   return stateFrom(root, result, watch);
+}
+
+/**
+ * Guarda el parseo de esta pasada en el `.codarch/` del repo (ADR 0089).
+ *
+ * Es derivado, como el libro de cadenas: hace que el análisis siguiente —el
+ * suyo, el del escritorio o el de `codarch analyze`— no vuelva a parsear lo que
+ * ya está parseado. Si no se puede escribir, se sigue sirviendo: cuesta tiempo,
+ * no resultado.
+ */
+function storeParseCache(
+  root: string,
+  result: Extract<RepoAnalysis, { kind: "snapshot" }>
+): void {
+  try {
+    writeParseCachePayload(path.join(root, ".codarch"), result.parseCache);
+  } catch (cause) {
+    console.error(
+      `  no se pudo guardar la caché de parseo: ${(cause as Error).message}`
+    );
+  }
 }
 
 function stateFrom(
