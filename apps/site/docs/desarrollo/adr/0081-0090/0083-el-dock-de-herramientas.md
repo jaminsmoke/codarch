@@ -40,7 +40,9 @@ Tres cosas se juntaban mal en el lado izquierdo de la app:
 4. **El icono del mapa pliega la hoja.** Es la convención de un editor: pulsar la herramienta activa la
    pliega, y el mapa gana esos 258 px. El estado se recuerda entre visitas con el almacenamiento de las
    secciones plegables ([ADR 0061](../0061-0070/0061-el-marco-del-proyecto.md)), no en el repositorio.
-   Con la hoja plegada el dock mide 44 px y la franja sigue a la vista.
+   Con la hoja plegada el dock mide 44 px y la franja sigue a la vista. La hoja se va con el mismo
+   fundido que la del inspector ([ADR 0079](../0071-0080/0079-el-inspector-con-barra-de-actividad.md))
+   y `inert` la retira del foco mientras está fuera.
 5. **El engranaje de Ajustes baja a la barra.** Al pie, separado de las herramientas, y marcado
    mientras el diálogo está abierto. La cabecera se queda con lo del proyecto abierto. Los ajustes no
    cambian de API: el estado sigue siendo `settingsOpen` y `setSettingsOpen`.
@@ -49,8 +51,8 @@ Tres cosas se juntaban mal en el lado izquierdo de la app:
 
 ## Consecuencias
 
-- La rejilla del armazón pasa a `auto minmax(0, 1fr) 346px`: la franja izquierda la mide el dock —44 +
-  258—, así que plegar la hoja no necesita ninguna regla más.
+- La rejilla del armazón pasa a `auto minmax(0, 1fr) auto`: cada dock dice su ancho —barra más
+  hoja—, así que al plegar una hoja el mapa se queda con lo que sobra sin reservar una franja vacía.
 - La hoja tiene ancho fijo (258, y 226 a partir de 1180 px) para que un texto largo no estire el dock y
   el mapa pierda lo que no debe.
 - En la cabecera desaparece un botón que no era del proyecto; el escritorio mantiene su entrada de menú
@@ -81,6 +83,7 @@ Tres cosas se juntaban mal en el lado izquierdo de la app:
 - [x] El dock con su barra de 44 px, con el color del marco y sus estados.
 - [x] El icono del mapa pliega la hoja y el estado se recuerda entre visitas.
 - [x] El engranaje de Ajustes, al pie de la barra, fuera de la cabecera.
+- [x] La hoja se pliega con el fundido del inspector y el mapa recupera el ancho de una vez.
 - [ ] Rehacer las capturas que enseñan el engranaje en la cabecera y el raíl.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

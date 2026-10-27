@@ -315,11 +315,14 @@ export function AppShell({
             onToggleOpen={toggleTools}
             onOpenSettings={() => setSettingsOpen(true)}
           />
+          {/* Plegada, la hoja sigue en el DOM para poder fundirse: `inert` la
+              saca del foco y del árbol de accesibilidad (ADR 0083). */}
           <aside
             className="toolbar"
             id={toolsId}
             aria-label={toolLabel("map")}
-            hidden={toolsClosed}
+            aria-hidden={toolsClosed}
+            inert={toolsClosed}
           >
             <section className="panel-block">
               <div className="eyebrow">Vista</div>
@@ -638,7 +641,8 @@ export function AppShell({
             className="inspector"
             id={inspectorId}
             aria-label={inspectorLabel(tab)}
-            hidden={inspectorClosed}
+            aria-hidden={inspectorClosed}
+            inert={inspectorClosed}
           >
             {tab === "file" ? (
               <Inspector

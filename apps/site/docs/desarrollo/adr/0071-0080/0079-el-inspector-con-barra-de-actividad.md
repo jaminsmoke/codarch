@@ -48,6 +48,13 @@ cabecera del panel derecho. Con dos funcionaba; con el panel creciendo, no:
    y deja solo la barra; pulsarlo otra vez lo abre, y pulsar otro apartado lo cambia sin plegar. Es
    el mismo gesto y la misma memoria que el icono del dock de herramientas (ADR 0083), y el plegado
    no va a la URL: la URL dice qué apartado se lee, no cuánto ancho ocupa.
+7. **El plegado se funde, no se estira.** La hoja se va con un fundido de 140 ms —opacidad y 8 px de
+   desplazamiento— mientras el mapa recupera su ancho de una vez. No se anima el ancho: el mapa
+   recalcula su treemap con cada cambio de tamaño y ese recálculo cuesta 18 ms de mediana con 5.000
+   ficheros (`npm run bench:render`), así que animarlo tiraría fotogramas en repos grandes. Solo se
+   animan opacidad y desplazamiento, que pinta el compositor. Con `prefers-reduced-motion: reduce` el
+   cambio es seco, y mientras está plegada la hoja sigue en el DOM para poder fundirse: `inert` la
+   saca del foco y del árbol de accesibilidad.
 
 ## Consecuencias
 
@@ -83,5 +90,7 @@ cabecera del panel derecho. Con dos funcionaba; con el panel creciendo, no:
 - [x] Comprobado en la app servida: la barra fija al hacer scroll y el cambio de hoja desde los iconos.
 - [x] La entrada abierta pliega la hoja y la vuelve a abrir, como el dock de herramientas; el plegado
       se recuerda entre visitas y el mapa gana el ancho.
+- [x] El plegado se funde con opacidad y desplazamiento, sin animar el ancho del mapa; con movimiento
+      reducido, seco. En estrecho, sin fundido.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

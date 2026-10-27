@@ -622,6 +622,8 @@ button {
 
 /* El panel y su barra de actividad, juntos: la hoja scrollea, la barra no. */
 .inspector-dock {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -634,6 +636,8 @@ button {
    docks dicen su ancho —barra más hoja— para que al plegar la hoja el mapa se
    quede con lo que sobra (ADR 0079). */
 .tool-dock {
+  position: relative;
+  z-index: 1;
   display: flex;
   /* Barra más hoja; al plegar, solo la barra y el mapa gana el resto. */
   width: max-content;
@@ -642,14 +646,38 @@ button {
   background: var(--panel);
 }
 
-.tool-dock.is-folded .toolbar {
-  display: none;
+/* Las hojas se pliegan con un fundido, no con un cambio de ancho animado: el
+   mapa recupera su hueco de una vez y la hoja se va encima, así el treemap se
+   recalcula una sola vez (ADR 0079 · ADR 0083). Solo se animan opacidad y
+   desplazamiento, que pinta el compositor. */
+.tool-dock.is-folded .toolbar,
+.inspector-dock.is-folded .inspector {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* El inspector se pliega desde su entrada abierta, como el dock de
-   herramientas (ADR 0079): la barra se queda y el mapa gana la hoja. */
+/* Cada hoja se va hacia su barra: la izquierda, a la izquierda. */
+.tool-dock.is-folded .toolbar {
+  left: 44px;
+  transform: translateX(-8px);
+}
+
 .inspector-dock.is-folded .inspector {
-  display: none;
+  right: 44px;
+  transform: translateX(8px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toolbar,
+  .inspector {
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease;
+  }
 }
 
 .toolbar,
@@ -3738,6 +3766,15 @@ code {
     flex: 1 1 auto;
     width: auto;
     max-width: none;
+  }
+
+  /* Apiladas no flotan sobre el mapa: se pliegan de golpe, sin fundido. */
+  .tool-dock.is-folded .toolbar,
+  .inspector-dock.is-folded .inspector {
+    display: none;
+    position: static;
+    opacity: 1;
+    transform: none;
   }
 }
 
