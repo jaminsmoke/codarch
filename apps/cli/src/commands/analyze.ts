@@ -5,7 +5,10 @@ import {
   ParseCache,
   analyzeRepository,
   ensureGitignoreEntry,
-  protectedRootReason
+  loadOwnParseCache,
+  loadScopeParseCaches,
+  protectedRootReason,
+  writeParseCache
 } from "@codarch/parsers";
 import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
@@ -19,11 +22,6 @@ import {
   type ScopeEntry,
   writeScopeRegister
 } from "../scopes";
-import {
-  loadDescendantParseCaches,
-  loadOwnParseCache,
-  writeParseCache
-} from "../parse-cache";
 
 export interface AnalyzeCommandOptions {
   root?: string;
@@ -98,7 +96,7 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   try {
     loadOwnParseCache(cache, rootPath, outDirectory);
     scopePaths = discoverScopePaths(rootPath, ignore);
-    reused = loadDescendantParseCaches(cache, rootPath, scopePaths);
+    reused = loadScopeParseCaches(cache, rootPath, scopePaths);
   } catch {
     // Sin alcances legibles se analiza entero: la caché es solo tiempo.
   }

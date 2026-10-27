@@ -2,14 +2,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ParseCache, analyzeRepository } from "@codarch/parsers";
-import { runAnalyze } from "../src/commands/analyze";
 import {
-  loadDescendantParseCaches,
+  ParseCache,
+  analyzeRepository,
   loadOwnParseCache,
+  loadScopeParseCaches,
   parseCachePath,
   writeParseCache
-} from "../src/parse-cache";
+} from "@codarch/parsers";
+import { runAnalyze } from "../src/commands/analyze";
 import { discoverScopePaths } from "../src/scopes";
 
 /**
@@ -47,7 +48,7 @@ function analyzeParent(parent: string, withChildren: boolean) {
   const cache = new ParseCache();
   let loaded = { scopes: 0, entries: 0 };
   if (withChildren) {
-    loaded = loadDescendantParseCaches(cache, parent, discoverScopePaths(parent));
+    loaded = loadScopeParseCaches(cache, parent, discoverScopePaths(parent));
   }
   const result = analyzeRepository(parent, { git: false, cache });
   return { result, loaded };
@@ -118,7 +119,7 @@ describe("la caché de parseo por alcance", () => {
     fs.writeFileSync(file, JSON.stringify(payload), "utf8");
 
     const foreign = new ParseCache();
-    expect(loadDescendantParseCaches(foreign, parent, discoverScopePaths(parent)))
+    expect(loadScopeParseCaches(foreign, parent, discoverScopePaths(parent)))
       .toEqual({ scopes: 0, entries: 0 });
 
     const cold = analyzeParent(parent, false).result;

@@ -45,6 +45,17 @@ export {
 export type { AnalyzeRepoOptions, RepoAnalysis } from "./repo-session";
 export { PARSE_CACHE_FORMAT, ParseCache } from "./cache";
 export type { CachedParse } from "./cache";
+export {
+  PARSE_CACHE_FILE,
+  findScopePaths,
+  loadOwnParseCache,
+  loadScopeParseCaches,
+  parseCachePath,
+  serializeParseCache,
+  writeParseCache,
+  writeParseCachePayload
+} from "./parse-cache-store";
+export type { ParseCachePayload } from "./parse-cache-store";
 export { buildSnapshot } from "./snapshot";
 export type { SnapshotFile, SnapshotInput } from "./snapshot";
 export {

@@ -3,7 +3,7 @@ import path from "node:path";
 import {
   MIGRATION_EXTENSIONS,
   NodeFileSystem,
-  walkProjectDirectories,
+  findScopePaths,
   walkSourceFiles
 } from "@codarch/parsers";
 import {
@@ -60,37 +60,18 @@ export function scopesFile(outDirectory: string): string {
 }
 
 /**
- * Los `.codarch/` que hay por debajo de la raíz.
- *
- * No sigue symlinks, no baja a `node_modules` ni a `.git` y no entra en el
- * `.codarch/` de la raíz. Un snapshot ilegible se salta: el estado de un
- * ancestro nunca se cae por un hijo roto.
- */
-/**
  * Las carpetas que tienen su propio `.codarch/` por debajo de la raíz.
  *
  * Es el descubrimiento sin abrir nada: sirve para saber qué alcances hay y
- * para buscar su caché de parseo, que no depende de que su snapshot se lea.
+ * para buscar su caché de parseo, que no depende de que su snapshot se lea. No
+ * sigue symlinks, no baja a `node_modules` ni a `.git` y no entra en el
+ * `.codarch/` de la raíz. Un snapshot ilegible se salta: el estado de un
+ * ancestro nunca se cae por un hijo roto.
+ *
+ * La búsqueda vive en `@codarch/parsers` porque también la usan `serve` y el
+ * escritorio para leer las cachés de sus alcances (ADR 0089).
  */
-export function discoverScopePaths(
-  root: string,
-  ignore: readonly string[] = []
-): string[] {
-  const fileSystem = new NodeFileSystem(root);
-  // Las mismas exclusiones que el análisis: una carpeta que el padre no mira
-  // no es un alcance suyo. El recorrido devuelve los `.codarch/` y no entra.
-  const { directories } = walkProjectDirectories(fileSystem, { ignore });
-
-  const paths: string[] = [];
-  for (const directory of directories) {
-    // `/apps/desktop/.codarch` → el alcance es `/apps/desktop`.
-    const scopePath = path.posix.dirname(directory.relativePath);
-    if (scopePath === "." || scopePath === "") continue;
-    paths.push(scopePath);
-  }
-
-  return paths;
-}
+export const discoverScopePaths = findScopePaths;
 
 /** La cabecera de cada alcance, saltando el que tenga el snapshot ilegible. */
 export function readScopes(
