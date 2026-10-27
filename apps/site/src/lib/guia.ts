@@ -229,6 +229,52 @@ export function rutaDia(
     : `${prefijo}/desarrollo/guia/${fecha}/`;
 }
 
+/** La vista de la guía que pide una dirección. */
+export type RutaGuia =
+  | { tipo: "dia"; fecha: string }
+  | { tipo: "futuro" }
+  | { tipo: "normas" };
+
+/**
+ * La vista que pide una dirección del sitio.
+ *
+ * La guía vive bajo `/desarrollo/guia/`, el inglés añade `/en` y GitHub Pages
+ * pone delante la base del sitio. Por eso se busca el tramo `guia` en vez de
+ * exigirlo en la primera posición: antes se exigía ahí y cualquier dirección
+ * —también la de un día concreto— caía al último día.
+ */
+export function parseRutaGuia(
+  pathname: string,
+  fechas: readonly string[],
+  lang: string = "es"
+): RutaGuia {
+  const crudo = pathname.split("/").filter(Boolean);
+  const sinIdioma =
+    lang === "en" && crudo[0] === "en" ? crudo.slice(1) : crudo;
+  const ultima = fechas.at(-1) ?? "";
+  const desde = sinIdioma.indexOf("guia");
+
+  if (desde === -1) return { tipo: "dia", fecha: ultima };
+  const resto = sinIdioma.slice(desde + 1);
+  if (resto[0] === "futuro") return { tipo: "futuro" };
+  if (resto[0] === "normas") return { tipo: "normas" };
+  const fecha = resto[0];
+  if (fecha && fechas.includes(fecha)) return { tipo: "dia", fecha };
+  return { tipo: "dia", fecha: ultima };
+}
+
+/** La dirección canónica de una vista de la guía. */
+export function rutaGuia(
+  ruta: RutaGuia,
+  ultima: string,
+  lang: string = "es"
+): string {
+  const prefijo = lang === "en" ? "/en" : "";
+  if (ruta.tipo === "futuro") return `${prefijo}/desarrollo/guia/futuro/`;
+  if (ruta.tipo === "normas") return `${prefijo}/desarrollo/guia/normas/`;
+  return rutaDia(ruta.fecha, ultima, lang);
+}
+
 /** La guía entera: las normas, los días y lo que falta. */
 export interface DatosGuia {
   /** Cómo se escribe la guía: la leyenda, las categorías y las reglas. */

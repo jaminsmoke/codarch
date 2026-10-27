@@ -3,11 +3,18 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type MouseEvent
 } from "react";
-import { resumenDias, rutaDia, type DatosGuia } from "../lib/guia";
+import {
+  parseRutaGuia,
+  resumenDias,
+  rutaGuia,
+  type DatosGuia,
+  type RutaGuia
+} from "../lib/guia";
 import { idiomaDe } from "../lib/i18n";
 import Marco from "../Marco";
 import Futuro from "../react-pages/Futuro";
@@ -28,52 +35,22 @@ const SITIO = "https://jaminsmoke.github.io";
 /** La línea del tiempo se carga solo en la guía. */
 const LineaTiempo = lazy(() => import("./LineaTiempo"));
 
-type Ruta =
-  | { tipo: "dia"; fecha: string }
-  | { tipo: "futuro" }
-  | { tipo: "normas" };
-
-/** La ruta de la guía que dice el navegador. */
-function parseRuta(
-  pathname: string,
-  datos: DatosGuia,
-  idioma: string
-): Ruta {
-  const limpio = pathname.startsWith(BASE)
-    ? pathname.slice(BASE.length)
-    : pathname;
-  const crudo = limpio.split("/").filter(Boolean);
-  const partes =
-    idioma === "en" && crudo[0] === "en" ? crudo.slice(1) : crudo;
-  const ultima = datos.dias.at(-1)?.fecha ?? "";
-
-  if (partes[0] !== "guia") return { tipo: "dia", fecha: ultima };
-  const resto = partes.slice(1);
-  if (resto[0] === "futuro") return { tipo: "futuro" };
-  if (resto[0] === "normas") return { tipo: "normas" };
-  const fecha = resto[0];
-  if (fecha && datos.dias.some((dia) => dia.fecha === fecha)) {
-    return { tipo: "dia", fecha };
-  }
-  return { tipo: "dia", fecha: ultima };
-}
-
-/** La ruta canónica de una vista. */
-function rutaDe(ruta: Ruta, ultima: string, idioma: string): string {
-  const prefijo = idioma === "en" ? "/en" : "";
-  if (ruta.tipo === "futuro") return `${prefijo}/desarrollo/guia/futuro/`;
-  if (ruta.tipo === "normas") return `${prefijo}/desarrollo/guia/normas/`;
-  return rutaDia(ruta.fecha, ultima, idioma);
+/** Las fechas de la guía, en orden: lo que sabe el parser de rutas. */
+function fechasDe(datos: DatosGuia): string[] {
+  return datos.dias.map((dia) => dia.fecha);
 }
 
 export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang?: string }) {
   const idioma = idiomaDe(lang);
   const dias = resumenDias(datos.dias);
   const ultima = datos.dias.at(-1)?.fecha ?? "";
-  const [ruta, setRuta] = useState<Ruta>(() =>
-    parseRuta(
-      typeof window === "undefined" ? "/desarrollo/guia/" : window.location.pathname,
-      datos,
+  const fechas = useMemo(() => fechasDe(datos), [datos]);
+  const [ruta, setRuta] = useState<RutaGuia>(() =>
+    parseRutaGuia(
+      typeof window === "undefined"
+        ? "/desarrollo/guia/"
+        : window.location.pathname,
+      fechas,
       idioma
     )
   );
@@ -86,7 +63,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
   useEffect(() => {
     const alVolver = (): void => {
-      setRuta(parseRuta(window.location.pathname, datos, idioma));
+      setRuta(parseRutaGuia(window.location.pathname, fechas, idioma));
       pendiente.current = window.location.hash
         ? decodeURIComponent(window.location.hash.slice(1))
         : null;
@@ -94,7 +71,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
     };
     window.addEventListener("popstate", alVolver);
     return () => window.removeEventListener("popstate", alVolver);
-  }, [datos, idioma]);
+  }, [fechas, idioma]);
 
   useEffect(() => {
     const id = pendiente.current;
@@ -109,7 +86,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       'link[rel="canonical"]'
     );
     if (canonical) {
-      canonical.href = `${SITIO}${BASE}${rutaDe(ruta, ultima, idioma)}`;
+      canonical.href = `${SITIO}${BASE}${rutaGuia(ruta, ultima, idioma)}`;
     }
   }, [visita, ruta, ultima, idioma]);
 
@@ -119,7 +96,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       ? decodeURIComponent(url.hash.slice(1))
       : null;
     history.pushState({}, "", `${url.pathname}${url.hash}`);
-    setRuta(parseRuta(url.pathname, datos, idioma));
+    setRuta(parseRutaGuia(url.pathname, fechas, idioma));
     setVisita((n) => n + 1);
   };
 
@@ -154,7 +131,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
     <div onClick={alClick}>
       <Marco lang={lang}>
         <Suspense
-          fallback={<div className="h-[3.05rem] border-t border-line/70" />}
+          fallback={<div className="h-[3.8rem] border-t border-line/70" />}
         >
           <LineaTiempo dias={dias} activo={activo} lang={lang} />
         </Suspense>

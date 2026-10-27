@@ -8,7 +8,9 @@ import {
   fechaPartida,
   nombreCategoria,
   nombreVeredicto,
+  parseRutaGuia,
   rutaDia,
+  rutaGuia,
   type Categoria,
   type Veredicto
 } from "../src/lib/guia";
@@ -245,5 +247,70 @@ describe("la guía del repo", () => {
   it("deja las normas fuera de las entradas", () => {
     expect(guia.normas).toContain("Las categorías");
     expect(guia.normas).not.toContain("**Qué es**");
+  });
+});
+
+describe("la ruta de la guía", () => {
+  const fechas = ["2026-10-21", "2026-10-22"];
+
+  it("lee el día que pide la dirección, también con la sección y la base delante", () => {
+    // Regresión: se exigía que `guia` fuese la primera parte, así que la
+    // dirección de un día acababa siempre en el último.
+    expect(parseRutaGuia("/desarrollo/guia/2026-10-21/", fechas)).toEqual({
+      tipo: "dia",
+      fecha: "2026-10-21"
+    });
+    expect(parseRutaGuia("/codarch/desarrollo/guia/2026-10-21/", fechas)).toEqual(
+      { tipo: "dia", fecha: "2026-10-21" }
+    );
+    expect(
+      parseRutaGuia("/en/desarrollo/guia/2026-10-21/", fechas, "en")
+    ).toEqual({ tipo: "dia", fecha: "2026-10-21" });
+  });
+
+  it("deja el último día en la portada de la guía", () => {
+    expect(parseRutaGuia("/desarrollo/guia/", fechas)).toEqual({
+      tipo: "dia",
+      fecha: "2026-10-22"
+    });
+    expect(parseRutaGuia("/codarch/desarrollo/guia/", fechas)).toEqual({
+      tipo: "dia",
+      fecha: "2026-10-22"
+    });
+  });
+
+  it("reconoce el futuro y las normas", () => {
+    expect(parseRutaGuia("/desarrollo/guia/futuro/", fechas)).toEqual({
+      tipo: "futuro"
+    });
+    expect(parseRutaGuia("/desarrollo/guia/normas/", fechas)).toEqual({
+      tipo: "normas"
+    });
+  });
+
+  it("cae al último día con una fecha que no existe o una ruta ajena", () => {
+    expect(parseRutaGuia("/desarrollo/guia/2026-01-01/", fechas)).toEqual({
+      tipo: "dia",
+      fecha: "2026-10-22"
+    });
+    expect(parseRutaGuia("/docs/model/", fechas)).toEqual({
+      tipo: "dia",
+      fecha: "2026-10-22"
+    });
+  });
+
+  it("escribe la dirección canónica de cada vista", () => {
+    expect(rutaGuia({ tipo: "dia", fecha: "2026-10-21" }, "2026-10-22")).toBe(
+      "/desarrollo/guia/2026-10-21/"
+    );
+    expect(rutaGuia({ tipo: "dia", fecha: "2026-10-22" }, "2026-10-22")).toBe(
+      "/desarrollo/guia/"
+    );
+    expect(rutaGuia({ tipo: "futuro" }, "2026-10-22", "en")).toBe(
+      "/en/desarrollo/guia/futuro/"
+    );
+    expect(rutaGuia({ tipo: "normas" }, "2026-10-22")).toBe(
+      "/desarrollo/guia/normas/"
+    );
   });
 });
