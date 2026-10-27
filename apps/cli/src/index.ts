@@ -6,6 +6,7 @@ import { runRender, type RenderCommandOptions } from "./commands/render";
 import { runServe, type ServeOptions } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
 import { runHistory, type HistoryCommandOptions } from "./commands/history";
+import { runScopes, type ScopesCommandOptions } from "./commands/scopes";
 import { runChain, type ChainCommandOptions } from "./commands/chain";
 import { runVerify, type VerifyCommandOptions } from "./commands/verify";
 import { runSuggest, type SuggestOptions } from "./commands/suggest";
@@ -28,6 +29,7 @@ Uso:
   codarch profiles [--json]
   codarch suggest <fichero.cc.json[.gz]> [--json]
   codarch history [ruta] [--json]
+  codarch scopes  [ruta] [--json]
   codarch chain   [símbolo] [opciones]
   codarch verify  [--root <ruta>] [--json]
   codarch addons  [list|add|remove] [ruta|nombre] [--json]
@@ -116,6 +118,11 @@ Opciones de history:
   --from <foto>     foto con la que comparar (fecha o checksum)
   --to <foto>       foto contra la que comparar
   -o, --out <file>  escribe el reporte JSON del diff (sin esto, no se escribe)
+  --json            salida machine-readable
+  -h, --help        esta ayuda
+
+Opciones de scopes:
+  --root <ruta>     la raíz que se mira (por defecto, la actual)
   --json            salida machine-readable
   -h, --help        esta ayuda
 
@@ -322,6 +329,44 @@ function parseHistory(args: string[]): HistoryCommandOptions | number {
   }
 
   options.root = positional[0];
+  return options;
+}
+
+function parseScopes(args: string[]): ScopesCommandOptions | number {
+  const options: ScopesCommandOptions = { json: false, help: false };
+  const positional: string[] = [];
+
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index] as string;
+
+    if (arg === "--json") {
+      options.json = true;
+    } else if (arg === "--root") {
+      const value = args[++index];
+      if (!value) {
+        console.error("--root necesita una ruta");
+        return 1;
+      }
+      options.root = value;
+    } else if (arg.startsWith("--root=")) {
+      options.root = arg.slice("--root=".length);
+    } else if (arg === "--help" || arg === "-h") {
+      console.log(USAGE);
+      return 0;
+    } else if (arg.startsWith("-")) {
+      console.error(`opción desconocida: ${arg}`);
+      return 1;
+    } else {
+      positional.push(arg);
+    }
+  }
+
+  if (positional.length > 1) {
+    console.error(`sobra un argumento: ${positional[1]}`);
+    return 1;
+  }
+
+  options.root = positional[0] ?? options.root;
   return options;
 }
 
@@ -729,6 +774,12 @@ function main(argv: string[]): number {
     const parsed = parseHistory(rest);
     if (typeof parsed === "number") return parsed;
     return runHistory(parsed);
+  }
+
+  if (command === "scopes") {
+    const parsed = parseScopes(rest);
+    if (typeof parsed === "number") return parsed;
+    return runScopes(parsed);
   }
 
   if (command === "chain") {

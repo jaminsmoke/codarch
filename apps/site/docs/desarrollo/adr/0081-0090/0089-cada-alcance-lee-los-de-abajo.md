@@ -136,7 +136,7 @@ verdad.
 
 ### M34 — El estado vive en el repositorio
 
-- [ ] Descubrir los `.codarch/` descendientes y decir cuántos hay y qué ficheros cubren, sin
+- [x] Descubrir los `.codarch/` descendientes y decir cuántos hay y qué ficheros cubren, sin
       reutilizar nada todavía.
 - [ ] Persistir la caché de parseo por alcance con formato, parser y raíz; descartarla entera si no
       cuadra.
@@ -144,7 +144,7 @@ verdad.
       monorepo con paquetes auditados. Si no llega a **un cuarto** del tiempo de parseo, no se envía.
 - [ ] Test diferencial: el padre da el mismo checksum con y sin cachés de hijos, y editar un fichero
       del hijo invalida solo su entrada.
-- [ ] Registrar en el estado del padre los `.codarch/` que tiene debajo, con su checksum, su commit
+- [x] Registrar en el estado del padre los `.codarch/` que tiene debajo, con su checksum, su commit
       y su fecha, y enseñarlos con `codarch scopes` para ver la deriva sin abrir el snapshot entero.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

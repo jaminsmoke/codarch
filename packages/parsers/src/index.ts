@@ -63,8 +63,17 @@ export type {
   MigrationLinkInput,
   MigrationResult
 } from "./migration";
-export { DEFAULT_EXTENSIONS, walkSourceFiles } from "./walk";
-export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
+export {
+  DEFAULT_EXTENSIONS,
+  walkProjectDirectories,
+  walkSourceFiles
+} from "./walk";
+export type {
+  WalkedDirectory,
+  WalkedFile,
+  WalkOptions,
+  WalkResult
+} from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
 export {
   normalizeSourcePath,

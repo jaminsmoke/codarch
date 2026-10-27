@@ -10,6 +10,12 @@ import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
 import { directoryProblem, formatBytes } from "../io";
 import { saveHistory } from "@codarch/schema";
+import {
+  discoverScopes,
+  scopeHasNewerFiles,
+  scopesFile,
+  writeScopeRegister
+} from "../scopes";
 
 export interface AnalyzeCommandOptions {
   root?: string;
@@ -175,6 +181,33 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
       )}`
     )
   );
+  // El padre apunta qué alcances tiene por debajo (ADR 0089). Solo se lee
+  // hacia abajo: el `.codarch/` del hijo lo escribe quien analiza el hijo.
+  try {
+    const nested = discoverScopes(rootPath, ignore);
+    const stale = nested.filter((scope) =>
+      scopeHasNewerFiles(rootPath, scope.path)
+    ).length;
+    // Sin alcances y sin registro, no se crea un fichero vacío; con registro,
+    // se reescribe aunque ya no quede ninguno, para no dejar fantasmas.
+    if (nested.length > 0 || fs.existsSync(scopesFile(outDirectory))) {
+      writeScopeRegister(outDirectory, nested);
+    }
+    lines.push(
+      field(
+        "alcances",
+        nested.length === 0
+          ? "—"
+          : `${num(nested.length)} anidados${
+              stale > 0 ? ` · ${num(stale)} con ficheros más nuevos` : ""
+            }`
+      )
+    );
+  } catch (error) {
+    lines.push(
+      field("alcances", `no se pudo registrar: ${(error as Error).message}`)
+    );
+  }
   lines.push(field("tiempo", `${num(result.durationMs)} ms`));
   if (options.history) {
     try {

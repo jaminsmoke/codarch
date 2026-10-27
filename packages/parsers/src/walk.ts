@@ -7,6 +7,9 @@ export { DEFAULT_EXTENSIONS };
 /** Patrones que no dependen del `.gitignore` del proyecto. */
 const ALWAYS_IGNORED = [".git", "node_modules", ".codarch"];
 
+/** La carpeta de estado, que un alcance mira pero en la que nunca entra. */
+const CODARCH_DIRECTORY = ".codarch";
+
 export interface WalkedFile {
   /** Ruta virtual absoluta: `/src/app/main.ts`. */
   absolutePath: string;
@@ -116,6 +119,94 @@ export function walkSourceFiles(
   warnings.sort();
 
   return { files, warnings };
+}
+
+export interface WalkedDirectory {
+  /** Ruta virtual absoluta: `/apps/desktop/.codarch`. */
+  absolutePath: string;
+  /** Ruta relativa al root, siempre con `/`. */
+  relativePath: string;
+}
+
+/**
+ * Las carpetas de un proyecto, con las mismas exclusiones que el análisis.
+ *
+ * Es el recorrido de `walkSourceFiles` sin la parte de ficheros: sirve para
+ * saber dónde hay un `.codarch/` sin mirar lo que el análisis no mira —una
+ * carpeta ignorada por `.gitignore` no es un alcance del padre—. A diferencia
+ * de aquel, `.codarch/` no se salta: se devuelve como carpeta y no se entra en
+ * ella, porque dentro solo hay estado.
+ */
+export function walkProjectDirectories(
+  fileSystem: FileSystem,
+  options: WalkOptions = {}
+): { directories: WalkedDirectory[]; warnings: string[] } {
+  const warnings: string[] = [];
+  const directories: WalkedDirectory[] = [];
+
+  // Sin `.codarch`: aquí es justo lo que se busca, y se corta al encontrarlo.
+  const rootMatcher = ignore().add([".git", "node_modules"]);
+  for (const pattern of options.ignore ?? []) rootMatcher.add(pattern);
+
+  const rootGitignore = readGitignore(fileSystem, "/", "", warnings);
+  if (rootGitignore) rootMatcher.add(rootGitignore);
+
+  const initialLayers: IgnoreLayer[] = [{ base: "", matcher: rootMatcher }];
+  const stack: PendingDirectory[] = [
+    { absolutePath: "/", relativePath: "", layers: initialLayers }
+  ];
+
+  while (stack.length > 0) {
+    const directory = stack.pop() as PendingDirectory;
+    let entries: ReturnType<FileSystem["readDirectory"]>;
+
+    try {
+      entries = fileSystem.readDirectory(directory.absolutePath);
+    } catch (error) {
+      warnings.push(
+        `no se pudo leer ${directory.relativePath || "."}: ${(error as Error).message}`
+      );
+      continue;
+    }
+
+    entries.sort((left, right) =>
+      left.name < right.name ? -1 : left.name > right.name ? 1 : 0
+    );
+
+    for (const entry of entries) {
+      if (!entry.isDirectory) continue;
+      const relativePath = directory.relativePath
+        ? `${directory.relativePath}/${entry.name}`
+        : entry.name;
+      const absolutePath =
+        directory.absolutePath === "/"
+          ? `/${entry.name}`
+          : `${directory.absolutePath}/${entry.name}`;
+
+      if (entry.name === CODARCH_DIRECTORY) {
+        directories.push({ absolutePath, relativePath });
+        continue;
+      }
+
+      if (isIgnored(directory.layers, relativePath, true)) continue;
+      const nested = readGitignore(fileSystem, absolutePath, relativePath, warnings);
+      const layers = nested
+        ? [...directory.layers, { base: relativePath, matcher: ignore().add(nested) }]
+        : directory.layers;
+      stack.push({ absolutePath, relativePath, layers });
+    }
+  }
+
+  directories.sort((left, right) =>
+    left.relativePath < right.relativePath
+      ? -1
+      : left.relativePath > right.relativePath
+        ? 1
+        : 0
+  );
+  warnings.sort();
+
+  return { directories, warnings };
 }
 
 function readGitignore(
