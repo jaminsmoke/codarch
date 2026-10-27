@@ -70,6 +70,11 @@ convierte un análisis parcial en una escritura sobre el estado del repo entero.
 duplicación, se resuelve con una acción explícita («analizar el repo desde su raíz»), no en
 silencio. Las rutas del sistema se rechazan antes de analizar ([ADR 0052](../0051-0060/0052-solo-hacia-abajo-y-nunca-el-sistema.md)).
 
+La dirección contraria sí se abre: un análisis puede **leer** el estado de los `.codarch/` que tiene
+por debajo, sin escribir en ellos, para no reparsear lo que ya está parseado
+([ADR 0089](../0081-0090/0089-cada-alcance-lee-los-de-abajo.md)). Lo prohibido sigue siendo mirar
+hacia arriba.
+
 ### 4. Global, lo mínimo
 
 En la máquina quedan solo la última raíz y las preferencias de vista; el proyecto, su configuración
@@ -120,6 +125,8 @@ reanaliza detrás: los cambios hechos sin la app se ven antes de ponerse en live
 - [x] Una vigilancia compartida (`watchRepository`, chokidar) para `serve` y el escritorio.
 - [x] El libro de cadenas y el historial viven en el repo; un fichero suelto no mezcla estados.
 - [ ] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo.
+- [ ] Reutilizar el parseo de los alcances anidados, leyendo siempre hacia abajo
+      ([ADR 0089](../0081-0090/0089-cada-alcance-lee-los-de-abajo.md)).
 - [ ] Decidir si la vigilancia del escritorio se puede pausar desde los ajustes, como la web.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

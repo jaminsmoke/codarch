@@ -41,7 +41,10 @@ otra versión y se rehace el resto del pipeline entero:
 - El **churn de git** se cachea por `HEAD`. `git log` no cambia si no hay commit nuevo; si lo hay, se
   rehace (480 ms), que es cuando toca.
 - La caché vive en memoria del proceso que analiza (el `utilityProcess` del escritorio, el CLI, `serve`).
-  No se persiste: es derivada y no altera el estado del repo.
+  No se persiste: es derivada y no altera el estado del repo. **Enmendado por el
+  [ADR 0089](0089-cada-alcance-lee-los-de-abajo.md):** se persiste por alcance para que un análisis
+  de la raíz reutilice el parseo de los `.codarch/` que tiene debajo; el snapshot sigue sin
+  reutilizarse.
 
 El invariante es el de siempre: **el checksum depende del código**. Un análisis incremental tiene que
 dar exactamente el mismo `cc.json` que uno completo, y hay un test diferencial que lo comprueba sobre
