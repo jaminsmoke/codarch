@@ -244,28 +244,30 @@ button {
   white-space: nowrap;
 }
 
-/* El snapshot es del proyecto abierto: va en la banda, junto a su nombre. */
-.project-meta {
-  flex: 0 1 auto;
+/* El nombre y su vigilancia, en la misma línea: la vigilancia dice del
+   proyecto, no de la app. */
+.project-name {
   min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.project-meta .mono {
+.project-name .watch-indicator,
+.project-name .refresh-notice {
+  flex: none;
+}
+
+/* El snapshot es del proyecto abierto: va en la banda, bajo su nombre, que es
+   a quien describe. */
+.project-snapshot {
   min-width: 0;
+  max-width: 360px;
+  overflow: hidden;
   font-size: 10px;
   color: #93a2a8;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.project-meta .watch-indicator,
-.project-meta .refresh-notice {
-  flex: none;
+  white-space: nowrap;
 }
 
 .watch-indicator {
@@ -947,33 +949,6 @@ button {
   white-space: nowrap;
 }
 
-.project-band .breadcrumb {
-  min-width: 0;
-  margin-top: 0;
-  color: #93a2a8;
-}
-
-.project-band .breadcrumb button {
-  border-bottom-color: #5a6a72;
-  color: #f3f6f5;
-}
-
-.project-band .breadcrumb button:hover {
-  border-bottom-color: #f3f6f5;
-}
-
-.project-band .breadcrumb-sep {
-  color: #5a6a72;
-}
-
-.project-band .breadcrumb-current {
-  max-width: 34vw;
-  overflow: hidden;
-  color: #f3f6f5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .project-kpis {
   margin-left: auto;
   display: flex;
@@ -1151,6 +1126,14 @@ button {
   color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* La ruta vive en el escenario y está siempre: sobre el mapa entero dice
+   «Todo» y, con una carpeta enfocada, cada tramo se pulsa para navegar
+   (ADR 0085). En la banda describía el proyecto; aquí navega el mapa. */
+.stage-path {
+  flex: none;
+  margin: 0 0 8px;
 }
 
 /* La flecha de volver no lleva subrayado: es un botón, no una miga. */
@@ -2329,37 +2312,24 @@ button {
   padding-top: 4px;
 }
 
+/* La muestra se aprieta para caber de ancho: letra y canaleta más justas, y
+   la sangría común quitada en el marcado. Si aun así una línea no cabe, se
+   envuelve bajo su columna: el panel es estrecho y una barra horizontal
+   escondería media función. */
 .code-view {
-  max-height: 340px;
+  max-height: 300px;
   margin: 0;
   overflow: auto;
-  padding: 8px;
+  padding: 6px 8px;
   border: 1px solid #1c2432;
   border-radius: 4px;
   background: #070a0f;
   color: #d6deeb;
-  font: 10.5px/1.45 var(--mono);
+  font: 10px/1.4 var(--mono);
   tab-size: 2;
 }
 
-.code-line {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 8px;
-}
-
-.code-line i {
-  color: #566273;
-  text-align: right;
-  font-style: normal;
-  user-select: none;
-}
-
-.code-line > span {
-  white-space: pre;
-}
-
-/* Tokens de Prism sobre el fondo negro del editor. */
+/* Los colores de los tokens sobre el fondo negro del bloque. */
 .code-view .token.comment,
 .code-view .token.prolog,
 .code-view .token.doctype,
@@ -2414,6 +2384,131 @@ button {
 .code-view .token.important,
 .code-view .token.variable {
   color: #addb67;
+}
+
+/* El editor de la ficha (ADR 0086): el marco, el fondo y la tipografía son
+   los del `.code-view`, y los colores de los tokens son las clases `.token.*`
+   de aquí abajo. El editor solo aporta la canaleta y el pintado por viewport. */
+.code-editor {
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.code-editor .cm-editor {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.code-editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.code-editor .cm-scroller {
+  max-height: 300px;
+  overflow: auto;
+  padding: 6px 8px;
+  font: inherit;
+  line-height: inherit;
+}
+
+.code-editor .cm-content {
+  padding: 0;
+  font: inherit;
+}
+
+.code-editor .cm-gutters {
+  min-width: 34px;
+  border: 0;
+  background: transparent;
+  color: #566273;
+  font: inherit;
+}
+
+.code-editor .cm-lineNumbers .cm-gutterElement {
+  min-width: 34px;
+  padding: 0 6px 0 0;
+  text-align: right;
+  user-select: none;
+}
+
+.code-editor .cm-line {
+  padding: 0;
+}
+
+.code-editor .cm-content ::selection {
+  background: #2b3a52;
+}
+
+/* El fichero abierto ocupa el escenario, donde estaba el mapa (ADR 0087):
+   la ruta sigue encima y el editor se lleva el alto. */
+.code-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 10px 12px;
+}
+
+.code-stage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font: 500 9px/1.3 var(--mono);
+  color: var(--muted);
+}
+
+.code-stage-where {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.code-stage-where .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-stage-head .code-back {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.code-stage-head .code-back:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.code-stage-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.code-stage .code-editor {
+  height: 100%;
+  min-height: 0;
+}
+
+.code-stage .code-editor .cm-editor {
+  height: 100%;
+}
+
+.code-stage .code-editor .cm-scroller {
+  max-height: none;
+  height: 100%;
+  overflow: auto;
 }
 
 .code-note {
@@ -3637,7 +3732,8 @@ code {
     padding: 10px 14px;
   }
 
-  .project-meta {
+  /* En estrecho se cae la línea del snapshot, no la vigilancia. */
+  .project-snapshot {
     display: none;
   }
 

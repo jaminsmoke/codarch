@@ -42,6 +42,8 @@ interface MapContentProps {
   activeKey: string | null;
   showLabels: boolean;
   onSelect: (index: number) => void;
+  /** Doble clic en un fichero: su código ocupa el escenario (ADR 0087). */
+  onOpenFile: (index: number) => void;
   onFocusFolder: (path: string) => void;
   onCursor: (key: string) => void;
 }
@@ -64,6 +66,7 @@ const MapContent = memo(function MapContent({
   activeKey,
   showLabels,
   onSelect,
+  onOpenFile,
   onFocusFolder,
   onCursor
 }: MapContentProps) {
@@ -111,10 +114,14 @@ const MapContent = memo(function MapContent({
             data-file-index={file.index}
             tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
             aria-label={file.path}
-            onFocus={() => onCursor(`f:${file.index}`)}
+            onFocus={() =>            onCursor(`f:${file.index}`)}
             onClick={(event) => {
               event.stopPropagation();
               onSelect(file.index);
+            }}
+            onDoubleClick={(event) => {
+              event.stopPropagation();
+              onOpenFile(file.index);
             }}
           >
             {withTitle ? (
@@ -220,6 +227,7 @@ export function MapCanvas({
   query,
   selectedIndex,
   onSelect,
+  onOpenFile,
   onFocusFolder,
   zoom,
   center,
@@ -234,6 +242,8 @@ export function MapCanvas({
   query: string;
   selectedIndex: number | null;
   onSelect: (index: number) => void;
+  /** Doble clic en un fichero del mapa (ADR 0087). */
+  onOpenFile: (index: number) => void;
   onFocusFolder: (path: string) => void;
   /** El zoom del mapa (1 = el mapa entero) ✓. */
   zoom: number;
@@ -479,6 +489,7 @@ export function MapCanvas({
           activeKey={activeKey}
           showLabels={showLabels}
           onSelect={onSelect}
+          onOpenFile={onOpenFile}
           onFocusFolder={onFocusFolder}
           onCursor={setCursor}
         />

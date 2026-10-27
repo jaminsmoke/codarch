@@ -9,6 +9,7 @@ import {
   type RepoAnalysis,
   protectedRootReason,
   readFileDiff,
+  readSourceFile,
   readSourceSnippet,
   watchRepository,
   type RepositoryWatcher
@@ -292,9 +293,12 @@ export function runServe(options: ServeOptions): number {
           sendError(response, 400, "falta path");
           return;
         }
+        const whole = url.searchParams.get("whole") === "1";
         const start = Number(url.searchParams.get("start") ?? "1");
         const end = Number(url.searchParams.get("end") ?? "400");
-        const snippet = readSourceSnippet(state.root, relative, start, end);
+        const snippet = whole
+          ? readSourceFile(state.root, relative)
+          : readSourceSnippet(state.root, relative, start, end);
         if (!snippet) {
           sendError(response, 404, "no hay código para esa ruta");
           return;

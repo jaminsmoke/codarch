@@ -13,4 +13,4 @@ verdict: adr
 
 **How it is checked**: in the browser, with the system in dark, the app starts dark; picking Claro and reloading keeps it light —the first paint already uses the stored theme, because both apps apply it in their `main.tsx` before mounting React—. `packages/ui/test/tema.test.ts` measures the dark palette: ink 14.9:1, muted 6.6:1, accents between 7.0 and 9.1:1 and states between 7.2 and 9.3:1 over paper, panel and sheet, and the frame icon 7.4:1. On the way, the light theme's muted ink goes up to #5f6d76 (5.0:1 on the panel; 4.4:1 before).
 
-**Verdict**: ADR 0084, with no new phase. The screenshots of both themes are still to be redone.
+**Verdict**: ADR 0084, with no new phase. The web app and desktop screenshots are redone in both themes, Ajustes › General included.

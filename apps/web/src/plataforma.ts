@@ -44,8 +44,10 @@ export function plataformaWeb(): Plataforma {
     cadenas: async (symbol) =>
       fetchJson(`data/chains.json?symbol=${encodeURIComponent(symbol)}`),
     codigo: async (request) => {
+      const whole = request.whole === true;
       const remote = await fetchJson(
-        `api/source?path=${encodeURIComponent(request.path)}&start=${request.start}&end=${request.end}`
+        `api/source?path=${encodeURIComponent(request.path)}&start=${request.start}&end=${request.end}` +
+          (whole ? "&whole=1" : "")
       );
       if (
         remote &&
@@ -54,7 +56,13 @@ export function plataformaWeb(): Plataforma {
       ) {
         return remote as CodeSnippet;
       }
-      return sourceFromMemory(request.path, request.start, request.end);
+      // Sin servidor (demo o fichero suelto): los ficheros que leyó el análisis.
+      return sourceFromMemory(
+        request.path,
+        request.start,
+        request.end,
+        whole ? 5_000 : 400
+      );
     },
     diff: async (path) => {
       const raw = await fetchJson(`api/diff?path=${encodeURIComponent(path)}`);

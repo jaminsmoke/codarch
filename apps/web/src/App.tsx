@@ -48,6 +48,7 @@ export default function App() {
     colorMode,
     selectedIndex,
     focusPath,
+    openFile,
     tab,
     chain,
     settingsOpen,
@@ -298,6 +299,7 @@ export default function App() {
         colorMode,
         focusPath,
         filePath: file?.path ?? null,
+        openFilePath: openFile,
         tab,
         symbolName: chain?.name ?? null,
         showLabels
@@ -317,6 +319,7 @@ export default function App() {
     colorMode,
     focusPath,
     selectedIndex,
+    openFile,
     tab,
     chain,
     showLabels,

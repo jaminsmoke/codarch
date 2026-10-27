@@ -60,6 +60,24 @@ pantalla completa; la app recuerda si estaba plegado.
 
 ![El panel VISTA con los selectores ÁREA y COLOR y el mapa pintado con la lente elegida](../images/webapp-mapa-lentes.png)
 
+Con el tema oscuro, el papel baja y las teselas conservan su color: el mapa se sigue leyendo igual
+(ver [Ajustes › General](#ajustes--general)).
+
+![El mismo mapa con el tema oscuro: papel oscuro y teselas con el color de la lente](../images/webapp-mapa-lentes-oscuro.png)
+
+## La ruta del mapa
+
+Encima del mapa está siempre la ruta. Sin carpeta enfocada dice solo **Todo**, que es donde estás;
+al pulsar una carpeta, cada tramo se vuelve un botón que enfoca esa carpeta: `Todo / packages / ui`.
+La flecha sube un nivel y **Todo** vuelve al mapa entero; `Esc` y el retroceso hacen lo mismo. La
+ruta navega el mapa, no describe el proyecto, y por eso vive aquí y no en la banda de arriba.
+
+Con **doble clic** en el bloque de un fichero, el mapa deja su sitio a su código completo, de solo
+lectura: la ruta pasa a ser `Todo / packages / ui / useCodarchApp.tsx` y cualquier tramo —o `Esc`, o
+el botón **← Mapa** de la cabecera— devuelve el mapa. No hay pestaña ni vista aparte, y el fichero
+sigue seleccionado en la ficha. El fichero abierto va en la URL con la clave `code`, así que un
+enlace compartido abre ese código directamente.
+
 ## ABRIR REPOSITORIO O ARCHIVO
 
 Es la forma principal de abrir un repositorio, aquí y en el [escritorio](escritorio.md). El botón de
@@ -127,13 +145,17 @@ El engranaje del pie de la barra de herramientas —la franja de iconos a la izq
 **Ajustes**, con sus secciones General, Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes
 y Diagnóstico.
 
-![Ajustes con sus secciones](../images/webapp-ajustes.png)
+![Ajustes con sus secciones y General abierto](../images/webapp-ajustes.png)
 
 ## Ajustes › General
 
 **General** elige el tema de la app: **Claro**, **Oscuro** o **El sistema**. Es una preferencia de
 esta máquina —no viaja en `.codarch/` ni cambia el análisis—, y las teselas del mapa conservan sus
 colores: lo que cambia es el papel.
+
+![Ajustes › General con el tema claro y las tres opciones](../images/webapp-ajustes.png)
+
+![Ajustes › General con el tema oscuro](../images/webapp-ajustes-oscuro.png)
 
 ## Ajustes › Plugins y Ajustes › Addons
 

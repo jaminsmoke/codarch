@@ -105,6 +105,10 @@ flowchart TD
 | [0082](0081-0090/0082-el-marco-de-la-app.md) | El marco de la app | 2026-10-26 | aceptado | — |
 | [0083](0081-0090/0083-el-dock-de-herramientas.md) | El dock de herramientas | 2026-10-26 | aceptado | — |
 | [0084](0081-0090/0084-el-tema-de-la-app.md) | El tema de la app | 2026-10-26 | aceptado | — |
+| [0085](0081-0090/0085-la-ruta-del-mapa-navega.md) | La ruta del mapa navega | 2026-10-26 | aceptado | — |
+| [0086](0081-0090/0086-el-codigo-de-la-ficha-con-editor.md) | El código de la ficha, con editor | 2026-10-27 | aceptado | — |
+| [0087](0081-0090/0087-el-fichero-entero-en-el-escenario.md) | El fichero entero, en el escenario | 2026-10-27 | aceptado | — |
+| [0088](0081-0090/0088-el-fichero-abierto-va-en-la-url.md) | El fichero abierto va en la URL | 2026-10-27 | aceptado | — |
 
 ## Las carpetas
 
@@ -118,6 +122,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0051-0060**: 0051, 0052, 0053, 0054, 0055, 0056, 0057, 0058, 0059, 0060
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
-- **0081-0090**: 0081, 0082, 0083, 0084
+- **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).

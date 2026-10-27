@@ -7,7 +7,8 @@
  * direcciones de los artefactos que se cargan por URL.
  *
  * Las claves son cortas y estables porque la URL se comparte y se pega en
- * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `src` y `report`.
+ * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `code`, `src` y
+ * `report`. `code` lleva la ruta del fichero que ocupa el escenario (ADR 0088).
  * Una vista guardada de un addon usa las mismas claves (ADR 0029) y el
  * escritorio las aplica con el mismo criterio, aunque no tenga URL.
  */
@@ -40,6 +41,8 @@ export interface ViewState {
   focusPath: string | null;
   /** Ruta del fichero seleccionado. */
   filePath: string | null;
+  /** El fichero que ocupa el escenario con su código (ADR 0088). */
+  openFilePath: string | null;
   /** Pestaña del panel derecho. */
   tab: InspectorTab | null;
   /** El símbolo abierto: el nombre de la función, la clase o el tipo. */
@@ -63,7 +66,16 @@ export interface SourceRequest {
  */
 export type SavedViewState = AddonViewState;
 
-const VIEW_KEYS = ["area", "color", "focus", "file", "tab", "symbol", "labels"] as const;
+const VIEW_KEYS = [
+  "area",
+  "color",
+  "focus",
+  "file",
+  "code",
+  "tab",
+  "symbol",
+  "labels"
+] as const;
 const SOURCE_KEYS = ["src", "report"] as const;
 
 export const EMPTY_VIEW_STATE: ViewState = {
@@ -71,6 +83,7 @@ export const EMPTY_VIEW_STATE: ViewState = {
   colorMode: null,
   focusPath: null,
   filePath: null,
+  openFilePath: null,
   tab: null,
   symbolName: null,
   showLabels: null
@@ -97,6 +110,7 @@ export function parseViewState(search: string): ViewState {
     colorMode: readParam(params, "color"),
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
+    openFilePath: readParam(params, "code"),
     tab: parseInspectorTab(tab),
     symbolName: readParam(params, "symbol"),
     showLabels: params.has("labels") ? params.get("labels") !== "0" : null
@@ -119,6 +133,8 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
     colorMode: state.color ?? null,
     focusPath: state.focus ?? null,
     filePath: state.file ?? null,
+    // Una vista guardada no abre código: su lista de claves es cerrada (0088).
+    openFilePath: null,
     // Una vista guardada antes del ADR 0069 puede decir `rules`: se traduce.
     tab: parseInspectorTab(state.tab ?? null),
     symbolName: state.symbol ?? null,
@@ -162,6 +178,7 @@ export function buildSearch(
   if (state.colorMode) entries.push(["color", state.colorMode]);
   if (state.focusPath) entries.push(["focus", state.focusPath]);
   if (state.filePath) entries.push(["file", state.filePath]);
+  if (state.openFilePath) entries.push(["code", state.openFilePath]);
   if (state.tab) entries.push(["tab", state.tab]);
   if (state.symbolName) entries.push(["symbol", state.symbolName]);
   if (state.showLabels !== null) {

@@ -66,6 +66,25 @@ app remembers whether it was folded.
 
 ![The VISTA panel with the ÁREA and COLOR selectors and the map painted with the chosen lens](../../images/webapp-mapa-lentes.png)
 
+With the dark theme the paper drops and the tiles keep their colour: the map still reads the same
+(see [Ajustes › General](#ajustes--general)).
+
+![The same map with the dark theme: dark paper and tiles with the lens colour](../../images/webapp-mapa-lentes-oscuro.png)
+
+## The map's path
+
+The path is always above the map. With no folder focused it says **Todo** (all) only, which is where
+you are; once you click a folder, every segment becomes a button that focuses that folder:
+`Todo / packages / ui`. The arrow goes up one level and **Todo** returns to the whole map; `Esc` and
+backspace do the same. The path navigates the map, it does not describe the project, and that is why
+it lives here and not in the band above.
+
+**Double-clicking** a file's block gives the map's place to the whole file, read-only: the path
+becomes `Todo / packages / ui / useCodarchApp.tsx` and any segment —or `Esc`, or the **← Mapa**
+button in the header— brings the map back. There is no tab and no separate view, and the file stays
+selected in the sheet. The open file goes in the URL with the `code` key, so a shared link opens that
+code directly.
+
 ## ABRIR REPOSITORIO O ARCHIVO
 
 This is the main way to open a repository, here and in the [desktop app](escritorio.md). The
@@ -135,13 +154,17 @@ The gear at the foot of the tool bar —the strip of icons to the left of the ma
 (settings), with its sections General, Vista, Proyecto, Plugins, Addons, Actualizaciones, Componentes
 and Diagnóstico.
 
-![Ajustes with its sections](../../images/webapp-ajustes.png)
+![Ajustes with its sections and General open](../../images/webapp-ajustes.png)
 
 ## Ajustes › General
 
 **General** picks the app's theme: **Claro**, **Oscuro** or **El sistema**. It is a preference of this
 machine —it does not travel in `.codarch/` and does not change the analysis— and the map's tiles keep
 their colours: what changes is the paper.
+
+![Ajustes › General with the light theme and the three options](../../images/webapp-ajustes.png)
+
+![Ajustes › General with the dark theme](../../images/webapp-ajustes-oscuro.png)
 
 ## Ajustes › Plugins and Ajustes › Addons
 

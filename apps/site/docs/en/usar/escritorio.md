@@ -34,6 +34,11 @@ inspector. The interface is in Spanish; this page uses the names as they appear 
 
 ![The desktop app with a repo open](../../images/escritorio-ventana.png)
 
+The theme is picked in **Ajustes › General**, the same as in the web app: light or dark paper belongs
+to the machine and the map's tiles keep their colour.
+
+![The same window with the dark theme](../../images/escritorio-ventana-oscuro.png)
+
 ## Archivo, Edición, Ver and Ayuda menus
 
 On top of the interface, the app has native menus: **Archivo** (file), **Edición** (edit), **Ver**
@@ -79,6 +84,16 @@ snapshot in `data/snapshot.cc.json`.
 
 ![`ls -la .codarch/` in a terminal of the example repo, with snapshot.cc.json, head-report.json, chains.json and preferences.json; the map.html also shown is a leftover in that working copy and CodArch does not write it](../../images/escritorio-codarch-carpeta.png)
 
+## Ajustes › General
+
+The first section of Ajustes picks the theme: **Claro**, **Oscuro** or **El sistema** (see
+[Ajustes › General](webapp.md#ajustes--general) in the web app). In the desktop app the preference
+lives in the app, not in the repository.
+
+![Ajustes › General in the desktop app, with the light theme](../../images/escritorio-ajustes.png)
+
+![Ajustes › General in the desktop app, with the dark theme](../../images/escritorio-ajustes-oscuro.png)
+
 ## Ajustes › Actualizaciones
 
 Updates only show up in **Ajustes › Actualizaciones** (settings › updates): it shows the installed
@@ -86,4 +101,4 @@ version and whether it is up to date. There is no banner; when a new version exi
 appears in that section. The AppImage updates without permissions; the `.deb` asks for the
 administrator password, like any package. See [Updates](actualizaciones.md).
 
-![Ajustes › Actualizaciones with version 0.3.37 up to date](../../images/escritorio-actualizaciones.png)
+![Ajustes › Actualizaciones with version 0.3.38 installed and a 0.3.39 available](../../images/escritorio-actualizaciones.png)

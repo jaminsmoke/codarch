@@ -72,7 +72,9 @@ Hay dos razones para tener tema propio y no dejarlo en manos del navegador:
   estaban: ya estaban pensados sobre oscuro.
 - Los plugins que dibujan su propia vista siguen leyendo los mismos tokens; los que pintan sobre
   lienzo (la vista 3D) eligen sus colores y no cambian con el tema.
-- Quedan por rehacer las capturas de la webapp y del escritorio en los dos temas.
+- Las capturas de la webapp y del escritorio se rehacen en los dos temas: el mapa y Ajustes › General
+  en cada app, y Ajustes › Actualizaciones en el escritorio. Los diálogos y menús nativos conservan
+  las suyas: no cambian con el tema.
 
 ## Alternativas descartadas
 
@@ -100,6 +102,7 @@ Hay dos razones para tener tema propio y no dejarlo en manos del navegador:
 - [x] La web y el escritorio aplican el tema guardado antes de montar React.
 - [x] La retícula y las carpetas del mapa con tokens, para que se lean sobre los dos papeles.
 - [x] El contraste medido en `tema.test.ts`; un token que no pase 4,5:1 rompe la suite.
-- [ ] Rehacer las capturas de la webapp y del escritorio en los dos temas.
+- [x] Las capturas de la webapp y del escritorio en los dos temas: mapa y Ajustes › General, además de
+      Ajustes › Actualizaciones en el escritorio.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

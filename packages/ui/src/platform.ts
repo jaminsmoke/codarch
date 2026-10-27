@@ -20,6 +20,8 @@ export interface CodeRequest {
   path: string;
   start: number;
   end: number;
+  /** El fichero entero, con el tope de fichero y no el de muestra (ADR 0087). */
+  whole?: boolean;
 }
 
 export interface CodeSnippet {

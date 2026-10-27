@@ -12,6 +12,7 @@ import type { AddonView as SavedView } from "@codarch/addons";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp, WatchState } from "./useCodarchApp";
 import { MapCanvas } from "./MapCanvas";
+import { FileCodeView } from "./FileCodeView";
 import { folderTrail, parentFolder } from "./tree";
 import { viewStateFromSaved } from "./viewState";
 import {
@@ -89,6 +90,7 @@ export function AppShell({
     reportError,
     tab,
     focusPath,
+    openFile,
     progress,
     chain,
     zoom,
@@ -116,6 +118,7 @@ export function AppShell({
     setPluginView
   } = app.actions;
   const {
+    closeFile,
     view,
     detail,
     migration,
@@ -133,6 +136,7 @@ export function AppShell({
     searchRef,
     addonsWithViews,
     selectPath,
+    openFileAt,
     loadHistory,
     loadHeat,
     loadDiff
@@ -201,11 +205,14 @@ export function AppShell({
     app.applyView(viewStateFromSaved(saved.state));
   };
 
-  // En Reglas se salta de un fichero a otro sin salir de la pestaña.
+  // En Reglas se salta de un fichero a otro sin salir de la pestaña. Si el
+  // escenario estaba enseñando un código, vuelve al mapa: la vista no se queda
+  // con un fichero que ya no es el seleccionado (ADR 0087).
   const selectInPlace = (path: string) => {
     const index =
       view.model?.files.findIndex((file) => file.path === path) ?? -1;
     if (index >= 0) selectIndex(index);
+    closeFile();
   };
 
   return (
@@ -259,64 +266,17 @@ export function AppShell({
       <div className="project-band">
         <div className="project-ident">
           <span className="project-label">Proyecto</span>
-          <h1 title={projectTitle}>{projectTitle}</h1>
-        </div>
-        {/* El snapshot es del proyecto abierto, no de la app: vive en la banda,
-            junto a su nombre y a la vigilancia. */}
-        <div className="project-meta">
-          <span className="mono" title={snapshotLine}>
+          <div className="project-name">
+            <h1 title={projectTitle}>{projectTitle}</h1>
+            <WatchIndicator watch={watch} />
+            <RefreshNotice at={refreshedAt} />
+          </div>
+          {/* El snapshot es del proyecto abierto, no de la app: va bajo el
+              nombre, y la vigilancia se queda al lado del nombre. */}
+          <span className="project-snapshot mono" title={snapshotLine}>
             {snapshotLine}
           </span>
-          <WatchIndicator watch={watch} />
-          <RefreshNotice at={refreshedAt} />
         </div>
-        {focusPath ? (
-          <nav className="breadcrumb" aria-label="Ruta del mapa">
-            <button
-              className="breadcrumb-up"
-              type="button"
-              onClick={() => setFocusPath(upPath)}
-              title={
-                upPath
-                  ? "Subir una carpeta (Retroceso)"
-                  : "Salir de la carpeta (Esc)"
-              }
-              aria-label="Volver"
-            >
-              ←
-            </button>
-            <button type="button" onClick={() => setFocusPath(null)}>
-              Todo
-            </button>
-            {trail.length > 0 ? (
-              trail.map((crumb, index) =>
-                index === trail.length - 1 ? (
-                  <Fragment key={crumb.path}>
-                    <span className="breadcrumb-sep">/</span>
-                    <span className="breadcrumb-current" aria-current="page">
-                      {crumb.name}
-                    </span>
-                  </Fragment>
-                ) : (
-                  <Fragment key={crumb.path}>
-                    <span className="breadcrumb-sep">/</span>
-                    <button
-                      type="button"
-                      onClick={() => setFocusPath(crumb.path)}
-                    >
-                      {crumb.name}
-                    </button>
-                  </Fragment>
-                )
-              )
-            ) : (
-              <>
-                <span className="breadcrumb-sep">/</span>
-                <span className="breadcrumb-current">{focusPath}</span>
-              </>
-            )}
-          </nav>
-        ) : null}
         <div className="project-kpis">
           <Kpi label="ficheros" value={view.model?.fileCount ?? 0} />
           <Kpi label="carpetas" value={view.model?.folderCount ?? 0} />
@@ -434,6 +394,78 @@ export function AppShell({
         <main className="stage">
           {banner}
 
+          {/* La ruta es la navegación del escenario y está siempre: en el mapa
+              entero dice «Todo» y, al enfocar una carpeta, cada tramo se puede
+              pulsar. Vive aquí, no en la banda, porque navega el mapa y no
+              describe el proyecto (ADR 0085). Con un fichero abierto, la ruta
+              lleva su nombre y cada tramo vuelve al mapa (ADR 0087). */}
+          <nav className="breadcrumb stage-path" aria-label="Ruta del mapa">
+            {focusPath || openFile ? (
+              <button
+                className="breadcrumb-up"
+                type="button"
+                onClick={() => {
+                setFocusPath(upPath);
+                closeFile();
+              }}
+                title={
+                  upPath
+                    ? "Subir una carpeta (Retroceso)"
+                    : "Salir de la carpeta (Esc)"
+                }
+                aria-label="Volver"
+              >
+                ←
+              </button>
+            ) : null}
+            {focusPath || openFile ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setFocusPath(null);
+                  closeFile();
+                }}
+              >
+                Todo
+              </button>
+            ) : (
+              <span className="breadcrumb-current" aria-current="page">
+                Todo
+              </span>
+            )}
+            {trail.map((crumb, index) =>
+              !openFile && index === trail.length - 1 ? (
+                <Fragment key={crumb.path}>
+                  <span className="breadcrumb-sep">/</span>
+                  <span className="breadcrumb-current" aria-current="page">
+                    {crumb.name}
+                  </span>
+                </Fragment>
+              ) : (
+                <Fragment key={crumb.path}>
+                  <span className="breadcrumb-sep">/</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFocusPath(crumb.path);
+                      closeFile();
+                    }}
+                  >
+                    {crumb.name}
+                  </button>
+                </Fragment>
+              )
+            )}
+            {openFile ? (
+              <>
+                <span className="breadcrumb-sep">/</span>
+                <span className="breadcrumb-current" aria-current="page">
+                  {openFile.split("/").at(-1)}
+                </span>
+              </>
+            ) : null}
+          </nav>
+
           {pluginViews.length > 0 ? (
             <div className="stage-tabs">
               <button
@@ -447,7 +479,9 @@ export function AppShell({
                 <button
                   key={view.id}
                   type="button"
-                  className={`stage-tab${pluginView === view.id ? " is-active" : ""}`}
+                  className={`stage-tab${
+                    pluginView === view.id ? " is-active" : ""
+                  }`}
                   onClick={() => setPluginView(view.id)}
                 >
                   {view.label}
@@ -465,7 +499,14 @@ export function AppShell({
                 <span>{view.error ?? error}</span>
               </div>
             ) : view.model ? (
-              pluginView && activePluginView ? (
+              openFile ? (
+                <FileCodeView
+                  key={openFile}
+                  path={openFile}
+                  load={leerCodigo}
+                  onClose={closeFile}
+                />
+              ) : pluginView && activePluginView ? (
                 <div className="plugin-stage">
                   {activePluginView.render(pluginContext)}
                 </div>
@@ -478,7 +519,14 @@ export function AppShell({
                   query={query.trim().toLowerCase()}
                   selectedIndex={selectedIndex}
                   onSelect={selectIndex}
-                  onFocusFolder={setFocusPath}
+                  onOpenFile={(index) => {
+                    const file = view.model?.files[index];
+                    if (file) openFileAt(file.path);
+                  }}
+                  onFocusFolder={(path) => {
+                    setFocusPath(path);
+                    closeFile();
+                  }}
                   zoom={zoom}
                   center={center}
                   onZoomAt={zoomAt}
@@ -494,46 +542,56 @@ export function AppShell({
 
           <div className="stage-foot">
             {/* Los datos del proyecto ya están en la banda de arriba: aquí
-                solo el zoom, sin repetir ficheros, carpetas ni formato. */}
-            <div
-              className="map-controls"
-              title="Con el botón derecho apretado, arrastra para mover el mapa"
-            >
-              <button
-                type="button"
-                onClick={() => zoomAt(1 / 1.25)}
-                disabled={zoom <= 1}
-                title="Alejar"
-                aria-label="Alejar"
+                solo el zoom, sin repetir ficheros, carpetas ni formato. Con un
+                fichero abierto no hay mapa que acercar (ADR 0087). */}
+            {openFile ? null : (
+              <div
+                className="map-controls"
+                title="Con el botón derecho apretado, arrastra para mover el mapa"
               >
-                −
-              </button>
-              <span className="map-zoom-level">{Math.round(zoom * 100)}%</span>
-              <button
-                type="button"
-                onClick={() => zoomAt(1.25)}
-                disabled={zoom >= 8}
-                title="Acercar"
-                aria-label="Acercar"
-              >
-                +
-              </button>
-              <button
-                className="map-fit"
-                type="button"
-                onClick={fitMap}
-                disabled={zoom === 1}
-                title="Ver el mapa entero"
-                aria-label="Ver el mapa entero"
-              >
-                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-                  <path
-                    fill="currentColor"
-                    d="M6 2H2v4h1.5V3.5H6V2Zm4 0v1.5h2.5V6H14V2h-4ZM2 10v4h4v-1.5H3.5V10H2Zm10.5 0v2.5H10V14h4v-4h-1.5Z"
-                  />
-                </svg>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => zoomAt(1 / 1.25)}
+                  disabled={zoom <= 1}
+                  title="Alejar"
+                  aria-label="Alejar"
+                >
+                  −
+                </button>
+                <span className="map-zoom-level">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => zoomAt(1.25)}
+                  disabled={zoom >= 8}
+                  title="Acercar"
+                  aria-label="Acercar"
+                >
+                  +
+                </button>
+                <button
+                  className="map-fit"
+                  type="button"
+                  onClick={fitMap}
+                  disabled={zoom === 1}
+                  title="Ver el mapa entero"
+                  aria-label="Ver el mapa entero"
+                >
+                  <svg
+                    viewBox="0 0 16 16"
+                    width="12"
+                    height="12"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M6 2H2v4h1.5V3.5H6V2Zm4 0v1.5h2.5V6H14V2h-4ZM2 10v4h4v-1.5H3.5V10H2Zm10.5 0v2.5H10V14h4v-4h-1.5Z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
             {progress ? (
               <span className="progress-cell">
                 <span className="mono detail-note">{progress}</span>
@@ -591,7 +649,10 @@ export function AppShell({
                 source={reportSource}
                 error={reportError}
                 onLoad={onLoadReport}
-                onSelectPath={selectPath}
+                onSelectPath={(path) => {
+                  selectPath(path);
+                  closeFile();
+                }}
                 loadHistory={loadHistory}
                 loadDiff={loadDiff}
                 onOpenHistory={onOpenHistory}

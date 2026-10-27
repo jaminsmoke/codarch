@@ -1,7 +1,9 @@
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
-import { readSourceSnippet } from "../src/source";
+import { afterAll, describe, expect, it } from "vitest";
+import { readSourceFile, readSourceSnippet } from "../src/source";
 
 const root = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -38,5 +40,32 @@ describe("el código de un símbolo", () => {
 
   it("no inventa un fichero que no existe", () => {
     expect(readSourceSnippet(root, "src/no-existe.ts", 1, 2)).toBeNull();
+  });
+});
+
+describe("el fichero entero", () => {
+  // Un repo de verdad, pequeño y temporal: 600 líneas no caben en un fixture
+  // sin llenar el árbol de ruido.
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-source-"));
+  afterAll(() => fs.rmSync(temp, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(temp, "src"));
+  fs.writeFileSync(
+    path.join(temp, "src/largo.ts"),
+    Array.from({ length: 600 }, (_, index) => `export const n${index} = ${index};`).join("\n")
+  );
+
+  it("pasa del tope de una muestra y empieza en la línea 1", () => {
+    const file = readSourceFile(temp, "src/largo.ts");
+
+    expect(file?.start).toBe(1);
+    expect(file?.lines.length).toBeGreaterThan(400);
+    expect(file?.end).toBe(600);
+    expect(file?.total).toBe(600);
+  });
+
+  it("aplica las mismas reglas de ruta que una muestra", () => {
+    expect(readSourceFile(temp, "../package.json")).toBeNull();
+    expect(readSourceFile(temp, "package.json")).toBeNull();
+    expect(readSourceFile(temp, "src/no-existe.ts")).toBeNull();
   });
 });

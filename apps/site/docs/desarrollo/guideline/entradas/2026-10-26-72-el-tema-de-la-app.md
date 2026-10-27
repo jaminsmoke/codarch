@@ -13,4 +13,4 @@ verdict: adr
 
 **Cómo se comprueba**: en el navegador, con el sistema en oscuro, la app arranca en oscuro; al elegir Claro y recargar sigue en claro —la primera pintura ya sale con el tema guardado, porque las dos apps lo aplican en su `main.tsx` antes de montar React—. `packages/ui/test/tema.test.ts` mide la paleta oscura: tinta 14,9:1, tenue 6,6:1, acentos entre 7,0 y 9,1:1 y estados entre 7,2 y 9,3:1 sobre papel, panel y hoja, y el icono del marco 7,4:1. De paso, la tinta tenue del tema claro sube a #5f6d76 (5,0:1 sobre el panel; antes 4,4:1).
 
-**Veredicto**: ADR 0084, sin fase nueva. Queda por rehacer las capturas de los dos temas.
+**Veredicto**: ADR 0084, sin fase nueva. Las capturas de la webapp y del escritorio están rehacidas en los dos temas, con Ajustes › General incluido.

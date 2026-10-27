@@ -14,6 +14,7 @@ const view: ViewState = {
   colorMode: "risk",
   focusPath: "src/app",
   filePath: "src/app/main.ts",
+  openFilePath: null,
   tab: "changes",
   symbolName: null,
   showLabels: null
@@ -53,6 +54,7 @@ describe("estado de vista en la URL", () => {
       colorMode: null,
       focusPath: null,
       filePath: null,
+      openFilePath: null,
       tab: null,
       symbolName: null,
       showLabels: null
@@ -94,6 +96,7 @@ describe("estado de vista en la URL", () => {
         colorMode: null,
         focusPath: null,
         filePath: null,
+        openFilePath: null,
         tab: null,
         symbolName: null,
         showLabels: null
@@ -113,6 +116,36 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState(search).symbolName).toBe("parseDiff");
   });
 
+  it("lleva el fichero abierto en la URL con la clave code (ADR 0088)", () => {
+    const search = buildSearch(
+      { ...view, openFilePath: "src/app/main.ts" },
+      source
+    );
+    expect(search).toContain("code=src/app/main.ts");
+    expect(parseViewState(search).openFilePath).toBe("src/app/main.ts");
+  });
+
+  it("un enlace puede decir solo código, sin fichero seleccionado", () => {
+    expect(parseViewState("?code=src/app/main.ts").openFilePath).toBe(
+      "src/app/main.ts"
+    );
+    expect(parseViewState("?code=src/app/main.ts").filePath).toBeNull();
+  });
+
+  it("quitarlo de la vista lo quita de la URL", () => {
+    const search = buildSearch(
+      view,
+      source,
+      "?file=src/app/main.ts&code=src/app/main.ts"
+    );
+    expect(search).not.toContain("code=");
+    expect(search).toContain("file=src/app/main.ts");
+  });
+
+  it("una vista guardada no abre código", () => {
+    expect(viewStateFromSaved({ file: "src/app/main.ts" }).openFilePath).toBeNull();
+  });
+
   it("hace ida y vuelta con el estado de vista", () => {
     const search = buildSearch(view, source);
     expect(parseViewState(search)).toEqual(view);
@@ -127,6 +160,7 @@ describe("estado de vista en la URL", () => {
       colorMode: "layer",
       focusPath: "src/app",
       filePath: null,
+      openFilePath: null,
       tab: null,
       symbolName: null,
       showLabels: true

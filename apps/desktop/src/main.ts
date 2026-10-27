@@ -15,6 +15,7 @@ import {
   ensureGitignoreEntry,
   protectedRootReason,
   readFileDiff,
+  readSourceFile,
   readSourceSnippet,
   watchRepository
 } from "@codarch/parsers";
@@ -872,9 +873,16 @@ ipcMain.handle(
   "codarch:read-source",
   (
     _event,
-    request: { path?: unknown; start?: unknown; end?: unknown } | null
+    request: {
+      path?: unknown;
+      start?: unknown;
+      end?: unknown;
+      whole?: unknown;
+    } | null
   ) => {
     if (!lastRoot || !request || typeof request.path !== "string") return null;
+    // El fichero entero, para verlo en el escenario (ADR 0087).
+    if (request.whole === true) return readSourceFile(lastRoot, request.path);
     return readSourceSnippet(
       lastRoot,
       request.path,

@@ -68,6 +68,7 @@ export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
 export { ensureGitignoreEntry } from "./gitignore";
 export {
   normalizeSourcePath,
+  readSourceFile,
   readSourceSnippet,
   resolveSourceFile
 } from "./source";

@@ -46,6 +46,16 @@ const MAX_LINES = 400;
 const MAX_BYTES = 1_000_000;
 
 /**
+ * Los topes del fichero entero, para verlo en el escenario.
+ *
+ * Son más altos que los de una muestra, pero siguen habiendo tope: la app no
+ * carga un fichero de un millón de líneas ni uno de cuatro megas, y el panel
+ * lo dice cuando se corta.
+ */
+const MAX_FILE_LINES = 5_000;
+const MAX_FILE_BYTES = 4_000_000;
+
+/**
  * La ruta relativa, normalizada, si tiene forma de fichero de código.
  *
  * No mira el disco: un fichero borrado del árbol sigue teniendo una ruta que
@@ -70,7 +80,8 @@ export function normalizeSourcePath(relativePath: string): string | null {
  */
 export function resolveSourceFile(
   root: string,
-  relativePath: string
+  relativePath: string,
+  maxBytes = MAX_BYTES
 ): string | null {
   const normalized = normalizeSourcePath(relativePath);
   if (!normalized) return null;
@@ -82,7 +93,7 @@ export function resolveSourceFile(
 
   try {
     const stats = fs.statSync(file);
-    if (!stats.isFile() || stats.size > MAX_BYTES) return null;
+    if (!stats.isFile() || stats.size > maxBytes) return null;
     const realRoot = fs.realpathSync(rootPath);
     const realFile = fs.realpathSync(file);
     const realPrefix = realRoot.endsWith(path.sep)
@@ -108,9 +119,34 @@ export function readSourceSnippet(
   start = 1,
   end = MAX_LINES
 ): SourceSnippet | null {
+  return readLines(root, relativePath, start, end, MAX_LINES, MAX_BYTES);
+}
+
+/**
+ * El fichero entero, para verlo en el escenario (ADR 0087).
+ *
+ * Mismas reglas de ruta y de tamaño relativo que una muestra, con los topes
+ * del fichero: 5.000 líneas y 4 MB. Si el fichero es más largo, `end` lo dice
+ * y la app avisa de que se ha cortado.
+ */
+export function readSourceFile(
+  root: string,
+  relativePath: string
+): SourceSnippet | null {
+  return readLines(root, relativePath, 1, MAX_FILE_LINES, MAX_FILE_LINES, MAX_FILE_BYTES);
+}
+
+function readLines(
+  root: string,
+  relativePath: string,
+  start: number,
+  end: number,
+  maxLines: number,
+  maxBytes: number
+): SourceSnippet | null {
   const normalized = normalizeSourcePath(relativePath);
   if (!normalized) return null;
-  const file = resolveSourceFile(root, normalized);
+  const file = resolveSourceFile(root, normalized, maxBytes);
   if (!file) return null;
 
   try {
@@ -121,7 +157,7 @@ export function readSourceSnippet(
     const last = Math.min(
       total,
       Math.max(first, Math.trunc(end) || first),
-      first + MAX_LINES - 1
+      first + maxLines - 1
     );
     if (first > total) {
       return { path: normalized, start: first, end: first, total, lines: [] };

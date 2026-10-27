@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { formatCompact } from "@codarch/render/browser";
 import type {
   CcMigrationLanguageStats,
@@ -26,7 +26,10 @@ import {
   surfaceCount,
   surfaceSummary
 } from "./structure";
-import { highlightLine } from "./highlight";
+
+/** El editor de la ficha va en su propio trozo: el mapa no lo paga (ADR 0086). */
+const CodeEditor = lazy(() => import("./CodeEditor"));
+
 import {
   EVENT_LABEL,
   LANGUAGE_COLOR,
@@ -342,6 +345,24 @@ function memberTarget(
   };
 }
 
+/**
+ * Quita la sangría común de una muestra de código.
+ *
+ * El símbolo se enseña desde la columna 0 aunque en el fichero viva dentro de
+ * tres bloques: la muestra se lee mejor y las líneas largas caben en el panel
+ * sin barra horizontal. Las líneas en blanco se quedan en blanco.
+ */
+export function dedentLines(lines: readonly string[]): string[] {
+  let common = Number.POSITIVE_INFINITY;
+  for (const line of lines) {
+    if (line.trim() === "") continue;
+    const indent = line.length - line.trimStart().length;
+    if (indent < common) common = indent;
+  }
+  if (!Number.isFinite(common) || common === 0) return lines.slice();
+  return lines.map((line) => line.slice(common));
+}
+
 function InlineCode({
   state,
   onOpenEditor
@@ -356,6 +377,13 @@ function InlineCode({
 }) {
   const { target, snippet, loading, error } = state;
   const [message, setMessage] = useState<string | null>(null);
+
+  // La muestra va sin la sangría común: el símbolo empieza en la columna 0 y
+  // las líneas largas caben en el panel sin barra horizontal.
+  const codeLines = useMemo(
+    () => (snippet ? dedentLines(snippet.lines) : []),
+    [snippet]
+  );
 
   const openEditor = async (): Promise<void> => {
     const ok = await onOpenEditor({ path: target.path, line: target.line });
@@ -402,24 +430,19 @@ function InlineCode({
         <p className="muted small">Cargando el código…</p>
       ) : error ? (
         <p className="muted small">No se pudo leer el código: {error}</p>
-      ) : snippet && snippet.lines.length > 0 ? (
+      ) : snippet && codeLines.length > 0 ? (
         <>
-          <pre className="code-view" aria-label={`Código de ${target.name}`}>
-            {snippet.lines.map((line, index) => {
-              const lineNumber = snippet.start + index;
-              return (
-                <span key={lineNumber} className="code-line">
-                  <i>{lineNumber}</i>
-                  <span
-                    // Prism escapa el HTML del fuente antes de devolverlo.
-                    dangerouslySetInnerHTML={{
-                      __html: line ? highlightLine(line, target.path) : " "
-                    }}
-                  />
-                </span>
-              );
-            })}
-          </pre>
+          <div role="group" aria-label={`Código de ${target.name}`}>
+            <Suspense
+              fallback={<p className="muted small">Cargando el código…</p>}
+            >
+              <CodeEditor
+                lines={codeLines}
+                start={snippet.start}
+                path={target.path}
+              />
+            </Suspense>
+          </div>
           {snippet.end < snippet.total ? (
             <p className="muted tiny code-note">
               Se muestran las líneas {snippet.start}–{snippet.end} de{" "}

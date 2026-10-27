@@ -34,6 +34,11 @@ inspector.
 
 ![La app de escritorio con un repo abierto](../images/escritorio-ventana.png)
 
+El tema se elige en **Ajustes › General**, igual que en la webapp: el papel claro u oscuro es de la
+máquina y las teselas del mapa conservan su color.
+
+![La misma ventana con el tema oscuro](../images/escritorio-ventana-oscuro.png)
+
 ## Menús Archivo, Edición, Ver y Ayuda
 
 Además de la interfaz, la app tiene menús nativos: **Archivo**, **Edición**, **Ver** y **Ayuda**.
@@ -77,6 +82,16 @@ con el snapshot en `data/snapshot.cc.json`.
 
 ![`ls -la .codarch/` en un terminal del repo de ejemplo, con snapshot.cc.json, head-report.json, chains.json y preferences.json; el map.html que también aparece es un resto de esa copia de trabajo y CodArch no lo escribe](../images/escritorio-codarch-carpeta.png)
 
+## Ajustes › General
+
+La primera sección de Ajustes elige el tema: **Claro**, **Oscuro** o **El sistema** (ver
+[Ajustes › General](webapp.md#ajustes--general) en la webapp). En el escritorio la preferencia vive en
+la app, no en el repositorio.
+
+![Ajustes › General en el escritorio, con el tema claro](../images/escritorio-ajustes.png)
+
+![Ajustes › General en el escritorio, con el tema oscuro](../images/escritorio-ajustes-oscuro.png)
+
 ## Ajustes › Actualizaciones
 
 Las actualizaciones solo aparecen en **Ajustes › Actualizaciones**: ahí se ve la versión instalada y
@@ -84,4 +99,4 @@ si está al día. No hay banner; si hay una versión nueva, el aviso sale en esa
 actualiza sin permisos; el `.deb` pide la contraseña de administrador, como cualquier paquete. Ver
 [Actualizaciones](actualizaciones.md).
 
-![Ajustes › Actualizaciones con la versión 0.3.37 al día](../images/escritorio-actualizaciones.png)
+![Ajustes › Actualizaciones con la versión 0.3.38 instalada y una 0.3.39 disponible](../images/escritorio-actualizaciones.png)

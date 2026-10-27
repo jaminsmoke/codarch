@@ -82,7 +82,9 @@ let lastSources: Map<string, string> | null = null;
 export function sourceFromMemory(
   path: string,
   start: number,
-  end: number
+  end: number,
+  /** Líneas que se devuelven como mucho: 400 en una muestra, más en el fichero entero. */
+  limit = 400
 ): { path: string; start: number; end: number; total: number; lines: string[] } | null {
   const normalized = path.replaceAll("\\", "/").replace(/^\/+/, "");
   const source = lastSources?.get(`/${normalized}`) ?? lastSources?.get(normalized);
@@ -90,7 +92,11 @@ export function sourceFromMemory(
   const all = source.split(/\r?\n/);
   const total = all.length;
   const first = Math.max(1, Math.trunc(start) || 1);
-  const last = Math.min(total, Math.max(first, Math.trunc(end) || first), first + 399);
+  const last = Math.min(
+    total,
+    Math.max(first, Math.trunc(end) || first),
+    first + limit - 1
+  );
   return {
     path: normalized,
     start: first,

@@ -50,6 +50,8 @@ export interface CodarchAppState {
   reportError: string | null;
   tab: InspectorTab;
   focusPath: string | null;
+  /** El fichero cuyo código ocupa el escenario, si hay uno abierto. */
+  openFile: string | null;
   progress: string | null;
   chain: SymbolChain | null;
   settingsOpen: boolean;
@@ -171,6 +173,10 @@ export interface CodarchApp {
   matches: number;
   /** Selecciona un fichero por su ruta y vuelve a la pestaña del fichero. */
   selectPath: (path: string) => void;
+  /** Abre el código de un fichero en el escenario (ADR 0087). */
+  openFileAt: (path: string) => void;
+  /** Vuelve al mapa. */
+  closeFile: () => void;
   /** Los addons que traen vistas guardadas: los únicos que dan menú. */
   addonsWithViews: RepoAddon[];
   /** Aplica un estado de vista (la URL o una vista guardada, ADR 0029). */
@@ -217,6 +223,13 @@ export function useCodarchApp(
     tabRef.current = tab;
   }, [tab]);
   const [focusPath, setFocusPath] = useState<string | null>(null);
+  /**
+   * El fichero abierto en el escenario, en lugar del mapa (ADR 0087).
+   *
+   * Es estado de la vista: viaja en la URL con la clave `code` (ADR 0088), no
+   * en el snapshot. Se cierra con la ruta, con `Esc` o al cargar otro snapshot.
+   */
+  const [openFile, setOpenFile] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [chain, setChain] = useState<SymbolChain | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -348,6 +361,7 @@ export function useCodarchApp(
           selectedPathRef.current = null;
           setSelectedIndex(null);
           setFocusPath(null);
+          setOpenFile(null);
           // Las preferencias del repo mandan sobre las de la máquina (ADR 0053).
           if (preferences) setShowLabels(preferences.showLabels);
         }
@@ -698,6 +712,24 @@ export function useCodarchApp(
   );
 
   /**
+   * Abre un fichero en el escenario y lo deja seleccionado en la ficha.
+   *
+   * El mapa se sustituye por su código, no se añade una pestaña (ADR 0087).
+   * Se vuelve con la ruta, con `Esc` o abriendo otra carpeta.
+   */
+  const openFileAt = useCallback(
+    (path: string) => {
+      const index = view.model?.files.findIndex((file) => file.path === path);
+      if (index !== undefined && index >= 0) selectIndex(index);
+      setOpenFile(path);
+      setTab("file");
+    },
+    [selectIndex, view.model]
+  );
+
+  const closeFile = useCallback(() => setOpenFile(null), []);
+
+  /**
    * Aplica un estado de vista al mapa.
    *
    * Lo usan la URL de la web y las vistas guardadas de un addon (ADR 0029):
@@ -727,6 +759,13 @@ export function useCodarchApp(
         );
         if (index >= 0) selectIndex(index);
       }
+      // `code` manda sobre `file`: el enlace dice qué fichero se ve abierto.
+      if (
+        wanted.openFilePath &&
+        view.model.files.some((file) => file.path === wanted.openFilePath)
+      ) {
+        openFileAt(wanted.openFilePath);
+      }
       if (wanted.tab) setTab(wanted.tab);
       if (wanted.showLabels !== null) setShowLabels(wanted.showLabels);
       // El símbolo se abre después, cuando ya se puede pedir su cadena.
@@ -734,7 +773,7 @@ export function useCodarchApp(
         void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
       }
     },
-    [view.model, stats, migration, selectIndex, openSymbolChain]
+    [view.model, stats, migration, selectIndex, openFileAt, openSymbolChain]
   );
 
   const loadHistory = useCallback(
@@ -812,6 +851,7 @@ export function useCodarchApp(
 
       if (event.key !== "Escape") return;
       setFocusPath(null);
+      setOpenFile(null);
       selectedPathRef.current = null;
       setSelectedIndex(null);
       setQuery("");
@@ -878,6 +918,7 @@ export function useCodarchApp(
     reportError,
     tab,
     focusPath,
+    openFile,
     progress,
     chain,
     settingsOpen,
@@ -954,6 +995,8 @@ export function useCodarchApp(
     pluginContext,
     matches,
     selectPath,
+    openFileAt,
+    closeFile,
     addonsWithViews,
     applyView,
     loadHistory,
