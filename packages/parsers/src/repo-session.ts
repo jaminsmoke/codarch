@@ -1,6 +1,7 @@
 import { loadProjectIgnore, type DiffReport } from "@codarch/metrics";
 import type { CcJson } from "@codarch/schema";
 import { compareWorkingTreeWithHead } from "./head-diff";
+import type { ParseCachePayload } from "./parse-cache-store";
 import { AnalysisSession } from "./session";
 
 /**
@@ -39,6 +40,11 @@ export type RepoAnalysis =
       files: number;
       edges: number;
       warnings: string[];
+      /**
+       * El parseo de esta pasada, para que quien persiste el estado lo guarde
+       * en el `.codarch/` de la raíz (ADR 0089). Analizar no escribe.
+       */
+      parseCache: ParseCachePayload;
     };
 
 /**
@@ -74,7 +80,8 @@ export function analyzeRepo(
     snapshot: result.snapshot,
     files: result.files,
     edges: result.edges,
-    warnings: [...warnings, ...result.warnings]
+    warnings: [...warnings, ...result.warnings],
+    parseCache: session.parseCachePayload()
   };
 }
 

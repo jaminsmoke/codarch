@@ -3,7 +3,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { analyzeRepo, headReportFor } from "../src/index";
+import {
+  AnalysisSession,
+  ParseCache,
+  analyzeRepo,
+  analyzeRepository,
+  headReportFor,
+  writeParseCache
+} from "../src/index";
 
 const tempRoots: string[] = [];
 
@@ -137,6 +144,36 @@ describe("analyzeRepo", () => {
     expect(after.kind).toBe("snapshot");
     if (after.kind !== "snapshot") return;
     expect(after.files).toBe(2);
+  });
+
+  it("lee la caché de parseo de sus alcances de debajo", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    // Un alcance dentro del repo, con dos ficheros suyos.
+    const child = path.join(root, "apps", "desktop");
+    fs.mkdirSync(path.join(child, "src"), { recursive: true });
+    fs.writeFileSync(path.join(child, "src", "c.ts"), "export const c = 3;\n", "utf8");
+    fs.writeFileSync(path.join(child, "src", "d.ts"), "export const d = 4;\n", "utf8");
+    commitAll(root, "primero");
+
+    // El alcance de debajo deja lo que parseó en su `.codarch/`.
+    const childCache = new ParseCache();
+    const childRun = analyzeRepository(child, { git: false, cache: childCache });
+    expect(childRun.cache.misses).toBe(2);
+    writeParseCache(path.join(child, ".codarch"), child, childCache);
+
+    // Una sesión nueva del padre —lo que usan `serve` y el escritorio— reutiliza
+    // el parseo del hijo en vez de repetirlo (ADR 0089).
+    const warm = new AnalysisSession(root, { git: false }).analyze();
+    expect(warm.cache.hits).toBe(2);
+    expect(warm.cache.misses).toBe(2);
+
+    // Y con caché o sin ella el mapa es el mismo: lo que se reutiliza es tiempo.
+    fs.rmSync(path.join(child, ".codarch"), { recursive: true, force: true });
+    const cold = new AnalysisSession(root, { git: false }).analyze();
+    expect(cold.cache.hits).toBe(0);
+    expect(cold.snapshot.meta.checksum).toBe(warm.snapshot.meta.checksum);
   });
 
   it("aplica el alcance del .codarch.yml y es determinista", () => {
