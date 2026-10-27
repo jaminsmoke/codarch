@@ -19,7 +19,11 @@ import {
   type ScopeEntry,
   writeScopeRegister
 } from "../scopes";
-import { loadDescendantParseCaches, writeParseCache } from "../parse-cache";
+import {
+  loadDescendantParseCaches,
+  loadOwnParseCache,
+  writeParseCache
+} from "../parse-cache";
 
 export interface AnalyzeCommandOptions {
   root?: string;
@@ -81,14 +85,18 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   }
 
   const rootPath = path.resolve(root);
-  // El parseo de esta pasada; los alcances de debajo aportan el suyo. Se lee
-  // hacia abajo y nunca hacia arriba (ADR 0089): una carpeta que el padre no
-  // mira no es un alcance suyo, y su caché no se usa.
+  const outDirectory = path.resolve(
+    options.out ?? path.join(rootPath, ".codarch")
+  );
+  // El parseo de esta pasada: el de la vez anterior y el de los alcances de
+  // debajo. Se lee hacia abajo y nunca hacia arriba (ADR 0089): una carpeta que
+  // el padre no mira no es un alcance suyo, y su caché no se usa.
   const cache = new ParseCache();
   let nested: ScopeEntry[] = [];
   let reused = { scopes: 0, entries: 0 };
   let scopePaths: string[] = [];
   try {
+    loadOwnParseCache(cache, rootPath, outDirectory);
     scopePaths = discoverScopePaths(rootPath, ignore);
     reused = loadDescendantParseCaches(cache, rootPath, scopePaths);
   } catch {
@@ -130,9 +138,6 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     throw error;
   }
 
-  const outDirectory = path.resolve(
-    options.out ?? path.join(rootPath, ".codarch")
-  );
   const snapshotPath = path.join(outDirectory, "snapshot.cc.json");
 
   try {

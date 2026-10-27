@@ -69,6 +69,28 @@ export function writeParseCache(
  * clave de la caché es la ruta relativa a quien la escribió. Un fichero que ya
  * no existe o que cambió no se reutiliza: la versión guardada no coincide.
  */
+/**
+ * La caché de este alcance, de la vez anterior.
+ *
+ * Repetir un análisis sobre lo mismo no vuelve a parsear: es la caché del
+ * ADR 0056, ahora en disco, así que también sirve en un proceso nuevo.
+ */
+export function loadOwnParseCache(
+  cache: ParseCache,
+  root: string,
+  outDirectory: string,
+  prefix = ""
+): number {
+  return loadFile(cache, parseCachePath(outDirectory), root, prefix);
+}
+
+/**
+ * Las entradas que los alcances de debajo dejan al padre.
+ *
+ * Se reindexan con el prefijo del alcance (`apps/desktop/src/b.ts`), porque la
+ * clave de la caché es la ruta relativa a quien la escribió. Un fichero que ya
+ * no existe o que cambió no se reutiliza: la versión guardada no coincide.
+ */
 export function loadDescendantParseCaches(
   cache: ParseCache,
   root: string,
@@ -78,22 +100,12 @@ export function loadDescendantParseCaches(
   let entries = 0;
 
   for (const scopePath of scopePaths) {
-    const directory = path.join(root, scopePath, ".codarch");
-    const file = parseCachePath(directory);
-    const payload = readPayload(file);
-    if (!payload) continue;
-    if (payload.format !== PARSE_CACHE_FORMAT || payload.parser !== TS_PARSER_NAME) {
-      continue;
-    }
-    if (!samePath(payload.root, path.join(root, scopePath))) continue;
-
-    let loaded = 0;
-    for (const [relativePath, entry] of Object.entries(payload.entries)) {
-      if (!isCachedParse(entry)) continue;
-      cache.set(`${scopePath}/${relativePath}`, entry);
-      loaded += 1;
-    }
-
+    const loaded = loadFile(
+      cache,
+      parseCachePath(path.join(root, scopePath, ".codarch")),
+      path.join(root, scopePath),
+      `${scopePath}/`
+    );
     if (loaded > 0) {
       usedScopes += 1;
       entries += loaded;
@@ -101,6 +113,29 @@ export function loadDescendantParseCaches(
   }
 
   return { scopes: usedScopes, entries };
+}
+
+/** Las entradas válidas de un fichero, o 0 si no vale para este alcance. */
+function loadFile(
+  cache: ParseCache,
+  file: string,
+  expectedRoot: string,
+  prefix: string
+): number {
+  const payload = readPayload(file);
+  if (!payload) return 0;
+  if (payload.format !== PARSE_CACHE_FORMAT || payload.parser !== TS_PARSER_NAME) {
+    return 0;
+  }
+  if (!samePath(payload.root, expectedRoot)) return 0;
+
+  let loaded = 0;
+  for (const [relativePath, entry] of Object.entries(payload.entries)) {
+    if (!isCachedParse(entry)) continue;
+    cache.set(`${prefix}${relativePath}`, entry);
+    loaded += 1;
+  }
+  return loaded;
 }
 
 function readPayload(file: string): CachePayload | null {

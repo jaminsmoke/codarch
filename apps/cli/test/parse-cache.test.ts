@@ -6,6 +6,7 @@ import { ParseCache, analyzeRepository } from "@codarch/parsers";
 import { runAnalyze } from "../src/commands/analyze";
 import {
   loadDescendantParseCaches,
+  loadOwnParseCache,
   parseCachePath,
   writeParseCache
 } from "../src/parse-cache";
@@ -150,6 +151,26 @@ describe("la caché de parseo por alcance", () => {
     expect(
       fs.readFileSync(parseCachePath(path.join(child, ".codarch")), "utf8")
     ).toBe(childCacheBefore);
+  });
+
+  it("repetir el análisis de la misma raíz no vuelve a parsear", () => {
+    silence();
+    const { parent } = fixture();
+    expect(runAnalyze({ root: parent, help: false, git: false })).toBe(0);
+    const first = JSON.parse(
+      fs.readFileSync(
+        path.join(parent, ".codarch", "snapshot.cc.json"),
+        "utf8"
+      )
+    ) as { meta: { checksum?: string } };
+
+    const cache = new ParseCache();
+    expect(loadOwnParseCache(cache, parent, path.join(parent, ".codarch"))).toBe(4);
+    const again = analyzeRepository(parent, { git: false, cache });
+
+    expect(again.cache.hits).toBe(4);
+    expect(again.cache.misses).toBe(0);
+    expect(checksumOf(again)).toBe(first.meta.checksum);
   });
 
   it("escribir la caché no cambia lo que se guarda en el snapshot", () => {
