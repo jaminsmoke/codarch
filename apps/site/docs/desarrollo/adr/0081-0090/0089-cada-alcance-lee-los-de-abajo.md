@@ -1,6 +1,6 @@
 ---
 title: "ADR 0089 — Cada alcance lee los de abajo"
-description: "Un `.codarch/` puede leer el estado de los que tiene por debajo, nunca el de sus ancestros. Lo que se reutiliza es el parseo por fichero, con su versión: el padre recompone resolución, grafo y snapshot, así que el `cc.json` y su checksum salen idénticos. El snapshot de un hijo no se fusiona ni se escribe desde arriba."
+description: "Un `.codarch/` puede leer el estado de los que tiene por debajo, nunca el de sus ancestros. Lo que se reutiliza es el parseo por fichero, con su versión: el padre recompone resolución, grafo y snapshot, así que el `cc.json` y su checksum salen idénticos. El snapshot de un hijo no se fusiona ni se escribe desde arriba; el padre solo lleva un registro de sus alcances para ver la deriva."
 section: desarrollo
 status: aceptado
 date: "2026-10-27"
@@ -77,7 +77,18 @@ No escribe en el `.codarch/` del hijo, no regenera su snapshot y no toca su hist
 sobre un alcance es de quien analiza ese alcance. «Sincronizar» significa aquí que las entradas
 suben, no que el estado baje.
 
-### 5. El invariante no cambia
+### 5. Cada alcance lleva el registro de los que tiene debajo
+
+Al analizar, el alcance apunta en **su propio** estado qué `.codarch/` ha visto por debajo, con su
+checksum, su commit y su fecha. Es un registro de solo lectura sobre los hijos: sirve para ver la
+deriva y saber qué alcance está al día sin abrir snapshots ajenos, y para que un análisis avise
+«2 alcances anidados; 1 desactualizado» en lugar de callarse.
+
+Lo escribe quien analiza ese alcance, y solo ese. Abrir la raíz o abrir `apps/desktop` no cambia el
+dueño de ningún `.codarch/`: cada uno sigue teniendo un escritor. El registro es derivado y se puede
+borrar; no es una prueba de nada, es un índice.
+
+### 6. El invariante no cambia
 
 **El checksum depende del código.** Un análisis con cachés de hijos y uno sin ellas tienen que
 producir el mismo `cc.json`, byte a byte. La caché es una optimización de tiempo, no una fuente de
@@ -92,8 +103,8 @@ verdad.
   decisión.
 - El `.codarch/` gana un fichero derivado más. Se puede borrar; solo cuesta tiempo volver a parsear.
 - Un hijo con el snapshot viejo no contamina al padre: se reutiliza su parseo por versión, no sus
-  conclusiones. La deriva entre alcances sigue siendo un problema de visibilidad (M34), no de
-  corrección.
+  conclusiones. La deriva entre alcances no es un problema de corrección, y el registro la enseña en
+  una línea: checksum, commit y fecha de cada alcance.
 - Analizar un hijo no gana nada de un padre, y sigue sin poder leerlo. La guarda de solo hacia abajo
   se mantiene intacta.
 
@@ -106,8 +117,18 @@ verdad.
   ficheros que hay que resolver antes de leerlo.
 - **Confiar en el snapshot del hijo mirando su `contentHash`:** obliga a rehacer igualmente la
   resolución y los agregados, ata el padre al formato interno de la lente y no ahorra la lectura.
-- **Que el padre reanalice y reescriba los hijos:** invierte la autoridad y ignora que cada alcance
-  puede tener su `.codarch.yml`, sus exclusiones y su historial.
+- **Que el padre escriba hacia abajo, aunque sea solo lo que le falta al hijo:** invierte la
+  autoridad, añade trabajo —hay que rehacer la agregación de cada alcance, que no se copia del
+  padre— y aplica en silencio la política del padre a un hijo que puede tener su propio
+  `.codarch.yml` ([ADR 0053](../0051-0060/0053-la-configuracion-no-se-mezcla.md)). Si algún día hace
+  falta, será una acción explícita que analice el hijo **como su propio alcance**, nunca un efecto del
+  análisis de la raíz.
+- **Un libro de eventos encadenado por hashes, tipo Verifactu o cripto:** el estado es local, está
+  ignorado y se puede borrar y regenerar, así que una cadena rota al limpiar una caché no prueba
+  nada: es un falso positivo. El registro compartido e inmutable ya existe y es **git**, con
+  `.codarch-history/` y `chains.json` encima y `codarch verify` para comprobarlo; una segunda cadena
+  sobre un directorio regenerable es ceremonia, y un log compartido crecería y chocaría en cada
+  análisis.
 - **Una caché global de la máquina:** el estado de un proyecto vive en el proyecto (ADR 0050), y una
   caché compartida entre repos atribuiría parseos de un árbol a otro.
 
@@ -123,7 +144,7 @@ verdad.
       monorepo con paquetes auditados. Si no llega a **un cuarto** del tiempo de parseo, no se envía.
 - [ ] Test diferencial: el padre da el mismo checksum con y sin cachés de hijos, y editar un fichero
       del hijo invalida solo su entrada.
-- [ ] Decidir si un `codarch scopes` lista los alcances con su checksum y su fecha, para ver la
-      deriva sin abrir el snapshot entero.
+- [ ] Registrar en el estado del padre los `.codarch/` que tiene debajo, con su checksum, su commit
+      y su fecha, y enseñarlos con `codarch scopes` para ver la deriva sin abrir el snapshot entero.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
