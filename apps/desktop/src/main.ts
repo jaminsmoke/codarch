@@ -17,9 +17,10 @@ import {
   readFileDiff,
   readSourceFile,
   readSourceSnippet,
-  watchRepository
+  watchRepository,
+  writeParseCachePayload
 } from "@codarch/parsers";
-import type { RepositoryWatcher } from "@codarch/parsers";
+import type { ParseCachePayload, RepositoryWatcher } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import type { RepoAddons } from "@codarch/addons";
 import { checkSource } from "@codarch/versions";
@@ -219,6 +220,7 @@ async function refreshFromDisk(
       sendHeadReport(root, outcome.headReport);
       return;
     }
+    storeParseCache(root, outcome.parseCache);
     const checksum = snapshotChecksum(outcome.snapshot);
     if (checksum !== null && persistedChecksum(root) === checksum) return;
     writeSnapshot(root, outcome.snapshot);
@@ -390,6 +392,7 @@ async function openTarget(target: string): Promise<void> {
     updateTitle(target, projectNameOf(outcome.snapshot));
     ensureStateIgnored(target);
     writeSnapshot(target, outcome.snapshot);
+    storeParseCache(target, outcome.parseCache);
     watchRoot(target);
     send({ kind: "snapshot", snapshot: outcome.snapshot, label: target });
     sendHeadReport(target, outcome.headReport);
@@ -461,6 +464,24 @@ function writeCodarchJson(root: string, name: string, value: unknown): boolean {
   } catch (cause) {
     console.error(`no se pudo escribir ${file}: ${(cause as Error).message}`);
     return false;
+  }
+}
+
+/**
+ * Guarda la caché de parseo que dejó el análisis (ADR 0089).
+ *
+ * El `utilityProcess` que analiza no escribe en `.codarch/` (ADR 0050): calcula
+ * la caché y la manda, y se guarda aquí, donde se guarda el snapshot. Es
+ * derivada y se puede borrar; si no se puede escribir, el análisis siguiente
+ * parsea otra vez y no pasa nada más.
+ */
+function storeParseCache(root: string, payload: ParseCachePayload): void {
+  try {
+    writeParseCachePayload(path.join(root, CODARCH_DIR), payload);
+  } catch (cause) {
+    console.error(
+      `no se pudo escribir la caché de parseo de ${root}: ${(cause as Error).message}`
+    );
   }
 }
 
@@ -845,6 +866,7 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   lastRoot = root;
   ensureStateIgnored(root);
   writeSnapshot(root, outcome.snapshot);
+  storeParseCache(root, outcome.parseCache);
   watchRoot(root);
   return {
     snapshot: outcome.snapshot,

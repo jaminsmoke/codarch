@@ -1,5 +1,6 @@
 import type { CcJson } from "@codarch/schema";
 import type { DiffReport } from "@codarch/metrics";
+import type { ParseCachePayload } from "@codarch/parsers";
 
 /**
  * Lo que el proceso principal le pide al que analiza, y lo que le contesta.
@@ -38,6 +39,11 @@ export type AnalyzeOutcome =
        * `null` si el repo no tiene commits o el export del HEAD falló.
        */
       headReport: DiffReport | null;
+      /**
+       * El parseo de esta pasada, para que lo guarde quien persiste el estado
+       * (ADR 0089). El proceso de análisis no escribe en `.codarch/`.
+       */
+      parseCache: ParseCachePayload;
     }
   /**
    * Nada nuevo: el snapshot sigue igual, pero el reporte HEAD se devuelve

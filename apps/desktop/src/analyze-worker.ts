@@ -14,7 +14,8 @@ import type {
  * clics, el menú ni el IPC: la app sigue respondiendo mientras trabaja.
  *
  * No dibuja nada y no toca `.codarch/`: recibe una raíz y devuelve el
- * snapshot. Escribirlo es cosa del proceso principal.
+ * snapshot y la caché de parseo (ADR 0089). Escribirlos es cosa del proceso
+ * principal.
  *
  * El flujo —sesión, alcance del `.codarch.yml`, comparación con el último
  * commit y sus avisos— es el mismo que usa `codarch serve` (ADR 0074).
@@ -66,7 +67,8 @@ export function analyze(request: AnalyzeRequest): AnalyzeResponse {
       files: result.files,
       edges: result.edges,
       warnings: [...warnings, ...result.warnings],
-      headReport
+      headReport,
+      parseCache: result.parseCache
     };
     return { id: request.id, ok: true, result: outcome };
   } catch (cause) {
