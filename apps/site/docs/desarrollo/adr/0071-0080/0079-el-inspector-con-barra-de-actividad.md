@@ -65,6 +65,13 @@ cabecera del panel derecho. Con dos funcionaba; con el panel creciendo, no:
 - La web y el escritorio no cambian de API: el estado sigue siendo `tab` y `setTab`.
 - Tests: cada `InspectorTab` tiene su entrada, con etiqueta no vacía y sin repetir, y el orden de la
   barra es estable.
+- **Medido en el build de producción** (`apps/web` servido por `codarch serve`, 1600 × 1000, pantalla de
+  120 Hz, 8 pliegues del inspector y 6 del dock izquierdo, `PerformanceObserver` de `longtask` y
+  `long-animation-frame` más una línea base sin interacción): el ancho del escenario cambia en **un solo
+  valor por gesto** (949 ↔ 1251 px el inspector, 949 ↔ 1207 px el izquierdo), la mediana entre
+  fotogramas se queda en **8,3 ms** y el p95 en **8,5 ms**. Cada gesto pierde **un** fotograma —25 a
+  42 ms—, no hay `longtask` y no hay `long-animation-frame`; la línea base no pierde ninguno. Ese
+  fotograma es el recálculo del treemap, no la transición, y es la razón de no animar el ancho.
 
 ## Alternativas descartadas
 
