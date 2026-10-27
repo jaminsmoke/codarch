@@ -108,3 +108,29 @@ export interface Plataforma {
 }
 
 export type { RepoAddon } from "@codarch/addons";
+
+/**
+ * Las entradas del historial, del payload que sirva cada plataforma.
+ *
+ * La web lo lee de `data/history.json` y el escritorio del puente: cambia el
+ * transporte, no la forma, así que la proyección se escribe una vez. Un payload
+ * que no se entiende es `null`, y los paneles no pintan ni eso ni una lista
+ * vacía.
+ */
+export function historyEntries(payload: unknown): HistoryEntry[] | null {
+  if (typeof payload !== "object" || payload === null) return null;
+  const entries = (payload as { entries?: unknown }).entries;
+  return Array.isArray(entries) ? (entries as HistoryEntry[]) : null;
+}
+
+/**
+ * El calor de los símbolos, del payload de cadenas de cada plataforma.
+ *
+ * Va por el mismo camino que el historial: `data/chains.json` en la web, el
+ * puente en el escritorio, y una sola forma de sacarlo.
+ */
+export function symbolHeat(payload: unknown): SymbolHeat[] | null {
+  if (typeof payload !== "object" || payload === null) return null;
+  const heat = (payload as { heat?: unknown }).heat;
+  return Array.isArray(heat) ? (heat as SymbolHeat[]) : null;
+}

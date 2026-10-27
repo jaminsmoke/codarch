@@ -17,6 +17,7 @@ export type {
   FileDiffView
 } from "./platform";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
+export { historyEntries, symbolHeat } from "./platform";
 export {
   CLAVE_TEMA,
   TEMAS,

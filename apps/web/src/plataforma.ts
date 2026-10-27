@@ -1,11 +1,12 @@
-import type {
-  CodeSnippet,
-  EditorRequest,
-  FileDiffView,
-  Plataforma,
-  SavedProject
+import {
+  historyEntries,
+  symbolHeat,
+  type CodeSnippet,
+  type EditorRequest,
+  type FileDiffView,
+  type Plataforma,
+  type SavedProject
 } from "@codarch/ui";
-import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import { sourceFromMemory } from "./analysis/reader";
 import { fetchJson } from "./http";
 import {
@@ -80,18 +81,8 @@ export function plataformaWeb(): Plataforma {
       window.location.href = vscodeUri(root, request.path, request.line);
       return true;
     },
-    historial: async () => {
-      const raw = await fetchJson("data/history.json");
-      if (!raw || typeof raw !== "object") return null;
-      const list = (raw as { entries?: unknown }).entries;
-      return Array.isArray(list) ? (list as HistoryEntry[]) : null;
-    },
-    calor: async () => {
-      const raw = await fetchJson("data/chains.json");
-      if (!raw || typeof raw !== "object") return null;
-      const list = (raw as { heat?: unknown }).heat;
-      return Array.isArray(list) ? (list as SymbolHeat[]) : null;
-    },
+    historial: async () => historyEntries(await fetchJson("data/history.json")),
+    calor: async () => symbolHeat(await fetchJson("data/chains.json")),
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)

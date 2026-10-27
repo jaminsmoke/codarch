@@ -11,8 +11,13 @@ import {
   writePreferences
 } from "./storage";
 import { restaurarSesion } from "./restore";
-import type { FileDiffView, Plataforma, SavedProject } from "@codarch/ui";
-import type { SymbolHeat } from "@codarch/schema/browser";
+import {
+  historyEntries,
+  symbolHeat,
+  type FileDiffView,
+  type Plataforma,
+  type SavedProject
+} from "@codarch/ui";
 
 /**
  * Adaptador de plataforma del escritorio para `useCodarchApp`.
@@ -92,16 +97,8 @@ export function plataformaEscritorio(): Plataforma {
     codigo: (request) => desktop().source(request),
     diff: async (path) => (await desktop().diff(path)) as FileDiffView | null,
     abrirEnEditor: (request) => desktop().openEditor(request),
-    historial: async () => {
-      const index = await desktop().history();
-      return index && Array.isArray(index.entries) ? index.entries : null;
-    },
-    calor: async () => {
-      const raw = await desktop().chains();
-      if (!raw || typeof raw !== "object") return null;
-      const list = (raw as { heat?: unknown }).heat;
-      return Array.isArray(list) ? (list as SymbolHeat[]) : null;
-    },
+    historial: async () => historyEntries(await desktop().history()),
+    calor: async () => symbolHeat(await desktop().chains()),
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)
