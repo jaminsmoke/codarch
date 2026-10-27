@@ -162,5 +162,13 @@ puesto como puerta.
       del hijo invalida solo su entrada.
 - [x] Registrar en el estado del padre los `.codarch/` que tiene debajo, con su checksum, su commit
       y su fecha, y enseñarlos con `codarch scopes` para ver la deriva sin abrir el snapshot entero.
+- [x] Que `serve` y el escritorio lean, al analizar, la caché de parseo de sus alcances de debajo:
+      el almacén vive en `@codarch/parsers` y la sesión compartida la busca la primera vez que analiza
+      una raíz, con el mismo checksum que un análisis en frío.
+- [x] Que el escritorio deje la suya: el proceso que analiza calcula la caché y no escribe en
+      `.codarch/`, y el proceso principal la guarda junto al snapshot, para que la encuentre el
+      análisis siguiente.
+- [x] Que `serve` deje la suya en cada análisis, para que el siguiente —el suyo, el del escritorio o
+      el de `codarch analyze`— no vuelva a parsear lo que el servidor ya parseó.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
