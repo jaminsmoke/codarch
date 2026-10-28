@@ -88,10 +88,36 @@ export type ImportTargets =
       paths: string[];
     }
   | {
+      /** Un paquete: todos los ficheros de una carpeta, como en Go. */
+      kind: "package";
+      /** Carpetas relativas a la raíz, con `/`; la primera con ficheros gana. */
+      directories: string[];
+      /** Las extensiones que forman el paquete: un paquete de Go son sus `.go`. */
+      extensions: readonly string[];
+      /**
+       * El import nombra un paquete del propio módulo (`go.mod`), así que si la
+       * carpeta no aparece el import está roto y no es una dependencia.
+       */
+      required?: boolean;
+      /** Lo que cuenta si no aparece ninguna carpeta: plataforma o dependencia. */
+      builtin?: boolean;
+    }
+  | {
       kind: "external";
       /** De la plataforma: `java.util`, `javax.…`; se cuenta como builtin. */
       builtin: boolean;
     };
+
+/**
+ * Lo que un parser puede mirar del proyecto antes de medir ficheros.
+ *
+ * Go necesita el nombre del módulo, que vive en el `go.mod` y no en cada
+ * fichero. Se lee una vez por análisis, no una vez por import.
+ */
+export interface ParserProject {
+  /** Lee un fichero por ruta relativa a la raíz del análisis. */
+  readFile(relativePath: string): string | null;
+}
 
 export interface SourceParser {
   readonly name: string;
@@ -107,4 +133,11 @@ export interface SourceParser {
    * Ausente: el análisis resuelve como TS/JS (`ImportResolver`).
    */
   importTargets?(imported: ParsedImport, filePath: string): ImportTargets;
+  /**
+   * Se llama una vez por análisis, antes de recorrer los ficheros.
+   *
+   * Para lo que el lenguaje declara fuera de los ficheros que se miden: Go
+   * lee aquí su `go.mod`.
+   */
+  prepare?(project: ParserProject): void;
 }

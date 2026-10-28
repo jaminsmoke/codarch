@@ -23,7 +23,7 @@ import { extensionsFor, parserFor } from "./parsers";
 import * as path from "./path";
 import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
-import type { SourceParser } from "./types";
+import type { ParserProject, SourceParser } from "./types";
 import { walkSourceFiles } from "./walk";
 
 export interface ChurnMetric {
@@ -155,6 +155,18 @@ export function analyzeFiles(
   options.cache?.retain(walked.files.map((file) => file.relativePath));
   const resolver = new ImportResolver(root, walked.files, fileSystem);
   warnings.push(...resolver.warnings);
+  // Lo que un lenguaje declara fuera de sus ficheros se lee una vez, no una
+  // vez por import: Go pide aquí su `go.mod`.
+  const project: ParserProject = {
+    readFile: (relativePath) => {
+      try {
+        return fileSystem.readFile(path.join(root, relativePath));
+      } catch {
+        return null;
+      }
+    }
+  };
+  for (const parser of options.parsers) parser.prepare?.(project);
   // Solo hace falta si algún lenguaje declara sus imports como rutas (Java,
   // Python).
   const importIndex = options.parsers.some((parser) => parser.importTargets)
@@ -305,6 +317,34 @@ export function analyzeFiles(
         if (targets.kind === "external") {
           if (targets.builtin) fileBuiltinImports++;
           else fileExternalImports++;
+          continue;
+        }
+
+        // Un paquete son varios ficheros (Go): un import, varias aristas.
+        if (targets.kind === "package") {
+          const members =
+            importIndex?.packageFiles(targets.directories, targets.extensions) ?? [];
+          if (members.length > 0) {
+            for (const member of members) {
+              links.push({
+                from: file.relativePath,
+                to: member,
+                typeOnly: imported.typeOnly
+              });
+            }
+          } else if (targets.required) {
+            fileUnresolvedImports++;
+            unresolved.push({
+              file: file.relativePath,
+              line: imported.line,
+              specifier: imported.specifier,
+              reason: "no se encontró el paquete"
+            });
+          } else if (targets.builtin) {
+            fileBuiltinImports++;
+          } else {
+            fileExternalImports++;
+          }
           continue;
         }
 

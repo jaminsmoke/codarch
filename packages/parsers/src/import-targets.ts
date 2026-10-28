@@ -9,6 +9,9 @@
  *
  * Todo es determinista: si dos ficheros del repo acaban igual, gana el de ruta
  * más corta y, a igualdad, el orden lexicográfico.
+ *
+ * Go importa **paquetes**, no ficheros: un import apunta a una carpeta y son
+ * aristas todos los ficheros de ella.
  */
 
 interface Entry {
@@ -21,6 +24,8 @@ interface Entry {
 export class ImportTargetIndex {
   private readonly byName = new Map<string, Entry[]>();
   private readonly byLeafDirectory = new Map<string, string[]>();
+  /** Ficheros de una carpeta, por ruta normalizada; la raíz es `""`. */
+  private readonly byDirectory = new Map<string, string[]>();
 
   constructor(
     files: readonly string[],
@@ -31,6 +36,7 @@ export class ImportTargetIndex {
       add(this.byName, lastSegment(key), { key, path: file });
 
       const directory = directoryOf(key);
+      add(this.byDirectory, directory ?? "", file);
       if (directory !== null) {
         add(this.byLeafDirectory, lastSegment(directory), directory);
       }
@@ -40,6 +46,7 @@ export class ImportTargetIndex {
       list.sort((left, right) => compareByLength(left.key, right.key));
     }
     for (const list of this.byLeafDirectory.values()) list.sort(compareByLength);
+    for (const list of this.byDirectory.values()) list.sort(compareStrings);
   }
 
   /** La ruta del primer candidato que existe, o `null`. */
@@ -73,6 +80,33 @@ export class ImportTargetIndex {
     return false;
   }
 
+  /**
+   * Los ficheros de la primera carpeta que tenga alguno, ordenados por ruta.
+   *
+   * Es un paquete de Go: importar la carpeta es depender de cada uno de sus
+   * `.go`, no de un fichero concreto. Solo cuentan las extensiones que el
+   * lenguaje declara; el resto de la carpeta no se compila con él.
+   */
+  packageFiles(
+    directories: readonly string[],
+    extensions: readonly string[]
+  ): string[] {
+    const wanted = extensions.map((extension) =>
+      this.caseSensitive ? extension : extension.toLowerCase()
+    );
+
+    for (const directory of directories) {
+      const files = this.byDirectory.get(this.key(directory));
+      if (!files) continue;
+      const matching = files.filter((file) =>
+        wanted.some((extension) => this.key(file).endsWith(extension))
+      );
+      if (matching.length > 0) return matching;
+    }
+
+    return [];
+  }
+
   private key(value: string): string {
     const normalized = value.replaceAll("\\", "/").replace(/^\.\//, "");
     return this.caseSensitive ? normalized : normalized.toLowerCase();
@@ -97,5 +131,9 @@ function directoryOf(value: string): string | null {
 
 function compareByLength(left: string, right: string): number {
   if (left.length !== right.length) return left.length - right.length;
+  return compareStrings(left, right);
+}
+
+function compareStrings(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
