@@ -4,11 +4,11 @@
  */
 
 export const ENGINE_VERSION = "0.3.43" as const;
-export const CLI_VERSION = "0.3.43" as const;
+export const CLI_VERSION = "0.3.44" as const;
 export const DESKTOP_VERSION = "0.3.44" as const;
 export const WEB_VERSION = "0.3.43" as const;
 export const MCP_VERSION = "0.3.29" as const;
-export const DOCKER_VERSION = "0.3.43" as const;
+export const DOCKER_VERSION = "0.3.44" as const;
 export const CC_JSON_VERSION = "2.0" as const;
 export const REPORT_SCHEMA_VERSION = "1.4" as const;
 export const CONFIG_VERSION = 1 as const;
