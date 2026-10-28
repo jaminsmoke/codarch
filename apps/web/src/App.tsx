@@ -10,12 +10,12 @@ import {
 import type { RepoAddon } from "@codarch/addons";
 import FolderPicker from "./FolderPicker";
 import Settings from "./Settings";
+import WebTopbar from "./WebTopbar";
 import {
   AppShell,
   buildSearch,
   historyFileName,
   localStore,
-  OpenMenu,
   parseSourceRequest,
   parseViewState,
   useCodarchApp,
@@ -34,7 +34,7 @@ import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
 import { fetchJson, fetchJsonStrict } from "./http";
-import { HEAD_REPORT_URL, servedReportUrl } from "./reports";
+import { useServerSession, watchState } from "./session";
 import { plataformaWeb } from "./plataforma";
 import { WEB_VERSION } from "@codarch/versions";
 
@@ -90,23 +90,14 @@ export default function App() {
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [reportUrl, setReportUrl] = useState<string | null>(null);
-  const [urlInput, setUrlInput] = useState("");
-  const [reportUrlInput, setReportUrlInput] = useState("");
   /** El análisis en marcha, para poder cortarlo. */
   const analysisRef = useRef<AnalysisHandle | null>(null);
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
   const cancelRef = useRef<{ aborted: boolean } | null>(null);
-  const [copied, setCopied] = useState(false);
   // La cabecera dice si el repo se vigila (ADR 0050): la web lo sabe por el
   // servidor; el escritorio dirá «sin vigilancia» hasta M34.
   useEffect(() => {
-    setWatch(
-      serverMode === "live"
-        ? "live"
-        : serverMode === "served"
-          ? "paused"
-          : "none"
-    );
+    setWatch(watchState(serverMode));
   }, [serverMode, setWatch]);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
@@ -114,11 +105,16 @@ export default function App() {
   const openMenuRef = useRef<HTMLDetailsElement>(null);
   const manualLoadRef = useRef(false);
   // La URL se lee una sola vez: al arrancar decide qué se carga y qué vista se aplica.
-  const urlRef = useRef<{ view: UrlViewState; source: SourceRequest } | null>(null);
-  if (urlRef.current === null) {
-    const search = typeof window === "undefined" ? "" : window.location.search;
-    urlRef.current = { view: parseViewState(search), source: parseSourceRequest(search) };
-  }
+  const [urlRequest] = useState<{ view: UrlViewState; source: SourceRequest }>(
+    () => {
+      const search =
+        typeof window === "undefined" ? "" : window.location.search;
+      return {
+        view: parseViewState(search),
+        source: parseSourceRequest(search)
+      };
+    }
+  );
 
   /** Abre una foto del historial. */
   const openHistorySnapshot = useCallback(
@@ -146,148 +142,37 @@ export default function App() {
     setAddons(Array.isArray(payload?.addons) ? payload.addons : []);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const boot = async (): Promise<void> => {
-      // Una URL explícita manda sobre el servidor local y sobre lo guardado.
-      const requested = urlRef.current?.source;
-      if (requested?.snapshotUrl) {
-        try {
-          const raw = await fetchJsonStrict(requested.snapshotUrl);
-          if (cancelled) return;
-          manualLoadRef.current = true;
-          if (loadSnapshot(raw, requested.snapshotUrl)) {
-            setServerMode("local");
-            setSourceUrl(requested.snapshotUrl);
-            if (requested.reportUrl) {
-              try {
-                const report = await fetchJsonStrict(requested.reportUrl);
-                if (!cancelled && report) {
-                  loadReport(report, requested.reportUrl);
-                  setReportUrl(requested.reportUrl);
-                }
-              } catch (cause) {
-                if (!cancelled) {
-                  setReportError(`No se pudo cargar el reporte: ${(cause as Error).message}`);
-                }
-              }
-            }
-            return;
-          }
-          setLoading(false);
-          return;
-        } catch (cause) {
-          // No se cae al servidor ni a lo guardado: la URL pedida es explícita.
-          if (!cancelled) {
-            setServerMode("local");
-            setError(`No se pudo cargar ${requested.snapshotUrl}: ${(cause as Error).message}`);
-            setLoading(false);
-          }
-          return;
-        }
-      }
-
-      const meta = await fetchJson("data/meta.json");
-      const servedSnapshot = await fetchJson("data/snapshot.cc.json");
-
-      if (manualLoadRef.current) return;
-
-      if (servedSnapshot) {
-        if (cancelled) return;
-        loadSnapshot(servedSnapshot, "servidor local");
-        const watch =
-          typeof meta === "object" &&
-          meta !== null &&
-          (meta as { watch?: unknown }).watch === true;
-        setServerMode(watch ? "live" : "served");
-        if (
-          typeof meta === "object" &&
-          meta !== null &&
-          typeof (meta as { rootPath?: unknown }).rootPath === "string"
-        ) {
-          setServerRootPath((meta as { rootPath: string }).rootPath);
-        }
-        if (
-          typeof meta === "object" &&
-          meta !== null &&
-          typeof (meta as { version?: unknown }).version === "string"
-        ) {
-          setServerVersion((meta as { version: string }).version);
-        }
-        // Con servidor, Cambios es del repo y lo compara el servidor con HEAD
-        // (ADR 0075): `report.json` de dos fotos viejas no entra, porque
-        // enseñaría cambios de hace semanas como si fueran de ahora. Un
-        // artefacto estático sí trae su `report.json` como único cambio.
-        const servedReport = await fetchJson(servedReportUrl(meta !== null));
-        if (!cancelled) {
-          if (servedReport) {
-            loadReport(servedReport, meta !== null ? "HEAD" : "report.json", false);
-          } else {
-            resetReport();
-          }
-        }
-        await loadAddons();
-        return;
-      }
-
-      const saved = readProject();
-      if (saved && !cancelled && !manualLoadRef.current) {
-        if (loadSnapshot(saved.snapshot, saved.label)) {
-          setServerMode("local");
-          if (saved.report) {
-            loadReport(saved.report, saved.reportLabel ?? "report.json", false);
-          } else {
-            resetReport();
-          }
-          return;
-        }
-        clearProject();
-      }
-
-      // Sin servidor y sin proyecto guardado no hay nada que enseñar: se queda
-      // el estado vacío del mapa ("Abre un cc.json para empezar").
-      if (!cancelled) setLoading(false);
-    };
-
-    boot().catch((cause: Error) => {
-      if (!cancelled) {
-        setError(cause.message);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [loadReport, loadSnapshot, loadAddons, resetReport]);
-
-  useEffect(() => {
-    if (serverMode !== "live" || typeof EventSource === "undefined") return;
-
-    const events = new EventSource("/events");
-    events.addEventListener("update", async () => {
-      const snapshot = await fetchJson("data/snapshot.cc.json");
-      if (snapshot) loadSnapshot(snapshot, "servidor local", true);
-      // El repo cambió: el reporte HEAD es lo que se ve en Cambios, y el
-      // servidor lo acaba de tirar de la caché (ADR 0075).
-      const report = await fetchJson(HEAD_REPORT_URL);
-      if (report) loadReport(report, "HEAD", false);
-    });
-    return () => events.close();
-  }, [serverMode, loadReport, loadSnapshot]);
+  // De dónde sale el mapa y qué se refresca al guardar: la sesión de la web.
+  useServerSession({
+    mode: serverMode,
+    requested: urlRequest.source,
+    manual: manualLoadRef,
+    handlers: {
+      snapshot: loadSnapshot,
+      report: loadReport,
+      resetReport,
+      addons: loadAddons,
+      mode: setServerMode,
+      sourceUrl: setSourceUrl,
+      reportUrl: setReportUrl,
+      rootPath: setServerRootPath,
+      version: setServerVersion,
+      error: setError,
+      reportError: setReportError,
+      loading: setLoading
+    }
+  });
 
   /** La URL decide la vista una sola vez, cuando ya hay modelo. */
   const [urlApplied, setUrlApplied] = useState(false);
 
   useEffect(() => {
     if (urlApplied || !view.model || !stats) return;
-    const wanted = urlRef.current?.view;
-    if (wanted) applyView(wanted);
+    applyView(urlRequest.view);
     // El flag es del arranque: la URL se aplica una sola vez.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- aplicar la URL es un efecto externo
     setUrlApplied(true);
-  }, [urlApplied, view.model, stats, applyView]);
+  }, [urlApplied, view.model, stats, applyView, urlRequest]);
 
   // La URL refleja la vista actual: el enlace se puede compartir tal cual.
   useEffect(() => {
@@ -333,7 +218,6 @@ export default function App() {
     return readProject()?.label ?? null;
   }, [settingsOpen]);
 
-  /** Si el almacenamiento local está disponible. */
   /** Si el almacenamiento local está disponible. */
   const storageAvailable = useMemo(() => localStore() !== null, []);
 
@@ -418,46 +302,49 @@ export default function App() {
     openMenuRef.current?.removeAttribute("open");
   }, []);
 
-  /** Carga un snapshot (y opcionalmente un reporte) desde una URL. */
-  const loadFromUrl = useCallback(async () => {
-    const snapshotUrl = urlInput.trim();
-    if (!snapshotUrl) return;
-    const reportTarget = reportUrlInput.trim();
+  /** El cc.json del menú: abre el diálogo del fichero suelto. */
+  const pickCcJson = useCallback(() => {
     closeOpenMenu();
-    manualLoadRef.current = true;
-    setLoading(true);
-    setError(null);
-    try {
-      const raw = await fetchJsonStrict(snapshotUrl);
-      if (!abrirSnapshot(raw, snapshotUrl)) {
-        setLoading(false);
-        return;
-      }
-      setServerMode("local");
-      setSourceUrl(snapshotUrl);
-      setReportUrl(reportTarget || null);
-      if (reportTarget) {
-        try {
-          const report = await fetchJsonStrict(reportTarget);
-          if (report) abrirReporte(report, reportTarget);
-        } catch (cause) {
-          setReportError(
-            `No se pudo cargar el reporte: ${(cause as Error).message}`
-          );
+    inputRef.current?.click();
+  }, [closeOpenMenu]);
+
+  /** Carga un snapshot (y opcionalmente un reporte) desde una URL. */
+  const loadFromUrl = useCallback(
+    async (snapshotUrlInput: string, reportUrlInput: string) => {
+      const snapshotUrl = snapshotUrlInput.trim();
+      if (!snapshotUrl) return;
+      const reportTarget = reportUrlInput.trim();
+      closeOpenMenu();
+      manualLoadRef.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        const raw = await fetchJsonStrict(snapshotUrl);
+        if (!abrirSnapshot(raw, snapshotUrl)) {
+          setLoading(false);
+          return;
         }
+        setServerMode("local");
+        setSourceUrl(snapshotUrl);
+        setReportUrl(reportTarget || null);
+        if (reportTarget) {
+          try {
+            const report = await fetchJsonStrict(reportTarget);
+            if (report) abrirReporte(report, reportTarget);
+          } catch (cause) {
+            setReportError(
+              `No se pudo cargar el reporte: ${(cause as Error).message}`
+            );
+          }
+        }
+      } catch (cause) {
+        setError(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
+      } finally {
+        setLoading(false);
       }
-    } catch (cause) {
-      setError(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    closeOpenMenu,
-    abrirSnapshot,
-    abrirReporte,
-    reportUrlInput,
-    urlInput
-  ]);
+    },
+    [closeOpenMenu, abrirSnapshot, abrirReporte]
+  );
 
   /**
    * Analiza la carpeta elegida en el navegador.
@@ -529,17 +416,15 @@ export default function App() {
   }, []);
 
   /** Copia el enlace de la vista actual al portapapeles. */
-  const copyLink = useCallback(async () => {
-    if (typeof window === "undefined") return;
-    const link = window.location.href;
+  const copyLink = useCallback(async (): Promise<boolean> => {
+    if (typeof window === "undefined") return false;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(window.location.href);
     } catch {
       // Sin permiso de portapapeles: el enlace sigue visible en la barra.
-      return;
+      return false;
     }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    return true;
   }, []);
 
   const refreshFromServer = useCallback(async () => {
@@ -673,82 +558,16 @@ export default function App() {
         onDrop={onDrop}
         topbarTrailing={
           <>
-            <OpenMenu
-              ref={openMenuRef}
-              items={[
-                {
-                  label: "Monitorizar carpeta (live)…",
-                  onClick: openLiveFolder,
-                  disabled: serverMode === "static",
-                  title:
-                    serverMode === "static"
-                      ? "Arranca `codarch serve` para elegir carpetas locales"
-                      : "Analiza y vigila una carpeta local"
-                },
-                {
-                  label: "Carpeta con .codarch…",
-                  onClick: () => void openRepository()
-                },
-                {
-                  label: "Analizar carpeta aquí…",
-                  onClick: () => void analyzeFolderInBrowser(),
-                  title: "Analiza la carpeta en el navegador, sin ejecutar el CLI"
-                },
-                {
-                  label: "Archivo cc.json…",
-                  onClick: () => {
-                    closeOpenMenu();
-                    inputRef.current?.click();
-                  }
-                },
-                {
-                  label: copied ? "Enlace copiado" : "Copiar enlace de la vista",
-                  onClick: () => void copyLink(),
-                  keepOpen: true,
-                  title:
-                    "Copia el enlace de la vista actual (área, color, carpeta y fichero)"
-                }
-              ]}
-            >
-              <div className="url-load">
-                <label className="field">
-                  <span>Snapshot por URL</span>
-                  <input
-                    type="text"
-                    value={urlInput}
-                    placeholder="https://…/snapshot.cc.json"
-                    onChange={(event) => setUrlInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") void loadFromUrl();
-                    }}
-                  />
-                </label>
-                <label className="field">
-                  <span>Reporte por URL (opcional)</span>
-                  <input
-                    type="text"
-                    value={reportUrlInput}
-                    placeholder="https://…/report.json"
-                    onChange={(event) => setReportUrlInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") void loadFromUrl();
-                    }}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={() => void loadFromUrl()}
-                  disabled={!urlInput.trim()}
-                >
-                  Cargar por URL
-                </button>
-              </div>
-              <p>
-                Monitorizar analiza una carpeta en el servidor local. .codarch
-                carga artefactos ya generados. Para activarlo:{" "}
-                <code>codarch serve</code>.
-              </p>
-            </OpenMenu>
+            <WebTopbar
+              liveDisabled={serverMode === "static"}
+              onLiveFolder={openLiveFolder}
+              onPickRepository={() => void openRepository()}
+              onAnalyzeFolder={() => void analyzeFolderInBrowser()}
+              onPickCcJson={pickCcJson}
+              onLoadUrl={loadFromUrl}
+              onCopyLink={copyLink}
+              menuRef={openMenuRef}
+            />
             <input
               ref={inputRef}
               className="sr-only"
