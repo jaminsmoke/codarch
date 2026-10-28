@@ -122,7 +122,7 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
       `aviso: no hay ningún fichero que el análisis sepa leer en ${root}; el snapshot sale vacío`
     );
     console.warn(
-      "  Dibuja TS/JS, Java y Python; de otro lenguaje solo se mide la lente de migración."
+      "  Dibuja TS/JS, Java, Python, Go y C#; de otro lenguaje solo se mide la lente de migración."
     );
   }
 

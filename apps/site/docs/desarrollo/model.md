@@ -392,11 +392,14 @@ Reglas:
 
 ```
 walkSourceFiles(root)
-  → .gitignore raíz + anidados, `ignore` del .codarch.yml, TS/JS + Rust/WASM/Node, orden estable
-ImportResolver(root, files)
-  → relativos, .js→.ts, index, tsconfig paths, workspaces, builtins, .wasm/.node
-TypeScriptParser.parse(source, path)
-  → loc/rloc/functions/complejidad + imports tipados
+  → .gitignore raíz + anidados, `ignore` del .codarch.yml, las extensiones de cada parser
+    + Rust/WASM/Node, orden estable
+parserFor(parsers, path)
+  → el parser de la extensión (TS/JS, Java, Python, Go, C#); la caché se firma con su nombre
+parser.parse(source, path)
+  → loc/rloc/functions/complejidad + imports + símbolos y miembros
+parser.importTargets(import, path) · ImportResolver(root, files)
+  → a qué apunta el import de cada lenguaje; el `using` de C# se cierra al final del análisis
 measureRustSource(source)
   → loc/rloc léxico, sin imports ni complejidad
 collectGitChurn(root, files)

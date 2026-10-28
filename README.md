@@ -68,7 +68,7 @@ escritorio.
 npm install
 npm run samples                 # descarga dos cc.json reales de CodeCharta (1,3 MB)
 
-# Analizar un proyecto TypeScript/JavaScript
+# Analizar un repositorio (TS/JS, Java, Python, Go y C#)
 npm run analyze -- .
 npm run analyze -- . -o .codarch --project "Mi proyecto"
 npm run analyze -- . --no-git      # sin historial de git

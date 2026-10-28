@@ -3,8 +3,9 @@
 ## Producto
 
 CodArch mapea la arquitectura de un repositorio y la lleva al PR/CI y a agentes. v1: nodos = ficheros,
-TypeScript/JavaScript, treemap 2D, snapshot interoperable `cc.json` 2.x. La UI es una consumidora del
-modelo, no la fuente de verdad. Implementación clean-room: `cc.json` solo como interoperabilidad.
+TypeScript/JavaScript, Java, Python, Go y C#, treemap 2D, snapshot interoperable `cc.json` 2.x. La UI es
+una consumidora del modelo, no la fuente de verdad. Implementación clean-room: `cc.json` solo como
+interoperabilidad.
 
 Monorepo core-first:
 
@@ -101,11 +102,10 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
 
 ## Estado
 
-El producto va por `0.3.40`. Fases abiertas: **M23** (dominio propio y búsqueda de la web), **M31**
-(los ADR en inglés), **M34** (la app dice qué raíz analiza; pausa del escritorio), **M49** (el lenguaje
-de la ficha en todo el reporte) y **M61** (Java, Python, Go y C#). **M24** (índice SQLite) sigue
-aparcada. El detalle está en `apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo
-repite.
+El producto va por `0.3.43`. Fases abiertas: **M23** (dominio propio y búsqueda de la web), **M31**
+(los ADR en inglés), **M34** (la app dice qué raíz analiza; pausa del escritorio) y **M49** (el lenguaje
+de la ficha en todo el reporte). **M24** (índice SQLite) sigue aparcada. El detalle está en
+`apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo repite.
 
 ## No objetivos de v1
 

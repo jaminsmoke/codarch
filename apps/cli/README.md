@@ -1,8 +1,8 @@
 # codarch
 
-Mapa de arquitectura para equipos y agentes de IA. Analiza un repositorio TypeScript/JavaScript y
-produce un snapshot interoperable con CodeCharta (`cc.json`), un mapa HTML autocontenido y un diff
-de arquitectura para PR/CI.
+Mapa de arquitectura para equipos y agentes de IA. Analiza un repositorio TypeScript/JavaScript,
+Java, Python, Go o C# y produce un snapshot interoperable con CodeCharta (`cc.json`), un mapa HTML
+autocontenido y un diff de arquitectura para PR/CI.
 
 > [!IMPORTANT]
 > **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
@@ -64,8 +64,10 @@ ni sustituye a la acción: es un visor local, y no está pensado para exponerse 
 
 ## Lente de migración
 
-`analyze` mide TS/JS, Rust y artefactos `.wasm`/`.node`. El snapshot incluye la lente `migration` y
-las métricas `migrationDebt` (complejidad × consumidores) y `ffiCrossings`.
+La lente de migración sigue siendo JS/TS → Rust: mide los ficheros TS/JS, los de Rust y los
+artefactos `.wasm`/`.node`, y no dice nada de los demás lenguajes del análisis (Java, Python, Go y
+C#), que son nodos del mapa sin estado de migración. El snapshot incluye la lente `migration` y las
+métricas `migrationDebt` (complejidad × consumidores) y `ffiCrossings`.
 
 ```bash
 codarch inspect .codarch/snapshot.cc.json --metric migrationDebt --top 10
