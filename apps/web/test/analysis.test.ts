@@ -44,6 +44,19 @@ function readGoGrammar(): Uint8Array {
   );
 }
 
+function readCSharpGrammar(): Uint8Array {
+  return new Uint8Array(
+    fs.readFileSync(
+      path.resolve(
+        GRAMMARS,
+        "..",
+        "tree-sitter-c-sharp",
+        "tree-sitter-c_sharp.wasm"
+      )
+    )
+  );
+}
+
 function readPythonGrammar(): Uint8Array {
   return new Uint8Array(
     fs.readFileSync(
@@ -216,6 +229,49 @@ describe("análisis en el navegador", () => {
       const browser = response.snapshot as { meta: { checksum: string } };
       expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
       expect(response.files).toBe(2);
+      expect(response.edges).toBe(1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("analiza C# con su gramática y da el checksum del CLI", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-web-csharp-"));
+    const files: Array<[string, string]> = [
+      ["/package.json", JSON.stringify({ name: "csharp-demo" })],
+      [
+        "/src/Acme/Money/Money.cs",
+        "namespace Acme.Money;\n\npublic record Money(int Cents);\n"
+      ],
+      [
+        "/src/Acme/Billing/Invoice.cs",
+        "using System.Text;\nusing Acme.Money;\n\nnamespace Acme.Billing;\n\npublic class Invoice\n{\n    public Money Total { get; init; }\n}\n"
+      ]
+    ];
+
+    try {
+      for (const [file, content] of files) {
+        const onDisk = path.join(root, file);
+        fs.mkdirSync(path.dirname(onDisk), { recursive: true });
+        fs.writeFileSync(onDisk, content, "utf8");
+      }
+
+      const response = await runAnalysis(
+        { type: "analyze", files },
+        {
+          typescript: readGrammar("tree-sitter-typescript.wasm"),
+          tsx: readGrammar("tree-sitter-tsx.wasm"),
+          csharp: readCSharpGrammar()
+        }
+      );
+      expect(response.type).toBe("done");
+      if (response.type !== "done") return;
+
+      const onDisk = analyzeRepository(root, { git: false });
+      const browser = response.snapshot as { meta: { checksum: string } };
+      expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
+      expect(response.files).toBe(2);
+      // El `using` del record es la única arista; `System.Text` es plataforma.
       expect(response.edges).toBe(1);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
