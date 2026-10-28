@@ -373,6 +373,40 @@ describe("el análisis de un proyecto C#", () => {
     });
   });
 
+  it("conserva aristas y recuentos al mezclar espacios locales y externos", () => {
+    const entries: [string, string][] = [
+      ["/A.cs", "namespace Acme.Shared; public class A {}"],
+      ["/B.cs", "namespace Acme.Shared; public class B {}"],
+      ["/Consumer.cs", [
+        "using Acme.Shared;",
+        "using Acme.Missing;",
+        "using System.Text;",
+        "using Newtonsoft.Json;",
+        "namespace Acme.Client; public class Consumer {}"
+      ].join("\n")],
+      ["/Solo.cs", "using Acme.Solo;\nnamespace Acme.Solo; public class Solo {}"]
+    ];
+    const run = (files: [string, string][]) => analyzeFiles({
+      fileSystem: new MemoryFileSystem(files),
+      root: "/",
+      projectName: "proyecto",
+      parsers: [new CSharpParser()]
+    });
+    const result = run(entries);
+    const cc = parseCcJson(result.snapshot);
+    const edges = cc.lenses?.dependency?.edges ?? [];
+    expect(edges.map((edge) => [edge.fromId, edge.toId])).toEqual([
+      [fileId("Consumer.cs"), fileId("A.cs")],
+      [fileId("Consumer.cs"), fileId("B.cs")]
+    ]);
+    expect(result).toMatchObject({ edges: 2, builtinImports: 1, externalImports: 1, unresolvedImports: 1 });
+    expect(cc.lenses?.metrics?.attributes?.[fileId("Consumer.cs")]).toMatchObject({
+      fanOut: 2, builtinImports: 1, externalImports: 1, unresolvedImports: 1
+    });
+    expect(cc.lenses?.metrics?.attributes?.[fileId("Solo.cs")]).toMatchObject({ fanOut: 0, unresolvedImports: 0 });
+    expect(run([...entries].reverse()).snapshot).toEqual(result.snapshot);
+  });
+
   it("es determinista: dos pasadas dan el mismo checksum", () => {
     expect(analyzeProject().snapshot.meta.checksum).toBe(
       analyzeProject().snapshot.meta.checksum

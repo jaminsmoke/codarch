@@ -921,16 +921,7 @@ function resolveNamespaceImports(
   const unresolved: UnresolvedImportIssue[] = [];
 
   for (const entry of pending) {
-    const targets = new Set<string>();
-    let known = false;
-    for (const namespace of entry.namespaces) {
-      const files = declarations.get(namespace);
-      if (!files) continue;
-      known = true;
-      for (const file of files) {
-        if (file !== entry.file) targets.add(file);
-      }
-    }
+    const { targets, known } = namespaceTargets(entry, declarations);
 
     if (targets.size > 0) {
       for (const target of [...targets].sort()) {
@@ -972,6 +963,24 @@ function resolveNamespaceImports(
   }
 
   return { external, builtin, unresolved };
+}
+
+/** Busca los declarantes, excluyendo el propio fichero y sin duplicar destinos. */
+function namespaceTargets(
+  entry: PendingNamespaceImport,
+  declarations: ReadonlyMap<string, readonly string[]>
+): { targets: Set<string>; known: boolean } {
+  const targets = new Set<string>();
+  let known = false;
+  for (const namespace of entry.namespaces) {
+    const files = declarations.get(namespace);
+    if (!files) continue;
+    known = true;
+    for (const file of files) {
+      if (file !== entry.file) targets.add(file);
+    }
+  }
+  return { targets, known };
 }
 
 /** La versión del fichero, si el puerto sabe darla. */
