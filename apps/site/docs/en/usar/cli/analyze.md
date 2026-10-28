@@ -9,6 +9,39 @@ sidebar:
 
 Analyses a repository and writes the cc.json snapshot.
 
+## What it analyses
+
+The walk reads each language's extensions and **parses every one with its grammar**:
+
+| Language | Extensions |
+| --- | --- |
+| TypeScript / JavaScript | `.ts` `.tsx` `.mts` `.cts` `.js` `.jsx` `.mjs` `.cjs` |
+| Java | `.java` |
+| Python | `.py` |
+| Go | `.go` |
+| C# | `.cs` |
+
+All of them yield the file's metrics (`loc`, `rloc`, `functions`, `maxComplexity`,
+`maxFunctionLength`), its symbols with their complexity and its imports as edges. Rust (`.rs`) and the
+`.wasm` and `.node` artefacts are also measured, **without a tree**, for the migration lens only.
+
+Imports do not point at the same thing in every language, and the analysis respects that:
+
+- **TS/JS**: modules, packages, `tsconfig` aliases and workspaces.
+- **Java**: the `a/b/C.java` file, found by path suffix; it works the same for Maven, Gradle or a flat
+  project.
+- **Python**: the `a/b.py` module or the `a/b/__init__.py` package, and relative imports from the
+  file's package.
+- **Go**: the whole package —every `.go` in the folder—, with the `go.mod` prefix.
+- **C#**: the files that declare the `using`'s `namespace`, resolved at the end of the analysis.
+
+An import that does not resolve is counted and listed with its line; no edge is invented. A language
+that is not in the table is not analysed: its files do not appear on the map, and the summary says so
+when none are left to read.
+
+The **migration lens** does not change: it is still JS/TS → Rust, so a Java, Python, Go or C# file has
+no state, debt or crossings.
+
 ## Usage
 
 ```sh

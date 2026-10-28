@@ -9,6 +9,39 @@ sidebar:
 
 Analiza un repositorio y escribe el snapshot cc.json.
 
+## Qué analiza
+
+El recorrido lee las extensiones de cada lenguaje y **parsea cada una con su gramática**:
+
+| Lenguaje | Extensiones |
+| --- | --- |
+| TypeScript / JavaScript | `.ts` `.tsx` `.mts` `.cts` `.js` `.jsx` `.mjs` `.cjs` |
+| Java | `.java` |
+| Python | `.py` |
+| Go | `.go` |
+| C# | `.cs` |
+
+De todos salen las métricas del fichero (`loc`, `rloc`, `functions`, `maxComplexity`,
+`maxFunctionLength`), sus símbolos con su complejidad y sus imports como aristas. Además se miden **sin
+árbol**, solo para la lente de migración, Rust (`.rs`) y los artefactos `.wasm` y `.node`.
+
+Los imports no apuntan a lo mismo en todos los lenguajes, y el análisis lo respeta:
+
+- **TS/JS**: módulos, paquetes, alias del `tsconfig` y workspaces.
+- **Java**: el fichero `a/b/C.java`, buscado por sufijo de ruta; vale igual para Maven, Gradle o un
+  proyecto plano.
+- **Python**: el módulo `a/b.py` o el paquete `a/b/__init__.py`, y los relativos desde el paquete del
+  fichero.
+- **Go**: el paquete entero —todos los `.go` de la carpeta—, con el prefijo del `go.mod`.
+- **C#**: los ficheros que declaran el `namespace` del `using`, que se resuelven al final del análisis.
+
+Un import que no se resuelve se cuenta y se lista con su línea; no se inventa una arista. Un lenguaje
+que no está en la tabla no se analiza: sus ficheros no aparecen en el mapa y el resumen lo avisa si no
+queda ninguno que leer.
+
+La **lente de migración** no cambia: sigue siendo JS/TS → Rust, así que un fichero Java, Python, Go o
+C# no tiene estado, deuda ni cruces.
+
 ## Uso
 
 ```sh

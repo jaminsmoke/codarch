@@ -13,6 +13,13 @@ One of the three [Installation](instalacion.md) paths: the CLI with the web app 
 the web app alone with Docker, or the desktop app. All three produce the same `cc.json` with the same
 checksum.
 
+## Which languages does it understand?
+
+TypeScript/JavaScript, Java, Python, Go and C#. All of them yield metrics, symbols and imports, and all
+of them are drawn on the map; the detail is in [what `codarch analyze` analyses](cli/analyze.md#what-it-analyses).
+Rust and the `.wasm`/`.node` artefacts are measured for the migration lens, which is still JS/TS → Rust.
+A language outside that list is not analysed: its files do not appear.
+
 ## Does `codarch serve` install the web app?
 
 No. The web app already comes with `npm i -g codarch`; `codarch serve` only opens it and analyses the repo.

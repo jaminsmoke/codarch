@@ -22,7 +22,9 @@ codarch analyze .
 ```
 
 It writes the snapshot to `.codarch/snapshot.cc.json`: the file and folder tree, the metrics, the
-dependency graph and, when there is git, the history. See [`codarch analyze`](cli/analyze.md).
+dependency graph and, when there is git, the history. It understands TypeScript/JavaScript, Java,
+Python, Go and C#; the detail is in [what it analyses](cli/analyze.md#what-it-analyses). See
+[`codarch analyze`](cli/analyze.md).
 
 ## 2. Open the web app
 

@@ -12,6 +12,13 @@ sidebar:
 Una de las tres vías de [Instalación](instalacion.md): el CLI con la webapp (`npm i -g codarch`), la
 webapp sola con Docker o la app de escritorio. Las tres producen el mismo `cc.json` con el mismo checksum.
 
+## ¿Qué lenguajes entiende?
+
+TypeScript/JavaScript, Java, Python, Go y C#. De todos saca métricas, símbolos e imports, y los dibuja
+en el mapa; el detalle está en [qué analiza `codarch analyze`](cli/analyze.md#qué-analiza). Rust y los
+artefactos `.wasm`/`.node` se miden para la lente de migración, que sigue siendo JS/TS → Rust. Un
+lenguaje fuera de esa lista no se analiza: sus ficheros no aparecen.
+
 ## ¿`codarch serve` instala la webapp?
 
 No. La webapp ya viene con `npm i -g codarch`; `codarch serve` solo la abre y analiza el repo.

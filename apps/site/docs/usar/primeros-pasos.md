@@ -22,7 +22,8 @@ codarch analyze .
 ```
 
 Deja el snapshot en `.codarch/snapshot.cc.json`: el árbol de ficheros y carpetas, las métricas, el
-grafo de dependencias y, si hay git, el historial. Ver [`codarch analyze`](cli/analyze.md).
+grafo de dependencias y, si hay git, el historial. Entiende TypeScript/JavaScript, Java, Python, Go y
+C#; el detalle está en [qué analiza](cli/analyze.md#qué-analiza). Ver [`codarch analyze`](cli/analyze.md).
 
 ## 2. Abre la webapp
 
