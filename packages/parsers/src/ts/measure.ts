@@ -1,24 +1,17 @@
 import type { ImportKind, Metrics, ParsedImport } from "../types";
+import { countLines, isComment, type SyntaxNodeLike } from "../syntax";
 import { importedNames } from "./structure";
 import { stringLiteralValue } from "./strings";
 
 /**
- * Subconjunto de la API de nodos de tree-sitter que usa la medición.
+ * El patrón de nodos de tree-sitter, compartido con Java.
  *
  * Lo comparten el binding nativo (`tree-sitter`) y el WASM (`web-tree-sitter`):
  * ambos exponen los mismos nodos, así que el cálculo de métricas es el mismo
  * código y el navegador da los mismos números que el CLI.
  */
-export interface SyntaxNodeLike {
-  type: string;
-  text: string;
-  childCount: number;
-  children: readonly SyntaxNodeLike[];
-  namedChildren: readonly SyntaxNodeLike[];
-  startPosition: { row: number; column: number };
-  endPosition: { row: number; column: number };
-  childForFieldName(name: string): SyntaxNodeLike | null;
-}
+export type { SyntaxNodeLike } from "../syntax";
+export { countLines, isComment } from "../syntax";
 
 /**
  * Nodos que representan una función implementada. Las firmas de interfaces y
@@ -60,23 +53,6 @@ export function usesTsxGrammar(filePath: string): boolean {
     lower.endsWith(".mjs") ||
     lower.endsWith(".cjs")
   );
-}
-
-/**
- * Detecta un comentario por su texto, no por su tipo de nodo.
- *
- * El tipo no sirve: dentro de un `interface` el binding nativo tipa el
- * comentario como `interface_body` (hereda el tipo del padre), mientras que
- * el WASM lo tipa como `comment`. Con la regla por texto los dos builds
- * cuentan las mismas líneas de código.
- */
-export function isComment(text: string): boolean {
-  return text.startsWith("//") || text.startsWith("/*") || text.startsWith("#!");
-}
-
-/** Si el texto es un comentario. Lo exported porque el hash del cuerpo lo necesita. */
-export function commentText(text: string): boolean {
-  return isComment(text);
 }
 
 /**
@@ -165,24 +141,6 @@ export function functionComplexity(fn: SyntaxNodeLike): number {
   }
 
   return complexity;
-}
-
-/** `loc` cuenta líneas físicas; `rloc` líneas con al menos un token de código. */
-export function countLines(source: string): number {
-  if (source.length === 0) return 0;
-
-  let lines = 1;
-  for (let index = 0; index < source.length; index++) {
-    const code = source.charCodeAt(index);
-    if (code === 10) {
-      lines++;
-    } else if (code === 13 && source.charCodeAt(index + 1) !== 10) {
-      lines++;
-    }
-  }
-
-  const last = source.charCodeAt(source.length - 1);
-  return last === 10 || last === 13 ? lines - 1 : lines;
 }
 
 /**

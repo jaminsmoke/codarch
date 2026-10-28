@@ -1,10 +1,6 @@
 import type { ParsedSymbol } from "../types";
-import { sha256Hex } from "@codarch/schema/browser";
-import {
-  commentText,
-  functionComplexity,
-  type SyntaxNodeLike
-} from "./measure";
+import { bodyHash } from "../hash";
+import { functionComplexity, type SyntaxNodeLike } from "./measure";
 
 /**
  * Los símbolos de un fichero: lo que hay dentro, más allá del fichero.
@@ -161,64 +157,4 @@ export function describeSymbol(
   }
 
   return symbol;
-}
-
-/**
- * El hash del cuerpo: la identidad del símbolo.
- *
- * Son los **tokens**, sin comentarios y sin depender del formato: un
- * reformateo o un comentario nuevo no cambian el hash ✓, pero cambiar una
- * línea de código sí ✓.
- *
- * El **nombre propio no cuenta** ✓: si contara, un renombrado cambiaría el
- * hash y la cadena se rompería justo en lo que tiene que aguantar ✓. El
- * nombre identifica al símbolo en su sitio; el cuerpo es lo que lo hace el
- * mismo símbolo ✓.
- *
- * Es lo que permite reconocer un renombrado o una mudanza: el nombre y la ruta
- * cambian, el cuerpo no ✓ (ADR 0026 ✓).
- */
-function bodyHash(node: SyntaxNodeLike, skip?: SyntaxNodeLike | null): string {
-  const parts: string[] = [];
-  const stack: SyntaxNodeLike[] = [node];
-
-  while (stack.length > 0) {
-    const current = stack.pop() as SyntaxNodeLike;
-
-    // El nombre propio queda fuera ✓.
-    // Se compara por posición y no por identidad: en el parser del navegador
-    // cada acceso a un nodo devuelve un envoltorio nuevo ✗, y el mismo código
-    // tiene que dar el mismo hash en los dos ✓.
-    //
-    // Solo se salta una **hoja**. En un método, en una variable y en muchos
-    // tipos el nodo empieza en la misma columna que su nombre; si se saltara
-    // el nodo entero, el hash saldría vacío y dos cuerpos distintos serían el
-    // mismo símbolo ✗ (ADR 0063).
-    if (
-      skip &&
-      current.childCount === 0 &&
-      current.startPosition.row === skip.startPosition.row &&
-      current.startPosition.column === skip.startPosition.column
-    ) {
-      continue;
-    }
-
-    if (current.childCount === 0) {
-      // Los comentarios no son parte del código: se detectan por texto ✓.
-      if (commentText(current.text)) continue;
-      parts.push(current.text);
-      continue;
-    }
-
-    // Los hijos, una sola vez: cada acceso en el binding nativo los vuelve a
-    // materializar ✓.
-    const children = current.children;
-
-    // Al revés, para que salgan en el orden del fuente ✓.
-    for (let index = children.length - 1; index >= 0; index--) {
-      stack.push(children[index] as SyntaxNodeLike);
-    }
-  }
-
-  return sha256Hex(parts.join(" "));
 }
