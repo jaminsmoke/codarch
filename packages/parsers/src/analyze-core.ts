@@ -1,9 +1,10 @@
 import {
   walkTree,
   type CcJson,
+  type CcMigrationLanguage,
   type CcMigrationSummary
 } from "@codarch/schema/browser";
-import type { ParseCache } from "./cache";
+import type { CachedParse, ParseCache } from "./cache";
 import type { FileSystem } from "./fs";
 import { buildGraph, type DependencyLink } from "./graph";
 import {
@@ -24,6 +25,7 @@ import * as path from "./path";
 import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
 import type {
+  FileParseResult,
   ImportTargets,
   Metrics,
   ParsedImport,
@@ -150,6 +152,51 @@ export interface AnalyzeCoreResult {
  * Es lo que corre en el navegador: recibe los ficheros por el puerto y los
  * parsers, y devuelve el mismo `cc.json` que el CLI.
  */
+/**
+ * Lo que se llena mientras se recorren los ficheros.
+ *
+ * El recorrido no devuelve nada: mide y apunta aquí. Así el análisis se lee
+ * como lo que es —recorrer, cerrar lo pendiente, contar y montar el
+ * snapshot— y no como treinta ramas dentro de un `for`.
+ */
+interface AnalysisState {
+  parsedFiles: SnapshotFile[];
+  migrationFiles: MigrationFileInput[];
+  migrationLinks: MigrationLinkInput[];
+  links: DependencyLink[];
+  unresolved: UnresolvedImportIssue[];
+  /**
+   * Los espacios de nombres que declara cada fichero (C#), por nombre.
+   *
+   * Un `using` no se puede resolver mientras se mide el fichero que lo escribe:
+   * el espacio de nombres puede estar declarado en cualquier otro.
+   */
+  namespaceDeclarations: Map<string, string[]>;
+  pendingNamespaces: PendingNamespaceImport[];
+  warnings: string[];
+  external: number;
+  builtin: number;
+  typeOnly: number;
+  cacheHits: number;
+  cacheMisses: number;
+}
+
+/** Lo que necesita medir un fichero: el recorrido, los parsers y el estado. */
+interface MeasureContext {
+  state: AnalysisState;
+  fileSystem: FileSystem;
+  parsers: readonly SourceParser[];
+  cache?: ParseCache;
+  resolver: ImportResolver;
+  importIndex: ImportTargetIndex | null;
+}
+
+/**
+ * Núcleo del análisis, sin node:fs ni git.
+ *
+ * Es lo que corre en el navegador: recibe los ficheros por el puerto y los
+ * parsers, y devuelve el mismo `cc.json` que el CLI.
+ */
 export function analyzeFiles(
   options: AnalyzeCoreOptions
 ): AnalyzeCoreResult {
@@ -166,52 +213,36 @@ export function analyzeFiles(
       options.extensions ??
       extensionsFor(options.parsers, MIGRATION_EXTENSIONS)
   });
-  const warnings = [...walked.warnings];
+  const state: AnalysisState = {
+    parsedFiles: [],
+    migrationFiles: [],
+    migrationLinks: [],
+    links: [],
+    unresolved: [],
+    namespaceDeclarations: new Map(),
+    pendingNamespaces: [],
+    warnings: [...walked.warnings],
+    external: 0,
+    builtin: 0,
+    typeOnly: 0,
+    cacheHits: 0,
+    cacheMisses: 0
+  };
   // Los ficheros borrados no ocupan sitio en la caché.
   options.cache?.retain(walked.files.map((file) => file.relativePath));
   const resolver = new ImportResolver(root, walked.files, fileSystem);
-  warnings.push(...resolver.warnings);
-  // Lo que un lenguaje declara fuera de sus ficheros se lee una vez, no una
-  // vez por import: Go pide aquí su `go.mod`.
-  const project: ParserProject = {
-    readFile: (relativePath) => {
-      try {
-        return fileSystem.readFile(path.join(root, relativePath));
-      } catch {
-        return null;
-      }
-    }
+  state.warnings.push(...resolver.warnings);
+  prepareParsers(options, root, fileSystem);
+  const context: MeasureContext = {
+    state,
+    fileSystem,
+    parsers: options.parsers,
+    cache: options.cache,
+    resolver,
+    importIndex: importIndexFor(options, walked.files, fileSystem)
   };
-  for (const parser of options.parsers) parser.prepare?.(project);
-  // Solo hace falta si algún lenguaje declara sus imports como rutas (Java,
-  // Python).
-  const importIndex = options.parsers.some((parser) => parser.importTargets)
-    ? new ImportTargetIndex(
-        walked.files.map((file) => file.relativePath),
-        fileSystem.caseSensitive
-      )
-    : null;
 
-  const parsedFiles: SnapshotFile[] = [];
-  const migrationFiles: MigrationFileInput[] = [];
-  const migrationLinks: MigrationLinkInput[] = [];
-  const links: DependencyLink[] = [];
-  const unresolved: UnresolvedImportIssue[] = [];
-  /**
-   * Los espacios de nombres que declara cada fichero (C#), por nombre.
-   *
-   * Un `using` no se puede resolver mientras se mide el fichero que lo escribe:
-   * el espacio de nombres puede estar declarado en cualquier otro.
-   */
-  const namespaceDeclarations = new Map<string, string[]>();
-  const pendingNamespaces: PendingNamespaceImport[] = [];
-  let externalImports = 0;
-  let builtinImports = 0;
-  let typeOnlyImports = 0;
   let processed = 0;
-  let cacheHits = 0;
-  let cacheMisses = 0;
-
   for (const file of walked.files) {
     processed += 1;
     options.onProgress?.({
@@ -219,233 +250,31 @@ export function analyzeFiles(
       total: walked.files.length,
       current: file.relativePath
     });
-
-    const language = languageForPath(file.relativePath);
-    const parser = parserFor(options.parsers, file.relativePath);
-    // Sin lenguaje ni parser no hay nada que medir: el recorrido puede traer
-    // extensiones que solo atiende un parser apagado.
-    if (!language && !parser) continue;
-
-    if (language && isNativeLanguage(language)) {
-      parsedFiles.push({
-        relativePath: file.relativePath,
-        metrics: { loc: 0, rloc: 0 }
-      });
-      migrationFiles.push({
-        relativePath: file.relativePath,
-        language,
-        loc: 0,
-        rloc: 0,
-        maxComplexity: 0,
-        fanIn: 0,
-        bridge: false
-      });
-      continue;
-    }
-
-    // Si la versión no cambió, se reutiliza el parseo y no se lee el fichero.
-    const version = versionOf(fileSystem, file.absolutePath);
-    // La versión dice que el fichero no cambió; el parser, que se midió con
-    // el mismo árbol (ADR 0090).
-    const cached =
-      version && parser
-        ? (options.cache?.get(file.relativePath, version, parser.name) ?? null)
-        : null;
-
-    let source = "";
-    if (!cached) {
-      try {
-        // Las líneas no son código (ADR 0076): el mismo fichero con CRLF y con
-        // LF es el mismo fichero. Sin normalizar, el export del HEAD en Windows
-        // sale con CRLF y el árbol de trabajo con LF, y Cambios enseña ficheros
-        // que nadie ha tocado.
-        source = fileSystem.readFile(file.absolutePath).replace(/\r\n?/g, "\n");
-      } catch (error) {
-        warnings.push(
-          `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
-        );
-        continue;
-      }
-    }
-
-    // Rust se mide en cada pasada: son pocos ficheros y su medida es barata.
-    if (!parser && language === "rust") {
-      const measured = measureRustSource(source);
-      parsedFiles.push({
-        relativePath: file.relativePath,
-        metrics: { loc: measured.loc, rloc: measured.rloc }
-      });
-      migrationFiles.push({
-        relativePath: file.relativePath,
-        language,
-        loc: measured.loc,
-        rloc: measured.rloc,
-        maxComplexity: 0,
-        fanIn: 0,
-        bridge: rustIsBridge(source)
-      });
-      continue;
-    }
-
-    // Una extensión que ningún parser declara solo llega aquí para la lente
-    // de migración, y no tiene árbol que medir.
-    if (!parser) continue;
-
-    let parsed;
-    let bridge: boolean;
-    if (cached) {
-      parsed = cached.parsed;
-      bridge = cached.bridge;
-      cacheHits++;
-    } else {
-      try {
-        parsed = parser.parse(source, file.relativePath);
-      } catch (error) {
-        warnings.push(
-          `no se pudo analizar ${file.relativePath}: ${(error as Error).message}`
-        );
-        continue;
-      }
-      // El puente es una propiedad de JS/TS hacia otro lenguaje: un fichero
-      // de otro lenguaje no puentea a nada, aunque tenga imports.
-      bridge =
-        language !== null && isTsJsLanguage(language)
-          ? jsIsBridge(
-              source,
-              parsed.imports.map((imported) => imported.specifier)
-            )
-          : false;
-      cacheMisses++;
-      if (version && options.cache) {
-        options.cache.set(file.relativePath, {
-          version,
-          parser: parser.name,
-          parsed,
-          bridge
-        });
-      }
-    }
-
-    // Los espacios de nombres del fichero, para lo que busquen los `using` de
-    // los demás.
-    noteNamespaces(parsed.namespaces ?? [], file.relativePath, namespaceDeclarations);
-
-    // Las métricas del fichero se crean antes de sus imports porque un `using`
-    // de C# se cierra al final y tiene que apuntar ya a dónde sumar.
-    const metrics: Metrics = {
-      ...parsed.metrics,
-      imports: parsed.imports.length,
-      externalImports: 0,
-      builtinImports: 0,
-      typeOnlyImports: 0,
-      unresolvedImports: 0
-    };
-
-    const tally = resolveImports(parsed.imports, {
-      file,
-      parser,
-      metrics,
-      resolver,
-      importIndex,
-      links,
-      migrationLinks,
-      unresolved,
-      pendingNamespaces
-    });
-
-    externalImports += tally.external;
-    builtinImports += tally.builtin;
-    typeOnlyImports += tally.typeOnly;
-
-    metrics.externalImports = tally.external;
-    metrics.builtinImports = tally.builtin;
-    metrics.typeOnlyImports = tally.typeOnly;
-    metrics.unresolvedImports = tally.unresolved;
-
-    parsedFiles.push({
-      relativePath: file.relativePath,
-      symbols: parsed.symbols ?? [],
-      imports: parsed.imports,
-      exports: parsed.exports ?? [],
-      members: parsed.members ?? [],
-      metrics
-    });
-    // La lente de migración solo tiene estado para los lenguajes que modela.
-    // Un fichero de otro lenguaje es un nodo como los demás y no entra en
-    // ella, así que no aparece con una deuda que no le corresponde.
-    if (language) {
-      migrationFiles.push({
-        relativePath: file.relativePath,
-        language,
-        loc: parsed.metrics.loc ?? 0,
-        rloc: parsed.metrics.rloc ?? 0,
-        maxComplexity: parsed.metrics.maxComplexity ?? 0,
-        fanIn: 0,
-        bridge
-      });
-    }
+    measureFile(file, context);
   }
 
   // Los `using` de C# se resuelven ahora, que ya se sabe qué declara cada
   // fichero. Antes de esto, un import de espacio de nombres no tenía destino.
-  if (pendingNamespaces.length > 0) {
-    const resolved = resolveNamespaceImports(
-      pendingNamespaces,
-      namespaceDeclarations,
-      links
-    );
-    externalImports += resolved.external;
-    builtinImports += resolved.builtin;
-    unresolved.push(...resolved.unresolved);
-  }
+  closeNamespaces(state);
 
-  let churnResult: ChurnResult | null = null;
-  if (options.churn) {
-    churnResult = options.churn(parsedFiles.map((file) => file.relativePath));
-    warnings.push(...churnResult.warnings);
-    for (const file of parsedFiles) {
-      const metrics = churnResult.metrics.get(file.relativePath);
-      if (!metrics) continue;
-      file.metrics.number_of_commits = metrics.commits;
-      file.metrics.number_of_authors = metrics.authors;
-    }
-  }
-
+  const churnResult = applyChurn(state, options.churn);
   const graph = buildGraph(
-    parsedFiles.map((file) => file.relativePath),
-    links
+    state.parsedFiles.map((file) => file.relativePath),
+    state.links
   );
-  for (const file of parsedFiles) {
-    const metrics = graph.metrics.get(file.relativePath);
-    if (metrics) {
-      file.metrics.fanIn = metrics.fanIn;
-      file.metrics.fanOut = metrics.fanOut;
-      file.metrics.inCycle = metrics.inCycle;
-      file.metrics.cycleSize = metrics.cycleSize;
-      file.metrics.dependencyLevel = metrics.dependencyLevel;
-    }
-  }
+  applyGraph(state, graph);
+  const migration = buildMigration(state.migrationFiles, state.migrationLinks);
+  applyMigration(state, migration);
 
-  for (const file of migrationFiles) {
-    file.fanIn = graph.metrics.get(file.relativePath)?.fanIn ?? 0;
-  }
-  const migration = buildMigration(migrationFiles, migrationLinks);
-  for (const file of parsedFiles) {
-    const node = migration.nodes.get(file.relativePath);
-    if (!node) continue;
-    file.metrics.ffiCrossings = node.crossings;
-    if (node.debt !== undefined) file.metrics.migrationDebt = node.debt;
-  }
-
-  if (unresolved.length > 0) {
-    warnings.push(
-      `${unresolved.length} imports sin resolver; se excluyen del grafo`
+  if (state.unresolved.length > 0) {
+    state.warnings.push(
+      `${state.unresolved.length} imports sin resolver; se excluyen del grafo`
     );
   }
 
   const snapshot = buildSnapshot({
     projectName,
-    files: parsedFiles,
+    files: state.parsedFiles,
     graph,
     migration,
     commitHash: options.commitHash
@@ -457,30 +286,365 @@ export function analyzeFiles(
   });
 
   const metricNames = new Set<string>();
-  for (const file of parsedFiles) {
+  for (const file of state.parsedFiles) {
     for (const metric of Object.keys(file.metrics)) metricNames.add(metric);
   }
 
-  warnings.sort();
+  state.warnings.sort();
 
   return {
     snapshot,
-    files: parsedFiles.length,
+    files: state.parsedFiles.length,
     folders,
     edges: graph.edges.length,
     cycles: graph.cycles,
     metricNames: [...metricNames].sort(),
-    warnings,
-    unresolved,
-    externalImports,
-    builtinImports,
-    typeOnlyImports,
-    unresolvedImports: unresolved.length,
+    warnings: state.warnings,
+    unresolved: state.unresolved,
+    externalImports: state.external,
+    builtinImports: state.builtin,
+    typeOnlyImports: state.typeOnly,
+    unresolvedImports: state.unresolved.length,
     migration: migration.summary,
     churn: churnResult,
-    cache: { hits: cacheHits, misses: cacheMisses },
+    cache: { hits: state.cacheHits, misses: state.cacheMisses },
     durationMs: Date.now() - started
   };
+}
+
+/**
+ * Lo que un lenguaje declara fuera de sus ficheros se lee una vez, no una vez
+ * por import: Go pide aquí su `go.mod`.
+ */
+function prepareParsers(
+  options: AnalyzeCoreOptions,
+  root: string,
+  fileSystem: FileSystem
+): void {
+  const project: ParserProject = {
+    readFile: (relativePath) => {
+      try {
+        return fileSystem.readFile(path.join(root, relativePath));
+      } catch {
+        return null;
+      }
+    }
+  };
+  for (const parser of options.parsers) parser.prepare?.(project);
+}
+
+/** El índice de rutas, solo si algún lenguaje declara sus imports como rutas. */
+function importIndexFor(
+  options: AnalyzeCoreOptions,
+  files: readonly WalkedFile[],
+  fileSystem: FileSystem
+): ImportTargetIndex | null {
+  // Lo usan Java y Python, que apuntan a un fichero por sufijo.
+  if (!options.parsers.some((parser) => parser.importTargets)) return null;
+  return new ImportTargetIndex(
+    files.map((file) => file.relativePath),
+    fileSystem.caseSensitive
+  );
+}
+
+/**
+ * Mide un fichero: lo que se cuenta, lo que se lee, lo que se parsea y lo que
+ * se apunta.
+ *
+ * Un fichero que no se puede leer o no se sabe medir se salta con su aviso, y
+ * el análisis sigue: un fichero raro no invalida el repositorio.
+ */
+function measureFile(file: WalkedFile, context: MeasureContext): void {
+  const language = languageForPath(file.relativePath);
+  const parser = parserFor(context.parsers, file.relativePath);
+  // Sin lenguaje ni parser no hay nada que medir: el recorrido puede traer
+  // extensiones que solo atiende un parser apagado.
+  if (!language && !parser) return;
+
+  if (language && isNativeLanguage(language)) {
+    pushUnmeasured(context.state, file, language);
+    return;
+  }
+
+  // Si la versión no cambió, se reutiliza el parseo y no se lee el fichero.
+  const version = versionOf(context.fileSystem, file.absolutePath);
+  // La versión dice que el fichero no cambió; el parser, que se midió con el
+  // mismo árbol (ADR 0090).
+  const cached =
+    version && parser
+      ? context.cache?.get(file.relativePath, version, parser.name) ?? null
+      : null;
+  const source = cached
+    ? ""
+    : readSource(context.state, context.fileSystem, file);
+  if (source === null) return;
+
+  // Una extensión que ningún parser declara solo llega aquí para la lente de
+  // migración, y no tiene árbol que medir.
+  if (!parser) {
+    // Rust se mide en cada pasada: son pocos ficheros y su medida es barata.
+    if (language === "rust") measureRustFile(context.state, file, source);
+    return;
+  }
+
+  const parsed = parseFile(context, file, parser, source, cached, version);
+  if (!parsed) return;
+
+  // Los espacios de nombres del fichero, para lo que busquen los `using` de
+  // los demás.
+  noteNamespaces(
+    parsed.parsed.namespaces ?? [],
+    file.relativePath,
+    context.state.namespaceDeclarations
+  );
+
+  recordFile(context, file, language, parser, parsed.parsed, parsed.bridge);
+}
+
+/** Un `.wasm` o un `.node`: es un nodo, y no hay fuente que medir. */
+function pushUnmeasured(
+  state: AnalysisState,
+  file: WalkedFile,
+  language: CcMigrationLanguage
+): void {
+  state.parsedFiles.push({
+    relativePath: file.relativePath,
+    metrics: { loc: 0, rloc: 0 }
+  });
+  state.migrationFiles.push({
+    relativePath: file.relativePath,
+    language,
+    loc: 0,
+    rloc: 0,
+    maxComplexity: 0,
+    fanIn: 0,
+    bridge: false
+  });
+}
+
+/** Rust sin parser: cuentan las líneas y si puentea a JavaScript. */
+function measureRustFile(
+  state: AnalysisState,
+  file: WalkedFile,
+  source: string
+): void {
+  const measured = measureRustSource(source);
+  state.parsedFiles.push({
+    relativePath: file.relativePath,
+    metrics: { loc: measured.loc, rloc: measured.rloc }
+  });
+  state.migrationFiles.push({
+    relativePath: file.relativePath,
+    language: "rust",
+    loc: measured.loc,
+    rloc: measured.rloc,
+    maxComplexity: 0,
+    fanIn: 0,
+    bridge: rustIsBridge(source)
+  });
+}
+
+/** Lee el fichero, o devuelve `null` y deja el aviso. */
+function readSource(
+  state: AnalysisState,
+  fileSystem: FileSystem,
+  file: WalkedFile
+): string | null {
+  try {
+    // Las líneas no son código (ADR 0076): el mismo fichero con CRLF y con
+    // LF es el mismo fichero. Sin normalizar, el export del HEAD en Windows
+    // sale con CRLF y el árbol de trabajo con LF, y Cambios enseña ficheros
+    // que nadie ha tocado.
+    return fileSystem.readFile(file.absolutePath).replace(/\r\n?/g, "\n");
+  } catch (error) {
+    state.warnings.push(
+      `no se pudo leer ${file.relativePath}: ${(error as Error).message}`
+    );
+    return null;
+  }
+}
+
+/**
+ * El parseo del fichero: de la caché si está, del parser si no.
+ *
+ * Un parser que revienta deja el aviso y el fichero fuera del análisis, con lo
+ * que no aporta métricas que nadie pueda comparar.
+ */
+function parseFile(
+  context: MeasureContext,
+  file: WalkedFile,
+  parser: SourceParser,
+  source: string,
+  cached: CachedParse | null,
+  version: string | null
+): { parsed: FileParseResult; bridge: boolean } | null {
+  if (cached) {
+    context.state.cacheHits += 1;
+    return { parsed: cached.parsed, bridge: cached.bridge };
+  }
+
+  let parsed: FileParseResult;
+  try {
+    parsed = parser.parse(source, file.relativePath);
+  } catch (error) {
+    context.state.warnings.push(
+      `no se pudo analizar ${file.relativePath}: ${(error as Error).message}`
+    );
+    return null;
+  }
+
+  // El puente es una propiedad de JS/TS hacia otro lenguaje: un fichero de
+  // otro lenguaje no puentea a nada, aunque tenga imports.
+  const language = languageForPath(file.relativePath);
+  const bridge =
+    language !== null && isTsJsLanguage(language)
+      ? jsIsBridge(
+          source,
+          parsed.imports.map((imported) => imported.specifier)
+        )
+      : false;
+
+  context.state.cacheMisses += 1;
+  if (version && context.cache) {
+    context.cache.set(file.relativePath, {
+      version,
+      parser: parser.name,
+      parsed,
+      bridge
+    });
+  }
+  return { parsed, bridge };
+}
+
+/**
+ * Apunta un fichero ya parseado: métricas, aristas y su nodo de migración.
+ *
+ * Las métricas se crean antes de sus imports porque un `using` de C# se cierra
+ * al final y tiene que apuntar ya a dónde sumar.
+ */
+function recordFile(
+  context: MeasureContext,
+  file: WalkedFile,
+  language: CcMigrationLanguage | null,
+  parser: SourceParser,
+  parsed: FileParseResult,
+  bridge: boolean
+): void {
+  const state = context.state;
+  const metrics: Metrics = {
+    ...parsed.metrics,
+    imports: parsed.imports.length,
+    externalImports: 0,
+    builtinImports: 0,
+    typeOnlyImports: 0,
+    unresolvedImports: 0
+  };
+
+  const tally = resolveImports(parsed.imports, {
+    file,
+    parser,
+    metrics,
+    resolver: context.resolver,
+    importIndex: context.importIndex,
+    links: state.links,
+    migrationLinks: state.migrationLinks,
+    unresolved: state.unresolved,
+    pendingNamespaces: state.pendingNamespaces
+  });
+
+  state.external += tally.external;
+  state.builtin += tally.builtin;
+  state.typeOnly += tally.typeOnly;
+
+  metrics.externalImports = tally.external;
+  metrics.builtinImports = tally.builtin;
+  metrics.typeOnlyImports = tally.typeOnly;
+  metrics.unresolvedImports = tally.unresolved;
+
+  state.parsedFiles.push({
+    relativePath: file.relativePath,
+    symbols: parsed.symbols ?? [],
+    imports: parsed.imports,
+    exports: parsed.exports ?? [],
+    members: parsed.members ?? [],
+    metrics
+  });
+  // La lente de migración solo tiene estado para los lenguajes que modela.
+  // Un fichero de otro lenguaje es un nodo como los demás y no entra en ella,
+  // así que no aparece con una deuda que no le corresponde.
+  if (language) {
+    state.migrationFiles.push({
+      relativePath: file.relativePath,
+      language,
+      loc: parsed.metrics.loc ?? 0,
+      rloc: parsed.metrics.rloc ?? 0,
+      maxComplexity: parsed.metrics.maxComplexity ?? 0,
+      fanIn: 0,
+      bridge
+    });
+  }
+}
+
+/** Cierra los `using` pendientes: ya se sabe quién declara cada espacio. */
+function closeNamespaces(state: AnalysisState): void {
+  if (state.pendingNamespaces.length === 0) return;
+  const resolved = resolveNamespaceImports(
+    state.pendingNamespaces,
+    state.namespaceDeclarations,
+    state.links
+  );
+  state.external += resolved.external;
+  state.builtin += resolved.builtin;
+  state.unresolved.push(...resolved.unresolved);
+}
+
+/** El historial, si el puerto lo trae (el navegador no tiene git). */
+function applyChurn(
+  state: AnalysisState,
+  churn: AnalyzeCoreOptions["churn"]
+): ChurnResult | null {
+  if (!churn) return null;
+  const result = churn(state.parsedFiles.map((file) => file.relativePath));
+  state.warnings.push(...result.warnings);
+  for (const file of state.parsedFiles) {
+    const metrics = result.metrics.get(file.relativePath);
+    if (!metrics) continue;
+    file.metrics.number_of_commits = metrics.commits;
+    file.metrics.number_of_authors = metrics.authors;
+  }
+  return result;
+}
+
+/** Fan-in, fan-out, ciclos y nivel: lo que dice el grafo de cada fichero. */
+function applyGraph(
+  state: AnalysisState,
+  graph: ReturnType<typeof buildGraph>
+): void {
+  for (const file of state.parsedFiles) {
+    const metrics = graph.metrics.get(file.relativePath);
+    if (!metrics) continue;
+    file.metrics.fanIn = metrics.fanIn;
+    file.metrics.fanOut = metrics.fanOut;
+    file.metrics.inCycle = metrics.inCycle;
+    file.metrics.cycleSize = metrics.cycleSize;
+    file.metrics.dependencyLevel = metrics.dependencyLevel;
+  }
+  for (const file of state.migrationFiles) {
+    file.fanIn = graph.metrics.get(file.relativePath)?.fanIn ?? 0;
+  }
+}
+
+/** Los cruces FFI y la deuda de migración de cada fichero. */
+function applyMigration(
+  state: AnalysisState,
+  migration: ReturnType<typeof buildMigration>
+): void {
+  for (const file of state.parsedFiles) {
+    const node = migration.nodes.get(file.relativePath);
+    if (!node) continue;
+    file.metrics.ffiCrossings = node.crossings;
+    if (node.debt !== undefined) file.metrics.migrationDebt = node.debt;
+  }
 }
 
 /** Lo que los imports de un fichero suman fuera del grafo: no todo es arista. */
