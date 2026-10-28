@@ -9,6 +9,14 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent
 } from "react";
+import {
+  duracionVuelo,
+  masCercano,
+  proyectar,
+  velocidad,
+  VENTANA,
+  type Muestra
+} from "../lib/carrete";
 import { fechaCorta, rutaDia, type ResumenDia } from "../lib/guia";
 import { idiomaDe, t } from "../lib/i18n";
 
@@ -20,8 +28,9 @@ import { idiomaDe, t } from "../lib/i18n";
  *
  * El día activo vive siempre en el centro y el resto es un carrete: los de
  * al lado se alejan en profundidad y los de más allá se deshacen en niebla.
- * Se puede arrastrar para recorrerlos; al soltar, el que queda en el centro
- * es el que se abre.
+ * Se puede arrastrar para recorrerlos: al soltar sigue rodando con la
+ * velocidad del gesto y frena encajando en el más cercano, que es el que se
+ * abre. No hay salto: primero se le ve llegar.
  */
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -31,6 +40,9 @@ const UMBRAL = 6;
 
 /** La curva de siempre: entra rápido y frena al final. */
 const CURVA = "cubic-bezier(0.22, 0.61, 0.36, 1)";
+
+/** El imán: frena seco al final y se pasa un pelo antes de encajar. */
+const RESORTE = "cubic-bezier(0.2, 1.15, 0.3, 1)";
 
 /** Opacidad y desenfoque por distancia al centro: el fondo se vuelve niebla. */
 const PROFUNDIDAD = [
@@ -107,7 +119,19 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
   const [listo, setListo] = useState(false);
   const [arrastre, setArrastre] = useState(0);
   const [moviendo, setMoviendo] = useState(false);
-  const gesto = useRef({ x0: 0, dx: 0, movido: false, activo: false });
+  /** El vuelo del imán: adónde va, con qué arrastre acaba y en cuánto. */
+  const [vuelo, setVuelo] = useState<{
+    destino: number;
+    dx: number;
+    ms: number;
+  } | null>(null);
+  const gesto = useRef({
+    x0: 0,
+    dx: 0,
+    movido: false,
+    activo: false,
+    muestras: [] as Muestra[]
+  });
   /** Un arrastre acaba en clic: ese clic no navega dos veces. */
   const suprimir = useRef(false);
 
@@ -167,38 +191,43 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     };
   }, [medir]);
 
-  /** El paso que quedará en el centro si se suelta con este desplazamiento. */
-  const masCercano = useCallback(
-    (dx: number): number => {
-      const caja = ventana.current;
-      if (!caja || centro === null) return indice;
-      const objetivo = centro - dx;
-      let mejor = indice;
-      let distancia = Infinity;
-      enlaces.current.forEach((enlace, i) => {
-        if (!enlace) return;
-        const suyo =
-          enlace.offsetLeft + enlace.offsetWidth / 2 - caja.clientWidth / 2;
-        const d = Math.abs(suyo - objetivo);
-        if (d < distancia) {
-          distancia = d;
-          mejor = i;
-        }
-      });
-      return mejor;
-    },
-    [centro, indice]
-  );
+  // El imán encaja y solo entonces se abre el día: primero se le ve llegar.
+  useEffect(() => {
+    if (!vuelo) return;
+    const reloj = window.setTimeout(() => {
+      setVuelo(null);
+      setArrastre(0);
+      if (vuelo.destino !== indice) enlaces.current[vuelo.destino]?.click();
+    }, vuelo.ms + 40);
+    return () => window.clearTimeout(reloj);
+  }, [vuelo, indice]);
 
   const alBajar = (evento: ReactPointerEvent<HTMLDivElement>): void => {
     if (evento.pointerType === "mouse" && evento.button !== 0) return;
-    gesto.current = { x0: evento.clientX, dx: 0, movido: false, activo: true };
+    gesto.current = {
+      x0: evento.clientX,
+      dx: 0,
+      movido: false,
+      activo: true,
+      muestras: [{ x: evento.clientX, t: evento.timeStamp }]
+    };
   };
 
   const alMover = (evento: ReactPointerEvent<HTMLDivElement>): void => {
     if (!gesto.current.activo) return;
     const dx = evento.clientX - gesto.current.x0;
     gesto.current.dx = dx;
+
+    // La velocidad se mide solo con el final del gesto: lo de antes ya no cuenta.
+    const muestras = gesto.current.muestras;
+    muestras.push({ x: evento.clientX, t: evento.timeStamp });
+    for (;;) {
+      const vieja = muestras[0];
+      if (!vieja || muestras.length <= 1) break;
+      if (evento.timeStamp - vieja.t <= VENTANA) break;
+      muestras.shift();
+    }
+
     if (Math.abs(dx) <= UMBRAL) return;
 
     if (!gesto.current.movido) {
@@ -213,21 +242,36 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     setArrastre(dx);
   };
 
-  const alSoltar = (): void => {
+  const alSoltar = (evento: ReactPointerEvent<HTMLDivElement>): void => {
     if (!gesto.current.activo) return;
-    const { dx, movido } = gesto.current;
+    const { dx, movido, muestras } = gesto.current;
     gesto.current.activo = false;
     if (!movido) return;
 
     setMoviendo(false);
-    setArrastre(0);
-
-    const destino = masCercano(dx);
+    // El clic que nace de este puntero no navega: lo hará el imán al encajar.
     suprimir.current = true;
     window.setTimeout(() => {
       suprimir.current = false;
-      if (destino !== indice) enlaces.current[destino]?.click();
     }, 0);
+
+    const caja = ventana.current;
+    const centros = enlaces.current.map((enlace) =>
+      enlace && caja
+        ? enlace.offsetLeft + enlace.offsetWidth / 2 - caja.clientWidth / 2
+        : Infinity
+    );
+    // Soltar después de una pausa no es un tirón: se mide solo lo último.
+    const recientes = muestras.filter(
+      (muestra) => evento.timeStamp - muestra.t <= VENTANA
+    );
+    const destino = masCercano(
+      centros,
+      (centro ?? 0) - proyectar(dx, velocidad(recientes)),
+      indice
+    );
+    const acaba = (centro ?? 0) - (centros[destino] ?? 0);
+    setVuelo({ destino, dx: acaba, ms: duracionVuelo(acaba - dx) });
   };
 
   /** Si el navegador cancela el gesto, el carrete vuelve y no se navega. */
@@ -276,7 +320,11 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
           onPointerCancel={alCancelar}
           className={clsx(
             "relative min-w-0 flex-1 touch-pan-y overflow-hidden pt-1 pb-2.5 select-none",
-            moviendo ? "cursor-grabbing" : "cursor-grab"
+            vuelo
+              ? "pointer-events-none cursor-default"
+              : moviendo
+                ? "cursor-grabbing"
+                : "cursor-grab"
           )}
           style={{ maskImage: niebla, WebkitMaskImage: niebla }}
         >
@@ -296,9 +344,11 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
               listo && !moviendo && "transition-transform duration-500"
             )}
             style={{
-              transform: `translate3d(${-(centro ?? 0) + arrastre}px, 0, 0)`,
-              transitionTimingFunction: CURVA,
-              opacity: visible ? 1 : 0
+              transform: `translate3d(${-(centro ?? 0) + (vuelo?.dx ?? arrastre)}px, 0, 0)`,
+              opacity: visible ? 1 : 0,
+              ...(vuelo
+                ? { transition: `transform ${vuelo.ms}ms ${RESORTE}` }
+                : { transitionTimingFunction: CURVA })
             }}
           >
             {/* La vía: el raíl por el que ruedan los días. Va bajo las pastillas,
