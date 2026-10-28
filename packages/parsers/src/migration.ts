@@ -69,6 +69,34 @@ export function isNativeLanguage(language: CcMigrationLanguage): boolean {
 }
 
 /**
+ * Lo que el escáner de Rust tiene delante: código, un comentario, un string
+ * abierto o un char literal.
+ */
+type RustScanState =
+  | "code"
+  | "lineComment"
+  | "blockComment"
+  | "string"
+  | "char"
+  | "rawString";
+
+interface RustScan {
+  source: string;
+  /** Carácter que toca leer; siempre el siguiente sin consumir. */
+  index: number;
+  state: RustScanState;
+  line: number;
+  lineHasCode: boolean;
+  codeLines: Set<number>;
+  /** Profundidad del comentario de bloque en curso: Rust los anida. */
+  blockDepth: number;
+  /** Almohadillas del raw string abierto; -1 cuando no hay ninguno. */
+  rawHashes: number;
+  /** Barra invertida pendiente de la secuencia de escape en curso. */
+  escaped: boolean;
+}
+
+/**
  * LOC/RLOC de Rust sin parser.
  *
  * Ignora comentarios de línea y de bloque (anidados), respeta strings normales,
@@ -77,129 +105,195 @@ export function isNativeLanguage(language: CcMigrationLanguage): boolean {
 export function measureRustSource(source: string): { loc: number; rloc: number } {
   if (source.length === 0) return { loc: 0, rloc: 0 };
 
-  const loc = countPhysicalLines(source);
-  const codeLines = new Set<number>();
-  let line = 0;
-  let lineHasCode = false;
-  let blockDepth = 0;
-  let inString = false;
-  let inChar = false;
-  let escaped = false;
-  let rawHashes = -1;
+  const scan = startScan(source);
+  while (scan.index < source.length) {
+    // El salto de línea se cierra igual esté uno donde esté; el resto es cosa
+    // del estado en que se pille el cursor.
+    if (stepNewline(scan)) continue;
+    stepState(scan);
+  }
+  if (scan.lineHasCode) scan.codeLines.add(scan.line);
 
-  const mark = (): void => {
-    lineHasCode = true;
+  return { loc: countPhysicalLines(source), rloc: scan.codeLines.size };
+}
+
+function startScan(source: string): RustScan {
+  return {
+    source,
+    index: 0,
+    state: "code",
+    line: 0,
+    lineHasCode: false,
+    codeLines: new Set<number>(),
+    blockDepth: 0,
+    rawHashes: -1,
+    escaped: false
   };
+}
 
-  const newline = (): void => {
-    if (lineHasCode) codeLines.add(line);
-    line++;
-    // El contenido de un string multilínea sigue siendo código.
-    lineHasCode = inString || rawHashes >= 0;
-  };
+/** Un handler por estado; cada uno consume al menos un carácter. */
+function stepState(scan: RustScan): void {
+  switch (scan.state) {
+    case "lineComment":
+      return stepLineComment(scan);
+    case "blockComment":
+      return stepBlockComment(scan);
+    case "string":
+      return stepQuoted(scan, "\"");
+    case "char":
+      return stepQuoted(scan, "'");
+    case "rawString":
+      return stepRawString(scan);
+    default:
+      return stepCode(scan);
+  }
+}
 
-  for (let index = 0; index < source.length; index++) {
-    const current = source[index] as string;
-    const next = source[index + 1] as string | undefined;
+function stepNewline(scan: RustScan): boolean {
+  const current = scan.source[scan.index];
+  if (current !== "\n" && current !== "\r") return false;
 
-    if (current === "\r") {
-      if (next === "\n") continue;
-      newline();
-      continue;
-    }
-    if (current === "\n") {
-      newline();
-      continue;
-    }
+  // `\r\n` es un solo salto: se consumen los dos y se cierra una línea.
+  const pair = current === "\r" && scan.source[scan.index + 1] === "\n";
+  scan.index += pair ? 2 : 1;
+  closeLine(scan);
+  return true;
+}
 
-    if (blockDepth > 0) {
-      if (current === "/" && next === "*") {
-        blockDepth++;
-        index++;
-      } else if (current === "*" && next === "/") {
-        blockDepth--;
-        index++;
-      }
-      continue;
-    }
+function closeLine(scan: RustScan): void {
+  if (scan.lineHasCode) scan.codeLines.add(scan.line);
+  scan.line++;
+  // El contenido de un string multilínea sigue siendo código.
+  scan.lineHasCode = scan.state === "string" || scan.state === "rawString";
+}
 
-    if (rawHashes >= 0) {
-      if (current === "\"") {
-        let hashes = 0;
-        while (source[index + 1 + hashes] === "#") hashes++;
-        if (hashes >= rawHashes) {
-          index += rawHashes;
-          rawHashes = -1;
-        }
-      }
-      continue;
-    }
+function stepCode(scan: RustScan): void {
+  const current = scan.source[scan.index] as string;
+  const next = scan.source[scan.index + 1];
 
-    if (inString) {
-      mark();
-      if (escaped) escaped = false;
-      else if (current === "\\") escaped = true;
-      else if (current === "\"") inString = false;
-      continue;
-    }
-
-    if (inChar) {
-      mark();
-      if (escaped) escaped = false;
-      else if (current === "\\") escaped = true;
-      else if (current === "'") inChar = false;
-      continue;
-    }
-
-    if (current === "/" && next === "/") {
-      while (
-        index + 1 < source.length &&
-        source[index + 1] !== "\n" &&
-        source[index + 1] !== "\r"
-      ) {
-        index++;
-      }
-      continue;
-    }
-
-    if (current === "/" && next === "*") {
-      blockDepth = 1;
-      index++;
-      continue;
-    }
-
-    if (current === "r" || (current === "b" && next === "r")) {
-      let cursor = current === "r" ? index + 1 : index + 2;
-      let hashes = 0;
-      while (source[cursor] === "#") {
-        hashes++;
-        cursor++;
-      }
-      if (source[cursor] === "\"") {
-        rawHashes = hashes;
-        index = cursor;
-        mark();
-        continue;
-      }
-    }
-
-    if (current === "\"") {
-      inString = true;
-      mark();
-      continue;
-    }
-
-    if (current === "'" && isRustCharLiteral(source, index)) {
-      inChar = true;
-      mark();
-      continue;
-    }
-
-    if (current.trim() !== "") mark();
+  if (current === "/" && next === "/") {
+    scan.state = "lineComment";
+    scan.index += 2;
+    return;
+  }
+  if (current === "/" && next === "*") {
+    scan.state = "blockComment";
+    scan.blockDepth = 1;
+    scan.index += 2;
+    return;
+  }
+  if (opensRawString(scan)) return;
+  if (current === "\"") {
+    scan.state = "string";
+    scan.index++;
+    markCode(scan);
+    return;
+  }
+  if (current === "'" && isRustCharLiteral(scan.source, scan.index)) {
+    scan.state = "char";
+    scan.index++;
+    markCode(scan);
+    return;
   }
 
-  if (lineHasCode) codeLines.add(line);
-  return { loc, rloc: codeLines.size };
+  if (current.trim() !== "") markCode(scan);
+  scan.index++;
+}
+
+function stepLineComment(scan: RustScan): void {
+  // El salto de línea lo cierra el paso común; aquí solo se gasta la línea.
+  while (scan.index < scan.source.length) {
+    const current = scan.source[scan.index];
+    if (current === "\n" || current === "\r") break;
+    scan.index++;
+  }
+  scan.state = "code";
+}
+
+function stepBlockComment(scan: RustScan): void {
+  const current = scan.source[scan.index];
+  const next = scan.source[scan.index + 1];
+
+  if (current === "/" && next === "*") {
+    scan.blockDepth++;
+    scan.index += 2;
+    return;
+  }
+  if (current === "*" && next === "/") {
+    scan.index += 2;
+    scan.blockDepth--;
+    if (scan.blockDepth === 0) scan.state = "code";
+    return;
+  }
+  scan.index++;
+}
+
+/** Strings y char literals comparten el escape; solo cambia la comilla final. */
+function stepQuoted(scan: RustScan, closing: string): void {
+  const current = scan.source[scan.index] as string;
+  markCode(scan);
+  scan.index++;
+
+  if (scan.escaped) {
+    scan.escaped = false;
+    return;
+  }
+  if (current === "\\") {
+    scan.escaped = true;
+    return;
+  }
+  if (current === closing) scan.state = "code";
+}
+
+function stepRawString(scan: RustScan): void {
+  if (scan.source[scan.index] !== "\"") {
+    scan.index++;
+    return;
+  }
+
+  const hashes = countHashes(scan.source, scan.index + 1);
+  // Una comilla con menos almohadillas de las que abrieron el raw es contenido.
+  if (hashes < scan.rawHashes) {
+    scan.index++;
+    return;
+  }
+
+  scan.index += scan.rawHashes + 1;
+  scan.rawHashes = -1;
+  scan.state = "code";
+}
+
+/** Abre un raw string (`r"…"`, `r#"…"#`, `br##"…"##`) si el cursor lo pide. */
+function opensRawString(scan: RustScan): boolean {
+  const { source } = scan;
+  const current = source[scan.index];
+  let cursor = scan.index + 1;
+
+  if (current === "b" && source[cursor] === "r") {
+    cursor++;
+  } else if (current !== "r") {
+    return false;
+  }
+
+  const hashes = countHashes(source, cursor);
+  cursor += hashes;
+  if (source[cursor] !== "\"") return false;
+
+  scan.rawHashes = hashes;
+  scan.state = "rawString";
+  scan.index = cursor + 1;
+  markCode(scan);
+  return true;
+}
+
+function countHashes(source: string, start: number): number {
+  let hashes = 0;
+  while (source[start + hashes] === "#") hashes++;
+  return hashes;
+}
+
+function markCode(scan: RustScan): void {
+  scan.lineHasCode = true;
 }
 
 export function rustIsBridge(source: string): boolean {
@@ -253,16 +347,8 @@ export function buildMigration(
   let ffiCrossings = 0;
 
   for (const file of sortedFiles) {
-    const fileStatus: CcMigrationStatus = isNativeLanguage(file.language)
-      ? "native"
-      : file.bridge
-        ? "bridge"
-        : file.language === "rust"
-          ? "rust"
-          : "js";
-    const debt = isTsJsLanguage(file.language)
-      ? (file.maxComplexity + 1) * (1 + file.fanIn)
-      : undefined;
+    const fileStatus = statusFor(file);
+    const debt = debtFor(file);
     const fileCrossings = crossings.get(file.relativePath) ?? 0;
 
     nodes.set(file.relativePath, {
@@ -304,6 +390,19 @@ export function buildMigration(
       migrationDebt
     }
   };
+}
+
+/** El estado de un fichero en la lente: nativo, puente, Rust o lo demás. */
+function statusFor(file: MigrationFileInput): CcMigrationStatus {
+  if (isNativeLanguage(file.language)) return "native";
+  if (file.bridge) return "bridge";
+  return file.language === "rust" ? "rust" : "js";
+}
+
+/** Deuda de migración: (complejidad + 1) × (1 + fan-in). Solo TS/JS. */
+function debtFor(file: MigrationFileInput): number | undefined {
+  if (!isTsJsLanguage(file.language)) return undefined;
+  return (file.maxComplexity + 1) * (1 + file.fanIn);
 }
 
 function isRustCharLiteral(source: string, index: number): boolean {

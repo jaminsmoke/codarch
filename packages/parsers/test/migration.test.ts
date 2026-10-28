@@ -34,6 +34,34 @@ describe("lente de migración", () => {
     expect(measureRustSource(source)).toEqual({ loc: 8, rloc: 5 });
   });
 
+  it("mide a través de raw strings multilínea y comentarios anidados", () => {
+    const source = [
+      'let bruto = br##"linea',
+      'segunda"##;',
+      "/* uno /* dos */ tres */ let a = 1;",
+      "let c = '\\'';",
+      "let d = '\"';"
+    ].join("\n");
+
+    // El contenido del raw sigue siendo código; el comentario anidado, no.
+    expect(measureRustSource(source)).toEqual({ loc: 5, rloc: 5 });
+  });
+
+  it("mide lo mismo en la segunda pasada y en cualquier orden", () => {
+    const sources = [
+      "let a = 1;\n",
+      "/* bloque */\n\nlet b = 2;",
+      'let s = r#"a // b"#;\n',
+      "let abierto = \"sin cerrar\n"
+    ];
+    const forward = sources.map((source) => measureRustSource(source));
+
+    expect(sources.map((source) => measureRustSource(source))).toEqual(forward);
+    expect(
+      [...sources].reverse().map((source) => measureRustSource(source)).reverse()
+    ).toEqual(forward);
+  });
+
   it("detecta puentes napi y wasm_bindgen", () => {
     expect(rustIsBridge("#[napi]\npub fn add() {}" )).toBe(true);
     expect(rustIsBridge("use napi_derive::napi;")).toBe(true);
