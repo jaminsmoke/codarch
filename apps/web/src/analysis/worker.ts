@@ -2,6 +2,8 @@ import { runAnalysis, type AnalyzeRequest, type AnalyzeResponse } from "./run";
 import runtimeWasm from "web-tree-sitter/tree-sitter.wasm?url";
 import typescriptWasm from "tree-sitter-typescript/tree-sitter-typescript.wasm?url";
 import tsxWasm from "tree-sitter-typescript/tree-sitter-tsx.wasm?url";
+import javaWasm from "tree-sitter-java/tree-sitter-java.wasm?url";
+import pythonWasm from "tree-sitter-python/tree-sitter-python.wasm?url";
 
 /**
  * Worker del análisis en el navegador.
@@ -31,7 +33,13 @@ scope.addEventListener("message", (event) => {
     scope.postMessage({ type: "progress", message: "Cargando el parser…" });
     const response = await runAnalysis(
       request,
-      { typescript: typescriptWasm, tsx: tsxWasm, runtime: runtimeWasm },
+      {
+        typescript: typescriptWasm,
+        tsx: tsxWasm,
+        java: javaWasm,
+        python: pythonWasm,
+        runtime: runtimeWasm
+      },
       (update) => scope.postMessage(update)
     );
     scope.postMessage(response);

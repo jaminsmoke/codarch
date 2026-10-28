@@ -1,4 +1,6 @@
 export { TS_PARSER_NAME, TypeScriptParser } from "./ts/parser";
+export { JAVA_PARSER_NAME, JavaParser } from "./java/parser";
+export { PYTHON_PARSER_NAME, PythonParser } from "./python/parser";
 export { ImportResolver, isAssetSpecifier } from "./resolve";
 export type { ResolveResult } from "./resolve";
 export { buildGraph } from "./graph";
@@ -16,6 +18,7 @@ export type {
   UnresolvedImportIssue
 } from "./analyze";
 export { analyzeFiles } from "./analyze-core";
+export { extensionsFor, parserFor } from "./parsers";
 export type {
   AnalyzeCoreOptions,
   AnalyzeCoreResult,
@@ -109,6 +112,7 @@ export * as path from "./path";
 export type {
   FileParseResult,
   ImportKind,
+  ImportTargets,
   Metrics,
   ParsedImport,
   ParsedSymbol,

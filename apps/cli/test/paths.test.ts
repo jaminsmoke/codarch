@@ -123,11 +123,12 @@ describe("el HEAD que sirve serve (ADR 0072)", () => {
   });
 });
 
-describe("un repo sin TypeScript ni JavaScript", () => {
+describe("un repo de un lenguaje que el análisis no lee", () => {
   it("analyze avisa, falla y no dice «sin git»", () => {
     silence();
     const root = tempDir();
-    fs.writeFileSync(path.join(root, "app.py"), "print('hola')\n", "utf8");
+    // Ruby no está en la hornada de lenguajes (ADR 0090): sigue sin mapa.
+    fs.writeFileSync(path.join(root, "app.rb"), "puts 'hola'\n", "utf8");
     const log = vi.spyOn(console, "log");
     const warning = vi.spyOn(console, "warn");
 
@@ -139,7 +140,21 @@ describe("un repo sin TypeScript ni JavaScript", () => {
       )
     ).toBe(true);
     const lines = log.mock.calls.map(([line]) => String(line)).join("\n");
-    expect(lines).toContain("sin ficheros TS/JS");
+    expect(lines).toContain("sin ficheros que analizar");
     expect(lines).not.toContain("sin git");
+  });
+
+  it("un repo solo de Python ya no sale vacío", () => {
+    silence();
+    const root = tempDir();
+    fs.writeFileSync(path.join(root, "app.py"), "def saluda():\n  return 1\n", "utf8");
+    const warning = vi.spyOn(console, "warn");
+
+    expect(runAnalyze({ root, help: false })).toBe(0);
+    expect(
+      warning.mock.calls.some(([message]) =>
+        String(message).includes("el snapshot sale vacío")
+      )
+    ).toBe(false);
   });
 });

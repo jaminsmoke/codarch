@@ -9,6 +9,7 @@ import type { CcJson } from "@codarch/schema";
 import { analyzeFiles } from "./analyze-core";
 import { analyzeRepository } from "./analyze";
 import { collectGitChurn, gitHead, withHeadExport } from "./git";
+import { JavaParser } from "./java/parser";
 import { NodeFileSystem } from "./node-fs";
 import { TypeScriptParser } from "./ts/parser";
 
@@ -63,7 +64,7 @@ export function compareWorkingTreeWithHead(
       root: "/",
       projectName,
       ignore,
-      parser: new TypeScriptParser(),
+      parsers: [new TypeScriptParser(), new JavaParser()],
       commitHash,
       churn: (relativePaths) => collectGitChurn(rootInput, relativePaths)
     }).snapshot;

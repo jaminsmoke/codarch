@@ -1,7 +1,10 @@
 import {
   MemoryFileSystem,
+  WasmJavaParser,
+  WasmPythonParser,
   WasmTypeScriptParser,
-  analyzeFiles
+  analyzeFiles,
+  type SourceParser
 } from "@codarch/parsers/browser";
 import { parseIgnoreYaml } from "@codarch/metrics/browser";
 
@@ -41,6 +44,8 @@ export type AnalyzeResponse =
 export interface GrammarSources {
   typescript: string | Uint8Array;
   tsx: string | Uint8Array;
+  java?: string | Uint8Array;
+  python?: string | Uint8Array;
   runtime?: string;
 }
 
@@ -58,6 +63,19 @@ export async function runAnalysis(
       sources.tsx,
       { runtime: sources.runtime }
     );
+    const parsers: SourceParser[] = [parser];
+    if (sources.java) {
+      parsers.push(
+        await WasmJavaParser.create(sources.java, { runtime: sources.runtime })
+      );
+    }
+    if (sources.python) {
+      parsers.push(
+        await WasmPythonParser.create(sources.python, {
+          runtime: sources.runtime
+        })
+      );
+    }
 
     const started = Date.now();
     // El navegador comparte el alcance del CLI (ADR 0038): si el repo trae
@@ -71,7 +89,7 @@ export async function runAnalysis(
       root: "/",
       projectName: request.projectName,
       ignore,
-      parser,
+      parsers,
       onProgress: (progress) => report({ type: "progress-file", ...progress })
     });
 

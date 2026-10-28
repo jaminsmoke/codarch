@@ -115,13 +115,14 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
     return 1;
   }
 
-  // Un repo que no es TS/JS da un snapshot vacío y nadie se entera: se dice.
+  // Un repo de un lenguaje que el análisis no lee da un snapshot vacío y
+  // nadie se entera: se dice (ADR 0090).
   if (result.files === 0) {
     console.warn(
-      `aviso: no hay ningún fichero TypeScript/JavaScript en ${root}; el snapshot sale vacío`
+      `aviso: no hay ningún fichero que el análisis sepa leer en ${root}; el snapshot sale vacío`
     );
     console.warn(
-      "  CodArch v1 dibuja TS/JS; otro lenguaje cuenta en la lente de migración, no en el mapa."
+      "  Dibuja TS/JS, Java y Python; de otro lenguaje solo se mide la lente de migración."
     );
   }
 
@@ -274,10 +275,10 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
         ? `${num(result.git.commits)} commits · ${num(
             result.git.authors
           )} autores${result.git.shallow ? " · shallow" : ""}`
-        : // Sin ficheros TS/JS no hay a qué atribuir commits: decir «sin git»
-          // en un repo git era mentira.
+        : // Sin ficheros analizados no hay a qué atribuir commits: decir «sin
+          // git» en un repo git era mentira.
           result.files === 0
-          ? "sin ficheros TS/JS; se omite churn"
+          ? "sin ficheros que analizar; se omite churn"
           : "sin git; se omite churn"
     )
   );

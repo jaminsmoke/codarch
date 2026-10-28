@@ -38,6 +38,8 @@ const shared = {
     "ignore",
     "minimatch",
     "tree-sitter",
+    "tree-sitter-java",
+    "tree-sitter-python",
     "tree-sitter-typescript",
     "typescript",
     "yaml"

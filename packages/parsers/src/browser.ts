@@ -6,6 +6,8 @@
  * análisis. El CLI usa la entrada normal.
  */
 export { WasmTypeScriptParser } from "./ts/wasm-parser";
+export { WasmJavaParser } from "./java/wasm-parser";
+export { WasmPythonParser } from "./python/wasm-parser";
 export {
   collectImports,
   countLines,
@@ -14,6 +16,7 @@ export {
   type SyntaxNodeLike
 } from "./ts/measure";
 export { analyzeFiles } from "./analyze-core";
+export { extensionsFor, parserFor } from "./parsers";
 export type {
   AnalyzeCoreOptions,
   AnalyzeCoreResult,
@@ -30,6 +33,7 @@ export * as path from "./path";
 export type {
   FileParseResult,
   ImportKind,
+  ImportTargets,
   Metrics,
   ParsedImport,
   ParsedSymbol,

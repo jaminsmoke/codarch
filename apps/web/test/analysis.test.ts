@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -25,6 +26,27 @@ const GRAMMARS = path.resolve(
 
 function readGrammar(name: string): Uint8Array {
   return new Uint8Array(fs.readFileSync(path.join(GRAMMARS, name)));
+}
+
+function readJavaGrammar(): Uint8Array {
+  return new Uint8Array(
+    fs.readFileSync(
+      path.resolve(GRAMMARS, "..", "tree-sitter-java", "tree-sitter-java.wasm")
+    )
+  );
+}
+
+function readPythonGrammar(): Uint8Array {
+  return new Uint8Array(
+    fs.readFileSync(
+      path.resolve(
+        GRAMMARS,
+        "..",
+        "tree-sitter-python",
+        "tree-sitter-python.wasm"
+      )
+    )
+  );
 }
 
 /** Los ficheros del fixture, como rutas virtuales y contenido. */
@@ -65,6 +87,90 @@ describe("análisis en el navegador", () => {
     expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
     expect(response.files).toBe(onDisk.files);
     expect(response.edges).toBe(onDisk.edges);
+  }, 60_000);
+
+  it("analiza Java con su gramática y da el checksum del CLI", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-web-java-"));
+    const files: Array<[string, string]> = [
+      ["/package.json", JSON.stringify({ name: "java-demo" })],
+      [
+        "/src/com/acme/Money.java",
+        "package com.acme;\n\npublic class Money {\n  private final int cents;\n\n  public Money(int cents) { this.cents = cents; }\n}\n"
+      ],
+      [
+        "/src/com/acme/Invoice.java",
+        "package com.acme;\n\nimport com.acme.Money;\n\npublic class Invoice {\n  private final Money total;\n\n  public Invoice(Money total) { this.total = total; }\n}\n"
+      ]
+    ];
+
+    try {
+      for (const [file, content] of files) {
+        const onDisk = path.join(root, file);
+        fs.mkdirSync(path.dirname(onDisk), { recursive: true });
+        fs.writeFileSync(onDisk, content, "utf8");
+      }
+
+      const response = await runAnalysis(
+        { type: "analyze", files },
+        {
+          typescript: readGrammar("tree-sitter-typescript.wasm"),
+          tsx: readGrammar("tree-sitter-tsx.wasm"),
+          java: readJavaGrammar()
+        }
+      );
+      expect(response.type).toBe("done");
+      if (response.type !== "done") return;
+
+      const onDisk = analyzeRepository(root, { git: false });
+      const browser = response.snapshot as { meta: { checksum: string } };
+      expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
+      expect(response.files).toBe(2);
+      expect(response.edges).toBe(1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("analiza Python con su gramática y da el checksum del CLI", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-web-python-"));
+    const files: Array<[string, string]> = [
+      ["/package.json", JSON.stringify({ name: "python-demo" })],
+      [
+        "/src/acme/money.py",
+        "class Money:\n    def __init__(self, cents):\n        self.cents = cents\n"
+      ],
+      [
+        "/src/acme/billing.py",
+        "import os\nfrom acme.money import Money\n\n\ndef total(items):\n    return sum(i.cents for i in items)\n"
+      ]
+    ];
+
+    try {
+      for (const [file, content] of files) {
+        const onDisk = path.join(root, file);
+        fs.mkdirSync(path.dirname(onDisk), { recursive: true });
+        fs.writeFileSync(onDisk, content, "utf8");
+      }
+
+      const response = await runAnalysis(
+        { type: "analyze", files },
+        {
+          typescript: readGrammar("tree-sitter-typescript.wasm"),
+          tsx: readGrammar("tree-sitter-tsx.wasm"),
+          python: readPythonGrammar()
+        }
+      );
+      expect(response.type).toBe("done");
+      if (response.type !== "done") return;
+
+      const onDisk = analyzeRepository(root, { git: false });
+      const browser = response.snapshot as { meta: { checksum: string } };
+      expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
+      expect(response.files).toBe(2);
+      expect(response.edges).toBe(1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
   }, 60_000);
 
   it("devuelve un error legible si no puede analizar", async () => {
