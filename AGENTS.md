@@ -101,10 +101,11 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
 
 ## Estado
 
-El producto va por `0.3.26`. Fases abiertas: **M23** (dominio propio y búsqueda de la web), **M31**
-(los ADR en inglés), **M34** (la app dice qué raíz analiza; pausa del escritorio) y **M49** (el
-lenguaje de la ficha en todo el reporte). **M24** (índice SQLite) sigue aparcada. El detalle está en
-`apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo repite.
+El producto va por `0.3.40`. Fases abiertas: **M23** (dominio propio y búsqueda de la web), **M31**
+(los ADR en inglés), **M34** (la app dice qué raíz analiza; pausa del escritorio), **M49** (el lenguaje
+de la ficha en todo el reporte) y **M61** (Java, Python, Go y C#). **M24** (índice SQLite) sigue
+aparcada. El detalle está en `apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo
+repite.
 
 ## No objetivos de v1
 
