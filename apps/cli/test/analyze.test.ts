@@ -98,3 +98,48 @@ describe("alcance de analyze", () => {
     );
   });
 });
+
+describe("el resumen de analyze", () => {
+  it("cuenta las fases en orden, de la raíz al churn", () => {
+    const root = tempRepo({
+      "src/a.ts": "export const a = 1;\n",
+      "src/b.ts": "import { a } from './a';\nexport const b = () => a;\n"
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const code = runAnalyze({
+      root,
+      out: path.join(root, "out"),
+      git: false,
+      help: false
+    });
+
+    expect(code).toBe(0);
+    const salida = String(log.mock.calls[0]?.[0] ?? "");
+    const etiquetas = salida
+      .split("\n")
+      .filter(
+        (line) =>
+          line.startsWith("  ") &&
+          line.trim() !== "" &&
+          !line.includes("CodArch ·")
+      )
+      .map((line) => line.trim().split(/\s+/)[0]);
+
+    // El orden es la lectura del comando: qué se analizó, qué se guardó y
+    // cómo fue. Un campo que se cuela cambia esta lista.
+    expect(etiquetas).toEqual([
+      "raíz",
+      "snapshot",
+      "estructura",
+      "imports",
+      "migración",
+      "parseo",
+      "alcances",
+      "tiempo",
+      "churn"
+    ]);
+    expect(salida).toContain("2 ficheros");
+    expect(salida).toContain("sin git; se omite churn");
+  });
+});
