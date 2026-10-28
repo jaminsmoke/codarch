@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +12,7 @@ import {
   type CcNode
 } from "@codarch/schema";
 import { runDiff } from "../src/commands/diff";
+import { compareSnapshots } from "../src/commands/compare";
 
 const tempRoots: string[] = [];
 
@@ -83,6 +85,42 @@ afterEach(() => {
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+describe("diff CLI options", () => {
+  it("accepts equivalent option forms and preserves validation errors", () => {
+    const root = tempDir();
+    const base = path.join(root, "base.json");
+    const head = path.join(root, "head.json");
+    fs.writeFileSync(base, JSON.stringify(snapshot("proj", [
+      { path: "a.ts", metrics: { rloc: 1 } }
+    ], [])));
+    fs.writeFileSync(head, JSON.stringify(snapshot("proj", [
+      { path: "a.ts", metrics: { rloc: 4 } }
+    ], [])));
+    const run = (...args: string[]) => spawnSync(process.execPath, [
+      "--import", "tsx", "apps/cli/src/index.ts", "diff", ...args
+    ], { encoding: "utf8" });
+    const out1 = path.join(root, "first.json");
+    const out2 = path.join(root, "second.json");
+    const separate = run(base, head, "-o", out1, "--top", "1", "--hotspot-metric", "rloc", "--fail-on", "none", "--no-config");
+    const inline = run(base, head, `--out=${out2}`, "--top=1", "--hotspot-metric=rloc", "--fail-on=none", "--config=", "--no-config");
+    expect(separate.status).toBe(0);
+    expect(inline.status).toBe(0);
+    expect(JSON.parse(fs.readFileSync(out2, "utf8"))).toEqual(JSON.parse(fs.readFileSync(out1, "utf8")));
+
+    for (const [arg, message] of [
+      ["--top=", "--top necesita un entero positivo"],
+      ["--fail-on=invalid", "--fail-on necesita none, cycles, violations, hotspots o any"],
+      ["--config", "--config necesita una ruta"],
+      ["--hotspot-metric", "--hotspot-metric necesita un nombre"],
+      ["-o", "--out necesita una ruta"]
+    ] as const) {
+      const result = run(arg);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(message);
+    }
+  }, 15000);
 });
 
 describe("runDiff", () => {
@@ -359,5 +397,108 @@ describe("runDiff", () => {
     expect(report.rules.summary.introducedWarnings).toBe(1);
     expect(report.rules.violations.introduced[0]?.rule).toBe("domain-no-infra");
     expect(report.rules.violations.introduced[0]?.source).toBe("addon:demo");
+  });
+});
+
+describe("el informe del diff", () => {
+  const base = () =>
+    snapshot(
+      "proj",
+      [
+        { path: "a.ts", metrics: { maxComplexity: 1, rloc: 5 } },
+        { path: "b.ts", metrics: { maxComplexity: 1, rloc: 5 } }
+      ],
+      [{ from: "a.ts", to: "b.ts" }]
+    );
+  const head = () =>
+    snapshot(
+      "proj",
+      [
+        { path: "a.ts", metrics: { maxComplexity: 6, rloc: 12 } },
+        { path: "b.ts", metrics: { maxComplexity: 1, rloc: 5 } }
+      ],
+      [
+        { from: "a.ts", to: "b.ts" },
+        { from: "b.ts", to: "a.ts", cyclic: true }
+      ]
+    );
+
+  it("pinta los campos, las secciones en orden y decide el gate", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const code = compareSnapshots(base(), head(), {
+      baseLabel: "base.cc.json",
+      headLabel: "head.cc.json",
+      title: "diff",
+      failOn: "any",
+      top: 5
+    });
+
+    expect(code).toBe(2);
+    expect(error).toHaveBeenCalledWith("  gate fallido: ciclos nuevos + hotspots");
+
+    const text = String(log.mock.calls[0]?.[0]);
+    expect(text).toContain("  CodArch · diff");
+    expect(text).toContain("base.cc.json (sum-proj)");
+    expect(text).toContain("head.cc.json (sum-proj)");
+    // Los totales del cambio, en el orden de siempre.
+    expect(text).toMatch(/^\s+ficheros\s+0 · 0 · ~1$/m);
+    expect(text).toMatch(/^\s+aristas\s+\+1 · 0 · 1 cíclicas nuevas$/m);
+    expect(text).toMatch(
+      /^\s+código\s+0 rloc añadidos · 0 · ~\+7 en ficheros cambiados$/m
+    );
+    expect(text).toMatch(/^\s+hotspots\s+1 \(maxComplexity\)$/m);
+    expect(text).toMatch(/^\s+reporte\s+sin escribir/m);
+
+    // Un ciclo y sus hotspots, y la sección de ciclos antes que la de hotspots.
+    expect(text).toContain("  Ciclos nuevos:");
+    expect(text).toContain("    ✗ a.ts → b.ts");
+    expect(text).toContain("  Hotspots (maxComplexity):");
+    expect(text.indexOf("Ciclos nuevos:")).toBeLessThan(
+      text.indexOf("Hotspots (maxComplexity):")
+    );
+    expect(text.endsWith("\n")).toBe(true);
+  });
+
+  it("sin fail-on pasa, dice que no hay ciclos y no escribe reporte", () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const code = compareSnapshots(base(), base(), {
+      baseLabel: "base.cc.json",
+      headLabel: "head.cc.json",
+      title: "history",
+      failOn: "none",
+      top: 5
+    });
+
+    expect(code).toBe(0);
+    expect(error).not.toHaveBeenCalled();
+    const text = String(log.mock.calls[0]?.[0]);
+    expect(text).toContain("  CodArch · history");
+    expect(text).toContain("  Sin ciclos nuevos.");
+    expect(text).not.toContain("Hotspots (");
+    expect(text).not.toContain("Símbolos que más cambiaron:");
+  });
+
+  it("dice por qué no pudo escribir el reporte y devuelve 1", () => {
+    const root = tempDir();
+    // Un fichero donde debería ir la carpeta: el `mkdir` no puede crearla.
+    const blocker = path.join(root, "bloqueo");
+    fs.writeFileSync(blocker, "x", "utf8");
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    expect(
+      compareSnapshots(base(), base(), {
+        out: path.join(blocker, "report.json"),
+        baseLabel: "base.cc.json",
+        headLabel: "head.cc.json",
+        title: "diff",
+        help: false
+      } as never)
+    ).toBe(1);
+    expect(String(error.mock.calls[0]?.[0])).toContain("no se pudo escribir");
   });
 });

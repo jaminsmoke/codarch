@@ -562,68 +562,15 @@ function parseDiff(args: string[]): DiffCommandOptions | number {
   for (let index = 0; index < args.length; index++) {
     const arg = args[index] as string;
 
-    if (arg === "--out" || arg === "-o") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--out necesita una ruta");
-        return 1;
-      }
-      options.out = value;
-    } else if (arg.startsWith("--out=")) {
-      options.out = arg.slice("--out=".length);
-    } else if (arg === "--top") {
-      const value = args[++index];
-      const parsed = Number(value);
-      if (!value || !Number.isInteger(parsed) || parsed < 1) {
-        console.error("--top necesita un entero positivo");
-        return 1;
-      }
-      options.top = parsed;
-    } else if (arg.startsWith("--top=")) {
-      const parsed = Number(arg.slice("--top=".length));
-      if (!Number.isInteger(parsed) || parsed < 1) {
-        console.error("--top necesita un entero positivo");
-        return 1;
-      }
-      options.top = parsed;
-    } else if (arg === "--hotspot-metric") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--hotspot-metric necesita un nombre");
-        return 1;
-      }
-      options.hotspotMetric = value;
-    } else if (arg.startsWith("--hotspot-metric=")) {
-      options.hotspotMetric = arg.slice("--hotspot-metric=".length);
-    } else if (arg === "--config") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--config necesita una ruta");
-        return 1;
-      }
-      options.config = value;
-    } else if (arg.startsWith("--config=")) {
-      options.config = arg.slice("--config=".length);
+    if (arg === "--out" || arg === "-o" || arg === "--top" ||
+        arg === "--hotspot-metric" || arg === "--config" || arg === "--fail-on") {
+      if (!setDiffOption(options, arg === "-o" ? "--out" : arg, args[++index], false)) return 1;
+    } else if (["--out=", "--top=", "--hotspot-metric=", "--config=", "--fail-on="]
+      .some((prefix) => arg.startsWith(prefix))) {
+      const separator = arg.indexOf("=");
+      if (!setDiffOption(options, arg.slice(0, separator), arg.slice(separator + 1), true)) return 1;
     } else if (arg === "--no-config") {
       options.noConfig = true;
-    } else if (arg === "--fail-on") {
-      const value = args[++index];
-      if (!isFailOn(value)) {
-        console.error(
-          "--fail-on necesita none, cycles, violations, hotspots o any"
-        );
-        return 1;
-      }
-      options.failOn = value;
-    } else if (arg.startsWith("--fail-on=")) {
-      const value = arg.slice("--fail-on=".length);
-      if (!isFailOn(value)) {
-        console.error(
-          "--fail-on necesita none, cycles, violations, hotspots o any"
-        );
-        return 1;
-      }
-      options.failOn = value;
     } else if (arg === "--help" || arg === "-h") {
       console.log(USAGE);
       return 0;
@@ -646,6 +593,41 @@ function parseDiff(args: string[]): DiffCommandOptions | number {
   options.base = positional[0];
   options.head = positional[1];
   return options;
+}
+
+/** Valida y asigna una opción de diff; las formas con `=` aceptan texto vacío. */
+function setDiffOption(
+  options: DiffCommandOptions,
+  name: string,
+  value: string | undefined,
+  inline: boolean
+): boolean {
+  if (name === "--top") {
+    const parsed = Number(value);
+    if ((!inline && !value) || !Number.isInteger(parsed) || parsed < 1) {
+      console.error("--top necesita un entero positivo");
+      return false;
+    }
+    options.top = parsed;
+    return true;
+  }
+  if (name === "--fail-on") {
+    if (!isFailOn(value)) {
+      console.error("--fail-on necesita none, cycles, violations, hotspots o any");
+      return false;
+    }
+    options.failOn = value;
+    return true;
+  }
+  if (!inline && !value) {
+    const expected = name === "--hotspot-metric" ? "un nombre" : "una ruta";
+    console.error(`${name} necesita ${expected}`);
+    return false;
+  }
+  if (name === "--out") options.out = value;
+  else if (name === "--config") options.config = value;
+  else options.hotspotMetric = value;
+  return true;
 }
 
 function isFailOn(value: string | undefined): value is FailOn {
@@ -732,6 +714,28 @@ function main(argv: string[]): number {
     return 0;
   }
 
+  const fileCommand = runFileCommand(command, rest);
+  if (fileCommand !== undefined) return fileCommand;
+
+  const projectCommand = runProjectCommand(command, rest);
+  if (projectCommand !== undefined) return projectCommand;
+
+  if (command === "version") {
+    const parsed = parseVersion(rest);
+    if (typeof parsed === "number") return parsed;
+    // La comprobación va a la red: el código de salida se pone cuando conteste.
+    void runVersion(parsed).then((codigo) => {
+      process.exitCode = codigo;
+    });
+    return 0;
+  }
+
+  console.error(`comando desconocido: ${command}\n${USAGE}`);
+  return 1;
+}
+
+/** Comandos que trabajan con snapshots, ficheros o un servidor. */
+function runFileCommand(command: string, rest: string[]): number | undefined {
   if (command === "analyze") {
     const parsed = parseAnalyze(rest);
     if (typeof parsed === "number") return parsed;
@@ -770,6 +774,11 @@ function main(argv: string[]): number {
     return runProfiles(rest.includes("--json"));
   }
 
+  return undefined;
+}
+
+/** Comandos de consulta y gestión del proyecto. */
+function runProjectCommand(command: string, rest: string[]): number | undefined {
   if (command === "history") {
     const parsed = parseHistory(rest);
     if (typeof parsed === "number") return parsed;
@@ -812,18 +821,7 @@ function main(argv: string[]): number {
     return runPlugins(parsed);
   }
 
-  if (command === "version") {
-    const parsed = parseVersion(rest);
-    if (typeof parsed === "number") return parsed;
-    // La comprobación va a la red: el código de salida se pone cuando conteste.
-    void runVersion(parsed).then((codigo) => {
-      process.exitCode = codigo;
-    });
-    return 0;
-  }
-
-  console.error(`comando desconocido: ${command}\n${USAGE}`);
-  return 1;
+  return undefined;
 }
 
 process.exitCode = main(process.argv.slice(2));
