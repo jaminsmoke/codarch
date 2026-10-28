@@ -261,6 +261,30 @@ describe("diffSnapshots", () => {
     expect(report.edges.cyclicAdded).toHaveLength(1);
   });
 
+  it("detecta componentes de ciclos y mantiene el orden con aristas duplicadas", () => {
+    const files = ["a.ts", "b.ts", "c.ts", "d.ts", "e.ts", "f.ts"].map((path) => ({ path }));
+    const edges: EdgeSpec[] = [
+      { from: "a.ts", to: "b.ts" },
+      { from: "a.ts", to: "b.ts" },
+      { from: "b.ts", to: "a.ts" },
+      { from: "b.ts", to: "c.ts" },
+      { from: "c.ts", to: "d.ts" },
+      { from: "d.ts", to: "c.ts" },
+      { from: "e.ts", to: "e.ts" },
+      { from: "f.ts", to: "f.ts", typeOnly: true }
+    ];
+    const base = snapshot("proj", files);
+    const head = snapshot("proj", files, edges);
+    const reordered = snapshot("proj", [...files].reverse(), [...edges].reverse());
+
+    const cycles = diffSnapshots(base, head).cycles.introduced;
+    expect(cycles.map((cycle) => cycle.nodes.map((node) => node.path))).toEqual([
+      ["a.ts", "b.ts"], ["c.ts", "d.ts"], ["e.ts"]
+    ]);
+    expect(diffSnapshots(base, reordered).cycles.introduced).toEqual(cycles);
+    expect(diffSnapshots(head, base).cycles.fixed).toEqual(cycles);
+  });
+
   it("no cuenta como ciclo un ciclo que solo existe en tipos", () => {
     const base = snapshot("proj", [{ path: "a.ts" }, { path: "b.ts" }]);
     const head = snapshot("proj", [{ path: "a.ts" }, { path: "b.ts" }], [
@@ -454,6 +478,16 @@ describe("diffSnapshots", () => {
       "src/a.ts",
       "src/b.ts"
     ]);
+    expect(diffSnapshots(base, head, { top: 1 }).migration?.topDebt.map((file) => file.path)).toEqual([
+      "src/a.ts"
+    ]);
+    expect(diffSnapshots(base, head).migration).toEqual(migrationReport);
+
+    const withoutLens = snapshot("proj", [{ path: "src/a.ts" }]);
+    const introduced = diffSnapshots(withoutLens, head).migration;
+    expect(introduced?.debt).toEqual({ base: 0, head: 16, delta: 16 });
+    expect(introduced?.files).toEqual({ increased: [], decreased: [] });
+    expect(diffSnapshots(withoutLens, withoutLens).migration).toBeNull();
   });
 
   it("compara los símbolos de dentro de los ficheros", () => {

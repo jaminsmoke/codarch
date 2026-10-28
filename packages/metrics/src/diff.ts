@@ -5,6 +5,7 @@ import {
   type CcJson,
   type CcMigrationLanguage,
   type CcMigrationLanguageStats,
+  type CcMigrationLens,
   type CcMigrationStatus,
   type CcNode
 } from "@codarch/schema";
@@ -341,7 +342,33 @@ function buildMigrationReport(
 
   const baseNodes = baseLens?.nodes ?? {};
   const headNodes = headLens?.nodes ?? {};
+  const changes = migrationChanges(baseIndex, headIndex, baseNodes, headNodes);
+  const baseSummary = baseLens?.summary;
+  const headSummary = headLens?.summary;
 
+  return {
+    languages: {
+      base: baseSummary?.languages ?? {},
+      head: headSummary?.languages ?? {}
+    },
+    status: {
+      base: baseSummary?.status ?? emptyStatus(),
+      head: headSummary?.status ?? emptyStatus()
+    },
+    debt: migrationDelta(baseSummary?.migrationDebt, headSummary?.migrationDebt),
+    crossings: migrationDelta(baseSummary?.ffiCrossings, headSummary?.ffiCrossings),
+    bridgeFiles: migrationDelta(baseSummary?.bridgeFiles, headSummary?.bridgeFiles),
+    files: migrationChangeRanking(changes, top),
+    topDebt: migrationTopDebt(headIndex, headNodes, top)
+  };
+}
+
+function migrationChanges(
+  baseIndex: IndexedSnapshot,
+  headIndex: IndexedSnapshot,
+  baseNodes: CcMigrationLens["nodes"],
+  headNodes: CcMigrationLens["nodes"]
+): MigrationFileChange[] {
   const changes: MigrationFileChange[] = [];
   for (const id of new Set([...Object.keys(baseNodes), ...Object.keys(headNodes)])) {
     const base = baseNodes[id];
@@ -364,6 +391,13 @@ function buildMigrationReport(
     });
   }
 
+  return changes;
+}
+
+function migrationChangeRanking(
+  changes: MigrationFileChange[],
+  top: number
+): MigrationReport["files"] {
   const increased = changes
     .filter((change) => (change.delta ?? 0) > 0)
     .sort(
@@ -377,6 +411,14 @@ function buildMigrationReport(
         (left.delta ?? 0) - (right.delta ?? 0) || compareByPath(left, right)
     );
 
+  return { increased: increased.slice(0, top), decreased: decreased.slice(0, top) };
+}
+
+function migrationTopDebt(
+  headIndex: IndexedSnapshot,
+  headNodes: CcMigrationLens["nodes"],
+  top: number
+): MigrationFileDebt[] {
   const topDebt: MigrationFileDebt[] = [];
   for (const [id, node] of Object.entries(headNodes)) {
     if (!node.debt) continue;
@@ -394,39 +436,13 @@ function buildMigrationReport(
     (left, right) => right.debt - left.debt || compareByPath(left, right)
   );
 
-  const baseSummary = baseLens?.summary;
-  const headSummary = headLens?.summary;
+  return topDebt.slice(0, top);
+}
 
-  return {
-    languages: {
-      base: baseSummary?.languages ?? {},
-      head: headSummary?.languages ?? {}
-    },
-    status: {
-      base: baseSummary?.status ?? emptyStatus(),
-      head: headSummary?.status ?? emptyStatus()
-    },
-    debt: {
-      base: baseSummary?.migrationDebt ?? 0,
-      head: headSummary?.migrationDebt ?? 0,
-      delta: (headSummary?.migrationDebt ?? 0) - (baseSummary?.migrationDebt ?? 0)
-    },
-    crossings: {
-      base: baseSummary?.ffiCrossings ?? 0,
-      head: headSummary?.ffiCrossings ?? 0,
-      delta: (headSummary?.ffiCrossings ?? 0) - (baseSummary?.ffiCrossings ?? 0)
-    },
-    bridgeFiles: {
-      base: baseSummary?.bridgeFiles ?? 0,
-      head: headSummary?.bridgeFiles ?? 0,
-      delta: (headSummary?.bridgeFiles ?? 0) - (baseSummary?.bridgeFiles ?? 0)
-    },
-    files: {
-      increased: increased.slice(0, top),
-      decreased: decreased.slice(0, top)
-    },
-    topDebt: topDebt.slice(0, top)
-  };
+function migrationDelta(baseValue: number | undefined, headValue: number | undefined): MigrationDelta {
+  const base = baseValue ?? 0;
+  const head = headValue ?? 0;
+  return { base, head, delta: head - base };
 }
 
 function emptyStatus(): Record<CcMigrationStatus, number> {
@@ -625,12 +641,16 @@ function cycleGroups(index: IndexedSnapshot): Map<string, CycleGroup> {
     reverse.set(node, [...new Set(neighbors)].sort(compareStrings));
   }
 
-  // Kosaraju iterativo: el orden de finalización se calcula sin recursión para
-  // no romper con cadenas profundas.
+  // Kosaraju iterativo para no romper con cadenas profundas.
+  const order = finishingOrder(index.nodes, adjacency);
+  return collectCycleGroups(index, order, adjacency, reverse);
+}
+
+function finishingOrder(nodes: string[], adjacency: Map<string, string[]>): string[] {
   const visited = new Set<string>();
   const order: string[] = [];
 
-  for (const start of index.nodes) {
+  for (const start of nodes) {
     if (visited.has(start)) continue;
     visited.add(start);
     const stack: Array<{ node: string; neighbors: string[]; next: number }> = [
@@ -661,6 +681,15 @@ function cycleGroups(index: IndexedSnapshot): Map<string, CycleGroup> {
     }
   }
 
+  return order;
+}
+
+function collectCycleGroups(
+  index: IndexedSnapshot,
+  order: string[],
+  adjacency: Map<string, string[]>,
+  reverse: Map<string, string[]>
+): Map<string, CycleGroup> {
   const assigned = new Set<string>();
   const groups = new Map<string, CycleGroup>();
 
