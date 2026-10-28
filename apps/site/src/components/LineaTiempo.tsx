@@ -301,16 +301,16 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
               opacity: visible ? 1 : 0
             }}
           >
-            {/* La vía: el hilo por el que ruedan los días. Va bajo las pastillas,
+            {/* La vía: el raíl por el que ruedan los días. Va bajo las pastillas,
                 lo recorrido se tinta y el testigo marca dónde está abierto. */}
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-[calc(100%+3px)] h-px"
+              className="pointer-events-none absolute inset-x-0 top-[calc(100%+4px)] h-0.5 rounded-full"
             >
-              <span className="absolute inset-0 bg-line/70" />
+              <span className="absolute inset-0 rounded-full bg-line-strong/70" />
               <span
                 className={clsx(
-                  "absolute inset-y-0 left-0 bg-rust/55",
+                  "absolute inset-y-0 left-0 rounded-full bg-rust/70",
                   listo && "transition-[width] duration-500"
                 )}
                 style={{
@@ -322,7 +322,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
             <span
               aria-hidden="true"
               className={clsx(
-                "pointer-events-none absolute top-[calc(100%+1px)] h-[5px] w-px -translate-x-1/2 bg-rust shadow-[0_0_6px_1px_color-mix(in_srgb,var(--color-rust)_45%,transparent)]",
+                "pointer-events-none absolute top-[calc(100%+1px)] h-2 w-0.5 -translate-x-1/2 rounded-full bg-rust shadow-[0_0_10px_1px_color-mix(in_srgb,var(--color-rust)_50%,transparent)]",
                 listo && "transition-[left] duration-500"
               )}
               style={{
