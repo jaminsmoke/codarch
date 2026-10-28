@@ -24,12 +24,13 @@ import * as path from "./path";
 import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
 import type {
+  ImportTargets,
   Metrics,
   ParsedImport,
   ParserProject,
   SourceParser
 } from "./types";
-import { walkSourceFiles } from "./walk";
+import { walkSourceFiles, type WalkedFile } from "./walk";
 
 export interface ChurnMetric {
   commits: number;
@@ -326,15 +327,8 @@ export function analyzeFiles(
     }
 
     // Los espacios de nombres del fichero, para lo que busquen los `using` de
-    // los demás. Los ficheros se recorren en orden de ruta, así que la lista de
-    // cada espacio sale ordenada sin volver a ordenarla.
-    for (const namespace of parsed.namespaces ?? []) {
-      const declared = namespaceDeclarations.get(namespace);
-      if (!declared) namespaceDeclarations.set(namespace, [file.relativePath]);
-      else if (!declared.includes(file.relativePath)) {
-        declared.push(file.relativePath);
-      }
-    }
+    // los demás.
+    noteNamespaces(parsed.namespaces ?? [], file.relativePath, namespaceDeclarations);
 
     // Las métricas del fichero se crean antes de sus imports porque un `using`
     // de C# se cierra al final y tiene que apuntar ya a dónde sumar.
@@ -347,127 +341,26 @@ export function analyzeFiles(
       unresolvedImports: 0
     };
 
-    let fileExternalImports = 0;
-    let fileBuiltinImports = 0;
-    let fileTypeOnlyImports = 0;
-    let fileUnresolvedImports = 0;
+    const tally = resolveImports(parsed.imports, {
+      file,
+      parser,
+      metrics,
+      resolver,
+      importIndex,
+      links,
+      migrationLinks,
+      unresolved,
+      pendingNamespaces
+    });
 
-    for (const imported of parsed.imports) {
-      if (imported.typeOnly) fileTypeOnlyImports++;
+    externalImports += tally.external;
+    builtinImports += tally.builtin;
+    typeOnlyImports += tally.typeOnly;
 
-      // El parser del lenguaje puede saber a qué apunta un import (Java,
-      // Python, Go y C#; ADR 0090). Si no lo declara, se resuelve como TS/JS.
-      const targets = parser.importTargets?.(imported, file.relativePath);
-      if (targets) {
-        // Un espacio de nombres se cierra al final (C#): se apunta y se sigue.
-        if (targets.kind === "namespace") {
-          pendingNamespaces.push({
-            file: file.relativePath,
-            metrics,
-            imported,
-            namespaces: targets.namespaces,
-            builtin: targets.builtin
-          });
-          continue;
-        }
-
-        if (targets.kind === "external") {
-          if (targets.builtin) fileBuiltinImports++;
-          else fileExternalImports++;
-          continue;
-        }
-
-        // Un paquete son varios ficheros (Go): un import, varias aristas.
-        if (targets.kind === "package") {
-          const members =
-            importIndex?.packageFiles(targets.directories, targets.extensions) ?? [];
-          if (members.length > 0) {
-            for (const member of members) {
-              links.push({
-                from: file.relativePath,
-                to: member,
-                typeOnly: imported.typeOnly
-              });
-            }
-          } else if (targets.required) {
-            fileUnresolvedImports++;
-            unresolved.push({
-              file: file.relativePath,
-              line: imported.line,
-              specifier: imported.specifier,
-              reason: "no se encontró el paquete"
-            });
-          } else if (targets.builtin) {
-            fileBuiltinImports++;
-          } else {
-            fileExternalImports++;
-          }
-          continue;
-        }
-
-        const target = importIndex?.match(targets.paths) ?? null;
-        if (target) {
-          links.push({
-            from: file.relativePath,
-            to: target,
-            typeOnly: imported.typeOnly
-          });
-        } else if (importIndex?.hasPackage(targets.paths)) {
-          // El paquete está en el repo y la clase no: el import está roto.
-          fileUnresolvedImports++;
-          unresolved.push({
-            file: file.relativePath,
-            line: imported.line,
-            specifier: imported.specifier,
-            reason: "no se encontró el fichero"
-          });
-        } else {
-          // Un paquete que no vive en el repositorio: una dependencia.
-          fileExternalImports++;
-        }
-        continue;
-      }
-
-      if (isAssetSpecifier(imported.specifier)) continue;
-
-      const result = resolver.resolve(file.absolutePath, imported.specifier);
-      if (result.kind === "internal") {
-        const targetLanguage = languageForPath(result.file.relativePath);
-        if (targetLanguage === "wasm" || targetLanguage === "node") {
-          migrationLinks.push({
-            from: file.relativePath,
-            to: result.file.relativePath,
-            kind: targetLanguage === "wasm" ? "wasm" : "native"
-          });
-        } else {
-          links.push({
-            from: file.relativePath,
-            to: result.file.relativePath,
-            typeOnly: imported.typeOnly
-          });
-        }
-      } else if (result.kind === "external") {
-        if (result.builtin) fileBuiltinImports++;
-        else fileExternalImports++;
-      } else {
-        fileUnresolvedImports++;
-        unresolved.push({
-          file: file.relativePath,
-          line: imported.line,
-          specifier: imported.specifier,
-          reason: result.reason
-        });
-      }
-    }
-
-    externalImports += fileExternalImports;
-    builtinImports += fileBuiltinImports;
-    typeOnlyImports += fileTypeOnlyImports;
-
-    metrics.externalImports = fileExternalImports;
-    metrics.builtinImports = fileBuiltinImports;
-    metrics.typeOnlyImports = fileTypeOnlyImports;
-    metrics.unresolvedImports = fileUnresolvedImports;
+    metrics.externalImports = tally.external;
+    metrics.builtinImports = tally.builtin;
+    metrics.typeOnlyImports = tally.typeOnly;
+    metrics.unresolvedImports = tally.unresolved;
 
     parsedFiles.push({
       relativePath: file.relativePath,
@@ -588,6 +481,248 @@ export function analyzeFiles(
     cache: { hits: cacheHits, misses: cacheMisses },
     durationMs: Date.now() - started
   };
+}
+
+/** Lo que los imports de un fichero suman fuera del grafo: no todo es arista. */
+interface ImportTally {
+  external: number;
+  builtin: number;
+  typeOnly: number;
+  unresolved: number;
+}
+
+/** Lo que necesita saber quién resuelve un import de un fichero concreto. */
+interface ImportContext {
+  file: WalkedFile;
+  parser: SourceParser;
+  /** Las métricas del fichero, donde el `using` pendiente de C# suma al final. */
+  metrics: Metrics;
+  resolver: ImportResolver;
+  importIndex: ImportTargetIndex | null;
+  links: DependencyLink[];
+  migrationLinks: MigrationLinkInput[];
+  unresolved: UnresolvedImportIssue[];
+  pendingNamespaces: PendingNamespaceImport[];
+}
+
+/**
+ * Resuelve los imports de un fichero: aristas, cruces FFI y lo que se cuenta.
+ *
+ * Cada familia de destino tiene su función porque no se parecen: un módulo de
+ * TS/JS lo resuelve el `ImportResolver`, un paquete de Go son varios ficheros,
+ * una ruta de Java es un sufijo y un `using` de C# no se puede cerrar aquí
+ * (ADR 0090). Antes todo esto vivía dentro del recorrido, que por eso era la
+ * función más compleja del repositorio.
+ */
+function resolveImports(
+  imports: readonly ParsedImport[],
+  context: ImportContext
+): ImportTally {
+  const tally: ImportTally = {
+    external: 0,
+    builtin: 0,
+    typeOnly: 0,
+    unresolved: 0
+  };
+
+  for (const imported of imports) {
+    if (imported.typeOnly) tally.typeOnly += 1;
+
+    // El parser del lenguaje puede saber a qué apunta un import (Java, Python,
+    // Go y C#). Si no lo declara, se resuelve como TS/JS.
+    const targets = context.parser.importTargets?.(
+      imported,
+      context.file.relativePath
+    );
+
+    if (targets) linkTargets(imported, targets, context, tally);
+    else linkModule(imported, context, tally);
+  }
+
+  return tally;
+}
+
+/** Un import cuyo destino lo decide el lenguaje. */
+function linkTargets(
+  imported: ParsedImport,
+  targets: ImportTargets,
+  context: ImportContext,
+  tally: ImportTally
+): void {
+  if (targets.kind === "namespace") {
+    // Se apunta y se sigue: se cierra cuando están todos los ficheros.
+    context.pendingNamespaces.push({
+      file: context.file.relativePath,
+      metrics: context.metrics,
+      imported,
+      namespaces: targets.namespaces,
+      builtin: targets.builtin
+    });
+    return;
+  }
+
+  if (targets.kind === "external") {
+    countFallback(targets.builtin, tally);
+    return;
+  }
+
+  if (targets.kind === "package") {
+    linkPackage(imported, targets, context, tally);
+    return;
+  }
+
+  linkPath(imported, targets.paths, context, tally);
+}
+
+/** Un paquete son varios ficheros (Go): un import, varias aristas. */
+function linkPackage(
+  imported: ParsedImport,
+  targets: Extract<ImportTargets, { kind: "package" }>,
+  context: ImportContext,
+  tally: ImportTally
+): void {
+  const members =
+    context.importIndex?.packageFiles(targets.directories, targets.extensions) ??
+    [];
+
+  if (members.length > 0) {
+    for (const member of members) {
+      context.links.push({
+        from: context.file.relativePath,
+        to: member,
+        typeOnly: imported.typeOnly
+      });
+    }
+    return;
+  }
+
+  if (targets.required) {
+    reportUnresolved(imported, context, tally, "no se encontró el paquete");
+    return;
+  }
+
+  countFallback(targets.builtin === true, tally);
+}
+
+/** Una ruta (Java, Python): el primer sufijo que existe gana. */
+function linkPath(
+  imported: ParsedImport,
+  paths: readonly string[],
+  context: ImportContext,
+  tally: ImportTally
+): void {
+  const target = context.importIndex?.match(paths) ?? null;
+  if (target) {
+    context.links.push({
+      from: context.file.relativePath,
+      to: target,
+      typeOnly: imported.typeOnly
+    });
+    return;
+  }
+
+  if (context.importIndex?.hasPackage(paths)) {
+    // El paquete está en el repo y la clase no: el import está roto.
+    reportUnresolved(imported, context, tally, "no se encontró el fichero");
+    return;
+  }
+
+  // Un paquete que no vive en el repositorio: una dependencia.
+  tally.external += 1;
+}
+
+/** Un import de TS/JS: lo resuelve el `ImportResolver`. */
+function linkModule(
+  imported: ParsedImport,
+  context: ImportContext,
+  tally: ImportTally
+): void {
+  if (isAssetSpecifier(imported.specifier)) return;
+
+  const result = context.resolver.resolve(
+    context.file.absolutePath,
+    imported.specifier
+  );
+
+  if (result.kind === "internal") {
+    linkInternal(imported, result.file.relativePath, context);
+    return;
+  }
+
+  if (result.kind === "external") {
+    countFallback(result.builtin, tally);
+    return;
+  }
+
+  reportUnresolved(imported, context, tally, result.reason);
+}
+
+/**
+ * Un import interno: arista del grafo, o cruce FFI si apunta a un artefacto.
+ *
+ * Un `.wasm` o un `.node` no se ejecuta como módulo: cruza la frontera, y eso
+ * lo mide la lente de migración, no el grafo de dependencias.
+ */
+function linkInternal(
+  imported: ParsedImport,
+  relativePath: string,
+  context: ImportContext
+): void {
+  const targetLanguage = languageForPath(relativePath);
+
+  if (targetLanguage === "wasm" || targetLanguage === "node") {
+    context.migrationLinks.push({
+      from: context.file.relativePath,
+      to: relativePath,
+      kind: targetLanguage === "wasm" ? "wasm" : "native"
+    });
+    return;
+  }
+
+  context.links.push({
+    from: context.file.relativePath,
+    to: relativePath,
+    typeOnly: imported.typeOnly
+  });
+}
+
+/** Lo que no es arista ni import roto: plataforma o dependencia. */
+function countFallback(builtin: boolean, tally: ImportTally): void {
+  if (builtin) tally.builtin += 1;
+  else tally.external += 1;
+}
+
+function reportUnresolved(
+  imported: ParsedImport,
+  context: ImportContext,
+  tally: ImportTally,
+  reason: string
+): void {
+  tally.unresolved += 1;
+  context.unresolved.push({
+    file: context.file.relativePath,
+    line: imported.line,
+    specifier: imported.specifier,
+    reason
+  });
+}
+
+/**
+ * Apunta los espacios de nombres de un fichero, sin repetirlo.
+ *
+ * Los ficheros se recorren en orden de ruta, así que la lista de cada espacio
+ * sale ordenada sin volver a ordenarla.
+ */
+function noteNamespaces(
+  namespaces: readonly string[],
+  relativePath: string,
+  declarations: Map<string, string[]>
+): void {
+  for (const namespace of namespaces) {
+    const declared = declarations.get(namespace);
+    if (!declared) declarations.set(namespace, [relativePath]);
+    else if (!declared.includes(relativePath)) declared.push(relativePath);
+  }
 }
 
 /**

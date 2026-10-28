@@ -3,6 +3,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CC_JSON_VERSION, getStats, parseCcJson } from "@codarch/schema";
 import { analyzeRepository } from "../src/index";
+import { analyzeFiles } from "../src/analyze-core";
+import { MemoryFileSystem } from "../src/fs";
+import { TypeScriptParser } from "../src/ts/parser";
 
 const fixture = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -141,5 +144,52 @@ describe("analyzeRepository", () => {
       ])
     );
     expect(result.warnings.join("\n")).toContain("imports sin resolver");
+  });
+});
+
+describe("los imports que no son aristas", () => {
+  /**
+   * Un `?raw` devuelve el texto de un fichero; el módulo no se ejecuta, así que
+   * no hay arista ni puede faltar: es la web del proyecto importando su propio
+   * markdown, que antes salía como import roto (ADR 0090).
+   */
+  it("una lectura `?raw` no cuenta como import sin resolver", () => {
+    const files = new MemoryFileSystem([
+      [
+        "/src/guia.ts",
+        [
+          'import normas from "../docs/normas.md?raw";',
+          'import { suma } from "./suma";',
+          "",
+          "export const texto = normas;",
+          "export const total = suma(1, 2);",
+          ""
+        ].join("\n")
+      ],
+      ["/src/suma.ts", "export const suma = (a: number, b: number) => a + b;\n"],
+      ["/docs/normas.md", "# Normas\n"]
+    ]);
+
+    const result = analyzeFiles({
+      fileSystem: files,
+      root: "/",
+      projectName: "proyecto",
+      parsers: [new TypeScriptParser()]
+    });
+
+    expect(result.files).toBe(2);
+    expect(result.edges).toBe(1);
+    expect(result.unresolved).toEqual([]);
+    expect(result.externalImports).toBe(0);
+    expect(result.warnings.join("\n")).not.toContain("sin resolver");
+
+    // Y sigue siendo determinista: el mismo código, el mismo documento.
+    const again = analyzeFiles({
+      fileSystem: files,
+      root: "/",
+      projectName: "proyecto",
+      parsers: [new TypeScriptParser()]
+    });
+    expect(again.snapshot).toEqual(result.snapshot);
   });
 });

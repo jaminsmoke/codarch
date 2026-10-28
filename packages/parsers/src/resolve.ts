@@ -60,8 +60,18 @@ const ASSET_EXTENSIONS = [
   ".json"
 ] as const;
 
-/** Imports de assets (CSS, imágenes, fuentes, JSON): no son aristas del grafo. */
+/**
+ * Imports que no son aristas del grafo: assets y lecturas del bundler.
+ *
+ * Los assets son CSS, imágenes, fuentes y JSON. Y una query —`?raw`, `?url`,
+ * `?inline`— es una **lectura del fichero**, no un enlace al módulo: Vite la
+ * usa justo para eso, y el módulo no se ejecuta. Sin esta regla, el
+ * `import normas from "…/normas.md?raw"` de la web del proyecto salía como
+ * import roto, que es lo contrario de lo que pasa.
+ */
 export function isAssetSpecifier(specifier: string): boolean {
+  if (specifier.includes("?")) return true;
+
   const clean = specifier.split(/[?#]/, 1)[0]?.toLowerCase() ?? "";
   return ASSET_EXTENSIONS.some((extension) => clean.endsWith(extension));
 }

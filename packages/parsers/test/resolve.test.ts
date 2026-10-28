@@ -170,4 +170,17 @@ describe("isAssetSpecifier", () => {
     expect(isAssetSpecifier("./addon.node")).toBe(false);
     expect(isAssetSpecifier("./module")).toBe(false);
   });
+
+  it("una query es una lectura del bundler, no un import de código", () => {
+    // `?raw` devuelve el texto del fichero: el módulo no se ejecuta, así que no
+    // hay arista. Sin esta regla, la web del proyecto se reportaba rota.
+    expect(isAssetSpecifier("../../docs/desarrollo/guideline/normas.md?raw")).toBe(
+      true
+    );
+    expect(isAssetSpecifier("./modulo.ts?raw")).toBe(true);
+    expect(isAssetSpecifier("./estilo.css?inline")).toBe(true);
+    // Un alias de subruta de Node (`#interno/x`) sí es código.
+    expect(isAssetSpecifier("#interno/x")).toBe(false);
+    expect(isAssetSpecifier("./modulo.ts")).toBe(false);
+  });
 });
