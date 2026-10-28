@@ -1,4 +1,4 @@
-import type { CcEdge, CcJson, CcNode } from "@codarch/schema/browser";
+import type { CcEdge, CcJson, CcNode, CcStats } from "@codarch/schema/browser";
 import { defaultMetric, getStats, walkFiles } from "@codarch/schema/browser";
 import {
   CHURN_METRIC_CANDIDATES,
@@ -181,6 +181,9 @@ const CURATED_METRICS = [
   "outgoing_dependencies"
 ];
 
+/** id de nodo → nombre de métrica → valor, tal como lo trae la lente. */
+type MetricAttributes = Record<string, Record<string, number>>;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -278,6 +281,10 @@ function metricDirection(
  *
  * No muta el cc.json. El orden de los ficheros es el recorrido en profundidad del árbol,
  * de modo que dos ejecuciones sobre el mismo fichero producen exactamente el mismo modelo.
+ *
+ * Cada paso que escribe en `files` dice qué escribe —área, riesgo, sección, valores— y
+ * ninguno necesita mirar el código del otro: juntos eran la función más compleja del
+ * repositorio, y el propio mapa la señalaba como su bloque más caliente.
  */
 export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): RenderModel {
   const stats = getStats(cc);
@@ -287,218 +294,49 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     | Record<string, unknown>
     | undefined;
 
-  let areaMetric: string | null;
-  if (options.areaMetric) {
-    if (!coverage.has(options.areaMetric)) {
-      throw new RenderError(
-        `la métrica de área "${options.areaMetric}" no existe en este cc.json`
-      );
-    }
-    areaMetric = options.areaMetric;
-  } else {
-    areaMetric = defaultMetric(stats) ?? null;
-  }
+  const warnings: string[] = [];
 
+  const areaMetric = resolveAreaMetric(stats, coverage, options);
   const complexityKey = firstMetric(coverage, COMPLEXITY_METRIC_CANDIDATES);
   const churnKey = firstMetric(coverage, CHURN_METRIC_CANDIDATES);
-
-  const metricKeys: string[] = [];
-  const addMetric = (key: string | null): void => {
-    if (key && coverage.has(key) && !metricKeys.includes(key)) metricKeys.push(key);
-  };
-  for (const key of CURATED_METRICS) addMetric(key);
-  addMetric(areaMetric);
-  addMetric(complexityKey);
-  addMetric(churnKey);
-  if (options.color && options.color !== "risk" && options.color !== "structure") {
-    addMetric(options.color);
-  }
+  const metricKeys = collectMetricKeys(coverage, {
+    areaMetric,
+    complexityKey,
+    churnKey,
+    color: options.color
+  });
 
   const singleRoot =
     cc.files.length === 1 && cc.files[0]?.type === "Folder" ? cc.files[0] : null;
   const prefix = singleRoot ? `${singleRoot.name}/` : "";
   const rootName = singleRoot?.name ?? "";
 
-  const warnings: string[] = [];
-  const files: RenderFile[] = [];
-  const fileIndexById = new Map<string, number>();
-
-  walkFiles(cc.files, (entry) => {
-    const fullPath = entry.path;
-    const path =
-      prefix && fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : fullPath;
-    const values = attributes[entry.node.id];
-    const rawArea = valueOf(values, areaMetric);
-    const index = files.length;
-
-    fileIndexById.set(entry.node.id, index);
-
-    files.push({
-      index,
-      nodeId: entry.node.id,
-      path,
-      name: entry.node.name,
-      section: -1,
-      area: Math.max(1, rawArea ?? 0),
-      actualArea: rawArea ?? 0,
-      risk: 0,
-      riskParts: NO_RISK_PARTS,
-      complexity: valueOf(values, complexityKey) ?? 0,
-      churn: valueOf(values, churnKey) ?? 0,
-      values: []
-    });
+  const files = collectFiles(cc, attributes, {
+    areaMetric,
+    complexityKey,
+    churnKey,
+    prefix,
+    warnings
   });
+  const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
 
-  if (areaMetric && files.length > 0) {
-    const missing = files.filter((file) => file.actualArea === 0).length;
-    if (missing > 0) {
-      warnings.push(
-        `${missing} ficheros sin "${areaMetric}"; se dibujan con área mínima para no desaparecer`
-      );
-    }
-    if (!options.areaMetric && areaMetric !== "rloc") {
-      warnings.push(`"rloc" no está presente; se usa "${areaMetric}" como área`);
-    }
-  }
+  warnAboutArea(files, areaMetric, options, warnings);
+  applyRisk(files);
 
-  // Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
-  // Si falta una señal, los pesos se renormalizan: un proyecto sin historial
-  // git no debe quedar con un máximo artificial de 68/100.
-  const risks = riskBreakdown(
-    files.map((file) => ({
-      complexity: file.complexity,
-      churn: file.churn,
-      size: file.actualArea
-    }))
-  );
-  for (const [index, file] of files.entries()) {
-    const breakdown = risks[index];
-    if (!breakdown) continue;
-    file.risk = breakdown.risk;
-    file.riskParts = breakdown.parts;
-  }
+  const sections = buildSections(files);
 
-  // Secciones: color categórico por las tres primeras partes de la ruta.
-  // Da color a "app/codeCharta/features" sin convertir cada carpeta en un color.
-  const sectionAccumulator = new Map<string, { files: number; area: number }>();
-  for (const file of files) {
-    const key = sectionForPath(file.path);
-    const current = sectionAccumulator.get(key) ?? { files: 0, area: 0 };
-    current.files++;
-    current.area += file.actualArea;
-    sectionAccumulator.set(key, current);
-  }
-
-  const sections: RenderSection[] = [...sectionAccumulator.entries()]
-    .map(([key, value]) => ({
-      key,
-      label: key,
-      files: value.files,
-      area: value.area,
-      color: PALETTE[hashString(key) % PALETTE.length] as string
-    }))
-    .sort((a, b) => b.area - a.area || a.key.localeCompare(b.key));
-
-  const sectionIndex = new Map(sections.map((section, index) => [section.key, index]));
-  for (const file of files) {
-    file.section = sectionIndex.get(sectionForPath(file.path)) ?? 0;
-  }
-
-  const metrics: RenderMetric[] = metricKeys.map((key) => {
-    const present = files
-      .map((file) => valueOf(attributes[file.nodeId], key))
-      .filter((value): value is number => value !== undefined);
-    const min = present.length > 0 ? Math.min(...present) : 0;
-    const actualMax = present.length > 0 ? Math.max(...present) : 0;
-    const p95 = percentile(present, 0.95);
-    const skewed = min >= 0 && p95 > 0 && actualMax > p95 * 4;
-    const max = skewed ? actualMax : p95 > 0 ? p95 : actualMax;
-    return {
-      key,
-      title: metricTitle(descriptors, key),
-      description: metricDescription(descriptors, key),
-      direction: metricDirection(descriptors, key),
-      min,
-      max,
-      actualMax,
-      p95,
-      mode: skewed ? "log" : "linear",
-      coverage: present.length
-    };
-  });
-
-  for (const file of files) {
-    const values = attributes[file.nodeId];
-    file.values = metrics.map((metric) => valueOf(values, metric.key) ?? null);
-  }
+  const metrics = buildMetrics(metricKeys, files, attributes, descriptors);
+  applyMetricValues(files, metrics, attributes);
 
   const roots = buildRoots(cc, singleRoot, fileIndexById, files);
   const folderCount = countFolders(roots);
 
-  const dependency = cc.lenses?.dependency;
-  const leafEdges = asEdges(dependency?.leafEdges);
-  const rawEdges = leafEdges.length > 0 ? leafEdges : asEdges(dependency?.edges);
-  const edgeSet = new Set<number>();
-  const edges: EdgePair[] = [];
-  const n = files.length;
-
-  for (const edge of rawEdges) {
-    const from = fileIndexById.get(edge.fromId);
-    const to = fileIndexById.get(edge.toId);
-    if (from === undefined || to === undefined || from === to) continue;
-    const key = from * n + to;
-    if (edgeSet.has(key)) continue;
-    edgeSet.add(key);
-    edges.push({ from, to });
-    if (edges.length >= 20_000) {
-      warnings.push("se han limitado las dependencias a 20.000 aristas");
-      break;
-    }
-  }
-
-  edges.sort((a, b) => a.from - b.from || a.to - b.to);
-
-  const flaggedEdges = new Set<number>();
-  for (const edge of rawEdges) {
-    if (edge.isCyclic !== true) continue;
-    const from = fileIndexById.get(edge.fromId);
-    const to = fileIndexById.get(edge.toId);
-    if (from === undefined || to === undefined) continue;
-    flaggedEdges.add(from * n + to);
-  }
-
-  // El snapshot ya decide qué aristas son ciclos de ejecución (ADR 0037).
-  // No se infiere un ciclo por la sola ida y vuelta: dos imports de tipos
-  // pueden apuntarse sin ejecutarse.
-  const cycleSet = new Set<number>();
-  const cycles: EdgePair[] = [];
-  for (const edge of edges) {
-    const key = edge.from * n + edge.to;
-    if (!flaggedEdges.has(key) || cycleSet.has(key)) continue;
-    cycleSet.add(key);
-    cycles.push(edge);
-  }
-  cycles.sort((a, b) => a.from - b.from || a.to - b.to);
-
-  if (rawEdges.length === 0) {
-    warnings.push("este cc.json no trae una lente de dependencias utilizable");
-  }
+  const { edges, cycles } = collectDependency(cc, fileIndexById, files.length, warnings);
 
   const totalArea = files.reduce((sum, file) => sum + file.actualArea, 0);
   const hotspotCount = files.filter((file) => file.risk >= 0.66).length;
 
-  let initialLens: Lens = "risk";
-  let initialMetric: string | null = null;
-  if (options.color === "structure") {
-    initialLens = "structure";
-  } else if (options.color && options.color !== "risk") {
-    if (!coverage.has(options.color)) {
-      throw new RenderError(`la métrica de color "${options.color}" no existe en este cc.json`);
-    }
-    initialLens = "metric";
-    initialMetric = options.color;
-  }
-
+  const { initialLens, initialMetric } = resolveLens(coverage, options);
   const defaultSelection = pickDefaultSelection(files, initialLens, initialMetric, metrics);
 
   const project = cc.meta.projectName || options.title || "Proyecto sin nombre";
@@ -531,6 +369,297 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   };
 }
 
+/**
+ * La métrica que decide el área: la pedida, o la de mayor cobertura.
+ *
+ * Una métrica pedida que el snapshot no trae es un error, no una caída al
+ * defecto: quien la pidió por la línea de órdenes quiere saberlo.
+ */
+function resolveAreaMetric(
+  stats: CcStats,
+  coverage: ReadonlySet<string>,
+  options: RenderOptions
+): string | null {
+  if (options.areaMetric) {
+    if (!coverage.has(options.areaMetric)) {
+      throw new RenderError(
+        `la métrica de área "${options.areaMetric}" no existe en este cc.json`
+      );
+    }
+    return options.areaMetric;
+  }
+  return defaultMetric(stats) ?? null;
+}
+
+/** Las métricas que el modelo lleva: las curadas y las que el modo activo necesita. */
+function collectMetricKeys(
+  coverage: ReadonlySet<string>,
+  wanted: {
+    areaMetric: string | null;
+    complexityKey: string | null;
+    churnKey: string | null;
+    color: string | undefined;
+  }
+): string[] {
+  const keys: string[] = [];
+  const add = (key: string | null): void => {
+    if (key && coverage.has(key) && !keys.includes(key)) keys.push(key);
+  };
+
+  for (const key of CURATED_METRICS) add(key);
+  add(wanted.areaMetric);
+  add(wanted.complexityKey);
+  add(wanted.churnKey);
+  if (wanted.color && wanted.color !== "risk" && wanted.color !== "structure") {
+    add(wanted.color);
+  }
+
+  return keys;
+}
+
+/** Un fichero del snapshot, con su área real y sus señales de riesgo en cero. */
+function collectFiles(
+  cc: CcJson,
+  attributes: MetricAttributes,
+  context: {
+    areaMetric: string | null;
+    complexityKey: string | null;
+    churnKey: string | null;
+    prefix: string;
+    warnings: string[];
+  }
+): RenderFile[] {
+  const files: RenderFile[] = [];
+
+  walkFiles(cc.files, (entry) => {
+    const fullPath = entry.path;
+    const path =
+      context.prefix && fullPath.startsWith(context.prefix)
+        ? fullPath.slice(context.prefix.length)
+        : fullPath;
+    const values = attributes[entry.node.id];
+    const rawArea = valueOf(values, context.areaMetric);
+
+    files.push({
+      index: files.length,
+      nodeId: entry.node.id,
+      path,
+      name: entry.node.name,
+      section: -1,
+      area: Math.max(1, rawArea ?? 0),
+      actualArea: rawArea ?? 0,
+      risk: 0,
+      riskParts: NO_RISK_PARTS,
+      complexity: valueOf(values, context.complexityKey) ?? 0,
+      churn: valueOf(values, context.churnKey) ?? 0,
+      values: []
+    });
+  });
+
+  return files;
+}
+
+/** Un fichero sin la métrica de área se dibuja con el mínimo: se dice, no se esconde. */
+function warnAboutArea(
+  files: readonly RenderFile[],
+  areaMetric: string | null,
+  options: RenderOptions,
+  warnings: string[]
+): void {
+  if (!areaMetric || files.length === 0) return;
+
+  const missing = files.filter((file) => file.actualArea === 0).length;
+  if (missing > 0) {
+    warnings.push(
+      `${missing} ficheros sin "${areaMetric}"; se dibujan con área mínima para no desaparecer`
+    );
+  }
+  if (!options.areaMetric && areaMetric !== "rloc") {
+    warnings.push(`"rloc" no está presente; se usa "${areaMetric}" como área`);
+  }
+}
+
+/**
+ * Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
+ * Si falta una señal, los pesos se renormalizan: un proyecto sin historial
+ * git no debe quedar con un máximo artificial de 68/100.
+ */
+function applyRisk(files: RenderFile[]): void {
+  const risks = riskBreakdown(
+    files.map((file) => ({
+      complexity: file.complexity,
+      churn: file.churn,
+      size: file.actualArea
+    }))
+  );
+
+  for (const [index, file] of files.entries()) {
+    const breakdown = risks[index];
+    if (!breakdown) continue;
+    file.risk = breakdown.risk;
+    file.riskParts = breakdown.parts;
+  }
+}
+
+/**
+ * Secciones: color categórico por las tres primeras partes de la ruta.
+ * Da color a "app/codeCharta/features" sin convertir cada carpeta en un color.
+ */
+function buildSections(files: RenderFile[]): RenderSection[] {
+  const accumulator = new Map<string, { files: number; area: number }>();
+  for (const file of files) {
+    const key = sectionForPath(file.path);
+    const current = accumulator.get(key) ?? { files: 0, area: 0 };
+    current.files++;
+    current.area += file.actualArea;
+    accumulator.set(key, current);
+  }
+
+  const sections: RenderSection[] = [...accumulator.entries()]
+    .map(([key, value]) => ({
+      key,
+      label: key,
+      files: value.files,
+      area: value.area,
+      color: PALETTE[hashString(key) % PALETTE.length] as string
+    }))
+    .sort((a, b) => b.area - a.area || a.key.localeCompare(b.key));
+
+  const sectionIndex = new Map(sections.map((section, index) => [section.key, index]));
+  for (const file of files) {
+    file.section = sectionIndex.get(sectionForPath(file.path)) ?? 0;
+  }
+
+  return sections;
+}
+
+/** La escala de cada métrica: mínimo, p95 y si hay cola suficiente para el log. */
+function buildMetrics(
+  keys: readonly string[],
+  files: readonly RenderFile[],
+  attributes: MetricAttributes,
+  descriptors: Record<string, unknown> | undefined
+): RenderMetric[] {
+  return keys.map((key) => {
+    const present = files
+      .map((file) => valueOf(attributes[file.nodeId], key))
+      .filter((value): value is number => value !== undefined);
+    const min = present.length > 0 ? Math.min(...present) : 0;
+    const actualMax = present.length > 0 ? Math.max(...present) : 0;
+    const p95 = percentile(present, 0.95);
+    const skewed = min >= 0 && p95 > 0 && actualMax > p95 * 4;
+    const max = skewed ? actualMax : p95 > 0 ? p95 : actualMax;
+
+    return {
+      key,
+      title: metricTitle(descriptors, key),
+      description: metricDescription(descriptors, key),
+      direction: metricDirection(descriptors, key),
+      min,
+      max,
+      actualMax,
+      p95,
+      mode: skewed ? "log" : "linear",
+      coverage: present.length
+    };
+  });
+}
+
+/** Los valores de un fichero, alineados con `metrics` para leerlos por índice. */
+function applyMetricValues(
+  files: RenderFile[],
+  metrics: readonly RenderMetric[],
+  attributes: MetricAttributes
+): void {
+  for (const file of files) {
+    const values = attributes[file.nodeId];
+    file.values = metrics.map((metric) => valueOf(values, metric.key) ?? null);
+  }
+}
+
+/**
+ * Las aristas del grafo, sin repetirlas, y las que el snapshot marca como ciclo.
+ *
+ * El snapshot ya decide qué aristas son ciclos de ejecución (ADR 0037). No se
+ * infiere un ciclo por la sola ida y vuelta: dos imports de tipos pueden
+ * apuntarse sin ejecutarse.
+ */
+function collectDependency(
+  cc: CcJson,
+  fileIndexById: ReadonlyMap<string, number>,
+  fileCount: number,
+  warnings: string[]
+): { edges: EdgePair[]; cycles: EdgePair[] } {
+  const dependency = cc.lenses?.dependency;
+  const leafEdges = asEdges(dependency?.leafEdges);
+  const rawEdges = leafEdges.length > 0 ? leafEdges : asEdges(dependency?.edges);
+
+  const seen = new Set<number>();
+  const edges: EdgePair[] = [];
+  const n = fileCount;
+
+  for (const edge of rawEdges) {
+    const from = fileIndexById.get(edge.fromId);
+    const to = fileIndexById.get(edge.toId);
+    if (from === undefined || to === undefined || from === to) continue;
+    const key = from * n + to;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    edges.push({ from, to });
+    if (edges.length >= 20_000) {
+      warnings.push("se han limitado las dependencias a 20.000 aristas");
+      break;
+    }
+  }
+
+  edges.sort((a, b) => a.from - b.from || a.to - b.to);
+
+  const flagged = new Set<number>();
+  for (const edge of rawEdges) {
+    if (edge.isCyclic !== true) continue;
+    const from = fileIndexById.get(edge.fromId);
+    const to = fileIndexById.get(edge.toId);
+    if (from === undefined || to === undefined) continue;
+    flagged.add(from * n + to);
+  }
+
+  const cycles: EdgePair[] = [];
+  const inCycle = new Set<number>();
+  for (const edge of edges) {
+    const key = edge.from * n + edge.to;
+    if (!flagged.has(key) || inCycle.has(key)) continue;
+    inCycle.add(key);
+    cycles.push(edge);
+  }
+  cycles.sort((a, b) => a.from - b.from || a.to - b.to);
+
+  if (rawEdges.length === 0) {
+    warnings.push("este cc.json no trae una lente de dependencias utilizable");
+  }
+
+  return { edges, cycles };
+}
+
+/** La lente con la que abre el mapa: la pedida, o el riesgo. */
+function resolveLens(
+  coverage: ReadonlySet<string>,
+  options: RenderOptions
+): { initialLens: Lens; initialMetric: string | null } {
+  if (options.color === "structure") {
+    return { initialLens: "structure", initialMetric: null };
+  }
+
+  if (options.color && options.color !== "risk") {
+    if (!coverage.has(options.color)) {
+      throw new RenderError(
+        `la métrica de color "${options.color}" no existe en este cc.json`
+      );
+    }
+    return { initialLens: "metric", initialMetric: options.color };
+  }
+
+  return { initialLens: "risk", initialMetric: null };
+}
 
 function buildRoots(
   cc: CcJson,
