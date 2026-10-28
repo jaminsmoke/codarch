@@ -5,6 +5,9 @@ import tsxWasm from "tree-sitter-typescript/tree-sitter-tsx.wasm?url";
 import javaWasm from "tree-sitter-java/tree-sitter-java.wasm?url";
 import pythonWasm from "tree-sitter-python/tree-sitter-python.wasm?url";
 import goWasm from "tree-sitter-go/tree-sitter-go.wasm?url";
+// La gramática de C# no sigue la convención del nombre del paquete: el `.wasm`
+// se llama `tree-sitter-c_sharp.wasm`.
+import csharpWasm from "tree-sitter-c-sharp/tree-sitter-c_sharp.wasm?url";
 
 /**
  * Worker del análisis en el navegador.
@@ -40,6 +43,7 @@ scope.addEventListener("message", (event) => {
         java: javaWasm,
         python: pythonWasm,
         go: goWasm,
+        csharp: csharpWasm,
         runtime: runtimeWasm
       },
       (update) => scope.postMessage(update)
