@@ -52,17 +52,23 @@ export function isLegacyCcJson(input: unknown): boolean {
 }
 
 /**
- * Convierte un `cc.json` 1.x al modelo 2.x que consume el resto de CodArch.
+ * El documento 1.x ya normalizado: dónde empieza cada cosa y con qué raíz se
+ * arma el árbol 2.x.
  *
- * - Los `attributes` de cada nodo pasan a `lenses.metrics.attributes`, indexados por id.
- * - Las aristas `fromNodeName`/`toNodeName` se resuelven contra el árbol y pasan a ids.
- * - `attributeTypes` y `attributeDescriptors` se separan entre métricas y dependencias.
- * - Se descarta el estado de vista de 1.x (`blacklist`, `markedPackages`, `fixedPosition`).
- *
- * Los ids siguen la convención 2.x: `sha256(type + canonicalPath)[:16]`, con la raíz
- * excluida de la ruta canónica.
+ * Cuando hay varias raíces se inventa una carpeta contenedora, y ese nombre
+ * sintético es el que después hay que quitar de las aristas.
  */
-export function normalizeLegacyCcJson(input: unknown): CcJson {
+interface LegacyDocument {
+  payload: Record<string, unknown>;
+  base: string;
+  nodesPath: string;
+  rootNames: string[];
+  treeRoot: Record<string, unknown>;
+  multipleRoots: boolean;
+  syntheticName?: string;
+}
+
+function readLegacyDocument(input: unknown): LegacyDocument {
   const outer = requireRecord(input, "$");
   const wrapped = "data" in outer;
   const payload = wrapped ? requireRecord(outer.data, "$.data") : outer;
@@ -92,27 +98,95 @@ export function normalizeLegacyCcJson(input: unknown): CcJson {
   );
 
   const multipleRoots = roots.length > 1;
-  let syntheticName: string | undefined;
-  let treeRoot: Record<string, unknown>;
-
-  if (multipleRoots) {
-    syntheticName = rootNames.includes("root") ? "merged-root" : "root";
-    while (rootNames.includes(syntheticName)) syntheticName = `${syntheticName}_`;
-    treeRoot = {
-      name: syntheticName,
-      type: "Folder",
-      attributes: {},
-      children: roots
+  if (!multipleRoots) {
+    return {
+      payload,
+      base,
+      nodesPath,
+      rootNames,
+      multipleRoots,
+      treeRoot: roots[0] as Record<string, unknown>
     };
-  } else {
-    treeRoot = roots[0] as Record<string, unknown>;
   }
 
+  let syntheticName = rootNames.includes("root") ? "merged-root" : "root";
+  while (rootNames.includes(syntheticName)) syntheticName = `${syntheticName}_`;
+  return {
+    payload,
+    base,
+    nodesPath,
+    rootNames,
+    multipleRoots,
+    treeRoot: { name: syntheticName, type: "Folder", attributes: {}, children: roots },
+    syntheticName
+  };
+}
+
+/**
+ * Convierte un `cc.json` 1.x al modelo 2.x que consume el resto de CodArch.
+ *
+ * - Los `attributes` de cada nodo pasan a `lenses.metrics.attributes`, indexados por id.
+ * - Las aristas `fromNodeName`/`toNodeName` se resuelven contra el árbol y pasan a ids.
+ * - `attributeTypes` y `attributeDescriptors` se separan entre métricas y dependencias.
+ * - Se descarta el estado de vista de 1.x (`blacklist`, `markedPackages`, `fixedPosition`).
+ *
+ * Los ids siguen la convención 2.x: `sha256(type + canonicalPath)[:16]`, con la raíz
+ * excluida de la ruta canónica.
+ *
+ * La conversión va por pasos —documento, árbol, aristas, lentes, meta— para que
+ * cada uno se lea y se pruebe por separado.
+ */
+export function normalizeLegacyCcJson(input: unknown): CcJson {
+  const document = readLegacyDocument(input);
+  const tree = buildLegacyTree(document);
+
+  const pathIndex = buildPathIndex(tree.built, document.multipleRoots);
+  const stripNames = new Set<string>(["root", ...document.rootNames]);
+  if (document.syntheticName) stripNames.add(document.syntheticName);
+
+  const edges = buildLegacyEdges(
+    document.payload.edges,
+    document.base,
+    pathIndex,
+    stripNames
+  );
+  const types = readAttributeTypes(
+    document.payload.attributeTypes,
+    `${document.base}.attributeTypes`
+  );
+  const descriptors = readDescriptors(
+    document.payload.attributeDescriptors,
+    `${document.base}.attributeDescriptors`
+  );
+  const lenses = buildLegacyLenses(tree.metrics, edges, types, descriptors);
+
+  return {
+    meta: buildLegacyMeta(document.payload),
+    files: tree.files,
+    ...(Object.keys(lenses).length > 0 ? { lenses } : {})
+  };
+}
+
+interface LegacyTree {
+  /** El árbol 2.x: una sola raíz, con o sin carpeta sintética. */
+  files: CcNode[];
+  /** Métricas por id, tal y como se guardan en `lenses.metrics.attributes`. */
+  metrics: Record<string, Record<string, number>>;
+  /** Todos los nodos construidos, en orden de recorrido, para indexar las aristas. */
+  built: BuiltNode[];
+}
+
+function buildLegacyTree(document: LegacyDocument): LegacyTree {
   const metrics: Record<string, Record<string, number>> = {};
   const built: BuiltNode[] = [];
   const ids = new Map<string, string>();
 
-  const buildNode = (value: unknown, parentPath: string[], path: string, depth: number): CcNode => {
+  const buildNode = (
+    value: unknown,
+    parentPath: string[],
+    path: string,
+    depth: number
+  ): CcNode => {
     if (depth > MAX_DEPTH) {
       throw new CcJsonError(`profundidad máxima ${MAX_DEPTH} superada`, path);
     }
@@ -141,7 +215,8 @@ export function normalizeLegacyCcJson(input: unknown): CcJson {
     const attributes = readMetrics(raw.attributes, `${path}.attributes`);
     if (attributes) metrics[id] = attributes;
 
-    const contentHash = readOptionalString(raw.checksum) ?? readOptionalString(raw.contentHash);
+    const contentHash =
+      readOptionalString(raw.checksum) ?? readOptionalString(raw.contentHash);
     if (contentHash) node.contentHash = contentHash;
     const link = readOptionalString(raw.link);
     if (link) node.link = link;
@@ -163,64 +238,93 @@ export function normalizeLegacyCcJson(input: unknown): CcJson {
     return node;
   };
 
-  const files = [buildNode(treeRoot, [], multipleRoots ? "$.roots" : `${nodesPath}[0]`, 0)];
+  const files = [
+    buildNode(
+      document.treeRoot,
+      [],
+      document.multipleRoots ? "$.roots" : `${document.nodesPath}[0]`,
+      0
+    )
+  ];
 
-  const pathIndex = buildPathIndex(built, multipleRoots);
-  const stripNames = new Set<string>(["root", ...rootNames]);
-  if (syntheticName) stripNames.add(syntheticName);
+  return { files, metrics, built };
+}
 
-  const edges: CcEdge[] = [];
-  const edgesRaw = payload.edges;
-  if (edgesRaw !== undefined) {
-    if (!Array.isArray(edgesRaw)) {
-      throw new CcJsonError('"edges" debe ser un array', `${base}.edges`);
-    }
-
-    edgesRaw.forEach((edge, index) => {
-      const path = `${base}.edges[${index}]`;
-      const raw = requireRecord(edge, path);
-      const fromName = requireString(raw.fromNodeName, `${path}.fromNodeName`, "fromNodeName");
-      const toName = requireString(raw.toNodeName, `${path}.toNodeName`, "toNodeName");
-
-      const normalized: CcEdge = {
-        fromId: resolveEndpoint(fromName, pathIndex, stripNames, `${path}.fromNodeName`),
-        toId: resolveEndpoint(toName, pathIndex, stripNames, `${path}.toNodeName`)
-      };
-
-      const attributes = readMetrics(raw.attributes, `${path}.attributes`);
-      if (attributes) normalized.attributes = attributes;
-      if (typeof raw.isCyclic === "boolean") normalized.isCyclic = raw.isCyclic;
-      if (typeof raw.isPointingUpwards === "boolean") {
-        normalized.isPointingUpwards = raw.isPointingUpwards;
-      }
-
-      edges.push(normalized);
-    });
+/** Las aristas 1.x nombran extremos; las 2.x usan ids. Aquí se traducen. */
+function buildLegacyEdges(
+  edgesRaw: unknown,
+  base: string,
+  index: Map<string, string>,
+  stripNames: Set<string>
+): CcEdge[] {
+  if (edgesRaw === undefined) return [];
+  if (!Array.isArray(edgesRaw)) {
+    throw new CcJsonError('"edges" debe ser un array', `${base}.edges`);
   }
 
-  const types = readAttributeTypes(payload.attributeTypes, `${base}.attributeTypes`);
-  const descriptorSections = readDescriptors(
-    payload.attributeDescriptors,
-    `${base}.attributeDescriptors`
-  );
+  const edges: CcEdge[] = [];
+  edgesRaw.forEach((edge, position) => {
+    const path = `${base}.edges[${position}]`;
+    const raw = requireRecord(edge, path);
+    const fromName = requireString(raw.fromNodeName, `${path}.fromNodeName`, "fromNodeName");
+    const toName = requireString(raw.toNodeName, `${path}.toNodeName`, "toNodeName");
 
+    const normalized: CcEdge = {
+      fromId: resolveEndpoint(fromName, index, stripNames, `${path}.fromNodeName`),
+      toId: resolveEndpoint(toName, index, stripNames, `${path}.toNodeName`)
+    };
+
+    const attributes = readMetrics(raw.attributes, `${path}.attributes`);
+    if (attributes) normalized.attributes = attributes;
+    if (typeof raw.isCyclic === "boolean") normalized.isCyclic = raw.isCyclic;
+    if (typeof raw.isPointingUpwards === "boolean") {
+      normalized.isPointingUpwards = raw.isPointingUpwards;
+    }
+
+    edges.push(normalized);
+  });
+  return edges;
+}
+
+/**
+ * Las lentes de 2.x separan métricas de nodo y de arista. Un
+ * `attributeDescriptors` plano de 1.x se reparte según dónde aparezca la métrica.
+ */
+function splitDescriptorSections(
+  sections: DescriptorSections,
+  nodeMetricNames: Set<string>,
+  edgeMetricNames: Set<string>
+): DescriptorSections {
+  if (!sections.flat) return sections;
+
+  const nodes: Record<string, CcAttributeDescriptor> = {};
+  const edges: Record<string, CcAttributeDescriptor> = {};
+  for (const [name, descriptor] of Object.entries(sections.flat)) {
+    if (nodeMetricNames.has(name) || !edgeMetricNames.has(name)) nodes[name] = descriptor;
+    if (edgeMetricNames.has(name)) edges[name] = descriptor;
+  }
+
+  const split: DescriptorSections = {};
+  if (Object.keys(nodes).length > 0) split.nodes = nodes;
+  if (Object.keys(edges).length > 0) split.edges = edges;
+  return split;
+}
+
+function buildLegacyLenses(
+  metrics: Record<string, Record<string, number>>,
+  edges: CcEdge[],
+  types: TypeSections,
+  sections: DescriptorSections
+): NonNullable<CcJson["lenses"]> {
   const nodeMetricNames = new Set(Object.values(metrics).flatMap((row) => Object.keys(row)));
   const edgeMetricNames = new Set(
     edges.flatMap((edge) => Object.keys(edge.attributes ?? {}))
   );
-
-  let nodeDescriptors = descriptorSections.nodes;
-  let edgeDescriptors = descriptorSections.edges;
-  if (descriptorSections.flat) {
-    const nodes: Record<string, CcAttributeDescriptor> = {};
-    const edgeMap: Record<string, CcAttributeDescriptor> = {};
-    for (const [name, descriptor] of Object.entries(descriptorSections.flat)) {
-      if (nodeMetricNames.has(name) || !edgeMetricNames.has(name)) nodes[name] = descriptor;
-      if (edgeMetricNames.has(name)) edgeMap[name] = descriptor;
-    }
-    if (Object.keys(nodes).length > 0) nodeDescriptors = nodes;
-    if (Object.keys(edgeMap).length > 0) edgeDescriptors = edgeMap;
-  }
+  const { nodes: nodeDescriptors, edges: edgeDescriptors } = splitDescriptorSections(
+    sections,
+    nodeMetricNames,
+    edgeMetricNames
+  );
 
   const lenses: NonNullable<CcJson["lenses"]> = {};
 
@@ -249,17 +353,16 @@ export function normalizeLegacyCcJson(input: unknown): CcJson {
   }
   if (Object.keys(dependency).length > 0) lenses.dependency = dependency;
 
+  return lenses;
+}
+
+function buildLegacyMeta(payload: Record<string, unknown>): CcJson["meta"] {
   const meta: CcJson["meta"] = { apiVersion: CC_JSON_VERSION };
   const projectName = readOptionalString(payload.projectName);
   if (projectName) meta.projectName = projectName;
   const commitHash = readOptionalString(payload.commitHash);
   if (commitHash) meta.commitHash = commitHash;
-
-  return {
-    meta,
-    files,
-    ...(Object.keys(lenses).length > 0 ? { lenses } : {})
-  };
+  return meta;
 }
 
 /**

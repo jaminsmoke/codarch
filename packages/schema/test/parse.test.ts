@@ -175,6 +175,17 @@ describe("parseCcJson 1.x", () => {
       })
     ).toThrow(/número finito/);
   });
+
+  it("la conversión es determinista: dos pasadas dan el mismo documento", () => {
+    const first = JSON.stringify(parseCcJson(legacy12));
+    const second = JSON.stringify(parseCcJson(legacy12));
+    expect(second).toBe(first);
+
+    // El orden de las claves de entrada tampoco cambia el resultado.
+    const reordered = JSON.parse(JSON.stringify(legacy12)) as Record<string, unknown>;
+    const shuffled = Object.fromEntries(Object.entries(reordered).reverse());
+    expect(JSON.stringify(parseCcJson(shuffled))).toBe(first);
+  });
 });
 
 describe("walk", () => {
