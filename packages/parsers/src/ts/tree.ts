@@ -50,6 +50,24 @@ export interface TreeAnalysis {
   exports: ParsedExport[];
 }
 
+/** Lo que se va acumulando durante el recorrido. */
+interface WalkState {
+  /** Líneas con al menos un token de código. */
+  codeLines: Set<number>;
+  imports: ParsedImport[];
+  symbols: ParsedSymbol[];
+  members: ParsedMember[];
+  exports: ParsedExport[];
+  /**
+   * Complejidad ya medida, por posición (los nodos son envoltorios nuevos en
+   * cada acceso, así que no sirven como clave).
+   */
+  complexityAt: Map<string, number>;
+  functions: number;
+  maxComplexity: number;
+  maxFunctionLength: number;
+}
+
 /**
  * Recorre el árbol una vez y devuelve las tres cosas.
  *
@@ -58,20 +76,17 @@ export interface TreeAnalysis {
  * mismo orden. Los símbolos se ordenan por línea al final, como antes.
  */
 export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis {
-  const codeLines = new Set<number>();
-  const imports: ParsedImport[] = [];
-  const symbols: ParsedSymbol[] = [];
-  const members: ParsedMember[] = [];
-  const exports: ParsedExport[] = [];
-  /**
-   * Complejidad ya medida, por posición (los nodos son envoltorios nuevos en
-   * cada acceso, así que no sirven como clave).
-   */
-  const complexityAt = new Map<string, number>();
-
-  let functions = 0;
-  let maxComplexity = 0;
-  let maxFunctionLength = 0;
+  const state: WalkState = {
+    codeLines: new Set<number>(),
+    imports: [],
+    symbols: [],
+    members: [],
+    exports: [],
+    complexityAt: new Map<string, number>(),
+    functions: 0,
+    maxComplexity: 0,
+    maxFunctionLength: 0
+  };
 
   const stack: Array<{ node: SyntaxNodeLike; moduleScope: boolean }> = [
     { node: root, moduleScope: true }
@@ -85,117 +100,19 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
 
     // Hojas: líneas con código. Los comentarios son hojas y no cuentan.
     if (node.childCount === 0) {
-      if (!isComment(node.text) && node.text.trim() !== "") {
-        for (let row = node.startPosition.row; row <= node.endPosition.row; row++) {
-          codeLines.add(row);
-        }
-      }
+      markCodeLines(node, state.codeLines);
       continue;
     }
 
-    if (FUNCTION_TYPES.has(node.type)) {
-      functions++;
-      const complexity = complexityOf(node, complexityAt);
-      const length = node.endPosition.row - node.startPosition.row + 1;
-      if (complexity > maxComplexity) maxComplexity = complexity;
-      if (length > maxFunctionLength) maxFunctionLength = length;
-    }
+    if (FUNCTION_TYPES.has(node.type)) measureFunctionNode(node, state);
 
     // Los hijos se piden **una vez** por nodo: en el binding nativo cada
     // acceso los vuelve a materializar en JS, y es lo que más cuesta del
     // análisis.
     const children = node.children;
 
-    if (node.type === "import_statement") {
-      const sourceNode = findImportSource(node);
-      const specifier = sourceNode ? stringLiteralValue(sourceNode) : null;
-      if (specifier !== null) {
-        const isRequire = node.namedChildren.some(
-          (child) => child.type === "import_require_clause"
-        );
-        const names = importedNames(node);
-        imports.push({
-          specifier,
-          kind: isRequire ? "require" : "static",
-          typeOnly: children.some((child) => child.type === "type"),
-          line: node.startPosition.row + 1,
-          ...(names.length > 0 ? { names } : {})
-        });
-      }
-    } else if (node.type === "export_statement") {
-      exports.push(...exportSurface(node));
-      const sourceNode = node.childForFieldName("source");
-      const specifier = sourceNode ? stringLiteralValue(sourceNode) : null;
-      if (specifier !== null) {
-        imports.push({
-          specifier,
-          kind: "export",
-          typeOnly: children.some((child) => child.type === "type"),
-          line: node.startPosition.row + 1
-        });
-      }
-    } else if (node.type === "call_expression") {
-      const kind = callImportKind(node);
-      if (kind) {
-        const argumentsNode = node.childForFieldName("arguments");
-        const first = argumentsNode?.namedChildren[0];
-        const specifier = first ? stringLiteralValue(first) : null;
-        if (specifier !== null) {
-          imports.push({
-            specifier,
-            kind,
-            typeOnly: false,
-            line: node.startPosition.row + 1
-          });
-        }
-      }
-    }
-
-    const kind = DECLARATION_KINDS[node.type];
-    if (kind) {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(
-          describeSymbol(
-            name,
-            kind,
-            node,
-            nameNode,
-            // La función de este nodo ya se midió arriba, en las métricas.
-            complexityAt.get(positionKey(node))
-          )
-        );
-        if (kind === "class") members.push(...membersOfClass(node, name));
-      }
-    } else if (node.type === "variable_declarator") {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.type === "identifier" ? nameNode.text : null;
-      const value = node.childForFieldName("value");
-      const declared = declaratorKind(value, moduleScope);
-      if (name && value && declared) {
-        if (declared === "function") {
-          // La flecha todavía no se visitó (viene después): se mide aquí y se
-          // guarda para que las métricas no la midan otra vez.
-          symbols.push(
-            describeSymbol(
-              name,
-              "function",
-              value,
-              undefined,
-              complexityOf(value, complexityAt)
-            )
-          );
-        } else if (declared === "variable") {
-          symbols.push(describeSymbol(name, "variable", node, nameNode));
-        } else {
-          symbols.push(describeSymbol(name, declared, value));
-          if (declared === "class") {
-            members.push(...membersOfClass(value, name));
-          }
-        }
-      }
-    }
+    collectImports(node, children, state);
+    collectDeclaration(node, moduleScope, state);
 
     // Al revés, para visitar el fuente en orden.
     const childScope = moduleScope && MODULE_SCOPE_WRAPPERS.has(node.type);
@@ -204,23 +121,193 @@ export function analyzeTree(source: string, root: SyntaxNodeLike): TreeAnalysis 
     }
   }
 
-  symbols.sort((left, right) => left.line - right.line);
-  members.sort((left, right) => left.line - right.line);
-  exports.sort((left, right) => left.line - right.line);
+  state.symbols.sort((left, right) => left.line - right.line);
+  state.members.sort((left, right) => left.line - right.line);
+  state.exports.sort((left, right) => left.line - right.line);
 
   return {
     metrics: {
       loc: countLines(source),
-      rloc: codeLines.size,
-      functions,
-      maxComplexity,
-      maxFunctionLength
+      rloc: state.codeLines.size,
+      functions: state.functions,
+      maxComplexity: state.maxComplexity,
+      maxFunctionLength: state.maxFunctionLength
     },
-    imports,
-    symbols,
-    members,
-    exports
+    imports: state.imports,
+    symbols: state.symbols,
+    members: state.members,
+    exports: state.exports
   };
+}
+
+/** Una hoja suma sus líneas si tiene código: los comentarios no cuentan. */
+function markCodeLines(node: SyntaxNodeLike, codeLines: Set<number>): void {
+  if (isComment(node.text) || node.text.trim() === "") return;
+  for (let row = node.startPosition.row; row <= node.endPosition.row; row++) {
+    codeLines.add(row);
+  }
+}
+
+/** Cuenta la función y actualiza los dos máximos del fichero. */
+function measureFunctionNode(node: SyntaxNodeLike, state: WalkState): void {
+  state.functions++;
+  const complexity = complexityOf(node, state.complexityAt);
+  const length = node.endPosition.row - node.startPosition.row + 1;
+  if (complexity > state.maxComplexity) state.maxComplexity = complexity;
+  if (length > state.maxFunctionLength) state.maxFunctionLength = length;
+}
+
+/**
+ * Las importaciones salen de tres sitios: un `import`, un `export ... from`
+ * (que también exporta) y un `require()`/`import()` de una llamada.
+ */
+function collectImports(
+  node: SyntaxNodeLike,
+  children: readonly SyntaxNodeLike[],
+  state: WalkState
+): void {
+  if (node.type === "import_statement") {
+    pushImportStatement(node, children, state.imports);
+  } else if (node.type === "export_statement") {
+    pushExportStatement(node, children, state);
+  } else if (node.type === "call_expression") {
+    pushCallImport(node, state.imports);
+  }
+}
+
+function pushImportStatement(
+  node: SyntaxNodeLike,
+  children: readonly SyntaxNodeLike[],
+  imports: ParsedImport[]
+): void {
+  const sourceNode = findImportSource(node);
+  const specifier = sourceNode ? stringLiteralValue(sourceNode) : null;
+  if (specifier === null) return;
+
+  const isRequire = node.namedChildren.some(
+    (child) => child.type === "import_require_clause"
+  );
+  const names = importedNames(node);
+  imports.push({
+    specifier,
+    kind: isRequire ? "require" : "static",
+    typeOnly: children.some((child) => child.type === "type"),
+    line: node.startPosition.row + 1,
+    ...(names.length > 0 ? { names } : {})
+  });
+}
+
+function pushExportStatement(
+  node: SyntaxNodeLike,
+  children: readonly SyntaxNodeLike[],
+  state: WalkState
+): void {
+  state.exports.push(...exportSurface(node));
+
+  const sourceNode = node.childForFieldName("source");
+  const specifier = sourceNode ? stringLiteralValue(sourceNode) : null;
+  if (specifier === null) return;
+
+  state.imports.push({
+    specifier,
+    kind: "export",
+    typeOnly: children.some((child) => child.type === "type"),
+    line: node.startPosition.row + 1
+  });
+}
+
+function pushCallImport(node: SyntaxNodeLike, imports: ParsedImport[]): void {
+  const kind = callImportKind(node);
+  if (!kind) return;
+
+  const argumentsNode = node.childForFieldName("arguments");
+  const first = argumentsNode?.namedChildren[0];
+  const specifier = first ? stringLiteralValue(first) : null;
+  if (specifier === null) return;
+
+  imports.push({
+    specifier,
+    kind,
+    typeOnly: false,
+    line: node.startPosition.row + 1
+  });
+}
+
+/**
+ * Declaraciones con nombre propio (`function`, `class`, `interface`, …) y
+ * declaradores de variable, que pueden esconder una función, una clase o un
+ * simple valor.
+ */
+function collectDeclaration(
+  node: SyntaxNodeLike,
+  moduleScope: boolean,
+  state: WalkState
+): void {
+  const kind = DECLARATION_KINDS[node.type];
+  if (kind) {
+    collectNamedDeclaration(node, kind, state);
+    return;
+  }
+  if (node.type === "variable_declarator") {
+    collectDeclarator(node, moduleScope, state);
+  }
+}
+
+function collectNamedDeclaration(
+  node: SyntaxNodeLike,
+  kind: ParsedSymbol["kind"],
+  state: WalkState
+): void {
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+
+  state.symbols.push(
+    describeSymbol(
+      name,
+      kind,
+      node,
+      nameNode,
+      // La función de este nodo ya se midió arriba, en las métricas.
+      state.complexityAt.get(positionKey(node))
+    )
+  );
+  if (kind === "class") state.members.push(...membersOfClass(node, name));
+}
+
+function collectDeclarator(
+  node: SyntaxNodeLike,
+  moduleScope: boolean,
+  state: WalkState
+): void {
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.type === "identifier" ? nameNode.text : null;
+  const value = node.childForFieldName("value");
+  const declared = declaratorKind(value, moduleScope);
+  if (!name || !value || !declared) return;
+
+  if (declared === "function") {
+    // La flecha todavía no se visitó (viene después): se mide aquí y se
+    // guarda para que las métricas no la midan otra vez.
+    state.symbols.push(
+      describeSymbol(
+        name,
+        "function",
+        value,
+        undefined,
+        complexityOf(value, state.complexityAt)
+      )
+    );
+    return;
+  }
+
+  if (declared === "variable") {
+    state.symbols.push(describeSymbol(name, "variable", node, nameNode));
+    return;
+  }
+
+  state.symbols.push(describeSymbol(name, declared, value));
+  if (declared === "class") state.members.push(...membersOfClass(value, name));
 }
 
 /** La complejidad de un nodo, medida una sola vez por fichero. */
