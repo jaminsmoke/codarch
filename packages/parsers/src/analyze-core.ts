@@ -23,7 +23,12 @@ import { extensionsFor, parserFor } from "./parsers";
 import * as path from "./path";
 import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
-import type { ParserProject, SourceParser } from "./types";
+import type {
+  Metrics,
+  ParsedImport,
+  ParserProject,
+  SourceParser
+} from "./types";
 import { walkSourceFiles } from "./walk";
 
 export interface ChurnMetric {
@@ -106,6 +111,16 @@ export interface UnresolvedImportIssue {
   reason: string;
 }
 
+/** Un `using` que espera a saber qué ficheros declaran su espacio de nombres. */
+interface PendingNamespaceImport {
+  file: string;
+  /** Las métricas del fichero: el recuento se cierra cuando se resuelve. */
+  metrics: Metrics;
+  imported: ParsedImport;
+  namespaces: string[];
+  builtin: boolean;
+}
+
 export interface AnalyzeCoreResult {
   snapshot: CcJson;
   files: number;
@@ -181,6 +196,14 @@ export function analyzeFiles(
   const migrationLinks: MigrationLinkInput[] = [];
   const links: DependencyLink[] = [];
   const unresolved: UnresolvedImportIssue[] = [];
+  /**
+   * Los espacios de nombres que declara cada fichero (C#), por nombre.
+   *
+   * Un `using` no se puede resolver mientras se mide el fichero que lo escribe:
+   * el espacio de nombres puede estar declarado en cualquier otro.
+   */
+  const namespaceDeclarations = new Map<string, string[]>();
+  const pendingNamespaces: PendingNamespaceImport[] = [];
   let externalImports = 0;
   let builtinImports = 0;
   let typeOnlyImports = 0;
@@ -302,6 +325,28 @@ export function analyzeFiles(
       }
     }
 
+    // Los espacios de nombres del fichero, para lo que busquen los `using` de
+    // los demás. Los ficheros se recorren en orden de ruta, así que la lista de
+    // cada espacio sale ordenada sin volver a ordenarla.
+    for (const namespace of parsed.namespaces ?? []) {
+      const declared = namespaceDeclarations.get(namespace);
+      if (!declared) namespaceDeclarations.set(namespace, [file.relativePath]);
+      else if (!declared.includes(file.relativePath)) {
+        declared.push(file.relativePath);
+      }
+    }
+
+    // Las métricas del fichero se crean antes de sus imports porque un `using`
+    // de C# se cierra al final y tiene que apuntar ya a dónde sumar.
+    const metrics: Metrics = {
+      ...parsed.metrics,
+      imports: parsed.imports.length,
+      externalImports: 0,
+      builtinImports: 0,
+      typeOnlyImports: 0,
+      unresolvedImports: 0
+    };
+
     let fileExternalImports = 0;
     let fileBuiltinImports = 0;
     let fileTypeOnlyImports = 0;
@@ -310,10 +355,22 @@ export function analyzeFiles(
     for (const imported of parsed.imports) {
       if (imported.typeOnly) fileTypeOnlyImports++;
 
-      // El parser del lenguaje puede saber a qué ruta apunta un import
-      // (Java, Python; ADR 0090). Si no lo declara, se resuelve como TS/JS.
+      // El parser del lenguaje puede saber a qué apunta un import (Java,
+      // Python, Go y C#; ADR 0090). Si no lo declara, se resuelve como TS/JS.
       const targets = parser.importTargets?.(imported, file.relativePath);
       if (targets) {
+        // Un espacio de nombres se cierra al final (C#): se apunta y se sigue.
+        if (targets.kind === "namespace") {
+          pendingNamespaces.push({
+            file: file.relativePath,
+            metrics,
+            imported,
+            namespaces: targets.namespaces,
+            builtin: targets.builtin
+          });
+          continue;
+        }
+
         if (targets.kind === "external") {
           if (targets.builtin) fileBuiltinImports++;
           else fileExternalImports++;
@@ -407,20 +464,18 @@ export function analyzeFiles(
     builtinImports += fileBuiltinImports;
     typeOnlyImports += fileTypeOnlyImports;
 
+    metrics.externalImports = fileExternalImports;
+    metrics.builtinImports = fileBuiltinImports;
+    metrics.typeOnlyImports = fileTypeOnlyImports;
+    metrics.unresolvedImports = fileUnresolvedImports;
+
     parsedFiles.push({
       relativePath: file.relativePath,
       symbols: parsed.symbols ?? [],
       imports: parsed.imports,
       exports: parsed.exports ?? [],
       members: parsed.members ?? [],
-      metrics: {
-        ...parsed.metrics,
-        imports: parsed.imports.length,
-        externalImports: fileExternalImports,
-        builtinImports: fileBuiltinImports,
-        typeOnlyImports: fileTypeOnlyImports,
-        unresolvedImports: fileUnresolvedImports
-      }
+      metrics
     });
     // La lente de migración solo tiene estado para los lenguajes que modela.
     // Un fichero de otro lenguaje es un nodo como los demás y no entra en
@@ -436,6 +491,19 @@ export function analyzeFiles(
         bridge
       });
     }
+  }
+
+  // Los `using` de C# se resuelven ahora, que ya se sabe qué declara cada
+  // fichero. Antes de esto, un import de espacio de nombres no tenía destino.
+  if (pendingNamespaces.length > 0) {
+    const resolved = resolveNamespaceImports(
+      pendingNamespaces,
+      namespaceDeclarations,
+      links
+    );
+    externalImports += resolved.external;
+    builtinImports += resolved.builtin;
+    unresolved.push(...resolved.unresolved);
   }
 
   let churnResult: ChurnResult | null = null;
@@ -520,6 +588,91 @@ export function analyzeFiles(
     cache: { hits: cacheHits, misses: cacheMisses },
     durationMs: Date.now() - started
   };
+}
+
+/**
+ * Cierra los `using` de C# cuando ya se ha medido el repositorio entero.
+ *
+ * La regla son tres preguntas, en este orden (ADR 0090):
+ *
+ * 1. ¿Algún fichero declara el espacio de nombres? Entonces son aristas, una
+ *    por fichero: `using Acme.Billing;` depende de cada fichero que declare
+ *    `Acme.Billing`, no de un fichero concreto.
+ * 2. ¿El repositorio declara su raíz —`Acme` para `using Acme.Gone`—? Entonces
+ *    el espacio falta y el import está roto: C# no compilaría.
+ * 3. Si no: `System…` y `Microsoft…` son plataforma; el resto, dependencia.
+ *
+ * Un fichero no se importa a sí mismo: es lo normal en C# —el `using` del
+ * espacio que el propio fichero declara— y una arista de un nodo a sí mismo
+ * sería un ciclo que nadie tiene.
+ */
+function resolveNamespaceImports(
+  pending: readonly PendingNamespaceImport[],
+  declarations: ReadonlyMap<string, readonly string[]>,
+  links: DependencyLink[]
+): { external: number; builtin: number; unresolved: UnresolvedImportIssue[] } {
+  const roots = new Set<string>();
+  for (const namespace of declarations.keys()) {
+    const root = namespace.split(".", 1)[0];
+    if (root) roots.add(root);
+  }
+
+  let external = 0;
+  let builtin = 0;
+  const unresolved: UnresolvedImportIssue[] = [];
+
+  for (const entry of pending) {
+    const targets = new Set<string>();
+    let known = false;
+    for (const namespace of entry.namespaces) {
+      const files = declarations.get(namespace);
+      if (!files) continue;
+      known = true;
+      for (const file of files) {
+        if (file !== entry.file) targets.add(file);
+      }
+    }
+
+    if (targets.size > 0) {
+      for (const target of [...targets].sort()) {
+        links.push({
+          from: entry.file,
+          to: target,
+          typeOnly: entry.imported.typeOnly
+        });
+      }
+      continue;
+    }
+
+    // El espacio es del repositorio y, quitando el propio fichero, no queda
+    // nadie: es el `using` del espacio que uno mismo declara. Ni arista, ni
+    // import roto, ni dependencia.
+    if (known) continue;
+
+    const local = entry.namespaces.some((namespace) => {
+      const root = namespace.split(".", 1)[0];
+      return root !== undefined && roots.has(root);
+    });
+
+    if (local) {
+      entry.metrics.unresolvedImports =
+        (entry.metrics.unresolvedImports ?? 0) + 1;
+      unresolved.push({
+        file: entry.file,
+        line: entry.imported.line,
+        specifier: entry.imported.specifier,
+        reason: "no se encontró el espacio de nombres"
+      });
+    } else if (entry.builtin) {
+      entry.metrics.builtinImports = (entry.metrics.builtinImports ?? 0) + 1;
+      builtin += 1;
+    } else {
+      entry.metrics.externalImports = (entry.metrics.externalImports ?? 0) + 1;
+      external += 1;
+    }
+  }
+
+  return { external, builtin, unresolved };
 }
 
 /** La versión del fichero, si el puerto sabe darla. */

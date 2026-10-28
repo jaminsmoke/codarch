@@ -9,6 +9,7 @@ export { WasmTypeScriptParser } from "./ts/wasm-parser";
 export { WasmJavaParser } from "./java/wasm-parser";
 export { WasmPythonParser } from "./python/wasm-parser";
 export { WasmGoParser } from "./go/wasm-parser";
+export { WasmCSharpParser } from "./csharp/wasm-parser";
 export {
   collectImports,
   countLines,

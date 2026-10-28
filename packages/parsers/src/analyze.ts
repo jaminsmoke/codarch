@@ -3,6 +3,7 @@ import { analyzeFiles, type AnalyzeCoreResult } from "./analyze-core";
 import type { ParseCache } from "./cache";
 import type { FileSystem } from "./fs";
 import { ChurnCache, collectGitChurn, gitHead } from "./git";
+import { CSharpParser } from "./csharp/parser";
 import { GoParser } from "./go/parser";
 import { JavaParser } from "./java/parser";
 import { NodeFileSystem } from "./node-fs";
@@ -60,8 +61,8 @@ export interface AnalyzeResult extends AnalyzeCoreResult {
  * disco y el navegador el fichero en memoria.
  *
  * Los parsers van en una lista y el análisis elige por extensión (ADR 0090).
- * Hoy la lista es TS/JS, Java, Python y Go; cuando entre C# se suma aquí, no
- * en cada llamador.
+ * Hoy la lista es TS/JS, Java, Python, Go y C#; cuando entre otro lenguaje se
+ * suma aquí, no en cada llamador.
  */
 export function analyzeRepository(
   rootInput: string,
@@ -80,11 +81,12 @@ export function analyzeRepository(
     ignore: options.ignore,
     extensions: options.extensions,
     parsers: [
-    new TypeScriptParser(),
-    new JavaParser(),
-    new PythonParser(),
-    new GoParser()
-  ],
+      new TypeScriptParser(),
+      new JavaParser(),
+      new PythonParser(),
+      new GoParser(),
+      new CSharpParser()
+    ],
     cache: options.cache,
     commitHash,
     churn: (relativePaths) => {

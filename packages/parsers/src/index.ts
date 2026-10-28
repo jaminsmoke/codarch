@@ -2,6 +2,7 @@ export { TS_PARSER_NAME, TypeScriptParser } from "./ts/parser";
 export { JAVA_PARSER_NAME, JavaParser } from "./java/parser";
 export { PYTHON_PARSER_NAME, PythonParser } from "./python/parser";
 export { GO_PARSER_NAME, GoParser } from "./go/parser";
+export { CSHARP_PARSER_NAME, CSharpParser } from "./csharp/parser";
 export { ImportResolver, isAssetSpecifier } from "./resolve";
 export type { ResolveResult } from "./resolve";
 export { buildGraph } from "./graph";

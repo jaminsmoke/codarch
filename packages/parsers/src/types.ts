@@ -72,14 +72,22 @@ export interface FileParseResult {
   members?: ParsedMember[];
   /** La superficie de salida: declaraciones exportadas y reexportaciones. */
   exports?: ParsedExport[];
+  /**
+   * Los espacios de nombres que declara el fichero (C#, ADR 0090).
+   *
+   * Es lo que un `using` busca, y no se puede deducir de la ruta: el análisis
+   * los junta de todos los ficheros para resolver los imports al final.
+   */
+  namespaces?: string[];
 }
 
 /**
  * A qué apunta un import, tal como lo ve el parser del lenguaje.
  *
  * Los de TS/JS no lo declaran: usa la resolución de módulos, paquetes y alias.
- * Los de Java y Python sí, porque un paquete es una ruta y no hay manifiesto
- * que leer (ADR 0090).
+ * Los de Java, Python, Go y C# sí, porque el lenguaje ya dice a qué apunta un
+ * import y no hay manifiesto que leer (ADR 0090); C# además lo deja pendiente,
+ * porque un espacio de nombres se declara en cualquier fichero del repo.
  */
 export type ImportTargets =
   | {
@@ -101,6 +109,20 @@ export type ImportTargets =
       required?: boolean;
       /** Lo que cuenta si no aparece ninguna carpeta: plataforma o dependencia. */
       builtin?: boolean;
+    }
+  | {
+      /**
+       * Un espacio de nombres (C#): no se resuelve aquí.
+       *
+       * Los ficheros que lo declaran no se conocen hasta que el análisis los
+       * ha medido todos, así que el import se queda pendiente y se cierra al
+       * final (ADR 0090).
+       */
+      kind: "namespace";
+      /** Los espacios que hay que encontrar; una arista por fichero que los declare. */
+      namespaces: string[];
+      /** De la plataforma: `System.…`, `Microsoft.…`; se cuenta como builtin. */
+      builtin: boolean;
     }
   | {
       kind: "external";
