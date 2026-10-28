@@ -5,8 +5,10 @@ import {
   md5Hex,
   type CcAttributeDescriptor,
   type CcAttributeType,
+  type CcDependencyLens,
   type CcEdge,
   type CcJson,
+  type CcMetricsLens,
   type CcMigrationLens,
   type CcNode,
   type CcStructureLens,
@@ -159,181 +161,26 @@ const EDGE_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
  *
  * No incluye fecha ni commit: dos análisis del mismo árbol deben producir el
  * mismo checksum. El checksum cubre `files` + `lenses`, no `meta`.
+ *
+ * El documento se arma por piezas —árbol, lentes de métricas, de dependencias,
+ * símbolos y estructura— para que cada una se pueda cambiar sin tocar las demás.
  */
 export function buildSnapshot(input: SnapshotInput): CcJson {
   const files = [...input.files].sort((left, right) =>
     compareStrings(left.relativePath, right.relativePath)
   );
-  const rootName = sanitizeNodeName(input.projectName);
-  const root: CcNode = {
-    id: folderId(""),
-    name: rootName,
-    type: "Folder",
-    children: []
-  };
-  const folders = new Map<string, CcNode>([["", root]]);
-  const attributes: Record<string, Record<string, number>> = {};
-  const metricNames = new Set<string>();
-  /** Los símbolos de cada fichero, para la lente `symbols`. */
-  const symbolNodes: Record<string, CcSymbol[]> = {};
-  /** La estructura que no es símbolo: miembros, imports y exports. */
-  const structureNodes: Record<string, CcStructureNode> = {};
-  const symbolCounts = {
-    functions: 0,
-    classes: 0,
-    interfaces: 0,
-    types: 0,
-    enums: 0,
-    variables: 0
-  };
-  let symbolTotal = 0;
-  let mostComplex: { path: string; name: string; complexity: number } | null = null;
-
-  for (const file of files) {
-    const segments = file.relativePath.split("/");
-    const fileName = segments.pop();
-    if (!fileName) continue;
-
-    let parentPath = "";
-    let parent = root;
-
-    for (const segment of segments) {
-      const folderPath = parentPath ? `${parentPath}/${segment}` : segment;
-      let folder = folders.get(folderPath);
-      if (!folder) {
-        folder = {
-          id: folderId(folderPath),
-          name: segment,
-          type: "Folder",
-          children: []
-        };
-        folders.set(folderPath, folder);
-        parent.children?.push(folder);
-      }
-      parent = folder;
-      parentPath = folderPath;
-    }
-
-    const node: CcNode = {
-      id: fileId(file.relativePath),
-      name: fileName,
-      type: "File"
-    };
-    parent.children?.push(node);
-    attributes[node.id] = { ...file.metrics };
-    for (const metric of Object.keys(file.metrics)) metricNames.add(metric);
-
-    if (file.symbols && file.symbols.length > 0) {
-      symbolNodes[node.id] = file.symbols.map((symbol) => ({ ...symbol }));
-      symbolTotal += file.symbols.length;
-      for (const symbol of file.symbols) {
-        if (symbol.kind === "function") symbolCounts.functions++;
-        else if (symbol.kind === "class") symbolCounts.classes++;
-        else if (symbol.kind === "interface") symbolCounts.interfaces++;
-        else if (symbol.kind === "type") symbolCounts.types++;
-        else if (symbol.kind === "enum") symbolCounts.enums++;
-        else if (symbol.kind === "variable") symbolCounts.variables++;
-
-        if (symbol.kind === "function" && symbol.complexity !== undefined) {
-          if (!mostComplex || symbol.complexity > mostComplex.complexity) {
-            mostComplex = {
-              path: file.relativePath,
-              name: symbol.name,
-              complexity: symbol.complexity
-            };
-          }
-        }
-      }
-    }
-
-    const members = (file.members ?? []).map((member) => ({ ...member }));
-    const imports = (file.imports ?? [])
-      .filter((imported) => imported.kind !== "export")
-      .map((imported) => ({
-        source: imported.specifier,
-        names: [...(imported.names ?? [])],
-        kind: imported.kind as "static" | "dynamic" | "require",
-        typeOnly: imported.typeOnly,
-        line: imported.line
-      }));
-    const exports = (file.exports ?? []).map((entry) => ({
-      name: entry.name,
-      ...(entry.local ? { local: entry.local } : {}),
-      ...(entry.source ? { source: entry.source } : {}),
-      kind: entry.kind,
-      ...(entry.typeOnly ? { typeOnly: true } : {}),
-      line: entry.line
-    }));
-    if (members.length > 0 || imports.length > 0 || exports.length > 0) {
-      structureNodes[node.id] = { members, imports, exports };
-    }
-  }
-
-  sortChildren(root);
-
-  const presentMetrics = METRIC_ORDER.filter((metric) => metricNames.has(metric));
-  for (const metric of metricNames) {
-    if (!presentMetrics.includes(metric)) presentMetrics.push(metric);
-  }
-
-  const descriptors: Record<string, CcAttributeDescriptor> = {};
-  const attributeTypes: Record<string, CcAttributeType> = {};
-  for (const metric of presentMetrics) {
-    const descriptor = METRIC_DESCRIPTORS[metric];
-    if (descriptor) descriptors[metric] = descriptor;
-    attributeTypes[metric] = "absolute";
-  }
-
-  const edges: CcEdge[] = input.graph.edges.map((edge) => ({
-    fromId: fileId(edge.from),
-    toId: fileId(edge.to),
-    attributes: { weight: edge.weight, typeOnly: edge.typeOnly },
-    isCyclic: edge.isCyclic
-  }));
-
-  const dependencyNodes: Record<string, { level: number }> = {};
-  for (const [path, metrics] of input.graph.metrics) {
-    dependencyNodes[fileId(path)] = { level: metrics.dependencyLevel };
-  }
+  const tree = buildTree(files, sanitizeNodeName(input.projectName));
 
   const migrationLens = input.migration
     ? migrationLensFrom(input.migration)
     : undefined;
 
-  const symbolsSummary: CcSymbolsSummary = {
-    symbols: symbolTotal,
-    functions: symbolCounts.functions,
-    classes: symbolCounts.classes,
-    interfaces: symbolCounts.interfaces,
-    types: symbolCounts.types,
-    enums: symbolCounts.enums,
-    variables: symbolCounts.variables,
-    mostComplex
-  };
-  const symbolsLens: CcSymbolsLens = {
-    nodes: symbolNodes,
-    summary: symbolsSummary
-  };
-  const structureLens: CcStructureLens = { nodes: structureNodes };
-
   const lenses = {
-    metrics: {
-      attributes,
-      attributeDescriptors: descriptors,
-      attributeTypes
-    },
-    dependency: {
-      edges,
-      nodes: dependencyNodes,
-      attributeDescriptors: EDGE_DESCRIPTORS,
-      attributeTypes: {
-        weight: "absolute" as const,
-        typeOnly: "absolute" as const
-      }
-    },
+    metrics: metricLens(tree.attributes, tree.metricNames),
+    dependency: dependencyLens(input.graph),
     ...(migrationLens ? { migration: migrationLens } : {}),
-    symbols: symbolsLens,
-    structure: structureLens
+    symbols: symbolsLens(tree.symbolNodes, tree.symbols),
+    structure: { nodes: tree.structureNodes } satisfies CcStructureLens
   };
 
   return {
@@ -342,11 +189,246 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
       apiVersion: CC_JSON_VERSION,
       // El commit no entra en el checksum: dos clones del mismo código pesan igual.
       ...(input.commitHash ? { commitHash: input.commitHash } : {}),
-      checksum: checksumFor([root], lenses)
+      checksum: checksumFor([tree.root], lenses)
     },
-    files: [root],
+    files: [tree.root],
     lenses
   };
+}
+
+/** Lo que se le puede contar a la lente de símbolos. */
+interface SymbolTally {
+  counts: {
+    functions: number;
+    classes: number;
+    interfaces: number;
+    types: number;
+    enums: number;
+    variables: number;
+  };
+  total: number;
+  mostComplex: { path: string; name: string; complexity: number } | null;
+}
+
+/** El árbol 2.x y todo lo que cuelga de cada fichero, ya indexado por id. */
+interface BuiltTree {
+  root: CcNode;
+  attributes: Record<string, Record<string, number>>;
+  metricNames: Set<string>;
+  symbolNodes: Record<string, CcSymbol[]>;
+  structureNodes: Record<string, CcStructureNode>;
+  symbols: SymbolTally;
+}
+
+function buildTree(files: readonly SnapshotFile[], rootName: string): BuiltTree {
+  const root: CcNode = {
+    id: folderId(""),
+    name: rootName,
+    type: "Folder",
+    children: []
+  };
+  const folders = new Map<string, CcNode>([["", root]]);
+  const tree: BuiltTree = {
+    root,
+    attributes: {},
+    metricNames: new Set<string>(),
+    symbolNodes: {},
+    structureNodes: {},
+    symbols: {
+      counts: {
+        functions: 0,
+        classes: 0,
+        interfaces: 0,
+        types: 0,
+        enums: 0,
+        variables: 0
+      },
+      total: 0,
+      mostComplex: null
+    }
+  };
+
+  for (const file of files) {
+    const node = addFileNode(root, folders, file.relativePath);
+    if (!node) continue;
+
+    tree.attributes[node.id] = { ...file.metrics };
+    for (const metric of Object.keys(file.metrics)) tree.metricNames.add(metric);
+
+    if (file.symbols && file.symbols.length > 0) {
+      tree.symbolNodes[node.id] = file.symbols.map((symbol) => ({ ...symbol }));
+      tallySymbols(tree.symbols, file.relativePath, file.symbols);
+    }
+
+    const structure = structureOf(file);
+    if (structure) tree.structureNodes[node.id] = structure;
+  }
+
+  sortChildren(root);
+  return tree;
+}
+
+/**
+ * Crea las carpetas que falten y cuelga el fichero de la última.
+ *
+ * Devuelve `null` cuando la ruta no tiene nombre de fichero.
+ */
+function addFileNode(
+  root: CcNode,
+  folders: Map<string, CcNode>,
+  relativePath: string
+): CcNode | null {
+  const segments = relativePath.split("/");
+  const fileName = segments.pop();
+  if (!fileName) return null;
+
+  let parentPath = "";
+  let parent = root;
+
+  for (const segment of segments) {
+    const folderPath = parentPath ? `${parentPath}/${segment}` : segment;
+    let folder = folders.get(folderPath);
+    if (!folder) {
+      folder = {
+        id: folderId(folderPath),
+        name: segment,
+        type: "Folder",
+        children: []
+      };
+      folders.set(folderPath, folder);
+      parent.children?.push(folder);
+    }
+    parent = folder;
+    parentPath = folderPath;
+  }
+
+  const node: CcNode = {
+    id: fileId(relativePath),
+    name: fileName,
+    type: "File"
+  };
+  parent.children?.push(node);
+  return node;
+}
+
+/** Suma un fichero al recuento de símbolos y recuerda el más complejo. */
+function tallySymbols(
+  tally: SymbolTally,
+  relativePath: string,
+  symbols: readonly ParsedSymbol[]
+): void {
+  tally.total += symbols.length;
+
+  for (const symbol of symbols) {
+    const counts = tally.counts;
+    if (symbol.kind === "function") counts.functions++;
+    else if (symbol.kind === "class") counts.classes++;
+    else if (symbol.kind === "interface") counts.interfaces++;
+    else if (symbol.kind === "type") counts.types++;
+    else if (symbol.kind === "enum") counts.enums++;
+    else if (symbol.kind === "variable") counts.variables++;
+
+    if (symbol.kind !== "function" || symbol.complexity === undefined) continue;
+    if (!tally.mostComplex || symbol.complexity > tally.mostComplex.complexity) {
+      tally.mostComplex = {
+        path: relativePath,
+        name: symbol.name,
+        complexity: symbol.complexity
+      };
+    }
+  }
+}
+
+/** Miembros, imports y exports de un fichero, o `null` si no aporta nada. */
+function structureOf(file: SnapshotFile): CcStructureNode | null {
+  const members = (file.members ?? []).map((member) => ({ ...member }));
+  const imports = (file.imports ?? [])
+    .filter((imported) => imported.kind !== "export")
+    .map((imported) => ({
+      source: imported.specifier,
+      names: [...(imported.names ?? [])],
+      kind: imported.kind as "static" | "dynamic" | "require",
+      typeOnly: imported.typeOnly,
+      line: imported.line
+    }));
+  const exports = (file.exports ?? []).map((entry) => ({
+    name: entry.name,
+    ...(entry.local ? { local: entry.local } : {}),
+    ...(entry.source ? { source: entry.source } : {}),
+    kind: entry.kind,
+    ...(entry.typeOnly ? { typeOnly: true } : {}),
+    line: entry.line
+  }));
+
+  if (members.length === 0 && imports.length === 0 && exports.length === 0) {
+    return null;
+  }
+  return { members, imports, exports };
+}
+
+/**
+ * Las métricas conocidas van primero, en el orden de sus descriptores; las que
+ * añada un addon se quedan detrás, en el orden en que aparecieron.
+ */
+function metricLens(
+  attributes: Record<string, Record<string, number>>,
+  metricNames: Set<string>
+): CcMetricsLens {
+  const presentMetrics = METRIC_ORDER.filter((metric) => metricNames.has(metric));
+  for (const metric of metricNames) {
+    if (!presentMetrics.includes(metric)) presentMetrics.push(metric);
+  }
+
+  const attributeDescriptors: Record<string, CcAttributeDescriptor> = {};
+  const attributeTypes: Record<string, CcAttributeType> = {};
+  for (const metric of presentMetrics) {
+    const descriptor = METRIC_DESCRIPTORS[metric];
+    if (descriptor) attributeDescriptors[metric] = descriptor;
+    attributeTypes[metric] = "absolute";
+  }
+
+  return { attributes, attributeDescriptors, attributeTypes };
+}
+
+function dependencyLens(graph: GraphResult): CcDependencyLens {
+  const edges: CcEdge[] = graph.edges.map((edge) => ({
+    fromId: fileId(edge.from),
+    toId: fileId(edge.to),
+    attributes: { weight: edge.weight, typeOnly: edge.typeOnly },
+    isCyclic: edge.isCyclic
+  }));
+
+  const nodes: Record<string, { level: number }> = {};
+  for (const [path, metrics] of graph.metrics) {
+    nodes[fileId(path)] = { level: metrics.dependencyLevel };
+  }
+
+  return {
+    edges,
+    nodes,
+    attributeDescriptors: EDGE_DESCRIPTORS,
+    attributeTypes: {
+      weight: "absolute",
+      typeOnly: "absolute"
+    }
+  };
+}
+
+function symbolsLens(
+  nodes: Record<string, CcSymbol[]>,
+  tally: SymbolTally
+): CcSymbolsLens {
+  const summary: CcSymbolsSummary = {
+    symbols: tally.total,
+    functions: tally.counts.functions,
+    classes: tally.counts.classes,
+    interfaces: tally.counts.interfaces,
+    types: tally.counts.types,
+    enums: tally.counts.enums,
+    variables: tally.counts.variables,
+    mostComplex: tally.mostComplex
+  };
+  return { nodes, summary };
 }
 
 function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
