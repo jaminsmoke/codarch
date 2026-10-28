@@ -86,7 +86,9 @@ y sin caché, antes y después de esta decisión. Añadir lenguajes no puede mov
   `from a import b` puede ser un submódulo (`a/b.py`) o un nombre del módulo (`a/__init__.py`): se prueban
   los dos en ese orden. La biblioteca estándar es builtin y `from a import *` no crea aristas.
 - **Go** importa **paquetes**, no ficheros: la arista va a cada `.go` de la carpeta destino, ordenados por
-  ruta. Sin `go.mod` legible se intenta el sufijo del import.
+  ruta. El módulo del `go.mod` se lee una vez por análisis; con él, un import que empieza por el módulo y no
+  encuentra su carpeta está roto, y lo demás es de fuera —la biblioteca estándar no lleva punto en su primer
+  segmento—. Sin `go.mod` legible se intenta el sufijo del import.
 - **C#** indexa los `namespace` declarados por fichero (con bloque o de fichero entero) y enlaza el `using`
   con los que coinciden exactamente. Los alias y los `using static` no crean aristas.
 
@@ -149,7 +151,7 @@ carpeta. Todo eso puede llegar después sin reabrir esta decisión, porque el mo
 - [x] Java completo: gramática nativa y `.wasm`, métricas, símbolos, miembros e imports resueltos por paquete,
       con sus tests.
 - [x] Python completo: módulos y paquetes, relativos, `__init__.py`, con sus tests.
-- [ ] Go completo: paquetes, `go.mod` y expansión a ficheros, con sus tests.
+- [x] Go completo: paquetes, `go.mod` y expansión a ficheros, con sus tests.
 - [ ] C# completo: namespaces declarados por fichero y `using`, con sus tests.
 - [ ] La documentación deja de prometer solo TS/JS: `model.md`, el `AGENTS.md` y las páginas de uso.
 
