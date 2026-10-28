@@ -14,8 +14,8 @@ describe("el label de un bloque", () => {
   });
 
   it("en un bloque bajo, el tamaño se adapta al alto", () => {
-    const label = labelFor(200, 10);
-    expect(label?.size).toBeLessThan(6);
+    const label = labelFor(200, 16);
+    expect(label?.size).toBeLessThan(8);
   });
 
   it("el tamaño nunca pasa del máximo", () => {
@@ -23,13 +23,30 @@ describe("el label de un bloque", () => {
     expect(label?.size).toBeLessThanOrEqual(11);
   });
 
+  it("el tamaño depende del lado corto, no del largo", () => {
+    const bajo = labelFor(300, 16);
+    const alto = labelFor(16, 300);
+    expect(bajo?.size).toBe(alto?.size);
+  });
+
   it("en un bloque diminuto no hay label", () => {
     expect(labelFor(1, 1)).toBeNull();
   });
 
-  it("el tamaño depende del lado corto, no del largo", () => {
-    const bajo = labelFor(300, 12);
-    const alto = labelFor(12, 300);
-    expect(bajo?.size).toBe(alto?.size);
+  it("si el bloque no da para el tamaño mínimo, no hay nombre", () => {
+    // Diez píxeles de lado corto no caben una letra de seis.
+    expect(labelFor(10, 60)).toBeNull();
+    expect(labelFor(60, 10)).toBeNull();
+  });
+
+  it("si la línea solo lleva dos letras, no hay nombre", () => {
+    // Un cuadrado de veinte: ocho de letra y dos de ancho no son un nombre.
+    expect(labelFor(20, 20)).toBeNull();
+    // Ni una columna muy estrecha, por alto que sea.
+    expect(labelFor(14, 300)).toBeNull();
+  });
+
+  it("un bloque que cabe cinco letras sí lleva nombre", () => {
+    expect(labelFor(44, 15)).not.toBeNull();
   });
 });

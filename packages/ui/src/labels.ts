@@ -15,6 +15,11 @@ import type {
  * Lo único que se decide aquí es lo que el navegador no puede adivinar ✓: el
  * tamaño de la fuente ✓ (no hay tamaño automático en CSS ✓) y si el bloque es
  * lo bastante alto para escribir en vertical ✓.
+ *
+ * Y lo que decide si hay nombre es **cuántas letras caben** ✓: en un bloque de
+ * veinte píxeles, un nombre envuelto son dos columnas de dos letras ✓, que no
+ * se leen ni con el zoom ✓, porque el zoom agranda la celda y su texto por
+ * igual ✓ y la proporción no cambia ✓. Antes de eso, no hay nombre ✓.
  */
 
 export interface BlockLabel {
@@ -26,6 +31,23 @@ export interface BlockLabel {
 
 /** El tamaño máximo del label ✓. */
 const MAX_SIZE = 11;
+
+/**
+ * El tamaño mínimo del label ✓.
+ *
+ * Por debajo de esto el nombre es una mancha de letras ✓: se dibuja, se ve, y
+ * no se lee ✓.
+ */
+const MIN_SIZE = 6;
+
+/** Las letras que tienen que caber en una línea del nombre ✓. */
+const MIN_CHARS = 5;
+
+/** Qué parte del lado corto ocupa la letra ✓. */
+const FILL = 0.42;
+
+/** Lo que ocupa una letra, respecto a su tamaño ✓ (para estimar sin medir ✓). */
+const CHAR_WIDTH = 0.55;
 
 /** Cómo se lee cada estado de la lente de migración ✓. */
 export const STATUS_LABEL: Record<CcMigrationStatus, string> = {
@@ -80,14 +102,15 @@ export const CHURN_METRIC = "number_of_commits";
  */
 export function labelFor(width: number, height: number): BlockLabel | null {
   const menor = Math.min(width, height);
-  // A partir de dos píxeles ya se dibuja ✓: el navegador lo recorta ✓ y con
-  // el zoom se lee ✓. Por debajo, no hay nada que enseñar ✓.
-  if (menor < 2) return null;
-
   // El tamaño sale del lado corto ✓: en un bloque bajo, un texto grande se
   // saldría de alto ✓.
-  const size = Math.min(MAX_SIZE, Math.max(4, menor * 0.42));
+  const size = Math.min(MAX_SIZE, menor * FILL);
+  // Si el bloque no da ni para una línea del tamaño mínimo ✓, no hay nombre ✓.
+  if (size < MIN_SIZE) return null;
   // Vertical cuando el bloque es claramente más alto que ancho ✓.
   const vertical = height > width * 1.4;
+  // Y la línea tiene que llevar un nombre ✓, no dos letras ✓.
+  const across = vertical ? height : width;
+  if (across < size * CHAR_WIDTH * MIN_CHARS) return null;
   return { size: Math.round(size * 10) / 10, vertical };
 }
