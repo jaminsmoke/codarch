@@ -154,6 +154,7 @@ carpeta. Todo eso puede llegar después sin reabrir esta decisión, porque el mo
 - [x] Go completo: paquetes, `go.mod` y expansión a ficheros, con sus tests.
 - [x] C# completo: namespaces declarados por fichero y `using` resuelto al final del análisis, con sus
       tests.
-- [ ] La documentación deja de prometer solo TS/JS: `model.md`, el `AGENTS.md` y las páginas de uso.
+- [x] La documentación deja de prometer solo TS/JS: `model.md`, el `AGENTS.md` y las páginas de uso
+      dicen los cinco lenguajes y cómo resuelve cada uno sus imports.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

@@ -31,7 +31,7 @@ M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
 M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed, M57 closed, M58 closed,
-M59 closed, M60 closed and M61 in progress.
+M59 closed, M60 closed and M61 closed.
 
 ## The phases
 
@@ -168,7 +168,7 @@ flowchart TD
 | M58 | The diff, when the file opens | closed | [ADR 0077](adr/0071-0080/0077-el-diff-al-abrir-el-fichero.md#hoja-de-ruta) |
 | M59 | Debt balance | closed | [ADR 0078](adr/0071-0080/0078-el-balance-de-deuda.md#hoja-de-ruta) |
 | M60 | The inspector with an activity bar | closed | [ADR 0079](adr/0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
-| M61 | Java, Python, Go and C# | in progress | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
+| M61 | Java, Python, Go and C# | closed | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
 
 ## How to read this
 
