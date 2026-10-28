@@ -1,5 +1,6 @@
 import {
   MemoryFileSystem,
+  WasmGoParser,
   WasmJavaParser,
   WasmPythonParser,
   WasmTypeScriptParser,
@@ -46,6 +47,7 @@ export interface GrammarSources {
   tsx: string | Uint8Array;
   java?: string | Uint8Array;
   python?: string | Uint8Array;
+  go?: string | Uint8Array;
   runtime?: string;
 }
 
@@ -74,6 +76,11 @@ export async function runAnalysis(
         await WasmPythonParser.create(sources.python, {
           runtime: sources.runtime
         })
+      );
+    }
+    if (sources.go) {
+      parsers.push(
+        await WasmGoParser.create(sources.go, { runtime: sources.runtime })
       );
     }
 

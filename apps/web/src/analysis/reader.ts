@@ -9,7 +9,7 @@ import type { DirectoryHandleLike } from "../fs-access";
  * usa el analizador en el CLI, pero en memoria.
  *
  * Solo se leen los ficheros que el análisis necesita (código y configuración).
- * Java y Python entran con la lista de lenguajes (ADR 0090).
+ * Java, Python y Go entran con la lista de lenguajes (ADR 0090).
  * Los directorios pesados se saltan al leer; el resto de las reglas del
  * `.gitignore` las aplica el walker del analizador.
  */
@@ -24,7 +24,8 @@ const SOURCE_EXTENSIONS = [
   ".mjs",
   ".cjs",
   ".java",
-  ".py"
+  ".py",
+  ".go"
 ] as const;
 
 const CONFIG_FILES = new Set([
@@ -32,7 +33,9 @@ const CONFIG_FILES = new Set([
   "tsconfig.json",
   "jsconfig.json",
   ".codarch.yml",
-  ".codarch.yaml"
+  ".codarch.yaml",
+  // El módulo de Go: sin él, sus imports se resuelven por sufijo.
+  "go.mod"
 ]);
 
 /** Directorios que no se leen: ruido y peso. */

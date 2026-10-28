@@ -4,6 +4,7 @@ import typescriptWasm from "tree-sitter-typescript/tree-sitter-typescript.wasm?u
 import tsxWasm from "tree-sitter-typescript/tree-sitter-tsx.wasm?url";
 import javaWasm from "tree-sitter-java/tree-sitter-java.wasm?url";
 import pythonWasm from "tree-sitter-python/tree-sitter-python.wasm?url";
+import goWasm from "tree-sitter-go/tree-sitter-go.wasm?url";
 
 /**
  * Worker del análisis en el navegador.
@@ -38,6 +39,7 @@ scope.addEventListener("message", (event) => {
         tsx: tsxWasm,
         java: javaWasm,
         python: pythonWasm,
+        go: goWasm,
         runtime: runtimeWasm
       },
       (update) => scope.postMessage(update)

@@ -36,6 +36,14 @@ function readJavaGrammar(): Uint8Array {
   );
 }
 
+function readGoGrammar(): Uint8Array {
+  return new Uint8Array(
+    fs.readFileSync(
+      path.resolve(GRAMMARS, "..", "tree-sitter-go", "tree-sitter-go.wasm")
+    )
+  );
+}
+
 function readPythonGrammar(): Uint8Array {
   return new Uint8Array(
     fs.readFileSync(
@@ -158,6 +166,47 @@ describe("análisis en el navegador", () => {
           typescript: readGrammar("tree-sitter-typescript.wasm"),
           tsx: readGrammar("tree-sitter-tsx.wasm"),
           python: readPythonGrammar()
+        }
+      );
+      expect(response.type).toBe("done");
+      if (response.type !== "done") return;
+
+      const onDisk = analyzeRepository(root, { git: false });
+      const browser = response.snapshot as { meta: { checksum: string } };
+      expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
+      expect(response.files).toBe(2);
+      expect(response.edges).toBe(1);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it("analiza Go con su gramática y su go.mod, y da el checksum del CLI", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-web-go-"));
+    const files: Array<[string, string]> = [
+      ["/go.mod", "module acme\n"],
+      ["/internal/money/money.go", "package money\n\ntype Money struct {\n\tCents int\n}\n"],
+      [
+        "/internal/billing/billing.go",
+        'package billing\n\nimport "acme/internal/money"\n\nfunc Total(m money.Money) int {\n\treturn m.Cents\n}\n'
+      ]
+    ];
+
+    try {
+      for (const [file, content] of files) {
+        const onDisk = path.join(root, file);
+        fs.mkdirSync(path.dirname(onDisk), { recursive: true });
+        fs.writeFileSync(onDisk, content, "utf8");
+      }
+
+      // Sin `package.json` el nombre del proyecto es el de la carpeta, y entra
+      // en el checksum: el navegador tiene que usar el mismo.
+      const response = await runAnalysis(
+        { type: "analyze", files, projectName: path.basename(root) },
+        {
+          typescript: readGrammar("tree-sitter-typescript.wasm"),
+          tsx: readGrammar("tree-sitter-tsx.wasm"),
+          go: readGoGrammar()
         }
       );
       expect(response.type).toBe("done");

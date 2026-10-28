@@ -38,6 +38,7 @@ const shared = {
     "ignore",
     "minimatch",
     "tree-sitter",
+    "tree-sitter-go",
     "tree-sitter-java",
     "tree-sitter-python",
     "tree-sitter-typescript",

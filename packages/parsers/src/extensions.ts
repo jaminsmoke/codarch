@@ -14,5 +14,6 @@ export const DEFAULT_EXTENSIONS = [
   ".mjs",
   ".cjs",
   ".java",
-  ".py"
+  ".py",
+  ".go"
 ] as const;

@@ -33,6 +33,7 @@ asar: true
 # comoasar sin desempaquetarlo en tiempo de ejecución.
 asarUnpack:
   - "**/node_modules/tree-sitter/**"
+  - "**/node_modules/tree-sitter-go/**"
   - "**/node_modules/tree-sitter-java/**"
   - "**/node_modules/tree-sitter-python/**"
   - "**/node_modules/tree-sitter-typescript/**"
