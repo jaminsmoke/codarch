@@ -3,12 +3,12 @@
  * No editar a mano: `npm run version` lo reescribe.
  */
 
-export const ENGINE_VERSION = "0.3.49" as const;
-export const CLI_VERSION = "0.3.52" as const;
-export const DESKTOP_VERSION = "0.3.50" as const;
-export const WEB_VERSION = "0.3.49" as const;
-export const MCP_VERSION = "0.3.31" as const;
-export const DOCKER_VERSION = "0.3.52" as const;
+export const ENGINE_VERSION = "0.3.50" as const;
+export const CLI_VERSION = "0.3.53" as const;
+export const DESKTOP_VERSION = "0.3.51" as const;
+export const WEB_VERSION = "0.3.50" as const;
+export const MCP_VERSION = "0.3.32" as const;
+export const DOCKER_VERSION = "0.3.53" as const;
 export const CC_JSON_VERSION = "2.0" as const;
 export const REPORT_SCHEMA_VERSION = "1.4" as const;
 export const CONFIG_VERSION = 1 as const;
