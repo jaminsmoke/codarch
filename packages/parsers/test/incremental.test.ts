@@ -94,7 +94,7 @@ class CountingFileSystem implements FileSystem {
 function incremental(root: string, cache: ParseCache, fileSystem?: FileSystem) {
   return analyzeFiles({
     fileSystem: fileSystem ?? new NodeFileSystem(root),
-    parser: new TypeScriptParser(),
+    parsers: [new TypeScriptParser()],
     projectName: "incremental",
     cache
   });

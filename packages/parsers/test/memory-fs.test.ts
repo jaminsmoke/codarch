@@ -45,7 +45,7 @@ describe("sistema de ficheros virtual", () => {
     const inMemory = analyzeFiles({
       fileSystem: memory,
       root: "/",
-      parser: new TypeScriptParser()
+      parsers: [new TypeScriptParser()]
     });
 
     const onDisk = analyzeRepository(FIXTURES, { git: false });
@@ -68,11 +68,11 @@ describe("sistema de ficheros virtual", () => {
       ["/src/a.ts", "export const a = 1;\r\nexport const b = 2;\r\n"]
     ]);
 
-    const analyzedLf = analyzeFiles({ fileSystem: lf, root: "/", parser: new TypeScriptParser() });
+    const analyzedLf = analyzeFiles({ fileSystem: lf, root: "/", parsers: [new TypeScriptParser()] });
     const analyzedCrlf = analyzeFiles({
       fileSystem: crlf,
       root: "/",
-      parser: new TypeScriptParser()
+      parsers: [new TypeScriptParser()]
     });
 
     expect(analyzedCrlf.snapshot.meta.checksum).toBe(analyzedLf.snapshot.meta.checksum);
@@ -89,7 +89,7 @@ describe("sistema de ficheros virtual", () => {
     const result = analyzeFiles({
       fileSystem: memory,
       root: "/",
-      parser: new TypeScriptParser()
+      parsers: [new TypeScriptParser()]
     });
     const paths = result.snapshot.files.length;
     expect(paths).toBeGreaterThan(0);

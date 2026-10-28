@@ -16,10 +16,16 @@ import type { FileParseResult } from "./types";
  * `.codarch/` para que el análisis que lo contiene la lea hacia abajo
  * (ADR 0089). Nunca se lee hacia arriba: un alcance parcial no hereda el
  * estado de un alcance mayor.
+ *
+ * Cada entrada lleva el parser que la produjo (ADR 0090): con varios
+ * lenguajes, la versión del fichero ya no dice con qué se parseó, y un acierto
+ * solo vale si es el mismo parser.
  */
 export interface CachedParse {
   /** `tamaño:mtime` con el que se parseó. */
   version: string;
+  /** `SourceParser.name` con el que se parseó. */
+  parser: string;
   parsed: FileParseResult;
   /** Si el fichero puentea a otro lenguaje (`jsIsBridge`), ya medido. */
   bridge: boolean;
@@ -30,16 +36,29 @@ export interface CachedParse {
  *
  * Se sube cuando el contenido guardado deja de valer para un lector viejo; un
  * lector que no conoce el formato ignora la caché y parsea, que es seguro.
+ *
+ * El 2 es el de la entrada firmada por parser (ADR 0090): una caché del 1 se
+ * ignoró entera y se reparseó, que es justo lo que se buscaba.
  */
-export const PARSE_CACHE_FORMAT = 1;
+export const PARSE_CACHE_FORMAT = 2;
 
 export class ParseCache {
   private readonly entries = new Map<string, CachedParse>();
 
-  /** El parseo guardado, si la versión coincide. */
-  get(relativePath: string, version: string): CachedParse | null {
+  /**
+   * El parseo guardado, si la versión coincide y es del parser pedido.
+   *
+   * Sin `parser`, basta con la versión: lo usan los diagnósticos que solo
+   * quieren saber si hay entrada.
+   */
+  get(
+    relativePath: string,
+    version: string,
+    parser?: string
+  ): CachedParse | null {
     const entry = this.entries.get(relativePath);
     if (!entry || entry.version !== version) return null;
+    if (parser !== undefined && entry.parser !== parser) return null;
     return entry;
   }
 

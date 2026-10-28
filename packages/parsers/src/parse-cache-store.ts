@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { PARSE_CACHE_FORMAT, type CachedParse, type ParseCache } from "./cache";
 import { NodeFileSystem } from "./node-fs";
-import { TS_PARSER_NAME } from "./ts/parser";
 import { walkProjectDirectories } from "./walk";
 
 /**
@@ -14,8 +13,12 @@ import { walkProjectDirectories } from "./walk";
  * parseados: `codarch analyze`, `codarch serve` y el escritorio usan este mismo
  * almacén. Hacia arriba no se lee nunca.
  *
- * Una caché solo vale si su formato, su parser y su raíz coinciden; si algo no
- * cuadra se ignora entera y se analiza, que es el resultado correcto.
+ * Una caché solo vale si su formato y su raíz coinciden; si algo no cuadra se
+ * ignora entera y se analiza, que es el resultado correcto.
+ *
+ * El parser va firmado **por entrada** (ADR 0090): un alcance puede tener
+ * ficheros de varios lenguajes, y cada uno se mide con el suyo. La caché
+ * anterior, del 1, se ignora y se reparsea; cuesta una pasada y no cambia nada.
  */
 
 export const PARSE_CACHE_FILE = "parse-cache.json";
@@ -32,6 +35,13 @@ const MAX_BYTES = 64 * 1024 * 1024;
  */
 export interface ParseCachePayload {
   format: number;
+  /**
+   * Los parsers que produjeron las entradas, separados por coma y ordenados.
+   *
+   * No se lee para validar —cada entrada lleva el suyo—, sino para que el
+   * fichero diga de un vistazo con qué se parseó, y para que el campo siga
+   * existiendo si alguien lo inspecciona.
+   */
   parser: string;
   root: string;
   entries: Record<string, CachedParse>;
@@ -86,12 +96,14 @@ export function serializeParseCache(
   cache: ParseCache
 ): ParseCachePayload {
   const entries: Record<string, CachedParse> = {};
+  const parsers = new Set<string>();
   for (const [relativePath, entry] of cache.list()) {
     entries[relativePath] = entry;
+    parsers.add(entry.parser);
   }
   return {
     format: PARSE_CACHE_FORMAT,
-    parser: TS_PARSER_NAME,
+    parser: [...parsers].sort().join(","),
     root: path.resolve(root),
     entries
   };
@@ -165,12 +177,9 @@ function loadFile(
 ): number {
   const payload = readPayload(file);
   if (!payload) return 0;
-  if (
-    payload.format !== PARSE_CACHE_FORMAT ||
-    payload.parser !== TS_PARSER_NAME
-  ) {
-    return 0;
-  }
+  // El formato dice cómo está guardado; el parser de cada entrada, con qué se
+  // midió. Una caché de otro formato no se intenta leer.
+  if (payload.format !== PARSE_CACHE_FORMAT) return 0;
   if (!samePath(payload.root, expectedRoot)) return 0;
 
   let loaded = 0;
@@ -211,6 +220,7 @@ function isCachedParse(value: unknown): value is CachedParse {
   const parsed = entry.parsed;
   return (
     typeof entry.version === "string" &&
+    typeof entry.parser === "string" &&
     typeof entry.bridge === "boolean" &&
     typeof parsed === "object" &&
     parsed !== null &&

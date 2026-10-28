@@ -12,5 +12,7 @@ export const DEFAULT_EXTENSIONS = [
   ".js",
   ".jsx",
   ".mjs",
-  ".cjs"
+  ".cjs",
+  ".java",
+  ".py"
 ] as const;

@@ -9,6 +9,7 @@ import { buildGraph, type DependencyLink } from "./graph";
 import {
   buildMigration,
   isNativeLanguage,
+  isTsJsLanguage,
   jsIsBridge,
   languageForPath,
   measureRustSource,
@@ -17,6 +18,8 @@ import {
   type MigrationFileInput,
   type MigrationLinkInput
 } from "./migration";
+import { ImportTargetIndex } from "./import-targets";
+import { extensionsFor, parserFor } from "./parsers";
 import * as path from "./path";
 import { ImportResolver, isAssetSpecifier } from "./resolve";
 import { buildSnapshot, type SnapshotFile } from "./snapshot";
@@ -52,8 +55,14 @@ export interface AnalyzeCoreOptions {
   projectName?: string;
   ignore?: readonly string[];
   extensions?: readonly string[];
-  /** Parser de TS/JS: nativo en el CLI, WASM en el navegador. */
-  parser: SourceParser;
+  /**
+   * Los parsers del análisis: se elige por extensión (ADR 0090).
+   *
+   * El nativo del CLI y el WASM del navegador cubren TS/JS. Un repositorio
+   * que solo tenga esos ficheros da el mismo resultado que con un parser
+   * único: el registro no añade nada.
+   */
+  parsers: readonly SourceParser[];
   /**
    * El parseo de la vez anterior, si hay (ADR 0056).
    *
@@ -122,8 +131,8 @@ export interface AnalyzeCoreResult {
 /**
  * Núcleo del análisis, sin node:fs ni git.
  *
- * Es lo que corre en el navegador: recibe los ficheros por el puerto y un
- * parser, y devuelve el mismo `cc.json` que el CLI.
+ * Es lo que corre en el navegador: recibe los ficheros por el puerto y los
+ * parsers, y devuelve el mismo `cc.json` que el CLI.
  */
 export function analyzeFiles(
   options: AnalyzeCoreOptions
@@ -135,15 +144,26 @@ export function analyzeFiles(
     options.projectName ?? readProjectName(fileSystem, root, options.fallbackName);
   const walked = walkSourceFiles(fileSystem, {
     ignore: options.ignore,
-    extensions: options.extensions ?? MIGRATION_EXTENSIONS
+    // Lo que un parser sabe leer se recorre; lo que solo mide la lente de
+    // migración (Rust, wasm, node), también.
+    extensions:
+      options.extensions ??
+      extensionsFor(options.parsers, MIGRATION_EXTENSIONS)
   });
   const warnings = [...walked.warnings];
   // Los ficheros borrados no ocupan sitio en la caché.
   options.cache?.retain(walked.files.map((file) => file.relativePath));
   const resolver = new ImportResolver(root, walked.files, fileSystem);
   warnings.push(...resolver.warnings);
+  // Solo hace falta si algún lenguaje declara sus imports como rutas (Java,
+  // Python).
+  const importIndex = options.parsers.some((parser) => parser.importTargets)
+    ? new ImportTargetIndex(
+        walked.files.map((file) => file.relativePath),
+        fileSystem.caseSensitive
+      )
+    : null;
 
-  const parser = options.parser;
   const parsedFiles: SnapshotFile[] = [];
   const migrationFiles: MigrationFileInput[] = [];
   const migrationLinks: MigrationLinkInput[] = [];
@@ -165,9 +185,12 @@ export function analyzeFiles(
     });
 
     const language = languageForPath(file.relativePath);
-    if (!language) continue;
+    const parser = parserFor(options.parsers, file.relativePath);
+    // Sin lenguaje ni parser no hay nada que medir: el recorrido puede traer
+    // extensiones que solo atiende un parser apagado.
+    if (!language && !parser) continue;
 
-    if (isNativeLanguage(language)) {
+    if (language && isNativeLanguage(language)) {
       parsedFiles.push({
         relativePath: file.relativePath,
         metrics: { loc: 0, rloc: 0 }
@@ -186,9 +209,12 @@ export function analyzeFiles(
 
     // Si la versión no cambió, se reutiliza el parseo y no se lee el fichero.
     const version = versionOf(fileSystem, file.absolutePath);
-    const cached = version
-      ? (options.cache?.get(file.relativePath, version) ?? null)
-      : null;
+    // La versión dice que el fichero no cambió; el parser, que se midió con
+    // el mismo árbol (ADR 0090).
+    const cached =
+      version && parser
+        ? (options.cache?.get(file.relativePath, version, parser.name) ?? null)
+        : null;
 
     let source = "";
     if (!cached) {
@@ -207,7 +233,7 @@ export function analyzeFiles(
     }
 
     // Rust se mide en cada pasada: son pocos ficheros y su medida es barata.
-    if (language === "rust") {
+    if (!parser && language === "rust") {
       const measured = measureRustSource(source);
       parsedFiles.push({
         relativePath: file.relativePath,
@@ -225,6 +251,10 @@ export function analyzeFiles(
       continue;
     }
 
+    // Una extensión que ningún parser declara solo llega aquí para la lente
+    // de migración, y no tiene árbol que medir.
+    if (!parser) continue;
+
     let parsed;
     let bridge: boolean;
     if (cached) {
@@ -240,13 +270,23 @@ export function analyzeFiles(
         );
         continue;
       }
-      bridge = jsIsBridge(
-        source,
-        parsed.imports.map((imported) => imported.specifier)
-      );
+      // El puente es una propiedad de JS/TS hacia otro lenguaje: un fichero
+      // de otro lenguaje no puentea a nada, aunque tenga imports.
+      bridge =
+        language !== null && isTsJsLanguage(language)
+          ? jsIsBridge(
+              source,
+              parsed.imports.map((imported) => imported.specifier)
+            )
+          : false;
       cacheMisses++;
       if (version && options.cache) {
-        options.cache.set(file.relativePath, { version, parsed, bridge });
+        options.cache.set(file.relativePath, {
+          version,
+          parser: parser.name,
+          parsed,
+          bridge
+        });
       }
     }
 
@@ -257,6 +297,40 @@ export function analyzeFiles(
 
     for (const imported of parsed.imports) {
       if (imported.typeOnly) fileTypeOnlyImports++;
+
+      // El parser del lenguaje puede saber a qué ruta apunta un import
+      // (Java, Python; ADR 0090). Si no lo declara, se resuelve como TS/JS.
+      const targets = parser.importTargets?.(imported, file.relativePath);
+      if (targets) {
+        if (targets.kind === "external") {
+          if (targets.builtin) fileBuiltinImports++;
+          else fileExternalImports++;
+          continue;
+        }
+
+        const target = importIndex?.match(targets.paths) ?? null;
+        if (target) {
+          links.push({
+            from: file.relativePath,
+            to: target,
+            typeOnly: imported.typeOnly
+          });
+        } else if (importIndex?.hasPackage(targets.paths)) {
+          // El paquete está en el repo y la clase no: el import está roto.
+          fileUnresolvedImports++;
+          unresolved.push({
+            file: file.relativePath,
+            line: imported.line,
+            specifier: imported.specifier,
+            reason: "no se encontró el fichero"
+          });
+        } else {
+          // Un paquete que no vive en el repositorio: una dependencia.
+          fileExternalImports++;
+        }
+        continue;
+      }
+
       if (isAssetSpecifier(imported.specifier)) continue;
 
       const result = resolver.resolve(file.absolutePath, imported.specifier);
@@ -308,15 +382,20 @@ export function analyzeFiles(
         unresolvedImports: fileUnresolvedImports
       }
     });
-    migrationFiles.push({
-      relativePath: file.relativePath,
-      language,
-      loc: parsed.metrics.loc ?? 0,
-      rloc: parsed.metrics.rloc ?? 0,
-      maxComplexity: parsed.metrics.maxComplexity ?? 0,
-      fanIn: 0,
-      bridge
-    });
+    // La lente de migración solo tiene estado para los lenguajes que modela.
+    // Un fichero de otro lenguaje es un nodo como los demás y no entra en
+    // ella, así que no aparece con una deuda que no le corresponde.
+    if (language) {
+      migrationFiles.push({
+        relativePath: file.relativePath,
+        language,
+        loc: parsed.metrics.loc ?? 0,
+        rloc: parsed.metrics.rloc ?? 0,
+        maxComplexity: parsed.metrics.maxComplexity ?? 0,
+        fanIn: 0,
+        bridge
+      });
+    }
   }
 
   let churnResult: ChurnResult | null = null;

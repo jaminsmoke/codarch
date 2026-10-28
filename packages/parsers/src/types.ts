@@ -74,8 +74,37 @@ export interface FileParseResult {
   exports?: ParsedExport[];
 }
 
+/**
+ * A qué apunta un import, tal como lo ve el parser del lenguaje.
+ *
+ * Los de TS/JS no lo declaran: usa la resolución de módulos, paquetes y alias.
+ * Los de Java y Python sí, porque un paquete es una ruta y no hay manifiesto
+ * que leer (ADR 0090).
+ */
+export type ImportTargets =
+  | {
+      kind: "paths";
+      /** Rutas relativas a la raíz, con `/`; la primera que exista gana. */
+      paths: string[];
+    }
+  | {
+      kind: "external";
+      /** De la plataforma: `java.util`, `javax.…`; se cuenta como builtin. */
+      builtin: boolean;
+    };
+
 export interface SourceParser {
   readonly name: string;
   readonly extensions: readonly string[];
   parse(source: string, filePath: string): FileParseResult;
+  /**
+   * Resuelve la ruta que nombra un import.
+   *
+   * Recibe el import entero y la ruta del fichero que lo escribe: Python
+   * necesita los nombres de un `from … import …` —pueden ser submódulos— y el
+   * fichero para resolver los relativos (`from . import x`).
+   *
+   * Ausente: el análisis resuelve como TS/JS (`ImportResolver`).
+   */
+  importTargets?(imported: ParsedImport, filePath: string): ImportTargets;
 }
