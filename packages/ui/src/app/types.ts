@@ -20,8 +20,26 @@ import type { InspectorTab, ViewState as AppViewState } from "../viewState";
 /** El estado de la vigilancia del repo: la dice cada plataforma. */
 export type WatchState = "live" | "paused" | "none";
 
+/**
+ * El mapa que ocupa el escenario (ADR 0093).
+ *
+ * `code` es el mapa del código; `rest` es el mapa de lo que no es código
+ * —documentos, configuración y assets—, con su propio snapshot y su propio
+ * checksum. Es un mapa más, no una vista: cambia el modelo entero.
+ */
+export type MapId = "code" | "rest";
+
 export interface CodarchAppState {
   cc: CcJson | null;
+  /**
+   * El snapshot de lo que no es código, si el proyecto lo trae (ADR 0093).
+   *
+   * `null` cuando no hay `rest.cc.json` o es de otro proyecto: entonces no hay
+   * mapa del resto que enseñar.
+   */
+  rest: CcJson | null;
+  /** El mapa que ocupa el escenario. */
+  map: MapId;
   source: string;
   areaMetric: string | null;
   colorMode: string;
@@ -70,6 +88,15 @@ export interface CodarchAppActions {
     preferences?: ViewPreferences | null
   ) => boolean;
   loadReport: (raw: unknown, label: string, focus?: boolean) => boolean;
+  /**
+   * Carga el mapa del resto, o lo quita con `null`.
+   *
+   * Un fichero que no es un mapa del resto se ignora: es un dato opcional y no
+   * puede tumbar el mapa del código.
+   */
+  loadRest: (raw: unknown) => boolean;
+  /** Cambia de mapa; sin resto cargado, a `rest` no se puede ir. */
+  setMap: (map: MapId) => void;
   resetReport: () => void;
   analyzeFolder: () => Promise<void>;
   openSnapshotFile: () => Promise<void>;
@@ -88,7 +115,7 @@ export interface CodarchAppActions {
    * Es el paso común de «Abrir cc.json», soltar un fichero y cargar por URL:
    * una sola escritura del proyecto y el reporte anterior fuera.
    */
-  abrirSnapshot: (raw: unknown, label: string) => boolean;
+  abrirSnapshot: (raw: unknown, label: string, rest?: unknown) => boolean;
   /** Carga un reporte y lo guarda en el proyecto actual. */
   abrirReporte: (raw: unknown, label: string) => boolean;
   zoomAt: (factor: number, at?: { x: number; y: number }) => void;

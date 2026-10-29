@@ -15,6 +15,8 @@ export type DesktopTarget =
   | {
       kind: "snapshot";
       snapshot: unknown;
+      /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+      rest: unknown | null;
       label: string;
       /**
        * Es el mismo repo que ya estaba abierto y solo cambió en disco (live).
@@ -28,6 +30,8 @@ export type DesktopTarget =
 
 export interface DesktopAnalysis {
   snapshot: unknown;
+  /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+  rest: unknown;
   files: number;
   edges: number;
   warnings: string[];
@@ -44,6 +48,8 @@ export type DesktopHistory = HistoryIndex;
 /** Lo que `.codarch/` guarda de un repo, listo para restaurar la sesión. */
 export interface DesktopRestore {
   snapshot: unknown;
+  /** El mapa de lo que no es código, si el repo lo tenía (ADR 0093). */
+  rest: unknown | null;
   report: unknown | null;
   /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
   addons: RepoAddons;

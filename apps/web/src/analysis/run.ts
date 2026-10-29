@@ -35,6 +35,8 @@ export type AnalyzeResponse =
   | {
       type: "done";
       snapshot: unknown;
+      /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+      rest: unknown;
       files: number;
       edges: number;
       warnings: string[];
@@ -112,6 +114,7 @@ export async function runAnalysis(
     return {
       type: "done",
       snapshot: result.snapshot,
+      rest: result.rest,
       files: result.files,
       edges: result.edges,
       warnings: result.warnings,

@@ -221,11 +221,31 @@ async function refreshFromDisk(
       return;
     }
     storeParseCache(root, outcome.parseCache);
+    // El checksum del resto es suyo (ADR 0093): un documento que cambia no
+    // mueve el del código, así que este cambio también se avisa.
+    const restChanged = storeRest(root, outcome.rest);
     const checksum = snapshotChecksum(outcome.snapshot);
-    if (checksum !== null && persistedChecksum(root) === checksum) return;
+    if (checksum !== null && persistedChecksum(root) === checksum) {
+      if (!restChanged) return;
+      send({
+        kind: "snapshot",
+        snapshot: outcome.snapshot,
+        rest: outcome.rest,
+        label: root,
+        refresh: true
+      });
+      sendHeadReport(root, outcome.headReport);
+      return;
+    }
     writeSnapshot(root, outcome.snapshot);
     // `refresh`: es el mismo repo, así que el renderer mantiene la vista.
-    send({ kind: "snapshot", snapshot: outcome.snapshot, label: root, refresh: true });
+    send({
+      kind: "snapshot",
+      snapshot: outcome.snapshot,
+      rest: outcome.rest,
+      label: root,
+      refresh: true
+    });
     sendHeadReport(root, outcome.headReport);
   } catch (cause) {
     console.error(`no se pudo reanalizar ${root}: ${(cause as Error).message}`);
@@ -351,7 +371,12 @@ async function openTarget(target: string): Promise<void> {
     if (persisted && isSnapshot(persisted)) {
       lastRoot = target;
       updateTitle(target, projectNameOf(persisted));
-      send({ kind: "snapshot", snapshot: persisted, label: target });
+      send({
+        kind: "snapshot",
+        snapshot: persisted,
+        rest: readPersistedRest(target),
+        label: target
+      });
       // Lo guardado se pinta al instante, pero el repo sigue vivo: se vigila y
       // se reanaliza detrás, como al restaurar el último proyecto. Sin esto,
       // abrir un repo ya analizado dejaba el mapa congelado y sin `live`.
@@ -377,7 +402,12 @@ async function openTarget(target: string): Promise<void> {
       if (saved && isSnapshot(saved)) {
         lastRoot = target;
         updateTitle(target, projectNameOf(saved));
-        send({ kind: "snapshot", snapshot: saved, label: target });
+        send({
+          kind: "snapshot",
+          snapshot: saved,
+          rest: readPersistedRest(target),
+          label: target
+        });
         sendHeadReport(target, outcome.headReport);
         watchRoot(target);
         return;
@@ -392,9 +422,15 @@ async function openTarget(target: string): Promise<void> {
     updateTitle(target, projectNameOf(outcome.snapshot));
     ensureStateIgnored(target);
     writeSnapshot(target, outcome.snapshot);
+    storeRest(target, outcome.rest);
     storeParseCache(target, outcome.parseCache);
     watchRoot(target);
-    send({ kind: "snapshot", snapshot: outcome.snapshot, label: target });
+    send({
+      kind: "snapshot",
+      snapshot: outcome.snapshot,
+      rest: outcome.rest,
+      label: target
+    });
     sendHeadReport(target, outcome.headReport);
     return;
   }
@@ -412,7 +448,8 @@ async function openTarget(target: string): Promise<void> {
   }
   updateTitle(target, projectNameOf(raw));
   if (isSnapshot(raw)) {
-    send({ kind: "snapshot", snapshot: raw, label: target });
+    // Un cc.json suelto no trae su resto: no hay segundo mapa que enseñar.
+    send({ kind: "snapshot", snapshot: raw, rest: null, label: target });
     return;
   }
   send({ kind: "report", report: raw, label: target });
@@ -444,6 +481,22 @@ const CODARCH_DIR = ".codarch";
 /** Ruta del snapshot persistido de un repo, si existe. */
 function snapshotPath(root: string): string {
   return path.join(root, CODARCH_DIR, "snapshot.cc.json");
+}
+
+/** El mapa de lo que no es código, al lado del snapshot (ADR 0093). */
+const REST_FILE = "rest.cc.json";
+
+/**
+ * Lee el resto guardado, si lo hay y es de verdad un mapa del resto.
+ *
+ * Es un artefacto opcional: si falta o no trae su lente, no hay segundo mapa y
+ * la app sigue con el del código.
+ */
+function readPersistedRest(root: string): unknown | null {
+  const raw = readJsonFile(path.join(root, CODARCH_DIR, REST_FILE));
+  if (!isSnapshot(raw)) return null;
+  const lenses = (raw as { lenses?: { rest?: unknown } }).lenses;
+  return lenses?.rest ? raw : null;
 }
 
 /**
@@ -482,6 +535,27 @@ function storeParseCache(root: string, payload: ParseCachePayload): void {
     console.error(
       `no se pudo escribir la caché de parseo de ${root}: ${(cause as Error).message}`
     );
+  }
+}
+
+/**
+ * Escribe el mapa del resto y dice si el fichero cambió de verdad.
+ *
+ * Un refresco del live puede traer el código igual y un documento distinto:
+ * sin este «cambió», la app seguiría enseñando un mapa del resto viejo.
+ */
+function storeRest(root: string, rest: unknown | null): boolean {
+  if (!rest) return false;
+  const file = path.join(root, CODARCH_DIR, REST_FILE);
+  try {
+    const content = `${JSON.stringify(rest, null, 2)}\n`;
+    if (existsSync(file) && readFileSync(file, "utf8") === content) {
+      return false;
+    }
+    return writeCodarchJson(root, REST_FILE, rest);
+  } catch (cause) {
+    console.error(`no se pudo escribir ${file}: ${(cause as Error).message}`);
+    return false;
   }
 }
 
@@ -586,6 +660,7 @@ function persistProject(
  */
 function restoreProject(root: string): {
   snapshot: unknown;
+  rest: unknown | null;
   report: unknown | null;
   addons: RepoAddons;
   preferences: ReturnType<typeof readRepoPreferences>;
@@ -595,6 +670,7 @@ function restoreProject(root: string): {
   if (!snapshot) return null;
   return {
     snapshot,
+    rest: readPersistedRest(root),
     report: readJsonFile(path.join(root, CODARCH_DIR, "report.json")),
     addons: repoAddons(root),
     preferences: readRepoPreferences(root)
@@ -866,10 +942,12 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   lastRoot = root;
   ensureStateIgnored(root);
   writeSnapshot(root, outcome.snapshot);
+  storeRest(root, outcome.rest);
   storeParseCache(root, outcome.parseCache);
   watchRoot(root);
   return {
     snapshot: outcome.snapshot,
+    rest: outcome.rest,
     files: outcome.files,
     edges: outcome.edges,
     warnings: outcome.warnings,

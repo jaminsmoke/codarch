@@ -349,6 +349,15 @@ function getJson(value: (context: RouteContext) => unknown): Route {
   return (context) => sendJson(context.response, value(context));
 }
 
+/** Un JSON que puede no existir: contesta 204 en vez de `null`. */
+function getOptionalJson(value: (context: RouteContext) => unknown): Route {
+  return (context) => {
+    const data = value(context);
+    if (data === null || data === undefined) sendEmpty(context.response);
+    else sendJson(context.response, data);
+  };
+}
+
 /** Una ruta que contesta 204 cuando el dato no existe. */
 function sendEmpty(response: http.ServerResponse): void {
   response.writeHead(204, {
@@ -368,6 +377,11 @@ const GET_ROUTES: Record<string, Route> = {
   "/api/source": getSource,
   "/api/diff": getDiff,
   "/data/snapshot.cc.json": getJson((context) => context.live.current().snapshot),
+  // El mapa del resto sale de la misma pasada que el del código (ADR 0093):
+  // no se lee de disco, así que los dos no se pueden desincronizar aquí.
+  "/data/rest.cc.json": getOptionalJson(
+    (context) => context.live.current().rest
+  ),
   "/data/meta.json": getJson((context) => context.live.meta()),
   "/data/head-report.json": getHeadReport,
   "/data/report.json": getReport,

@@ -89,6 +89,7 @@ export function InspectorDock({
             chain={state.chain}
             report={report}
             migration={migration}
+            showCode={state.map === "code"}
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}

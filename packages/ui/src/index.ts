@@ -46,7 +46,13 @@ export {
   type SourceRequest,
   type ViewState
 } from "./viewState";
-export { useCodarchApp, type CodarchApp, type CodarchAppState, type CodarchAppActions } from "./useCodarchApp";
+export {
+  useCodarchApp,
+  type CodarchApp,
+  type CodarchAppState,
+  type CodarchAppActions,
+  type MapId
+} from "./useCodarchApp";
 export {
   DEFAULT_DETAIL_OPTIONS,
   pruneTree,

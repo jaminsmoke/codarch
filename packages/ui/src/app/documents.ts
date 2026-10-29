@@ -20,6 +20,8 @@ import {
 /** Todo lo que un documento cargado escribe en el estado de la app. */
 export interface DocumentSetters {
   setCc: (cc: CcJson | null) => void;
+  setRest: (rest: CcJson | null) => void;
+  setMap: (map: "code" | "rest") => void;
   setSource: (source: string) => void;
   setAreaMetric: (value: string | null | ((current: string | null) => string | null)) => void;
   setColorMode: (value: string | ((current: string) => string)) => void;
@@ -74,6 +76,8 @@ export function useDocuments(deps: DocumentDeps) {
     cc,
     source,
     setCc,
+    setRest,
+    setMap,
     setSource,
     setAreaMetric,
     setColorMode,
@@ -132,6 +136,10 @@ export function useDocuments(deps: DocumentDeps) {
             : plan.colorMode
         );
         if (!preserveView) {
+          // Otro proyecto, otro resto: el mapa vuelve al código hasta que el
+          // nuevo traiga su `rest.cc.json` (ADR 0093).
+          setRest(null);
+          setMap("code");
           setQuery("");
           selectedPathRef.current = null;
           setSelectedIndex(null);
@@ -156,6 +164,8 @@ export function useDocuments(deps: DocumentDeps) {
       selectedPathRef,
       setAreaMetric,
       setCc,
+      setRest,
+      setMap,
       setColorMode,
       setError,
       setFocusPath,
@@ -168,6 +178,36 @@ export function useDocuments(deps: DocumentDeps) {
       setShowLabels,
       setSource
     ]
+  );
+
+  /**
+   * Carga el mapa del resto (ADR 0093).
+   *
+   * Se comprueba que trae su lente `rest`: un snapshot de código que llegue por
+   * error no puede convertirse en un segundo mapa. Un fichero que no encaja se
+   * descarta en silencio —el mapa del código sigue—, porque el resto es
+   * opcional por diseño.
+   */
+  const loadRest = useCallback(
+    (raw: unknown): boolean => {
+      if (raw === null || raw === undefined) {
+        setRest(null);
+        return true;
+      }
+      try {
+        const parsed = parseCcJson(raw);
+        if (!parsed.lenses?.rest) {
+          setRest(null);
+          return false;
+        }
+        setRest(parsed);
+        return true;
+      } catch {
+        setRest(null);
+        return false;
+      }
+    },
+    [setRest]
   );
 
   const loadReport = useCallback(
@@ -202,11 +242,15 @@ export function useDocuments(deps: DocumentDeps) {
    * URL: una sola escritura y el reporte anterior fuera.
    */
   const abrirSnapshot = useCallback(
-    (raw: unknown, label: string): boolean => {
+    (raw: unknown, label: string, rest?: unknown): boolean => {
       if (!loadSnapshot(raw, label)) return false;
       setAddons([]);
+      // El resto viaja con su snapshot: los dos salen de la misma pasada y se
+      // cargan juntos, aunque el mapa abra en el código (ADR 0093).
+      if (rest !== undefined && !loadRest(rest)) setRest(null);
       void plataforma.escribirProyecto({
         snapshot: raw,
+        ...(rest !== undefined ? { rest } : {}),
         report: null,
         label,
         reportLabel: null,
@@ -215,7 +259,7 @@ export function useDocuments(deps: DocumentDeps) {
       resetReport();
       return true;
     },
-    [loadSnapshot, plataforma, resetReport, setAddons]
+    [loadRest, loadSnapshot, plataforma, resetReport, setAddons, setRest]
   );
 
   /** Carga un reporte y lo guarda en el proyecto actual. */
@@ -250,6 +294,8 @@ export function useDocuments(deps: DocumentDeps) {
     try {
       const result = await analizar(root);
       if (loadSnapshot(result.snapshot, root, false, result.preferences)) {
+        // El análisis trae el resto de la misma pasada (ADR 0093).
+        if (result.rest !== undefined) loadRest(result.rest);
         setAddons(result.addons.addons);
         void plataforma.escribirProyecto({
           snapshot: result.snapshot,
@@ -267,6 +313,7 @@ export function useDocuments(deps: DocumentDeps) {
       setLoading(false);
     }
   }, [
+    loadRest,
     loadSnapshot,
     plataforma,
     resetReport,
@@ -306,6 +353,7 @@ export function useDocuments(deps: DocumentDeps) {
 
   return {
     loadSnapshot,
+    loadRest,
     loadReport,
     resetReport,
     abrirSnapshot,

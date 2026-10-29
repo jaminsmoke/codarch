@@ -29,6 +29,22 @@ describe("readRepositoryFromFiles", () => {
 
     expect(artifacts.report).toBeNull();
     expect(artifacts.reportLabel).toBeNull();
+    expect(artifacts.rest).toBeNull();
+  });
+
+  it("trae el mapa del resto cuando el repo lo tiene", async () => {
+    const artifacts = await readRepositoryFromFiles([
+      file("repo/.codarch/snapshot.cc.json", '{"meta":{"apiVersion":"2.0"}}'),
+      file(
+        "repo/.codarch/rest.cc.json",
+        '{"meta":{"apiVersion":"2.0"},"lenses":{"rest":{"nodes":{}}}}'
+      )
+    ]);
+
+    expect(artifacts.rest).toEqual({
+      meta: { apiVersion: "2.0" },
+      lenses: { rest: { nodes: {} } }
+    });
   });
 
   it("explica qué falta si no hay snapshot", async () => {

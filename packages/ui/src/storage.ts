@@ -15,6 +15,8 @@ export interface ViewPreferences {
 
 export interface SavedProject {
   snapshot: unknown;
+  /** El mapa de lo que no es código, si el proyecto lo traía (ADR 0093). */
+  rest?: unknown;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -148,6 +150,10 @@ export function parseSavedProject(value: unknown): SavedProject | null {
     reportLabel: typeof parsed.reportLabel === "string" ? parsed.reportLabel : null
   };
   if (Array.isArray(parsed.addons)) project.addons = parsed.addons;
+  // El resto es opcional: un proyecto guardado antes de tenerlo sigue valiendo.
+  if (typeof parsed.rest === "object" && parsed.rest !== null) {
+    project.rest = parsed.rest;
+  }
   return project;
 }
 

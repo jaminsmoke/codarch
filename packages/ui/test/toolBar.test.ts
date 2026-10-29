@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { TOOL_ENTRIES, toolLabel } from "../src/ToolBar";
 
 describe("la barra de herramientas", () => {
-  it("tiene una entrada por herramienta, en su orden", () => {
-    expect(TOOL_ENTRIES.map((entry) => entry.id)).toEqual(["map"]);
+  it("tiene una entrada por mapa, en su orden", () => {
+    // El código primero porque es el mapa que abre: el resto es un segundo
+    // snapshot opcional (ADR 0093).
+    expect(TOOL_ENTRIES.map((entry) => entry.id)).toEqual(["code", "rest"]);
   });
 
   it("cada entrada lleva nombre y pista, y ninguno se repite", () => {
@@ -15,7 +17,8 @@ describe("la barra de herramientas", () => {
     }
   });
 
-  it("la hoja se anuncia con el nombre de su herramienta", () => {
-    expect(toolLabel("map")).toBe("Mapa");
+  it("la hoja se anuncia con el nombre del mapa que enseña", () => {
+    expect(toolLabel("code")).toBe("Mapa");
+    expect(toolLabel("rest")).toBe("Docs y config");
   });
 });

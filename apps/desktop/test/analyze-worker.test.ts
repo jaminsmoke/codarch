@@ -63,6 +63,9 @@ describe("analyze (worker del escritorio) · reporte HEAD", () => {
       throw new Error("sin snapshot");
     }
 
+    // El resto viaja en la misma respuesta que el snapshot (ADR 0093).
+    expect(first.result.rest?.lenses?.rest).toBeTruthy();
+
     // El que analiza calcula la caché pero no toca `.codarch/`: escribir es
     // cosa del proceso principal (ADR 0050).
     expect(fs.existsSync(path.join(root, ".codarch"))).toBe(false);

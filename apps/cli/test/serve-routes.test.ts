@@ -77,6 +77,27 @@ describe("las rutas del servidor", () => {
     expect(meta.files).toBe(1);
   });
 
+  it("sirve el resto de la misma pasada y lo deja en el repo", async () => {
+    const root = tempRepo({
+      "src/a.ts": "export const a = 1;\n",
+      "README.md": "# Hola\n"
+    });
+    const base = await serve(root);
+
+    const rest = await fetch(`${base}/data/rest.cc.json`);
+    expect(rest.status).toBe(200);
+    const body = (await rest.json()) as {
+      files?: unknown;
+      lenses?: { rest?: unknown };
+    };
+    expect(Array.isArray(body.files)).toBe(true);
+    expect(body.lenses?.rest).toBeTruthy();
+    // Es un artefacto más del repo, en el mismo `.codarch/` que el código.
+    expect(fs.existsSync(path.join(root, ".codarch", "rest.cc.json"))).toBe(
+      true
+    );
+  });
+
   it("da código por ruta y se queja si falta", async () => {
     const root = tempRepo({ "src/a.ts": "export const saludo = 'hola';\n" });
     const base = await serve(root);

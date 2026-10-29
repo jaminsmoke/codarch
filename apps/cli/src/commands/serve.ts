@@ -104,6 +104,7 @@ export function runServe(options: ServeOptions): number {
       `  web          ${webRoot ?? "modo API (la sirve Vite)"}`,
       `  URL          ${url}`,
       `  snapshot     ${state.files} ficheros · checksum ${state.checksum.slice(0, 8)}`,
+      `  resto        ${state.restFiles} ficheros`,
       `  modo         ${state.watch ? "watch activo (SSE)" : "solo análisis inicial"}`,
       ""
     ];

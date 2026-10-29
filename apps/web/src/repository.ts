@@ -24,6 +24,8 @@ type WindowWithDirectoryPicker = Window & {
 
 export interface RepositoryArtifacts {
   snapshot: unknown;
+  /** El mapa de lo que no es código, si el repo lo dejó (ADR 0093). */
+  rest: unknown | null;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -31,8 +33,8 @@ export interface RepositoryArtifacts {
 
 /**
  * Carga los artefactos de un repositorio usando el selector de carpetas del
- * navegador. No analiza código: lee `.codarch/snapshot.cc.json` y, si existe,
- * `.codarch/report.json`.
+ * navegador. No analiza código: lee `.codarch/snapshot.cc.json` y, si existen,
+ * `.codarch/rest.cc.json` y `.codarch/report.json`.
  */
 export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
   const picker = (window as WindowWithDirectoryPicker).showDirectoryPicker;
@@ -53,10 +55,12 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
   }
 
   const snapshot = await readJson(codarch, "snapshot.cc.json", true);
+  const rest = await readJson(codarch, "rest.cc.json", false);
   const report = await readJson(codarch, "report.json", false);
 
   return {
     snapshot,
+    rest,
     report,
     label: `${root.name}/.codarch/snapshot.cc.json`,
     reportLabel: report === null ? null : `${root.name}/.codarch/report.json`
@@ -86,6 +90,11 @@ export async function readRepositoryFromFiles(
     );
   }
 
+  const restEntry = entries.find(
+    (entry) =>
+      entry.path.endsWith("/.codarch/rest.cc.json") ||
+      entry.path === ".codarch/rest.cc.json"
+  );
   const reportEntry = entries.find(
     (entry) =>
       entry.path.endsWith("/.codarch/report.json") ||
@@ -94,6 +103,7 @@ export async function readRepositoryFromFiles(
 
   return {
     snapshot: await readFileJson(snapshotEntry.file),
+    rest: restEntry ? await readFileJson(restEntry.file) : null,
     report: reportEntry ? await readFileJson(reportEntry.file) : null,
     label: snapshotEntry.path,
     reportLabel: reportEntry?.path ?? null

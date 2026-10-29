@@ -58,6 +58,7 @@ export default function App() {
   } = app.state;
   const {
     loadSnapshot,
+    loadRest,
     loadReport,
     resetReport,
     abrirSnapshot,
@@ -150,6 +151,7 @@ export default function App() {
     manual: manualLoadRef,
     handlers: {
       snapshot: loadSnapshot,
+      rest: loadRest,
       report: loadReport,
       resetReport,
       addons: loadAddons,
@@ -290,7 +292,8 @@ export default function App() {
   /** Deja en el mapa lo que trajo una carpeta con `.codarch/`. */
   const showArtifacts = useCallback(
     (artifacts: RepositoryArtifacts) => {
-      if (!abrirSnapshot(artifacts.snapshot, artifacts.label)) return;
+      if (!abrirSnapshot(artifacts.snapshot, artifacts.label, artifacts.rest ?? null))
+        return;
       setServerMode("local");
       setSourceUrl(null);
       setReportUrl(null);
@@ -394,6 +397,9 @@ export default function App() {
       const result = await handle.result;
       analysisRef.current = null;
       if (loadSnapshot(result.snapshot, `${root.name} · navegador`)) {
+        // El análisis en el navegador mide también lo que no es código: los
+        // dos mapas salen de la misma pasada (ADR 0093).
+        loadRest(result.rest ?? null);
         setServerMode("local");
         setSourceUrl(null);
         setReportUrl(null);
@@ -413,6 +419,7 @@ export default function App() {
   }, [
     closeOpenMenu,
     loadSnapshot,
+    loadRest,
     resetReport,
     setError,
     setLoading,
@@ -445,6 +452,7 @@ export default function App() {
     const snapshot = await fetchJson("data/snapshot.cc.json");
     if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
     loadSnapshot(snapshot, "servidor local");
+    loadRest(await fetchJson("data/rest.cc.json"));
     setServerMode(meta?.watch ? "live" : "served");
     setSourceUrl(null);
     setReportUrl(null);
@@ -453,7 +461,7 @@ export default function App() {
     if (report) loadReport(report, "servidor local", false);
     else resetReport();
     await loadAddons();
-  }, [loadReport, loadSnapshot, resetReport, loadAddons]);
+  }, [loadReport, loadSnapshot, loadRest, resetReport, loadAddons]);
 
   const selectFolder = useCallback(
     async (pathValue: string) => {
@@ -499,12 +507,13 @@ export default function App() {
       if (enabled) {
         const snapshot = await fetchJson("data/snapshot.cc.json");
         if (snapshot) loadSnapshot(snapshot, "servidor local", true);
+        loadRest(await fetchJson("data/rest.cc.json"));
       }
       setServerMode(body.watch ? "live" : "served");
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [serverMode, loadSnapshot, setError]);
+  }, [serverMode, loadSnapshot, loadRest, setError]);
 
   const openLiveFolder = useCallback(() => {
     closeOpenMenu();

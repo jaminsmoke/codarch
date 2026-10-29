@@ -31,6 +31,8 @@ export type AnalyzeOutcome =
   | {
       kind: "snapshot";
       snapshot: CcJson;
+      /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+      rest: CcJson | null;
       files: number;
       edges: number;
       warnings: string[];

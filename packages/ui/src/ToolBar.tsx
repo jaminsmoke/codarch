@@ -1,19 +1,20 @@
 import type { ReactNode } from "react";
+import type { MapId } from "./app/types";
 
 /**
  * La barra del dock de herramientas (ADR 0083).
  *
  * Es la hermana izquierda de la barra del inspector (ADR 0079): un icono por
- * herramienta, pegados al borde y fuera del scroll de la hoja. Hoy hay una
- * herramienta —las vistas del mapa— y una acción que antes vivía en la
- * cabecera: Ajustes, al pie, separada del resto.
+ * herramienta, pegados al borde y fuera del scroll de la hoja. Hay un botón por
+ * mapa —el código y lo que no es código— (ADR 0093) y una acción que antes
+ * vivía en la cabecera: Ajustes, al pie, separada del resto.
  *
  * Las herramientas son datos: añadir una es una entrada aquí y su hoja en el
  * dock. El orden de la lista es el orden de la barra.
  */
 
 interface ToolEntry {
-  id: "map";
+  id: MapId;
   /** El nombre que lee el tooltip y el lector de pantalla. */
   label: string;
   /** Qué enseña la hoja, para el tooltip. */
@@ -39,6 +40,34 @@ function MapToolsIcon() {
       <path d="M9 2.2 15.6 5.6 9 9 2.4 5.6z" />
       <path d="m2.4 8.9 6.6 3.4 6.6-3.4" />
       <path d="m2.4 12.3 6.6 3.4 6.6-3.4" />
+    </svg>
+  );
+}
+
+/**
+ * El mapa de lo que no es código: una hoja con sus renglones.
+ *
+ * Es el icono de documento de siempre. A 17 px, la esquina doblada y dos
+ * renglones son lo único que se lee; el resto sobra.
+ */
+function DocsIcon() {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      width="17"
+      height="17"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M4.6 2.4h5.3l3.5 3.5v9.7H4.6z" />
+      <path d="M9.9 2.4v3.5h3.5" />
+      <path d="M6.8 9.2h4.8" />
+      <path d="M6.8 11.7h4.8" />
     </svg>
   );
 }
@@ -70,50 +99,78 @@ function SettingsIcon() {
 /** Las herramientas del dock, en el orden en que se pintan. */
 export const TOOL_ENTRIES: readonly ToolEntry[] = [
   {
-    id: "map",
+    id: "code",
     label: "Mapa",
-    hint: "las vistas y los estratos del mapa",
+    hint: "el código: las vistas y los estratos del mapa",
     icon: <MapToolsIcon />
+  },
+  {
+    id: "rest",
+    label: "Docs y config",
+    hint: "los documentos, la configuración y los assets",
+    icon: <DocsIcon />
   }
 ];
 
 /** El nombre de una herramienta, para anunciar su hoja. */
-export function toolLabel(id: ToolEntry["id"]): string {
+export function toolLabel(id: MapId): string {
   return TOOL_ENTRIES.find((entry) => entry.id === id)?.label ?? "";
 }
 
 export function ToolBar({
   open,
   settingsOpen,
+  map,
+  restAvailable,
   panelId,
-  onToggleOpen,
+  onSelectMap,
   onOpenSettings
 }: {
   /** Las herramientas están a la vista. */
   open: boolean;
   /** El diálogo de Ajustes está abierto. */
   settingsOpen: boolean;
-  /** La hoja que abre y cierra la herramienta del mapa. */
+  /** El mapa que ocupa el escenario. */
+  map: MapId;
+  /** ¿Hay `rest.cc.json` que enseñar? Sin él, su botón no lleva a ninguna parte. */
+  restAvailable: boolean;
+  /** La hoja que abre y cierra el mapa activo. */
   panelId: string;
-  onToggleOpen: () => void;
+  /** Cambia de mapa; pulsar el activo pliega la hoja. */
+  onSelectMap: (map: MapId) => void;
   onOpenSettings: () => void;
 }) {
   return (
     <nav className="tool-bar" aria-label="Herramientas">
-      {TOOL_ENTRIES.map((entry) => (
-        <button
-          key={entry.id}
-          type="button"
-          className={`tool-tab${open ? " is-active" : ""}`}
-          aria-expanded={open}
-          aria-controls={panelId}
-          aria-label={`${entry.label}, ${open ? "ocultar" : "mostrar"}`}
-          title={`${entry.label} · ${entry.hint}`}
-          onClick={onToggleOpen}
-        >
-          {entry.icon}
-        </button>
-      ))}
+      {TOOL_ENTRIES.map((entry) => {
+        const active = map === entry.id;
+        const disabled = entry.id === "rest" && !restAvailable;
+        return (
+          <button
+            key={entry.id}
+            type="button"
+            className={`tool-tab${active && open ? " is-active" : ""}`}
+            aria-expanded={active ? open : false}
+            aria-controls={panelId}
+            aria-label={
+              disabled
+                ? `${entry.label}, sin resto que enseñar`
+                : active
+                  ? `${entry.label}, ${open ? "ocultar" : "mostrar"}`
+                  : `${entry.label}, ver`
+            }
+            title={
+              disabled
+                ? `${entry.label} · ejecuta codarch analyze para tener este mapa`
+                : `${entry.label} · ${entry.hint}`
+            }
+            disabled={disabled}
+            onClick={() => onSelectMap(entry.id)}
+          >
+            {entry.icon}
+          </button>
+        );
+      })}
       <span className="tool-spacer" aria-hidden="true" />
       <button
         type="button"

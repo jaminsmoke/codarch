@@ -58,6 +58,22 @@ describe("almacenamiento del visor", () => {
     expect(readProject(storage)).toEqual(project);
   });
 
+  it("guarda el mapa del resto junto al del código", () => {
+    const storage = memoryStorage();
+    const project = {
+      snapshot: { meta: { apiVersion: "2.0" }, bloat: "x".repeat(2_000_000) },
+      rest: { meta: { apiVersion: "2.0" }, bloat: "y".repeat(300_000) },
+      report: null,
+      label: "repo/.codarch/snapshot.cc.json",
+      reportLabel: null
+    };
+
+    // Los dos artefactos caben: el límite es para un proyecto con su resto
+    // (ADR 0093), no para un cc.json suelto.
+    expect(writeProject(project, storage)).toBe(true);
+    expect(readProject(storage)?.rest).toEqual(project.rest);
+  });
+
   it("elimina proyectos corruptos y respeta el límite de tamaño", () => {
     const storage = memoryStorage();
     storage.setItem("codarch.project.v1", "{roto");
@@ -67,7 +83,7 @@ describe("almacenamiento del visor", () => {
     expect(
       writeProject(
         {
-          snapshot: { huge: "x".repeat(3_000_000) },
+          snapshot: { huge: "x".repeat(4_500_000) },
           report: null,
           label: "grande",
           reportLabel: null

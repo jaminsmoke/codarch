@@ -37,6 +37,8 @@ export function readServerMeta(meta: unknown): ServerMeta | null {
 /** Lo que la sesión necesita de la app: cargar, parar y decir dónde estamos. */
 export interface SessionHandlers {
   snapshot: (raw: unknown, label: string, preserveView?: boolean) => boolean;
+  /** El mapa de lo que no es código; `null` si el proyecto no lo trae (ADR 0093). */
+  rest: (raw: unknown) => boolean;
   report: (raw: unknown, label: string, focus?: boolean) => boolean;
   resetReport: () => void;
   addons: () => Promise<void>;
@@ -132,6 +134,8 @@ async function bootFromServer({
   if (served) {
     if (isCancelled()) return;
     h.snapshot(served, "servidor local");
+    // Los dos artefactos salen de la misma pasada del servidor (ADR 0093).
+    h.rest(await fetchJson("data/rest.cc.json"));
     const info = readServerMeta(meta);
     h.mode(info?.watch ? "live" : "served");
     if (info?.rootPath) h.rootPath(info.rootPath);
@@ -164,6 +168,8 @@ async function bootFromSaved({
   if (saved && !isCancelled() && !manual.current) {
     if (h.snapshot(saved.snapshot, saved.label)) {
       h.mode("local");
+      // El proyecto guardado puede traer su resto; si no, no hay segundo mapa.
+      h.rest(saved.rest ?? null);
       if (saved.report) {
         h.report(saved.report, saved.reportLabel ?? "report.json", false);
       } else {
@@ -186,9 +192,11 @@ async function bootFromSaved({
  */
 export function watchServer({
   snapshot,
+  rest,
   report
 }: {
   snapshot: (raw: unknown) => void;
+  rest: (raw: unknown) => void;
   report: (raw: unknown) => void;
 }): () => void {
   if (typeof EventSource === "undefined") return () => {};
@@ -197,6 +205,9 @@ export function watchServer({
   events.addEventListener("update", async () => {
     const fresh = await fetchJson("data/snapshot.cc.json");
     if (fresh) snapshot(fresh);
+    // El resto se relee del servidor, no del fichero: es de la misma pasada
+    // que el snapshot que acaba de llegar (ADR 0093).
+    rest(await fetchJson("data/rest.cc.json"));
     // El repo cambió: el reporte HEAD es lo que se ve en Cambios, y el
     // servidor lo acaba de tirar de la caché (ADR 0075).
     const head = await fetchJson(HEAD_REPORT_URL);
@@ -221,6 +232,7 @@ export function useServerSession(options: ServerSessionOptions): void {
   const { mode, requested, manual, handlers } = options;
   const {
     snapshot,
+    rest,
     report,
     resetReport,
     addons,
@@ -241,6 +253,7 @@ export function useServerSession(options: ServerSessionOptions): void {
       manual,
       handlers: {
         snapshot,
+        rest,
         report,
         resetReport,
         addons,
@@ -266,6 +279,7 @@ export function useServerSession(options: ServerSessionOptions): void {
     requested,
     manual,
     snapshot,
+    rest,
     report,
     resetReport,
     addons,
@@ -283,7 +297,8 @@ export function useServerSession(options: ServerSessionOptions): void {
     if (mode !== "live") return;
     return watchServer({
       snapshot: (raw) => void snapshot(raw, "servidor local", true),
+      rest: (raw) => void rest(raw),
       report: (raw) => void report(raw, "HEAD", false)
     });
-  }, [mode, snapshot, report]);
+  }, [mode, snapshot, rest, report]);
 }

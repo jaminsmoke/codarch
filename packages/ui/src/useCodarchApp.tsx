@@ -11,6 +11,7 @@ import { mapColorFor, metricIndexOf } from "./map";
 import { orderedMetrics } from "./metrics";
 import { readMigration } from "./data";
 import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
+import { planSnapshotView } from "./app/snapshotView";
 import type {
   Plataforma,
   CodeRequest,
@@ -31,6 +32,7 @@ import type {
   CodarchAppOptions,
   CodarchAppState,
   CodarchOption,
+  MapId,
   WatchState
 } from "./app/types";
 import { useMapCamera } from "./app/camera";
@@ -45,6 +47,7 @@ export type {
   CodarchAppOptions,
   CodarchAppState,
   CodarchOption,
+  MapId,
   WatchState
 } from "./app/types";
 
@@ -62,6 +65,14 @@ export function useCodarchApp(
   options: CodarchAppOptions = {}
 ): CodarchApp {
   const [cc, setCc] = useState<CcJson | null>(null);
+  /**
+   * El mapa de lo que no es código (ADR 0093).
+   *
+   * Llega de la misma pasada que el snapshot del código y vive aparte: su
+   * checksum es suyo y el mapa del código no lo mira.
+   */
+  const [rest, setRest] = useState<CcJson | null>(null);
+  const [map, setMapView] = useState<MapId>("code");
   const [source, setSource] = useState(options.sourceInicial ?? "sin proyecto");
   const [areaMetric, setAreaMetric] = useState<string | null>(null);
   const [colorMode, setColorMode] = useState("risk");
@@ -127,6 +138,8 @@ export function useCodarchApp(
     cc,
     source,
     setCc,
+    setRest,
+    setMap: setMapView,
     setSource,
     setAreaMetric,
     setColorMode,
@@ -146,20 +159,31 @@ export function useCodarchApp(
     setProgress,
     setRefreshedAt
   });
-  const { loadSnapshot, loadReport, resetReport, abrirSnapshot, abrirReporte } =
-    documents;
+  const {
+    loadSnapshot,
+    loadRest,
+    loadReport,
+    resetReport,
+    abrirSnapshot,
+    abrirReporte
+  } = documents;
 
   usePreferencesSync({
     cc,
-    areaMetric,
+    // El área y el color que se guardan son los del mapa del código: las
+    // preferencias del repo no tienen por qué saber del resto (ADR 0053).
+    areaMetric: map === "rest" ? null : areaMetric,
     colorMode,
     showLabels,
     plataforma,
     preferencesRef
   });
 
-  const stats = useMemo(() => (cc ? getStats(cc) : null), [cc]);
-  const migration = useMemo(() => readMigration(cc), [cc]);
+  /** El snapshot que se está mirando: el código o el resto. */
+  const activeCc = map === "rest" && rest ? rest : cc;
+
+  const stats = useMemo(() => (activeCc ? getStats(activeCc) : null), [activeCc]);
+  const migration = useMemo(() => readMigration(activeCc), [activeCc]);
   const hasChurn = useMemo(
     () =>
       stats
@@ -169,20 +193,20 @@ export function useCodarchApp(
   );
 
   const view = useMemo<AppView>(() => {
-    if (!cc || !areaMetric) return { model: null, error: null };
+    if (!activeCc || !areaMetric) return { model: null, error: null };
     try {
       return {
-        model: buildRenderModel(cc, {
+        model: buildRenderModel(activeCc, {
           areaMetric,
           color: colorMode === "status" ? "risk" : colorMode,
-          title: cc.meta.projectName
+          title: activeCc.meta.projectName
         }),
         error: null
       };
     } catch (cause) {
       return { model: null, error: (cause as Error).message };
     }
-  }, [cc, areaMetric, colorMode]);
+  }, [activeCc, areaMetric, colorMode]);
 
   const detail = useMemo<DetailResult | null>(() => {
     if (!view.model) return null;
@@ -255,7 +279,7 @@ export function useCodarchApp(
     [stats]
   );
 
-  const descriptors = cc?.lenses?.metrics?.attributeDescriptors as
+  const descriptors = activeCc?.lenses?.metrics?.attributeDescriptors as
     | Record<string, { title?: string }>
     | undefined;
 
@@ -270,17 +294,19 @@ export function useCodarchApp(
   );
 
   const colorOptions = useMemo<CodarchOption[]>(() => {
-    const options: CodarchOption[] = [
-      { value: "risk", label: "Riesgo" },
-      { value: "structure", label: "Estructura" }
-    ];
-    if (hasChurn) options.push({ value: "churn", label: "Calor (commits)" });
-    if (migration) {
-      options.push({ value: "status", label: "Estado de migración" });
+    // El resto no tiene riesgo, estructura ni migración: su color es su tamaño.
+    const options: CodarchOption[] = [];
+    if (map === "code") {
+      options.push({ value: "risk", label: "Riesgo" });
+      options.push({ value: "structure", label: "Estructura" });
+      if (hasChurn) options.push({ value: "churn", label: "Calor (commits)" });
+      if (migration) {
+        options.push({ value: "status", label: "Estado de migración" });
+      }
     }
     for (const option of areaOptions) options.push(option);
     return options;
-  }, [hasChurn, migration, areaOptions]);
+  }, [hasChurn, migration, areaOptions, map]);
 
   const selectedFile =
     view.model && selectedIndex !== null
@@ -295,15 +321,16 @@ export function useCodarchApp(
     : null;
   /** Los símbolos del fichero elegido, del más complejo al más simple. */
   const selectedSymbols = useMemo(
-    () => (selectedFile && cc ? symbolsOf(cc, selectedFile.nodeId) : []),
-    [cc, selectedFile]
+    () =>
+      selectedFile && activeCc ? symbolsOf(activeCc, selectedFile.nodeId) : [],
+    [activeCc, selectedFile]
   );
   const selectedStructure = useMemo(
     () =>
-      selectedFile && cc
-        ? cc.lenses?.structure?.nodes[selectedFile.nodeId] ?? null
+      selectedFile && activeCc
+        ? activeCc.lenses?.structure?.nodes[selectedFile.nodeId] ?? null
         : null,
-    [cc, selectedFile]
+    [activeCc, selectedFile]
   );
 
   /** Las vistas que aportan los plugins activados. */
@@ -421,6 +448,63 @@ export function useCodarchApp(
   );
 
   const closeFile = useCallback(() => setOpenFile(null), []);
+
+  /**
+   * Cambia de mapa: el del código o el del resto (ADR 0093).
+   *
+   * Es un cambio de modelo, no de vista. La selección, el foco y el fichero
+   * abierto son del mapa anterior y se sueltan; el área y el color también son
+   * de cada mapa, así que al volver al código se recuperan los suyos. El resto
+   * se mide en bytes: su área y su color salen del tamaño hasta que haya color
+   * por tipo.
+   */
+  const changeMap = useCallback(
+    (next: MapId) => {
+      if (next === map) return;
+      if (next === "rest" && !rest) return;
+      setPluginView(null);
+      setSelectedIndex(null);
+      setSelectedFolder(null);
+      setFocusPath(null);
+      setOpenFile(null);
+      setChain(null);
+      selectedPathRef.current = null;
+      setMapView(next);
+      if (next === "rest") {
+        setAreaMetric("bytes");
+        setColorMode("bytes");
+        return;
+      }
+      const plan = cc
+        ? planSnapshotView(cc, getStats(cc), preferencesRef.current)
+        : null;
+      setAreaMetric(plan?.areaMetric ?? null);
+      setColorMode(plan?.colorMode ?? "risk");
+    },
+    [
+      map,
+      rest,
+      cc,
+      preferencesRef,
+      selectedPathRef,
+      setAreaMetric,
+      setChain,
+      setColorMode,
+      setFocusPath,
+      setOpenFile,
+      setPluginView,
+      setSelectedFolder,
+      setSelectedIndex
+    ]
+  );
+
+  // Si el resto desaparece (otro proyecto, un refresco sin él), no se puede
+  // seguir en un mapa que ya no existe.
+  /* eslint-disable react-hooks/set-state-in-effect -- el mapa activo se corrige cuando su snapshot deja de estar */
+  useEffect(() => {
+    if (map === "rest" && !rest) changeMap("code");
+  }, [map, rest, changeMap]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /**
    * Aplica un estado de vista al mapa.
@@ -557,6 +641,8 @@ export function useCodarchApp(
       if (cancelled) return;
       if (saved && loadSnapshot(saved.snapshot, saved.label, false, saved.preferences)) {
         setAddons((saved.addons ?? []) as RepoAddon[]);
+        // El proyecto guardado puede traer su resto (ADR 0093).
+        if (saved.rest) loadRest(saved.rest);
         if (saved.report) {
           loadReport(saved.report, saved.reportLabel ?? "report.json", false);
         }
@@ -568,7 +654,7 @@ export function useCodarchApp(
     return () => {
       cancelled = true;
     };
-  }, [loadSnapshot, loadReport, plataforma]);
+  }, [loadSnapshot, loadRest, loadReport, plataforma]);
 
   // No hay un efecto que reescriba el proyecto cuando cambia `cc` a propósito:
   // cada camino que carga un snapshot ya lo guarda donde toca —«Abrir cc.json»,
@@ -580,6 +666,8 @@ export function useCodarchApp(
 
   const state: CodarchAppState = {
     cc,
+    rest,
+    map,
     source,
     areaMetric,
     colorMode,
@@ -608,6 +696,8 @@ export function useCodarchApp(
 
   const actions: CodarchAppActions = {
     loadSnapshot,
+    loadRest,
+    setMap: changeMap,
     loadReport,
     resetReport,
     analyzeFolder: documents.analyzeFolder,

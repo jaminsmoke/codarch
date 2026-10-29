@@ -61,7 +61,8 @@ codarch serve . --port 8080
 ```
 
 `serve` usa el mismo analizador que `analyze`, sirve la app web incluida en el paquete (la misma de
-la web y el escritorio, ADR 0073) y expone el snapshot en `/data/snapshot.cc.json`; si existe
+la web y el escritorio, ADR 0073) y expone el snapshot en `/data/snapshot.cc.json` y el mapa de lo
+que no es código en `/data/rest.cc.json`; si existe
 `.codarch/report.json`, también lo sirve para la vista de PR. El watch es **live por defecto**: reanaliza al guardar y refresca por SSE. No monitoriza GitHub
 ni sustituye a la acción: es un visor local, y no está pensado para exponerse fuera de loopback.
 

@@ -22,8 +22,11 @@ export {
 } from "@codarch/ui/storage";
 export type { ViewPreferences, SavedProject } from "@codarch/ui/storage";
 
-/** El proyecto es un `cc.json` con su reporte: no cabe cualquier cosa. */
-const MAX_PROJECT_CHARS = 2_500_000;
+/**
+ * El proyecto es un `cc.json` con su reporte y, desde el mapa del resto, su
+ * segundo snapshot: no cabe cualquier cosa, pero caben los dos (ADR 0093).
+ */
+const MAX_PROJECT_CHARS = 4_000_000;
 
 export function readProject(
   storage: Storage | null = localStore()

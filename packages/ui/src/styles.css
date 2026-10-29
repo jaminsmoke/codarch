@@ -3142,6 +3142,17 @@ button {
   color: var(--frame-ink);
 }
 
+/* Un mapa que este proyecto no trae no se puede abrir: se ve, no se pulsa. */
+.tool-tab:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tool-tab:disabled:hover {
+  background: transparent;
+  color: var(--frame-muted);
+}
+
 .inspector-tab.is-active,
 .tool-tab.is-active {
   background: rgba(255, 255, 255, 0.1);

@@ -100,6 +100,12 @@ export {
   measureRestFile
 } from "./rest";
 export type { RestFile, RestInput } from "./rest";
+export {
+  REST_FILE,
+  restSnapshotPath,
+  writeRestSnapshot
+} from "./rest-store";
+export type { RestWrite } from "./rest-store";
 export { ensureGitignoreEntry } from "./gitignore";
 export {
   normalizeSourcePath,

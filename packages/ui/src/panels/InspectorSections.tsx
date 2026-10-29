@@ -94,13 +94,20 @@ export function FileHeader({
   );
 }
 
-/** Las métricas del fichero, con su barra y el riesgo desglosado. */
+/**
+ * Las métricas del fichero, con su barra y el riesgo desglosado.
+ *
+ * En el mapa del resto no hay riesgo que enseñar: un documento no tiene
+ * complejidad ni churn, y el que saldría es su tamaño con otro nombre (ADR
+ * 0093). Ahí solo queda la métrica.
+ */
 export function MetricsSection({
   model,
   file,
   areaMetric,
   colorMode,
   metricTitle,
+  showRisk = true,
   onColorMode
 }: {
   model: RenderModel | null;
@@ -108,9 +115,13 @@ export function MetricsSection({
   areaMetric: string | null;
   colorMode: string;
   metricTitle: (key: string) => string;
+  /** `false` en el mapa del resto: no hay riesgo ni desglose. */
+  showRisk?: boolean;
   onColorMode: (mode: string) => void;
 }) {
-  const rows = fileMetricRows(model, file, areaMetric, metricTitle);
+  const rows = fileMetricRows(model, file, areaMetric, metricTitle).filter(
+    (row) => showRisk || !row.risk
+  );
 
   return (
     <CollapsibleSection
@@ -119,7 +130,7 @@ export function MetricsSection({
       className="section-metrics"
       count={rows.length}
       summary={
-        rows[0]?.value === null || rows[0]?.value === undefined
+        !showRisk || rows[0]?.value === null || rows[0]?.value === undefined
           ? undefined
           : `Riesgo ${rows[0].value}/100`
       }
@@ -145,10 +156,11 @@ export function MetricsSection({
           ))}
         </div>
         <p className="muted tiny metrics-note">
-          La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila
-          para pintar el mapa.
+          {showRisk
+            ? "La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila para pintar el mapa."
+            : "La barra llega al p95 del proyecto. Pulsa una fila para pintar el mapa."}
         </p>
-        <RiskBreakdown file={file} />
+        {showRisk ? <RiskBreakdown file={file} /> : null}
       </div>
     </CollapsibleSection>
   );

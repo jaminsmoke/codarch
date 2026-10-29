@@ -1,5 +1,5 @@
 import { useId, useState, type KeyboardEvent } from "react";
-import type { CodarchApp } from "../app/types";
+import type { CodarchApp, MapId } from "../app/types";
 import { ToolBar, toolLabel } from "../ToolBar";
 import { HeatList, LanguageSample, Legend } from "../panels";
 import { localStore } from "../storage";
@@ -26,13 +26,28 @@ export function ToolDock({ app }: { app: CodarchApp }) {
 
   const { state, actions } = app;
 
+  /**
+   * El botón del mapa activo pliega la hoja; el del otro mapa la cambia y la
+   * deja abierta. Es el mismo gesto que la barra del inspector (ADR 0079).
+   */
+  const chooseMap = (id: MapId) => {
+    if (id === state.map) {
+      toggleTools();
+      return;
+    }
+    actions.setMap(id);
+    if (toolsClosed) toggleTools();
+  };
+
   return (
     <div className={`tool-dock${toolsClosed ? " is-folded" : ""}`}>
       <ToolBar
         open={!toolsClosed}
         settingsOpen={state.settingsOpen}
+        map={state.map}
+        restAvailable={state.rest !== null}
         panelId={toolsId}
-        onToggleOpen={toggleTools}
+        onSelectMap={chooseMap}
         onOpenSettings={() => actions.setSettingsOpen(true)}
       />
       {/* Plegada, la hoja sigue en el DOM para poder fundirse: `inert` la
@@ -40,13 +55,15 @@ export function ToolDock({ app }: { app: CodarchApp }) {
       <aside
         className="toolbar"
         id={toolsId}
-        aria-label={toolLabel("map")}
+        aria-label={toolLabel(state.map)}
         aria-hidden={toolsClosed}
         inert={toolsClosed}
       >
         <ViewControls app={app} />
 
-        <LanguageSample model={app.view.model} migration={app.migration} />
+        {state.map === "code" ? (
+          <LanguageSample model={app.view.model} migration={app.migration} />
+        ) : null}
 
         <Legend
           colorMode={state.colorMode}
@@ -54,16 +71,18 @@ export function ToolDock({ app }: { app: CodarchApp }) {
           model={app.view.model}
         />
 
-        {/* El calor es del repo abierto. La lista se carga al montarse, así
-            que al cambiar de proyecto se remonta: sin esto se quedaba con las
-            filas del repo anterior. La historia vive en Cambios (ADR 0072). */}
-        <HeatList
-          key={`heat:${state.source}`}
-          load={app.loadHeat}
-          onSelectSymbol={(name, path) => {
-            void actions.openSymbolChain(name, path);
-          }}
-        />
+        {/* El calor es del código del repo abierto: en el mapa del resto no
+            hay símbolos que calentar. La lista se carga al montarse, así que
+            al cambiar de proyecto se remonta (ADR 0072). */}
+        {state.map === "code" ? (
+          <HeatList
+            key={`heat:${state.source}`}
+            load={app.loadHeat}
+            onSelectSymbol={(name, path) => {
+              void actions.openSymbolChain(name, path);
+            }}
+          />
+        ) : null}
 
         {/* La deuda y los ficheros más tocados ya no tienen lista aquí:
             viven en Cambios, con el diff delante (ADR 0078). */}
@@ -113,11 +132,15 @@ function ViewControls({ app }: { app: CodarchApp }) {
           value={state.colorMode}
           onChange={(event) => actions.setColorMode(event.target.value)}
         >
-          <option value="risk">Riesgo</option>
-          <option value="structure">Estructura</option>
-          {hasChurn ? <option value="churn">Calor (commits)</option> : null}
-          {migration ? (
-            <option value="status">Estado de migración</option>
+          {state.map === "code" ? (
+            <>
+              <option value="risk">Riesgo</option>
+              <option value="structure">Estructura</option>
+              {hasChurn ? <option value="churn">Calor (commits)</option> : null}
+              {migration ? (
+                <option value="status">Estado de migración</option>
+              ) : null}
+            </>
           ) : null}
           {metricOptions.map((key) => (
             <option key={key} value={key}>

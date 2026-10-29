@@ -11,6 +11,8 @@ import type { AnalyzeRequest, AnalyzeResponse } from "./run";
 
 export interface BrowserAnalysis {
   snapshot: unknown;
+  /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+  rest: unknown;
   files: number;
   edges: number;
   warnings: string[];
@@ -79,6 +81,7 @@ export function analyzeInBrowser(
         finish();
         resolve({
           snapshot: message.snapshot,
+          rest: message.rest,
           files: message.files,
           edges: message.edges,
           warnings: message.warnings,

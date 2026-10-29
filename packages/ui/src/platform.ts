@@ -6,6 +6,8 @@ import type { ViewPreferences, SavedProject } from "./storage";
 /** Lo que devuelve analizar una carpeta, venga de donde venga. */
 export interface ResultadoAnalisis {
   snapshot: unknown;
+  /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
+  rest?: unknown;
   files: number;
   edges: number;
   warnings: string[];

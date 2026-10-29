@@ -1,6 +1,6 @@
 ---
 title: "ADR 0093 — El mapa de lo que no es código"
-description: "Los documentos, la configuración y los assets no existen en el modelo: el recorrido solo acepta código, así que el mapa cuenta la mitad del proyecto. Ganan un segundo snapshot, `.codarch/rest.cc.json`, con su propio checksum y su propia lente de tipo; el mapa de código no cambia de contenido ni de checksum, el PR y las reglas no lo miran y el escenario gana una pestaña."
+description: "Los documentos, la configuración y los assets no existen en el modelo: el recorrido solo acepta código, así que el mapa cuenta la mitad del proyecto. Ganan un segundo snapshot, `.codarch/rest.cc.json`, con su propio checksum y su propia lente de tipo; el mapa de código no cambia de contenido ni de checksum, el PR y las reglas no lo miran y la barra de actividad gana un botón de mapa."
 section: desarrollo
 status: aceptado
 date: "2026-10-29"
@@ -93,18 +93,26 @@ es casi el doble de recorrido y sigue siendo una fracción de lo que cuesta pars
 - El diff, las reglas, la acción y el MCP siguen leyendo **solo** el snapshot del código: ni un
   documento en un comentario de PR ni en una violación.
 - `codarch analyze` y `codarch serve` escriben los dos artefactos; la acción de GitHub no lo usa.
-- Los dos salen de la misma pasada. Si el resto falta o es de otro proyecto, la app no enseña la
-  pestaña: no hay emparejamiento por checksum ni campo nuevo en `meta`.
+- Los dos salen de la misma pasada. Si el resto falta o es de otro proyecto, la app no ofrece su
+  botón: no hay emparejamiento por checksum ni campo nuevo en `meta`.
 
-### 6. La vista
+### 6. La vista: un botón de mapa en la barra de actividad, no una pestaña
 
-Pestañas del escenario: **`Mapa` y `El resto`**. Hoy las pestañas solo existen cuando un plugin trae
-vista propia ([ADR 0028](../0021-0030/0028-los-plugins.md)); con el resto pasan a existir cuando el
-segundo snapshot está cargado.
+El escenario no gana pestañas. La barra de actividad de la izquierda —el dock de herramientas del
+mapa ([ADR 0083](../0081-0090/0083-el-dock-de-herramientas.md))— pasa a tener **un botón por mapa**:
+`Mapa`, el del código, y `Docs y config`, el del resto, con el icono de documento. Pulsar el botón
+del mapa activo pliega la hoja, como hoy; pulsar el otro cambia el mapa y deja su hoja abierta. Sin
+`rest.cc.json` el botón del resto se ve desactivado: no hay un mapa vacío que enseñar.
 
-El raíl izquierdo no se mueve: sigue siendo el dock de bloques del mapa activo
-([ADR 0083](../0081-0090/0083-el-dock-de-herramientas.md)), y para el resto enseña **Vista** —área
-por bytes o por líneas y color por tipo—, **Estratos** y **Leyenda**, agrupados por `kind`.
+Es un mapa más, no una vista del mismo mapa: cambia el modelo entero —árbol, métricas, ficha y
+raíl—. Por eso no compite con las pestañas del escenario, que son de las vistas de un plugin
+([ADR 0028](../0021-0030/0028-los-plugins.md)), ni se parte en un mapa por tipo: documentos,
+configuración y assets viven juntos en el mismo mapa.
+
+El raíl izquierdo no se mueve: sigue siendo el dock de bloques del mapa activo, y para el resto
+enseña **Vista** —área por bytes o por líneas y color por tipo—, **Estratos** y **Leyenda**,
+agrupados por `kind`. Lo que solo tiene sentido en código —los lenguajes y el calor de los
+símbolos— no se enseña en este mapa.
 
 La ficha de un fichero que no es código enseña su tipo, su tamaño, sus líneas y sus enlaces; la de
 una carpeta suma bytes y líneas y cuenta por tipo. No enseña símbolos, complejidad ni riesgo: no
@@ -155,9 +163,9 @@ Fase **M64 — El mapa de lo que no es código**.
 - ✅ El recorrido se reparte en una pasada: el código al parser, el resto a la pasada léxica.
 - ✅ El snapshot del resto: árbol, `bytes`, `loc`, la lente `rest` con su `kind`, los enlaces entre
   documentos, checksum propio y un test de determinismo.
-- ⬜ `codarch analyze` y `serve` escriben `.codarch/rest.cc.json`; el diff, las reglas y la acción no
+- ✅ `codarch analyze` y `serve` escriben `.codarch/rest.cc.json`; el diff, las reglas y la acción no
   lo miran.
-- ⬜ La web y el escritorio cargan el resto; el escenario gana `Mapa` y `El resto`.
+- ✅ La web y el escritorio cargan el resto; la barra de actividad gana el botón `Docs y config`.
 - ⬜ Vista, Estratos y Leyenda por tipo en el raíl del resto.
 - ⬜ La ficha de un fichero que no es código y la de carpeta con el resto dentro.
 - ⬜ Las reglas del resto, en su ADR: enlaces rotos, huérfanos, frontmatter y la gemela declarada.

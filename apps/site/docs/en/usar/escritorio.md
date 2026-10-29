@@ -73,6 +73,7 @@ The repo state is saved in its `.codarch/` folder, not in the app. What CodArch 
 | File | What it is |
 |---|---|
 | `snapshot.cc.json` | the latest snapshot |
+| `rest.cc.json` | the map of what is not code (documents, configuration and assets) |
 | `head-report.json` | what was touched since the last commit |
 | `report.json` | a diff report, only if one was loaded |
 | `chains.json` | the symbol chain ledger |

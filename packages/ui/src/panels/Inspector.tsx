@@ -49,6 +49,7 @@ export function Inspector({
   chain,
   report,
   migration,
+  showCode = true,
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
@@ -70,6 +71,11 @@ export function Inspector({
   report: DiffReport | null;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
+  /**
+   * `false` en el mapa del resto: un documento no tiene símbolos, superficie,
+   * miembros ni cadena, y su ficha no finge que los tenga (ADR 0093).
+   */
+  showCode?: boolean;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -134,40 +140,49 @@ export function Inspector({
         areaMetric={areaMetric}
         colorMode={colorMode}
         metricTitle={metricTitle}
+        showRisk={showCode}
         onColorMode={onColorMode}
       />
-      <RulesSection
-        report={report}
-        migration={migration}
-        node={migrationNode}
-        model={model}
-        file={file}
-        onSelectPath={onSelectPath}
-      />
-      <SymbolsSection
-        file={file}
-        symbols={symbols}
-        chain={chain}
-        code={code}
-        maxComplexity={heaviest}
-        onSelectSymbol={onSelectSymbol}
-        onOpenCode={openCode}
-        onOpenEditor={onOpenEditor}
-      />
-      <SurfaceSection structure={structure} />
+      {showCode ? (
+        <>
+          <RulesSection
+            report={report}
+            migration={migration}
+            node={migrationNode}
+            model={model}
+            file={file}
+            onSelectPath={onSelectPath}
+          />
+          <SymbolsSection
+            file={file}
+            symbols={symbols}
+            chain={chain}
+            code={code}
+            maxComplexity={heaviest}
+            onSelectSymbol={onSelectSymbol}
+            onOpenCode={openCode}
+            onOpenEditor={onOpenEditor}
+          />
+          <SurfaceSection structure={structure} />
+        </>
+      ) : null}
       <DependenciesSection
         outgoing={outgoing}
         incoming={incoming}
         onSelectPath={onSelectPath}
       />
-      <MembersSection
-        file={file}
-        structure={structure}
-        code={code}
-        onOpenCode={openCode}
-        onOpenEditor={onOpenEditor}
-      />
-      <ChainSection chain={chain} />
+      {showCode ? (
+        <>
+          <MembersSection
+            file={file}
+            structure={structure}
+            code={code}
+            onOpenCode={openCode}
+            onOpenEditor={onOpenEditor}
+          />
+          <ChainSection chain={chain} />
+        </>
+      ) : null}
     </section>
   );
 }

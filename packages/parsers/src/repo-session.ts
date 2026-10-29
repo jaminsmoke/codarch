@@ -37,7 +37,14 @@ export type RepoAnalysis =
   | {
       kind: "snapshot";
       snapshot: CcJson;
+      /**
+       * El mapa de lo que no es código (ADR 0093), de la misma pasada. Va
+       * aparte porque tiene su propio checksum: no se mezcla con el código.
+       */
+      rest: CcJson | null;
       files: number;
+      /** Ficheros del resto que entraron en su snapshot. */
+      restFiles: number;
       edges: number;
       warnings: string[];
       /**
@@ -78,7 +85,9 @@ export function analyzeRepo(
   return {
     kind: "snapshot",
     snapshot: result.snapshot,
+    rest: result.rest,
     files: result.files,
+    restFiles: result.restFiles,
     edges: result.edges,
     warnings: [...warnings, ...result.warnings],
     parseCache: session.parseCachePayload()

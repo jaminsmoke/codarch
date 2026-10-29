@@ -71,6 +71,7 @@ El estado del repo se guarda en su carpeta `.codarch/`, no en la app. Lo que esc
 | Fichero | Qué es |
 |---|---|
 | `snapshot.cc.json` | el último snapshot |
+| `rest.cc.json` | el mapa de lo que no es código (documentos, configuración y assets) |
 | `head-report.json` | lo tocado desde el último commit |
 | `report.json` | el reporte de un diff, solo si se ha cargado uno |
 | `chains.json` | el libro de cadenas de símbolos |

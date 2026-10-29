@@ -64,6 +64,12 @@ Each block is a folder or a file. There is no «lenses» menu: they are the two 
 The layers icon, in the tool bar on the left, folds that panel away and leaves the map full screen; the
 app remembers whether it was folded.
 
+Next to it is the **Docs y config** button: the map of what is not code —documents, configuration and
+assets—, which has its own snapshot and its own checksum. Clicking a map's button opens that map;
+clicking the button of the map already open folds the panel. If the repo has no `rest.cc.json`, the button is shown greyed
+out. In that map the area is the file size and whatever only speaks about code —languages, symbols
+and heat— disappears from the panel.
+
 ![The VISTA panel with the ÁREA and COLOR selectors and the map painted with the chosen lens](../../images/webapp-mapa-lentes.png)
 
 With the dark theme the paper drops and the tiles keep their colour: the map still reads the same

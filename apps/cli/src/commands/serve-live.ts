@@ -14,6 +14,7 @@ import {
   analyzeRepo,
   watchRepository,
   writeParseCachePayload,
+  writeRestSnapshot,
   type RepoAnalysis,
   type RepositoryWatcher
 } from "@codarch/parsers";
@@ -23,7 +24,13 @@ import { VERSION } from "../version";
 export interface AnalysisState {
   root: string;
   snapshot: CcJson;
+  /**
+   * El mapa de lo que no es código (ADR 0093), de la misma pasada que el
+   * snapshot del código. `null` si esa pasada no lo midió.
+   */
+  rest: CcJson | null;
   files: number;
+  restFiles: number;
   checksum: string;
   warnings: string[];
   updatedAt: string;
@@ -101,6 +108,7 @@ export function startLive(
       const result = analyzeRepo(state.root, { hints });
       if (result.kind === "unchanged") return;
       storeParseCache(state.root, result);
+      storeRest(state.root, result);
       state = stateFrom(state.root, result, state.watch);
       broadcast(clients, "update", {
         checksum: state.checksum,
@@ -210,6 +218,7 @@ export function analyzeState(root: string, watch: boolean): AnalysisState {
     throw new Error("un análisis forzado no puede contestar que no hay cambios");
   }
   storeParseCache(root, result);
+  storeRest(root, result);
   return stateFrom(root, result, watch);
 }
 
@@ -234,6 +243,27 @@ function storeParseCache(
   }
 }
 
+/**
+ * Guarda el resto de esta pasada en el `.codarch/` del repo (ADR 0093).
+ *
+ * Es el mismo artefacto que deja `codarch analyze`, y no se reescribe si el
+ * checksum no cambió. Si no se puede escribir, se sigue sirviendo desde la
+ * memoria del proceso: cuesta el fichero, no el mapa.
+ */
+function storeRest(
+  root: string,
+  result: Extract<RepoAnalysis, { kind: "snapshot" }>
+): void {
+  if (!result.rest) return;
+  try {
+    writeRestSnapshot(path.join(root, ".codarch"), result.rest);
+  } catch (cause) {
+    console.error(
+      `  no se pudo guardar el resto: ${(cause as Error).message}`
+    );
+  }
+}
+
 function stateFrom(
   root: string,
   result: Extract<RepoAnalysis, { kind: "snapshot" }>,
@@ -242,7 +272,9 @@ function stateFrom(
   return {
     root,
     snapshot: result.snapshot,
+    rest: result.rest,
     files: result.files,
+    restFiles: result.restFiles,
     checksum: result.snapshot.meta.checksum ?? "",
     warnings: result.warnings.slice(0, 5),
     updatedAt: new Date().toISOString(),

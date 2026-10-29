@@ -8,7 +8,8 @@ import {
   loadOwnParseCache,
   loadScopeParseCaches,
   protectedRootReason,
-  writeParseCache
+  writeParseCache,
+  writeRestSnapshot
 } from "@codarch/parsers";
 import { CcJsonError, parseCcJson, saveHistory } from "@codarch/schema";
 import type { CcJson } from "@codarch/schema";
@@ -128,11 +129,17 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   const snapshotPath = writeSnapshot(outDirectory, rootPath, cc);
   if (snapshotPath === null) return 1;
 
+  // El resto va a su propio fichero: el checksum del código no puede depender
+  // de un documento (ADR 0093).
+  const restPath = result.rest ? writeRest(outDirectory, result.rest) : null;
+  if (result.rest && restPath === null) return 1;
+
   const lines = reportLines({
     root,
     rootPath,
     outDirectory,
     snapshotPath,
+    restPath,
     cc,
     result,
     cache,
@@ -229,12 +236,26 @@ function writeSnapshot(
   }
 }
 
+/** Escribe el snapshot del resto, o devuelve `null` y deja el error dicho. */
+function writeRest(outDirectory: string, rest: CcJson): string | null {
+  try {
+    return writeRestSnapshot(outDirectory, rest).path;
+  } catch (error) {
+    console.error(
+      `no se pudo escribir el resto en ${outDirectory}: ${(error as Error).message}`
+    );
+    return null;
+  }
+}
+
 /** Lo que necesita el resumen para contar la pasada. */
 interface ReportContext {
   root: string;
   rootPath: string;
   outDirectory: string;
   snapshotPath: string;
+  /** El snapshot del resto, si esta pasada lo escribió. */
+  restPath: string | null;
   cc: CcJson;
   result: Analysis;
   cache: ParseCache;
@@ -259,6 +280,7 @@ function reportLines(context: ReportContext): string[] {
       "snapshot",
       `${context.snapshotPath} (${formatBytes(snapshotBytes)})`
     ),
+    ...restLines(context),
     field(
       "estructura",
       `${num(result.files)} ficheros · ${num(result.folders)} carpetas · ${num(
@@ -287,6 +309,27 @@ function reportLines(context: ReportContext): string[] {
   lines.push(...unresolvedLines(result));
   lines.push("");
   return lines;
+}
+
+/**
+ * El fichero del resto: dónde quedó, cuánto ocupa y qué tiene.
+ *
+ * Es una línea más del resumen porque el resto es un artefacto más: quien
+ * mira `.codarch/` tiene que saber que hay dos mapas y cuál es cuál.
+ */
+function restLines(context: ReportContext): string[] {
+  const file = context.restPath;
+  if (!file) return [];
+  const edges = context.result.rest?.lenses?.dependency?.edges?.length ?? 0;
+  const bytes = Buffer.byteLength(fs.readFileSync(file), "utf8");
+  return [
+    field(
+      "resto",
+      `${file} (${formatBytes(bytes)}) · ${num(
+        context.result.restFiles
+      )} ficheros · ${num(edges)} enlaces`
+    )
+  ];
 }
 
 /** Las líneas de migración: qué hay de cada lengua y cuánto pesa. */

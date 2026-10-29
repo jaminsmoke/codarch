@@ -23,6 +23,7 @@ export default function App() {
   } = app.state;
   const {
     loadSnapshot,
+    loadRest,
     loadReport,
     resetReport,
     analyzeFolder,
@@ -86,9 +87,12 @@ export default function App() {
         // la vista y lo que se estaba mirando (área, color, foco, reporte).
         if (target.refresh) {
           loadSnapshot(target.snapshot, target.label, true);
+          loadRest(target.rest ?? null);
           return;
         }
         if (loadSnapshot(target.snapshot, target.label)) {
+          // El resto llega con el snapshot, de la misma pasada (ADR 0093).
+          loadRest(target.rest ?? null);
           setAddons([]);
           // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):
           // esto solo recuerda cuál es el último repo.
@@ -115,7 +119,15 @@ export default function App() {
       }
       loadReport(target.report, target.label);
     });
-  }, [loadReport, loadSnapshot, plataforma, resetReport, setAddons, setError]);
+  }, [
+    loadReport,
+    loadRest,
+    loadSnapshot,
+    plataforma,
+    resetReport,
+    setAddons,
+    setError
+  ]);
 
   return (
     <AppShell

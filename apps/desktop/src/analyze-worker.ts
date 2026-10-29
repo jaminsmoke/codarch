@@ -64,6 +64,7 @@ export function analyze(request: AnalyzeRequest): AnalyzeResponse {
     const outcome: AnalyzeOutcome = {
       kind: "snapshot",
       snapshot: result.snapshot,
+      rest: result.rest,
       files: result.files,
       edges: result.edges,
       warnings: [...warnings, ...result.warnings],

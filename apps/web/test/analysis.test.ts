@@ -108,6 +108,11 @@ describe("análisis en el navegador", () => {
     expect(browser.meta.checksum).toBe(onDisk.snapshot.meta.checksum);
     expect(response.files).toBe(onDisk.files);
     expect(response.edges).toBe(onDisk.edges);
+
+    // El resto también sale igual que en el CLI: los dos mapas son uno por
+    // pasada y con la misma regla de checksum (ADR 0093).
+    const rest = response.rest as { meta: { checksum: string } } | null;
+    expect(rest?.meta.checksum).toBe(onDisk.rest?.meta.checksum);
   }, 60_000);
 
   it("analiza Java con su gramática y da el checksum del CLI", async () => {

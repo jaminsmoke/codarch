@@ -60,6 +60,7 @@ export function plataformaEscritorio(): Plataforma {
           if (!restored) return null;
           return {
             snapshot: restored.snapshot,
+            rest: restored.rest ?? undefined,
             report: restored.report,
             label: root,
             reportLabel: restored.report
