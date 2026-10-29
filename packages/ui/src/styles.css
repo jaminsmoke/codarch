@@ -254,6 +254,7 @@ button {
 }
 
 .project-name .watch-indicator,
+.project-name .paint-notice,
 .project-name .refresh-notice {
   flex: none;
 }
@@ -305,6 +306,16 @@ button {
 }
 
 /* El aviso de un refresco en vivo: aparece y se apaga solo (ADR 0050). */
+/* El color elegido no se puede pintar con este snapshot: mismo tono que una
+   vigilancia en pausa, porque es un aviso y no un error. */
+.paint-notice {
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e7c06b;
+  cursor: help;
+}
+
 .refresh-notice {
   font: 500 8.5px/1 var(--mono);
   letter-spacing: 0.12em;

@@ -1,6 +1,7 @@
 import type { RenderMeta } from "@codarch/render/browser";
 import type { CodarchApp, WatchState } from "../app/types";
 import { Kpi } from "../panels";
+import { paintNotice, type PaintNotice } from "../paintNotice";
 
 /**
  * La banda del proyecto: qué está abierto, de qué snapshot sale y sus cifras.
@@ -14,6 +15,11 @@ export function ProjectBand({ app }: { app: CodarchApp }) {
   const projectTitle =
     view.model?.meta.title ?? state.cc?.meta.projectName ?? "Sin snapshot";
   const snapshotLine = snapshotLineOf(state.source, view.model?.meta);
+  const notice = paintNotice(
+    state.colorMode,
+    view.model?.metrics ?? null,
+    migration
+  );
 
   return (
     <div className="project-band">
@@ -22,6 +28,7 @@ export function ProjectBand({ app }: { app: CodarchApp }) {
         <div className="project-name">
           <h1 title={projectTitle}>{projectTitle}</h1>
           <WatchIndicator watch={state.watch} />
+          {notice ? <PaintNoticeChip notice={notice} /> : null}
           <RefreshNotice at={state.refreshedAt} />
         </div>
         {/* El snapshot es del proyecto abierto, no de la app: va bajo el
@@ -89,6 +96,21 @@ function RefreshNotice({ at }: { at: number | null }) {
       aria-live="polite"
     >
       actualizado
+    </span>
+  );
+}
+
+/**
+ * El color elegido no se puede pintar con este snapshot.
+ *
+ * Va al lado de la vigilancia porque describe al proyecto, como ella: el mismo
+ * color con otro snapshot sí se pinta. Lo que falta —la lente o la métrica— lo
+ * cuenta el `title`, que es donde cabe la explicación.
+ */
+function PaintNoticeChip({ notice }: { notice: PaintNotice }) {
+  return (
+    <span className="paint-notice" title={notice.title}>
+      {notice.label}
     </span>
   );
 }
