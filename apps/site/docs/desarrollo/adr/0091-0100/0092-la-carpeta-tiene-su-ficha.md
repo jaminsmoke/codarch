@@ -1,6 +1,6 @@
 ---
 title: "ADR 0092 — La carpeta tiene su ficha"
-description: "Seleccionar y navegar pasan a ser dos cosas distintas: clic selecciona un fichero o una carpeta y la ficha del panel enseña lo seleccionado; doble clic entra —el fichero al escenario, la carpeta al zoom—. La ficha de carpeta lleva máximos con su dueño, frontera, ciclos dentro y a través, reglas agrupadas y los cambios acotados, con las reglas de agregación escritas una vez y compartidas con el MCP."
+description: "Seleccionar y navegar pasan a ser dos cosas distintas: clic selecciona un fichero o una carpeta y doble clic entra —el fichero al escenario, la carpeta al zoom—. La barra del inspector gana la entrada Carpeta, con su propia hoja: máximos con su dueño, frontera, ciclos dentro y a través, reglas agrupadas y los cambios acotados, con las reglas de agregación escritas una vez y compartidas con el MCP."
 section: desarrollo
 status: aceptado
 date: "2026-10-29"
@@ -54,11 +54,17 @@ que permite comparar dos carpetas hermanas sin salir de donde estás.
 Esto enmienda el [ADR 0085](0081-0090/0085-la-ruta-del-mapa-navega.md) en un punto: el clic simple
 deja de navegar. La navegación no desaparece, cambia de gesto y gana la miga.
 
-### 3. Una sola pestaña, contextual
+### 3. Tres entradas en la barra: fichero, carpeta y cambios
 
-No hay tercer icono en la barra. La ficha es la del objeto seleccionado y su cabecera dice si es
-fichero o carpeta: la barra sigue siendo datos (ADR 0079) y no obliga a saber qué hay seleccionado
-antes de elegir icono.
+La carpeta tiene su propia entrada en la barra de actividad (ADR 0079), entre Fichero y Cambios, y
+su propia hoja. No comparte la hoja del fichero: de las siete secciones del fichero le quedan dos
+—la cabecera y el contenido— y las otras serían mentira o estarían vacías. Además, la entrada dice
+qué se puede mirar sin saber qué hay seleccionado; una hoja que cambia de sujeto esconde su propia
+puerta.
+
+Seleccionar una carpeta abre su hoja. Seleccionar un fichero con la hoja de la carpeta abierta
+vuelve a la del fichero. Cambios no se mueve si no se pide: pulsar una celda no cambia de apartado
+por su cuenta (ADR 0069).
 
 ### 4. Qué enseña la ficha de carpeta
 
@@ -114,13 +120,15 @@ deja de decir qué hay abierto en el panel.
   contrato.
 - La URL gana una clave, y las capturas que enseñan una carpeta enfocada sin selección quedan viejas.
 - La agregación se calcula una vez por snapshot y se memoiza por ruta; nunca por frame.
-- El botón de la barra no cambia de forma, pero su contenido sí: la ficha de carpeta tiene que leerse
-  como la de fichero —secciones plegables con su cuenta— o parece otra cosa.
+- La barra gana una entrada, y la hoja de carpeta tiene que leerse como la del fichero —secciones
+  plegables con su cuenta— aunque las secciones no sean las mismas.
 
 ## Alternativas descartadas
 
-- **Una tercera pestaña «carpeta».** Obliga a saber qué hay seleccionado antes de elegir icono y parte
-  la ficha en dos sitios.
+- **Meter la carpeta en la hoja del fichero, con el sujeto cambiando detrás de la misma entrada.** Es
+  lo que se hizo primero y estaba mal: dos fichas que no comparten secciones, un botón que promete
+  una cosa y enseña otra, y un panel que parece vacío al volver a Fichero con una carpeta
+  seleccionada. La hoja es propia y la barra tiene tres entradas.
 - **Que el clic seleccione y además haga zoom.** Se pierde la vista de conjunto justo cuando se
   comparan hermanas.
 - **La ficha de fichero con las métricas sumadas.** Los máximos sin dueño y las aristas sin dentro y

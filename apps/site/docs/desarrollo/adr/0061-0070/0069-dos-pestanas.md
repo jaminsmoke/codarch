@@ -34,6 +34,9 @@ cambio hay que salir de Cambios. El corte de 0059 cambió un salto por otro.
 El panel derecho se queda en **dos pestañas: Fichero y Cambios**, y cada dato vive **una sola vez**,
 en la escala a la que pertenece.
 
+> **Nota:** desde el [ADR 0092](../0091-0100/0092-la-carpeta-tiene-su-ficha.md) la barra tiene una
+> tercera entrada, **Carpeta**, con su propia hoja. Las dos de aquí no cambian de sitio.
+
 1. **Fichero absorbe su lente, sin repetir la tabla.** Dentro de **Métricas**, después de la tabla,
    un desglose del riesgo con sus tres señales, sus pesos y el p95: el valor ya está en la fila del
    riesgo, así que aquí solo se explica de dónde sale. El resumen de símbolos de la lente se retira:

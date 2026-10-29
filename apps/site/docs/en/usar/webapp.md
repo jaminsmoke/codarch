@@ -111,12 +111,20 @@ pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-
 
 ## Inspector › Fichero
 
-The inspector is the right-hand panel. Clicking a file, the **Fichero** (file) tab shows its metrics,
-its symbols and its incoming and outgoing dependencies. Clicking a folder makes the same tab talk
-about it: how many files it holds, at what depth it sits and what share of its area each child takes,
-in the map's own order.
+The inspector is the right-hand panel and has three entries in its activity bar: **Fichero** (file),
+**Carpeta** (folder) and **Cambios** (changes). Clicking a file, **Fichero** shows its metrics, its
+symbols and its incoming and outgoing dependencies. Clicking a folder, **Carpeta** shows how many
+files it holds, at what depth it sits and what share of its area each child takes, in the map's own
+order; selecting a file goes back to **Fichero**.
 
 ![The inspector on the Fichero tab with the metrics and symbols of the selected file](../../images/webapp-inspector-fichero.png)
+
+## Inspector › Carpeta
+
+**Carpeta** is the sheet of the selected folder: its path, its files, its depth and its content, with
+the share of the area each child takes and the files it holds. Clicking a child selects it —if it is
+a file, it moves to **Fichero**. The folder's aggregated metrics, its dependency frontier and its
+cycles are on this phase's roadmap.
 
 ## Inspector › Cambios
 

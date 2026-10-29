@@ -105,12 +105,20 @@ argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repos
 
 ## Inspector › Fichero
 
-El inspector es el panel de la derecha. Al pulsar un fichero, la pestaña **Fichero** muestra sus
-métricas, sus símbolos y sus dependencias entrantes y salientes. Al pulsar una carpeta, la misma
-pestaña habla de ella: cuántos ficheros tiene, en qué nivel está y qué parte de su área ocupa cada
-hijo, en el mismo orden que el mapa.
+El inspector es el panel de la derecha y tiene tres entradas en su barra de actividad: **Fichero**,
+**Carpeta** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus símbolos y sus
+dependencias entrantes y salientes. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
+tiene, en qué nivel está y qué parte de su área ocupa cada hijo, en el mismo orden que el mapa;
+seleccionar un fichero vuelve a **Fichero**.
 
 ![El inspector en la pestaña Fichero con las métricas y los símbolos del fichero seleccionado](../images/webapp-inspector-fichero.png)
+
+## Inspector › Carpeta
+
+**Carpeta** es la hoja de la carpeta seleccionada: su ruta, sus ficheros, su nivel y su contenido,
+con la parte del área que ocupa cada hijo y los ficheros que lleva dentro. Pulsar un hijo lo
+selecciona —si es un fichero, pasa a **Fichero**—. Las métricas agregadas de la carpeta, su frontera
+de dependencias y sus ciclos están en la hoja de ruta de esta fase.
 
 ## Inspector › Cambios
 
