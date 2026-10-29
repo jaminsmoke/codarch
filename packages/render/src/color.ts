@@ -1,4 +1,10 @@
-import type { Lens, RenderMetric, RenderSection } from "./model";
+import type {
+  Lens,
+  RenderFile,
+  RenderMetric,
+  RenderModel,
+  RenderSection
+} from "./model";
 
 type Stop = readonly [number, string];
 
@@ -100,4 +106,27 @@ export function colorForFile(
   if (lens === "structure") return section?.color ?? "#ddd8cf";
   if (lens === "risk" || !metric) return riskColor(risk);
   return metricColor(value, metric);
+}
+
+/**
+ * El color de un fichero del modelo, resuelto igual para el SVG y para el PNG.
+ *
+ * El índice de la métrica y la métrica salen del modelo ya construido; aquí solo
+ * se decide qué valor se lee y con qué se pinta. Vive en un sitio para que el
+ * mapa de la app y la captura no puedan pintar distinto.
+ */
+export function fileFill(
+  model: RenderModel,
+  file: RenderFile,
+  metricIndex: number,
+  metric: RenderMetric | undefined
+): string {
+  const value = metricIndex >= 0 ? file.values[metricIndex] ?? null : null;
+  return colorForFile(
+    model.initialLens,
+    file.risk,
+    model.sections[file.section],
+    value,
+    metric
+  );
 }

@@ -16,6 +16,7 @@
   "dependencies": {
     "@codarch/addons": "*",
     "@codarch/metrics": "*",
+    "@codarch/render": "*",
     "@codarch/schema": "*",
     "@codarch/versions": "*",
     "@modelcontextprotocol/sdk": "^1.32.1",

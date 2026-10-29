@@ -605,7 +605,7 @@ describe("verifyHistory", () => {
 });
 
 describe("servidor MCP", () => {
-  it("registra las doce herramientas y responde por transporte en memoria", async () => {
+  it("registra las trece herramientas y responde por transporte en memoria", async () => {
     const server = createServer(makeStore());
     const [clientTransport, serverTransport] =
       InMemoryTransport.createLinkedPair();
@@ -629,6 +629,7 @@ describe("servidor MCP", () => {
         "get_symbol_chain",
         "list_profiles",
         "list_violations",
+        "map_screenshot",
         "suggest_architecture",
         "verify_history"
       ]);
@@ -650,6 +651,55 @@ describe("servidor MCP", () => {
     } finally {
       await client.close();
       await server.close();
+    }
+  });
+
+  it("devuelve el mapa como imagen y su resumen al lado", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-mcp-shot-"));
+    const server = createServer(makeStore(null, root));
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    const client = new Client({ name: "codarch-test", version: "0.0.0" });
+    await Promise.all([
+      server.connect(serverTransport),
+      client.connect(clientTransport)
+    ]);
+
+    try {
+      const result = await client.callTool({
+        name: "map_screenshot",
+        arguments: { color: "risk", width: 240, height: 200 }
+      });
+      expect(result.isError).toBeFalsy();
+
+      const [image, text] = result.content as Array<{
+        type: string;
+        data?: string;
+        mimeType?: string;
+        text?: string;
+      }>;
+      expect(image?.type).toBe("image");
+      expect(image?.mimeType).toBe("image/png");
+      const png = Buffer.from(image?.data ?? "", "base64");
+      expect([...png.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+      expect(png.readUInt32BE(16)).toBe(240);
+      expect(png.readUInt32BE(20)).toBe(200);
+
+      const payload = JSON.parse(text?.text ?? "{}") as {
+        file: string;
+        slot: number;
+        summary: { color: string; area: string | null; cells: unknown[] };
+      };
+      expect(payload.slot).toBe(1);
+      expect(payload.file.startsWith(root)).toBe(true);
+      expect(payload.summary.color).toBe("risk");
+      expect(payload.summary.area).toBe("rloc");
+      expect(payload.summary.cells.length).toBeGreaterThan(0);
+      expect(fs.existsSync(payload.file)).toBe(true);
+    } finally {
+      await client.close();
+      await server.close();
+      fs.rmSync(root, { recursive: true, force: true });
     }
   });
 

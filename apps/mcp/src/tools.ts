@@ -15,6 +15,8 @@ import {
   type HistoryIndex
 } from "@codarch/schema";
 import { readFileSync } from "node:fs";
+import { RenderError } from "@codarch/render";
+import { captureMap, type Shot } from "@codarch/render/node";
 import { basename, join } from "node:path";
 import { symbolRanking, symbolsOf } from "@codarch/schema";
 import {
@@ -1554,4 +1556,45 @@ function clampInteger(
 
 function compareStrings(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
+}
+
+export interface MapScreenshotArgs {
+  area?: string;
+  color?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface MapScreenshot extends Shot {
+  /** El PNG, para que el cliente lo pinte sin abrir el fichero. */
+  png: Buffer;
+}
+
+/**
+ * La captura del mapa que pide el agente (ADR 0091).
+ *
+ * El PNG y su resumen salen del mismo modelo que pinta la app, con el área y el
+ * color pedidos. La captura ocupa una de las dos ranuras de `.codarch/shots/`,
+ * así que la de antes sigue ahí para comparar.
+ */
+export function mapScreenshot(
+  store: ArchitectureStore,
+  args: MapScreenshotArgs
+): MapScreenshot {
+  const width = clampInteger(args.width, 0, 160, 4096) || undefined;
+  const height = clampInteger(args.height, 0, 160, 4096) || undefined;
+  try {
+    const shot = captureMap(store.snapshot, store.root, {
+      areaMetric: args.area,
+      color: args.color,
+      width,
+      height
+    });
+    return { ...shot, png: readFileSync(shot.file) };
+  } catch (error) {
+    if (error instanceof RenderError || error instanceof RangeError) {
+      throw new McpDataError(error.message);
+    }
+    throw error;
+  }
 }

@@ -1,4 +1,4 @@
-import { colorForFile, inkFor } from "./color";
+import { fileFill, inkFor } from "./color";
 import { layoutMap, VIEW_HEIGHT, VIEW_WIDTH, type PlacedNode } from "./layout";
 import type { RenderMetric, RenderModel } from "./model";
 
@@ -103,15 +103,7 @@ function renderPlaced(
     const file = model.files[index];
     if (!file) return;
 
-    const value =
-      metricIndex >= 0 ? file.values[metricIndex] ?? null : null;
-    const fill = colorForFile(
-      model.initialLens,
-      file.risk,
-      model.sections[file.section],
-      value,
-      metric
-    );
+    const fill = fileFill(model, file, metricIndex, metric);
     const ink = inkFor(fill);
 
     out.push(

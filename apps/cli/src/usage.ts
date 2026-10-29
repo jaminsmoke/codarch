@@ -18,6 +18,7 @@ Uso:
   codarch analyze [ruta] [opciones]
   codarch inspect <fichero.cc.json[.gz]> [opciones]
   codarch render  <fichero.cc.json[.gz]> [opciones]
+  codarch shot    <fichero.cc.json[.gz]> [--area <métrica>] [--color <modo>]
   codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
   codarch serve   [ruta] [opciones]
   codarch profiles [--json]
@@ -50,6 +51,15 @@ Opciones de inspect:
 
 Opciones de render:
   -o, --out <dir>   carpeta de salida (por defecto, junto al cc.json)
+  -h, --help        esta ayuda
+
+Opciones de shot:
+  --area <métrica>  métrica que decide el área (por defecto rloc)
+  --color <modo>    risk | structure | una métrica (por defecto risk)
+  -o, --out <file>  escribe el PNG ahí en vez de en la ranura de turno
+  --width <px>      ancho de la captura (160..4096, por defecto 1400)
+  --height <px>     alto de la captura (160..4096, por defecto 900)
+  --json            salida machine-readable
   -h, --help        esta ayuda
 
 Opciones de diff:
@@ -126,6 +136,8 @@ Ejemplos:
   codarch inspect samples/codecharta_visualization.cc.json.gz
   codarch render samples/codecharta_visualization.cc.json.gz
   codarch render mapa.cc.json -o publico
+  codarch shot .codarch/snapshot.cc.json --color rloc
+  codarch shot .codarch/snapshot.cc.json --area fanIn --color risk
   codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
   codarch serve .
   codarch serve . --no-watch

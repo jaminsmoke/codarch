@@ -13,6 +13,7 @@ import {
   getProjectConfig,
   getSymbolChain,
   listProfiles,
+  mapScreenshot,
   listViolations,
   suggestArchitecture,
   verifyHistory
@@ -20,6 +21,14 @@ import {
 
 const READ_ONLY = {
   readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false
+} as const;
+
+/** La captura deja un PNG en `.codarch/shots/`: no es de solo lectura. */
+const CAPTURE = {
+  readOnlyHint: false,
   destructiveHint: false,
   idempotentHint: true,
   openWorldHint: false
@@ -316,6 +325,41 @@ export function createServer(store: ArchitectureStore): McpServer {
     () => invoke(() => verifyHistory(store))
   );
 
+  server.registerTool(
+    "map_screenshot",
+    {
+      title: "Captura del mapa",
+      description:
+        "Pinta el mapa de arquitectura con el área y el color que se pidan y devuelve el PNG junto a su resumen. El área es una métrica del snapshot (por defecto rloc); el color es risk, structure, el nombre de una métrica, o churn para el calor de commits. La imagen son cajas y colores, sin texto: los nombres de las celdas más grandes, la escala de color y las cifras van en el resumen. La captura ocupa una de las dos ranuras de .codarch/shots/, así que la anterior sigue ahí para comparar.",
+      inputSchema: {
+        area: z
+          .string()
+          .optional()
+          .describe("Métrica que decide el área; por defecto rloc"),
+        color: z
+          .string()
+          .optional()
+          .describe("risk | structure | una métrica | churn (por defecto risk)"),
+        width: z
+          .number()
+          .int()
+          .min(160)
+          .max(4096)
+          .optional()
+          .describe("Ancho en píxeles (por defecto 1400)"),
+        height: z
+          .number()
+          .int()
+          .min(160)
+          .max(4096)
+          .optional()
+          .describe("Alto en píxeles (por defecto 900)")
+      },
+      annotations: CAPTURE
+    },
+    (args) => capture(() => mapScreenshot(store, args))
+  );
+
   return server;
 }
 
@@ -330,15 +374,51 @@ function invoke(callback: () => unknown): CallToolResult {
       ]
     };
   } catch (error) {
-    const message =
-      error instanceof McpDataError
-        ? error.message
-        : error instanceof Error
-          ? error.message
-          : String(error);
-    return {
-      isError: true,
-      content: [{ type: "text", text: message }]
-    };
+    return errorResult(error);
   }
+}
+
+/**
+ * Una captura: la imagen y, detrás, el resumen que la hace legible.
+ *
+ * El PNG va como contenido `image` para que el cliente lo pinte sin abrir el
+ * fichero; el JSON de al lado dice qué se está mirando (ADR 0091).
+ */
+function capture(callback: () => ReturnType<typeof mapScreenshot>): CallToolResult {
+  try {
+    const shot = callback();
+    return {
+      content: [
+        { type: "image", data: shot.png.toString("base64"), mimeType: "image/png" },
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              file: shot.file,
+              slot: shot.slot,
+              bytes: shot.bytes,
+              summary: shot.summary
+            },
+            null,
+            2
+          )
+        }
+      ]
+    };
+  } catch (error) {
+    return errorResult(error);
+  }
+}
+
+function errorResult(error: unknown): CallToolResult {
+  const message =
+    error instanceof McpDataError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : String(error);
+  return {
+    isError: true,
+    content: [{ type: "text", text: message }]
+  };
 }

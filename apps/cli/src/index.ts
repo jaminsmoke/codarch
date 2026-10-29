@@ -3,6 +3,7 @@ import { runAnalyze } from "./commands/analyze";
 import { runDiff } from "./commands/diff";
 import { runInspect } from "./commands/inspect";
 import { runRender } from "./commands/render";
+import { runShot } from "./commands/shot";
 import { runServe } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
 import { runHistory } from "./commands/history";
@@ -17,6 +18,7 @@ import { runVersion } from "./commands/version";
 import { parseAnalyze } from "./args/analyze";
 import { parseInspect } from "./args/inspect";
 import { parseRender } from "./args/render";
+import { parseShot } from "./args/shot";
 import { parseDiff } from "./args/diff";
 import { parseServe } from "./args/serve";
 import { parseHistory } from "./args/history";
@@ -66,6 +68,7 @@ const COMMANDS: Record<string, (args: string[]) => number> = {
   analyze: (args) => runParsed(parseAnalyze, runAnalyze, args),
   inspect: (args) => runParsed(parseInspect, runInspect, args),
   render: (args) => runParsed(parseRender, runRender, args),
+  shot: (args) => runParsed(parseShot, runShot, args),
   diff: (args) => runParsed(parseDiff, runDiff, args),
   serve: (args) =>
     runParsed(
