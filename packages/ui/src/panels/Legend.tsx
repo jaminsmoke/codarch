@@ -1,9 +1,14 @@
-import { formatCompact, type RenderModel } from "@codarch/render/browser";
+import {
+  formatCompact,
+  KIND_COLOR,
+  type RenderModel
+} from "@codarch/render/browser";
 import type {
   CcMigrationLens,
-  CcMigrationStatus
+  CcMigrationStatus,
+  CcRestKind
 } from "@codarch/schema/browser";
-import { STATUS_COLOR, STATUS_LABEL } from "../labels";
+import { KIND_LABEL, STATUS_COLOR, STATUS_LABEL } from "../labels";
 
 /**
  * La leyenda del mapa: qué significa cada color del modo activo.
@@ -31,6 +36,35 @@ export function Legend({
               <i style={{ background: STATUS_COLOR[status] }} />
               <span>{STATUS_LABEL[status]}</span>
               <span className="mono">{migration.summary.status[status]}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (colorMode === "kind" && model) {
+    // El mapa del resto se lee por tipo: cuatro colores y cuántos hay de cada
+    // uno. `other` solo aparece si existe: una leyenda con un cero es ruido.
+    const counts = new Map<CcRestKind, number>();
+    for (const file of model.files) {
+      if (!file.kind) continue;
+      counts.set(file.kind, (counts.get(file.kind) ?? 0) + 1);
+    }
+    const kinds = (["doc", "config", "asset", "other"] as CcRestKind[]).filter(
+      (kind) => (counts.get(kind) ?? 0) > 0
+    );
+    if (kinds.length === 0) return null;
+
+    return (
+      <section className="panel-block">
+        <div className="eyebrow">Leyenda · tipo</div>
+        <div className="legend">
+          {kinds.map((kind) => (
+            <div key={kind}>
+              <i style={{ background: KIND_COLOR[kind] }} />
+              <span>{KIND_LABEL[kind]}</span>
+              <span className="mono">{counts.get(kind)}</span>
             </div>
           ))}
         </div>

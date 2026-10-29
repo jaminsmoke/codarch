@@ -1,5 +1,6 @@
 import type { CcMigrationLens } from "@codarch/schema/browser";
 import {
+  kindColor,
   metricColor,
   riskColor,
   sectionColor,
@@ -33,6 +34,9 @@ export function mapColorFor(
     const section = model.sections[file.section];
     return section ? sectionColor(section) : "#d5d2ca";
   }
+  // El mapa del resto pinta su tipo: documento, configuración, asset u otro
+  // (ADR 0093). Un fichero sin tipo es del código y no debería estar aquí.
+  if (colorMode === "kind") return kindColor(file.kind ?? "other");
   if (colorMode === "churn") {
     // El calor: cuántas veces se ha tocado el fichero.
     const index = metricIndex.get(CHURN_METRIC);

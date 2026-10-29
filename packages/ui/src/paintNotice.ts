@@ -15,7 +15,9 @@ import { CHURN_METRIC } from "./labels";
  *   desaparece. El mapa **no** está mudo, pero **miente** sobre lo que enseña.
  *
  * Los dos merecen un aviso, y con distinto texto, por eso. `risk` y `structure`
- * salen siempre y no dicen nada; sin snapshot no hay nada que avisar.
+ * salen siempre y no dicen nada; `kind` viene del mapa del resto y tampoco: sin
+ * tipo, el fichero sale como `other` y la leyenda lo cuenta. Sin snapshot no hay
+ * nada que avisar.
  */
 export interface PaintNotice {
   /** Lo que se lee en la banda del proyecto. */
@@ -42,7 +44,13 @@ export function paintNotice(
         "El color es el estado de migración y este snapshot no trae la lente: todos los ficheros salen con el mismo color y no hay leyenda. Elige otro color, o analiza un repositorio que la traiga."
     };
   }
-  if (colorMode === "risk" || colorMode === "structure") return null;
+  if (
+    colorMode === "risk" ||
+    colorMode === "structure" ||
+    colorMode === "kind"
+  ) {
+    return null;
+  }
   // Sin snapshot abierto no hay métricas que echar en falta.
   if (!metrics) return null;
 

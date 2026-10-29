@@ -61,8 +61,9 @@ pantalla completa; la app recuerda si estaba plegado.
 A su lado está el botón **Docs y config**: el mapa de lo que no es código —documentos, configuración
 y assets—, que tiene su propio snapshot y su propio checksum. Pulsar el botón de un mapa lo abre;
 pulsar el del que ya está abierto, pliega el panel. Si el repo no trae `rest.cc.json`, el botón se ve
-apagado. En ese mapa el área es el tamaño del fichero y lo que solo habla de código —los lenguajes,
-los símbolos y el calor— desaparece del panel.
+apagado. En ese mapa el área es el tamaño del fichero y el color es su tipo —Documentos,
+Configuración, Assets u Otros—; la leyenda cuenta cuántos hay de cada uno. Lo que solo habla de
+código —los lenguajes, los símbolos y el calor— desaparece del panel.
 
 ![El panel VISTA con los selectores ÁREA y COLOR y el mapa pintado con la lente elegida](../images/webapp-mapa-lentes.png)
 

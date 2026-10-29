@@ -135,6 +135,7 @@ export function useCodarchApp(
     checksumRef,
     tabRef,
     selectedPathRef,
+    map,
     cc,
     source,
     setCc,
@@ -294,7 +295,8 @@ export function useCodarchApp(
   );
 
   const colorOptions = useMemo<CodarchOption[]>(() => {
-    // El resto no tiene riesgo, estructura ni migración: su color es su tamaño.
+    // El resto no tiene riesgo, estructura ni migración: se pinta por tipo, y
+    // el tamaño queda como un color más si se quiere.
     const options: CodarchOption[] = [];
     if (map === "code") {
       options.push({ value: "risk", label: "Riesgo" });
@@ -303,6 +305,8 @@ export function useCodarchApp(
       if (migration) {
         options.push({ value: "status", label: "Estado de migración" });
       }
+    } else {
+      options.push({ value: "kind", label: "Tipo" });
     }
     for (const option of areaOptions) options.push(option);
     return options;
@@ -455,8 +459,7 @@ export function useCodarchApp(
    * Es un cambio de modelo, no de vista. La selección, el foco y el fichero
    * abierto son del mapa anterior y se sueltan; el área y el color también son
    * de cada mapa, así que al volver al código se recuperan los suyos. El resto
-   * se mide en bytes: su área y su color salen del tamaño hasta que haya color
-   * por tipo.
+   * se mide en bytes y se pinta por tipo (ADR 0093).
    */
   const changeMap = useCallback(
     (next: MapId) => {
@@ -472,7 +475,7 @@ export function useCodarchApp(
       setMapView(next);
       if (next === "rest") {
         setAreaMetric("bytes");
-        setColorMode("bytes");
+        setColorMode("kind");
         return;
       }
       const plan = cc

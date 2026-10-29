@@ -1,4 +1,11 @@
-import type { CcEdge, CcJson, CcNode, CcStats } from "@codarch/schema/browser";
+import type {
+  CcEdge,
+  CcJson,
+  CcNode,
+  CcRestKind,
+  CcRestNode,
+  CcStats
+} from "@codarch/schema/browser";
 import { defaultMetric, getStats, walkFiles } from "@codarch/schema/browser";
 import {
   CHURN_METRIC_CANDIDATES,
@@ -46,6 +53,13 @@ export interface RenderFile {
   churn: number;
   /** Valores alineados con `RenderModel.metrics`; `null` cuando la métrica no existe. */
   values: Array<number | null>;
+  /**
+   * El tipo del fichero en el mapa del resto (ADR 0093); `null` en el código.
+   *
+   * Es lo que pinta el color por tipo y lo que cuenta la leyenda, sin que la
+   * app tenga que volver al snapshot.
+   */
+  kind: CcRestKind | null;
 }
 
 export type RiskParts = Record<"complexity" | "churn" | "size", RiskPart>;
@@ -316,7 +330,8 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     complexityKey,
     churnKey,
     prefix,
-    warnings
+    warnings,
+    restKinds: cc.lenses?.rest?.nodes ?? {}
   });
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
 
@@ -427,6 +442,8 @@ function collectFiles(
     churnKey: string | null;
     prefix: string;
     warnings: string[];
+    /** El tipo de cada fichero del resto, por id (ADR 0093). */
+    restKinds: Record<string, CcRestNode>;
   }
 ): RenderFile[] {
   const files: RenderFile[] = [];
@@ -452,7 +469,8 @@ function collectFiles(
       riskParts: NO_RISK_PARTS,
       complexity: valueOf(values, context.complexityKey) ?? 0,
       churn: valueOf(values, context.churnKey) ?? 0,
-      values: []
+      values: [],
+      kind: context.restKinds[entry.node.id]?.kind ?? null
     });
   });
 

@@ -166,7 +166,9 @@ Fase **M64 — El mapa de lo que no es código**.
 - ✅ `codarch analyze` y `serve` escriben `.codarch/rest.cc.json`; el diff, las reglas y la acción no
   lo miran.
 - ✅ La web y el escritorio cargan el resto; la barra de actividad gana el botón `Docs y config`.
-- ⬜ Vista, Estratos y Leyenda por tipo en el raíl del resto.
+- ✅ Vista y Leyenda por tipo en el raíl del resto: cuatro tonos —documento, configuración, asset y
+  otro— y el reparto de ficheros por tipo.
+- ⬜ Estratos agrupados por `kind` en el raíl del resto.
 - ⬜ La ficha de un fichero que no es código y la de carpeta con el resto dentro.
 - ⬜ Las reglas del resto, en su ADR: enlaces rotos, huérfanos, frontmatter y la gemela declarada.
 

@@ -51,6 +51,8 @@ export interface DocumentDeps extends DocumentSetters {
   tabRef: MutableRefObject<InspectorTab>;
   selectedPathRef: MutableRefObject<string | null>;
   cc: CcJson | null;
+  /** El mapa que ocupa el escenario, para no tocar su vista al refrescar. */
+  map: "code" | "rest";
   source: string;
 }
 
@@ -74,6 +76,7 @@ export function useDocuments(deps: DocumentDeps) {
     tabRef,
     selectedPathRef,
     cc,
+    map,
     source,
     setCc,
     setRest,
@@ -127,14 +130,19 @@ export function useDocuments(deps: DocumentDeps) {
 
         setCc(parsed);
         setSource(label);
-        setAreaMetric((current) =>
-          preserveView ? keepArea(current, coverage, plan.areaMetric) : plan.areaMetric
-        );
-        setColorMode((current) =>
-          preserveView
-            ? keepColor(current, coverage, readMigration(parsed))
-            : plan.colorMode
-        );
+        // Un refresco con el mapa del resto delante no toca su área ni su
+        // color: son del resto, y `rloc` o el riesgo no existen ahí (ADR 0093).
+        if (!preserveView) {
+          setAreaMetric(plan.areaMetric);
+          setColorMode(plan.colorMode);
+        } else if (map === "code") {
+          setAreaMetric((current) =>
+            keepArea(current, coverage, plan.areaMetric)
+          );
+          setColorMode((current) =>
+            keepColor(current, coverage, readMigration(parsed))
+          );
+        }
         if (!preserveView) {
           // Otro proyecto, otro resto: el mapa vuelve al código hasta que el
           // nuevo traiga su `rest.cc.json` (ADR 0093).
@@ -166,6 +174,7 @@ export function useDocuments(deps: DocumentDeps) {
       setCc,
       setRest,
       setMap,
+      map,
       setColorMode,
       setError,
       setFocusPath,

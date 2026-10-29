@@ -59,7 +59,8 @@ function file(values: Array<number | null>, risk = 0.65): RenderFile {
     },
     complexity: 15,
     churn: 11,
-    values
+    values,
+    kind: null
   };
 }
 

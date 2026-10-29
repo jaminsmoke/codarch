@@ -1,3 +1,4 @@
+import type { CcRestKind } from "@codarch/schema/browser";
 import type {
   Lens,
   RenderFile,
@@ -5,6 +6,24 @@ import type {
   RenderModel,
   RenderSection
 } from "./model";
+
+/**
+ * El color de cada tipo de lo que no es código (ADR 0093).
+ *
+ * Son los tonos apagados del mapa: el color dice el tipo y el área el tamaño,
+ * sin una tercera variable que competir con ellas.
+ */
+export const KIND_COLOR: Record<CcRestKind, string> = {
+  doc: "#a9bfae",
+  config: "#c9b8a8",
+  asset: "#bfb6c9",
+  other: "#d5d2ca"
+};
+
+/** El color de un tipo del resto; lo que no se reconoce sale como `other`. */
+export function kindColor(kind: CcRestKind): string {
+  return KIND_COLOR[kind] ?? KIND_COLOR.other;
+}
 
 type Stop = readonly [number, string];
 

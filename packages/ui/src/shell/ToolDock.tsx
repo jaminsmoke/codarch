@@ -141,7 +141,9 @@ function ViewControls({ app }: { app: CodarchApp }) {
                 <option value="status">Estado de migración</option>
               ) : null}
             </>
-          ) : null}
+          ) : (
+            <option value="kind">Tipo</option>
+          )}
           {metricOptions.map((key) => (
             <option key={key} value={key}>
               {metricTitle(key)}

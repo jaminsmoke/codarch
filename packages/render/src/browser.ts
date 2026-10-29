@@ -16,9 +16,11 @@ export type { PlacedNode } from "./layout";
 export {
   colorForFile,
   inkFor,
+  kindColor,
   metricColor,
   riskColor,
   sectionColor,
+  KIND_COLOR,
   METRIC_GRADIENT,
   RISK_GRADIENT
 } from "./color";

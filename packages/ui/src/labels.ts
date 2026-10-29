@@ -1,5 +1,6 @@
 import type {
   CcMigrationStatus,
+  CcRestKind,
   CcSymbol,
   SymbolEvent
 } from "@codarch/schema/browser";
@@ -48,6 +49,19 @@ const FILL = 0.42;
 
 /** Lo que ocupa una letra, respecto a su tamaño ✓ (para estimar sin medir ✓). */
 const CHAR_WIDTH = 0.55;
+
+/**
+ * Cómo se lee cada tipo del mapa del resto (ADR 0093).
+ *
+ * Son cuatro y no se pliegan: `other` es lo que no casa con ninguna regla, y
+ * enseñarlo es lo que impide que un formato nuevo desaparezca del mapa.
+ */
+export const KIND_LABEL: Record<CcRestKind, string> = {
+  doc: "Documentos",
+  config: "Configuración",
+  asset: "Assets",
+  other: "Otros"
+};
 
 /** Cómo se lee cada estado de la lente de migración ✓. */
 export const STATUS_LABEL: Record<CcMigrationStatus, string> = {
