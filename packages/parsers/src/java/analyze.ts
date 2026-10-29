@@ -1,5 +1,12 @@
+import { cyclomaticComplexity, type ComplexityRules } from "../cyclomatic";
 import { bodyHash } from "../hash";
-import { countLines, isComment, type SyntaxNodeLike } from "../syntax";
+import {
+  countLines,
+  isComment,
+  tallyFunction,
+  type FunctionTally,
+  type SyntaxNodeLike
+} from "../syntax";
 import type {
   Metrics,
   ParsedImport,
@@ -57,15 +64,20 @@ const DECISION_TYPES = new Set([
 
 const LOGICAL_OPERATORS = new Set(["&&", "||"]);
 
+/** Las reglas de Java para el motor de complejidad. */
+const COMPLEXITY: ComplexityRules = {
+  decisions: DECISION_TYPES,
+  skip: JAVA_FUNCTION_TYPES,
+  logical: { node: "binary_expression", field: "operator", operators: LOGICAL_OPERATORS }
+};
+
 export function analyzeJavaTree(source: string, root: SyntaxNodeLike): JavaAnalysis {
   const codeLines = new Set<number>();
   const imports: ParsedImport[] = [];
   const symbols: ParsedSymbol[] = [];
   const members: ParsedMember[] = [];
 
-  let functions = 0;
-  let maxComplexity = 0;
-  let maxFunctionLength = 0;
+  const tally: FunctionTally = { functions: 0, maxComplexity: 0, maxFunctionLength: 0 };
 
   const stack: SyntaxNodeLike[] = [root];
 
@@ -82,58 +94,20 @@ export function analyzeJavaTree(source: string, root: SyntaxNodeLike): JavaAnaly
       continue;
     }
 
-    const isFunction = JAVA_FUNCTION_TYPES.has(node.type);
-    const body = isFunction ? node.childForFieldName("body") : null;
-    const complexity = isFunction && body ? javaComplexity(node) : 1;
-
-    if (isFunction && body) {
-      functions++;
-      const length = node.endPosition.row - node.startPosition.row + 1;
-      if (complexity > maxComplexity) maxComplexity = complexity;
-      if (length > maxFunctionLength) maxFunctionLength = length;
-    }
-
     // Los hijos se piden una sola vez por nodo: en el binding nativo cada
     // acceso los vuelve a materializar.
     const children = node.children;
 
     if (node.type === "import_declaration") {
-      const nameNode = node.namedChildren.find(
-        (child) => child.type === "scoped_identifier" || child.type === "identifier"
-      );
-      const wildcard = children.some((child) => child.type === "asterisk");
-      if (nameNode) {
-        imports.push({
-          specifier: `${nameNode.text}${wildcard ? ".*" : ""}`,
-          kind: "static",
-          typeOnly: false,
-          line: node.startPosition.row + 1
-        });
-      }
+      const imported = readImport(node);
+      if (imported) imports.push(imported);
     }
 
     const typeKind = JAVA_TYPE_KINDS[node.type];
     if (typeKind) {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(describeJavaSymbol(name, typeKind, node, nameNode));
-        members.push(...membersOfType(node, name));
-      }
-    } else if (isFunction) {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(
-          describeJavaSymbol(
-            name,
-            "function",
-            node,
-            nameNode,
-            body ? complexity : undefined
-          )
-        );
-      }
+      declareType(node, typeKind, { symbols, members });
+    } else if (JAVA_FUNCTION_TYPES.has(node.type)) {
+      declareMethod(node, { symbols, tally });
     }
 
     // Al revés, para visitar el fuente en orden.
@@ -149,9 +123,9 @@ export function analyzeJavaTree(source: string, root: SyntaxNodeLike): JavaAnaly
     metrics: {
       loc: countLines(source),
       rloc: codeLines.size,
-      functions,
-      maxComplexity,
-      maxFunctionLength
+      functions: tally.functions,
+      maxComplexity: tally.maxComplexity,
+      maxFunctionLength: tally.maxFunctionLength
     },
     imports,
     symbols,
@@ -159,33 +133,62 @@ export function analyzeJavaTree(source: string, root: SyntaxNodeLike): JavaAnaly
   };
 }
 
+/** El `import` de Java, con su comodín si lo lleva. */
+function readImport(node: SyntaxNodeLike): ParsedImport | null {
+  const nameNode = node.namedChildren.find(
+    (child) => child.type === "scoped_identifier" || child.type === "identifier"
+  );
+  if (!nameNode) return null;
+
+  const wildcard = node.children.some((child) => child.type === "asterisk");
+  return {
+    specifier: `${nameNode.text}${wildcard ? ".*" : ""}`,
+    kind: "static",
+    typeOnly: false,
+    line: node.startPosition.row + 1
+  };
+}
+
+/** Un tipo declarado y, de paso, los miembros que declara. */
+function declareType(
+  node: SyntaxNodeLike,
+  kind: ParsedSymbol["kind"],
+  java: { symbols: ParsedSymbol[]; members: ParsedMember[] }
+): void {
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+
+  java.symbols.push(describeJavaSymbol(name, kind, node, nameNode));
+  java.members.push(...membersOfType(node, name));
+}
+
 /**
- * Complejidad ciclomática de un método: 1 + decisiones de su cuerpo.
+ * Un método: su símbolo y, si tiene cuerpo, lo que se mide de él.
  *
- * No desciende a métodos anidados (una clase local dentro de un método): cada
- * uno se mide por separado. Un `switch` cuenta una vez por etiqueta —también en
- * la forma de flecha, donde cada regla lleva la suya—.
+ * Un método abstracto o de interfaz sin cuerpo no cuenta como función, pero sí
+ * declara el nombre.
  */
-export function javaComplexity(fn: SyntaxNodeLike): number {
-  let complexity = 1;
-  const body = fn.childForFieldName("body");
-  const stack: SyntaxNodeLike[] = body ? [body] : [];
+function declareMethod(
+  node: SyntaxNodeLike,
+  java: { symbols: ParsedSymbol[]; tally: FunctionTally }
+): void {
+  const body = node.childForFieldName("body");
+  const complexity = body ? cyclomaticComplexity(node, COMPLEXITY) : 1;
+  if (body) tallyFunction(java.tally, node, complexity);
 
-  while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
-    if (JAVA_FUNCTION_TYPES.has(node.type)) continue;
-
-    if (DECISION_TYPES.has(node.type)) complexity++;
-
-    if (node.type === "binary_expression") {
-      const operator = node.childForFieldName("operator")?.text;
-      if (operator && LOGICAL_OPERATORS.has(operator)) complexity++;
-    }
-
-    for (const child of node.children) stack.push(child);
-  }
-
-  return complexity;
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+  java.symbols.push(
+    describeJavaSymbol(
+      name,
+      "function",
+      node,
+      nameNode,
+      body ? complexity : undefined
+    )
+  );
 }
 
 /**
@@ -210,7 +213,7 @@ export function describeJavaSymbol(
   };
 
   if (kind === "function") {
-    symbol.complexity = complexity ?? javaComplexity(node);
+    symbol.complexity = complexity ?? cyclomaticComplexity(node, COMPLEXITY);
   }
 
   return symbol;

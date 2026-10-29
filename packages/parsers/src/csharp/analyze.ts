@@ -1,5 +1,11 @@
+import { cyclomaticComplexity, type ComplexityRules } from "../cyclomatic";
 import { bodyHash } from "../hash";
-import { countLines, type SyntaxNodeLike } from "../syntax";
+import {
+  countLines,
+  tallyFunction,
+  type FunctionTally,
+  type SyntaxNodeLike
+} from "../syntax";
 import type {
   Metrics,
   ParsedImport,
@@ -70,6 +76,20 @@ const DECISION_TYPES = new Set([
 
 const LOGICAL_OPERATORS = new Set(["&&", "||"]);
 
+/**
+ * Las reglas de C# para el motor de complejidad.
+ *
+ * El `default` de un `switch` no abre camino, y por eso una sección de `switch`
+ * solo cuenta si su etiqueta no lo es: eso va en `extra`, que sí mira el nodo.
+ */
+const COMPLEXITY: ComplexityRules = {
+  decisions: DECISION_TYPES,
+  skip: CSHARP_FUNCTION_TYPES,
+  logical: { node: "binary_expression", operators: LOGICAL_OPERATORS },
+  extra: (node) =>
+    node.type === "switch_section" && node.children[0]?.type !== "default" ? 1 : 0
+};
+
 export function analyzeCSharpTree(
   source: string,
   root: SyntaxNodeLike
@@ -80,9 +100,7 @@ export function analyzeCSharpTree(
   const members: ParsedMember[] = [];
   const namespaces: string[] = [];
 
-  let functions = 0;
-  let maxComplexity = 0;
-  let maxFunctionLength = 0;
+  const tally: FunctionTally = { functions: 0, maxComplexity: 0, maxFunctionLength: 0 };
 
   /**
    * El espacio de nombres en el que estamos: un `namespace` de bloque puede
@@ -134,35 +152,9 @@ export function analyzeCSharpTree(
 
     const typeKind = CSHARP_TYPE_KINDS[node.type];
     if (typeKind) {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(describeCSharpSymbol(name, typeKind, node, nameNode));
-        members.push(...membersOfType(node, name));
-      }
+      declareType(node, typeKind, { symbols, members });
     } else if (CSHARP_FUNCTION_TYPES.has(node.type)) {
-      const body = node.childForFieldName("body");
-      const complexity = body ? csharpComplexity(node) : 1;
-      if (body) {
-        functions++;
-        const length = node.endPosition.row - node.startPosition.row + 1;
-        if (complexity > maxComplexity) maxComplexity = complexity;
-        if (length > maxFunctionLength) maxFunctionLength = length;
-      }
-
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(
-          describeCSharpSymbol(
-            name,
-            "function",
-            node,
-            nameNode,
-            body ? complexity : undefined
-          )
-        );
-      }
+      declareMethod(node, { symbols, tally });
     }
 
     // Al revés, para visitar el fuente en orden.
@@ -181,9 +173,9 @@ export function analyzeCSharpTree(
     metrics: {
       loc: countLines(source),
       rloc: codeLines.size,
-      functions,
-      maxComplexity,
-      maxFunctionLength
+      functions: tally.functions,
+      maxComplexity: tally.maxComplexity,
+      maxFunctionLength: tally.maxFunctionLength
     },
     imports,
     symbols,
@@ -192,42 +184,46 @@ export function analyzeCSharpTree(
   };
 }
 
+/** Un tipo declarado y, de paso, los miembros que declara. */
+function declareType(
+  node: SyntaxNodeLike,
+  kind: ParsedSymbol["kind"],
+  csharp: { symbols: ParsedSymbol[]; members: ParsedMember[] }
+): void {
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+
+  csharp.symbols.push(describeCSharpSymbol(name, kind, node, nameNode));
+  csharp.members.push(...membersOfType(node, name));
+}
+
 /**
- * Complejidad ciclomática de un método: 1 + decisiones de su cuerpo.
+ * Un método o un constructor: su símbolo y, si tiene cuerpo, lo que se mide.
  *
- * No desciende a lo que se mide aparte: otro método de una clase anidada. Una
- * lambda y una función local sí quedan dentro del método que las escribe.
+ * Una declaración sin cuerpo —un método abstracto o el de una interfaz— no
+ * cuenta como función, pero sí declara el nombre.
  */
-export function csharpComplexity(fn: SyntaxNodeLike): number {
-  let complexity = 1;
-  const body = fn.childForFieldName("body");
-  const stack: SyntaxNodeLike[] = body ? [body] : [];
+function declareMethod(
+  node: SyntaxNodeLike,
+  csharp: { symbols: ParsedSymbol[]; tally: FunctionTally }
+): void {
+  const body = node.childForFieldName("body");
+  const complexity = body ? cyclomaticComplexity(node, COMPLEXITY) : 1;
+  if (body) tallyFunction(csharp.tally, node, complexity);
 
-  while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
-    if (CSHARP_FUNCTION_TYPES.has(node.type)) continue;
-
-    if (DECISION_TYPES.has(node.type)) complexity++;
-
-    // Un `case` es una sección; `default` no cuenta.
-    if (node.type === "switch_section") {
-      const first = node.children[0];
-      if (first?.type !== "default") complexity++;
-    }
-
-    if (node.type === "binary_expression") {
-      for (const child of node.children) {
-        if (LOGICAL_OPERATORS.has(child.type)) {
-          complexity++;
-          break;
-        }
-      }
-    }
-
-    for (const child of node.children) stack.push(child);
-  }
-
-  return complexity;
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+  csharp.symbols.push(
+    describeCSharpSymbol(
+      name,
+      "function",
+      node,
+      nameNode,
+      body ? complexity : undefined
+    )
+  );
 }
 
 /**
@@ -253,7 +249,7 @@ export function describeCSharpSymbol(
   };
 
   if (kind === "function") {
-    symbol.complexity = complexity ?? csharpComplexity(node);
+    symbol.complexity = complexity ?? cyclomaticComplexity(node, COMPLEXITY);
   }
 
   return symbol;

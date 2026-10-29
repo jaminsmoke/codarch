@@ -34,6 +34,37 @@ export function commentText(text: string): boolean {
   return isComment(text);
 }
 
+/**
+ * Lo que se mide de las funciones de un fichero.
+ *
+ * Los cuatro analizadores de lenguaje suman las mismas tres cifras, y la regla
+ * de qué es una función medible también es la misma: hay que tener cuerpo.
+ */
+export interface FunctionTally {
+  functions: number;
+  maxComplexity: number;
+  maxFunctionLength: number;
+}
+
+/**
+ * Anota una función con cuerpo en el recuento del fichero.
+ *
+ * La longitud incluye la firma y las llaves: es lo que ocupa el nodo entero,
+ * igual que `lines` de un símbolo.
+ */
+export function tallyFunction(
+  tally: FunctionTally,
+  node: SyntaxNodeLike,
+  complexity: number
+): void {
+  tally.functions += 1;
+  tally.maxComplexity = Math.max(tally.maxComplexity, complexity);
+  tally.maxFunctionLength = Math.max(
+    tally.maxFunctionLength,
+    node.endPosition.row - node.startPosition.row + 1
+  );
+}
+
 /** `loc` cuenta líneas físicas; `rloc` líneas con al menos un token de código. */
 export function countLines(source: string): number {
   if (source.length === 0) return 0;

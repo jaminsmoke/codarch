@@ -1,5 +1,11 @@
+import { cyclomaticComplexity, type ComplexityRules } from "../cyclomatic";
 import { bodyHash } from "../hash";
-import { countLines, type SyntaxNodeLike } from "../syntax";
+import {
+  countLines,
+  tallyFunction,
+  type FunctionTally,
+  type SyntaxNodeLike
+} from "../syntax";
 import type {
   Metrics,
   ParsedImport,
@@ -57,15 +63,20 @@ const DECISION_TYPES = new Set([
 
 const LOGICAL_OPERATORS = new Set(["&&", "||"]);
 
+/** Las reglas de Go para el motor de complejidad. */
+const COMPLEXITY: ComplexityRules = {
+  decisions: DECISION_TYPES,
+  skip: GO_FUNCTION_TYPES,
+  logical: { node: "binary_expression", field: "operator", operators: LOGICAL_OPERATORS }
+};
+
 export function analyzeGoTree(source: string, root: SyntaxNodeLike): GoAnalysis {
   const codeLines = new Set<number>();
   const imports: ParsedImport[] = [];
   const symbols: ParsedSymbol[] = [];
   const members: ParsedMember[] = [];
 
-  let functions = 0;
-  let maxComplexity = 0;
-  let maxFunctionLength = 0;
+  const tally: FunctionTally = { functions: 0, maxComplexity: 0, maxFunctionLength: 0 };
 
   const stack: SyntaxNodeLike[] = [root];
 
@@ -95,40 +106,9 @@ export function analyzeGoTree(source: string, root: SyntaxNodeLike): GoAnalysis 
     }
 
     if (node.type === "type_spec") {
-      const nameNode = node.childForFieldName("name");
-      const type = node.childForFieldName("type");
-      const name = nameNode?.text;
-      if (name && type) {
-        symbols.push(
-          describeGoSymbol(name, GO_TYPE_KINDS[type.type] ?? "type", node, nameNode)
-        );
-        if (type.type === "struct_type") {
-          members.push(...fieldsOfStruct(type, name));
-        }
-      }
+      declareType(node, { symbols, members });
     } else if (GO_FUNCTION_TYPES.has(node.type)) {
-      const body = node.childForFieldName("body");
-      const complexity = body ? goComplexity(node) : 1;
-      if (body) {
-        functions++;
-        const length = node.endPosition.row - node.startPosition.row + 1;
-        if (complexity > maxComplexity) maxComplexity = complexity;
-        if (length > maxFunctionLength) maxFunctionLength = length;
-      }
-
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(
-          describeGoSymbol(
-            name,
-            "function",
-            node,
-            nameNode,
-            body ? complexity : undefined
-          )
-        );
-      }
+      declareFunction(node, { symbols, tally });
     }
 
     // Al revés, para visitar el fuente en orden.
@@ -144,9 +124,9 @@ export function analyzeGoTree(source: string, root: SyntaxNodeLike): GoAnalysis 
     metrics: {
       loc: countLines(source),
       rloc: codeLines.size,
-      functions,
-      maxComplexity,
-      maxFunctionLength
+      functions: tally.functions,
+      maxComplexity: tally.maxComplexity,
+      maxFunctionLength: tally.maxFunctionLength
     },
     imports,
     symbols,
@@ -154,33 +134,49 @@ export function analyzeGoTree(source: string, root: SyntaxNodeLike): GoAnalysis 
   };
 }
 
+/** Lo que van llenando los manejadores de declaración. */
+interface GoDeclarations {
+  symbols: ParsedSymbol[];
+  members: ParsedMember[];
+  tally: FunctionTally;
+}
+
+/** Un `type_spec`: el nombre, su clase y —si es un `struct`— sus campos. */
+function declareType(
+  node: SyntaxNodeLike,
+  go: Pick<GoDeclarations, "symbols" | "members">
+): void {
+  const nameNode = node.childForFieldName("name");
+  const type = node.childForFieldName("type");
+  const name = nameNode?.text;
+  if (!name || !type) return;
+
+  go.symbols.push(
+    describeGoSymbol(name, GO_TYPE_KINDS[type.type] ?? "type", node, nameNode)
+  );
+  if (type.type === "struct_type") go.members.push(...fieldsOfStruct(type, name));
+}
+
 /**
- * Complejidad ciclomática de una función: 1 + decisiones de su cuerpo.
+ * Una función o un método: su símbolo y, si tiene cuerpo, lo que se mide de él.
  *
- * No desciende a lo que se mide aparte: otro `func` declarado dentro no existe
- * en Go, y un método tampoco. Un `func_literal` —una función anónima— sí queda
- * dentro de la función que lo escribe.
+ * Una firma sin cuerpo —la de una función ensambladora— no cuenta como
+ * función, pero sí declara el nombre.
  */
-export function goComplexity(fn: SyntaxNodeLike): number {
-  let complexity = 1;
-  const body = fn.childForFieldName("body");
-  const stack: SyntaxNodeLike[] = body ? [body] : [];
+function declareFunction(
+  node: SyntaxNodeLike,
+  go: Pick<GoDeclarations, "symbols" | "tally">
+): void {
+  const body = node.childForFieldName("body");
+  const complexity = body ? cyclomaticComplexity(node, COMPLEXITY) : 1;
+  if (body) tallyFunction(go.tally, node, complexity);
 
-  while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
-    if (GO_FUNCTION_TYPES.has(node.type)) continue;
-
-    if (DECISION_TYPES.has(node.type)) complexity++;
-
-    if (node.type === "binary_expression") {
-      const operator = node.childForFieldName("operator")?.text;
-      if (operator && LOGICAL_OPERATORS.has(operator)) complexity++;
-    }
-
-    for (const child of node.children) stack.push(child);
-  }
-
-  return complexity;
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+  go.symbols.push(
+    describeGoSymbol(name, "function", node, nameNode, body ? complexity : undefined)
+  );
 }
 
 /**
@@ -207,7 +203,7 @@ export function describeGoSymbol(
   };
 
   if (kind === "function") {
-    symbol.complexity = complexity ?? goComplexity(node);
+    symbol.complexity = complexity ?? cyclomaticComplexity(node, COMPLEXITY);
   }
 
   return symbol;

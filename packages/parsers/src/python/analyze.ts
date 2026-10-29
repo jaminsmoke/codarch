@@ -1,5 +1,11 @@
+import { cyclomaticComplexity, type ComplexityRules } from "../cyclomatic";
 import { bodyHash } from "../hash";
-import { countLines, type SyntaxNodeLike } from "../syntax";
+import {
+  countLines,
+  tallyFunction,
+  type FunctionTally,
+  type SyntaxNodeLike
+} from "../syntax";
 import type {
   Metrics,
   ParsedImport,
@@ -46,6 +52,13 @@ const DECISION_TYPES = new Set([
 
 const LOGICAL_OPERATORS = new Set(["and", "or"]);
 
+/** Las reglas de Python para el motor de complejidad. */
+const COMPLEXITY: ComplexityRules = {
+  decisions: DECISION_TYPES,
+  skip: new Set(["function_definition", "class_definition"]),
+  logical: { node: "boolean_operator", field: "operator", operators: LOGICAL_OPERATORS }
+};
+
 /**
  * Si el nodo es un comentario.
  *
@@ -67,9 +80,7 @@ export function analyzePythonTree(
   const symbols: ParsedSymbol[] = [];
   const members: ParsedMember[] = [];
 
-  let functions = 0;
-  let maxComplexity = 0;
-  let maxFunctionLength = 0;
+  const tally: FunctionTally = { functions: 0, maxComplexity: 0, maxFunctionLength: 0 };
 
   const stack: SyntaxNodeLike[] = [root];
 
@@ -99,35 +110,9 @@ export function analyzePythonTree(
     }
 
     if (node.type === "class_definition") {
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(describePythonSymbol(name, "class", node, nameNode));
-        members.push(...membersOfClass(node, name));
-      }
+      declareClass(node, { symbols, members });
     } else if (node.type === "function_definition") {
-      const body = node.childForFieldName("body");
-      const complexity = body ? pythonComplexity(node) : 1;
-      if (body) {
-        functions++;
-        const length = node.endPosition.row - node.startPosition.row + 1;
-        if (complexity > maxComplexity) maxComplexity = complexity;
-        if (length > maxFunctionLength) maxFunctionLength = length;
-      }
-
-      const nameNode = node.childForFieldName("name");
-      const name = nameNode?.text;
-      if (name) {
-        symbols.push(
-          describePythonSymbol(
-            name,
-            "function",
-            node,
-            nameNode,
-            body ? complexity : undefined
-          )
-        );
-      }
+      declareFunction(node, { symbols, tally });
     }
 
     // Al revés, para visitar el fuente en orden.
@@ -143,9 +128,9 @@ export function analyzePythonTree(
     metrics: {
       loc: countLines(source),
       rloc: codeLines.size,
-      functions,
-      maxComplexity,
-      maxFunctionLength
+      functions: tally.functions,
+      maxComplexity: tally.maxComplexity,
+      maxFunctionLength: tally.maxFunctionLength
     },
     imports,
     symbols,
@@ -153,34 +138,45 @@ export function analyzePythonTree(
   };
 }
 
+/** Una clase declarada y, de paso, los atributos que declara. */
+function declareClass(
+  node: SyntaxNodeLike,
+  python: { symbols: ParsedSymbol[]; members: ParsedMember[] }
+): void {
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+
+  python.symbols.push(describePythonSymbol(name, "class", node, nameNode));
+  python.members.push(...membersOfClass(node, name));
+}
+
 /**
- * Complejidad ciclomática de una función: 1 + decisiones de su cuerpo.
+ * Una función o un método: su símbolo y, si tiene cuerpo, lo que se mide de él.
  *
- * No desciende a lo que se mide aparte: otra función, o una clase anidada con
- * sus métodos. Una `lambda` sí cuenta dentro de la función que la escribe.
+ * En Python toda `def` tiene cuerpo; la comprobación se queda por simetría con
+ * los demás lenguajes y porque la firma de `describePythonSymbol` la pide.
  */
-export function pythonComplexity(fn: SyntaxNodeLike): number {
-  let complexity = 1;
-  const body = fn.childForFieldName("body");
-  const stack: SyntaxNodeLike[] = body ? [body] : [];
+function declareFunction(
+  node: SyntaxNodeLike,
+  python: { symbols: ParsedSymbol[]; tally: FunctionTally }
+): void {
+  const body = node.childForFieldName("body");
+  const complexity = body ? cyclomaticComplexity(node, COMPLEXITY) : 1;
+  if (body) tallyFunction(python.tally, node, complexity);
 
-  while (stack.length > 0) {
-    const node = stack.pop() as SyntaxNodeLike;
-    if (node.type === "function_definition" || node.type === "class_definition") {
-      continue;
-    }
-
-    if (DECISION_TYPES.has(node.type)) complexity++;
-
-    if (node.type === "boolean_operator") {
-      const operator = node.childForFieldName("operator")?.text;
-      if (operator && LOGICAL_OPERATORS.has(operator)) complexity++;
-    }
-
-    for (const child of node.children) stack.push(child);
-  }
-
-  return complexity;
+  const nameNode = node.childForFieldName("name");
+  const name = nameNode?.text;
+  if (!name) return;
+  python.symbols.push(
+    describePythonSymbol(
+      name,
+      "function",
+      node,
+      nameNode,
+      body ? complexity : undefined
+    )
+  );
 }
 
 /**
@@ -205,7 +201,7 @@ export function describePythonSymbol(
   };
 
   if (kind === "function") {
-    symbol.complexity = complexity ?? pythonComplexity(node);
+    symbol.complexity = complexity ?? cyclomaticComplexity(node, COMPLEXITY);
   }
 
   return symbol;
