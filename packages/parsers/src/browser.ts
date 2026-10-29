@@ -28,8 +28,21 @@ export type {
 } from "./analyze-core";
 export { MemoryFileSystem, directoryOf } from "./fs";
 export type { DirectoryEntry, FileSystem } from "./fs";
-export { walkSourceFiles } from "./walk";
-export type { WalkedFile, WalkOptions, WalkResult } from "./walk";
+export { walkCodeAndRest, walkSourceFiles } from "./walk";
+export type {
+  SplitWalkResult,
+  WalkedFile,
+  WalkOptions,
+  WalkResult
+} from "./walk";
+export {
+  buildRestSnapshot,
+  isTextualPath,
+  kindForPath,
+  linkTargets,
+  measureRestFile
+} from "./rest";
+export type { RestFile, RestInput } from "./rest";
 export { DEFAULT_EXTENSIONS } from "./extensions";
 export * as path from "./path";
 export type {

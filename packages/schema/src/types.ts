@@ -205,12 +205,37 @@ export interface CcStructureLens {
   nodes: Record<string, CcStructureNode>;
 }
 
+/** El tipo de un fichero que no es código (ADR 0093). */
+export type CcRestKind = "doc" | "config" | "asset" | "other";
+
+/**
+ * Lo que el mapa del resto sabe de un fichero y no es una métrica.
+ *
+ * `loc` solo aparece en lo que se lee como texto: un binario no tiene líneas.
+ */
+export interface CcRestNode {
+  kind: CcRestKind;
+  loc?: number;
+}
+
+/**
+ * La lente del resto: el mapa de lo que no es código (ADR 0093).
+ *
+ * Vive en su propio snapshot, `.codarch/rest.cc.json`. Los ficheros que no son
+ * código no entran en el snapshot del código: su checksum sigue siendo el del
+ * código.
+ */
+export interface CcRestLens {
+  nodes: Record<string, CcRestNode>;
+}
+
 export interface CcLenses {
   metrics?: CcMetricsLens;
   dependency?: CcDependencyLens;
   migration?: CcMigrationLens;
   symbols?: CcSymbolsLens;
   structure?: CcStructureLens;
+  rest?: CcRestLens;
   /** Lentes desconocidas se preservan: una herramienta nueva no rompe a una vieja. */
   [name: string]: unknown;
 }

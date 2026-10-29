@@ -42,8 +42,7 @@ interface PendingDirectory {
 }
 
 /**
- * Recorre un proyecto y devuelve los ficheros TypeScript/JavaScript que no
- * están ignorados.
+ * Recorre un proyecto y devuelve los ficheros de las extensiones pedidas.
  *
  * El orden es determinista (por ruta relativa) y no sigue symlinks. Los
  * `.gitignore` anidados se aplican con la precedencia habitual: el más cercano
@@ -53,7 +52,45 @@ export function walkSourceFiles(
   fileSystem: FileSystem,
   options: WalkOptions = {}
 ): WalkResult {
+  const { files, warnings } = walkAllFiles(fileSystem, options);
   const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
+  return {
+    files: files.filter((file) => matchesExtension(file.relativePath, extensions)),
+    warnings
+  };
+}
+
+export interface SplitWalkResult {
+  /** Los ficheros que miden los parsers. */
+  code: WalkedFile[];
+  /** Los que no son código: documentos, configuración y assets (ADR 0093). */
+  rest: WalkedFile[];
+  warnings: string[];
+}
+
+/**
+ * El recorrido, partido en una sola pasada (ADR 0093).
+ *
+ * El mapa del resto no cuesta un segundo recorrido: se decide por fichero, con
+ * los mismos `.gitignore`, el mismo orden y sin leer nada dos veces.
+ */
+export function walkCodeAndRest(
+  fileSystem: FileSystem,
+  options: WalkOptions = {}
+): SplitWalkResult {
+  const { files, warnings } = walkAllFiles(fileSystem, options);
+  const extensions = options.extensions ?? DEFAULT_EXTENSIONS;
+  const code: WalkedFile[] = [];
+  const rest: WalkedFile[] = [];
+  for (const file of files) {
+    if (matchesExtension(file.relativePath, extensions)) code.push(file);
+    else rest.push(file);
+  }
+  return { code, rest, warnings };
+}
+
+/** El recorrido sin mirar extensiones: todo lo que no está ignorado. */
+function walkAllFiles(fileSystem: FileSystem, options: WalkOptions): WalkResult {
   const warnings: string[] = [];
   const files: WalkedFile[] = [];
 
@@ -103,7 +140,6 @@ export function walkSourceFiles(
         stack.push({ absolutePath, relativePath, layers });
       } else if (entry.isFile) {
         if (isIgnored(directory.layers, relativePath, false)) continue;
-        if (!matchesExtension(entry.name, extensions)) continue;
         files.push({ absolutePath, relativePath });
       }
     }

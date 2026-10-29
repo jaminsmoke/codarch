@@ -81,15 +81,25 @@ export type {
 } from "./migration";
 export {
   DEFAULT_EXTENSIONS,
+  walkCodeAndRest,
   walkProjectDirectories,
   walkSourceFiles
 } from "./walk";
 export type {
+  SplitWalkResult,
   WalkedDirectory,
   WalkedFile,
   WalkOptions,
   WalkResult
 } from "./walk";
+export {
+  buildRestSnapshot,
+  isTextualPath,
+  kindForPath,
+  linkTargets,
+  measureRestFile
+} from "./rest";
+export type { RestFile, RestInput } from "./rest";
 export { ensureGitignoreEntry } from "./gitignore";
 export {
   normalizeSourcePath,

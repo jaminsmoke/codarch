@@ -271,9 +271,10 @@ function buildTree(files: readonly SnapshotFile[], rootName: string): BuiltTree 
 /**
  * Crea las carpetas que falten y cuelga el fichero de la última.
  *
- * Devuelve `null` cuando la ruta no tiene nombre de fichero.
+ * Devuelve `null` cuando la ruta no tiene nombre de fichero. Es la misma pieza
+ * que arma el árbol del resto (ADR 0093): un solo árbol, dos snapshots.
  */
-function addFileNode(
+export function addFileNode(
   root: CcNode,
   folders: Map<string, CcNode>,
   relativePath: string
@@ -457,7 +458,7 @@ function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
   };
 }
 
-function checksumFor(files: readonly CcNode[], lenses: unknown): string {
+export function checksumFor(files: readonly CcNode[], lenses: unknown): string {
   return md5Hex(stableStringify({ files, lenses }));
 }
 
@@ -484,7 +485,7 @@ function stableStringify(value: unknown): string {
   return "null";
 }
 
-function sortChildren(node: CcNode): void {
+export function sortChildren(node: CcNode): void {
   if (!node.children) return;
   node.children.sort((left, right) => {
     if (left.type !== right.type) return left.type === "Folder" ? -1 : 1;
@@ -493,11 +494,11 @@ function sortChildren(node: CcNode): void {
   for (const child of node.children) sortChildren(child);
 }
 
-function sanitizeNodeName(name: string): string {
+export function sanitizeNodeName(name: string): string {
   const sanitized = name.replace(/[\\/]/g, "-").trim();
   return sanitized && sanitized !== "." && sanitized !== ".." ? sanitized : "Proyecto";
 }
 
-function compareStrings(left: string, right: string): number {
+export function compareStrings(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }

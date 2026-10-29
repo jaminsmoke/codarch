@@ -32,7 +32,12 @@ import type {
   ParserProject,
   SourceParser
 } from "./types";
-import { walkSourceFiles, type WalkedFile } from "./walk";
+import { walkCodeAndRest, type WalkedFile } from "./walk";
+import {
+  buildRestSnapshot,
+  measureRestFile,
+  type RestFile
+} from "./rest";
 
 export interface ChurnMetric {
   commits: number;
@@ -87,6 +92,14 @@ export interface AnalyzeCoreOptions {
    * churn, como el del CLI con `--no-git`.
    */
   churn?: (relativePaths: string[]) => ChurnResult;
+  /**
+   * Mide también lo que no es código (ADR 0093).
+   *
+   * Por defecto, sí: el snapshot del resto sale de la misma pasada. Quien no lo
+   * quiera —la acción de GitHub no lo publica— lo apaga y se ahorra leer lo que
+   * no va a usar.
+   */
+  rest?: boolean;
   /**
    * Avisa del progreso fichero a fichero.
    *
@@ -143,6 +156,14 @@ export interface AnalyzeCoreResult {
   churn: ChurnResult | null;
   /** Ficheros reutilizados de la caché y ficheros parseados de nuevo. */
   cache: { hits: number; misses: number };
+  /**
+   * El snapshot de lo que no es código (ADR 0093), o `null` si se apagó.
+   *
+   * Es un cc.json aparte: su checksum no tiene nada que ver con el del código.
+   */
+  rest: CcJson | null;
+  /** Ficheros del resto que entraron en su snapshot. */
+  restFiles: number;
   durationMs: number;
 }
 
@@ -165,6 +186,8 @@ interface AnalysisState {
   migrationLinks: MigrationLinkInput[];
   links: DependencyLink[];
   unresolved: UnresolvedImportIssue[];
+  /** Lo que no es código, ya medido (ADR 0093). */
+  restFiles: RestFile[];
   /**
    * Los espacios de nombres que declara cada fichero (C#), por nombre.
    *
@@ -205,7 +228,8 @@ export function analyzeFiles(
   const root = options.root ?? "/";
   const projectName =
     options.projectName ?? readProjectName(fileSystem, root, options.fallbackName);
-  const walked = walkSourceFiles(fileSystem, {
+  // Un solo recorrido decide qué es código y qué es resto (ADR 0093).
+  const walked = walkCodeAndRest(fileSystem, {
     ignore: options.ignore,
     // Lo que un parser sabe leer se recorre; lo que solo mide la lente de
     // migración (Rust, wasm, node), también.
@@ -219,6 +243,7 @@ export function analyzeFiles(
     migrationLinks: [],
     links: [],
     unresolved: [],
+    restFiles: [],
     namespaceDeclarations: new Map(),
     pendingNamespaces: [],
     warnings: [...walked.warnings],
@@ -229,8 +254,8 @@ export function analyzeFiles(
     cacheMisses: 0
   };
   // Los ficheros borrados no ocupan sitio en la caché.
-  options.cache?.retain(walked.files.map((file) => file.relativePath));
-  const resolver = new ImportResolver(root, walked.files, fileSystem);
+  options.cache?.retain(walked.code.map((file) => file.relativePath));
+  const resolver = new ImportResolver(root, walked.code, fileSystem);
   state.warnings.push(...resolver.warnings);
   prepareParsers(options, root, fileSystem);
   const context: MeasureContext = {
@@ -239,18 +264,26 @@ export function analyzeFiles(
     parsers: options.parsers,
     cache: options.cache,
     resolver,
-    importIndex: importIndexFor(options, walked.files, fileSystem)
+    importIndex: importIndexFor(options, walked.code, fileSystem)
   };
 
   let processed = 0;
-  for (const file of walked.files) {
+  for (const file of walked.code) {
     processed += 1;
     options.onProgress?.({
       done: processed,
-      total: walked.files.length,
+      total: walked.code.length,
       current: file.relativePath
     });
     measureFile(file, context);
+  }
+
+  // Lo que no es código no se parsea: se mide y se guarda para su snapshot.
+  if (options.rest !== false) {
+    for (const file of walked.rest) {
+      const measured = measureRestFile(fileSystem, file, state.warnings);
+      if (measured) state.restFiles.push(measured);
+    }
   }
 
   // Los `using` de C# se resuelven ahora, que ya se sabe qué declara cada
@@ -280,6 +313,17 @@ export function analyzeFiles(
     commitHash: options.commitHash
   });
 
+  // El resto tiene su propio snapshot y su propio checksum (ADR 0093): lo que
+  // cambie en un documento no mueve el checksum del código.
+  const rest =
+    options.rest === false
+      ? null
+      : buildRestSnapshot({
+          projectName,
+          files: state.restFiles,
+          commitHash: options.commitHash
+        });
+
   let folders = 0;
   walkTree(snapshot.files, (entry) => {
     if (entry.node.type === "Folder" && entry.depth > 0) folders++;
@@ -308,6 +352,8 @@ export function analyzeFiles(
     migration: migration.summary,
     churn: churnResult,
     cache: { hits: state.cacheHits, misses: state.cacheMisses },
+    rest,
+    restFiles: state.restFiles.length,
     durationMs: Date.now() - started
   };
 }

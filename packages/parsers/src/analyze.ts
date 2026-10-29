@@ -22,6 +22,11 @@ export interface AnalyzeOptions {
   /** Lee churn de git. Por defecto, `true`; `false` para tests sin historial. */
   git?: boolean;
   /**
+   * Mide también lo que no es código y devuelve su snapshot (ADR 0093).
+   * Por defecto, `true`.
+   */
+  rest?: boolean;
+  /**
    * Puerto de ficheros. Por defecto, el disco; el navegador usa el fichero en
    * memoria con los ficheros que ha elegido el usuario.
    */
@@ -80,6 +85,7 @@ export function analyzeRepository(
     fallbackName: basename(rootInput),
     ignore: options.ignore,
     extensions: options.extensions,
+    rest: options.rest,
     parsers: [
       new TypeScriptParser(),
       new JavaParser(),
