@@ -1,6 +1,7 @@
 import type { CcJson, CcStats } from "@codarch/schema/browser";
 import { defaultMetric } from "@codarch/schema/browser";
 import type { ViewPreferences } from "../storage";
+import { isColorModeAvailable } from "../viewState";
 
 /**
  * Qué se pinta con un snapshot que se abre.
@@ -34,33 +35,47 @@ export function planSnapshotView(
   preferences: ViewPreferences | null | undefined
 ): SnapshotView {
   const coverage = metricCoverage(stats);
-
-  const fallbackArea = coverage.has("rloc")
-    ? "rloc"
-    : defaultMetric(stats) ?? stats.metricCoverage[0]?.name ?? null;
-
-  const preferredColor = preferences?.colorMode;
-  const validColor =
-    preferredColor &&
-    (preferredColor === "risk" ||
-      preferredColor === "structure" ||
-      (preferredColor === "status" && Boolean(parsed.lenses?.migration)) ||
-      coverage.has(preferredColor))
-      ? preferredColor
-      : null;
-
-  const defaultColor =
-    parsed.lenses?.migration && coverage.has("migrationDebt")
-      ? "migrationDebt"
-      : "risk";
-
   return {
-    areaMetric:
-      preferences?.areaMetric && coverage.has(preferences.areaMetric)
-        ? preferences.areaMetric
-        : fallbackArea,
-    colorMode: validColor ?? defaultColor
+    areaMetric: planArea(preferences?.areaMetric, coverage, stats),
+    colorMode:
+      planColor(preferences?.colorMode, coverage, parsed) ??
+      defaultColor(parsed, coverage)
   };
+}
+
+/** El área: la preferida si este snapshot la trae, y la de siempre si no. */
+function planArea(
+  preferred: string | null | undefined,
+  coverage: ReadonlySet<string>,
+  stats: CcStats
+): string | null {
+  if (preferred && coverage.has(preferred)) return preferred;
+  if (coverage.has("rloc")) return "rloc";
+  return defaultMetric(stats) ?? stats.metricCoverage[0]?.name ?? null;
+}
+
+/**
+ * El color preferido, o `null` si con este snapshot no se puede pintar.
+ *
+ * La regla de qué se puede pintar es la misma que la de un enlace compartido
+ * (`isColorModeAvailable`): una preferencia de otro proyecto no abre aquí.
+ */
+function planColor(
+  preferred: string | null | undefined,
+  coverage: ReadonlySet<string>,
+  parsed: CcJson
+): string | null {
+  if (!preferred) return null;
+  return isColorModeAvailable(preferred, coverage, parsed.lenses?.migration)
+    ? preferred
+    : null;
+}
+
+/** Sin preferencia: la deuda de migración si la trae, y el riesgo si no. */
+function defaultColor(parsed: CcJson, coverage: ReadonlySet<string>): string {
+  return parsed.lenses?.migration && coverage.has("migrationDebt")
+    ? "migrationDebt"
+    : "risk";
 }
 
 /**
