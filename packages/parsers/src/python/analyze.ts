@@ -336,50 +336,47 @@ function collectSelfAttributes(
  */
 function readImports(node: SyntaxNodeLike): ParsedImport[] {
   const line = node.startPosition.row + 1;
+  return node.type === "import_statement"
+    ? readImportStatement(node, line)
+    : readFromImport(node, line);
+}
 
-  if (node.type === "import_statement") {
-    const imports: ParsedImport[] = [];
-    for (const child of node.namedChildren) {
-      const name = child.type === "aliased_import"
-        ? child.childForFieldName("name")
-        : child.type === "dotted_name"
-          ? child
-          : null;
-      if (!name) continue;
-      const alias = child.type === "aliased_import"
-        ? child.childForFieldName("alias")?.text
-        : undefined;
-      imports.push({
-        specifier: name.text,
-        kind: "static",
-        typeOnly: false,
-        line,
-        ...(alias ? { names: [alias] } : {})
-      });
-    }
-    return imports;
-  }
-
-  const moduleNode = node.childForFieldName("module_name");
-  const specifier = moduleNode?.text ?? "";
-  const names: string[] = [];
-  let wildcard = false;
+/** `import a` e `import a.b as c`: un módulo por nombre, con su alias. */
+function readImportStatement(node: SyntaxNodeLike, line: number): ParsedImport[] {
+  const imports: ParsedImport[] = [];
 
   for (const child of node.namedChildren) {
-    if (moduleNode && sameNode(child, moduleNode)) continue;
-    if (child.type === "wildcard_import") {
-      wildcard = true;
-      continue;
-    }
-    if (child.type === "dotted_name") {
-      names.push(child.text);
-      continue;
-    }
-    if (child.type === "aliased_import") {
-      const name = child.childForFieldName("name");
-      if (name) names.push(name.text);
-    }
+    const target = importedTarget(child);
+    if (!target) continue;
+    imports.push({
+      specifier: target.name,
+      kind: "static",
+      typeOnly: false,
+      line,
+      ...(target.alias ? { names: [target.alias] } : {})
+    });
   }
+
+  return imports;
+}
+
+/** El nombre y el alias de un `import`, salga como salga del árbol. */
+function importedTarget(
+  child: SyntaxNodeLike
+): { name: string; alias?: string } | null {
+  if (child.type === "dotted_name") return { name: child.text };
+  if (child.type !== "aliased_import") return null;
+
+  const name = child.childForFieldName("name");
+  if (!name) return null;
+  return { name: name.text, alias: child.childForFieldName("alias")?.text };
+}
+
+/** `from a.b import C, D as E`, y `from a import *` con su comodín. */
+function readFromImport(node: SyntaxNodeLike, line: number): ParsedImport[] {
+  const moduleNode = node.childForFieldName("module_name");
+  const specifier = moduleNode?.text ?? "";
+  const { names, wildcard } = importedNames(node, moduleNode);
 
   if (wildcard) {
     // `from x import *` no apunta a un fichero: la resolución lo cuenta como
@@ -403,6 +400,35 @@ function readImports(node: SyntaxNodeLike): ParsedImport[] {
       ...(names.length > 0 ? { names } : {})
     }
   ];
+}
+
+/** Los nombres de un `from … import`, y si trae comodín. */
+function importedNames(
+  node: SyntaxNodeLike,
+  moduleNode: SyntaxNodeLike | null
+): { names: string[]; wildcard: boolean } {
+  const names: string[] = [];
+  let wildcard = false;
+
+  for (const child of node.namedChildren) {
+    if (moduleNode && sameNode(child, moduleNode)) continue;
+    if (child.type === "wildcard_import") {
+      wildcard = true;
+      continue;
+    }
+    const name = importedName(child);
+    if (name) names.push(name);
+  }
+
+  return { names, wildcard };
+}
+
+/** El nombre importado por un hijo de `from … import`. */
+function importedName(child: SyntaxNodeLike): string | undefined {
+  if (child.type === "dotted_name") return child.text;
+  return child.type === "aliased_import"
+    ? child.childForFieldName("name")?.text
+    : undefined;
 }
 
 /** Si dos nodos son el mismo del árbol.

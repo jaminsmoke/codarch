@@ -130,19 +130,11 @@ export function analyzeCSharpTree(
     // acceso los vuelve a materializar.
     const children = node.children;
 
-    if (
-      node.type === "namespace_declaration" ||
-      node.type === "file_scoped_namespace_declaration"
-    ) {
-      const name = node.childForFieldName("name")?.text;
-      if (name) {
-        const full = namespace === "" ? name : `${namespace}.${name}`;
-        namespaces.push(full);
-        for (let index = children.length - 1; index >= 0; index--) {
-          stack.push({ node: children[index] as SyntaxNodeLike, namespace: full });
-        }
-        continue;
-      }
+    const inner = childNamespace(node, namespace);
+    if (inner !== null) {
+      namespaces.push(inner);
+      pushChildren(stack, children, inner);
+      continue;
     }
 
     if (node.type === "using_directive") {
@@ -158,12 +150,7 @@ export function analyzeCSharpTree(
     }
 
     // Al revés, para visitar el fuente en orden.
-    for (let index = children.length - 1; index >= 0; index--) {
-      stack.push({
-        node: children[index] as SyntaxNodeLike,
-        namespace
-      });
-    }
+    pushChildren(stack, children, namespace);
   }
 
   symbols.sort((left, right) => left.line - right.line);
@@ -182,6 +169,39 @@ export function analyzeCSharpTree(
     members,
     namespaces
   };
+}
+
+/**
+ * El espacio de nombres que abre el nodo, compuesto con el de fuera.
+ *
+ * Un `namespace Acme.Billing;` de fichero entero y uno anidado dan el mismo
+ * nombre completo; `null` si el nodo no abre ninguno.
+ */
+function childNamespace(
+  node: SyntaxNodeLike,
+  enclosing: string
+): string | null {
+  if (
+    node.type !== "namespace_declaration" &&
+    node.type !== "file_scoped_namespace_declaration"
+  ) {
+    return null;
+  }
+
+  const name = node.childForFieldName("name")?.text;
+  if (!name) return null;
+  return enclosing === "" ? name : `${enclosing}.${name}`;
+}
+
+/** Los hijos, al revés para que la pila los saque en orden de fuente. */
+function pushChildren(
+  stack: Array<{ node: SyntaxNodeLike; namespace: string }>,
+  children: readonly SyntaxNodeLike[],
+  namespace: string
+): void {
+  for (let index = children.length - 1; index >= 0; index--) {
+    stack.push({ node: children[index] as SyntaxNodeLike, namespace });
+  }
 }
 
 /** Un tipo declarado y, de paso, los miembros que declara. */
@@ -268,14 +288,35 @@ export function membersOfType(
   typeNode: SyntaxNodeLike,
   owner: string
 ): ParsedMember[] {
+  const members = recordParameters(typeNode, owner);
+
+  const body = typeNode.childForFieldName("body");
+  if (!body) return members;
+
+  for (const declaration of body.namedChildren) {
+    members.push(...declarationMembers(declaration, owner));
+  }
+
+  return members;
+}
+
+/**
+ * Las propiedades que declara un record con parámetros posicionales.
+ *
+ * Solo un record: los parámetros de un delegado (`delegate void H(int value)`)
+ * son la firma, no estado.
+ */
+function recordParameters(
+  typeNode: SyntaxNodeLike,
+  owner: string
+): ParsedMember[] {
+  if (typeNode.type !== "record_declaration") return [];
+
+  const parameters = typeNode.namedChildren.find(
+    (child) => child.type === "parameter_list"
+  );
   const members: ParsedMember[] = [];
 
-  // Solo un record: sus parámetros posicionales son propiedades. Los de un
-  // delegado (`delegate void H(int value)`) son la firma, no estado.
-  const parameters =
-    typeNode.type === "record_declaration"
-      ? typeNode.namedChildren.find((child) => child.type === "parameter_list")
-      : undefined;
   for (const parameter of parameters?.namedChildren ?? []) {
     if (parameter.type !== "parameter") continue;
     const nameNode = parameter.childForFieldName("name");
@@ -289,43 +330,56 @@ export function membersOfType(
     });
   }
 
-  const body = typeNode.childForFieldName("body");
-  if (!body) return members;
+  return members;
+}
 
-  for (const declaration of body.namedChildren) {
-    if (declaration.type === "field_declaration") {
-      for (const variable of declaration.namedChildren) {
-        if (variable.type !== "variable_declaration") continue;
-        for (const declarator of variable.namedChildren) {
-          if (declarator.type !== "variable_declarator") continue;
-          const nameNode = declarator.childForFieldName("name");
-          if (!nameNode) continue;
-          members.push({
-            owner,
-            name: nameNode.text,
-            line: nameNode.startPosition.row + 1,
-            lines: 1,
-            from: "field"
-          });
-        }
-      }
-      continue;
-    }
+/** Los miembros que declara una sentencia del cuerpo del tipo. */
+function declarationMembers(
+  declaration: SyntaxNodeLike,
+  owner: string
+): ParsedMember[] {
+  if (declaration.type === "field_declaration") {
+    return fieldMembers(declaration, owner);
+  }
+  if (declaration.type !== "property_declaration") return [];
 
-    if (declaration.type === "property_declaration") {
-      const nameNode = declaration.childForFieldName("name");
-      if (!nameNode) continue;
-      members.push({
-        owner,
-        name: nameNode.text,
-        line: nameNode.startPosition.row + 1,
-        lines: 1,
-        from: "field"
-      });
+  const nameNode = declaration.childForFieldName("name");
+  return nameNode ? [namedMember(owner, nameNode, "field")] : [];
+}
+
+/**
+ * Los nombres de un campo: `int a = 1, b = 2;` declara dos.
+ *
+ * Un campo con cuerpo de expresión también es estado con nombre, no un método.
+ */
+function fieldMembers(declaration: SyntaxNodeLike, owner: string): ParsedMember[] {
+  const members: ParsedMember[] = [];
+
+  for (const variable of declaration.namedChildren) {
+    if (variable.type !== "variable_declaration") continue;
+    for (const declarator of variable.namedChildren) {
+      if (declarator.type !== "variable_declarator") continue;
+      const nameNode = declarator.childForFieldName("name");
+      if (nameNode) members.push(namedMember(owner, nameNode, "field"));
     }
   }
 
   return members;
+}
+
+/** Un miembro de una línea, con la línea de su nombre. */
+function namedMember(
+  owner: string,
+  nameNode: SyntaxNodeLike,
+  from: ParsedMember["from"]
+): ParsedMember {
+  return {
+    owner,
+    name: nameNode.text,
+    line: nameNode.startPosition.row + 1,
+    lines: 1,
+    from
+  };
 }
 
 /**
