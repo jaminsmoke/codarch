@@ -56,7 +56,7 @@ export {
   symbolsOf,
   topByMetric
 } from "./stats";
-export { md5Hex, sha256Hex } from "./hash";
+export { md5Hex, sha256Hex, stableStringify } from "./hash";
 export {
   ID_LENGTH,
   canonicalPath,

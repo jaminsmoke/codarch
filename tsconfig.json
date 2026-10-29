@@ -26,6 +26,8 @@
       "@codarch/layouts": ["packages/layouts/src/index.ts"],
       "@codarch/metrics": ["packages/metrics/src/index.ts"],
       "@codarch/metrics/browser": ["packages/metrics/src/browser.ts"],
+      "@codarch/lint": ["packages/lint/src/index.ts"],
+      "@codarch/lint/browser": ["packages/lint/src/browser.ts"],
       "@codarch/render": ["packages/render/src/index.ts"],
       "@codarch/render/browser": ["packages/render/src/browser.ts"],
       "@codarch/render/node": ["packages/render/src/node.ts"],

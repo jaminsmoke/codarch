@@ -64,7 +64,7 @@ export {
   normalizeName,
   pathSegments
 } from "./identity";
-export { md5Hex, sha256Hex } from "./hash";
+export { md5Hex, sha256Hex, stableStringify } from "./hash";
 export {
   HISTORY_VERSION,
   addHistoryEntry,

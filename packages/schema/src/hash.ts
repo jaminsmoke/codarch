@@ -29,3 +29,34 @@ function toHex(bytes: Uint8Array): string {
   for (const byte of bytes) hex += byte.toString(16).padStart(2, "0");
   return hex;
 }
+
+/**
+ * Serialización canónica: claves ordenadas, sin `undefined` y con los números
+ * no finitos como `null`.
+ *
+ * Es la forma en la que se calcula un checksum: dos objetos iguales tienen que
+ * dar el mismo texto aunque sus claves se hayan creado en otro orden. Vive aquí
+ * para que el snapshot y el lint no tengan dos serializadores que se separen.
+ */
+export function stableStringify(value: unknown): string {
+  if (value === null || value === undefined) return "null";
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? JSON.stringify(value) : "null";
+  }
+  if (typeof value === "string" || typeof value === "boolean") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(",")}]`;
+  }
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const keys = Object.keys(record)
+      .filter((key) => record[key] !== undefined)
+      .sort();
+    return `{${keys
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
+      .join(",")}}`;
+  }
+  return "null";
+}

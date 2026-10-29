@@ -31,7 +31,7 @@ M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
 M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed, M57 closed, M58 closed,
-M59 closed, M60 closed, M61 closed, M62 closed, M63 and M64 in progress and M65 not started.
+M59 closed, M60 closed, M61 closed, M62 closed and M63, M64 and M65 in progress.
 
 ## The phases
 
@@ -188,7 +188,7 @@ flowchart TD
 | M62 | The map, in a capture | closed | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
 | M63 | The folder has its ficha | in progress | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
 | M64 | The map of what is not code | in progress | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
-| M65 | Lint, on the map | not started | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
+| M65 | Lint, on the map | in progress | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 
 ## How to read this
 

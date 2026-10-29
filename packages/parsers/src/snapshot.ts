@@ -3,6 +3,7 @@ import {
   fileId,
   folderId,
   md5Hex,
+  stableStringify,
   type CcAttributeDescriptor,
   type CcAttributeType,
   type CcDependencyLens,
@@ -460,29 +461,6 @@ function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
 
 export function checksumFor(files: readonly CcNode[], lenses: unknown): string {
   return md5Hex(stableStringify({ files, lenses }));
-}
-
-function stableStringify(value: unknown): string {
-  if (value === null || value === undefined) return "null";
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? JSON.stringify(value) : "null";
-  }
-  if (typeof value === "string" || typeof value === "boolean") {
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(",")}]`;
-  }
-  if (typeof value === "object") {
-    const record = value as Record<string, unknown>;
-    const keys = Object.keys(record)
-      .filter((key) => record[key] !== undefined)
-      .sort();
-    return `{${keys
-      .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
-      .join(",")}}`;
-  }
-  return "null";
 }
 
 export function sortChildren(node: CcNode): void {
