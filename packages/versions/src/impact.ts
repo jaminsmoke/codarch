@@ -57,21 +57,32 @@ const ROOT_ALL = new Set([
   "tsconfig.json"
 ]);
 
+/** Carpetas cuyo contenido no se entrega: docs, pruebas, CI y muestras. */
+const NOISE_PREFIXES: readonly string[] = [
+  ".github/",
+  "scripts/",
+  "apps/site/",
+  "docs/",
+  "samples/",
+  "coverage/",
+  ".codarch"
+];
+
+/** Ficheros sueltos que tampoco cambian lo que se entrega. */
+const NOISE_FILES: ReadonlySet<string> = new Set(["", "AGENTS.md", "LICENSE"]);
+
+/** Formas de nombre que no son código entregable. */
+const NOISE_PATTERNS: readonly RegExp[] = [
+  /(^|\/)(test|tests|__tests__|fixtures)\//,
+  /\.(test|spec)\.[cm]?[jt]sx?$/,
+  /\.md$/
+];
+
 /** Ficheros que no cambian lo que se entrega. */
 function isNoise(file: string): boolean {
-  if (file === "") return true;
-  if (file.startsWith(".github/")) return true;
-  if (file.startsWith("scripts/")) return true;
-  if (file.startsWith("apps/site/")) return true;
-  if (file.startsWith("docs/")) return true;
-  if (file.startsWith("samples/")) return true;
-  if (file.startsWith("coverage/")) return true;
-  if (file.startsWith(".codarch")) return true;
-  if (/(^|\/)(test|tests|__tests__|fixtures)\//.test(file)) return true;
-  if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(file)) return true;
-  if (/\.md$/.test(file)) return true;
-  if (file === "AGENTS.md" || file === "LICENSE") return true;
-  return false;
+  if (NOISE_FILES.has(file)) return true;
+  if (NOISE_PREFIXES.some((prefix) => file.startsWith(prefix))) return true;
+  return NOISE_PATTERNS.some((pattern) => pattern.test(file));
 }
 
 function normalize(file: string): string {
@@ -118,6 +129,23 @@ function closure(
  *
  * `changedFiles` son rutas relativas a la raíz del repo.
  */
+/** Lo que dicen los ficheros, antes de mirar el grafo. */
+interface ChangeSet {
+  /** Los workspaces tocados, por nombre. */
+  changed: Set<string>;
+  /** Un fichero de la raíz que afecta a todo. */
+  everything: boolean;
+  /** Solo cambia el empaquetado. */
+  dockerOnly: boolean;
+  /** Se tocó algún plugin del repo. */
+  plugins: boolean;
+}
+
+/**
+ * Los componentes afectados por una lista de ficheros cambiados.
+ *
+ * `changedFiles` son rutas relativas a la raíz del repo.
+ */
 export function impactedComponents(
   changedFiles: readonly string[],
   workspaces: readonly WorkspaceInfo[]
@@ -125,65 +153,121 @@ export function impactedComponents(
   const relevant = changedFiles.map(normalize).filter((file) => !isNoise(file));
   if (relevant.length === 0) return { components: [], relevant };
 
-  const all = new Set<ComponentName>(COMPONENT_ORDER);
-  let everything = false;
-  let dockerOnly = false;
-  const changed = new Set<string>();
-  const changedPlugins = relevant.some((file) => file.startsWith("plugins/"));
+  const changes = classify(relevant, workspaces);
+  if (changes.everything) return { components: [...COMPONENT_ORDER], relevant };
+
+  const components = directComponents(changes, workspaces);
+  if (engineTouched(changes, workspaces)) components.add("engine");
+
+  const affected = propagate(components, changes.dockerOnly);
+  return {
+    components: COMPONENT_ORDER.filter((component) => affected.has(component)),
+    relevant
+  };
+}
+
+/** Reparte los ficheros en lo que tocan: workspaces, todo, Docker o plugins. */
+function classify(
+  relevant: readonly string[],
+  workspaces: readonly WorkspaceInfo[]
+): ChangeSet {
+  const changes: ChangeSet = {
+    changed: new Set(),
+    everything: false,
+    dockerOnly: false,
+    plugins: false
+  };
 
   for (const file of relevant) {
     if (ROOT_ALL.has(file)) {
-      everything = true;
+      changes.everything = true;
       continue;
     }
-    if (file === "Dockerfile" || file === "docker-compose.yml" || file.startsWith(".dockerignore")) {
-      dockerOnly = true;
+    if (isPackaging(file)) {
+      changes.dockerOnly = true;
       continue;
     }
-    if (file.startsWith("plugins/")) continue;
+    if (file.startsWith("plugins/")) {
+      changes.plugins = true;
+      continue;
+    }
     const workspace = ownerOf(file, workspaces);
-    if (workspace) changed.add(workspace.name);
+    if (workspace) changes.changed.add(workspace.name);
   }
 
-  if (everything) return { components: [...all], relevant };
+  return changes;
+}
 
+/** Los ficheros del contenedor: cambian cómo se empaqueta, no qué. */
+function isPackaging(file: string): boolean {
+  return (
+    file === "Dockerfile" ||
+    file === "docker-compose.yml" ||
+    file.startsWith(".dockerignore")
+  );
+}
+
+/** Los componentes cuyo workspace, o alguna dependencia suya, cambió. */
+function directComponents(
+  changes: ChangeSet,
+  workspaces: readonly WorkspaceInfo[]
+): Set<ComponentName> {
   const components = new Set<ComponentName>();
+
   for (const [component, directory] of Object.entries(COMPONENT_DIRECTORIES)) {
     const root = workspaces.find((workspace) => workspace.directory === directory);
     if (!root) continue;
+
     const dependencies = closure(root, workspaces);
-    if ([...changed].some((name) => dependencies.has(name))) {
-      components.add(component as ComponentName);
-    }
-    if (
-      changedPlugins &&
-      (component === "desktop" || component === "web") &&
-      dependencies.has("@codarch/plugin-api")
-    ) {
+    const touched = [...changes.changed].some((name) => dependencies.has(name));
+    if (touched || packagesPlugins(component, changes.plugins, dependencies)) {
       components.add(component as ComponentName);
     }
   }
 
-  const changedNames = [...changed];
-  const engineChanged =
-    changedPlugins ||
-    changedNames.some((name) =>
-      workspaces.some(
-        (workspace) =>
-          workspace.name === name && workspace.directory.startsWith("packages/")
-      )
-    );
-  if (engineChanged) components.add("engine");
-  // La app web viaja dentro del paquete del CLI: si cambia la web, el CLI
-  // tiene que publicarse para entregarla (ADR 0065).
+  return components;
+}
+
+/**
+ * Si el componente entrega plugins: la web y el escritorio, si llevan la API.
+ *
+ * Un cambio en `plugins/` no es de ningún workspace; llega por aquí.
+ */
+function packagesPlugins(
+  component: string,
+  pluginsChanged: boolean,
+  dependencies: Set<string>
+): boolean {
+  if (!pluginsChanged) return false;
+  if (component !== "desktop" && component !== "web") return false;
+  return dependencies.has("@codarch/plugin-api");
+}
+
+/** Si el motor cambió: cualquier paquete del repo o un plugin. */
+function engineTouched(
+  changes: ChangeSet,
+  workspaces: readonly WorkspaceInfo[]
+): boolean {
+  if (changes.plugins) return true;
+  return workspaces.some(
+    (workspace) =>
+      workspace.directory.startsWith("packages/") &&
+      changes.changed.has(workspace.name)
+  );
+}
+
+/**
+ * Lo que arrastra haber tocado la web o el CLI (ADR 0065).
+ *
+ * La app web viaja dentro del paquete del CLI: si cambia la web, el CLI tiene
+ * que publicarse para entregarla. Los dos se sirven con la imagen de Docker.
+ */
+function propagate(
+  components: Set<ComponentName>,
+  dockerOnly: boolean
+): Set<ComponentName> {
   if (components.has("web")) components.add("cli");
-  if (components.has("cli") || components.has("web")) {
-    components.add("docker");
-  }
+  if (components.has("cli") || components.has("web")) components.add("docker");
   if (dockerOnly) components.add("docker");
-
-  return {
-    components: COMPONENT_ORDER.filter((component) => components.has(component)),
-    relevant
-  };
+  return components;
 }
