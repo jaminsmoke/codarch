@@ -9,11 +9,29 @@ import { captureMap, renderMapPng } from "../src/mapShot";
 import { encodePng } from "../src/png";
 import { listShots, shotName, writeShot } from "../src/shots";
 
-const fixture = parseCcJson(
-  JSON.parse(
-    readFileSync(new URL("./fixtures/render.cc.json", import.meta.url), "utf8")
-  ) as unknown
-);
+const fixtureJson = JSON.parse(
+  readFileSync(new URL("./fixtures/render.cc.json", import.meta.url), "utf8")
+) as unknown;
+const fixture = parseCcJson(fixtureJson);
+
+/** El fixture con otro nombre en su primer fichero: solo cambia la etiqueta. */
+function withFirstName(name: string) {
+  const copy = structuredClone(fixtureJson) as {
+    files: Array<{ type: string; name: string; children?: unknown[] }>;
+  };
+  const rename = (node: { type: string; name: string; children?: unknown[] }): boolean => {
+    if (node.type === "File") {
+      node.name = name;
+      return true;
+    }
+    for (const child of (node.children ?? []) as typeof copy.files) {
+      if (rename(child)) return true;
+    }
+    return false;
+  };
+  rename(copy.files[0] as { type: string; name: string; children?: unknown[] });
+  return parseCcJson(copy);
+}
 
 const temporaries: string[] = [];
 
@@ -51,6 +69,17 @@ describe("la captura del mapa", () => {
       width: 320,
       height: 240
     });
+  });
+
+  it("pinta el nombre de la caja grande, con su caja y su tamaño", () => {
+    const alpha = renderMapPng(buildRenderModel(withFirstName("alpha.ts")), 400, 300);
+    const omega = renderMapPng(buildRenderModel(withFirstName("omega.ts")), 400, 300);
+    expect(alpha.equals(omega)).toBe(false);
+
+    // El mismo nombre da los mismos píxeles: la letra no depende del azar.
+    expect(
+      alpha.equals(renderMapPng(buildRenderModel(withFirstName("alpha.ts")), 400, 300))
+    ).toBe(true);
   });
 
   it("pinta distinto según el color pedido", () => {

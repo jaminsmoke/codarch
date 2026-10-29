@@ -330,7 +330,7 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "Captura del mapa",
       description:
-        "Pinta el mapa de arquitectura con el área y el color que se pidan y devuelve el PNG junto a su resumen. El área es una métrica del snapshot (por defecto rloc); el color es risk, structure, el nombre de una métrica, o churn para el calor de commits. La imagen son cajas y colores, sin texto: los nombres de las celdas más grandes, la escala de color y las cifras van en el resumen. La captura ocupa una de las dos ranuras de .codarch/shots/, así que la anterior sigue ahí para comparar.",
+        "Pinta el mapa de arquitectura con el área y el color que se pidan y devuelve el PNG junto a su resumen. El área es una métrica del snapshot (por defecto rloc); el color es risk, structure, el nombre de una métrica, o churn para el calor de commits. La imagen son cajas, colores y los nombres de las cajas grandes, con la letra del propio paquete: la escala de color y las cifras van en el resumen. La captura ocupa una de las dos ranuras de .codarch/shots/, así que la anterior sigue ahí para comparar.",
       inputSchema: {
         area: z
           .string()

@@ -16,8 +16,9 @@ import { writeShot } from "./shots";
  * La captura del mapa: un PNG con el área y el color que se pidan, más el
  * resumen que hace legible lo que el PNG no dice.
  *
- * La imagen es geometría y color; los nombres, la escala y las cifras viajan en
- * `summary`, que es lo que la tool del MCP devuelve junto a la imagen (ADR 0091).
+ * La imagen es geometría, color y los nombres de las cajas grandes; la escala y
+ * las cifras viajan en `summary`, que es lo que la tool del MCP devuelve junto a
+ * la imagen (ADR 0091).
  */
 
 export interface ShotOptions {
@@ -123,7 +124,7 @@ function colorMetricOf(model: RenderModel): RenderMetric | undefined {
  * La leyenda del resumen.
  *
  * Lo que en la app es un degradado con sus extremos, aquí son sus dos colores:
- * el PNG no lleva texto, así que las cifras van en el resumen.
+ * el PNG no lleva cifras, así que la escala va en el resumen.
  */
 function legendOf(model: RenderModel): LegendEntry[] {
   if (model.initialLens === "structure") {
