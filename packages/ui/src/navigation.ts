@@ -7,6 +7,8 @@
  * la celda actual.
  */
 
+import type { PlacedNode } from "@codarch/render/browser";
+
 export interface CellBox {
   /** Identidad estable del elemento: `f:12` para ficheros, `d:src/app` para carpetas. */
   key: string;
@@ -92,4 +94,56 @@ export function nextCell(
   }
 
   return best ? best.key : current;
+}
+
+/** Qué hay detrás de una celda navegable. */
+export interface CellTarget {
+  kind: "file" | "folder";
+  fileIndex?: number;
+  path?: string;
+}
+
+/** Las celdas que se pueden recorrer, con lo que hay en cada una. */
+export interface NavigableCells {
+  targets: CellBox[];
+  targetMeta: Map<string, CellTarget>;
+}
+
+/**
+ * Las celdas navegables del mapa: ficheros y carpetas sin contenido dibujado.
+ *
+ * Una carpeta con hijos es un contenedor, no una celda: ocupa el área de sus
+ * hijos y no se puede «entrar» moviéndose a un lado. Las carpetas hoja sí: en
+ * un repositorio grande el mapa se dibuja a nivel de carpeta.
+ */
+export function navigableCells(
+  placed: readonly PlacedNode[]
+): NavigableCells {
+  const targets: CellBox[] = [];
+  const targetMeta = new Map<string, CellTarget>();
+
+  const walk = (nodes: readonly PlacedNode[]): void => {
+    for (const placedNode of nodes) {
+      const { node, rect } = placedNode;
+      if (node.kind === "file") {
+        if (node.fileIndex === undefined) continue;
+        const key = `f:${node.fileIndex}`;
+        targets.push({ key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+        targetMeta.set(key, { kind: "file", fileIndex: node.fileIndex });
+        continue;
+      }
+
+      const children = placedNode.children ?? [];
+      if (children.length === 0) {
+        targets.push({ key: node.key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
+        targetMeta.set(node.key, { kind: "folder", path: node.path });
+        continue;
+      }
+
+      walk(children);
+    }
+  };
+
+  walk(placed);
+  return { targets, targetMeta };
 }

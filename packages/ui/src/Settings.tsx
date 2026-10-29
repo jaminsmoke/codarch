@@ -1,14 +1,19 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { RenderModel } from "@codarch/render/browser";
-import {
-  checkRequirements,
-  pluginBackend,
-  type PluginDescriptor
-} from "@codarch/plugin-api";
+import type { PluginDescriptor } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
-import { summarizePlugins } from "./pluginState";
 import type { Tema } from "./theme";
+import {
+  AddonsSection,
+  ComponentsSection,
+  DiagnosticsSection,
+  GeneralSection,
+  PluginsSection,
+  ProjectSection,
+  UpdatesSection,
+  ViewSection
+} from "./settings/sections";
 
 /**
  * Los ajustes: un sitio donde se configura y se mira todo.
@@ -16,6 +21,10 @@ import type { Tema } from "./theme";
  * Es un diálogo con secciones (ADR 0027 ✓). Lo que se ajusta se guarda donde
  * ya estaba ✓: los ajustes no inventan un sitio nuevo para lo que ya tenía
  * sitio ✓.
+ *
+ * Este módulo es el armazón: el diálogo, la lista de secciones y el estado de
+ * la sesión. Lo que hay dentro de cada sección vive en `settings/sections`, y
+ * cada una recibe solo lo que enseña.
  */
 
 export interface SettingsColorOption {
@@ -137,17 +146,6 @@ const SECTIONS: Array<{ id: Section; label: string }> = [
   { id: "diagnostico", label: "Diagnóstico" }
 ];
 
-/** Las tres opciones del tema, en el orden en que se ofrecen (ADR 0084). */
-const TEMA_OPTIONS: Array<{ value: Tema; label: string; hint: string }> = [
-  {
-    value: "system",
-    label: "El sistema",
-    hint: "El tema que pide el sistema; si cambia, la app cambia con él"
-  },
-  { value: "light", label: "Claro", hint: "Papel claro en cualquier sistema" },
-  { value: "dark", label: "Oscuro", hint: "Papel oscuro en cualquier sistema" }
-];
-
 export default function Settings({
   open,
   onOpenChange,
@@ -182,12 +180,6 @@ export default function Settings({
   const [update, setUpdate] = useState<SettingsUpdateInfo | null>(null);
   const [checking, setChecking] = useState(false);
 
-  const pluginSummary = summarizePlugins(
-    plugins.map((descriptor) => descriptor.manifest.name),
-    enabledPlugins,
-    failedPlugins
-  );
-
   /**
    * Pregunta a la fuente de la app si hay una versión más nueva (ADR 0032).
    *
@@ -220,6 +212,60 @@ export default function Settings({
     }
   }, [open, section, update, checking, checkUpdates]);
 
+  // Una sección, un componente: la lista de arriba y el contenido salen del
+  // mismo sitio, así que añadir una sección no toca este render.
+  const content: Record<Section, ReactNode> = {
+    general: <GeneralSection tema={tema} onTema={onTema} />,
+    vista: (
+      <ViewSection
+        areaMetric={areaMetric}
+        onAreaMetric={onAreaMetric}
+        colorMode={colorMode}
+        onColorMode={onColorMode}
+        areaOptions={areaOptions}
+        colorOptions={colorOptions}
+        showLabels={showLabels}
+        onShowLabels={onShowLabels}
+      />
+    ),
+    proyecto: (
+      <ProjectSection
+        savedProject={savedProject}
+        onClearProject={onClearProject}
+        projectNote={projectNote}
+      />
+    ),
+    plugins: (
+      <PluginsSection
+        plugins={plugins}
+        enabledPlugins={enabledPlugins}
+        onTogglePlugin={onTogglePlugin}
+        failedPlugins={failedPlugins}
+        webgl2={webgl2}
+        webgpu={webgpu}
+      />
+    ),
+    addons: <AddonsSection addons={addons} />,
+    actualizaciones: (
+      <UpdatesSection
+        version={version}
+        update={update}
+        checking={checking}
+        onCheck={() => void checkUpdates()}
+        updates={updates}
+      />
+    ),
+    componentes: <ComponentsSection components={components} />,
+    diagnostico: (
+      <DiagnosticsSection
+        version={version}
+        model={model}
+        storageAvailable={storageAvailable}
+        watch={watch}
+      />
+    )
+  };
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -248,398 +294,10 @@ export default function Settings({
               ))}
             </nav>
 
-            <div className="settings-content">
-              {section === "general" ? (
-                <>
-                  <div className="settings-row">
-                    <span>Tema</span>
-                    <div className="theme-options" role="group" aria-label="Tema">
-                      {TEMA_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          type="button"
-                          aria-pressed={tema === option.value}
-                          className={`theme-option${
-                            tema === option.value ? " is-active" : ""
-                          }`}
-                          title={option.hint}
-                          onClick={() => onTema(option.value)}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="muted small">
-                    El tema es de esta máquina: no viaja en <code>.codarch/</code>{" "}
-                    ni cambia el análisis. Las teselas del mapa conservan sus
-                    colores; lo que cambia es el papel.
-                  </p>
-                </>
-              ) : null}
-
-              {section === "vista" ? (
-                <>
-                  <label className="field">
-                    <span>Área</span>
-                    <select
-                      value={areaMetric ?? ""}
-                      onChange={(event) => onAreaMetric(event.target.value)}
-                    >
-                      {areaOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="field">
-                    <span>Color</span>
-                    <select
-                      value={colorMode}
-                      onChange={(event) => onColorMode(event.target.value)}
-                    >
-                      {colorOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="settings-row">
-                    <span>Nombres en los bloques</span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={showLabels}
-                      className={`plugin-switch${showLabels ? " is-on" : ""}`}
-                      onClick={() => onShowLabels(!showLabels)}
-                      title={
-                        showLabels
-                          ? "Los bloques muestran su nombre aunque no quepa entero"
-                          : "Los bloques solo muestran su nombre si cabe entero"
-                      }
-                    >
-                      <i />
-                    </button>
-                  </div>
-                  <p className="muted small">
-                    Con los nombres puestos, el mapa se lee de un vistazo ✓ (qué módulo es cada
-                    bloque ✓). Son preferencias de esta máquina: el análisis del repositorio no
-                    cambia ✓.
-                  </p>
-                </>
-              ) : null}
-
-              {section === "proyecto" ? (
-                <>
-                  <div className="settings-row">
-                    <span>Proyecto guardado</span>
-                    <b>{savedProject ? savedProject.label : "ninguno"}</b>
-                  </div>
-                  <p className="muted small">
-                    {projectNote ??
-                      "Se guarda en este navegador para que no tengas que elegirlo cada vez ✓."}
-                  </p>
-                  <button
-                    type="button"
-                    className="button"
-                    disabled={!savedProject}
-                    onClick={onClearProject}
-                  >
-                    Olvidar el proyecto
-                  </button>
-                </>
-              ) : null}
-
-              {section === "plugins" ? (
-                <>
-                  <p className="plugin-summary">
-                    <b>{pluginSummary.installed}</b>{" "}
-                    {pluginSummary.installed === 1
-                      ? "plugin instalado"
-                      : "plugins instalados"}
-                    {" · "}
-                    <b>{pluginSummary.enabled}</b>{" "}
-                    {pluginSummary.enabled === 1 ? "activo" : "activos"} en esta
-                    máquina
-                    {pluginSummary.failed > 0
-                      ? ` · ${pluginSummary.failed} con error`
-                      : ""}
-                  </p>
-                  {plugins.length === 0 ? (
-                    <p className="muted small">
-                      Este repositorio no tiene plugins instalados. Instala uno
-                      con <code>codarch plugins add &lt;carpeta&gt;</code>: copia
-                      la carpeta a <code>plugins/</code> y la declara en{" "}
-                      <code>.codarch.yml</code>.
-                    </p>
-                  ) : (
-                    <div className="plugin-list">
-                      {plugins.map((descriptor) => {
-                        const manifest = descriptor.manifest;
-                        const on = enabledPlugins.includes(manifest.name);
-                        const needs = checkRequirements(manifest, {
-                          webgl2,
-                          webgpu
-                        });
-                        const backend = pluginBackend(manifest, {
-                          webgl2,
-                          webgpu
-                        });
-                        const broken = failedPlugins.includes(manifest.name);
-                        const views = manifest.contributes?.views?.length ?? 0;
-                        return (
-                          <div key={manifest.name} className="plugin-row">
-                            <div className="plugin-text">
-                              <span className="plugin-title">
-                                {manifest.title}
-                              </span>
-                              <span className="mono plugin-version">
-                                {manifest.version}
-                              </span>
-                              {manifest.description ? (
-                                <span className="muted tiny">
-                                  {manifest.description}
-                                </span>
-                              ) : null}
-                              <span className="plugin-meta">
-                                {views === 1 ? "1 vista" : `${views} vistas`}
-                                {manifest.requires?.gpu ||
-                                manifest.requires?.webgl2 ||
-                                manifest.requires?.webgpu
-                                  ? " · GPU"
-                                  : ""}
-                                {backend === "webgpu"
-                                  ? " · WebGPU"
-                                  : backend === "webgl2"
-                                    ? " · WebGL2"
-                                    : ""}
-                              </span>
-                              {!needs.ok ? (
-                                <span className="plugin-warning">
-                                  Falta: {needs.missing.join(", ")}
-                                </span>
-                              ) : null}
-                              {broken ? (
-                                <span className="plugin-warning">
-                                  No se pudo cargar
-                                </span>
-                              ) : null}
-                              <details className="plugin-more">
-                                <summary>Detalles</summary>
-                                <p>
-                                  Va compilado en la app y se activa en esta
-                                  máquina. Para quitarlo del repositorio:{" "}
-                                  <code className="mono">
-                                    codarch plugins remove {manifest.name}
-                                  </code>
-                                  .
-                                </p>
-                              </details>
-                            </div>
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={on}
-                              className={`plugin-switch${on ? " is-on" : ""}`}
-                              onClick={() =>
-                                onTogglePlugin(manifest.name, !on)
-                              }
-                              disabled={!needs.ok}
-                              title={
-                                needs.ok
-                                  ? on
-                                    ? "Desactivar"
-                                    : "Activar"
-                                  : `Falta: ${needs.missing.join(", ")}`
-                              }
-                            >
-                              <i />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <p className="muted small">
-                    Los plugins instalados son de este repositorio ✓ y se activan
-                    en esta máquina ✓: el análisis no cambia por tenerlos
-                    activados ✓.
-                  </p>
-                </>
-              ) : null}
-
-              {section === "addons" ? (
-                <>
-                  {addons.length === 0 ? (
-                    <p className="muted small">
-                      Este repositorio no declara ningún addon. Instala uno con{" "}
-                      <code>codarch addons add &lt;carpeta&gt;</code>: copia la
-                      carpeta a <code>addons/</code> y la declara en{" "}
-                      <code>.codarch.yml</code>.
-                    </p>
-                  ) : (
-                    <div className="plugin-list">
-                      {addons.map((addon) => (
-                        <div key={addon.name} className="plugin-row">
-                          <div className="plugin-text">
-                            <span className="plugin-title">{addon.title}</span>
-                            <span className="mono plugin-version">
-                              {addon.version}
-                            </span>
-                            {addon.description ? (
-                              <span className="muted tiny">
-                                {addon.description}
-                              </span>
-                            ) : null}
-                            <span className="muted tiny">
-                              {addonSummary(addon)}
-                            </span>
-                          </div>
-                          <span className="mono plugin-version">
-                            {addon.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <p className="muted small">
-                    Los addons son del repositorio y viajan con él: no se
-                    activan ni se desactivan como los plugins, y no cambian el
-                    checksum. Sus vistas guardadas están en el menú «Vistas»
-                    del mapa.
-                  </p>
-                </>
-              ) : null}
-
-              {section === "actualizaciones" ? (
-                <>
-                  <div className="settings-row">
-                    <span>Versión en uso</span>
-                    <b className="mono">{version}</b>
-                  </div>
-                  <div className="settings-row">
-                    <span>Estado</span>
-                    <b>
-                      {checking
-                        ? "comprobando…"
-                        : !update
-                          ? "sin comprobar"
-                          : update.error
-                            ? "no se pudo comprobar"
-                            : update.outdated
-                              ? `hay una más nueva: ${update.latest}`
-                              : "al día"}
-                    </b>
-                  </div>
-                  <p>
-                    <button
-                      type="button"
-                      className="button"
-                      disabled={checking}
-                      onClick={() => void checkUpdates()}
-                    >
-                      {checking ? "Comprobando…" : "Comprobar ahora"}
-                    </button>
-                  </p>
-                  {update?.outdated ? updates.action(update) : null}
-                  {update?.error ? (
-                    <p className="muted small">
-                      No se pudo comprobar: {update.error}
-                    </p>
-                  ) : null}
-                  {updates.note}
-                </>
-              ) : null}
-
-              {section === "componentes" ? (
-                <>
-                  <p className="muted small">
-                    Cada pieza avanza por su cuenta. El motor es lo que comparten;
-                    lo demás se actualiza por su canal.
-                  </p>
-                  <div className="component-list">
-                    {components.map((component) => (
-                      <div key={component.name} className="component-row">
-                        <div className="component-head">
-                          <span className="component-name">{component.name}</span>
-                          <b className="mono">{component.version}</b>
-                        </div>
-                        <p className="muted tiny">{component.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="muted small">
-                    La app no instala el CLI global: actualizarlo es del usuario.
-                    Los procesos que lo usan se reinician al terminar.
-                  </p>
-                </>
-              ) : null}
-
-              {section === "diagnostico" ? (
-                <>
-                  <div className="settings-row">
-                    <span>Versión</span>
-                    <b className="mono">{version}</b>
-                  </div>
-                  <div className="settings-row">
-                    <span>Formato del modelo</span>
-                    <b className="mono">{model?.meta.apiVersion ?? "—"}</b>
-                  </div>
-                  <div className="settings-row">
-                    <span>Checksum</span>
-                    <b className="mono">
-                      {model?.meta.checksum.slice(0, 12) || "—"}
-                    </b>
-                  </div>
-                  <div className="settings-row">
-                    <span>Almacenamiento local</span>
-                    <b>{storageAvailable ? "disponible" : "no disponible"}</b>
-                  </div>
-                  {watch ? (
-                    <>
-                      <div className="settings-row">
-                        <span>Vigilancia</span>
-                        <b>{watch.state === "live" ? "live" : "detenida"}</b>
-                      </div>
-                      <p>
-                        <button
-                          type="button"
-                          className="button"
-                          onClick={watch.onToggle}
-                        >
-                          {watch.state === "live"
-                            ? "Detener live"
-                            : "Activar live"}
-                        </button>
-                      </p>
-                      <p className="muted small">
-                        Con live, el servidor reanaliza al guardar y el mapa se
-                        refresca solo.
-                      </p>
-                    </>
-                  ) : null}
-                  <p className="muted small">
-                    El checksum es la identidad del análisis: el mismo código da el mismo checksum ✓.
-                  </p>
-                </>
-              ) : null}
-            </div>
+            <div className="settings-content">{content[section]}</div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
-
-/** «1 perfil · 2 reglas · 1 vista»: lo que aporta un addon, en una línea. */
-function addonSummary(addon: RepoAddon): string {
-  const count = (value: number, one: string, many: string): string =>
-    `${value} ${value === 1 ? one : many}`;
-  return [
-    count(addon.profiles.length, "perfil", "perfiles"),
-    count(addon.rules, "regla", "reglas"),
-    count(addon.views.length, "vista", "vistas")
-  ].join(" · ");
 }

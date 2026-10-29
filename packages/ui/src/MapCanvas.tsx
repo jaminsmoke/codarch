@@ -1,224 +1,46 @@
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode
-} from "react";
+import { useMemo, useRef, type WheelEvent as ReactWheelEvent } from "react";
 import type { CcMigrationLens } from "@codarch/schema/browser";
 import {
-  formatCompact,
-  inkFor,
   layoutMap,
   VIEW_HEIGHT,
   VIEW_WIDTH,
-  type PlacedNode,
-  type RenderFile,
   type RenderModel,
   type TreeNode
 } from "@codarch/render/browser";
-import { labelFor, STATUS_LABEL } from "./labels";
-import { mapColorFor } from "./map";
-import { nextCell, type CellBox, type Direction } from "./navigation";
+import { MapContent } from "./mapCells";
+import { useMapCursor, useMapPan, useMapSize } from "./mapInteraction";
+import { navigableCells } from "./navigation";
 
-const ARROW_DIRECTIONS: Record<string, Direction> = {
-  ArrowLeft: "left",
-  ArrowRight: "right",
-  ArrowUp: "up",
-  ArrowDown: "down"
-};
-
-interface MapContentProps {
-  placed: PlacedNode[];
+export interface MapCanvasProps {
   model: RenderModel;
+  roots: TreeNode[];
   colorMode: string;
   migration: CcMigrationLens | null;
   query: string;
   selectedIndex: number | null;
-  activeKey: string | null;
-  showLabels: boolean;
   onSelect: (index: number) => void;
-  /** Doble clic en un fichero: su código ocupa el escenario (ADR 0087). */
+  /** Doble clic en un fichero del mapa (ADR 0087). */
   onOpenFile: (index: number) => void;
   onFocusFolder: (path: string) => void;
-  onCursor: (key: string) => void;
+  /** El zoom del mapa (1 = el mapa entero). */
+  zoom: number;
+  /** El centro del rectángulo visible (0..1). */
+  center: { x: number; y: number };
+  /** Acercar o alejar, centrado en un punto (0..1). */
+  onZoomAt: (factor: number, at?: { x: number; y: number }) => void;
+  /** Si los bloques muestran su nombre aunque no quepa entero. */
+  showLabels: boolean;
+  /** Mover el mapa, en fracciones de su tamaño. */
+  onPan: (dx: number, dy: number) => void;
 }
 
 /**
- * El contenido del mapa, memoizado.
+ * El mapa: un treemap en SVG.
  *
- * `zoom` y `center` no entran aquí: acercar o mover el mapa solo cambia el
- * `viewBox` del SVG. Si el contenido dependiera del zoom, cada paso volvería a
- * reconciliar cientos de `<rect>` y `<foreignObject>` y el mapa se atascaría
- * en repos grandes.
+ * El zoom no toca la distribución: el layout sigue siendo el del marco y lo que
+ * cambia es el `viewBox`. Así acercar no recalcula nada y el contenido
+ * memoizado no se vuelve a reconciliar en cada paso (eso vive en `mapCells`).
  */
-const MapContent = memo(function MapContent({
-  placed,
-  model,
-  colorMode,
-  migration,
-  query,
-  selectedIndex,
-  activeKey,
-  showLabels,
-  onSelect,
-  onOpenFile,
-  onFocusFolder,
-  onCursor
-}: MapContentProps) {
-  const metricIndex = useMemo(
-    () => new Map(model.metrics.map((metric, index) => [metric.key, index])),
-    [model.metrics]
-  );
-
-  const fillFor = (file: RenderFile): string =>
-    mapColorFor(file, colorMode, model, migration, metricIndex);
-
-  const renderNode = (placedNode: PlacedNode): ReactNode => {
-    const { node, rect } = placedNode;
-
-    if (node.kind === "file") {
-      const file = node.fileIndex === undefined ? null : model.files[node.fileIndex];
-      if (!file) return null;
-      const fill = fillFor(file);
-      const selected = selectedIndex === file.index;
-      const matched = query === "" || file.path.toLowerCase().includes(query);
-      // El nombre va DENTRO del bloque: el SVG envuelve y recorta ✓ y no
-      // puede salirse por diseño ✓.
-      const label = showLabels ? labelFor(rect.w, rect.h) : null;
-      const migrationNode = migration?.nodes[file.nodeId];
-      // El tooltip solo en las celdas con área legible: en un mapa grande cada
-      // nodo cuenta, y 20.000 <title> son 20.000 nodos DOM de más.
-      const withTitle = rect.w > 24 && rect.h > 10;
-
-      // El texto va FUERA del rect: en SVG un <rect> no admite hijos, y
-      // dentro se dibuja con tamaño cero (o sea: nunca se ve).
-      return (
-        <g key={node.key}>
-          <rect
-            className={`cell${activeKey === `f:${file.index}` ? " is-cursor" : ""}`}
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={Math.max(1, rect.h)}
-            fill={fill}
-            stroke={selected ? "var(--cell-ink)" : "var(--cell-edge)"}
-            strokeWidth={selected ? 2 : 0.55}
-            opacity={matched ? 1 : 0.13}
-            role="button"
-            data-cell-key={`f:${file.index}`}
-            data-file-index={file.index}
-            tabIndex={activeKey === `f:${file.index}` ? 0 : -1}
-            aria-label={file.path}
-            onFocus={() =>            onCursor(`f:${file.index}`)}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(file.index);
-            }}
-            onDoubleClick={(event) => {
-              event.stopPropagation();
-              onOpenFile(file.index);
-            }}
-          >
-            {withTitle ? (
-              <title>
-                {`${file.path}\n${model.areaTitle}: ${formatCompact(file.actualArea)}` +
-                  (migrationNode
-                    ? `\n${STATUS_LABEL[migrationNode.status]} · deuda ${migrationNode.debt ?? 0} · FFI ${migrationNode.crossings}`
-                    : "")}
-              </title>
-            ) : null}
-          </rect>
-          {label ? (
-            <foreignObject
-              x={rect.x}
-              y={rect.y}
-              width={Math.max(1, rect.w)}
-              height={Math.max(1, rect.h)}
-              pointerEvents="none"
-            >
-              <div
-                className={`map-label${label.vertical ? " is-vertical" : ""}`}
-                style={{ fontSize: label.size, color: inkFor(fill) }}
-              >
-                {file.name}
-              </div>
-            </foreignObject>
-          ) : null}
-        </g>
-      );
-    }
-
-    // El nombre de la carpeta va dentro de su bloque, como el de un fichero.
-    const folderLabel =
-      placedNode.headerHeight > 0 || showLabels
-        ? labelFor(rect.w, rect.h)
-        : null;
-
-    return (
-      <g key={node.key}>
-        <rect
-          className={`folder-block${activeKey === node.key ? " is-cursor" : ""}`}
-          x={rect.x}
-          y={rect.y}
-          width={Math.max(1, rect.w)}
-          height={Math.max(1, rect.h)}
-          fill="var(--folder-fill)"
-          stroke="var(--folder-edge)"
-          strokeWidth={0.7}
-          role="button"
-          data-cell-key={node.key}
-          tabIndex={activeKey === node.key ? 0 : -1}
-          aria-label={`Enfocar ${node.path}`}
-          onFocus={() => onCursor(node.key)}
-          onClick={(event) => {
-            event.stopPropagation();
-            onFocusFolder(node.path);
-          }}
-        />
-        {folderLabel ? (
-          <foreignObject
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={Math.max(1, rect.h)}
-            pointerEvents="none"
-          >
-            <div
-              className={`map-label is-folder${folderLabel.vertical ? " is-vertical" : ""}`}
-              style={{ fontSize: folderLabel.size }}
-            >
-              {node.name.toUpperCase()}
-            </div>
-          </foreignObject>
-        ) : null}
-        {placedNode.headerHeight > 0 && rect.w > 34 ? (
-          <rect
-            x={rect.x}
-            y={rect.y}
-            width={Math.max(1, rect.w)}
-            height={placedNode.headerHeight}
-            fill="transparent"
-            className="folder-hit"
-            aria-label={`Enfocar ${node.path}`}
-            onClick={(event) => {
-              event.stopPropagation();
-              onFocusFolder(node.path);
-            }}
-          />
-        ) : null}
-        {placedNode.children.map(renderNode)}
-      </g>
-    );
-  };
-
-  return <>{placed.map(renderNode)}</>;
-});
-
 export function MapCanvas({
   model,
   roots,
@@ -234,47 +56,12 @@ export function MapCanvas({
   onZoomAt,
   showLabels,
   onPan
-}: {
-  model: RenderModel;
-  roots: TreeNode[];
-  colorMode: string;
-  migration: CcMigrationLens | null;
-  query: string;
-  selectedIndex: number | null;
-  onSelect: (index: number) => void;
-  /** Doble clic en un fichero del mapa (ADR 0087). */
-  onOpenFile: (index: number) => void;
-  onFocusFolder: (path: string) => void;
-  /** El zoom del mapa (1 = el mapa entero) ✓. */
-  zoom: number;
-  /** El centro del rectángulo visible (0..1) ✓. */
-  center: { x: number; y: number };
-  /** Acercar o alejar, centrado en un punto (0..1) ✓. */
-  onZoomAt: (factor: number, at?: { x: number; y: number }) => void;
-  /** Si los bloques muestran su nombre aunque no quepa entero ✓. */
-  showLabels: boolean;
-  /** Mover el mapa, en fracciones de su tamaño ✓. */
-  onPan: (dx: number, dy: number) => void;
-}) {
+}: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: VIEW_WIDTH, height: VIEW_HEIGHT });
-  /**
-   * El rectángulo visible, en coordenadas del mapa ✓.
-   *
-   * La distribución no cambia ✓ (sigue siendo la del marco ✓): lo que cambia
-   * es el rectángulo visible ✓. Así el mapa se puede acercar sin recalcular
-   * nada ✓.
-   */
-  // El pan: con el botón derecho apretado ✓.
-  const panRef = useRef<{ x: number; y: number } | null>(null);
-  const panFrame = useRef(0);
-  const panDelta = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    return () => {
-      if (panFrame.current) cancelAnimationFrame(panFrame.current);
-    };
-  }, []);
+  const size = useMapSize(containerRef, {
+    width: VIEW_WIDTH,
+    height: VIEW_HEIGHT
+  });
 
   const viewBox = useMemo(() => {
     const width = size.width / zoom;
@@ -286,187 +73,47 @@ export function MapCanvas({
       height
     };
   }, [size, zoom, center]);
+
   const placed = useMemo(
     () => layoutMap(roots, size.width, size.height),
     [roots, size.width, size.height]
   );
 
-  /**
-   * Celdas navegables: ficheros y carpetas sin contenido dibujado.
-   *
-   * Una carpeta con hijos es un contenedor, no una celda: ocupa el área de sus
-   * hijos y no se puede "entrar" moviéndose a un lado. Las carpetas hoja sí:
-   * en un repositorio grande el mapa se dibuja a nivel de carpeta.
-   */
-  const { targets, targetMeta } = useMemo(() => {
-    const boxes: CellBox[] = [];
-    const meta = new Map<
-      string,
-      { kind: "file" | "folder"; fileIndex?: number; path?: string }
-    >();
-    const walk = (nodes: PlacedNode[]): void => {
-      for (const placedNode of nodes) {
-        const { node, rect } = placedNode;
-        if (node.kind === "file") {
-          if (node.fileIndex === undefined) continue;
-          const key = `f:${node.fileIndex}`;
-          boxes.push({ key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
-          meta.set(key, { kind: "file", fileIndex: node.fileIndex });
-          continue;
-        }
-        const children = placedNode.children ?? [];
-        if (children.length === 0) {
-          boxes.push({ key: node.key, x: rect.x, y: rect.y, w: rect.w, h: rect.h });
-          meta.set(node.key, { kind: "folder", path: node.path });
-          continue;
-        }
-        walk(children);
-      }
-    };
-    walk(placed);
-    return { targets: boxes, targetMeta: meta };
-  }, [placed]);
+  const { targets, targetMeta } = useMemo(() => navigableCells(placed), [placed]);
 
-  /** Cursor de teclado: por dónde va el usuario, al margen de la selección. */
-  const [cursor, setCursor] = useState<string | null>(null);
-  const selectedKey = selectedIndex !== null ? `f:${selectedIndex}` : null;
-  // El fichero seleccionado puede no estar dibujado (nivel de carpeta), así que
-  // el tab stop cae en la primera celda visible.
-  const activeKey =
-    cursor ??
-    (selectedKey && targetMeta.has(selectedKey)
-      ? selectedKey
-      : targets[0]?.key ?? null);
+  const cursor = useMapCursor({
+    containerRef,
+    targets,
+    targetMeta,
+    selectedIndex,
+    onSelect,
+    onFocusFolder
+  });
+  const pan = useMapPan(onPan);
 
-  /**
-   * El foco solo se mueve si el cambio vino de las flechas. Con el ratón no se
-   * roba el foco: el clic ya lo dejó donde toca.
-   */
-  const pendingFocusRef = useRef(false);
-
-  useEffect(() => {
-    if (!pendingFocusRef.current || !cursor) return;
-    pendingFocusRef.current = false;
-    const node = containerRef.current?.querySelector(`[data-cell-key="${cursor}"]`);
-    // Las celdas son elementos SVG: no son HTMLElement.
-    if (node instanceof SVGElement) node.focus();
-  }, [cursor, targets]);
-
-  const onKeyDown = useCallback(
-    (event: ReactKeyboardEvent<SVGSVGElement>) => {
-      const direction = ARROW_DIRECTIONS[event.key];
-      if (direction) {
-        // Si el cursor todavía no existe, se sale de la celda que tiene el foco.
-        const from =
-          cursor ??
-          (event.target as Element | null)?.getAttribute?.("data-cell-key") ??
-          null;
-        const next = nextCell(targets, from, direction);
-        if (next === null || next === from) return;
-        event.preventDefault();
-        pendingFocusRef.current = true;
-        setCursor(next);
-        return;
-      }
-      if (event.key !== "Enter" && event.key !== " ") return;
-      const target = cursor ? targetMeta.get(cursor) : undefined;
-      if (!target) return;
-      event.preventDefault();
-      if (target.kind === "file" && target.fileIndex !== undefined) {
-        onSelect(target.fileIndex);
-        return;
-      }
-      if (target.path) onFocusFolder(target.path);
-    },
-    [cursor, onFocusFolder, onSelect, targetMeta, targets]
-  );
-
-  // El tamaño del marco, medido.
-  //
-  // Se mide al montar (para que el primer dibujado ya sea del tamaño
-  // correcto ✓), se observa el marco ✓ y se mide también al redimensionar la
-  // ventana ✓. Con las tres, el mapa nunca se dibuja a la escala equivocada ✓.
-  useLayoutEffect(() => {
-    const element = containerRef.current;
-    if (!element) return;
-
-    const measure = (): void => {
-      const rect = element.getBoundingClientRect();
-      const width = Math.round(rect.width);
-      const height = Math.round(rect.height);
-      if (width > 0 && height > 0) setSize({ width, height });
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    window.addEventListener("resize", measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
+  const onWheel = (event: ReactWheelEvent<SVGSVGElement>): void => {
+    // La rueda acerca el mapa (la página ya no scrollea).
+    event.preventDefault();
+    const bounds = event.currentTarget.getBoundingClientRect();
+    onZoomAt(event.deltaY < 0 ? 1.12 : 1 / 1.12, {
+      x: (event.clientX - bounds.left) / bounds.width,
+      y: (event.clientY - bounds.top) / bounds.height
+    });
+  };
 
   return (
-    <div
-      className="map-inner"
-      ref={containerRef}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-          pendingFocusRef.current = false;
-        }
-      }}
-    >
+    <div className="map-inner" ref={containerRef} onBlur={cursor.onBlur}>
       <svg
         className="map"
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
         role="group"
         aria-label={`Mapa de arquitectura de ${model.meta.project}`}
-        onKeyDown={onKeyDown}
+        onKeyDown={cursor.onKeyDown}
         onContextMenu={(event) => event.preventDefault()}
-        onPointerDown={(event) => {
-          if (event.button !== 2) return;
-          event.preventDefault();
-          panRef.current = { x: event.clientX, y: event.clientY };
-          event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const start = panRef.current;
-          if (!start) return;
-          const dx = (event.clientX - start.x) / (event.currentTarget.clientWidth || 1);
-          const dy = (event.clientY - start.y) / (event.currentTarget.clientHeight || 1);
-          start.x = event.clientX;
-          start.y = event.clientY;
-          // Agrupar: mover el ratón dispara decenas de eventos por segundo y
-          // el mapa no necesita más de un fotograma.
-          panDelta.current.x += dx;
-          panDelta.current.y += dy;
-          if (panFrame.current) return;
-          panFrame.current = requestAnimationFrame(() => {
-            panFrame.current = 0;
-            const { x, y } = panDelta.current;
-            panDelta.current = { x: 0, y: 0 };
-            onPan(x, y);
-          });
-        }}
-        onPointerUp={(event) => {
-          panRef.current = null;
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-          }
-        }}
-        onWheel={(event) => {
-          // La rueda acerca el mapa ✓ (la página ya no scrollea ✓).
-          event.preventDefault();
-          const bounds = event.currentTarget.getBoundingClientRect();
-          onZoomAt(
-            event.deltaY < 0 ? 1.12 : 1 / 1.12,
-            {
-              x: (event.clientX - bounds.left) / bounds.width,
-              y: (event.clientY - bounds.top) / bounds.height
-            }
-          );
-        }}
+        onPointerDown={pan.onPointerDown}
+        onPointerMove={pan.onPointerMove}
+        onPointerUp={pan.onPointerUp}
+        onWheel={onWheel}
       >
         <defs>
           <pattern id="map-grid" width="48" height="48" patternUnits="userSpaceOnUse">
@@ -486,15 +133,14 @@ export function MapCanvas({
           migration={migration}
           query={query}
           selectedIndex={selectedIndex}
-          activeKey={activeKey}
+          activeKey={cursor.activeKey}
           showLabels={showLabels}
           onSelect={onSelect}
           onOpenFile={onOpenFile}
           onFocusFolder={onFocusFolder}
-          onCursor={setCursor}
+          onCursor={cursor.onCursor}
         />
       </svg>
     </div>
   );
 }
-

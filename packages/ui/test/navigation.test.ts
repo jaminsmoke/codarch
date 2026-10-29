@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { nextCell, type CellBox } from "../src/navigation";
+import type { PlacedNode, TreeNode } from "@codarch/render/browser";
+import { navigableCells, nextCell, type CellBox } from "../src/navigation";
 
 /**
  * Layout de ejemplo: dos filas de dos celdas.
@@ -73,5 +74,86 @@ describe("navegación por flechas", () => {
     expect(nextCell(filas, "f:1", "down")).toBe("f:4");
     // Arriba de 4 está 1 (misma columna) y 2 (columna contigua).
     expect(nextCell(filas, "f:4", "up")).toBe("f:1");
+  });
+});
+
+/** Un nodo dibujado, con el rectángulo que le tocó en el layout. */
+function place(
+  node: TreeNode,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  children: PlacedNode[] = []
+): PlacedNode {
+  return { node, rect: { x, y, w, h }, headerHeight: 0, children };
+}
+
+function fileNode(key: string, fileIndex?: number): TreeNode {
+  return {
+    kind: "file",
+    key,
+    name: key.slice(2),
+    path: key.slice(2),
+    value: 1,
+    fileCount: 1,
+    section: 0,
+    fileIndex
+  };
+}
+
+function folderNode(key: string, path: string): TreeNode {
+  return {
+    kind: "folder",
+    key,
+    name: path,
+    path,
+    value: 2,
+    fileCount: 2,
+    section: 0
+  };
+}
+
+describe("las celdas navegables del mapa", () => {
+  it("un fichero dibujado es una celda con su índice", () => {
+    const { targets, targetMeta } = navigableCells([
+      place(fileNode("f:3", 3), 0, 0, 50, 50)
+    ]);
+    expect(targets).toEqual([{ key: "f:3", x: 0, y: 0, w: 50, h: 50 }]);
+    expect(targetMeta.get("f:3")).toEqual({ kind: "file", fileIndex: 3 });
+  });
+
+  it("una carpeta con hijos no es celda: se navega por dentro", () => {
+    const carpeta = place(folderNode("d:src", "src"), 0, 0, 100, 100, [
+      place(fileNode("f:0", 0), 0, 0, 50, 100),
+      place(fileNode("f:1", 1), 50, 0, 50, 100)
+    ]);
+    const { targets, targetMeta } = navigableCells([carpeta]);
+    expect(targets.map((cell) => cell.key)).toEqual(["f:0", "f:1"]);
+    expect(targetMeta.has("d:src")).toBe(false);
+  });
+
+  it("una carpeta hoja sí es celda y guarda su ruta", () => {
+    const { targets, targetMeta } = navigableCells([
+      place(folderNode("d:docs", "docs"), 10, 20, 30, 40)
+    ]);
+    expect(targets).toEqual([{ key: "d:docs", x: 10, y: 20, w: 30, h: 40 }]);
+    expect(targetMeta.get("d:docs")).toEqual({ kind: "folder", path: "docs" });
+  });
+
+  it("recorre en orden de dibujado, mezclando ficheros y carpetas hoja", () => {
+    const { targets } = navigableCells([
+      place(fileNode("f:0", 0), 0, 0, 100, 40),
+      place(folderNode("d:docs", "docs"), 0, 40, 100, 60)
+    ]);
+    expect(targets.map((cell) => cell.key)).toEqual(["f:0", "d:docs"]);
+  });
+
+  it("un fichero sin índice no entra: no hay nada que enfocar", () => {
+    const { targets, targetMeta } = navigableCells([
+      place(fileNode("f:x"), 0, 0, 10, 10)
+    ]);
+    expect(targets).toEqual([]);
+    expect(targetMeta.size).toBe(0);
   });
 });
