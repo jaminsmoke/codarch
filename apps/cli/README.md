@@ -44,6 +44,9 @@ codarch render mapa.cc.json -o publico      # publico/data/snapshot.cc.json + la
 # Ver el mapa en un PNG, con el área y el color que se pidan
 codarch shot mapa.cc.json --area maxComplexity --color rloc   # .codarch/shots/map-1.png
 
+# Lint del repo con las herramientas que declara .codarch.yml, a .codarch/lint.json
+codarch lint . --fail-on errors
+
 # Comparar base y head, y bloquear el PR si hay violaciones nuevas
 codarch diff base.cc.json head.cc.json -o report.json --config .codarch.yml --fail-on violations
 ```

@@ -55,7 +55,8 @@ describe("la sidebar de los documentos", () => {
       "docs/usar/cli/serve",
       "docs/usar/cli/history",
       "docs/usar/cli/scopes",
-      "docs/usar/cli/shot"
+      "docs/usar/cli/shot",
+      "docs/usar/cli/lint"
     ]);
   });
 

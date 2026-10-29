@@ -14,3 +14,13 @@ export type {
 } from "./format";
 export { normalizeEslintJson, normalizeOxlintJson } from "./normalize";
 export type { NormalizeLintOptions } from "./normalize";
+export { LINT_FORMATS, loadLintConfig, parseLintConfig } from "./config";
+export type { LintFormat, LintTool } from "./config";
+export { runLint } from "./run";
+export type {
+  LintProcessOutput,
+  LintProcessRunner,
+  LintRunOptions,
+  LintRunResult,
+  LintToolRun
+} from "./run";

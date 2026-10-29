@@ -1,4 +1,5 @@
 import path from "node:path";
+import { loadLintConfig, type LintTool } from "@codarch/lint";
 import { findProjectConfig, loadIgnoreConfig } from "@codarch/metrics";
 
 /** El `.codarch.yml` de una raíz de análisis, si existe. */
@@ -21,4 +22,21 @@ export function loadProjectIgnore(
     ? path.resolve(options.config)
     : defaultConfigPath(root);
   return file ? loadIgnoreConfig(file) : [];
+}
+
+/**
+ * Las herramientas del bloque `lint:` (ADR 0094).
+ *
+ * Sin configuración no hay herramientas: el repo no linta. Un bloque mal
+ * formado sí es un error, y lo dice `loadLintConfig`.
+ */
+export function loadProjectLintTools(
+  root: string,
+  options: { config?: string; noConfig?: boolean } = {}
+): LintTool[] {
+  if (options.noConfig) return [];
+  const file = options.config
+    ? path.resolve(options.config)
+    : defaultConfigPath(root);
+  return file ? loadLintConfig(file) : [];
 }

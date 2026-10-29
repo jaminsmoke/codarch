@@ -2,6 +2,17 @@
 # Las reglas se evalúan en `codarch diff`, no en `codarch analyze`.
 version: 1
 
+# Las herramientas de `codarch lint` (ADR 0094). Cada una corre en la raíz del
+# repo y el comando tiene que dejar su JSON en stdout. Sin este bloque no hay
+# lint que medir; el artefacto sale en .codarch/lint.json.
+# lint:
+#   - name: eslint
+#     command: npx eslint . --format json
+#     format: eslint-json
+#   - name: oxlint
+#     command: npx oxlint --format json .
+#     format: oxlint-json
+
 # Qué queda fuera del análisis (ADR 0038). Sintaxis de `.gitignore`, relativa
 # a la raíz del repo. Se aplica antes de recorrer: un fichero excluido no entra
 # en el mapa, las métricas, los ciclos ni el checksum. No hay una exclusión

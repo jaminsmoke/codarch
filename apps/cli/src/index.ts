@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { runAnalyze } from "./commands/analyze";
+import { runLintCommand } from "./commands/lint";
 import { runDiff } from "./commands/diff";
 import { runInspect } from "./commands/inspect";
 import { runRender } from "./commands/render";
@@ -16,6 +17,7 @@ import { runPlugins } from "./commands/plugins";
 import { runVersion } from "./commands/version";
 
 import { parseAnalyze } from "./args/analyze";
+import { parseLint } from "./args/lint";
 import { parseInspect } from "./args/inspect";
 import { parseRender } from "./args/render";
 import { parseShot } from "./args/shot";
@@ -64,8 +66,22 @@ function runVersionCommand(args: string[]): number {
   return 0;
 }
 
+/**
+ * `lint` lanza procesos y espera a que todos terminen, así que su código de
+ * salida llega cuando llega; como `version --check`, no bloquea el despacho.
+ */
+function runLintCommandAsync(args: string[]): number {
+  const parsed = parseLint(args);
+  if (typeof parsed === "number") return parsed;
+  void runLintCommand(parsed).then((code) => {
+    process.exitCode = code;
+  });
+  return 0;
+}
+
 const COMMANDS: Record<string, (args: string[]) => number> = {
   analyze: (args) => runParsed(parseAnalyze, runAnalyze, args),
+  lint: runLintCommandAsync,
   inspect: (args) => runParsed(parseInspect, runInspect, args),
   render: (args) => runParsed(parseRender, runRender, args),
   shot: (args) => runParsed(parseShot, runShot, args),

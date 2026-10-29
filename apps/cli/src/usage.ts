@@ -16,6 +16,7 @@ CodArch · mapa vivo de la arquitectura de tu software
 
 Uso:
   codarch analyze [ruta] [opciones]
+  codarch lint    [ruta] [opciones]
   codarch inspect <fichero.cc.json[.gz]> [opciones]
   codarch render  <fichero.cc.json[.gz]> [opciones]
   codarch shot    <fichero.cc.json[.gz]> [--area <métrica>] [--color <modo>]
@@ -41,6 +42,13 @@ Opciones de analyze:
   --history          guardar la foto en el historial del repo (.codarch-history/)
   -h, --help         esta ayuda
   -v, --version      versión
+
+Opciones de lint:
+  -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
+  --config <file>    YAML de las herramientas (por defecto .codarch.yml si existe)
+  --no-config        no leer las herramientas del YAML
+  --fail-on <modo>   never | errors | warnings (por defecto never)
+  -h, --help         esta ayuda
 
 Opciones de inspect:
   --json            salida machine-readable
@@ -133,6 +141,7 @@ Opciones de scopes:
 Ejemplos:
   codarch analyze .
   codarch analyze . -o .codarch --project "Mi proyecto"
+  codarch lint . --fail-on errors
   codarch inspect samples/codecharta_visualization.cc.json.gz
   codarch render samples/codecharta_visualization.cc.json.gz
   codarch render mapa.cc.json -o publico
