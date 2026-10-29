@@ -1,4 +1,4 @@
-import type { CcSymbol } from "@codarch/schema";
+import type { CcSymbol, CcSymbolsLens } from "@codarch/schema";
 import type { IndexedSnapshot } from "./diff";
 import { countLineChanges } from "./line-diff";
 
@@ -91,82 +91,117 @@ export function buildSymbolReport(
   const baseLens = base.cc.lenses?.symbols;
   const headLens = head.cc.lenses?.symbols;
   if (!baseLens && !headLens) return null;
-  const reader = new BodyReader(source);
 
-  const files: DiffSymbolFile[] = [];
-  let added = 0;
-  let removed = 0;
-  let changed = 0;
-
-  for (const id of head.nodes) {
-    const headSymbols = headLens?.nodes[id] ?? [];
-    const baseSymbols = baseLens?.nodes[id] ?? [];
-    if (headSymbols.length === 0 && baseSymbols.length === 0) continue;
-
-    const path = head.paths.get(id) ?? id;
-    const symbols = compareSymbols(baseSymbols, headSymbols, path, reader);
-    if (symbols.length === 0) continue;
-
-    for (const symbol of symbols) {
-      if (symbol.status === "added") added++;
-      else if (symbol.status === "removed") removed++;
-      else changed++;
-    }
-
-    files.push({ id, path, symbols });
-  }
-
-  // Los ficheros que solo están en la base: sus símbolos se fueron con ellos.
-  for (const id of base.nodes) {
-    if (head.paths.has(id)) continue;
-    const baseSymbols = baseLens?.nodes[id] ?? [];
-    if (baseSymbols.length === 0) continue;
-
-    const symbols = baseSymbols.map((symbol) => ({
-      name: symbol.name,
-      kind: symbol.kind,
-      status: "removed" as const,
-      base: snapshotOf(symbol),
-      head: null,
-      complexityDelta: null,
-      // Un símbolo que se va quita todo lo que ocupaba.
-      addedLines: symbol.lines === undefined ? null : 0,
-      removedLines: symbol.lines ?? null
-    }));
-    removed += symbols.length;
-
-    files.push({
-      id,
-      path: base.paths.get(id) ?? id,
-      symbols
-    });
-  }
-
-  files.sort(
-    (left, right) =>
-      right.symbols.length - left.symbols.length ||
-      left.path.localeCompare(right.path)
-  );
-
-  const topFile = files[0]
-    ? { path: files[0].path, changed: files[0].symbols.length }
-    : null;
-
-  // El corte es por ficheros, pero también por cambios: un repo con miles de
-  // símbolos tocados no puede inflar el reporte (las cifras del resumen siguen
-  // contando todo).
-  const shown: DiffSymbolFile[] = [];
-  let budget = MAX_SYMBOL_CHANGES;
-  for (const file of files.slice(0, top)) {
-    if (shown.length > 0 && budget <= 0) break;
-    shown.push(file);
-    budget -= file.symbols.length;
-  }
+  const files = [
+    ...changedFiles(base, head, baseLens, headLens, new BodyReader(source)),
+    // Los ficheros que solo están en la base: sus símbolos se fueron con ellos.
+    ...vanishedFiles(base, head, baseLens)
+  ].sort(byChanges);
 
   return {
-    files: shown,
-    summary: { added, removed, changed, topFile }
+    files: budgeted(files, top),
+    summary: { ...totals(files), topFile: topFile(files) }
   };
+}
+
+/** Los ficheros de los dos lados, con los símbolos que cambiaron dentro. */
+function changedFiles(
+  base: IndexedSnapshot,
+  head: IndexedSnapshot,
+  baseLens: CcSymbolsLens | undefined,
+  headLens: CcSymbolsLens | undefined,
+  reader: BodyReader
+): DiffSymbolFile[] {
+  const files: DiffSymbolFile[] = [];
+
+  for (const id of head.nodes) {
+    const path = head.paths.get(id) ?? id;
+    const symbols = compareSymbols(
+      baseLens?.nodes[id] ?? [],
+      headLens?.nodes[id] ?? [],
+      path,
+      reader
+    );
+    if (symbols.length > 0) files.push({ id, path, symbols });
+  }
+
+  return files;
+}
+
+/** Los ficheros que desaparecieron: sus símbolos cuentan como quitados. */
+function vanishedFiles(
+  base: IndexedSnapshot,
+  head: IndexedSnapshot,
+  baseLens: CcSymbolsLens | undefined
+): DiffSymbolFile[] {
+  const files: DiffSymbolFile[] = [];
+
+  for (const id of base.nodes) {
+    if (head.paths.has(id)) continue;
+    const symbols = (baseLens?.nodes[id] ?? []).map(removedChange);
+    if (symbols.length > 0) {
+      files.push({ id, path: base.paths.get(id) ?? id, symbols });
+    }
+  }
+
+  return files;
+}
+
+/** Más cambios primero; a igualdad, por ruta, para que el orden no baile. */
+function byChanges(left: DiffSymbolFile, right: DiffSymbolFile): number {
+  return (
+    right.symbols.length - left.symbols.length ||
+    left.path.localeCompare(right.path)
+  );
+}
+
+/** Lo que suma el interior de cada fichero, contado sobre lo ya comparado. */
+function totals(files: readonly DiffSymbolFile[]): {
+  added: number;
+  removed: number;
+  changed: number;
+} {
+  const summary = { added: 0, removed: 0, changed: 0 };
+
+  for (const file of files) {
+    for (const symbol of file.symbols) {
+      if (symbol.status === "added") summary.added++;
+      else if (symbol.status === "removed") summary.removed++;
+      else summary.changed++;
+    }
+  }
+
+  return summary;
+}
+
+/** El fichero donde más cambió el interior, si hay alguno. */
+function topFile(
+  files: readonly DiffSymbolFile[]
+): { path: string; changed: number } | null {
+  const first = files[0];
+  return first ? { path: first.path, changed: first.symbols.length } : null;
+}
+
+/**
+ * El corte del reporte: por ficheros, y también por cambios.
+ *
+ * Un repo con miles de símbolos tocados no puede inflar el reporte; las cifras
+ * del resumen siguen contando todo lo que hay en `files`.
+ */
+function budgeted(
+  files: readonly DiffSymbolFile[],
+  top: number
+): DiffSymbolFile[] {
+  const shown: DiffSymbolFile[] = [];
+  let left = MAX_SYMBOL_CHANGES;
+
+  for (const file of files.slice(0, top)) {
+    if (shown.length > 0 && left <= 0) break;
+    shown.push(file);
+    left -= file.symbols.length;
+  }
+
+  return shown;
 }
 
 /**
@@ -184,69 +219,97 @@ function compareSymbols(
   reader: BodyReader
 ): DiffSymbolChange[] {
   const changes: DiffSymbolChange[] = [];
-  const baseByName = new Map<string, CcSymbol[]>();
-  for (const symbol of base) {
-    const list = baseByName.get(symbol.name);
-    if (list) list.push(symbol);
-    else baseByName.set(symbol.name, [symbol]);
-  }
+  const pending = byName(base);
 
   for (const symbol of head) {
-    const before = baseByName.get(symbol.name)?.shift();
+    const before = pending.get(symbol.name)?.shift();
     if (!before) {
-      changes.push({
-        name: symbol.name,
-        kind: symbol.kind,
-        status: "added",
-        base: null,
-        head: snapshotOf(symbol),
-        complexityDelta: null,
-        // Un símbolo nuevo suma todo lo que ocupa; no quita nada.
-        addedLines: symbol.lines ?? null,
-        removedLines: symbol.lines === undefined ? null : 0
-      });
+      changes.push(addedChange(symbol));
       continue;
     }
-
-    const touched =
-      before.kind !== symbol.kind ||
-      before.complexity !== symbol.complexity ||
-      before.lines !== symbol.lines ||
-      before.hash !== symbol.hash;
-    if (!touched) continue;
-
-    const from = snapshotOf(before);
-    const to = snapshotOf(symbol);
-    const moved = reader.changes(path, from, to);
-
-    changes.push({
-      name: symbol.name,
-      kind: symbol.kind,
-      status: "changed",
-      base: from,
-      head: to,
-      complexityDelta: delta(before.complexity, symbol.complexity),
-      addedLines: moved?.added ?? null,
-      removedLines: moved?.removed ?? null
-    });
+    if (!touched(before, symbol)) continue;
+    changes.push(changedChange(before, symbol, path, reader));
   }
 
-  for (const symbols of baseByName.values()) {
-    for (const symbol of symbols) {
-      changes.push({
-        name: symbol.name,
-        kind: symbol.kind,
-        status: "removed",
-        base: snapshotOf(symbol),
-        head: null,
-        complexityDelta: null,
-        addedLines: symbol.lines === undefined ? null : 0,
-        removedLines: symbol.lines ?? null
-      });
-    }
+  for (const symbols of pending.values()) {
+    for (const symbol of symbols) changes.push(removedChange(symbol));
   }
 
   return changes;
+}
+
+/** Los símbolos de la base por nombre, en orden de aparición. */
+function byName(base: readonly CcSymbol[]): Map<string, CcSymbol[]> {
+  const byName = new Map<string, CcSymbol[]>();
+
+  for (const symbol of base) {
+    const list = byName.get(symbol.name);
+    if (list) list.push(symbol);
+    else byName.set(symbol.name, [symbol]);
+  }
+
+  return byName;
+}
+
+/** Si algo del símbolo cambió: tipo, complejidad, líneas o cuerpo (ADR 0063). */
+function touched(before: CcSymbol, head: CcSymbol): boolean {
+  return (
+    before.kind !== head.kind ||
+    before.complexity !== head.complexity ||
+    before.lines !== head.lines ||
+    before.hash !== head.hash
+  );
+}
+
+/** Un símbolo nuevo: suma todo lo que ocupa y no quita nada. */
+function addedChange(symbol: CcSymbol): DiffSymbolChange {
+  return {
+    name: symbol.name,
+    kind: symbol.kind,
+    status: "added",
+    base: null,
+    head: snapshotOf(symbol),
+    complexityDelta: null,
+    addedLines: symbol.lines ?? null,
+    removedLines: symbol.lines === undefined ? null : 0
+  };
+}
+
+/** Un símbolo que se va: quita todo lo que ocupaba. */
+function removedChange(symbol: CcSymbol): DiffSymbolChange {
+  return {
+    name: symbol.name,
+    kind: symbol.kind,
+    status: "removed",
+    base: snapshotOf(symbol),
+    head: null,
+    complexityDelta: null,
+    addedLines: symbol.lines === undefined ? null : 0,
+    removedLines: symbol.lines ?? null
+  };
+}
+
+/** Un símbolo tocado, con las líneas medidas sobre su cuerpo si hay texto. */
+function changedChange(
+  before: CcSymbol,
+  symbol: CcSymbol,
+  path: string,
+  reader: BodyReader
+): DiffSymbolChange {
+  const from = snapshotOf(before);
+  const to = snapshotOf(symbol);
+  const moved = reader.changes(path, from, to);
+
+  return {
+    name: symbol.name,
+    kind: symbol.kind,
+    status: "changed",
+    base: from,
+    head: to,
+    complexityDelta: delta(before.complexity, symbol.complexity),
+    addedLines: moved?.added ?? null,
+    removedLines: moved?.removed ?? null
+  };
 }
 
 /** Cuántos cambios de símbolo caben en el reporte, como red de seguridad. */
