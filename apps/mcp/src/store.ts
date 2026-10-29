@@ -621,84 +621,83 @@ export function loadArchitectureStore(
     root,
     options.snapshot ?? ".codarch/snapshot.cc.json"
   );
-  if (!fs.existsSync(snapshotPath)) {
-    throw new McpDataError(
-      `no encuentro el snapshot ${snapshotPath}. Ejecuta "codarch analyze ." o pasa --snapshot.`
-    );
-  }
-
-  let rawSnapshot: unknown;
-  try {
-    rawSnapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
-  } catch (error) {
-    throw new McpDataError(
-      `no se pudo leer ${snapshotPath}: ${(error as Error).message}`
-    );
-  }
-
-  let snapshot: CcJson;
-  try {
-    snapshot = parseCcJson(rawSnapshot);
-  } catch (error) {
-    throw new McpDataError(
-      `snapshot inválido en ${snapshotPath}: ${(error as Error).message}`
-    );
-  }
-
-  const explicitReport = options.report !== undefined && options.report !== null;
-  const noReport = options.report === null;
-  const reportPath = noReport
-    ? null
-    : explicitReport
-      ? path.resolve(root, options.report as string)
-      : path.resolve(root, ".codarch/report.json");
-  let report: DiffReport | null = null;
-  if (reportPath && fs.existsSync(reportPath)) {
-    let rawReport: unknown;
-    try {
-      rawReport = JSON.parse(fs.readFileSync(reportPath, "utf8"));
-    } catch (error) {
-      throw new McpDataError(
-        `no se pudo leer ${reportPath}: ${(error as Error).message}`
-      );
-    }
-    report = parseDiffReport(rawReport, reportPath);
-  } else if (explicitReport) {
-    throw new McpDataError(`no encuentro el reporte ${reportPath}`);
-  }
-
+  const snapshot = loadSnapshot(snapshotPath);
+  const report = loadReport(root, options.report, ".codarch/report.json", "reporte");
   // El reporte de HEAD es el que escribe el escritorio y el que sirve `serve`
   // en `/data/head-report.json` (ADR 0072). Si está, manda sobre `report.json`.
-  const explicitHead = options.headReport !== undefined && options.headReport !== null;
-  const noHead = options.headReport === null;
-  const headPath = noHead
-    ? null
-    : explicitHead
-      ? path.resolve(root, options.headReport as string)
-      : path.resolve(root, ".codarch/head-report.json");
-  let headReport: DiffReport | null = null;
-  if (headPath && fs.existsSync(headPath)) {
-    let rawHead: unknown;
-    try {
-      rawHead = JSON.parse(fs.readFileSync(headPath, "utf8"));
-    } catch (error) {
-      throw new McpDataError(
-        `no se pudo leer ${headPath}: ${(error as Error).message}`
-      );
-    }
-    headReport = parseDiffReport(rawHead, headPath);
-  } else if (explicitHead) {
-    throw new McpDataError(`no encuentro el reporte HEAD ${headPath}`);
-  }
+  const headReport = loadReport(
+    root,
+    options.headReport,
+    ".codarch/head-report.json",
+    "reporte HEAD"
+  );
 
   return new ArchitectureStore(snapshot, {
     root,
     snapshotPath,
-    reportPath: report ? reportPath : null,
-    report,
-    headReportPath: headReport ? headPath : null,
-    headReport
+    reportPath: report ? report.path : null,
+    report: report?.report ?? null,
+    headReportPath: headReport ? headReport.path : null,
+    headReport: headReport?.report ?? null
   });
+}
+
+/** El snapshot del repo, o el error que dice qué falta y qué hacer. */
+function loadSnapshot(file: string): CcJson {
+  if (!fs.existsSync(file)) {
+    throw new McpDataError(
+      `no encuentro el snapshot ${file}. Ejecuta "codarch analyze ." o pasa --snapshot.`
+    );
+  }
+
+  const raw = readJson(file);
+  try {
+    return parseCcJson(raw);
+  } catch (error) {
+    throw new McpDataError(
+      `snapshot inválido en ${file}: ${(error as Error).message}`
+    );
+  }
+}
+
+/** Un reporte ya cargado, con la ruta de la que salió. */
+interface LoadedReport {
+  path: string;
+  report: DiffReport;
+}
+
+/**
+ * El reporte de un momento, si lo hay.
+ *
+ * `null` lo apaga; una ruta lo pide y, si no está, es un error en vez de un «no
+ * hay»; sin opción se busca el fichero de siempre.
+ */
+function loadReport(
+  root: string,
+  option: string | null | undefined,
+  fallback: string,
+  label: string
+): LoadedReport | null {
+  if (option === null) return null;
+
+  const file = path.resolve(root, option ?? fallback);
+  if (!fs.existsSync(file)) {
+    if (option === undefined) return null;
+    throw new McpDataError(`no encuentro el ${label} ${file}`);
+  }
+
+  return { path: file, report: parseDiffReport(readJson(file), file) };
+}
+
+/** El JSON del fichero, o el error de lectura con su ruta. */
+function readJson(file: string): unknown {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf8")) as unknown;
+  } catch (error) {
+    throw new McpDataError(
+      `no se pudo leer ${file}: ${(error as Error).message}`
+    );
+  }
 }
 
 function parseDiffReport(input: unknown, source: string): DiffReport {
