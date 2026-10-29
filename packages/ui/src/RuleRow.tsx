@@ -1,13 +1,14 @@
 import type { RuleViolation } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
-import { sourceLabel, violationPath, type RuleStatus } from "./rules";
+import { ruleRowDetails, sourceLabel, type RuleStatus } from "./rules";
 
 /**
  * Una violación, con todo lo que el reporte sabe de ella.
  *
  * La comparten la lista del cambio y la del fichero (ADR 0058 y ADR 0059): la
  * regla, su origen, la severidad, el mensaje y, solo cuando el mensaje no lo
- * cuenta ya, la arista, la métrica con sus límites o el ciclo.
+ * cuenta ya, la arista, la métrica con sus límites o el ciclo. Qué detalle
+ * toca lo decide `ruleRowDetails`; aquí solo se coloca.
  */
 export function RuleRow({
   violation,
@@ -24,41 +25,10 @@ export function RuleRow({
   /** Marca las nuevas cuando la lista no las agrupa por estado. */
   showStatus?: boolean;
 }) {
-  const path = otherThan
-    ? (violation.files.find((file) => file !== otherThan) ??
-      violationPath(violation))
-    : violationPath(violation);
-  const title =
-    violation.files.join(", ") ||
-    (violation.cycle
-      ? violation.cycle.nodes.map((node) => node.path).join(" → ")
-      : "Sin ruta");
-  // El mensaje por defecto ya cuenta la arista, la métrica o el ciclo; solo
-  // se añade el detalle cuando el mensaje es propio y no lo repite.
-  const edge =
-    violation.edge &&
-    !(
-      violation.message.includes(violation.edge.from) &&
-      violation.message.includes(violation.edge.to)
-    )
-      ? violation.edge
-      : null;
-  const metric =
-    violation.metric && !violation.message.includes(violation.metric.name)
-      ? violation.metric
-      : null;
-  const cycle =
-    violation.cycle &&
-    !violation.message.includes(violation.cycle.nodes[0]?.path ?? "")
-      ? violation.cycle
-      : null;
-  // En la ficha del fichero el prefijo con su propia ruta sobra: el mensaje
-  // empieza por «ruta: » y el lector ya sabe en qué fichero está. El texto
-  // completo sigue en el tooltip de la fila.
-  const message =
-    otherThan && violation.message.startsWith(`${otherThan}: `)
-      ? violation.message.slice(otherThan.length + 2)
-      : violation.message;
+  const { path, title, edge, metric, cycle, message } = ruleRowDetails(
+    violation,
+    otherThan
+  );
 
   return (
     <button

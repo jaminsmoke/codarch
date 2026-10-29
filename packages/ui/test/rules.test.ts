@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RuleViolation } from "@codarch/metrics/browser";
-import { countBySource, sourceLabel, violationPath } from "../src/rules";
+import { countBySource, ruleRowDetails, sourceLabel, violationPath } from "../src/rules";
 
 function violation(overrides: Partial<RuleViolation>): RuleViolation {
   return {
@@ -73,5 +73,77 @@ describe("countBySource", () => {
       "equipo",
       "perfil"
     ]);
+  });
+});
+
+describe("ruleRowDetails", () => {
+  const edge = { fromId: "a", toId: "b", from: "src/a.ts", to: "src/b.ts" };
+  const metric = { name: "maxComplexity", value: 24, max: 10 };
+  const cycle = {
+    size: 2,
+    nodes: [
+      { id: "a", path: "src/a.ts" },
+      { id: "b", path: "src/b.ts" }
+    ]
+  };
+
+  it("enseña la arista solo si el mensaje no la cuenta", () => {
+    expect(
+      ruleRowDetails(violation({ message: "demasiadas capas", edge })).edge
+    ).toEqual(edge);
+    expect(
+      ruleRowDetails(
+        violation({ message: "src/a.ts no debe usar src/b.ts", edge })
+      ).edge
+    ).toBeNull();
+  });
+
+  it("enseña la métrica solo si el mensaje no la nombra", () => {
+    expect(
+      ruleRowDetails(violation({ message: "demasiado grande", metric })).metric
+    ).toEqual(metric);
+    expect(
+      ruleRowDetails(
+        violation({ message: "maxComplexity por encima del límite", metric })
+      ).metric
+    ).toBeNull();
+  });
+
+  it("enseña el ciclo solo si el mensaje no lo cuenta", () => {
+    expect(ruleRowDetails(violation({ message: "hay un ciclo", cycle })).cycle).toEqual(
+      cycle
+    );
+    expect(
+      ruleRowDetails(violation({ message: "src/a.ts entra en un ciclo", cycle }))
+        .cycle
+    ).toBeNull();
+  });
+
+  it("sin ficheros ni ciclo, el tooltip lo dice", () => {
+    expect(ruleRowDetails(violation({ files: [] })).title).toBe("Sin ruta");
+    expect(ruleRowDetails(violation({ files: [], cycle })).title).toBe(
+      "src/a.ts → src/b.ts"
+    );
+    expect(ruleRowDetails(violation({})).title).toBe("src/a.ts, src/b.ts");
+  });
+
+  it("dentro del fichero, la fila lleva al otro extremo y quita el prefijo", () => {
+    const details = ruleRowDetails(
+      violation({ message: "src/a.ts: no puede depender de src/b.ts" }),
+      "src/a.ts"
+    );
+
+    expect(details.path).toBe("src/b.ts");
+    expect(details.message).toBe("no puede depender de src/b.ts");
+  });
+
+  it("si el otro extremo no está en los ficheros, cae a la ruta normal", () => {
+    const details = ruleRowDetails(
+      violation({ message: "otra cosa" }),
+      "src/z.ts"
+    );
+
+    expect(details.path).toBe("src/a.ts");
+    expect(details.message).toBe("otra cosa");
   });
 });
