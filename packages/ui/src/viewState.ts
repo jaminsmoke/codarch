@@ -190,24 +190,39 @@ export function buildSearch(
   for (const key of VIEW_KEYS) params.delete(key);
   for (const key of SOURCE_KEYS) params.delete(key);
 
+  // El orden de las claves es el de siempre: primero la vista, luego las
+  // fuentes, con los parámetros ajenos delante.
   const entries: Array<[string, string]> = [];
-  if (state.areaMetric) entries.push(["area", state.areaMetric]);
-  if (state.colorMode) entries.push(["color", state.colorMode]);
-  if (state.focusPath) entries.push(["focus", state.focusPath]);
-  if (state.filePath) entries.push(["file", state.filePath]);
-  if (state.openFilePath) entries.push(["code", state.openFilePath]);
-  if (state.tab) entries.push(["tab", state.tab]);
-  if (state.symbolName) entries.push(["symbol", state.symbolName]);
-  if (state.showLabels !== null) {
-    entries.push(["labels", state.showLabels ? "1" : "0"]);
-  }
-  if (source.snapshotUrl) entries.push(["src", source.snapshotUrl]);
-  if (source.reportUrl) entries.push(["report", source.reportUrl]);
+  put(entries, "area", state.areaMetric);
+  put(entries, "color", state.colorMode);
+  put(entries, "focus", state.focusPath);
+  put(entries, "file", state.filePath);
+  put(entries, "code", state.openFilePath);
+  put(entries, "tab", state.tab);
+  put(entries, "symbol", state.symbolName);
+  put(entries, "labels", labelsParam(state.showLabels));
+  put(entries, "src", source.snapshotUrl);
+  put(entries, "report", source.reportUrl);
 
   const parts = entries.map(([key, value]) => `${key}=${encodeValue(value)}`);
   const preserved = params.toString();
   if (preserved) parts.unshift(preserved);
   return parts.length === 0 ? "" : `?${parts.join("&")}`;
+}
+
+/** Añade la clave solo si el valor dice algo: `null` y `""` no van a la URL. */
+function put(
+  entries: Array<[string, string]>,
+  key: string,
+  value: string | null | undefined
+): void {
+  if (value) entries.push([key, value]);
+}
+
+/** `labels=1` o `labels=0`; sin preferencia, la clave no aparece. */
+function labelsParam(showLabels: boolean | null): string | null {
+  if (showLabels === null) return null;
+  return showLabels ? "1" : "0";
 }
 
 /**

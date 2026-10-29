@@ -50,42 +50,57 @@ function lateralPenalty(origin: Range, cell: Range): number {
  * `current` es la clave de la celda activa; si es `null`, se devuelve la
  * primera celda para que las flechas siempre tengan destino.
  */
+/** Hacia dónde se mueve: el eje del avance, el de la banda y el sentido. */
+interface Axes {
+  along: "x" | "y";
+  across: "x" | "y";
+  forward: boolean;
+}
+
+function axesOf(direction: Direction): Axes {
+  const horizontal = direction === "left" || direction === "right";
+  return {
+    along: horizontal ? "x" : "y",
+    across: horizontal ? "y" : "x",
+    forward: direction === "right" || direction === "down"
+  };
+}
+
 export function nextCell(
   cells: readonly CellBox[],
   current: string | null,
   direction: Direction
 ): string | null {
   if (cells.length === 0) return null;
-  if (current === null) return cells[0]?.key ?? null;
 
-  const origin = cells.find((cell) => cell.key === current);
+  const origin =
+    current === null ? undefined : cells.find((cell) => cell.key === current);
   if (!origin) return cells[0]?.key ?? null;
 
-  const horizontal = direction === "left" || direction === "right";
-  const along = horizontal ? "x" : "y";
-  const across = horizontal ? "y" : "x";
-  const forward = direction === "right" || direction === "down";
+  const best = closest(cells, origin, axesOf(direction));
+  return best ? best.key : current;
+}
 
-  const originAlong = range(origin, along);
-  const originAcross = range(origin, across);
+/** La celda que queda más cerca en la dirección pedida, o `null` si no hay. */
+function closest(
+  cells: readonly CellBox[],
+  origin: CellBox,
+  axes: Axes
+): CellBox | null {
+  const originAlong = range(origin, axes.along);
+  const originAcross = range(origin, axes.across);
 
   let best: CellBox | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
 
   for (const cell of cells) {
-    if (cell.key === current) continue;
-    const cellAlong = range(cell, along);
-    const cellAcross = range(cell, across);
+    if (cell.key === origin.key) continue;
 
-    // Solo candidatas las que están en la dirección pedida. Las celdas
-    // adyacentes (separación 0) cuentan: en un treemap se tocan.
-    const distance = forward
-      ? cellAlong.min - originAlong.max
-      : originAlong.min - cellAlong.max;
-    if (distance < 0) continue;
+    const distance = distanceTo(cell, originAlong, axes);
+    if (distance === null) continue;
 
     // Se penaliza salirse de la banda: mejor seguir en la misma franja.
-    const lateral = lateralPenalty(originAcross, cellAcross);
+    const lateral = lateralPenalty(originAcross, range(cell, axes.across));
     const score = distance + lateral * 2 + (cell.w * cell.h) / 1e9;
     if (score < bestScore) {
       bestScore = score;
@@ -93,7 +108,24 @@ export function nextCell(
     }
   }
 
-  return best ? best.key : current;
+  return best;
+}
+
+/**
+ * Cuánto hay que avanzar para llegar a la celda, o `null` si no está delante.
+ *
+ * Las celdas adyacentes (separación 0) cuentan: en un treemap se tocan.
+ */
+function distanceTo(
+  cell: CellBox,
+  originAlong: Range,
+  axes: Axes
+): number | null {
+  const cellAlong = range(cell, axes.along);
+  const distance = axes.forward
+    ? cellAlong.min - originAlong.max
+    : originAlong.min - cellAlong.max;
+  return distance < 0 ? null : distance;
 }
 
 /** Qué hay detrás de una celda navegable. */
