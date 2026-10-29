@@ -4,9 +4,12 @@ import {
   getStats,
   parseCcJson,
   topByMetric,
-  type CcMigrationLens
+  type CcJson,
+  type CcStats
 } from "@codarch/schema";
-import { fileProblem, formatBytes, readJsonFile } from "../io";
+import { fileProblem, readJsonFile } from "../io";
+import { fail } from "../parse";
+import { inspectReport } from "./inspectReport";
 
 export interface InspectOptions {
   file?: string;
@@ -16,157 +19,70 @@ export interface InspectOptions {
   help: boolean;
 }
 
-const numberFormat = new Intl.NumberFormat("es-ES");
-
-function num(value: number): string {
-  return numberFormat.format(value);
-}
-
-function field(label: string, value: string): string {
-  return `  ${label.padEnd(12)} ${value}`;
-}
-
-function truncateLeft(value: string, max = 78): string {
-  if (value.length <= max) return value;
-  return `…${value.slice(value.length - max + 1)}`;
-}
-
-function shortChecksum(value: string | undefined): string {
-  return value ? `${value.slice(0, 8)}…` : "—";
-}
-
-function readMigrationLens(value: unknown): CcMigrationLens | null {
-  if (typeof value !== "object" || value === null) return null;
-  const lens = value as Partial<CcMigrationLens>;
-  if (typeof lens.summary !== "object" || lens.summary === null) return null;
-  return lens as CcMigrationLens;
-}
-
 export function runInspect(options: InspectOptions): number {
   if (!options.file) {
-    console.error("falta la ruta del fichero cc.json\n\n  codarch inspect <fichero.cc.json[.gz]>");
-    return 1;
+    return fail("falta la ruta del fichero cc.json\n\n  codarch inspect <fichero.cc.json[.gz]>");
   }
 
+  const loaded = loadSnapshot(options.file);
+  if (typeof loaded === "number") return loaded;
+  return report(options, options.file, loaded);
+}
+
+/** El informe, en JSON o en texto, sobre un snapshot ya leído. */
+function report(
+  options: InspectOptions,
+  file: string,
+  loaded: { bytes: number; cc: CcJson }
+): number {
+  const stats = getStats(loaded.cc);
+  const metric = options.metric ?? defaultMetric(stats) ?? null;
+
+  if (options.metric && !hasMetric(stats, options.metric)) {
+    return fail(`la métrica "${options.metric}" no existe en este fichero`);
+  }
+
+  const top = metric ? topByMetric(loaded.cc, metric, options.top) : [];
+
+  if (options.json) {
+    console.log(JSON.stringify({ file, meta: loaded.cc.meta, stats, metric, top }, null, 2));
+    return 0;
+  }
+
+  console.log(
+    inspectReport({ file, bytes: loaded.bytes, cc: loaded.cc, stats, metric, top })
+  );
+  return 0;
+}
+
+/** El cc.json leído y validado, o el código de salida con su aviso ya dicho. */
+function loadSnapshot(file: string): { bytes: number; cc: CcJson } | number {
   // Una carpeta aquí es un EISDIR que no explica nada; se dice qué se espera.
-  const problem = fileProblem(options.file);
+  const problem = fileProblem(file);
   if (problem) {
-    console.error(
+    return fail(
       `inspect necesita un fichero cc.json: ${problem}\n\n  codarch inspect <fichero.cc.json[.gz]>`
     );
-    return 1;
   }
 
   let loaded;
   try {
-    loaded = readJsonFile(options.file);
+    loaded = readJsonFile(file);
   } catch (error) {
-    console.error(`no se pudo leer ${options.file}: ${(error as Error).message}`);
-    return 1;
+    return fail(`no se pudo leer ${file}: ${(error as Error).message}`);
   }
 
-  let cc;
   try {
-    cc = parseCcJson(loaded.json);
+    return { bytes: loaded.bytes, cc: parseCcJson(loaded.json) };
   } catch (error) {
     if (error instanceof CcJsonError) {
-      console.error(`cc.json inválido: ${error.message}`);
-      return 1;
+      return fail(`cc.json inválido: ${error.message}`);
     }
     throw error;
   }
+}
 
-  const stats = getStats(cc);
-  const metric = options.metric ?? defaultMetric(stats);
-  const top = metric ? topByMetric(cc, metric, options.top) : [];
-
-  // Un único nodo raíz suele ser un contenedor sintético ("root"): no ensucia la ruta mostrada.
-  const rootPrefix = cc.files.length === 1 ? `${cc.files[0]?.name}/` : "";
-  const displayPath = (path: string): string =>
-    rootPrefix && path.startsWith(rootPrefix) ? path.slice(rootPrefix.length) : path;
-
-  if (options.metric && !stats.metricCoverage.some((entry) => entry.name === options.metric)) {
-    console.error(`la métrica "${options.metric}" no existe en este fichero`);
-    return 1;
-  }
-
-  if (options.json) {
-    console.log(
-      JSON.stringify(
-        {
-          file: options.file,
-          meta: cc.meta,
-          stats,
-          metric: metric ?? null,
-          top
-        },
-        null,
-        2
-      )
-    );
-    return 0;
-  }
-
-  const lines: string[] = [];
-  lines.push("");
-  lines.push("  CodArch · inspección");
-  lines.push("");
-  lines.push(field("fichero", `${options.file} (${formatBytes(loaded.bytes)})`));
-  lines.push(field("formato", `cc.json ${cc.meta.apiVersion}`));
-  lines.push(field("proyecto", cc.meta.projectName || "(sin nombre)"));
-  lines.push(field("checksum", shortChecksum(cc.meta.checksum)));
-  lines.push(field("commit", cc.meta.commitHash || "—"));
-  lines.push("");
-  lines.push(
-    field(
-      "estructura",
-      `${num(stats.files)} ficheros · ${num(stats.folders)} carpetas · profundidad ${stats.maxDepth}`
-    )
-  );
-  lines.push(field("lentes", stats.lenses.length ? stats.lenses.join(" · ") : "ninguna"));
-  const coverage = metric
-    ? stats.metricCoverage.find((entry) => entry.name === metric)
-    : undefined;
-  lines.push(
-    field(
-      "métricas",
-      `${num(stats.metricNames)} distintas` +
-        (coverage ? ` · ${metric} en ${num(coverage.files)} ficheros` : "")
-    )
-  );
-  lines.push(
-    field("aristas", `${num(stats.edges)} · leafEdges ${num(stats.leafEdges)}`)
-  );
-  const migration = readMigrationLens(cc.lenses?.migration);
-  if (migration) {
-    const languages = Object.entries(migration.summary.languages)
-      .map(([language, entry]) => `${language} ${num(entry?.rloc ?? 0)}`)
-      .join(" · ");
-    lines.push(
-      field(
-        "migración",
-        `${languages || "—"} · ${num(
-          migration.summary.bridgeFiles
-        )} puentes · ${num(migration.summary.ffiEdges)} FFI · deuda ${num(
-          migration.summary.migrationDebt
-        )}`
-      )
-    );
-  }
-  if (stats.orphanMetricNodes > 0) {
-    lines.push(field("huérfanos", `${num(stats.orphanMetricNodes)} nodos de métricas sin fichero`));
-  }
-
-  if (metric && top.length > 0) {
-    lines.push("");
-    lines.push(`  Top ${top.length} por ${metric}`);
-    const width = Math.max(...top.map((entry) => num(entry.value).length));
-    for (const entry of top) {
-      lines.push(`    ${num(entry.value).padStart(width)}  ${truncateLeft(displayPath(entry.path))}`);
-    }
-  }
-
-  lines.push("");
-  console.log(lines.join("\n"));
-  return 0;
+/** Si la métrica pedida la cubre al menos un fichero. */
+function hasMetric(stats: CcStats, name: string): boolean {
+  return stats.metricCoverage.some((entry) => entry.name === name);
 }
