@@ -1,7 +1,8 @@
-import type { CcJson, CcStats } from "@codarch/schema/browser";
+import type { CcJson, CcMigrationLens, CcStats } from "@codarch/schema/browser";
 import { defaultMetric } from "@codarch/schema/browser";
 import type { ViewPreferences } from "../storage";
 import { isColorModeAvailable } from "../viewState";
+import { readMigration } from "../data";
 
 /**
  * Qué se pinta con un snapshot que se abre.
@@ -66,7 +67,7 @@ function planColor(
   parsed: CcJson
 ): string | null {
   if (!preferred) return null;
-  return isColorModeAvailable(preferred, coverage, parsed.lenses?.migration)
+  return isColorModeAvailable(preferred, coverage, readMigration(parsed))
     ? preferred
     : null;
 }
@@ -94,18 +95,18 @@ export function keepArea(
 }
 
 /**
- * El color de un refresco: se queda el que se está mirando.
+ * El color de un refresco: se queda el que se está mirando, si se puede pintar.
  *
- * Los tres modos que no son una métrica —riesgo, estructura y estado de
- * migración— no dependen del snapshot y siempre se pueden conservar. Una
- * métrica que ha desaparecido cae al riesgo.
+ * Riesgo y estructura no dependen del snapshot y siempre se conservan. El estado
+ * de migración sí depende: sin lente, `mapColorFor` pintaría todos los ficheros
+ * como `js` —un mapa de un solo color, sin leyenda—, así que cae al riesgo igual
+ * que una métrica que ha desaparecido. La regla es la misma que la de un enlace
+ * compartido: `isColorModeAvailable`.
  */
 export function keepColor(
   current: string,
-  coverage: ReadonlySet<string>
+  coverage: ReadonlySet<string>,
+  migration: CcMigrationLens | null
 ): string {
-  if (current === "risk" || current === "structure" || current === "status") {
-    return current;
-  }
-  return coverage.has(current) ? current : "risk";
+  return isColorModeAvailable(current, coverage, migration) ? current : "risk";
 }

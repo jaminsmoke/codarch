@@ -9,7 +9,7 @@ import type { RepoAddon } from "@codarch/addons";
 import type { Plataforma } from "../platform";
 import type { ViewPreferences } from "../storage";
 import type { InspectorTab } from "../viewState";
-import { readReport } from "../data";
+import { readMigration, readReport } from "../data";
 import {
   keepArea,
   keepColor,
@@ -125,7 +125,9 @@ export function useDocuments(deps: DocumentDeps) {
           preserveView ? keepArea(current, coverage, plan.areaMetric) : plan.areaMetric
         );
         setColorMode((current) =>
-          preserveView ? keepColor(current, coverage) : plan.colorMode
+          preserveView
+            ? keepColor(current, coverage, readMigration(parsed))
+            : plan.colorMode
         );
         if (!preserveView) {
           setQuery("");

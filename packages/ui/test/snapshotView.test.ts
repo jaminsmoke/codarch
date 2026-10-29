@@ -41,6 +41,14 @@ function snapshot(withMigration: boolean): CcJson {
   } as unknown as CcJson;
 }
 
+/**
+ * Un snapshot con la lente a medias: sin resumen no se puede pintar el estado,
+ * así que la app no la da por lente (`readMigration`).
+ */
+function snapshotASinResumen(): CcJson {
+  return { lenses: { migration: { nodes: {} } } } as unknown as CcJson;
+}
+
 describe("planSnapshotView", () => {
   it("abre por la deuda de migración cuando el snapshot la trae", () => {
     const plan = planSnapshotView(
@@ -93,6 +101,17 @@ describe("planSnapshotView", () => {
 
     expect(plan.colorMode).toBe("risk");
   });
+
+  it("no abre por el estado de migración con una lente sin resumen", () => {
+    const plan = planSnapshotView(snapshotASinResumen(), stats("rloc", "migrationDebt"), {
+      areaMetric: "rloc",
+      colorMode: "status",
+      showLabels: true
+    });
+
+    // Sin resumen no hay leyenda que enseñar: abre por la métrica de deuda.
+    expect(plan.colorMode).toBe("migrationDebt");
+  });
 });
 
 describe("keepArea", () => {
@@ -106,18 +125,30 @@ describe("keepArea", () => {
 });
 
 describe("keepColor", () => {
-  it("conserva los tres modos que no son una métrica", () => {
+  const lente = snapshot(true).lenses?.migration ?? null;
+
+  it("conserva el riesgo y la estructura, que no dependen del snapshot", () => {
     const coverage = new Set<string>();
-    expect(keepColor("risk", coverage)).toBe("risk");
-    expect(keepColor("structure", coverage)).toBe("structure");
-    expect(keepColor("status", coverage)).toBe("status");
+    expect(keepColor("risk", coverage, null)).toBe("risk");
+    expect(keepColor("structure", coverage, null)).toBe("structure");
   });
 
+  it("conserva el estado de migración si el refresco trae la lente", () => {
+    expect(keepColor("status", new Set<string>(), lente)).toBe("status");
+  });
+
+  it("cae al riesgo si el refresco llega sin lente de migración", () => {
+    // Sin lente, `mapColorFor` pinta todos los ficheros como `js`: el mapa se
+    // queda de un solo color y la leyenda desaparece.
+    expect(keepColor("status", new Set<string>(), null)).toBe("risk");
+  });
+
+
   it("conserva la métrica si el snapshot nuevo la trae", () => {
-    expect(keepColor("fanIn", new Set(["fanIn"]))).toBe("fanIn");
+    expect(keepColor("fanIn", new Set(["fanIn"]), null)).toBe("fanIn");
   });
 
   it("cae al riesgo si la métrica desaparece", () => {
-    expect(keepColor("fanIn", new Set(["rloc"]))).toBe("risk");
+    expect(keepColor("fanIn", new Set(["rloc"]), null)).toBe("risk");
   });
 });
