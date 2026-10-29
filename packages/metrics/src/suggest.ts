@@ -323,8 +323,9 @@ function notesFor(ungrouped: number, layerCount: number): string[] {
   const notes: string[] = [];
 
   if (ungrouped > 0) {
+    // La cuenta es de ficheros: uno solo se dice en singular.
     notes.push(
-      `${ungrouped} ficheros en la raíz o sin carpeta: no forman capa (suelen ser puntos de entrada).`
+      `${ungrouped} ${ungrouped === 1 ? "fichero" : "ficheros"} en la raíz o sin carpeta: no forman capa (suelen ser puntos de entrada).`
     );
   }
   if (layerCount === 0) {

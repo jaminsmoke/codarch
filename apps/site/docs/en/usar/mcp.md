@@ -293,8 +293,12 @@ the in-memory MCP transport. There is also a manual stdio test against the actio
 
 The `codarch suggest` query: it deduces from the graph which layers the code already has and which
 rules would protect them. It returns the fragment for `.codarch.yml` with its `configVersion`, the
-detected layers (with their patterns and what depends on them), the folders that fit no layer, the
-catalogue profiles that fit best and which of that profile's rules the repo breaks today.
+detected layers (with their patterns, how many files each has and what depends on them), the folders
+that fit no layer, the catalogue profiles that fit best and which of that profile's rules the repo
+breaks today.
+
+A layer's size counts **files**, not dependencies: a one-file layer says one even when several edges
+cross it.
 
 It proposes; the team decides. Rules come in as a warning.
 

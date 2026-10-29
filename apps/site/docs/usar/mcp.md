@@ -292,8 +292,11 @@ frente a los artefactos de la acción.
 
 La consulta de `codarch suggest`: deduce del grafo qué capas tiene ya el código y qué reglas las
 protegerían. Devuelve el fragmento para `.codarch.yml` con su `configVersion`, las capas detectadas
-(con sus patrones y de qué dependen), las carpetas que no encajan, los perfiles del catálogo que
-mejor encajan y qué reglas de ese perfil incumple hoy el repo.
+(con sus patrones, cuántos ficheros tiene cada una y de qué dependen), las carpetas que no encajan,
+los perfiles del catálogo que mejor encajan y qué reglas de ese perfil incumple hoy el repo.
+
+El tamaño de una capa cuenta **ficheros**, no dependencias: una capa de un fichero dice uno aunque
+la crucen varias aristas.
 
 Propone; el equipo decide. Las reglas salen como aviso.
 

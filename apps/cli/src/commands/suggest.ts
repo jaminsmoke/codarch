@@ -76,8 +76,11 @@ export function runSuggest(options: SuggestOptions): number {
   }
 
   for (const layer of suggestion.detected) {
+    // Una capa puede tener un solo fichero: el recuento es de ficheros, no de
+    // aristas, así que hay que decirlo en singular.
+    const files = `${layer.files} ${layer.files === 1 ? "fichero" : "ficheros"}`;
     console.log(
-      `  ${layer.name} · ${layer.files} ficheros · nivel ${layer.depth}` +
+      `  ${layer.name} · ${files} · nivel ${layer.depth}` +
         (layer.usedBy.length > 0
           ? ` · de aquí dependen: ${layer.usedBy.join(", ")}`
           : "")

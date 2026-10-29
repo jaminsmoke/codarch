@@ -529,6 +529,21 @@ describe("suggestArchitecture", () => {
     expect(result.rules.length).toBeGreaterThan(0);
     expect(result.fits.map((fit) => fit.id)).toContain("hexagonal");
   });
+
+  it("cuenta los ficheros de cada capa, no sus dependencias", () => {
+    const result = suggestArchitecture(makeStore());
+
+    // En el fixture, domain e infra tienen un fichero cada una: las aristas
+    // entre ellas (b→c, d→c) no engordan el tamaño que ve el agente.
+    expect(
+      result.detected.map((layer) => [layer.name, layer.files])
+    ).toEqual([
+      ["src/domain", 1],
+      ["src/infra", 1]
+    ]);
+    // a.ts y b.ts cuelgan de src, y index.ts de la raíz: no forman capa.
+    expect(result.ungrouped).toBe(3);
+  });
 });
 
 describe("listProfiles", () => {

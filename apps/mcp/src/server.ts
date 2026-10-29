@@ -285,7 +285,7 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "Proponer capas y reglas",
       description:
-        "Deduce del grafo de dependencias la arquitectura que el código ya tiene: qué carpetas están hacia dentro y cuáles hacia fuera, y qué reglas las protegerían. Devuelve el fragmento para .codarch.yml con su versión de configuración, las carpetas que no encajan en ninguna capa, y qué perfiles del catálogo encajan con el repo y qué reglas incumple hoy. Propone; el equipo decide.",
+        "Deduce del grafo de dependencias la arquitectura que el código ya tiene: qué carpetas están hacia dentro y cuáles hacia fuera, y qué reglas las protegerían. Devuelve el fragmento para .codarch.yml con su versión de configuración, cada capa deducida con el número de ficheros que tiene (solo ficheros, no dependencias), las carpetas que no encajan en ninguna capa, y qué perfiles del catálogo encajan con el repo con el porcentaje de ficheros que cubren y qué reglas incumple hoy. Propone; el equipo decide.",
       inputSchema: {},
       annotations: READ_ONLY
     },

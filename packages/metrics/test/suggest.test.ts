@@ -188,14 +188,20 @@ describe("suggestLayers", () => {
   });
 
   it("no cuenta los ficheros sueltos de la raíz como capa", () => {
-    const cc = snapshot(["src/domain/user.ts", "index.ts"], []);
+    const cc = snapshot(
+      ["src/domain/user.ts", "index.ts"],
+      [["index.ts", "src/domain/user.ts"]]
+    );
     const suggestion = suggestLayers(cc);
 
     expect(suggestion.detected.map((layer) => layer.name)).toEqual([
       "src/domain"
     ]);
+    // La arista sale del punto de entrada: no lo cuenta otra vez.
     expect(suggestion.ungrouped).toBe(1);
     expect(suggestion.notes.join(" ")).toContain("raíz");
+    // Y el aviso habla de un fichero, no de «1 ficheros».
+    expect(suggestion.notes[0]).toContain("1 fichero en la raíz");
   });
 
   it("avisa cuando no hay estructura que deducir", () => {
