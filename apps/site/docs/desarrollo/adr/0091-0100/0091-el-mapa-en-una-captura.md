@@ -61,6 +61,18 @@ ruta de una captura no cambia y un enlace a ella sigue valiendo.
 resultado: el CLI imprime la ruta y el resumen; el MCP devuelve el PNG como contenido `image` —para que
 el cliente lo pinte— con el resumen al lado en texto.
 
+### 6. En el PR, la imagen va en el artefacto
+
+La acción captura el head en `head/map.png` —con `--out`, sin gastar ranura— dentro de la carpeta que
+ya sube como artefacto, y el comentario gana un bloque «Mapa del head» que la enlaza y escribe lo que
+el PNG no dice: el área, el color, la escala y las cinco celdas más grandes.
+
+No hay otra manera de que la imagen se vea **dentro** del comentario: GitHub sanea el HTML, descarta
+las imágenes `data:` y no tiene API pública para adjuntar ficheros a un comentario. Las dos salidas
+reales son un servicio de imágenes o una rama publicada, y ninguna se sostiene: el primero añade una
+dependencia externa a un análisis que funciona sin red, y el segundo escribe en el repo desde CI. El
+artefacto ya está ahí, es privado donde el repo lo es y no pide permisos nuevos.
+
 ## Alternativas descartadas
 
 - **Rasterizar el SVG.** Hace falta un motor de SVG: dependencia nativa, `allowScripts` y una versión
@@ -70,6 +82,10 @@ el cliente lo pinte— con el resumen al lado en texto.
   levantado. Queda como escalón siguiente si algún día hacen falta nombres pintados.
 - **Una captura por ejecución con nombre único.** Es lo que hace que una carpeta de capturas crezca.
   Se descarta por eso.
+- **Incrustar el PNG en el comentario del PR.** No se puede: GitHub sanea el HTML y solo pinta imágenes
+  con URL. Se enlaza la del artefacto.
+- **Publicar la captura en una rama o en un servicio de imágenes.** Llena el repo de binarios o mete
+  una dependencia externa en un análisis que hoy no usa la red.
 
 ## Consecuencias
 
@@ -81,6 +97,8 @@ el cliente lo pinte— con el resumen al lado en texto.
   de pintar un mapa vacío.
 - `churn` se acepta como alias de `number_of_commits`: es el nombre que la app le da al calor y no es
   una métrica del snapshot.
+- En la acción, la captura tolera el fallo: el CLI se instala desde npm, así que una versión publicada
+  sin `shot` deja el comentario sin mapa y un aviso, en vez de tumbar el workflow.
 
 ## Hoja de ruta
 
@@ -88,4 +106,4 @@ el cliente lo pinte— con el resumen al lado en texto.
 - ✅ `codarch shot` con `--area`, `--color`, `--out`, `--width`, `--height` y `--json`.
 - ✅ Tool `map_screenshot` en el MCP, con la imagen y su resumen.
 - ⬜ Etiquetas pintadas: una fuente de mapa de bits para los nombres, si alguien las echa de menos.
-- ⬜ La captura en la acción de GitHub, como adjunto del comentario del PR.
+- ✅ La captura en la acción: `head/map.png` en el artefacto, con su bloque en el comentario del PR.

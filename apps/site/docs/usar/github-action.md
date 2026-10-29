@@ -41,7 +41,12 @@ jobs:
 
 - **Un comentario, actualizado**: lleva el marcador `<!-- codarch-report -->`; cada push edita el mismo
   comentario en vez de crear otro.
-- **Un artefacto** (`codarch`): los snapshots de base y head, el mapa del head y `report.json`.
+- **Un artefacto** (`codarch`): los snapshots de base y head, el mapa del head, `report.json` y la
+  captura `head/map.png` con su resumen en `head/map.json`.
+
+El comentario enlaza esa captura y escribe lo que el PNG no dice: por qué área y color está pintado,
+la escala y las cinco celdas más grandes. La imagen no se puede incrustar en un comentario —GitHub
+descarta las que no tienen URL—, así que vive en el artefacto.
 
 ## Aviso o bloqueo
 

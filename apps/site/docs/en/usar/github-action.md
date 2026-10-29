@@ -41,7 +41,12 @@ jobs:
 
 - **One comment, updated**: it carries the `<!-- codarch-report -->` marker; each push edits the same
   comment instead of creating another.
-- **An artifact** (`codarch`): the base and head snapshots, the head map and `report.json`.
+- **An artifact** (`codarch`): the base and head snapshots, the head map, `report.json` and the
+  capture `head/map.png` with its summary in `head/map.json`.
+
+The comment links that capture and writes what the PNG does not say: which area and colour it is
+painted with, the scale and the five largest cells. The image cannot be embedded in a comment
+—GitHub drops the ones without a URL—, so it lives in the artifact.
 
 ## Warn or block
 

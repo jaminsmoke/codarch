@@ -78,11 +78,18 @@ El artefacto contiene:
 base/snapshot.cc.json
 head/snapshot.cc.json
 head/app/index.html          # la app de verdad, con datos en head/app/data/
+head/map.png                 # la captura del mapa (ADR 0091)
+head/map.json                # su resumen: área, color, escala y celdas mayores
 report.json
 ```
 
 El comentario se actualiza en lugar de duplicarse: busca el marcador `<!-- codarch-report -->` y
 edita ese comentario. Si no existe, crea uno nuevo.
+
+El comentario acaba con **«Mapa del head»**: enlaza la captura del artefacto y escribe el área, el
+color, la escala y las cinco celdas más grandes. La imagen no puede ir dentro del comentario —GitHub
+descarta las imágenes que no tengan URL—, así que vive en el artefacto. Si el CLI instalado no sabe
+capturar todavía, el paso avisa y el comentario sale sin ese bloque.
 
 ## Política
 
