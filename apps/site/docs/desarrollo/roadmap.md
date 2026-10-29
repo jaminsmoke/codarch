@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada y M63 y M64 en curso.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63 y M64 en curso y M65 sin empezar.
 
 ## Las fases
 
@@ -105,6 +105,9 @@ flowchart TD
   subgraph resto["Lo que no es código"]
     M64["M64 · El mapa de lo que no es código"]
   end
+  subgraph lint["El lint"]
+    M65["M65 · El lint, en el mapa"]
+  end
   M3 --> M4
   M7 --> M8
   M12 --> M13
@@ -114,6 +117,7 @@ flowchart TD
   M1 -.-> M62
   M1 -.-> M63
   M1 -.-> M64
+  M1 -.-> M65
 ```
 
 | Fase | Qué | Estado | Decisión |
@@ -184,6 +188,7 @@ flowchart TD
 | M62 | El mapa, en una captura | cerrada | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
 | M63 | La carpeta tiene su ficha | en curso | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
 | M64 | El mapa de lo que no es código | en curso | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
+| M65 | El lint, en el mapa | sin empezar | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

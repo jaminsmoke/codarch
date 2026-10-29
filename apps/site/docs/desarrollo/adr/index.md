@@ -114,6 +114,7 @@ flowchart TD
 | [0091](0091-0100/0091-el-mapa-en-una-captura.md) | El mapa, en una captura | 2026-10-29 | aceptado | M62 |
 | [0092](0091-0100/0092-la-carpeta-tiene-su-ficha.md) | La carpeta tiene su ficha | 2026-10-29 | aceptado | M63 |
 | [0093](0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md) | El mapa de lo que no es código | 2026-10-29 | aceptado | M64 |
+| [0094](0091-0100/0094-el-lint-en-el-mapa.md) | El lint, en el mapa | 2026-10-29 | aceptado | M65 |
 
 ## Las carpetas
 
@@ -128,6 +129,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
 - **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088, 0089, 0090
-- **0091-0100**: 0091, 0092, 0093
+- **0091-0100**: 0091, 0092, 0093, 0094
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
