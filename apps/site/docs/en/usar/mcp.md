@@ -1,15 +1,16 @@
 ---
 title: "MCP for agents"
-description: "CodArch exposes its model to agents through a local, read-only MCP server over stdio. It does not analyse code inside MCP: it reads an already generated cc.json snapshot and,…"
+description: "CodArch exposes its model to agents through a local MCP server over stdio. It does not analyse code inside MCP: it reads an already generated cc.json snapshot and,…"
 section: usar
 sidebar:
   label: "MCP"
   order: 51
 ---
 
-CodArch exposes its model to agents through a **local, read-only MCP server over stdio**. It does not
-analyse code inside MCP: it reads an already generated `cc.json` snapshot and, if it exists, the
-diff's `report.json`. That way the agent sees the same facts as the CLI, the map and the PR comment.
+CodArch exposes its model to agents through a **local MCP server over stdio**. It does not analyse
+code inside MCP: it reads an already generated `cc.json` snapshot and, if it exists, the diff's
+`report.json`. Everything it returns is a read of the snapshot, except `map_screenshot`, which also
+leaves a PNG in the repo. That way the agent sees the same facts as the CLI, the map and the PR comment.
 
 The server is **not a `codarch` subcommand**: it is a separate binary, `codarch-mcp`, that the agent
 starts over stdio.
@@ -244,6 +245,28 @@ Without `symbol` it returns the repo's heat and no chains. With `symbol` it sear
 chains**, by current name or path or by those of any previous version: a rename or a move does not
 hide the symbol. `limit` caps the chains and goes up to 50.
 
+### `map_screenshot`
+
+The map, as a PNG. It is the only tool that is not read-only: it writes the image into
+`.codarch/shots/` and declares it with `readOnlyHint: false`.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `area` | string | `rloc` | Metric that decides each box's area |
+| `color` | string | `risk` | `risk`, `structure`, a metric or `churn` |
+| `width` | 160–4096 | 1400 | Width in pixels |
+| `height` | 160–4096 | 900 | Height in pixels |
+
+It returns two blocks: the image (`image/png`, so the client paints it) and a JSON with the file, the
+slot, the bytes and the `summary` —project, area, colour, legend scale and the largest cells with
+their path, area and value—. The image is geometry and colour, with no text: the names live in the
+summary.
+
+There are **two slots**, `map-1.png` and `map-2.png`: the capture takes the free one and, with both
+taken, overwrites the oldest. The previous one stays there, which is what you compare against. An
+area or colour the snapshot does not have returns `isError` with the message about the missing
+metric.
+
 ### `explain_module`
 
 A file or folder's sheet:
@@ -280,7 +303,7 @@ or entering the set. `limit` (1–50, default 5) controls the detail edges and f
 apps/mcp/
 ├── bin/codarch-mcp.mjs   launcher without npm noise
 ├── src/store.ts          snapshot/report index, paths, risk, cycles, aggregates
-├── src/tools.ts          the twelve queries
+├── src/tools.ts          the thirteen queries
 ├── src/server.ts         MCP registration and input schemas
 ├── src/index.ts          stdio entry and options
 └── test/                 45 tests, including in-memory transport
@@ -321,7 +344,8 @@ It uses the snapshot the server already loaded, not a second read from disk.
 - Remote HTTP/SSE server, authentication or multi-repo.
 - Automatic refresh when the snapshot changes; the server must be restarted or another process
   started.
-- Write or analysis tools.
+- Analysis tools, or tools that write rules or change the code. The only one that writes anything is
+  `map_screenshot`, and it only leaves the capture's PNG.
 - Symbol-level navigation; nodes are files.
 - Publishing the npm package. For now it runs from the checkout.
 

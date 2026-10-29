@@ -140,6 +140,8 @@ solo en loopback y analiza el árbol montado (ADR 0044).
 
 La app que lo dibuja se publica aparte, con `codarch render <snapshot> -o <carpeta>`: copia el build
 de la web y deja el snapshot en `data/`. Es la misma interfaz que la web y el escritorio (ADR 0073).
+Para mirar el mapa sin abrir la app, `codarch shot <snapshot> --area <métrica> --color <modo>` deja un
+PNG en `.codarch/shots/`; caben dos capturas y la tercera pisa la más antigua (ADR 0091).
 
 El snapshot incluye el árbol de ficheros/carpetas, 15 métricas de código y grafo, 2 métricas de
 historial cuando hay git (`number_of_commits`, `number_of_authors`), aristas internas con peso y
@@ -677,7 +679,7 @@ design/     prototipo navegable del mapa 2D
 ```
 
 Implementado: `schema`, `parsers`, `metrics`, `layouts`, `render` y los comandos `codarch analyze`,
-`codarch inspect`, `codarch render` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
+`codarch inspect`, `codarch render`, `codarch shot` y `codarch diff`. `parsers` incluye parser tree-sitter, walker con
 `.gitignore`, resolver de imports, grafo, churn de git y construcción del snapshot; `metrics` calcula
 el diff determinista, las reglas, el riesgo compartido y la GitHub Action; `parsers` también mide
 Rust y la frontera FFI para la lente de migración; `apps/mcp` expone el modelo a agentes por stdio;

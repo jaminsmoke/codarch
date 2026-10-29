@@ -31,7 +31,7 @@ M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34
 closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
 closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
 M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed, M57 closed, M58 closed,
-M59 closed, M60 closed and M61 closed.
+M59 closed, M60 closed, M61 closed and M62 in progress.
 
 ## The phases
 
@@ -96,12 +96,16 @@ flowchart TD
   subgraph languages["More languages"]
     M61["M61 · Java, Python, Go and C#"]
   end
+  subgraph agent["For agents"]
+    M62["M62 · The map, in a capture"]
+  end
   M3 --> M4
   M7 --> M8
   M12 --> M13
   M17 --> M18
   M21 --> M25
   M1 -.-> M61
+  M1 -.-> M62
 ```
 
 | Phase | What | Status | Decision |
@@ -169,6 +173,7 @@ flowchart TD
 | M59 | Debt balance | closed | [ADR 0078](adr/0071-0080/0078-el-balance-de-deuda.md#hoja-de-ruta) |
 | M60 | The inspector with an activity bar | closed | [ADR 0079](adr/0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
 | M61 | Java, Python, Go and C# | closed | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
+| M62 | The map, in a capture | in progress | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
 
 ## How to read this
 

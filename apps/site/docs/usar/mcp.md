@@ -1,13 +1,14 @@
 ---
 title: "MCP para agentes"
-description: "CodArch expone su modelo a agentes mediante un servidor MCP local, de solo lectura y por stdio. No analiza código dentro de MCP: lee un snapshot cc.json ya generado y,…"
+description: "CodArch expone su modelo a agentes mediante un servidor MCP local y por stdio. No analiza código dentro de MCP: lee un snapshot cc.json ya generado y,…"
 section: usar
 sidebar:
   label: "MCP"
   order: 51
 ---
 
-CodArch expone su modelo a agentes mediante un servidor **MCP local, de solo lectura y por stdio**.
+CodArch expone su modelo a agentes mediante un servidor **MCP local y por stdio**. Todo lo que
+devuelve es lectura del snapshot, salvo `map_screenshot`, que además deja un PNG en el repo.
 No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existe, el
 `report.json` del diff. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
 
@@ -242,6 +243,27 @@ Sin `symbol` devuelve el calor del repo y ninguna cadena. Con `symbol` busca **s
 símbolo**, por el nombre o la ruta actuales o por los de cualquier versión anterior: un renombrado
 o una mudanza no esconden el símbolo. El `limit` acota las cadenas y llega hasta 50.
 
+### `map_screenshot`
+
+El mapa, en un PNG. Es la única herramienta que no es de solo lectura: escribe la imagen en
+`.codarch/shots/` y lo declara con `readOnlyHint: false`.
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `area` | string | `rloc` | Métrica que decide el área de cada caja |
+| `color` | string | `risk` | `risk`, `structure`, una métrica o `churn` |
+| `width` | 160–4096 | 1400 | Ancho en píxeles |
+| `height` | 160–4096 | 900 | Alto en píxeles |
+
+Devuelve dos bloques: la imagen (`image/png`, para que el cliente la pinte) y un JSON con el fichero,
+la ranura, los bytes y el `summary` —proyecto, área, color, escala de la leyenda y las celdas más
+grandes con su ruta, su área y su valor—. La imagen es geometría y color, sin texto: los nombres van
+en el resumen.
+
+Hay **dos ranuras**, `map-1.png` y `map-2.png`: la captura ocupa la libre y, con las dos ocupadas,
+pisa la más antigua. La anterior sigue ahí, que es con lo que se compara. Un área o un color que el
+snapshot no trae devuelven `isError` con el mensaje de la métrica que falta.
+
 ### `explain_module`
 
 Ficha de un fichero o carpeta:
@@ -257,8 +279,10 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 
 ## Comportamiento y límites
 
-- **Solo lectura.** No hay herramientas para analizar, escribir reglas, crear snapshots ni modificar
-  el repositorio. Lee el snapshot, el reporte y, si existe, la configuración del repo.
+- **Lectura, con una excepción.** Ninguna herramienta analiza, escribe reglas, crea snapshots ni
+  toca el código. Leen el snapshot, el reporte y, si existe, la configuración del repo. La excepción
+  es `map_screenshot`, que deja un PNG en `.codarch/shots/` —su `readOnlyHint` es `false`— y no toca
+  nada más.
 - **Sin red.** No consulta GitHub; para un PR, apunta a los artefactos que ya existen en disco.
 - **Sin prosa inventada.** El servidor devuelve JSON con los campos observados. El agente decide cómo
   explicarlo.
@@ -278,7 +302,7 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 apps/mcp/
 ├── bin/codarch-mcp.mjs   lanzador sin ruido de npm
 ├── src/store.ts          índice del snapshot/reporte, rutas, riesgo, ciclos, agregados
-├── src/tools.ts          las doce consultas
+├── src/tools.ts          las trece consultas
 ├── src/server.ts         registro MCP y esquemas de entrada
 ├── src/index.ts          entrada stdio y opciones
 └── test/                 45 tests, incluido transporte en memoria
@@ -318,7 +342,8 @@ Usa el snapshot que el servidor ya cargó, no una segunda lectura del disco.
 
 - Servidor HTTP/SSE remoto, autenticación o multi-repo.
 - Refresco automático al cambiar el snapshot; hay que reiniciar el servidor o iniciar otro proceso.
-- Herramientas de escritura o de análisis.
+- Herramientas de análisis, de escritura de reglas o que modifiquen el código. La única que escribe
+  algo es `map_screenshot`, y solo deja un PNG de la captura.
 - Navegación a nivel de símbolo; los nodos son ficheros.
 - Publicación del paquete npm. Por ahora se ejecuta desde el checkout.
 

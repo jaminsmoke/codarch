@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada y M61 cerrada.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada y M62 en curso.
 
 ## Las fases
 
@@ -96,12 +96,16 @@ flowchart TD
   subgraph idiomas["Más lenguajes"]
     M61["M61 · Java, Python, Go y C#"]
   end
+  subgraph agentes["Para agentes"]
+    M62["M62 · El mapa, en una captura"]
+  end
   M3 --> M4
   M7 --> M8
   M12 --> M13
   M17 --> M18
   M21 --> M25
   M1 -.-> M61
+  M1 -.-> M62
 ```
 
 | Fase | Qué | Estado | Decisión |
@@ -169,6 +173,7 @@ flowchart TD
 | M59 | Balance de deuda | cerrada | [ADR 0078](adr/0071-0080/0078-el-balance-de-deuda.md#hoja-de-ruta) |
 | M60 | El inspector con barra de actividad | cerrada | [ADR 0079](adr/0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
 | M61 | Java, Python, Go y C# | cerrada | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
+| M62 | El mapa, en una captura | en curso | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

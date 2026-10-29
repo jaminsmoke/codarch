@@ -111,6 +111,7 @@ flowchart TD
 | [0088](0081-0090/0088-el-fichero-abierto-va-en-la-url.md) | El fichero abierto va en la URL | 2026-10-27 | aceptado | — |
 | [0089](0081-0090/0089-cada-alcance-lee-los-de-abajo.md) | Cada alcance lee los de abajo | 2026-10-27 | aceptado | M34 |
 | [0090](0081-0090/0090-mas-lenguajes-que-ts-y-js.md) | Más lenguajes que TS y JS | 2026-10-28 | aceptado | M61 |
+| [0091](0091-0100/0091-el-mapa-en-una-captura.md) | El mapa, en una captura | 2026-10-29 | aceptado | M62 |
 
 ## Las carpetas
 
@@ -125,5 +126,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
 - **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088, 0089, 0090
+- **0091-0100**: 0091
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
