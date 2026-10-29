@@ -1,712 +1,97 @@
 #!/usr/bin/env node
-import { runAnalyze, type AnalyzeCommandOptions } from "./commands/analyze";
-import { runDiff, type DiffCommandOptions, type FailOn } from "./commands/diff";
-import { runInspect, type InspectOptions } from "./commands/inspect";
-import { runRender, type RenderCommandOptions } from "./commands/render";
-import { runServe, type ServeOptions } from "./commands/serve";
+import { runAnalyze } from "./commands/analyze";
+import { runDiff } from "./commands/diff";
+import { runInspect } from "./commands/inspect";
+import { runRender } from "./commands/render";
+import { runServe } from "./commands/serve";
 import { runProfiles } from "./commands/profiles";
-import { runHistory, type HistoryCommandOptions } from "./commands/history";
-import { runScopes, type ScopesCommandOptions } from "./commands/scopes";
-import { runChain, type ChainCommandOptions } from "./commands/chain";
-import { runVerify, type VerifyCommandOptions } from "./commands/verify";
-import { runSuggest, type SuggestOptions } from "./commands/suggest";
+import { runHistory } from "./commands/history";
+import { runScopes } from "./commands/scopes";
+import { runChain } from "./commands/chain";
+import { runVerify } from "./commands/verify";
+import { runSuggest } from "./commands/suggest";
 import { runAddons } from "./commands/addons";
 import { runPlugins } from "./commands/plugins";
-import { runVersion, type VersionCommandOptions } from "./commands/version";
-import type { InstalledOptions } from "./commands/installed";
+import { runVersion } from "./commands/version";
 
+import { parseAnalyze } from "./args/analyze";
+import { parseInspect } from "./args/inspect";
+import { parseRender } from "./args/render";
+import { parseDiff } from "./args/diff";
+import { parseServe } from "./args/serve";
+import { parseHistory } from "./args/history";
+import { parseScopes } from "./args/scopes";
+import { parseChain } from "./args/chain";
+import { parseVerify } from "./args/verify";
+import { parseSuggest } from "./args/suggest";
+import { parseInstalled } from "./args/installed";
+import { parseVersion } from "./args/version";
+import { showUsage, USAGE } from "./usage";
 import { VERSION } from "./version";
 
-const USAGE = `
-CodArch · mapa vivo de la arquitectura de tu software
+/**
+ * Las órdenes de `codarch`.
+ *
+ * Cada comando es su parser más su ejecución, y todos cumplen el mismo trato:
+ * si el parseo devuelve un número, ese es el código de salida; si devuelve
+ * opciones, se ejecutan. Los parsers viven en `args/` para que este fichero
+ * solo diga **qué hay** y no cómo se lee cada opción.
+ */
 
-Uso:
-  codarch analyze [ruta] [opciones]
-  codarch inspect <fichero.cc.json[.gz]> [opciones]
-  codarch render  <fichero.cc.json[.gz]> [opciones]
-  codarch diff    <base.cc.json[.gz]> <head.cc.json[.gz]> [opciones]
-  codarch serve   [ruta] [opciones]
-  codarch profiles [--json]
-  codarch suggest <fichero.cc.json[.gz]> [--json]
-  codarch history [ruta] [--json]
-  codarch scopes  [ruta] [--json]
-  codarch chain   [símbolo] [opciones]
-  codarch verify  [--root <ruta>] [--json]
-  codarch addons  [list|add|remove] [ruta|nombre] [--json]
-  codarch plugins [list|add|remove] [ruta|nombre] [--json]
-  codarch version [--check] [--json]
-
-Opciones de analyze:
-  -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
-  --ignore <patrón>  sumar una exclusión al alcance (repetible)
-  --config <file>    alcance YAML (por defecto .codarch.yml si existe)
-  --no-config        no leer el alcance del YAML
-  --project <nombre> nombre del proyecto en el snapshot
-  --no-git           no leer churn del historial git
-  --history          guardar la foto en el historial del repo (.codarch-history/)
-  -h, --help         esta ayuda
-  -v, --version      versión
-
-Opciones de inspect:
-  --json            salida machine-readable
-  --top <n>         número de ficheros en el ranking (por defecto 5)
-  --metric <nombre> métrica del ranking (por defecto rloc)
-  -h, --help        esta ayuda
-  -v, --version     versión
-
-Opciones de render:
-  -o, --out <dir>   carpeta de salida (por defecto, junto al cc.json)
-  -h, --help        esta ayuda
-
-Opciones de diff:
-  -o, --out <file>  escribe el reporte JSON (sin esto no se escribe fichero)
-  --top <n>         hotspots en el reporte (por defecto 10)
-  --hotspot-metric <métrica>  por defecto maxComplexity, luego rloc
-  --config <file>   reglas YAML (por defecto .codarch.yml si existe)
-  --no-config       no cargar reglas
-  --fail-on <modo>  none | cycles | violations | hotspots | any (por defecto none)
-  -h, --help        esta ayuda
-
-Opciones de serve:
-  -p, --port <n>    puerto local (por defecto 4173)
-  --host <host>     interfaz (por defecto 127.0.0.1)
-  --watch           reanaliza al cambiar ficheros y refresca por SSE (por defecto)
-  --no-watch        solo analiza al arrancar
-  --no-web          modo API sin servir la app (para Vite u otro frontend)
-  -h, --help        esta ayuda
-
-Opciones de profiles:
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de suggest:
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de verify:
-  --root <ruta>    el repositorio (por defecto, el actual)
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de chain:
-  --json            salida machine-readable
-  --rebuild         rehace el libro mayor aunque esté en caché
-  -h, --help        esta ayuda
-
-Opciones de addons:
-  list              los addons de addons/ y cuáles declara el repo
-  add <ruta>        copia un addon a addons/ y lo declara en .codarch.yml
-  remove <nombre>   lo quita del repo y de la declaración
-  --root <ruta>     el repositorio (por defecto, el actual)
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de plugins:
-  list              los plugins de plugins/ y cuáles declara el repo
-  add <ruta>        copia un plugin a plugins/ y lo declara en .codarch.yml
-  remove <nombre>   lo quita del repo y de la declaración
-  --root <ruta>     el repositorio (por defecto, el actual)
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de version:
-  --check           pregunta en npm si hay una versión más nueva
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de history:
-  --from <foto>     foto con la que comparar (fecha o checksum)
-  --to <foto>       foto contra la que comparar
-  -o, --out <file>  escribe el reporte JSON del diff (sin esto, no se escribe)
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Opciones de scopes:
-  --root <ruta>     la raíz que se mira (por defecto, la actual)
-  --json            salida machine-readable
-  -h, --help        esta ayuda
-
-Ejemplos:
-  codarch analyze .
-  codarch analyze . -o .codarch --project "Mi proyecto"
-  codarch inspect samples/codecharta_visualization.cc.json.gz
-  codarch render samples/codecharta_visualization.cc.json.gz
-  codarch render mapa.cc.json -o publico
-  codarch diff base.cc.json head.cc.json -o report.json --fail-on cycles
-  codarch serve .
-  codarch serve . --no-watch
-  codarch profiles
-  codarch suggest .codarch/snapshot.cc.json
-`;
-
-function parseAnalyze(args: string[]): AnalyzeCommandOptions | number {
-  const options: AnalyzeCommandOptions = { help: false, ignore: [] };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--out" || arg === "-o") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--out necesita una ruta");
-        return 1;
-      }
-      options.out = value;
-    } else if (arg.startsWith("--out=")) {
-      options.out = arg.slice("--out=".length);
-    } else if (arg === "--ignore") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--ignore necesita un patrón");
-        return 1;
-      }
-      options.ignore?.push(value);
-    } else if (arg.startsWith("--ignore=")) {
-      options.ignore?.push(arg.slice("--ignore=".length));
-    } else if (arg === "--config") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--config necesita una ruta");
-        return 1;
-      }
-      options.config = value;
-    } else if (arg.startsWith("--config=")) {
-      options.config = arg.slice("--config=".length);
-    } else if (arg === "--no-config") {
-      options.noConfig = true;
-    } else if (arg === "--project") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--project necesita un nombre");
-        return 1;
-      }
-      options.projectName = value;
-    } else if (arg.startsWith("--project=")) {
-      options.projectName = arg.slice("--project=".length);
-    } else if (arg === "--no-git") {
-      options.git = false;
-    } else if (arg === "--history") {
-      options.history = true;
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg === "--version" || arg === "-v") {
-      console.log(VERSION);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-
-  options.root = positional[0] ?? ".";
-  return options;
+/** Parseo y ejecución en un paso, con el código de salida del parseo. */
+function runParsed<T>(
+  parse: (args: string[]) => T | number,
+  run: (options: T) => number,
+  args: string[]
+): number {
+  const parsed = parse(args);
+  if (typeof parsed === "number") return parsed;
+  return run(parsed);
 }
 
-function parseVerify(args: string[]): VerifyCommandOptions | number {
-  const options: VerifyCommandOptions = { json: false, help: false };
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--root") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--root necesita una ruta");
-        return 1;
-      }
-      options.root = value;
-    } else if (arg.startsWith("--root=")) {
-      options.root = arg.slice("--root=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    }
-  }
-
-  return options;
+/**
+ * `version` no puede esperar al código de salida: con `--check` va a la red y
+ * lo pone cuando contesta, para que el comando termine enseguida.
+ */
+function runVersionCommand(args: string[]): number {
+  const parsed = parseVersion(args);
+  if (typeof parsed === "number") return parsed;
+  void runVersion(parsed).then((code) => {
+    process.exitCode = code;
+  });
+  return 0;
 }
 
-function parseChain(args: string[]): ChainCommandOptions | number {
-  const options: ChainCommandOptions = { json: false, rebuild: false, help: false };
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--rebuild") {
-      options.rebuild = true;
-    } else if (arg === "--root") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--root necesita una ruta");
-        return 1;
-      }
-      options.root = value;
-    } else if (arg.startsWith("--root=")) {
-      options.root = arg.slice("--root=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else if (!options.symbol) {
-      options.symbol = arg;
-    } else if (!options.root) {
-      options.root = arg;
-    } else {
-      console.error(`sobra un argumento: ${arg}`);
-      return 1;
-    }
-  }
-
-  return options;
-}
-
-function parseHistory(args: string[]): HistoryCommandOptions | number {
-  const options: HistoryCommandOptions = { json: false, help: false };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--from") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--from necesita un identificador de foto");
-        return 1;
-      }
-      options.from = value;
-    } else if (arg.startsWith("--from=")) {
-      options.from = arg.slice("--from=".length);
-    } else if (arg === "--to") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--to necesita un identificador de foto");
-        return 1;
-      }
-      options.to = value;
-    } else if (arg.startsWith("--to=")) {
-      options.to = arg.slice("--to=".length);
-    } else if (arg === "-o" || arg === "--out") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--out necesita una ruta");
-        return 1;
-      }
-      options.out = value;
-    } else if (arg.startsWith("--out=")) {
-      options.out = arg.slice("--out=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-
-  options.root = positional[0];
-  return options;
-}
-
-function parseScopes(args: string[]): ScopesCommandOptions | number {
-  const options: ScopesCommandOptions = { json: false, help: false };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--root") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--root necesita una ruta");
-        return 1;
-      }
-      options.root = value;
-    } else if (arg.startsWith("--root=")) {
-      options.root = arg.slice("--root=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-
-  options.root = positional[0] ?? options.root;
-  return options;
-}
-
-function parseSuggest(args: string[]): SuggestOptions | number {
-  const options: SuggestOptions = { json: false };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-
-  options.file = positional[0];
-  return options;
-}
-
-function parseVersion(args: string[]): VersionCommandOptions | number {
-  const options: VersionCommandOptions = { check: false, json: false };
-
-  for (const arg of args) {
-    if (arg === "--check") {
-      options.check = true;
-    } else if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    }
-  }
-
-  return options;
-}
-
-function parseInstalled(
-  args: string[],
-  command: "addons" | "plugins"
-): InstalledOptions | number {
-  const options: InstalledOptions = { action: "list", root: ".", json: false };
-  const positional: string[] = [];
-  let action: InstalledOptions["action"] | null = null;
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--root") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--root necesita una ruta");
-        return 1;
-      }
-      options.root = value;
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else if (action === null) {
-      if (arg !== "list" && arg !== "add" && arg !== "remove") {
-        console.error(
-          `acción desconocida: ${arg} (list, add o remove)\n\n  codarch ${command} list`
-        );
-        return 1;
-      }
-      action = arg;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  options.action = action ?? "list";
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-  options.target = positional[0];
-  return options;
-}
-
-function parseInspect(args: string[]): InspectOptions | number {
-  const options: InspectOptions = { json: false, top: 5, help: false };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--json") {
-      options.json = true;
-    } else if (arg === "--top") {
-      const value = args[++index];
-      const parsed = Number(value);
-      if (!value || !Number.isInteger(parsed) || parsed < 1) {
-        console.error("--top necesita un entero positivo");
-        return 1;
-      }
-      options.top = parsed;
-    } else if (arg.startsWith("--top=")) {
-      const parsed = Number(arg.slice("--top=".length));
-      if (!Number.isInteger(parsed) || parsed < 1) {
-        console.error("--top necesita un entero positivo");
-        return 1;
-      }
-      options.top = parsed;
-    } else if (arg === "--metric") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--metric necesita un nombre");
-        return 1;
-      }
-      options.metric = value;
-    } else if (arg.startsWith("--metric=")) {
-      options.metric = arg.slice("--metric=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg === "--version" || arg === "-v") {
-      console.log(VERSION);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }      options.file = positional[0];
-  return options;
-}
-
-function parseRender(args: string[]): RenderCommandOptions | number {
-  const options: RenderCommandOptions = { help: false };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--out" || arg === "-o") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--out necesita una ruta");
-        return 1;
-      }
-      options.out = value;
-    } else if (arg.startsWith("--out=")) {
-      options.out = arg.slice("--out=".length);
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg === "--version" || arg === "-v") {
-      console.log(VERSION);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error(`sobra un argumento: ${positional[1]}`);
-    return 1;
-  }
-
-  options.file = positional[0];
-  return options;
-}
-
-function parseDiff(args: string[]): DiffCommandOptions | number {
-  const options: DiffCommandOptions = { help: false, top: 10, failOn: "none" };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--out" || arg === "-o" || arg === "--top" ||
-        arg === "--hotspot-metric" || arg === "--config" || arg === "--fail-on") {
-      if (!setDiffOption(options, arg === "-o" ? "--out" : arg, args[++index], false)) return 1;
-    } else if (["--out=", "--top=", "--hotspot-metric=", "--config=", "--fail-on="]
-      .some((prefix) => arg.startsWith(prefix))) {
-      const separator = arg.indexOf("=");
-      if (!setDiffOption(options, arg.slice(0, separator), arg.slice(separator + 1), true)) return 1;
-    } else if (arg === "--no-config") {
-      options.noConfig = true;
-    } else if (arg === "--help" || arg === "-h") {
-      console.log(USAGE);
-      return 0;
-    } else if (arg === "--version" || arg === "-v") {
-      console.log(VERSION);
-      return 0;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length !== 2) {
-    console.error("diff necesita exactamente dos snapshots: base y head");
-    return 1;
-  }
-
-  options.base = positional[0];
-  options.head = positional[1];
-  return options;
-}
-
-/** Valida y asigna una opción de diff; las formas con `=` aceptan texto vacío. */
-function setDiffOption(
-  options: DiffCommandOptions,
-  name: string,
-  value: string | undefined,
-  inline: boolean
-): boolean {
-  if (name === "--top") {
-    const parsed = Number(value);
-    if ((!inline && !value) || !Number.isInteger(parsed) || parsed < 1) {
-      console.error("--top necesita un entero positivo");
-      return false;
-    }
-    options.top = parsed;
-    return true;
-  }
-  if (name === "--fail-on") {
-    if (!isFailOn(value)) {
-      console.error("--fail-on necesita none, cycles, violations, hotspots o any");
-      return false;
-    }
-    options.failOn = value;
-    return true;
-  }
-  if (!inline && !value) {
-    const expected = name === "--hotspot-metric" ? "un nombre" : "una ruta";
-    console.error(`${name} necesita ${expected}`);
-    return false;
-  }
-  if (name === "--out") options.out = value;
-  else if (name === "--config") options.config = value;
-  else options.hotspotMetric = value;
-  return true;
-}
-
-function isFailOn(value: string | undefined): value is FailOn {
-  return (
-    value === "none" ||
-    value === "cycles" ||
-    value === "violations" ||
-    value === "hotspots" ||
-    value === "any"
-  );
-}
-
-function parseServe(args: string[]): ServeOptions | number {
-  const options: ServeOptions = {
-    port: 4173,
-    host: "127.0.0.1",
-    watch: true,
-    web: true,
-    help: false
-  };
-  const positional: string[] = [];
-
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index] as string;
-
-    if (arg === "--port" || arg === "-p") {
-      const value = args[++index];
-      const port = Number(value);
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        console.error("--port necesita un número entre 1 y 65535");
-        return 1;
-      }
-      options.port = port;
-    } else if (arg.startsWith("--port=")) {
-      const port = Number(arg.slice("--port=".length));
-      if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        console.error("--port necesita un número entre 1 y 65535");
-        return 1;
-      }
-      options.port = port;
-    } else if (arg === "--host") {
-      const value = args[++index];
-      if (!value) {
-        console.error("--host necesita un valor");
-        return 1;
-      }
-      options.host = value;
-    } else if (arg.startsWith("--host=")) {
-      options.host = arg.slice("--host=".length);
-    } else if (arg === "--watch") {
-      options.watch = true;
-    } else if (arg === "--no-watch") {
-      options.watch = false;
-    } else if (arg === "--no-web") {
-      options.web = false;
-    } else if (arg === "--help" || arg === "-h") {
-      options.help = true;
-    } else if (arg.startsWith("-")) {
-      console.error(`opción desconocida en serve: ${arg}`);
-      return 1;
-    } else {
-      positional.push(arg);
-    }
-  }
-
-  if (positional.length > 1) {
-    console.error("serve acepta como máximo una ruta");
-    return 1;
-  }
-  options.root = positional[0];
-  return options;
-}
+const COMMANDS: Record<string, (args: string[]) => number> = {
+  analyze: (args) => runParsed(parseAnalyze, runAnalyze, args),
+  inspect: (args) => runParsed(parseInspect, runInspect, args),
+  render: (args) => runParsed(parseRender, runRender, args),
+  diff: (args) => runParsed(parseDiff, runDiff, args),
+  serve: (args) =>
+    runParsed(
+      parseServe,
+      // La ayuda de serve se decide aquí: junto a una opción inválida es error.
+      (options) => (options.help ? showUsage() : runServe(options)),
+      args
+    ),
+  profiles: (args) => runProfiles(args.includes("--json")),
+  suggest: (args) => runParsed(parseSuggest, runSuggest, args),
+  history: (args) => runParsed(parseHistory, runHistory, args),
+  scopes: (args) => runParsed(parseScopes, runScopes, args),
+  chain: (args) => runParsed(parseChain, runChain, args),
+  verify: (args) => runParsed(parseVerify, runVerify, args),
+  addons: (args) =>
+    runParsed((rest) => parseInstalled(rest, "addons"), runAddons, args),
+  plugins: (args) =>
+    runParsed((rest) => parseInstalled(rest, "plugins"), runPlugins, args),
+  version: runVersionCommand
+};
 
 function main(argv: string[]): number {
   const [command, ...rest] = argv;
 
   if (!command || command === "--help" || command === "-h") {
-    console.log(USAGE);
-    return 0;
+    return showUsage();
   }
 
   if (command === "--version" || command === "-v") {
@@ -714,114 +99,11 @@ function main(argv: string[]): number {
     return 0;
   }
 
-  const fileCommand = runFileCommand(command, rest);
-  if (fileCommand !== undefined) return fileCommand;
-
-  const projectCommand = runProjectCommand(command, rest);
-  if (projectCommand !== undefined) return projectCommand;
-
-  if (command === "version") {
-    const parsed = parseVersion(rest);
-    if (typeof parsed === "number") return parsed;
-    // La comprobación va a la red: el código de salida se pone cuando conteste.
-    void runVersion(parsed).then((codigo) => {
-      process.exitCode = codigo;
-    });
-    return 0;
-  }
+  const run = COMMANDS[command];
+  if (run) return run(rest);
 
   console.error(`comando desconocido: ${command}\n${USAGE}`);
   return 1;
-}
-
-/** Comandos que trabajan con snapshots, ficheros o un servidor. */
-function runFileCommand(command: string, rest: string[]): number | undefined {
-  if (command === "analyze") {
-    const parsed = parseAnalyze(rest);
-    if (typeof parsed === "number") return parsed;
-    return runAnalyze(parsed);
-  }
-
-  if (command === "inspect") {
-    const parsed = parseInspect(rest);
-    if (typeof parsed === "number") return parsed;
-    return runInspect(parsed);
-  }
-
-  if (command === "render") {
-    const parsed = parseRender(rest);
-    if (typeof parsed === "number") return parsed;
-    return runRender(parsed);
-  }
-
-  if (command === "diff") {
-    const parsed = parseDiff(rest);
-    if (typeof parsed === "number") return parsed;
-    return runDiff(parsed);
-  }
-
-  if (command === "serve") {
-    const parsed = parseServe(rest);
-    if (typeof parsed === "number") return parsed;
-    if (parsed.help) {
-      console.log(USAGE);
-      return 0;
-    }
-    return runServe(parsed);
-  }
-
-  if (command === "profiles") {
-    return runProfiles(rest.includes("--json"));
-  }
-
-  return undefined;
-}
-
-/** Comandos de consulta y gestión del proyecto. */
-function runProjectCommand(command: string, rest: string[]): number | undefined {
-  if (command === "history") {
-    const parsed = parseHistory(rest);
-    if (typeof parsed === "number") return parsed;
-    return runHistory(parsed);
-  }
-
-  if (command === "scopes") {
-    const parsed = parseScopes(rest);
-    if (typeof parsed === "number") return parsed;
-    return runScopes(parsed);
-  }
-
-  if (command === "chain") {
-    const parsed = parseChain(rest);
-    if (typeof parsed === "number") return parsed;
-    return runChain(parsed);
-  }
-
-  if (command === "verify") {
-    const parsed = parseVerify(rest);
-    if (typeof parsed === "number") return parsed;
-    return runVerify(parsed);
-  }
-
-  if (command === "suggest") {
-    const parsed = parseSuggest(rest);
-    if (typeof parsed === "number") return parsed;
-    return runSuggest(parsed);
-  }
-
-  if (command === "addons") {
-    const parsed = parseInstalled(rest, "addons");
-    if (typeof parsed === "number") return parsed;
-    return runAddons(parsed);
-  }
-
-  if (command === "plugins") {
-    const parsed = parseInstalled(rest, "plugins");
-    if (typeof parsed === "number") return parsed;
-    return runPlugins(parsed);
-  }
-
-  return undefined;
 }
 
 process.exitCode = main(process.argv.slice(2));
