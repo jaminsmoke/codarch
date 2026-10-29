@@ -56,7 +56,7 @@ export function FolderPanel({
           count={content.rows.length}
           summary={`${folders} carpetas · ${files} ficheros`}
         >
-          <div className="folder-list" role="group" aria-label="Contenido de la carpeta">
+          <div className="folder-content" role="group" aria-label="Contenido de la carpeta">
             <div className="folder-head" aria-hidden="true">
               <span>Nombre</span>
               <span>{areaTitle}</span>
@@ -75,7 +75,7 @@ export function FolderPanel({
                   row.kind === "folder" ? " · pulsa para abrir su ficha" : ""
                 }`}
               >
-                <span className="folder-name" title={row.name}>
+                <span className="folder-row-name" title={row.name}>
                   {row.name}
                   {row.kind === "folder" ? "/" : null}
                 </span>

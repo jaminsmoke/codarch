@@ -2981,10 +2981,18 @@ button {
   white-space: nowrap;
 }
 
-/* El contenido de una carpeta en su ficha (ADR 0092). Cada fila es una rejilla
-   propia: la barra mide la parte del área y no se mueve de fila a fila. */
-.folder-list {
+/* El contenido de una carpeta en su ficha (ADR 0092). La lista es su propio
+   contenedor —filete y papel de la hoja, con su scroll— y no toma nada del
+   selector de carpetas, que es otra pieza: compartían nombre y la ficha se
+   quedaba con el canto del diálogo. Cada fila es una rejilla propia: la barra
+   mide la parte del área y no se mueve de fila a fila. */
+.folder-content {
+  min-height: 120px;
+  max-height: 340px;
   padding-top: 2px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--sheet);
 }
 
 .folder-head,
@@ -3028,7 +3036,7 @@ button {
   outline-offset: 1px;
 }
 
-.folder-name {
+.folder-row-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3036,7 +3044,7 @@ button {
   font-size: 10.5px;
 }
 
-.folder-row-folder .folder-name {
+.folder-row-folder .folder-row-name {
   color: var(--ink);
   font-weight: 500;
 }
