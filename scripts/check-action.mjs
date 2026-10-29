@@ -88,6 +88,60 @@ for (const relative of [
   assert.ok(fs.existsSync(path.join(root, relative)), `falta ${relative}`);
 }
 
+/**
+ * La captura del mapa: escribe en el artefacto y no rompe el comentario.
+ *
+ * El CLI se instala desde npm, así que la versión publicada puede no traer
+ * `shot` todavía: el paso avisa y sigue, y el comentario sale sin imagen
+ * (ADR 0091).
+ */
+const shotStep = action.runs.steps.find(
+  (step) => step.name === "Capturar el mapa"
+);
+assert.ok(shotStep, "falta el paso que captura el mapa");
+const shotScript = String(shotStep.run ?? "");
+assert.ok(
+  shotScript.includes("head/map.png") && shotScript.includes("head/map.json"),
+  "la captura no deja el PNG y su resumen en el artefacto"
+);
+assert.match(shotScript, /set \+e[\s\S]*shot[\s\S]*set -e/, "la captura no tolera el fallo");
+assert.ok(
+  shotScript.includes("::warning::"),
+  "una captura fallida tiene que avisar y seguir"
+);
+assert.ok(
+  String(
+    action.runs.steps.find((step) => step.name === "Comentar en el PR")?.run ?? ""
+  ).includes("head/map.json"),
+  "el comentario no recibe la captura"
+);
+
+const mapShot = {
+  file: "/tmp/codarch-artifacts/head/map.png",
+  slot: 0,
+  bytes: 28991,
+  summary: {
+    project: "CodArch · head",
+    area: "rloc",
+    color: "risk",
+    width: 1400,
+    height: 900,
+    legend: [
+      { label: "riesgo bajo", color: "#dfe6ea" },
+      { label: "riesgo medio", color: "#9db3c2" },
+      { label: "riesgo alto", color: "#2c4a5e" }
+    ],
+    cells: [
+      {
+        path: "packages/ui/src/panels.tsx",
+        area: 3985,
+        value: null,
+        fill: "#2c4a5e"
+      }
+    ]
+  }
+};
+
 const report = {
   schemaVersion: "1.2",
   base: { checksum: "base-checksum" },
@@ -166,21 +220,26 @@ const report = {
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-action-check-"));
 try {
   const reportPath = path.join(temp, "report.json");
+  const mapPath = path.join(temp, "map.json");
   fs.writeFileSync(reportPath, JSON.stringify(report), "utf8");
+  fs.writeFileSync(mapPath, JSON.stringify(mapShot), "utf8");
 
-  const output = execFileSync(
-    process.execPath,
-    [path.join(root, "apps", "github-action", "render-comment.mjs"), reportPath],
-    {
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        CODARCH_STATUS: "2",
-        CODARCH_RUN_URL: "https://example.test/run/1",
-        CODARCH_ARTIFACT: "codarch"
+  const render = (args) =>
+    execFileSync(
+      process.execPath,
+      [path.join(root, "apps", "github-action", "render-comment.mjs"), ...args],
+      {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          CODARCH_STATUS: "2",
+          CODARCH_RUN_URL: "https://example.test/run/1",
+          CODARCH_ARTIFACT: "codarch"
+        }
       }
-    }
-  );
+    );
+
+  const output = render([reportPath, mapPath]);
 
   for (const needle of [
     "<!-- codarch-report -->",
@@ -196,6 +255,33 @@ try {
   ]) {
     assert.ok(output.includes(needle), `el comentario no contiene: ${needle}`);
   }
+
+  for (const needle of [
+    "### Mapa del head",
+    "Cajas por `rloc`, color por `risk`",
+    "riesgo alto",
+    "packages/ui/src/panels.tsx",
+    "3985",
+    "https://example.test/run/1#artifacts"
+  ]) {
+    assert.ok(output.includes(needle), `el bloque del mapa no contiene: ${needle}`);
+  }
+
+  // Sin captura —o con un JSON roto— el comentario sale igual, sin bloque.
+  for (const args of [[reportPath], [reportPath, path.join(temp, "nada.json")]]) {
+    const bare = render(args);
+    assert.ok(
+      !bare.includes("### Mapa del head"),
+      "el comentario inventa un mapa que no existe"
+    );
+    assert.ok(bare.includes("<!-- codarch-report -->"), "el comentario sale sin captura");
+  }
+
+  fs.writeFileSync(mapPath, "{ roto", "utf8");
+  assert.ok(
+    !render([reportPath, mapPath]).includes("### Mapa del head"),
+    "un resumen ilegible no puede tumbar el comentario"
+  );
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }

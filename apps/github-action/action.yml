@@ -186,6 +186,30 @@ runs:
         node "$CODARCH_CLI" render "$CODARCH_ARTIFACT_DIR/head/snapshot.cc.json" \
           -o "$CODARCH_ARTIFACT_DIR/head/app"
 
+    # La captura va antes del comentario y tolera el fallo: el CLI instalado
+    # desde npm puede no traer `shot` todavía, y el comentario tiene que salir
+    # igual (ADR 0091).
+    - name: Capturar el mapa
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "$CODARCH_ROOT"
+        SNAPSHOT="$CODARCH_ARTIFACT_DIR/head/snapshot.cc.json"
+        if [ ! -f "$SNAPSHOT" ]; then
+          echo "::warning::Sin snapshot del head; el comentario sale sin mapa."
+          exit 0
+        fi
+        set +e
+        node "$CODARCH_CLI" shot "$SNAPSHOT" \
+          --out "$CODARCH_ARTIFACT_DIR/head/map.png" \
+          --json > "$CODARCH_ARTIFACT_DIR/head/map.json"
+        SHOT_STATUS=$?
+        set -e
+        if [ "$SHOT_STATUS" -ne 0 ]; then
+          echo "::warning::El CLI no pudo capturar el mapa; el comentario sale sin imagen."
+          rm -f "$CODARCH_ARTIFACT_DIR/head/map.png" "$CODARCH_ARTIFACT_DIR/head/map.json"
+        fi
+
     - name: Comparar y aplicar política
       shell: bash
       env:
@@ -243,7 +267,8 @@ runs:
         fi
 
         node "$GITHUB_ACTION_PATH/render-comment.mjs" \
-          "$CODARCH_ARTIFACT_DIR/report.json" > "$RUNNER_TEMP/codarch-comment.md"
+          "$CODARCH_ARTIFACT_DIR/report.json" \
+          "$CODARCH_ARTIFACT_DIR/head/map.json" > "$RUNNER_TEMP/codarch-comment.md"
 
         COMMENT_ID="$(gh api \
           "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \

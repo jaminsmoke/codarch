@@ -2,11 +2,12 @@ import fs from "node:fs";
 
 const reportPath = process.argv[2];
 if (!reportPath) {
-  console.error("uso: render-comment.mjs <report.json>");
+  console.error("uso: render-comment.mjs <report.json> [map.json]");
   process.exit(1);
 }
 
 const report = JSON.parse(fs.readFileSync(reportPath, "utf8"));
+const mapShot = readMap(process.argv[3]);
 const summary = report.summary ?? {};
 const rules = report.rules ?? {};
 const status = process.env.CODARCH_STATUS ?? "0";
@@ -217,9 +218,83 @@ if (report.base?.checksum || report.head?.checksum) {
     )}\``
   );
 }
+if (mapShot) lines.push(...mapSection(mapShot));
+
 lines.push(`<sub>${footer.join(" · ")}</sub>`);
 
 process.stdout.write(`${lines.join("\n")}\n`);
+
+/**
+ * La captura del mapa, si el paso la dejó (ADR 0091).
+ *
+ * Sin fichero —o con un JSON que no se puede leer— el comentario sale igual:
+ * la imagen es un extra, no un requisito para contar el diff.
+ */
+function readMap(mapPath) {
+  if (!mapPath || !fs.existsSync(mapPath)) return null;
+  try {
+    const shot = JSON.parse(fs.readFileSync(mapPath, "utf8"));
+    return shot?.summary ? shot : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * El bloque del mapa: por qué área y color está pintado y qué celdas son las
+ * grandes.
+ *
+ * La imagen no cabe en un comentario —GitHub descarta las imágenes que no
+ * tengan URL—, así que viaja en el artefacto y aquí queda lo que el PNG no
+ * dice: los nombres.
+ */
+function mapSection(shot) {
+  const summary = shot.summary ?? {};
+  const cells = (summary.cells ?? []).slice(0, 5);
+  const legend = (summary.legend ?? []).map((entry) => entry.label).filter(Boolean);
+  const where = runUrl
+    ? ` La imagen va con el artefacto \`${escapeInline(artifact)}\`: [ver la ejecución](${runUrl}#artifacts).`
+    : ` La imagen va con el artefacto \`${escapeInline(artifact)}\`.`;
+
+  const out = [
+    "### Mapa del head",
+    "",
+    `Cajas por \`${escapeInline(summary.area ?? "—")}\`, color por \`${escapeInline(
+      summary.color ?? "—"
+    )}\`${summary.width ? `, ${summary.width}x${summary.height}` : ""}.${where}`,
+    ""
+  ];
+
+  if (legend.length > 0) {
+    out.push(`Escala: ${legend.map(escapeText).join(" · ")}`, "");
+  }
+
+  const withValue = cells.some((cell) => typeof cell.value === "number");
+  if (cells.length > 0) {
+    out.push(
+      withValue ? "| Celda | Área | Valor |" : "| Celda | Área |",
+      withValue ? "|---|---|---|" : "|---|---|"
+    );
+    for (const cell of cells) {
+      const area = format(cell.area);
+      const value = withValue ? format(cell.value) : null;
+      out.push(
+        withValue
+          ? `| \`${escapeInline(cell.path)}\` | ${area} | ${value ?? "—"} |`
+          : `| \`${escapeInline(cell.path)}\` | ${area} |`
+      );
+    }
+    out.push("");
+  }
+
+  return out;
+}
+
+/** Un número con separadores de miles, o `—` si no lo hay. */
+function format(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(value);
+}
 
 function signed(value) {
   if (!value) return "0";
