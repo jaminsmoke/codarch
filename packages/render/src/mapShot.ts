@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { CcJson } from "@codarch/schema/browser";
-import { fileFill, metricColor, riskColor } from "./color";
+import type { CcJson, CcRestKind } from "@codarch/schema/browser";
+import {
+  fileFill,
+  KIND_COLOR,
+  KIND_LABEL,
+  metricColor,
+  riskColor
+} from "./color";
 import { VIEW_HEIGHT, VIEW_WIDTH } from "./layout";
 import {
   buildRenderModel,
@@ -127,6 +133,13 @@ function colorMetricOf(model: RenderModel): RenderMetric | undefined {
  * el PNG no lleva cifras, así que la escala va en el resumen.
  */
 function legendOf(model: RenderModel): LegendEntry[] {
+  if (model.initialLens === "kind") {
+    return (["doc", "config", "asset", "other"] as CcRestKind[]).map((kind) => ({
+      label: KIND_LABEL[kind],
+      color: KIND_COLOR[kind]
+    }));
+  }
+
   if (model.initialLens === "structure") {
     return model.sections.slice(0, 8).map((section) => ({
       label: section.label,

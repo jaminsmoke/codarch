@@ -17,6 +17,7 @@ export {
   colorForFile,
   inkFor,
   kindColor,
+  KIND_LABEL,
   metricColor,
   riskColor,
   sectionColor,

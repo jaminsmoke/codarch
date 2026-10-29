@@ -1,6 +1,5 @@
 import type {
   CcMigrationStatus,
-  CcRestKind,
   CcSymbol,
   SymbolEvent
 } from "@codarch/schema/browser";
@@ -54,14 +53,10 @@ const CHAR_WIDTH = 0.55;
  * Cómo se lee cada tipo del mapa del resto (ADR 0093).
  *
  * Son cuatro y no se pliegan: `other` es lo que no casa con ninguna regla, y
- * enseñarlo es lo que impide que un formato nuevo desaparezca del mapa.
+ * enseñarlo es lo que impide que un formato nuevo desaparezca del mapa. La
+ * tabla vive en el render para que la leyenda del PNG diga lo mismo.
  */
-export const KIND_LABEL: Record<CcRestKind, string> = {
-  doc: "Documentos",
-  config: "Configuración",
-  asset: "Assets",
-  other: "Otros"
-};
+export { KIND_LABEL } from "@codarch/render/browser";
 
 /** Cómo se lee cada estado de la lente de migración ✓. */
 export const STATUS_LABEL: Record<CcMigrationStatus, string> = {

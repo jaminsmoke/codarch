@@ -73,6 +73,15 @@ export function useCodarchApp(
    */
   const [rest, setRest] = useState<CcJson | null>(null);
   const [map, setMapView] = useState<MapId>("code");
+  /**
+   * El mapa de ahora, para las piezas que no pueden volver a crearse al
+   * cambiar de mapa: `loadSnapshot` es la dependencia del arranque de la web, y
+   * si cambiara de identidad se volvería a arrancar y se perdería el resto.
+   */
+  const mapRef = useRef<MapId>(map);
+  useEffect(() => {
+    mapRef.current = map;
+  }, [map]);
   const [source, setSource] = useState(options.sourceInicial ?? "sin proyecto");
   const [areaMetric, setAreaMetric] = useState<string | null>(null);
   const [colorMode, setColorMode] = useState("risk");
@@ -135,7 +144,7 @@ export function useCodarchApp(
     checksumRef,
     tabRef,
     selectedPathRef,
-    map,
+    mapRef,
     cc,
     source,
     setCc,

@@ -20,6 +20,7 @@ export {
   kindColor,
   inkFor,
   KIND_COLOR,
+  KIND_LABEL,
   RISK_GRADIENT,
   METRIC_GRADIENT
 } from "./color";

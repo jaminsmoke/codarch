@@ -15,12 +15,12 @@ import {
   type RiskPart
 } from "@codarch/metrics/browser";
 
-export type Lens = "structure" | "risk" | "metric";
+export type Lens = "structure" | "risk" | "metric" | "kind";
 
 export interface RenderOptions {
   /** Métrica que decide el área. Por defecto `rloc` o la de mayor cobertura. */
   areaMetric?: string;
-  /** `risk`, `structure` o el nombre de una métrica. */
+  /** `risk`, `structure`, `kind` o el nombre de una métrica. */
   color?: string;
   /** Título alternativo para la cabecera. */
   title?: string;
@@ -663,8 +663,10 @@ function resolveLens(
   coverage: ReadonlySet<string>,
   options: RenderOptions
 ): { initialLens: Lens; initialMetric: string | null } {
-  if (options.color === "structure") {
-    return { initialLens: "structure", initialMetric: null };
+  // `structure` y `kind` no leen ninguna métrica: el color sale de la sección
+  // y del tipo del resto, que el modelo ya lleva (ADR 0093).
+  if (options.color === "structure" || options.color === "kind") {
+    return { initialLens: options.color, initialMetric: null };
   }
 
   if (options.color && options.color !== "risk") {
@@ -771,7 +773,7 @@ function pickDefaultSelection(
     }
   }
 
-  if (lens === "structure") {
+  if (lens === "structure" || lens === "kind") {
     return files.reduce((best, file) =>
       file.actualArea > best.actualArea ? file : best
     ).index;

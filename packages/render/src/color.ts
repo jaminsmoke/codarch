@@ -20,6 +20,14 @@ export const KIND_COLOR: Record<CcRestKind, string> = {
   other: "#d5d2ca"
 };
 
+/** Cómo se lee cada tipo del resto (ADR 0093). */
+export const KIND_LABEL: Record<CcRestKind, string> = {
+  doc: "Documentos",
+  config: "Configuración",
+  asset: "Assets",
+  other: "Otros"
+};
+
 /** El color de un tipo del resto; lo que no se reconoce sale como `other`. */
 export function kindColor(kind: CcRestKind): string {
   return KIND_COLOR[kind] ?? KIND_COLOR.other;
@@ -140,6 +148,8 @@ export function fileFill(
   metricIndex: number,
   metric: RenderMetric | undefined
 ): string {
+  // El mapa del resto no mide ficheros: su color es el tipo (ADR 0093).
+  if (model.initialLens === "kind") return kindColor(file.kind ?? "other");
   const value = metricIndex >= 0 ? file.values[metricIndex] ?? null : null;
   return colorForFile(
     model.initialLens,

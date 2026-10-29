@@ -39,4 +39,19 @@ describe("el color por tipo", () => {
     );
     expect(result.files.find((file) => file.name === "b.ts")?.kind).toBeNull();
   });
+
+  it("acepta el tipo como lente del mapa, sin pedir ninguna métrica", () => {
+    const copy = structuredClone(fixture) as {
+      lenses?: Record<string, unknown>;
+    };
+    copy.lenses = {
+      ...copy.lenses,
+      rest: { nodes: { a: { kind: "doc" } } }
+    };
+
+    const result = buildRenderModel(parseCcJson(copy), { color: "kind" });
+
+    expect(result.initialLens).toBe("kind");
+    expect(result.initialMetric).toBeNull();
+  });
 });

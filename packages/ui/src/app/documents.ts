@@ -51,8 +51,15 @@ export interface DocumentDeps extends DocumentSetters {
   tabRef: MutableRefObject<InspectorTab>;
   selectedPathRef: MutableRefObject<string | null>;
   cc: CcJson | null;
-  /** El mapa que ocupa el escenario, para no tocar su vista al refrescar. */
-  map: "code" | "rest";
+  /**
+   * El mapa que ocupa el escenario, para no tocar su vista al refrescar.
+   *
+   * Va por referencia y no como valor a propósito: `loadSnapshot` tiene que
+   * conservar su identidad entre renders. Si cambiara al cambiar de mapa, el
+   * arranque de la web —que depende de ella— volvería a correr y tiraría el
+   * resto que se acaba de abrir (ADR 0093).
+   */
+  mapRef: MutableRefObject<"code" | "rest">;
   source: string;
 }
 
@@ -76,7 +83,7 @@ export function useDocuments(deps: DocumentDeps) {
     tabRef,
     selectedPathRef,
     cc,
-    map,
+    mapRef,
     source,
     setCc,
     setRest,
@@ -135,7 +142,7 @@ export function useDocuments(deps: DocumentDeps) {
         if (!preserveView) {
           setAreaMetric(plan.areaMetric);
           setColorMode(plan.colorMode);
-        } else if (map === "code") {
+        } else if (mapRef.current === "code") {
           setAreaMetric((current) =>
             keepArea(current, coverage, plan.areaMetric)
           );
@@ -174,7 +181,7 @@ export function useDocuments(deps: DocumentDeps) {
       setCc,
       setRest,
       setMap,
-      map,
+      mapRef,
       setColorMode,
       setError,
       setFocusPath,
