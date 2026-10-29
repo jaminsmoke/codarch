@@ -129,6 +129,9 @@ llegue, no se adivina por el nombre de una carpeta, igual que el alcance
 - El escritorio y la web ganan un segundo archivo que cargar, y el `serve` una ruta más que servir.
 - Los bloques del raíl dejan de ser «del mapa» y pasan a ser «del mapa activo»; la leyenda necesita
   su versión por tipo.
+- El tamaño de un asset sale del puerto de ficheros: quien no sepa `stat` —el navegador— lo mide a 0
+  hasta que decida cómo dar tamaños al cargar el resto. Los ficheros de texto no tienen ese problema:
+  sus bytes salen del contenido.
 - Dos artefactos pueden desincronizarse en disco: el que se escribe antes de un fallo. La app pide
   los dos de la misma pasada y no mezcla.
 
@@ -149,8 +152,8 @@ llegue, no se adivina por el nombre de una carpeta, igual que el alcance
 
 Fase **M64 — El mapa de lo que no es código**.
 
-- ⬜ El recorrido se reparte en una pasada: el código al parser, el resto a la pasada léxica.
-- ⬜ El snapshot del resto: árbol, `bytes`, `loc`, la lente `rest` con su `kind`, los enlaces entre
+- ✅ El recorrido se reparte en una pasada: el código al parser, el resto a la pasada léxica.
+- ✅ El snapshot del resto: árbol, `bytes`, `loc`, la lente `rest` con su `kind`, los enlaces entre
   documentos, checksum propio y un test de determinismo.
 - ⬜ `codarch analyze` y `serve` escriben `.codarch/rest.cc.json`; el diff, las reglas y la acción no
   lo miran.
