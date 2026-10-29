@@ -127,32 +127,72 @@ export function diffLines(
  *
  * La tabla de la subsecuencia común se recorre hacia atrás desde el final; en
  * caso de empate gana la baja, que es lo que hace git: la línea vieja sale
- * antes que la nueva.
+ * antes que la nueva. Lo que sobra de un lado, al final, se añade o se quita
+ * entero.
  */
 function align(before: readonly string[], after: readonly string[]): DiffRow[] {
-  const rows = before.length;
-  const columns = after.length;
-  const width = columns + 1;
-  const table = new Uint32Array((rows + 1) * width);
+  const walked = walk(before, after, alignmentTable(before, after));
+  return [
+    ...walked.rows,
+    ...tailRows(before, walked.row, "del"),
+    ...tailRows(after, walked.column, "add")
+  ];
+}
 
-  for (let row = rows - 1; row >= 0; row--) {
-    for (let column = columns - 1; column >= 0; column--) {
+/** La tabla de la subsecuencia y su ancho, listos para recorrer. */
+interface AlignmentTable {
+  cells: Uint32Array;
+  width: number;
+}
+
+/** Rellena la tabla desde el final: cada celda mira a la de abajo y a la de la derecha. */
+function alignmentTable(
+  before: readonly string[],
+  after: readonly string[]
+): AlignmentTable {
+  const width = after.length + 1;
+  const cells = new Uint32Array((before.length + 1) * width);
+
+  for (let row = before.length - 1; row >= 0; row--) {
+    for (let column = after.length - 1; column >= 0; column--) {
       const same = (before[row] ?? "") === (after[column] ?? "");
-      table[row * width + column] = same
-        ? (table[(row + 1) * width + column + 1] ?? 0) + 1
+      cells[row * width + column] = same
+        ? (cells[(row + 1) * width + column + 1] ?? 0) + 1
         : Math.max(
-            table[(row + 1) * width + column] ?? 0,
-            table[row * width + column + 1] ?? 0
+            cells[(row + 1) * width + column] ?? 0,
+            cells[row * width + column + 1] ?? 0
           );
     }
   }
 
-  const aligned: DiffRow[] = [];
+  return { cells, width };
+}
+
+/** El siguiente paso del recorrido: la línea sigue, se quita o se añade. */
+function step(
+  table: AlignmentTable,
+  row: number,
+  column: number
+): "down" | "right" {
+  const { cells, width } = table;
+  const down = cells[(row + 1) * width + column] ?? 0;
+  const right = cells[row * width + column + 1] ?? 0;
+  return down >= right ? "down" : "right";
+}
+
+/** Las filas de las dos listas, hasta que una se acaba. */
+function walk(
+  before: readonly string[],
+  after: readonly string[],
+  table: AlignmentTable
+): { rows: DiffRow[]; row: number; column: number } {
+  const rows: DiffRow[] = [];
   let row = 0;
   let column = 0;
-  while (row < rows && column < columns) {
+
+  while (row < before.length && column < after.length) {
     if ((before[row] ?? "") === (after[column] ?? "")) {
-      aligned.push({
+      rows.push({
         type: "same",
         text: before[row] ?? "",
         baseLine: row + 1,
@@ -160,30 +200,37 @@ function align(before: readonly string[], after: readonly string[]): DiffRow[] {
       });
       row++;
       column++;
-      continue;
-    }
-
-    const down = table[(row + 1) * width + column] ?? 0;
-    const right = table[row * width + column + 1] ?? 0;
-    if (down >= right) {
-      aligned.push({ type: "del", text: before[row] ?? "", baseLine: row + 1, headLine: null });
+    } else if (step(table, row, column) === "down") {
+      rows.push(removedRow(before, row));
       row++;
     } else {
-      aligned.push({ type: "add", text: after[column] ?? "", baseLine: null, headLine: column + 1 });
+      rows.push(addedRow(after, column));
       column++;
     }
   }
 
-  while (row < rows) {
-    aligned.push({ type: "del", text: before[row] ?? "", baseLine: row + 1, headLine: null });
-    row++;
-  }
-  while (column < columns) {
-    aligned.push({ type: "add", text: after[column] ?? "", baseLine: null, headLine: column + 1 });
-    column++;
-  }
+  return { rows, row, column };
+}
 
-  return aligned;
+/** Las líneas que solo están en un lado, desde `from` hasta el final. */
+function tailRows(
+  lines: readonly string[],
+  from: number,
+  type: "add" | "del"
+): DiffRow[] {
+  return Array.from({ length: Math.max(0, lines.length - from) }, (_, offset) =>
+    type === "del" ? removedRow(lines, from + offset) : addedRow(lines, from + offset)
+  );
+}
+
+/** Una línea de la base que no está en el head. */
+function removedRow(lines: readonly string[], index: number): DiffRow {
+  return { type: "del", text: lines[index] ?? "", baseLine: index + 1, headLine: null };
+}
+
+/** Una línea del head que no está en la base. */
+function addedRow(lines: readonly string[], index: number): DiffRow {
+  return { type: "add", text: lines[index] ?? "", baseLine: null, headLine: index + 1 };
 }
 
 /**

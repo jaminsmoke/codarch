@@ -86,6 +86,24 @@ describe("la vista de diferencias", () => {
       { type: "add", text: "nueva", baseLine: null, headLine: 2 },
       { type: "same", text: "b", baseLine: 2, headLine: 3 }
     ]);
+  });	it("lo que sobra al final se quita entero", () => {
+    const diff = diffLines(["a", "b", "c"], ["a"]);
+
+    expect(diff.rows).toEqual([
+      { type: "same", text: "a", baseLine: 1, headLine: 1 },
+      { type: "del", text: "b", baseLine: 2, headLine: null },
+      { type: "del", text: "c", baseLine: 3, headLine: null }
+    ]);
+  });
+
+  it("lo que sobra al final se añade entero", () => {
+    const diff = diffLines(["a"], ["a", "b", "c"]);
+
+    expect(diff.rows).toEqual([
+      { type: "same", text: "a", baseLine: 1, headLine: 1 },
+      { type: "add", text: "b", baseLine: null, headLine: 2 },
+      { type: "add", text: "c", baseLine: null, headLine: 3 }
+    ]);
   });
 
   it("dos textos iguales no dejan filas", () => {

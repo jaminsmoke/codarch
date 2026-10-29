@@ -56,57 +56,85 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  */
 export function parseReport(raw: unknown): DiffReport | null {
   if (!isRecord(raw)) return null;
-  const version = raw.schemaVersion;
-  if (typeof version !== "string" || !KNOWN_VERSIONS.has(version)) {
-    return null;
-  }
-
-  const files = raw.files;
-  const rules = raw.rules;
-  const cycles = raw.cycles;
-  if (
-    !isRecord(raw.summary) ||
-    !isRecord(raw.base) ||
-    !isRecord(raw.head) ||
-    !isRecord(files) ||
-    !Array.isArray(files.added) ||
-    !Array.isArray(files.removed) ||
-    !Array.isArray(files.changed) ||
-    !isRecord(rules) ||
-    typeof rules.configured !== "boolean" ||
-    !isRecord(rules.summary) ||
-    !isRecord(rules.violations) ||
-    !Array.isArray(rules.violations.introduced) ||
-    !Array.isArray(rules.violations.existing) ||
-    !Array.isArray(rules.violations.resolved) ||
-    !isRecord(cycles) ||
-    !Array.isArray(cycles.introduced) ||
-    !Array.isArray(cycles.fixed) ||
-    !Array.isArray(raw.hotspots)
-  ) {
-    return null;
-  }
+  if (!isKnownVersion(raw.schemaVersion)) return null;
+  if (!looksLikeReport(raw)) return null;
 
   const report = raw as unknown as DiffReport;
-  if (version === REPORT_SCHEMA_VERSION) {
-    return report;
-  }
+  if (raw.schemaVersion === REPORT_SCHEMA_VERSION) return report;
 
-  // Reporte de una versión anterior: se reconstruye con las secciones que le
-  // falten.
+  return upgradeReport(report);
+}
+
+/** ¿La versión es una que este lector sabe reconstruir? */
+function isKnownVersion(value: unknown): value is string {
+  return typeof value === "string" && KNOWN_VERSIONS.has(value);
+}
+
+/** La forma mínima de un reporte: sin esto no hay nada que enseñar. */
+function looksLikeReport(raw: Record<string, unknown>): boolean {
+  return (
+    isRecord(raw.summary) &&
+    isRecord(raw.base) &&
+    isRecord(raw.head) &&
+    looksLikeFiles(raw.files) &&
+    looksLikeRules(raw.rules) &&
+    looksLikeCycles(raw.cycles) &&
+    Array.isArray(raw.hotspots)
+  );
+}
+
+/** Los ficheros, con sus tres listas. */
+function looksLikeFiles(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    Array.isArray(value.added) &&
+    Array.isArray(value.removed) &&
+    Array.isArray(value.changed)
+  );
+}
+
+/** Las reglas: si están configuradas, su resumen y sus tres listas. */
+function looksLikeRules(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.configured !== "boolean") return false;
+  return isRecord(value.summary) && hasViolationLists(value.violations);
+}
+
+/** Las violaciones, con las tres listas que la pestaña recorre. */
+function hasViolationLists(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    Array.isArray(value.introduced) &&
+    Array.isArray(value.existing) &&
+    Array.isArray(value.resolved)
+  );
+}
+
+/** Los ciclos: los nuevos y los resueltos. */
+function looksLikeCycles(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return Array.isArray(value.introduced) && Array.isArray(value.fixed);
+}
+
+/** Reporte de una versión anterior: se reconstruye con lo que le falte. */
+function upgradeReport(report: DiffReport): DiffReport {
   return {
     ...report,
     schemaVersion: REPORT_SCHEMA_VERSION,
     migration: report.migration ?? null,
     symbols: symbolsWithLines(report.symbols),
-    rules: {
-      ...report.rules,
-      profile: report.rules?.profile ?? null,
-      violations: {
-        introduced: (report.rules?.violations?.introduced ?? []).map(withSource),
-        existing: (report.rules?.violations?.existing ?? []).map(withSource),
-        resolved: (report.rules?.violations?.resolved ?? []).map(withSource)
-      }
+    rules: upgradeRules(report.rules)
+  };
+}
+
+/** Las violaciones de un reporte antiguo no dicen de dónde sale la regla. */
+function upgradeRules(rules: DiffReport["rules"]): DiffReport["rules"] {
+  return {
+    ...rules,
+    profile: rules?.profile ?? null,
+    violations: {
+      introduced: (rules?.violations?.introduced ?? []).map(withSource),
+      existing: (rules?.violations?.existing ?? []).map(withSource),
+      resolved: (rules?.violations?.resolved ?? []).map(withSource)
     }
   };
 }
