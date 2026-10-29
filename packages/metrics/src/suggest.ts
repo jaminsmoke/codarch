@@ -325,7 +325,8 @@ function notesFor(ungrouped: number, layerCount: number): string[] {
   if (ungrouped > 0) {
     // La cuenta es de ficheros: uno solo se dice en singular.
     notes.push(
-      `${ungrouped} ${ungrouped === 1 ? "fichero" : "ficheros"} en la raíz o sin carpeta: no forman capa (suelen ser puntos de entrada).`
+      `${ungrouped} ${ungrouped === 1 ? "fichero" : "ficheros"} en la raíz o ` +
+        "sin carpeta: no forman capa (suelen ser puntos de entrada)."
     );
   }
   if (layerCount === 0) {
@@ -333,7 +334,8 @@ function notesFor(ungrouped: number, layerCount: number): string[] {
   }
   if (layerCount === 1) {
     notes.push(
-      "Solo hay una capa: no se puede deducir una estructura. Prueba con un perfil del catálogo."
+      "Solo hay una capa: no se puede deducir una estructura. Prueba con un " +
+        "perfil del catálogo."
     );
   }
 
@@ -421,7 +423,11 @@ function matchProfiles(
       const violates = groupEdges.some(
         (edge) => edge.from.name === fromGroup && edge.to.name === toGroup
       );
-      if (violates) broken.push(rule.message ?? `${rule.from} no puede depender de ${rule.to}`);
+      if (violates) {
+        broken.push(
+          rule.message ?? `${rule.from} no puede depender de ${rule.to}`
+        );
+      }
     }
 
     return {
@@ -451,7 +457,8 @@ function slug(name: string): string {
   return name.replaceAll("/", "-");
 }
 
-function relativePath(root: CcNode, fullPath: string): string {  if (fullPath === root.name) return "";
+function relativePath(root: CcNode, fullPath: string): string {
+  if (fullPath === root.name) return "";
   const prefix = `${root.name}/`;
   const stripped = fullPath.startsWith(prefix)
     ? fullPath.slice(prefix.length)
