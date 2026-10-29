@@ -68,7 +68,7 @@ export default function App() {
       }
       loadSnapshot(raw, entry.date);
     },
-    [loadSnapshot]
+    [loadSnapshot, setError]
   );
 
   /**
@@ -115,7 +115,7 @@ export default function App() {
       }
       loadReport(target.report, target.label);
     });
-  }, [loadReport, loadSnapshot, plataforma, resetReport]);
+  }, [loadReport, loadSnapshot, plataforma, resetReport, setAddons, setError]);
 
   return (
     <AppShell

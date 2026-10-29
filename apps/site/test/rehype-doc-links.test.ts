@@ -4,7 +4,21 @@ import { rehypeDocLinks } from "../src/lib/rehype-doc-links.mjs";
 
 const docs = path.resolve(import.meta.dirname, "../docs");
 
-function enlace(href: string): any {
+/** Un enlace del markdown, con el texto que lo envuelve. */
+interface Enlace {
+  type: "element";
+  tagName: "a";
+  properties: { href: string };
+  children: [{ type: "text"; value: string }];
+}
+
+/** El documento de prueba: la raíz con un solo enlace dentro. */
+interface Documento {
+  type: "root";
+  children: [Enlace];
+}
+
+function enlace(href: string): Documento {
   return {
     type: "root",
     children: [

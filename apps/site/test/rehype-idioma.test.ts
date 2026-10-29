@@ -4,7 +4,23 @@ import { rehypeIdioma } from "../src/lib/rehype-idioma.mjs";
 
 const docs = path.resolve(import.meta.dirname, "../docs");
 
-function aviso(etiqueta: string, variante = "note"): any {
+/** Un texto del árbol. */
+interface Texto {
+  type: "text";
+  value: string;
+}
+
+/** Un elemento, con las propiedades como las deja Starlight. */
+interface Elemento {
+  type: "element";
+  tagName: string;
+  properties: Record<string, string | string[]>;
+  children: Nodo[];
+}
+
+type Nodo = Elemento | Texto;
+
+function aviso(etiqueta: string, variante = "note"): Elemento {
   return {
     type: "element",
     tagName: "aside",
@@ -33,7 +49,7 @@ function aviso(etiqueta: string, variante = "note"): any {
 }
 
 /** Starlight monta el ancla a mano: la clase va como `class`, no como `className`. */
-function ancla(texto: string): any {
+function ancla(texto: string): Elemento {
   return {
     type: "element",
     tagName: "a",
@@ -55,15 +71,39 @@ function ancla(texto: string): any {
   };
 }
 
-function procesar(desde: string, nodos: any[]): any[] {
-  const tree = { type: "root", children: nodos };
+function procesar(desde: string, nodos: Nodo[]): Nodo[] {
+  const tree: { type: "root"; children: Nodo[] } = {
+    type: "root",
+    children: nodos
+  };
   rehypeIdioma({ docsRoot: docs })(tree, { path: path.join(docs, desde) });
   return tree.children;
 }
 
-const rotulo = (nodo: any): string => nodo.properties.ariaLabel;
-const titulo = (nodo: any): string => nodo.children[0].children[1].value;
-const oculto = (nodo: any): string => nodo.children[1].children[0].value;
+/** El rótulo accesible del aviso. */
+function rotulo(nodo: Nodo | undefined): string | undefined {
+  if (nodo?.type !== "element") return undefined;
+  const etiqueta = nodo.properties.ariaLabel;
+  return typeof etiqueta === "string" ? etiqueta : undefined;
+}
+
+/** El texto del título que pinta Starlight, después del icono. */
+function titulo(nodo: Nodo | undefined): string | undefined {
+  if (nodo?.type !== "element") return undefined;
+  const parrafo = nodo.children[0];
+  if (parrafo?.type !== "element") return undefined;
+  const texto = parrafo.children[1];
+  return texto?.type === "text" ? texto.value : undefined;
+}
+
+/** El texto que solo lee el lector de pantalla dentro del ancla. */
+function oculto(nodo: Nodo | undefined): string | undefined {
+  if (nodo?.type !== "element") return undefined;
+  const span = nodo.children[1];
+  if (span?.type !== "element") return undefined;
+  const texto = span.children[0];
+  return texto?.type === "text" ? texto.value : undefined;
+}
 
 describe("los rótulos de los avisos", () => {
   it("hablan inglés en las páginas inglesas", () => {
@@ -89,13 +129,13 @@ describe("los rótulos de los avisos", () => {
   });
 
   it("se pueden pasar dos veces sin cambiar nada", () => {
-    const [nota] = procesar("en/usar/mcp.md", [aviso("Nota")]);
+    const avisos = procesar("en/usar/mcp.md", [aviso("Nota")]);
     rehypeIdioma({ docsRoot: docs })(
-      { type: "root", children: [nota] },
+      { type: "root", children: avisos },
       { path: path.join(docs, "en/usar/mcp.md") }
     );
-    expect(rotulo(nota)).toBe("Note");
-    expect(titulo(nota)).toBe("Note");
+    expect(rotulo(avisos[0])).toBe("Note");
+    expect(titulo(avisos[0])).toBe("Note");
   });
 });
 

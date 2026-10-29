@@ -126,7 +126,7 @@ export default function App() {
       }
       loadSnapshot(raw, label);
     },
-    [loadSnapshot]
+    [loadSnapshot, setError]
   );
 
   /**
@@ -140,7 +140,7 @@ export default function App() {
       addons?: RepoAddon[];
     } | null;
     setAddons(Array.isArray(payload?.addons) ? payload.addons : []);
-  }, []);
+  }, [setAddons]);
 
   // De dónde sale el mapa y qué se refresca al guardar: la sesión de la web.
   useServerSession({
@@ -246,7 +246,7 @@ export default function App() {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
     },
-    [abrirSnapshot]
+    [abrirSnapshot, setError]
   );
 
   const onFile = useCallback(
@@ -281,7 +281,7 @@ export default function App() {
         );
       }
     },
-    [abrirReporte]
+    [abrirReporte, setReportError]
   );
 
   /** Deja en el mapa lo que trajo una carpeta con `.codarch/`. */
@@ -343,7 +343,7 @@ export default function App() {
         setLoading(false);
       }
     },
-    [closeOpenMenu, abrirSnapshot, abrirReporte]
+    [closeOpenMenu, abrirSnapshot, abrirReporte, setError, setLoading, setReportError]
   );
 
   /**
@@ -407,7 +407,14 @@ export default function App() {
       setProgress(null);
       setLoading(false);
     }
-  }, [closeOpenMenu, loadSnapshot, resetReport]);
+  }, [
+    closeOpenMenu,
+    loadSnapshot,
+    resetReport,
+    setError,
+    setLoading,
+    setProgress
+  ]);
 
   /** Corta el análisis en marcha, esté leyendo o analizando. */
   const cancelAnalysis = useCallback(() => {
@@ -467,7 +474,7 @@ export default function App() {
         setLoading(false);
       }
     },
-    [refreshFromServer]
+    [refreshFromServer, setLoading]
   );
 
   const toggleWatch = useCallback(async () => {
@@ -494,7 +501,7 @@ export default function App() {
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [serverMode, loadSnapshot]);
+  }, [serverMode, loadSnapshot, setError]);
 
   const openLiveFolder = useCallback(() => {
     closeOpenMenu();
@@ -505,7 +512,7 @@ export default function App() {
       return;
     }
     setFolderPickerOpen(true);
-  }, [closeOpenMenu, serverMode]);
+  }, [closeOpenMenu, serverMode, setError]);
 
   const openRepository = useCallback(async () => {
     closeOpenMenu();
@@ -524,7 +531,7 @@ export default function App() {
       }
       setLoading(false);
     }
-  }, [closeOpenMenu, showArtifacts]);
+  }, [closeOpenMenu, showArtifacts, setError, setLoading]);
 
   const onRepositoryFiles = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -542,7 +549,7 @@ export default function App() {
         setLoading(false);
       }
     },
-    [closeOpenMenu, showArtifacts]
+    [closeOpenMenu, showArtifacts, setError, setLoading]
   );
 
   return (
