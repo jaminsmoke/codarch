@@ -8,8 +8,8 @@ sidebar:
 ---
 
 La webapp es el mapa en el navegador: el treemap, el panel VISTA con sus selectores ÁREA y COLOR, y
-el inspector con sus pestañas Fichero y Cambios. **No analiza sola en el navegador**: analiza a
-través de `codarch serve`, que lee el repositorio del disco y le pasa el snapshot.
+el inspector con sus tres entradas: Fichero, Carpeta y Cambios. **No analiza sola en el navegador**:
+analiza a través de `codarch serve`, que lee el repositorio del disco y le pasa el snapshot.
 
 ## Dos formas de abrirla
 
@@ -119,6 +119,8 @@ seleccionar un fichero vuelve a **Fichero**.
 con la parte del área que ocupa cada hijo y los ficheros que lleva dentro. Pulsar un hijo lo
 selecciona —si es un fichero, pasa a **Fichero**—. Las métricas agregadas de la carpeta, su frontera
 de dependencias y sus ciclos están en la hoja de ruta de esta fase.
+
+![La hoja Carpeta abierta sobre packages/ui: su ruta, su recuento y el contenido de la carpeta con la parte del área de cada hijo](../images/webapp-inspector-carpeta.png)
 
 ## Inspector › Cambios
 

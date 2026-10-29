@@ -8,9 +8,9 @@ sidebar:
 ---
 
 The web app is the map in the browser: the treemap, the VISTA panel with its ÁREA and COLOR
-selectors, and the inspector with its Fichero and Cambios tabs. **It does not analyse on its own in
-the browser**: it analyses through `codarch serve`, which reads the repository from disk and hands it
-the snapshot.
+selectors, and the inspector with its three entries: Fichero, Carpeta and Cambios. **It does not
+analyse on its own in the browser**: it analyses through `codarch serve`, which reads the repository
+from disk and hands it the snapshot.
 
 :::note
 The interface is in Spanish. This page uses the names exactly as they appear on screen.
@@ -125,6 +125,8 @@ order; selecting a file goes back to **Fichero**.
 the share of the area each child takes and the files it holds. Clicking a child selects it —if it is
 a file, it moves to **Fichero**. The folder's aggregated metrics, its dependency frontier and its
 cycles are on this phase's roadmap.
+
+![The Carpeta sheet open on packages/ui: its path, its counts and the folder's content with the share of the area each child takes](../../images/webapp-inspector-carpeta.png)
 
 ## Inspector › Cambios
 
