@@ -57,32 +57,54 @@ export function collectGitChurn(
 
   const root = realPath(rootInput);
   const maxBuffer = options.maxBuffer ?? DEFAULT_MAX_BUFFER;
-  const warnings: string[] = [];
 
   const topLevel = runGit(root, ["rev-parse", "--show-toplevel"], maxBuffer);
   if (!topLevel.ok) {
-    return {
-      ...EMPTY,
-      metrics: new Map(),
-      warnings: [`no hay historial git utilizable: ${topLevel.error}`]
-    };
+    return failed([`no hay historial git utilizable: ${topLevel.error}`]);
   }
 
   const repoRoot = realPath(topLevel.stdout.trim());
-  const shallowResult = runGit(
-    repoRoot,
-    ["rev-parse", "--is-shallow-repository"],
-    maxBuffer
-  );
-  const shallow =
-    shallowResult.ok && shallowResult.stdout.trim().toLowerCase() === "true";
-  if (shallow) {
-    warnings.push(
-      "el repositorio es shallow: el churn puede estar incompleto"
-    );
+  const shallow = isShallow(repoRoot, maxBuffer);
+  const warnings = shallow
+    ? ["el repositorio es shallow: el churn puede estar incompleto"]
+    : [];
+
+  const log = readLog(repoRoot, maxBuffer);
+  if (!log.ok) {
+    return failed([...warnings, `no se pudo leer git log: ${log.error}`], shallow);
   }
 
-  const log = runGit(
+  const history = parseHistory(log.stdout, root, repoRoot, new Set(files));
+
+  return {
+    metrics: churnMetrics(files, history),
+    commits: history.commits,
+    authors: history.authors.size,
+    shallow,
+    enabled: true,
+    warnings
+  };
+}
+
+/** El resultado de una lectura que no pudo ser, con lo que sí se supo. */
+function failed(warnings: string[], shallow = false): GitChurnResult {
+  return { ...EMPTY, metrics: new Map(), shallow, warnings };
+}
+
+/** Si el repo se clonó sin historial completo. */
+function isShallow(repoRoot: string, maxBuffer: number): boolean {
+  const result = runGit(repoRoot, ["rev-parse", "--is-shallow-repository"], maxBuffer);
+  return result.ok && result.stdout.trim().toLowerCase() === "true";
+}
+
+/**
+ * El historial entero en una sola llamada.
+ *
+ * `core.quotePath=false` deja los caminos con tildes tal cual, y
+ * `--no-merges` evita contar dos veces un cambio que llega de una rama.
+ */
+function readLog(repoRoot: string, maxBuffer: number): GitRunResult {
+  return runGit(
     repoRoot,
     [
       "-c",
@@ -94,87 +116,144 @@ export function collectGitChurn(
     ],
     maxBuffer
   );
-  if (!log.ok) {
-    return {
-      ...EMPTY,
-      shallow,
-      warnings: [...warnings, `no se pudo leer git log: ${log.error}`]
-    };
-  }
+}
 
-  const wanted = new Set(files);
-  const commitsByFile = new Map<string, number>();
-  const authorsByFile = new Map<string, Set<string>>();
-  const authors = new Set<string>();
-  let commits = 0;
-  let currentAuthor = "";
-  let touched = new Set<string>();
+/** Lo que se acumula mientras se lee el historial. */
+interface ChurnHistory {
+  commitsByFile: Map<string, number>;
+  authorsByFile: Map<string, Set<string>>;
+  authors: Set<string>;
+  commits: number;
+}
 
-  const flushCommit = (): void => {
-    if (!currentAuthor || touched.size === 0) return;
-    commits++;
-    authors.add(currentAuthor);
-    for (const file of touched) {
-      commitsByFile.set(file, (commitsByFile.get(file) ?? 0) + 1);
-      let fileAuthors = authorsByFile.get(file);
-      if (!fileAuthors) {
-        fileAuthors = new Set();
-        authorsByFile.set(file, fileAuthors);
-      }
-      fileAuthors.add(currentAuthor);
-    }
-    touched = new Set();
-    currentAuthor = "";
+/** El estado de un commit a medio leer. */
+interface CommitState extends ChurnHistory {
+  author: string;
+  touched: Set<string>;
+}
+
+/**
+ * Cuenta commits y autores por fichero sobre la salida de `git log`.
+ *
+ * Solo cuenta un commit si toca algún fichero analizado: un commit que solo
+ * cambia documentación no entra en el churn del mapa.
+ */
+function parseHistory(
+  stdout: string,
+  root: string,
+  repoRoot: string,
+  wanted: ReadonlySet<string>
+): ChurnHistory {
+  const state: CommitState = {
+    commitsByFile: new Map(),
+    authorsByFile: new Map(),
+    authors: new Set(),
+    commits: 0,
+    author: "",
+    touched: new Set()
   };
 
-  for (const rawLine of log.stdout.split(/\r?\n/)) {
-    if (rawLine.startsWith(COMMIT_PREFIX)) {
-      flushCommit();
-      const fields = rawLine.slice(COMMIT_PREFIX.length).split("\t");
-      const author = fields[1]?.trim() ?? "";
-      currentAuthor = author || "(sin autor)";
+  for (const line of stdout.split(/\r?\n/)) {
+    if (line.startsWith(COMMIT_PREFIX)) {
+      flushCommit(state);
+      state.author = authorOf(line);
       continue;
     }
 
-    if (!currentAuthor || rawLine === "") continue;
-    const fields = rawLine.split("\t");
-    if (fields.length < 3) continue;
-
-    // El path puede contener tabs; git lo escapa salvo con core.quotePath=false.
-    const gitPath = fields.slice(2).join("\t");
-    if (!gitPath) continue;
-
-    const relative = path.relative(root, path.resolve(repoRoot, gitPath));
-    if (
-      relative === "" ||
-      relative === ".." ||
-      relative.startsWith(`..${path.sep}`) ||
-      path.isAbsolute(relative)
-    ) {
-      continue;
-    }
-    const normalized = relative.split(path.sep).join("/");
-    if (!wanted.has(normalized)) continue;
-    touched.add(normalized);
+    if (!state.author || line === "") continue;
+    const file = touchedFile(line, root, repoRoot, wanted);
+    if (file) state.touched.add(file);
   }
-  flushCommit();
+  flushCommit(state);
 
+  return {
+    commitsByFile: state.commitsByFile,
+    authorsByFile: state.authorsByFile,
+    authors: state.authors,
+    commits: state.commits
+  };
+}
+
+/** El autor de la línea de cabecera de un commit. */
+function authorOf(line: string): string {
+  const fields = line.slice(COMMIT_PREFIX.length).split("\t");
+  return fields[1]?.trim() || "(sin autor)";
+}
+
+/**
+ * El fichero analizado que toca una línea del `--numstat`, si toca alguno.
+ *
+ * El path es el tercer campo en adelante: git lo escapa salvo con
+ * `core.quotePath=false`, y un nombre puede llevar tabs.
+ */
+function touchedFile(
+  line: string,
+  root: string,
+  repoRoot: string,
+  wanted: ReadonlySet<string>
+): string | null {
+  const fields = line.split("\t");
+  if (fields.length < 3) return null;
+
+  const gitPath = fields.slice(2).join("\t");
+  if (!gitPath) return null;
+
+  const relative = path.relative(root, path.resolve(repoRoot, gitPath));
+  if (isOutside(relative)) return null;
+
+  const normalized = relative.split(path.sep).join("/");
+  return wanted.has(normalized) ? normalized : null;
+}
+
+/** Si la ruta cae fuera de la raíz analizada, o es la raíz misma. */
+function isOutside(relative: string): boolean {
+  return (
+    relative === "" ||
+    relative === ".." ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  );
+}
+
+/** Cierra el commit en curso: suma sus ficheros y su autor. */
+function flushCommit(state: CommitState): void {
+  if (!state.author || state.touched.size === 0) return;
+
+  state.commits++;
+  state.authors.add(state.author);
+  for (const file of state.touched) countFile(state, file);
+
+  state.touched = new Set();
+  state.author = "";
+}
+
+/** Un commit más para el fichero, y su autor entre los que lo tocaron. */
+function countFile(state: CommitState, file: string): void {
+  state.commitsByFile.set(file, (state.commitsByFile.get(file) ?? 0) + 1);
+
+  let authors = state.authorsByFile.get(file);
+  if (!authors) {
+    authors = new Set();
+    state.authorsByFile.set(file, authors);
+  }
+  authors.add(state.author);
+}
+
+/** Una entrada por fichero, con cero si no tiene historial. */
+function churnMetrics(
+  files: readonly string[],
+  history: ChurnHistory
+): Map<string, GitChurnFile> {
   const metrics = new Map<string, GitChurnFile>();
+
   for (const file of files) {
     metrics.set(file, {
-      commits: commitsByFile.get(file) ?? 0,
-      authors: authorsByFile.get(file)?.size ?? 0
+      commits: history.commitsByFile.get(file) ?? 0,
+      authors: history.authorsByFile.get(file)?.size ?? 0
     });
   }
 
-  return {
-    metrics,
-    commits,
-    authors: authors.size,
-    shallow,
-    enabled: true,
-    warnings
-  };
+  return metrics;
 }
 
 /**

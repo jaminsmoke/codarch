@@ -129,6 +129,43 @@ describe("collectGitChurn", () => {
     expect(churn.metrics.size).toBe(0);
   });
 
+  it("no cuenta un commit que no toca ningún fichero analizado", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    fs.mkdirSync(path.join(root, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(root, "docs", "nota.md"), "hola\n", "utf8");
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "solo docs"]);
+
+    const churn = collectGitChurn(root, ["src/a.ts", "src/b.ts"]);
+    expect(churn.commits).toBe(1);
+    expect(churn.metrics.get("src/b.ts")).toEqual({ commits: 1, authors: 1 });
+  });
+
+  it("encuentra los ficheros cuyo nombre lleva espacios", () => {
+    const root = tempRepo();
+    initRepo(root);
+    writeProject(root);
+    fs.writeFileSync(
+      path.join(root, "src", "raro con espacios.ts"),
+      "export const raro = 3;\n",
+      "utf8"
+    );
+    git(root, ["add", "."]);
+    git(root, ["commit", "-q", "-m", "primero"]);
+
+    const churn = collectGitChurn(root, ["src/raro con espacios.ts"]);
+    expect(churn.commits).toBe(1);
+    expect(churn.metrics.get("src/raro con espacios.ts")).toEqual({
+      commits: 1,
+      authors: 1
+    });
+  });
+
   it("no falla fuera de un repositorio git", () => {
     const root = tempRepo();
     fs.writeFileSync(path.join(root, "a.ts"), "export const a = 1;\n", "utf8");
