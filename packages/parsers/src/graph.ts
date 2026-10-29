@@ -43,6 +43,14 @@ interface AggregatedEdge {
   typeOnly: number;
 }
 
+/** Las cuatro listas de vecinos: todas las aristas y solo las de ejecución. */
+interface GraphIndex {
+  adjacency: Map<string, string[]>;
+  reverse: Map<string, string[]>;
+  runtime: Map<string, string[]>;
+  runtimeReverse: Map<string, string[]>;
+}
+
 /**
  * Construye el grafo interno de dependencias.
  *
@@ -50,17 +58,58 @@ interface AggregatedEdge {
  * ciclos, `isCyclic`, `inCycle`, `cycleSize` y `dependencyLevel` salen del
  * **grafo de ejecución**: una arista cuenta si `weight > typeOnly`; las aristas
  * que solo son de tipos se guardan, pero no se ejecutan.
+ *
+ * Va por pasos, uno por pregunta: qué nodos hay, qué aristas los unen, qué
+ * componentes se alcanzan, cuáles son cíclicos y qué mide cada fichero.
  */
 export function buildGraph(
   files: readonly string[],
   links: readonly DependencyLink[]
 ): GraphResult {
-  const nodes = [...new Set(files)].sort(compareStrings);
-  const nodeSet = new Set(nodes);
+  const nodes = uniqueNodes(files);
+  const edges = aggregateEdges(links, new Set(nodes));
+  const runtimeEdges = edges.filter(isRuntimeEdge);
+  const index = buildIndex(nodes, edges);
+
+  const components = stronglyConnectedComponents(
+    nodes,
+    index.runtime,
+    index.runtimeReverse
+  );
+  const componentOf = componentIndex(components);
+  const cyclic = cyclicComponents(components, runtimeEdges);
+  const levels = componentLevels(components, runtimeEdges, componentOf);
+
+  gradeEdges(edges, componentOf, cyclic);
+
+  return {
+    edges,
+    metrics: nodeMetrics({
+      nodes,
+      index,
+      components,
+      componentOf,
+      cyclic,
+      levels
+    }),
+    cycles: components.filter((_, index) => cyclic.has(index))
+  };
+}
+
+/** Un nodo por ruta, en orden: el mapa no depende del filesystem. */
+function uniqueNodes(files: readonly string[]): string[] {
+  return [...new Set(files)].sort(compareStrings);
+}
+
+/** Los imports entre nodos, con su peso: cuántos son y cuántos, de tipos. */
+function aggregateEdges(
+  links: readonly DependencyLink[],
+  nodes: ReadonlySet<string>
+): GraphEdge[] {
   const edgesByKey = new Map<string, AggregatedEdge>();
 
   for (const link of links) {
-    if (!nodeSet.has(link.from) || !nodeSet.has(link.to)) continue;
+    if (!nodes.has(link.from) || !nodes.has(link.to)) continue;
     const key = `${link.from}\u0000${link.to}`;
     const existing = edgesByKey.get(key);
     if (existing) {
@@ -76,64 +125,91 @@ export function buildGraph(
     }
   }
 
-  const edges: GraphEdge[] = [...edgesByKey.values()]
+  return [...edgesByKey.values()]
     .sort(
       (left, right) =>
         compareStrings(left.from, right.from) || compareStrings(left.to, right.to)
     )
     .map((edge) => ({ ...edge, isCyclic: false }));
-  const runtimeEdges = edges.filter(isRuntimeEdge);
+}
 
-  const adjacency = new Map<string, string[]>();
-  const reverse = new Map<string, string[]>();
-  const runtimeAdjacency = new Map<string, string[]>();
-  const runtimeReverse = new Map<string, string[]>();
-  for (const node of nodes) {
-    adjacency.set(node, []);
-    reverse.set(node, []);
-    runtimeAdjacency.set(node, []);
-    runtimeReverse.set(node, []);
-  }
+/** Las listas de vecinos, con todos los imports y con los que se ejecutan. */
+function buildIndex(
+  nodes: readonly string[],
+  edges: readonly GraphEdge[]
+): GraphIndex {
+  const index: GraphIndex = {
+    adjacency: emptyLists(nodes),
+    reverse: emptyLists(nodes),
+    runtime: emptyLists(nodes),
+    runtimeReverse: emptyLists(nodes)
+  };
+
   for (const edge of edges) {
-    adjacency.get(edge.from)?.push(edge.to);
-    reverse.get(edge.to)?.push(edge.from);
+    index.adjacency.get(edge.from)?.push(edge.to);
+    index.reverse.get(edge.to)?.push(edge.from);
+    if (!isRuntimeEdge(edge)) continue;
+    index.runtime.get(edge.from)?.push(edge.to);
+    index.runtimeReverse.get(edge.to)?.push(edge.from);
   }
-  for (const edge of runtimeEdges) {
-    runtimeAdjacency.get(edge.from)?.push(edge.to);
-    runtimeReverse.get(edge.to)?.push(edge.from);
-  }
-  for (const neighbors of adjacency.values()) neighbors.sort(compareStrings);
-  for (const neighbors of reverse.values()) neighbors.sort(compareStrings);
-  for (const neighbors of runtimeAdjacency.values()) neighbors.sort(compareStrings);
-  for (const neighbors of runtimeReverse.values()) neighbors.sort(compareStrings);
 
-  const components = stronglyConnectedComponents(
-    nodes,
-    runtimeAdjacency,
-    runtimeReverse
-  );
+  for (const lists of [
+    index.adjacency,
+    index.reverse,
+    index.runtime,
+    index.runtimeReverse
+  ]) {
+    for (const neighbors of lists.values()) neighbors.sort(compareStrings);
+  }
+  return index;
+}
+
+function emptyLists(nodes: readonly string[]): Map<string, string[]> {
+  const lists = new Map<string, string[]>();
+  for (const node of nodes) lists.set(node, []);
+  return lists;
+}
+
+/** A qué componente va cada nodo. */
+function componentIndex(
+  components: readonly string[][]
+): Map<string, number> {
   const componentOf = new Map<string, number>();
   components.forEach((component, index) => {
     for (const node of component) componentOf.set(node, index);
   });
+  return componentOf;
+}
 
+/** Los componentes que son un ciclo: más de un nodo, o un self-loop. */
+function cyclicComponents(
+  components: readonly string[][],
+  runtimeEdges: readonly GraphEdge[]
+): Set<number> {
   const selfLoops = new Set(
     runtimeEdges
       .filter((edge) => edge.from === edge.to)
       .map((edge) => edge.from)
   );
-  const cycleComponents = new Set<number>();
+
+  const cyclic = new Set<number>();
   components.forEach((component, index) => {
     if (
       component.length > 1 ||
       (component.length === 1 && selfLoops.has(component[0] as string))
     ) {
-      cycleComponents.add(index);
+      cyclic.add(index);
     }
   });
+  return cyclic;
+}
 
-  const levels = componentLevels(components, runtimeEdges, componentOf);
-
+/** Marca las aristas que caen dentro de un ciclo de ejecución. */
+function gradeEdges(
+  edges: GraphEdge[],
+  componentOf: ReadonlyMap<string, number>,
+  cyclic: ReadonlySet<number>
+): void {
   for (const edge of edges) {
     const fromComponent = componentOf.get(edge.from);
     const toComponent = componentOf.get(edge.to);
@@ -141,36 +217,62 @@ export function buildGraph(
       isRuntimeEdge(edge) &&
       fromComponent !== undefined &&
       fromComponent === toComponent &&
-      cycleComponents.has(fromComponent);
+      cyclic.has(fromComponent);
   }
+}
 
+interface NodeMetricInput {
+  nodes: readonly string[];
+  index: GraphIndex;
+  components: readonly string[][];
+  componentOf: ReadonlyMap<string, number>;
+  cyclic: ReadonlySet<number>;
+  levels: readonly number[];
+}
+
+function nodeMetrics(input: NodeMetricInput): Map<string, FileGraphMetrics> {
   const metrics = new Map<string, FileGraphMetrics>();
-  for (const node of nodes) {
-    const component = componentOf.get(node);
+  for (const node of input.nodes) {
+    const component = input.componentOf.get(node);
     if (component === undefined) continue;
-    metrics.set(node, {
-      fanIn: reverse.get(node)?.length ?? 0,
-      fanOut: adjacency.get(node)?.length ?? 0,
-      inCycle: cycleComponents.has(component) ? 1 : 0,
-      cycleSize: cycleComponents.has(component)
-        ? (components[component]?.length ?? 0)
-        : 0,
-      dependencyLevel: levels[component] ?? 0
-    });
+    metrics.set(node, metricFor(node, component, input));
   }
+  return metrics;
+}
 
+/** Lo que mide un fichero: cuántos lo importan, y si está en un ciclo. */
+function metricFor(
+  node: string,
+  component: number,
+  input: NodeMetricInput
+): FileGraphMetrics {
+  const inCycle = input.cyclic.has(component);
   return {
-    edges,
-    metrics,
-    cycles: components.filter((_, index) => cycleComponents.has(index))
+    fanIn: input.index.reverse.get(node)?.length ?? 0,
+    fanOut: input.index.adjacency.get(node)?.length ?? 0,
+    inCycle: inCycle ? 1 : 0,
+    cycleSize: inCycle ? (input.components[component]?.length ?? 0) : 0,
+    dependencyLevel: input.levels[component] ?? 0
   };
 }
 
+/**
+ * Los componentes fuertemente conexos, en dos pasadas de Kosaraju: primero el
+ * orden de cierre del recorrido, y luego los componentes hacia atrás.
+ */
 function stronglyConnectedComponents(
   nodes: readonly string[],
   adjacency: ReadonlyMap<string, readonly string[]>,
   reverse: ReadonlyMap<string, readonly string[]>
 ): string[][] {
+  return collectComponents(finishOrder(nodes, adjacency), reverse);
+}
+
+/** El orden en que el recorrido **cierra** cada nodo. */
+function finishOrder(
+  nodes: readonly string[],
+  adjacency: ReadonlyMap<string, readonly string[]>
+): string[] {
   const visited = new Set<string>();
   const order: string[] = [];
 
@@ -187,21 +289,28 @@ function stronglyConnectedComponents(
       const frame = stack[stack.length - 1] as (typeof stack)[number];
       if (frame.index < frame.neighbors.length) {
         const next = frame.neighbors[frame.index++] as string;
-        if (!visited.has(next)) {
-          visited.add(next);
-          stack.push({
-            node: next,
-            neighbors: adjacency.get(next) ?? [],
-            index: 0
-          });
-        }
-      } else {
-        order.push(frame.node);
-        stack.pop();
+        if (visited.has(next)) continue;
+        visited.add(next);
+        stack.push({
+          node: next,
+          neighbors: adjacency.get(next) ?? [],
+          index: 0
+        });
+        continue;
       }
+      order.push(frame.node);
+      stack.pop();
     }
   }
 
+  return order;
+}
+
+/** Los componentes que se alcanzan desde cada nodo, recorriendo al revés. */
+function collectComponents(
+  order: readonly string[],
+  reverse: ReadonlyMap<string, readonly string[]>
+): string[][] {
   const assigned = new Set<string>();
   const components: string[][] = [];
 
@@ -217,10 +326,9 @@ function stronglyConnectedComponents(
       const node = stack.pop() as string;
       component.push(node);
       for (const previous of reverse.get(node) ?? []) {
-        if (!assigned.has(previous)) {
-          assigned.add(previous);
-          stack.push(previous);
-        }
+        if (assigned.has(previous)) continue;
+        assigned.add(previous);
+        stack.push(previous);
       }
     }
 
@@ -234,12 +342,13 @@ function stronglyConnectedComponents(
   return components;
 }
 
-function componentLevels(
+/** Las aristas entre componentes, en una sola dirección por par. */
+function condensationOf(
   components: readonly string[][],
   edges: readonly GraphEdge[],
   componentOf: ReadonlyMap<string, number>
-): number[] {
-  const condensation = new Map<number, Set<number>>();
+): { neighbors: Map<number, Set<number>>; indegree: number[] } {
+  const neighbors = new Map<number, Set<number>>();
   const indegree = Array.from<number>({ length: components.length }).fill(0);
 
   for (const edge of edges) {
@@ -247,14 +356,26 @@ function componentLevels(
     const to = componentOf.get(edge.to);
     if (from === undefined || to === undefined || from === to) continue;
 
-    const neighbors = condensation.get(from) ?? new Set<number>();
-    if (!neighbors.has(to)) {
-      neighbors.add(to);
-      condensation.set(from, neighbors);
-      indegree[to] = (indegree[to] ?? 0) + 1;
-    }
+    const children = neighbors.get(from) ?? new Set<number>();
+    if (children.has(to)) continue;
+    children.add(to);
+    neighbors.set(from, children);
+    indegree[to] = (indegree[to] ?? 0) + 1;
   }
 
+  return { neighbors, indegree };
+}
+
+/**
+ * El nivel de cada componente en el DAG: 0 para el que nadie importa, y el de
+ * quien lo importa más uno para el resto.
+ */
+function componentLevels(
+  components: readonly string[][],
+  edges: readonly GraphEdge[],
+  componentOf: ReadonlyMap<string, number>
+): number[] {
+  const { neighbors, indegree } = condensationOf(components, edges, componentOf);
   const levels = Array.from<number>({ length: components.length }).fill(0);
   const queue: number[] = [];
   for (let index = 0; index < components.length; index++) {
@@ -264,10 +385,10 @@ function componentLevels(
   let cursor = 0;
   while (cursor < queue.length) {
     const current = queue[cursor++] as number;
-    const neighbors = [...(condensation.get(current) ?? [])].sort(
+    const children = [...(neighbors.get(current) ?? [])].sort(
       (left, right) => left - right
     );
-    for (const next of neighbors) {
+    for (const next of children) {
       levels[next] = Math.max(levels[next] ?? 0, (levels[current] ?? 0) + 1);
       indegree[next] = (indegree[next] ?? 0) - 1;
       if (indegree[next] === 0) queue.push(next);
