@@ -74,10 +74,15 @@ With the dark theme the paper drops and the tiles keep their colour: the map sti
 ## The map's path
 
 The path is always above the map. With no folder focused it says **Todo** (all) only, which is where
-you are; once you click a folder, every segment becomes a button that focuses that folder:
-`Todo / packages / ui`. The arrow goes up one level and **Todo** returns to the whole map; `Esc` and
-backspace do the same. The path navigates the map, it does not describe the project, and that is why
-it lives here and not in the band above.
+you are; once you are inside a folder, every segment becomes a button: `Todo / packages / ui`. A
+click on a segment **selects** that folder —its ficha appears in the right panel without moving the
+zoom— and a **double click** enters it; **Todo** selects the whole map. The arrow goes up one level
+and `Esc` and backspace clear the view. The path navigates the map, it does not describe the project,
+and that is why it lives here and not in the band above.
+
+In the map, a click **selects** what the cell holds —a file or a folder— and a **double click**
+enters: the file opens its code, the folder zooms. With the keyboard, `Enter` enters and `Space`
+selects. The selected folder goes in the URL with the `sel` key; the file, with `file`.
 
 **Double-clicking** a file's block gives the map's place to the whole file, read-only: the path
 becomes `Todo / packages / ui / useCodarchApp.tsx` and any segment —or `Esc`, or the **← Mapa**
@@ -107,7 +112,9 @@ pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-
 ## Inspector › Fichero
 
 The inspector is the right-hand panel. Clicking a file, the **Fichero** (file) tab shows its metrics,
-its symbols and its incoming and outgoing dependencies.
+its symbols and its incoming and outgoing dependencies. Clicking a folder makes the same tab talk
+about it: how many files it holds, at what depth it sits and what share of its area each child takes,
+in the map's own order.
 
 ![The inspector on the Fichero tab with the metrics and symbols of the selected file](../../images/webapp-inspector-fichero.png)
 

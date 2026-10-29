@@ -46,9 +46,10 @@ que permite comparar dos carpetas hermanas sin salir de donde estás.
 - **Doble clic**: entra. Un fichero, al escenario con su código (ADR 0087, sin cambios); una carpeta,
   al zoom que hoy hace el clic simple.
 - **La miga de pan**: cada tramo selecciona esa carpeta sin mover el zoom, para mirar un padre sin
-  salir de donde estás.
-- **`Enter` o `→`** entra en la carpeta del cursor y **`Espacio`** la selecciona; `Esc` sigue
-  limpiando foco, fichero abierto y selección.
+  salir de donde estás, y con doble clic entra —la misma regla que en el mapa—. «Todo» selecciona el
+  mapa entero.
+- **`Enter`** entra y **`Espacio`** selecciona; `Esc` sigue limpiando foco, fichero abierto y
+  selección. Las flechas no cambian: siguen moviendo el cursor entre celdas.
 
 Esto enmienda el [ADR 0085](0081-0090/0085-la-ruta-del-mapa-navega.md) en un punto: el clic simple
 deja de navegar. La navegación no desaparece, cambia de gesto y gana la miga.
@@ -92,8 +93,9 @@ colores: una sola fuente.
 
 `sel` en la URL, separada de `focus`
 ([ADR 0018](0011-0020/0018-estado-vista-en-la-url.md), [ADR 0088](0081-0090/0088-el-fichero-abierto-va-en-la-url.md)):
-así una ficha de carpeta se puede enlazar. Se limpia al cargar otro snapshot, como la selección de
-hoy.
+así una ficha de carpeta se puede enlazar. `sel` lleva la carpeta y `file` sigue llevando el
+fichero: la selección es una sola cosa, pero cada clave dice lo que siempre dijo y los enlaces
+viejos no cambian de significado. Se limpia al cargar otro snapshot, como la selección de hoy.
 
 ### 7. Tres estados, tres marcas
 
@@ -129,10 +131,10 @@ deja de decir qué hay abierto en el panel.
 
 ## Hoja de ruta
 
-- ⬜ `sel` en el estado y en la URL, con la selección de carpeta y sus tres marcas.
-- ⬜ Los gestos: clic selecciona, doble clic entra, la miga selecciona, `Enter` y `Espacio`.
+- ✅ `sel` en el estado y en la URL, con la selección de carpeta y sus tres marcas.
+- ✅ Los gestos: clic selecciona, doble clic entra, la miga selecciona, `Enter` y `Espacio`.
 - ⬜ La agregación compartida, con sus tests.
-- ⬜ La ficha: cabecera, métricas con dueño y composición.
+- 🟡 La ficha: la cabecera y el contenido ya están; faltan las métricas con dueño.
 - ⬜ Frontera y ciclos dentro y a través.
 - ⬜ Reglas agrupadas por regla.
 - ⬜ Los cambios acotados: el enlace de la ficha filtra la pestaña.

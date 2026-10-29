@@ -68,9 +68,16 @@ Con el tema oscuro, el papel baja y las teselas conservan su color: el mapa se s
 ## La ruta del mapa
 
 Encima del mapa está siempre la ruta. Sin carpeta enfocada dice solo **Todo**, que es donde estás;
-al pulsar una carpeta, cada tramo se vuelve un botón que enfoca esa carpeta: `Todo / packages / ui`.
-La flecha sube un nivel y **Todo** vuelve al mapa entero; `Esc` y el retroceso hacen lo mismo. La
-ruta navega el mapa, no describe el proyecto, y por eso vive aquí y no en la banda de arriba.
+al entrar en una carpeta, cada tramo se vuelve un botón: `Todo / packages / ui`. Un clic en un tramo
+**selecciona** esa carpeta —su ficha aparece en el panel derecho sin mover el zoom— y con **doble
+clic** entras en ella; **Todo** selecciona el mapa entero. La flecha sube un nivel y `Esc` y el
+retroceso limpian la vista. La ruta navega el mapa, no describe el proyecto, y por eso vive aquí y no
+en la banda de arriba.
+
+En el mapa, un clic **selecciona** lo que hay en la celda —un fichero o una carpeta— y un **doble
+clic** entra: el fichero abre su código, la carpeta hace zoom. Con el teclado, `Enter` entra y
+`Espacio` selecciona. La carpeta seleccionada va en la URL con la clave `sel`; el fichero, con
+`file`.
 
 Con **doble clic** en el bloque de un fichero, el mapa deja su sitio a su código completo, de solo
 lectura: la ruta pasa a ser `Todo / packages / ui / useCodarchApp.tsx` y cualquier tramo —o `Esc`, o
@@ -99,7 +106,9 @@ argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repos
 ## Inspector › Fichero
 
 El inspector es el panel de la derecha. Al pulsar un fichero, la pestaña **Fichero** muestra sus
-métricas, sus símbolos y sus dependencias entrantes y salientes.
+métricas, sus símbolos y sus dependencias entrantes y salientes. Al pulsar una carpeta, la misma
+pestaña habla de ella: cuántos ficheros tiene, en qué nivel está y qué parte de su área ocupa cada
+hijo, en el mismo orden que el mapa.
 
 ![El inspector en la pestaña Fichero con las métricas y los símbolos del fichero seleccionado](../images/webapp-inspector-fichero.png)
 
