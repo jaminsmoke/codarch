@@ -15,6 +15,7 @@ const view: ViewState = {
   colorMode: "risk",
   focusPath: "src/app",
   filePath: "src/app/main.ts",
+  folderPath: null,
   openFilePath: null,
   tab: "changes",
   symbolName: null,
@@ -55,6 +56,7 @@ describe("estado de vista en la URL", () => {
       colorMode: null,
       focusPath: null,
       filePath: null,
+      folderPath: null,
       openFilePath: null,
       tab: null,
       symbolName: null,
@@ -97,6 +99,7 @@ describe("estado de vista en la URL", () => {
         colorMode: null,
         focusPath: null,
         filePath: null,
+        folderPath: null,
         openFilePath: null,
         tab: null,
         symbolName: null,
@@ -143,6 +146,26 @@ describe("estado de vista en la URL", () => {
     expect(search).toContain("file=src/app/main.ts");
   });
 
+  it("lleva la carpeta seleccionada en la URL con la clave sel (ADR 0092)", () => {
+    const search = buildSearch(
+      { ...view, filePath: null, folderPath: "src/app" },
+      source
+    );
+    expect(search).toContain("sel=src/app");
+    expect(search).not.toContain("file=");
+    expect(parseViewState(search).folderPath).toBe("src/app");
+  });
+
+  it("`sel` y `file` son claves distintas: cada una con su ruta", () => {
+    const parsed = parseViewState("?file=src/app/main.ts&sel=src/app");
+    expect(parsed.filePath).toBe("src/app/main.ts");
+    expect(parsed.folderPath).toBe("src/app");
+  });
+
+  it("una vista guardada no trae selección de carpeta", () => {
+    expect(viewStateFromSaved({ file: "src/app/main.ts" }).folderPath).toBeNull();
+  });
+
   it("una vista guardada no abre código", () => {
     expect(viewStateFromSaved({ file: "src/app/main.ts" }).openFilePath).toBeNull();
   });
@@ -161,6 +184,7 @@ describe("estado de vista en la URL", () => {
       colorMode: "layer",
       focusPath: "src/app",
       filePath: null,
+      folderPath: null,
       openFilePath: null,
       tab: null,
       symbolName: null,

@@ -17,6 +17,10 @@ import { mapColorFor, metricIndexOf } from "./map";
  * Aquí vive cómo se pinta un bloque —fichero o carpeta—; el tamaño del marco,
  * el zoom, el pan y el teclado son de `MapCanvas`. Separarlo deja piezas que se
  * leen enteras de un vistazo en vez de una función recursiva que hace de todo.
+ *
+ * El gesto es el mismo para un fichero y para una carpeta (ADR 0092): un clic
+ * selecciona —la ficha cambia de sujeto— y un doble clic entra, que en un
+ * fichero es abrir su código y en una carpeta es el zoom.
  */
 
 /** Lo que una celda necesita para pintarse; baja igual por todo el árbol. */
@@ -26,10 +30,12 @@ interface CellContext {
   migration: CcMigrationLens | null;
   query: string;
   selectedIndex: number | null;
+  selectedFolder: string | null;
   activeKey: string | null;
   showLabels: boolean;
   metricIndex: Map<string, number>;
   onSelect: (index: number) => void;
+  onSelectFolder: (path: string) => void;
   onOpenFile: (index: number) => void;
   onFocusFolder: (path: string) => void;
   onCursor: (key: string) => void;
@@ -47,11 +53,15 @@ interface MapContentProps {
   migration: CcMigrationLens | null;
   query: string;
   selectedIndex: number | null;
+  selectedFolder: string | null;
   activeKey: string | null;
   showLabels: boolean;
   onSelect: (index: number) => void;
+  /** Clic en una carpeta: su ficha ocupa el panel (ADR 0092). */
+  onSelectFolder: (path: string) => void;
   /** Doble clic en un fichero: su código ocupa el escenario (ADR 0087). */
   onOpenFile: (index: number) => void;
+  /** Doble clic en una carpeta: el mapa la enfoca. */
   onFocusFolder: (path: string) => void;
   onCursor: (key: string) => void;
 }
@@ -208,6 +218,12 @@ function FolderCell({ placed, context }: CellProps) {
   // El nombre de la carpeta va dentro de su bloque, como el de un fichero.
   const label =
     headerHeight > 0 || context.showLabels ? labelFor(rect.w, rect.h) : null;
+  const selected = context.selectedFolder === node.path;
+
+  const selectFolder = (event: { stopPropagation: () => void }): void => {
+    event.stopPropagation();
+    context.onSelectFolder(node.path);
+  };
 
   const focusFolder = (event: { stopPropagation: () => void }): void => {
     event.stopPropagation();
@@ -219,20 +235,21 @@ function FolderCell({ placed, context }: CellProps) {
       <rect
         className={`folder-block${
           context.activeKey === node.key ? " is-cursor" : ""
-        }`}
+        }${selected ? " is-selected" : ""}`}
         x={rect.x}
         y={rect.y}
         width={Math.max(1, rect.w)}
         height={Math.max(1, rect.h)}
         fill="var(--folder-fill)"
-        stroke="var(--folder-edge)"
-        strokeWidth={0.7}
+        stroke={selected ? "var(--cell-ink)" : "var(--folder-edge)"}
+        strokeWidth={selected ? 2.5 : 0.7}
         role="button"
         data-cell-key={node.key}
         tabIndex={context.activeKey === node.key ? 0 : -1}
-        aria-label={`Enfocar ${node.path}`}
+        aria-label={`Seleccionar ${node.path}`}
         onFocus={() => context.onCursor(node.key)}
-        onClick={focusFolder}
+        onClick={selectFolder}
+        onDoubleClick={focusFolder}
       />
       {label ? (
         <CellLabel
@@ -252,8 +269,9 @@ function FolderCell({ placed, context }: CellProps) {
           height={headerHeight}
           fill="transparent"
           className="folder-hit"
-          aria-label={`Enfocar ${node.path}`}
-          onClick={focusFolder}
+          aria-label={`Seleccionar ${node.path}`}
+          onClick={selectFolder}
+          onDoubleClick={focusFolder}
         />
       ) : null}
       {placed.children.map((child) => (
@@ -287,9 +305,11 @@ export const MapContent = memo(function MapContent({
   migration,
   query,
   selectedIndex,
+  selectedFolder,
   activeKey,
   showLabels,
   onSelect,
+  onSelectFolder,
   onOpenFile,
   onFocusFolder,
   onCursor
@@ -301,10 +321,12 @@ export const MapContent = memo(function MapContent({
     migration,
     query,
     selectedIndex,
+    selectedFolder,
     activeKey,
     showLabels,
     metricIndex,
     onSelect,
+    onSelectFolder,
     onOpenFile,
     onFocusFolder,
     onCursor

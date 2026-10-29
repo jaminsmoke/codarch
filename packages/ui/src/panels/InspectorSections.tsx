@@ -35,14 +35,15 @@ import {
  * con el orden y con lo que hay que cargar al pulsar.
  */
 
-/** La ficha sin fichero: qué hay que hacer y de qué snapshot sale. */
+/** La ficha sin selección: qué hay que hacer y de qué snapshot sale. */
 export function EmptyInspector({ model }: { model: RenderModel | null }) {
   return (
     <section className="inspector-empty">
       <h2>Selecciona una celda</h2>
       <p className="muted small">
-        El mapa conserva la jerarquía de carpetas. Pasa el cursor para ver la ruta y haz
-        clic para abrir las métricas del fichero.
+        El mapa conserva la jerarquía de carpetas. Un clic selecciona un fichero
+        o una carpeta y su ficha aparece aquí; un doble clic entra —el fichero
+        al escenario, la carpeta al zoom—.
       </p>
       {model ? (
         <div className="inspector-note">

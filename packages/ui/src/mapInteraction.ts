@@ -145,7 +145,10 @@ export interface CursorOptions {
   targets: readonly CellBox[];
   targetMeta: Map<string, CellTarget>;
   selectedIndex: number | null;
+  selectedFolder: string | null;
   onSelect: (index: number) => void;
+  onSelectFolder: (path: string) => void;
+  onOpenFile: (index: number) => void;
   onFocusFolder: (path: string) => void;
 }
 
@@ -161,8 +164,9 @@ export interface CursorHandlers {
 /**
  * El tab stop del mapa.
  *
- * El fichero seleccionado puede no estar dibujado (a nivel de carpeta), así que
- * el tab stop cae en la primera celda visible.
+ * Lo seleccionado —un fichero o una carpeta (ADR 0092)— puede no estar
+ * dibujado (a nivel de carpeta), así que el tab stop cae en la primera celda
+ * visible.
  */
 function tabStopFor(
   selectedKey: string | null,
@@ -185,13 +189,21 @@ export function useMapCursor(options: CursorOptions): CursorHandlers {
     targets,
     targetMeta,
     selectedIndex,
+    selectedFolder,
     onSelect,
+    onSelectFolder,
+    onOpenFile,
     onFocusFolder
   } = options;
   const [cursor, setCursor] = useState<string | null>(null);
   const pendingFocusRef = useRef(false);
 
-  const selectedKey = selectedIndex !== null ? `f:${selectedIndex}` : null;
+  const selectedKey =
+    selectedIndex !== null
+      ? `f:${selectedIndex}`
+      : selectedFolder !== null
+        ? `d:${selectedFolder}`
+        : null;
   const activeKey = cursor ?? tabStopFor(selectedKey, targetMeta, targets);
 
   useEffect(() => {
@@ -220,18 +232,28 @@ export function useMapCursor(options: CursorOptions): CursorHandlers {
     [cursor, targets]
   );
 
+  /**
+   * `Enter` entra en la celda y `Espacio` la selecciona (ADR 0092).
+   *
+   * Entrar es lo mismo que el doble clic: en un fichero, su código; en una
+   * carpeta, el zoom. Seleccionar es lo mismo que el clic: la ficha cambia de
+   * sujeto sin mover el mapa. Las flechas siguen moviendo el cursor.
+   */
   const activate = useCallback(
-    (event: ReactKeyboardEvent<SVGSVGElement>): void => {
+    (event: ReactKeyboardEvent<SVGSVGElement>, enter: boolean): void => {
       const target = cursor ? targetMeta.get(cursor) : undefined;
       if (!target) return;
       event.preventDefault();
       if (target.kind === "file" && target.fileIndex !== undefined) {
-        onSelect(target.fileIndex);
+        if (enter) onOpenFile(target.fileIndex);
+        else onSelect(target.fileIndex);
         return;
       }
-      if (target.path) onFocusFolder(target.path);
+      if (!target.path) return;
+      if (enter) onFocusFolder(target.path);
+      else onSelectFolder(target.path);
     },
-    [cursor, onFocusFolder, onSelect, targetMeta]
+    [cursor, onFocusFolder, onOpenFile, onSelect, onSelectFolder, targetMeta]
   );
 
   const onKeyDown = useCallback(
@@ -242,7 +264,7 @@ export function useMapCursor(options: CursorOptions): CursorHandlers {
         return;
       }
       if (event.key !== "Enter" && event.key !== " ") return;
-      activate(event);
+      activate(event, event.key === "Enter");
     },
     [activate, moveTo]
   );

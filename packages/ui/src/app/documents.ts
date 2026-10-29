@@ -25,6 +25,7 @@ export interface DocumentSetters {
   setColorMode: (value: string | ((current: string) => string)) => void;
   setQuery: (query: string) => void;
   setSelectedIndex: (index: number | null) => void;
+  setSelectedFolder: (path: string | null) => void;
   setFocusPath: (path: string | null) => void;
   setOpenFile: (path: string | null) => void;
   setShowLabels: (show: boolean) => void;
@@ -78,6 +79,7 @@ export function useDocuments(deps: DocumentDeps) {
     setColorMode,
     setQuery,
     setSelectedIndex,
+    setSelectedFolder,
     setFocusPath,
     setOpenFile,
     setShowLabels,
@@ -133,6 +135,7 @@ export function useDocuments(deps: DocumentDeps) {
           setQuery("");
           selectedPathRef.current = null;
           setSelectedIndex(null);
+          setSelectedFolder(null);
           setFocusPath(null);
           setOpenFile(null);
           // Las preferencias del repo mandan sobre las de la máquina (ADR 0053).
@@ -161,6 +164,7 @@ export function useDocuments(deps: DocumentDeps) {
       setQuery,
       setRefreshedAt,
       setSelectedIndex,
+      setSelectedFolder,
       setShowLabels,
       setSource
     ]

@@ -32,6 +32,7 @@ export function InspectorDock({
   const { state, actions, view, migration } = app;
   const {
     selectedFile,
+    selectedFolderNode,
     selectedMigration,
     selectedSymbols,
     selectedStructure,
@@ -75,6 +76,7 @@ export function InspectorDock({
           <Inspector
             model={view.model}
             file={selectedFile}
+            folder={selectedFolderNode}
             migrationNode={selectedMigration}
             areaMetric={state.areaMetric}
             colorMode={state.colorMode}
@@ -90,6 +92,7 @@ export function InspectorDock({
             onLoadCode={actions.leerCodigo}
             onOpenEditor={actions.abrirEnEditor}
             onSelectPath={selectInPlace}
+            onSelectFolder={actions.selectFolder}
             onColorMode={actions.setColorMode}
           />
         ) : (

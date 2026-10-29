@@ -10,8 +10,11 @@ import { folderTrail, parentFolder } from "../tree";
  * describe el proyecto (ADR 0085). Con un fichero abierto, la ruta lleva su
  * nombre y cada tramo vuelve al mapa (ADR 0087).
  *
- * Retroceso sube una carpeta, igual que la flecha de las migas. Se ignora al
- * escribir en un campo: ahí la tecla borra, que es lo que toca.
+ * El gesto es el del mapa (ADR 0092): un clic en un tramo **selecciona** esa
+ * carpeta sin mover el zoom, para mirar un padre sin salir de donde estás; un
+ * doble clic entra. «Todo» selecciona el mapa entero. La flecha ← y Retroceso
+ * suben una carpeta; Retroceso se ignora al escribir en un campo: ahí la tecla
+ * borra, que es lo que toca.
  */
 export function StagePath({ app }: { app: CodarchApp }) {
   const { state, actions, view } = app;
@@ -32,6 +35,9 @@ export function StagePath({ app }: { app: CodarchApp }) {
     actions.setFocusPath(path);
     app.closeFile();
   };
+
+  /** Selecciona una carpeta —o el mapa entero, con `null`— sin mover el zoom. */
+  const select = (path: string | null) => actions.selectFolder(path);
 
   useEffect(() => {
     if (typeof window === "undefined" || !focusPath) return;
@@ -70,7 +76,12 @@ export function StagePath({ app }: { app: CodarchApp }) {
         </button>
       ) : null}
       {focusPath || openFile ? (
-        <button type="button" onClick={() => navigate(null)}>
+        <button
+          type="button"
+          onClick={() => select(null)}
+          onDoubleClick={() => navigate(null)}
+          title="Seleccionar el mapa entero · doble clic para volver a la raíz"
+        >
           Todo
         </button>
       ) : (
@@ -78,23 +89,27 @@ export function StagePath({ app }: { app: CodarchApp }) {
           Todo
         </span>
       )}
-      {trail.map((crumb, index) =>
-        !openFile && index === trail.length - 1 ? (
-          <Fragment key={crumb.path}>
-            <span className="breadcrumb-sep">/</span>
-            <span className="breadcrumb-current" aria-current="page">
-              {crumb.name}
-            </span>
-          </Fragment>
-        ) : (
-          <Fragment key={crumb.path}>
-            <span className="breadcrumb-sep">/</span>
-            <button type="button" onClick={() => navigate(crumb.path)}>
-              {crumb.name}
-            </button>
-          </Fragment>
-        )
-      )}
+      {trail.map((crumb) => (
+        <Fragment key={crumb.path}>
+          <span className="breadcrumb-sep">/</span>
+          <button
+            type="button"
+            className={
+              !openFile && crumb.path === focusPath
+                ? "breadcrumb-current"
+                : undefined
+            }
+            aria-current={
+              !openFile && crumb.path === focusPath ? "location" : undefined
+            }
+            onClick={() => select(crumb.path)}
+            onDoubleClick={() => navigate(crumb.path)}
+            title="Seleccionar esta carpeta · doble clic para entrar"
+          >
+            {crumb.name}
+          </button>
+        </Fragment>
+      ))}
       {openFile ? (
         <>
           <span className="breadcrumb-sep">/</span>

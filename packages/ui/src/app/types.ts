@@ -4,7 +4,7 @@ import type { RepoAddon } from "@codarch/addons";
 import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginContext, PluginView } from "@codarch/plugin-api";
 import type { getStats, symbolsOf } from "@codarch/schema/browser";
-import type { RenderModel } from "@codarch/render/browser";
+import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import type { usePlugins } from "../plugins";
 import type { readMigration } from "../data";
 import type { DetailResult } from "../detail";
@@ -27,6 +27,8 @@ export interface CodarchAppState {
   colorMode: string;
   query: string;
   selectedIndex: number | null;
+  /** La carpeta seleccionada, si lo que está abierto en la ficha es una (ADR 0092). */
+  selectedFolder: string | null;
   error: string | null;
   loading: boolean;
   report: DiffReport | null;
@@ -73,6 +75,8 @@ export interface CodarchAppActions {
   openSnapshotFile: () => Promise<void>;
   openReportFile: () => Promise<void>;
   selectIndex: (index: number | null) => void;
+  /** Selecciona una carpeta por su ruta: la ficha cambia de sujeto (ADR 0092). */
+  selectFolder: (path: string | null) => void;
   openSymbolChain: (name: string, path: string) => Promise<void>;
   /** Lee el código real de un símbolo, si la plataforma puede (ADR 0067). */
   leerCodigo: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -105,6 +109,7 @@ export interface CodarchAppActions {
   setReportError: (message: string | null) => void;
   setAddons: (addons: RepoAddon[]) => void;
   setSelectedIndex: (index: number | null) => void;
+  setSelectedFolder: (path: string | null) => void;
   setLoading: (loading: boolean) => void;
   setProgress: (message: string | null) => void;
   /** Lo pone cada plataforma: si vigila el repo o no. */
@@ -136,6 +141,8 @@ export interface CodarchApp {
   /** Las opciones del selector de color de los ajustes. */
   colorOptions: CodarchOption[];
   selectedFile: RenderModel["files"][number] | null;
+  /** La carpeta seleccionada, con su contenido (ADR 0092). */
+  selectedFolderNode: TreeNode | null;
   selectedMigration: CcMigrationNode | null;
   selectedSymbols: ReturnType<typeof symbolsOf>;
   /** Miembros, imports y exports del fichero (ADR 0064). */

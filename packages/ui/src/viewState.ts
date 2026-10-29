@@ -7,10 +7,12 @@
  * direcciones de los artefactos que se cargan por URL.
  *
  * Las claves son cortas y estables porque la URL se comparte y se pega en
- * tickets: `area`, `color`, `focus`, `file`, `tab`, `symbol`, `code`, `src` y
- * `report`. `code` lleva la ruta del fichero que ocupa el escenario (ADR 0088).
- * Una vista guardada de un addon usa las mismas claves (ADR 0029) y el
- * escritorio las aplica con el mismo criterio, aunque no tenga URL.
+ * tickets: `area`, `color`, `focus`, `file`, `sel`, `tab`, `symbol`, `code`,
+ * `src` y `report`. `code` lleva la ruta del fichero que ocupa el escenario
+ * (ADR 0088) y `sel`, la carpeta seleccionada (ADR 0092): una ficha de carpeta
+ * se puede enlazar como la de un fichero. Una vista guardada de un addon usa
+ * las mismas claves (ADR 0029) y el escritorio las aplica con el mismo
+ * criterio, aunque no tenga URL.
  */
 
 import type { AddonViewState } from "@codarch/addons";
@@ -58,6 +60,14 @@ export interface ViewState {
   focusPath: string | null;
   /** Ruta del fichero seleccionado. */
   filePath: string | null;
+  /**
+   * Ruta de la carpeta seleccionada (ADR 0092).
+   *
+   * La selección es una: un fichero o una carpeta, nunca las dos. Van en
+   * claves distintas porque `file` lleva años significando «el fichero» y los
+   * enlaces viejos tienen que seguir abriendo lo mismo.
+   */
+  folderPath: string | null;
   /** El fichero que ocupa el escenario con su código (ADR 0088). */
   openFilePath: string | null;
   /** Pestaña del panel derecho. */
@@ -88,6 +98,7 @@ const VIEW_KEYS = [
   "color",
   "focus",
   "file",
+  "sel",
   "code",
   "tab",
   "symbol",
@@ -100,6 +111,7 @@ export const EMPTY_VIEW_STATE: ViewState = {
   colorMode: null,
   focusPath: null,
   filePath: null,
+  folderPath: null,
   openFilePath: null,
   tab: null,
   symbolName: null,
@@ -127,6 +139,7 @@ export function parseViewState(search: string): ViewState {
     colorMode: readParam(params, "color"),
     focusPath: readParam(params, "focus"),
     filePath: readParam(params, "file"),
+    folderPath: readParam(params, "sel"),
     openFilePath: readParam(params, "code"),
     tab: parseInspectorTab(tab),
     symbolName: readParam(params, "symbol"),
@@ -150,6 +163,9 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
     colorMode: state.color ?? null,
     focusPath: state.focus ?? null,
     filePath: state.file ?? null,
+    // Una vista guardada es anterior a la ficha de carpeta (ADR 0092): no
+    // lleva selección de carpeta.
+    folderPath: null,
     // Una vista guardada no abre código: su lista de claves es cerrada (0088).
     openFilePath: null,
     // Una vista guardada antes del ADR 0069 puede decir `rules`: se traduce.
@@ -197,6 +213,7 @@ export function buildSearch(
   put(entries, "color", state.colorMode);
   put(entries, "focus", state.focusPath);
   put(entries, "file", state.filePath);
+  put(entries, "sel", state.folderPath);
   put(entries, "code", state.openFilePath);
   put(entries, "tab", state.tab);
   put(entries, "symbol", state.symbolName);

@@ -18,9 +18,14 @@ export interface MapCanvasProps {
   migration: CcMigrationLens | null;
   query: string;
   selectedIndex: number | null;
+  /** La carpeta seleccionada, si lo que está abierto es una (ADR 0092). */
+  selectedFolder: string | null;
   onSelect: (index: number) => void;
+  /** Clic en una carpeta: su ficha ocupa el panel. */
+  onSelectFolder: (path: string) => void;
   /** Doble clic en un fichero del mapa (ADR 0087). */
   onOpenFile: (index: number) => void;
+  /** Doble clic en una carpeta: el mapa la enfoca. */
   onFocusFolder: (path: string) => void;
   /** El zoom del mapa (1 = el mapa entero). */
   zoom: number;
@@ -40,6 +45,9 @@ export interface MapCanvasProps {
  * El zoom no toca la distribución: el layout sigue siendo el del marco y lo que
  * cambia es el `viewBox`. Así acercar no recalcula nada y el contenido
  * memoizado no se vuelve a reconciliar en cada paso (eso vive en `mapCells`).
+ *
+ * Lo seleccionado puede ser un fichero o una carpeta (ADR 0092): el mapa pinta
+ * las dos marcas y deja que el teclado entre y seleccione como el ratón.
  */
 export function MapCanvas({
   model,
@@ -48,7 +56,9 @@ export function MapCanvas({
   migration,
   query,
   selectedIndex,
+  selectedFolder,
   onSelect,
+  onSelectFolder,
   onOpenFile,
   onFocusFolder,
   zoom,
@@ -86,7 +96,10 @@ export function MapCanvas({
     targets,
     targetMeta,
     selectedIndex,
+    selectedFolder,
     onSelect,
+    onSelectFolder,
+    onOpenFile,
     onFocusFolder
   });
   const pan = useMapPan(onPan);
@@ -133,9 +146,11 @@ export function MapCanvas({
           migration={migration}
           query={query}
           selectedIndex={selectedIndex}
+          selectedFolder={selectedFolder}
           activeKey={cursor.activeKey}
           showLabels={showLabels}
           onSelect={onSelect}
+          onSelectFolder={onSelectFolder}
           onOpenFile={onOpenFile}
           onFocusFolder={onFocusFolder}
           onCursor={cursor.onCursor}

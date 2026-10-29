@@ -67,6 +67,14 @@ export function useCodarchApp(
   const [colorMode, setColorMode] = useState("risk");
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  /**
+   * La carpeta que ocupa la ficha, si lo seleccionado es una carpeta (ADR 0092).
+   *
+   * La selección es una sola cosa: un fichero o una carpeta. Se guarda en dos
+   * estados porque el fichero se maneja por índice y la carpeta por ruta, pero
+   * las dos acciones de selección se limpian la una a la otra.
+   */
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<CodarchAppState["report"]>(null);
@@ -124,6 +132,7 @@ export function useCodarchApp(
     setColorMode,
     setQuery,
     setSelectedIndex,
+    setSelectedFolder,
     setFocusPath,
     setOpenFile,
     setShowLabels,
@@ -188,6 +197,26 @@ export function useCodarchApp(
       setSelectedIndex(index);
       const file = index === null ? undefined : view.model?.files[index];
       selectedPathRef.current = file?.path ?? null;
+      // Un fichero y una carpeta no pueden estar seleccionados a la vez.
+      if (index !== null) setSelectedFolder(null);
+    },
+    [view.model]
+  );
+
+  /**
+   * Selecciona una carpeta: la ficha pasa a hablar de ella (ADR 0092).
+   *
+   * No mueve el mapa: la selección y el foco son cosas distintas. Una ruta que
+   * ya no existe en el árbol se ignora en silencio, como en `applyView`.
+   */
+  const selectFolder = useCallback(
+    (path: string | null) => {
+      if (path !== null && !findFolder(view.model?.roots ?? [], path)) return;
+      setSelectedFolder(path);
+      if (path !== null) {
+        selectedPathRef.current = null;
+        setSelectedIndex(null);
+      }
     },
     [view.model]
   );
@@ -249,6 +278,10 @@ export function useCodarchApp(
   const selectedFile =
     view.model && selectedIndex !== null
       ? view.model.files[selectedIndex] ?? null
+      : null;
+  const selectedFolderNode =
+    view.model && selectedFolder
+      ? findFolder(view.model.roots, selectedFolder)
       : null;
   const selectedMigration = selectedFile
     ? migration?.nodes[selectedFile.nodeId] ?? null
@@ -406,6 +439,9 @@ export function useCodarchApp(
       if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
         setFocusPath(wanted.focusPath);
       }
+      // La carpeta primero: si el enlace trae las dos selecciones, manda el
+      // fichero, que es la clave que llevan los enlaces de siempre.
+      if (wanted.folderPath) selectFolder(wanted.folderPath);
       if (wanted.filePath) {
         const index = view.model.files.findIndex(
           (file) => file.path === wanted.filePath
@@ -426,7 +462,15 @@ export function useCodarchApp(
         void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
       }
     },
-    [view.model, stats, migration, selectIndex, openFileAt, openSymbolChain]
+    [
+      view.model,
+      stats,
+      migration,
+      selectIndex,
+      selectFolder,
+      openFileAt,
+      openSymbolChain
+    ]
   );
 
   const loadHistory = useCallback(
@@ -467,6 +511,12 @@ export function useCodarchApp(
       selectIndex(null);
       return;
     }
+    // Una carpeta seleccionada no se cambia por el fichero por defecto al
+    // cambiar de métrica (ADR 0092); solo cae si el refresco se la llevó.
+    if (selectedFolder) {
+      if (findFolder(view.model?.roots ?? [], selectedFolder)) return;
+      setSelectedFolder(null);
+    }
     const wanted = selectedPathRef.current;
     if (wanted) {
       const index = files.findIndex((file) => file.path === wanted);
@@ -476,7 +526,7 @@ export function useCodarchApp(
       }
     }
     selectIndex(view.model?.defaultSelection ?? null);
-  }, [view.model, selectIndex]);
+  }, [view.model, selectedFolder, selectIndex]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const openSettings = useCallback(() => setSettingsOpen(true), []);
@@ -485,6 +535,7 @@ export function useCodarchApp(
     setOpenFile(null);
     selectedPathRef.current = null;
     setSelectedIndex(null);
+    setSelectedFolder(null);
     setQuery("");
   }, [setFocusPath, setOpenFile, setQuery, setSelectedIndex]);
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });
@@ -527,6 +578,7 @@ export function useCodarchApp(
     colorMode,
     query,
     selectedIndex,
+    selectedFolder,
     error,
     loading,
     report,
@@ -557,6 +609,7 @@ export function useCodarchApp(
     abrirSnapshot,
     abrirReporte,
     selectIndex,
+    selectFolder,
     openSymbolChain,
     leerCodigo,
     abrirEnEditor,
@@ -578,6 +631,7 @@ export function useCodarchApp(
     setReportError,
     setAddons,
     setSelectedIndex,
+    setSelectedFolder,
     setLoading,
     setProgress,
     setWatch
@@ -603,6 +657,7 @@ export function useCodarchApp(
     areaOptions,
     colorOptions,
     selectedFile,
+    selectedFolderNode,
     selectedMigration,
     selectedSymbols,
     selectedStructure,

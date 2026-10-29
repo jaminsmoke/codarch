@@ -51,7 +51,9 @@ export function MapStage({
             migration={migration}
             query={state.query.trim().toLowerCase()}
             selectedIndex={state.selectedIndex}
+            selectedFolder={state.selectedFolder}
             onSelect={actions.selectIndex}
+            onSelectFolder={actions.selectFolder}
             onOpenFile={(index) => {
               const file = view.model?.files[index];
               if (file) openFileAt(file.path);
@@ -157,7 +159,7 @@ export function StageFoot({
       ) : (
         <span className="mono">
           {view.model?.warnings[0] ??
-            "clic en una celda para inspeccionar"}
+            "clic selecciona · doble clic entra"}
         </span>
       )}
     </div>
