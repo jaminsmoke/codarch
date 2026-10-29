@@ -20,16 +20,19 @@ import type { AddonViewState } from "@codarch/addons";
 /**
  * Las pestañas del panel derecho.
  *
- * Dos desde el ADR 0069: el fichero —con sus reglas de dominio y su migración
- * dentro— y el cambio del snapshot. `rules`, `lenses` y `pr` eran los nombres
- * viejos y se siguen leyendo para no romper enlaces ni vistas guardadas: las
- * reglas del cambio viven ahora en Cambios.
+ * El fichero y el cambio del snapshot desde el ADR 0069, y la carpeta desde el
+ * ADR 0092: cada objeto seleccionado tiene su hoja, no una hoja que cambia de
+ * sujeto. `rules`, `lenses` y `pr` eran los nombres viejos y se siguen leyendo
+ * para no romper enlaces ni vistas guardadas: las reglas del cambio viven ahora
+ * en Cambios.
  */
-export type InspectorTab = "file" | "changes";
+export type InspectorTab = "file" | "folder" | "changes";
 
 /** Lee una pestaña, con los nombres viejos traducidos a los de ahora. */
 export function parseInspectorTab(value: string | null): InspectorTab | null {
-  if (value === "file" || value === "changes") return value;
+  if (value === "file" || value === "folder" || value === "changes") {
+    return value;
+  }
   if (value === "rules" || value === "lenses" || value === "pr") return "changes";
   return null;
 }

@@ -42,6 +42,27 @@ function FileIcon() {
   );
 }
 
+/** El contenedor: la ficha de la carpeta seleccionada. */
+function FolderIcon() {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      width="17"
+      height="17"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M2.5 4.5h5l1.5 2h6.5v7h-13z" />
+      <path d="M2.5 6.5h13" />
+    </svg>
+  );
+}
+
 /** Dos flechas: lo que difiere del último commit. */
 function ChangesIcon() {
   return (
@@ -72,6 +93,12 @@ export const INSPECTOR_SECTIONS: readonly InspectorSection[] = [
     label: "Fichero",
     hint: "la ficha del fichero seleccionado",
     icon: <FileIcon />
+  },
+  {
+    id: "folder",
+    label: "Carpeta",
+    hint: "la ficha de la carpeta seleccionada",
+    icon: <FolderIcon />
   },
   {
     id: "changes",

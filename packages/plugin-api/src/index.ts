@@ -78,8 +78,8 @@ export interface PluginActions {
   select(path: string): void;
   /** Enfoca una carpeta por su ruta. */
   focus(path: string): void;
-  /** Cambia la pestaña del panel derecho (`file`, `rules` o `changes`). */
-  setTab(tab: "file" | "rules" | "changes"): void;
+  /** Cambia la hoja del panel derecho (`file`, `folder` o `changes`). */
+  setTab(tab: "file" | "folder" | "changes"): void;
 }
 
 /** El estado de la vista en la URL. */
@@ -95,7 +95,8 @@ export interface PluginUrlState {
   colorMode: string;
   focusPath: string | null;
   filePath: string | null;
-  tab: "file" | "rules" | "changes" | null;
+  /** El nombre viejo `rules` se traduce a `changes` en la app (ADR 0069). */
+  tab: "file" | "folder" | "changes" | null;
 }
 
 /**

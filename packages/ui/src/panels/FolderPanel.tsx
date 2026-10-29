@@ -3,16 +3,17 @@ import { CollapsibleSection } from "../CollapsibleSection";
 import { childFolders, folderContent, folderDepth } from "../folder";
 
 /**
- * La ficha de una carpeta (ADR 0092).
+ * La hoja de la carpeta: su propia entrada en la barra de actividad (ADR 0092).
  *
  * Lo que se puede decir de una carpeta sin inventar agregados: cuántos ficheros
  * tiene, a qué profundidad está y qué hay dentro, en el orden del treemap. Las
  * métricas con dueño, la frontera y los ciclos son las siguientes rebanadas de
- * la hoja de ruta del ADR; mientras tanto la ficha enseña la composición, que
- * es lo que en un fichero son los miembros.
+ * la hoja de ruta del ADR; mientras tanto la hoja enseña la composición, que es
+ * lo que en un fichero son los miembros.
  *
  * No lleva símbolos, miembros, código ni cadena: una carpeta no tiene cuerpo, y
- * para llegar a un símbolo se entra.
+ * para llegar a un símbolo se entra. Por eso no es la hoja del fichero con otro
+ * sujeto: casi ninguna sección sería la misma.
  */
 export function FolderPanel({
   folder,
@@ -20,13 +21,15 @@ export function FolderPanel({
   onSelectPath,
   onSelectFolder
 }: {
-  folder: TreeNode;
+  folder: TreeNode | null;
   model: RenderModel | null;
   /** Selecciona un fichero del contenido. */
   onSelectPath: (path: string) => void;
   /** Selecciona una carpeta del contenido. */
   onSelectFolder: (path: string) => void;
 }) {
+  if (!folder) return <EmptyFolder model={model} />;
+
   const content = folderContent(folder);
   const files = folder.fileCount;
   const folders = childFolders(folder);
@@ -103,6 +106,26 @@ export function FolderPanel({
           La carpeta está vacía en este snapshot: no se dibuja en el mapa.
         </p>
       )}
+    </section>
+  );
+}
+
+/** La hoja de carpeta sin selección: qué hacer y de dónde sale el mapa. */
+function EmptyFolder({ model }: { model: RenderModel | null }) {
+  return (
+    <section className="inspector-empty">
+      <h2>Selecciona una carpeta</h2>
+      <p className="muted small">
+        Un clic en una carpeta del mapa —o en la ruta del escenario— la
+        selecciona sin mover el zoom, y esta hoja cuenta sus ficheros y su
+        contenido. Con doble clic entras en ella.
+      </p>
+      {model ? (
+        <div className="inspector-note">
+          <span className="mono">{model.folderCount} carpetas</span>
+          <span>{model.fileCount} ficheros</span>
+        </div>
+      ) : null}
     </section>
   );
 }

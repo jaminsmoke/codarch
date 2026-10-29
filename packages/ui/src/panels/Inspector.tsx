@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { RenderFile, RenderModel, TreeNode } from "@codarch/render/browser";
+import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type {
   CcMigrationLens,
   CcMigrationNode,
@@ -21,7 +21,6 @@ import {
   SurfaceSection,
   SymbolsSection
 } from "./InspectorSections";
-import { FolderPanel } from "./FolderPanel";
 import type { CodeTarget } from "./CodePeek";
 
 /**
@@ -35,14 +34,12 @@ import type { CodeTarget } from "./CodePeek";
  * Aquí solo vive el orden de las secciones y el código abierto; cada tramo se
  * pinta en `InspectorSections` (ADR 0079).
  *
- * La ficha es del objeto seleccionado (ADR 0092): si lo seleccionado es una
- * carpeta, la ficha es la suya. No hay tercera pestaña: quien cambia de sujeto
- * es la misma ficha.
+ * Esta hoja es la del fichero. La de la carpeta es otra entrada de la barra de
+ * actividad y vive en `FolderPanel` (ADR 0092).
  */
 export function Inspector({
   model,
   file,
-  folder,
   migrationNode,
   areaMetric,
   colorMode,
@@ -56,13 +53,10 @@ export function Inspector({
   onLoadCode,
   onOpenEditor,
   onSelectPath,
-  onSelectFolder,
   onColorMode
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
-  /** La carpeta seleccionada, si lo seleccionado no es un fichero (ADR 0092). */
-  folder: TreeNode | null;
   migrationNode: CcMigrationNode | null;
   areaMetric: string | null;
   /** El modo de color activo: marca la fila que pinta el mapa. */
@@ -83,8 +77,6 @@ export function Inspector({
   onOpenEditor: (request: EditorRequest) => Promise<boolean>;
   /** Abre otro fichero del grafo desde Dependencias. */
   onSelectPath: (path: string) => void;
-  /** Selecciona otra carpeta del contenido de una carpeta. */
-  onSelectFolder: (path: string) => void;
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
 }) {
@@ -99,18 +91,7 @@ export function Inspector({
     setCode(null);
   }, [file?.nodeId]);
 
-  if (!file) {
-    return folder ? (
-      <FolderPanel
-        folder={folder}
-        model={model}
-        onSelectPath={onSelectPath}
-        onSelectFolder={onSelectFolder}
-      />
-    ) : (
-      <EmptyInspector model={model} />
-    );
-  }
+  if (!file) return <EmptyInspector model={model} />;
 
   const heaviest = maxComplexity(symbols);
   const outgoing = relatedFiles(model, file, "out");

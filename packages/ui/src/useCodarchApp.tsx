@@ -197,8 +197,12 @@ export function useCodarchApp(
       setSelectedIndex(index);
       const file = index === null ? undefined : view.model?.files[index];
       selectedPathRef.current = file?.path ?? null;
-      // Un fichero y una carpeta no pueden estar seleccionados a la vez.
-      if (index !== null) setSelectedFolder(null);
+      // Un fichero y una carpeta no pueden estar seleccionados a la vez, y la
+      // hoja de la carpeta no se queda abierta hablando de un fichero.
+      if (index !== null) {
+        setSelectedFolder(null);
+        setTab((current) => (current === "folder" ? "file" : current));
+      }
     },
     [view.model]
   );
@@ -216,6 +220,9 @@ export function useCodarchApp(
       if (path !== null) {
         selectedPathRef.current = null;
         setSelectedIndex(null);
+        // El clic en una carpeta abre su hoja: es la razón de tener entrada
+        // propia en la barra de actividad (ADR 0092).
+        setTab("folder");
       }
     },
     [view.model]

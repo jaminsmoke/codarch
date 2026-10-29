@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp } from "../app/types";
 import { Inspector } from "../panels";
+import { FolderPanel } from "../panels/FolderPanel";
 import ChangesPanel, { reportHasChanges } from "../ChangesPanel";
 import { InspectorBar, inspectorLabel } from "../InspectorBar";
 import { toggleInspector, type InspectorTab } from "../viewState";
@@ -9,7 +10,10 @@ import { localStore } from "../storage";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
 /**
- * El dock del inspector: la ficha del fichero o los cambios del repo.
+ * El dock del inspector: la ficha del fichero, la de la carpeta o los cambios.
+ *
+ * Tres hojas y tres entradas en la barra de actividad (ADR 0092): cada objeto
+ * seleccionado tiene la suya, no una hoja que cambia de sujeto.
  *
  * Se pliega desde su entrada abierta, con el mismo gesto y la misma memoria
  * que el dock de herramientas (ADR 0079 · ADR 0083). Ese estado vive aquí
@@ -76,7 +80,6 @@ export function InspectorDock({
           <Inspector
             model={view.model}
             file={selectedFile}
-            folder={selectedFolderNode}
             migrationNode={selectedMigration}
             areaMetric={state.areaMetric}
             colorMode={state.colorMode}
@@ -92,8 +95,14 @@ export function InspectorDock({
             onLoadCode={actions.leerCodigo}
             onOpenEditor={actions.abrirEnEditor}
             onSelectPath={selectInPlace}
-            onSelectFolder={actions.selectFolder}
             onColorMode={actions.setColorMode}
+          />
+        ) : state.tab === "folder" ? (
+          <FolderPanel
+            folder={selectedFolderNode}
+            model={view.model}
+            onSelectPath={selectInPlace}
+            onSelectFolder={actions.selectFolder}
           />
         ) : (
           <ChangesPanel

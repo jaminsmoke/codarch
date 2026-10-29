@@ -38,9 +38,20 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=inventario").tab).toBeNull();
   });
 
-  it("reconoce las dos pestañas", () => {
+  it("reconoce las tres pestañas", () => {
     expect(parseViewState("?tab=file").tab).toBe("file");
+    expect(parseViewState("?tab=folder").tab).toBe("folder");
     expect(parseViewState("?tab=changes").tab).toBe("changes");
+  });
+
+  it("lleva la hoja de la carpeta en la URL", () => {
+    const search = buildSearch(
+      { ...view, tab: "folder", folderPath: "src/app" },
+      { snapshotUrl: null, reportUrl: null }
+    );
+    expect(search).toContain("tab=folder");
+    expect(search).toContain("sel=src/app");
+    expect(parseViewState(search).tab).toBe("folder");
   });
 
   it("manda a Cambios los nombres de pestañas que ya no existen", () => {
