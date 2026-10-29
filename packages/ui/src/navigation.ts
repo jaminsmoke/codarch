@@ -44,12 +44,6 @@ function lateralPenalty(origin: Range, cell: Range): number {
   return size - Math.max(0, overlap);
 }
 
-/**
- * Devuelve la clave de la celda a la que se movería el foco.
- *
- * `current` es la clave de la celda activa; si es `null`, se devuelve la
- * primera celda para que las flechas siempre tengan destino.
- */
 /** Hacia dónde se mueve: el eje del avance, el de la banda y el sentido. */
 interface Axes {
   along: "x" | "y";
@@ -66,6 +60,12 @@ function axesOf(direction: Direction): Axes {
   };
 }
 
+/**
+ * Devuelve la clave de la celda a la que se movería el foco.
+ *
+ * `current` es la clave de la celda activa; si es `null`, se devuelve la
+ * primera celda para que las flechas siempre tengan destino.
+ */
 export function nextCell(
   cells: readonly CellBox[],
   current: string | null,
