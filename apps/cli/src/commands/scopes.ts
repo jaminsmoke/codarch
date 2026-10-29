@@ -49,42 +49,59 @@ export function runScopes(options: ScopesCommandOptions): number {
     return 1;
   }
 
-  // Un `.codarch.yml` ilegible no impide listar: se mira sin sus exclusiones.
-  let ignore: string[] = [];
-  try {
-    ignore = loadProjectIgnore(root);
-  } catch {
-    ignore = [];
-  }
-
   const outDirectory = path.join(root, ".codarch");
-  const rows = scopeRows(root, readScopeRegister(outDirectory), ignore);
+  const rows = scopeRows(root, readScopeRegister(outDirectory), projectIgnore(root));
 
   if (options.json) {
-    console.log(
-      JSON.stringify(
-        {
-          scopes: rows.map((row) => ({ ...row, state: scopeState(row) }))
-        },
-        null,
-        2
-      )
-    );
+    console.log(JSON.stringify(jsonOf(rows), null, 2));
     return 0;
   }
 
+  printScopes(rows, outDirectory);
+  return 0;
+}
+
+/** Un `.codarch.yml` ilegible no impide listar: se mira sin sus exclusiones. */
+function projectIgnore(root: string): string[] {
+  try {
+    return loadProjectIgnore(root);
+  } catch {
+    return [];
+  }
+}
+
+/** Lo que se imprime con `--json`: la tabla con su estado ya resuelto. */
+function jsonOf(rows: readonly ScopeRow[]): {
+  scopes: Array<ScopeRow & { state: string }>;
+} {
+  return { scopes: rows.map((row) => ({ ...row, state: scopeState(row) })) };
+}
+
+function printScopes(rows: readonly ScopeRow[], outDirectory: string): void {
   console.log("");
   console.log("  CodArch · alcances anidados");
   console.log("");
 
   if (rows.length === 0) {
-    console.log("  No hay ningún .codarch/ por debajo de esta raíz.");
-    console.log("");
-    console.log("  Un alcance nace analizando su carpeta: codarch analyze apps/desktop");
-    console.log("");
-    return 0;
+    printEmpty();
+    return;
   }
 
+  printTable(rows);
+  printSummary(rows, outDirectory);
+}
+
+/** Sin alcances debajo, se dice cómo nace uno. */
+function printEmpty(): void {
+  console.log("  No hay ningún .codarch/ por debajo de esta raíz.");
+  console.log("");
+  console.log(
+    "  Un alcance nace analizando su carpeta: codarch analyze apps/desktop"
+  );
+  console.log("");
+}
+
+function printTable(rows: readonly ScopeRow[]): void {
   console.log(
     `  ${"alcance".padEnd(24)}${"ficheros".padStart(9)}  checksum  fecha              estado`
   );
@@ -97,20 +114,36 @@ export function runScopes(options: ScopesCommandOptions): number {
     );
   }
   console.log("");
+}
 
-  const stale = rows.filter((row) => row.stale).length;
-  const changed = rows.filter((row) => row.changed).length;
+/** Cuántos alcances hay, dónde queda el registro y qué conviene mirar. */
+function printSummary(
+  rows: readonly ScopeRow[],
+  outDirectory: string
+): void {
   console.log(
     `  ${num(rows.length)} ${
       rows.length === 1 ? "alcance" : "alcances"
     } · registro en ${path.relative(process.cwd(), scopesFile(outDirectory))}`
   );
-  if (stale > 0 || changed > 0) {
-    const notes: string[] = [];
-    if (changed > 0) notes.push(`${num(changed)} con otro checksum que cuando lo vio el padre`);
-    if (stale > 0) notes.push(`${num(stale)} con ficheros más nuevos que su snapshot`);
-    console.log(`  Aviso: ${notes.join(" · ")}.`);
-  }
+
+  const warning = warningLine(rows);
+  if (warning) console.log(`  Aviso: ${warning}.`);
   console.log("");
-  return 0;
+}
+
+/** Los avisos de la tabla, o `null` si no hay de qué avisar. */
+function warningLine(rows: readonly ScopeRow[]): string | null {
+  const changed = rows.filter((row) => row.changed).length;
+  const stale = rows.filter((row) => row.stale).length;
+
+  const notes: string[] = [];
+  if (changed > 0) {
+    notes.push(`${num(changed)} con otro checksum que cuando lo vio el padre`);
+  }
+  if (stale > 0) {
+    notes.push(`${num(stale)} con ficheros más nuevos que su snapshot`);
+  }
+
+  return notes.length === 0 ? null : notes.join(" · ");
 }

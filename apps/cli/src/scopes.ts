@@ -96,31 +96,48 @@ export function discoverScopes(
 /** La cabecera de un alcance, o `null` si su snapshot no se entiende. */
 function readScope(root: string, scopePath: string): ScopeEntry | null {
   const directory = path.join(root, scopePath);
-  const snapshot = path.join(directory, ".codarch", "snapshot.cc.json");
+  const cc = readSnapshot(directory);
+  if (!cc) return null;
 
-  let cc: CcJson;
-  try {
-    cc = parseCcJson(JSON.parse(fs.readFileSync(snapshot, "utf8")) as unknown);
-  } catch {
-    return null;
-  }
-
-  const checksum = typeof cc.meta.checksum === "string" ? cc.meta.checksum : "";
+  const checksum = metaText(cc, "checksum") ?? "";
   if (checksum === "") return null;
 
   const scope: ScopeEntry = {
     path: scopePath,
     checksum,
-    commit: typeof cc.meta.commitHash === "string" ? cc.meta.commitHash : "",
+    commit: metaText(cc, "commitHash") ?? "",
     files: countFiles(cc)
   };
-  if (typeof cc.meta.projectName === "string") scope.projectName = cc.meta.projectName;
-
-  const history = readHistoryIndex(directory);
-  const last = history.entries[history.entries.length - 1];
-  if (last) scope.date = last.date;
+  const projectName = metaText(cc, "projectName");
+  if (projectName !== undefined) scope.projectName = projectName;
+  const date = lastHistoryDate(directory);
+  if (date !== undefined) scope.date = date;
 
   return scope;
+}
+
+/** El snapshot del hijo, o `null` si falta o no se entiende. */
+function readSnapshot(directory: string): CcJson | null {
+  try {
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(directory, ".codarch", "snapshot.cc.json"), "utf8")
+    ) as unknown;
+    return parseCcJson(raw);
+  } catch {
+    return null;
+  }
+}
+
+/** Un dato de texto de `meta`, que puede faltar. */
+function metaText(cc: CcJson, key: string): string | undefined {
+  const value = (cc.meta as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+/** La fecha de la última foto del historial del hijo, si tiene. */
+function lastHistoryDate(directory: string): string | undefined {
+  const history = readHistoryIndex(directory);
+  return history.entries[history.entries.length - 1]?.date;
 }
 
 function countFiles(cc: CcJson): number {
@@ -137,25 +154,28 @@ function countFiles(cc: CcJson): number {
 
 /** El registro guardado, o vacío si no hay o no se entiende. */
 export function readScopeRegister(outDirectory: string): ScopeEntry[] {
+  const scopes = readRegister(outDirectory);
+  return scopes === null ? [] : scopes.filter(isScopeEntry);
+}
+
+/** Los alcances tal cual están escritos, sin validar cada uno. */
+function readRegister(outDirectory: string): unknown[] | null {
   let raw: unknown;
   try {
     raw = JSON.parse(fs.readFileSync(scopesFile(outDirectory), "utf8")) as unknown;
   } catch {
-    return [];
+    return null;
   }
-  if (typeof raw !== "object" || raw === null) return [];
-  const payload = raw as { version?: unknown; scopes?: unknown };
-  if (payload.version !== SCOPES_VERSION || !Array.isArray(payload.scopes)) return [];
-  return payload.scopes.filter(isScopeEntry);
+  if (!isRecord(raw)) return null;
+  if (raw.version !== SCOPES_VERSION || !Array.isArray(raw.scopes)) return null;
+  return raw.scopes;
 }
 
 export function writeScopeRegister(
   outDirectory: string,
   scopes: readonly ScopeEntry[]
 ): void {
-  const sorted = [...scopes].sort((left, right) =>
-    left.path < right.path ? -1 : left.path > right.path ? 1 : 0
-  );
+  const sorted = [...scopes].sort(byPath);
   fs.mkdirSync(outDirectory, { recursive: true });
   fs.writeFileSync(
     scopesFile(outDirectory),
@@ -164,18 +184,26 @@ export function writeScopeRegister(
   );
 }
 
+/** Las claves que todo alcance guardado tiene, y las que puede tener. */
+const REQUIRED_TEXT = ["path", "checksum", "commit"] as const;
+const OPTIONAL_TEXT = ["projectName", "date"] as const;
+
 function isScopeEntry(value: unknown): value is ScopeEntry {
-  if (typeof value !== "object" || value === null) return false;
-  const entry = value as Record<string, unknown>;
+  if (!isRecord(value)) return false;
+  if (!REQUIRED_TEXT.every((key) => typeof value[key] === "string")) {
+    return false;
+  }
+  if (typeof value.files !== "number") return false;
   return (
-    typeof entry.path === "string" &&
-    entry.path !== "" &&
-    typeof entry.checksum === "string" &&
-    typeof entry.commit === "string" &&
-    typeof entry.files === "number" &&
-    (entry.projectName === undefined || typeof entry.projectName === "string") &&
-    (entry.date === undefined || typeof entry.date === "string")
+    value.path !== "" &&
+    OPTIONAL_TEXT.every(
+      (key) => value[key] === undefined || typeof value[key] === "string"
+    )
   );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 /**
@@ -188,28 +216,42 @@ function isScopeEntry(value: unknown): value is ScopeEntry {
  */
 export function scopeHasNewerFiles(root: string, scopePath: string): boolean {
   const directory = path.join(root, scopePath);
-  let snapshotMtime: number;
-  try {
-    snapshotMtime = fs.statSync(
-      path.join(directory, ".codarch", "snapshot.cc.json")
-    ).mtimeMs;
-  } catch {
-    return false;
-  }
+  const snapshotMtime = snapshotWrittenAt(directory);
+  if (snapshotMtime === null) return false;
 
+  const walked = walkScope(directory);
+  if (!walked) return false;
+
+  return walked.files.some((file) => {
+    const version = walked.fileSystem.stat?.(file.absolutePath);
+    if (!version) return false;
+    return version.mtimeMs > snapshotMtime;
+  });
+}
+
+/** Cuándo se escribió el snapshot del hijo, o `null` si no se puede leer. */
+function snapshotWrittenAt(directory: string): number | null {
+  try {
+    return fs.statSync(path.join(directory, ".codarch", "snapshot.cc.json"))
+      .mtimeMs;
+  } catch {
+    return null;
+  }
+}
+
+/** El código del hijo y el sistema de ficheros para mirar sus fechas. */
+function walkScope(
+  directory: string
+): { fileSystem: NodeFileSystem; files: readonly { absolutePath: string }[] } | null {
   const fileSystem = new NodeFileSystem(directory);
-  let walked;
   try {
-    walked = walkSourceFiles(fileSystem, { extensions: MIGRATION_EXTENSIONS });
+    const { files } = walkSourceFiles(fileSystem, {
+      extensions: MIGRATION_EXTENSIONS
+    });
+    return { fileSystem, files };
   } catch {
-    return false;
+    return null;
   }
-
-  for (const file of walked.files) {
-    const version = fileSystem.stat?.(file.absolutePath);
-    if (version && version.mtimeMs > snapshotMtime) return true;
-  }
-  return false;
 }
 
 /**
@@ -225,35 +267,39 @@ export function scopeRows(
   ignore: readonly string[] = []
 ): ScopeRow[] {
   const current = discoverScopes(root, ignore);
-  const seen = new Map(current.map((scope) => [scope.path, scope]));
-  const rows: ScopeRow[] = [];
+  const seen = new Set(current.map((scope) => scope.path));
 
-  for (const scope of current) {
-    const previous = registered.find((item) => item.path === scope.path);
-    rows.push({
-      ...scope,
-      registered: previous !== undefined,
-      changed: previous !== undefined && previous.checksum !== scope.checksum,
-      stale: scopeHasNewerFiles(root, scope.path),
-      gone: false
-    });
-  }
+  return [
+    ...current.map((scope) => currentRow(root, scope, registered)),
+    ...registered.filter((entry) => !seen.has(entry.path)).map(goneRow)
+  ].sort(byPath);
+}
 
-  for (const previous of registered) {
-    if (seen.has(previous.path)) continue;
-    rows.push({
-      ...previous,
-      registered: true,
-      changed: false,
-      stale: false,
-      gone: true
-    });
-  }
+/** Un alcance que sigue teniendo snapshot, cruzado con el registro. */
+function currentRow(
+  root: string,
+  scope: ScopeEntry,
+  registered: readonly ScopeEntry[]
+): ScopeRow {
+  const previous = registered.find((item) => item.path === scope.path);
 
-  rows.sort((left, right) =>
-    left.path < right.path ? -1 : left.path > right.path ? 1 : 0
-  );
-  return rows;
+  return {
+    ...scope,
+    registered: previous !== undefined,
+    changed: previous !== undefined && previous.checksum !== scope.checksum,
+    stale: scopeHasNewerFiles(root, scope.path),
+    gone: false
+  };
+}
+
+/** Un alcance que el padre vio y ya no tiene snapshot. */
+function goneRow(entry: ScopeEntry): ScopeRow {
+  return { ...entry, registered: true, changed: false, stale: false, gone: true };
+}
+
+/** Orden estable por ruta: la tabla y el registro usan el mismo. */
+function byPath(left: { path: string }, right: { path: string }): number {
+  return left.path < right.path ? -1 : left.path > right.path ? 1 : 0;
 }
 
 /** El estado en una palabra, para la tabla. */
