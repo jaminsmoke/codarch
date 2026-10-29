@@ -161,6 +161,32 @@ describe("suggestLayers", () => {
     expect(suggestion.rules[0]?.to).toBe("facturacion");
   });
 
+  it("cuenta los ficheros de cada capa una vez, no una por arista", () => {
+    const cc = snapshot(
+      [
+        "src/domain/user.ts",
+        "src/domain/money.ts",
+        "src/infra/db.ts",
+        "src/infra/a.ts"
+      ],
+      [
+        ["src/infra/db.ts", "src/domain/user.ts"],
+        ["src/infra/a.ts", "src/domain/money.ts"],
+        ["src/infra/a.ts", "src/domain/user.ts"]
+      ]
+    );
+
+    const suggestion = suggestLayers(cc);
+
+    // Tres aristas tocan el dominio: aun así tiene dos ficheros.
+    expect(
+      suggestion.detected.map((layer) => [layer.name, layer.files])
+    ).toEqual([
+      ["src/domain", 2],
+      ["src/infra", 2]
+    ]);
+  });
+
   it("no cuenta los ficheros sueltos de la raíz como capa", () => {
     const cc = snapshot(["src/domain/user.ts", "index.ts"], []);
     const suggestion = suggestLayers(cc);
