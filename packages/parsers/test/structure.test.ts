@@ -59,6 +59,39 @@ describe("la superficie del fichero", () => {
   });
 });
 
+describe("cada forma de exportar", () => {
+  it("separa las salidas con nombre, el todo, el espacio y el default", () => {
+    const source = [
+      "export type { A, B as C };",
+      'export * from "./all";',
+      'export * as ns from "./ns";',
+      "export default 42;",
+      "export default function named() {}"
+    ].join("\n");
+
+    const exports = parser.parse(source, "src/forms.ts").exports ?? [];
+
+    expect(
+      exports.map(
+        (entry) => `${entry.kind}:${entry.name}${entry.source ? `<-${entry.source}` : ""}`
+      )
+    ).toEqual([
+      "named:A",
+      "named:C",
+      "all:*<-./all",
+      "namespace:* as ns<-./ns",
+      "default:default",
+      "default:default"
+    ]);
+    expect(exports[0]?.typeOnly).toBe(true);
+    expect(exports[1]).toMatchObject({ typeOnly: true, local: "B" });
+    // Un `export default 42` no tiene nombre local que enseñar; una función
+    // con nombre sí.
+    expect(exports[4]?.local).toBeUndefined();
+    expect(exports[5]?.local).toBe("named");
+  });
+});
+
 describe("los miembros de una clase", () => {
   it("lista campos y propiedades del constructor bajo su clase", () => {
     const source = [

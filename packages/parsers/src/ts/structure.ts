@@ -63,97 +63,149 @@ export function importedNames(node: SyntaxNodeLike): string[] {
   return names;
 }
 
+/** Lo que un `export_statement` dice de sí mismo, ya resuelto. */
+interface ExportShape {
+  line: number;
+  /** `export type { … }`: lo que sale no es código. */
+  typeOnly: boolean;
+  /** El módulo de origen, si reexporta. */
+  source: string | undefined;
+  /** `export default …`. */
+  isDefault: boolean;
+  /** La declaración que se exporta, si la lleva en el mismo nodo. */
+  declaration: SyntaxNodeLike | undefined;
+}
+
 /** Las salidas de un `export_statement`. */
 export function exportSurface(node: SyntaxNodeLike): ParsedExport[] {
-  const line = node.startPosition.row + 1;
-  const typeOnly = node.children.some((child) => child.type === "type");
+  const shape = exportShape(node);
+  if (shape.isDefault) return [defaultExport(shape)];
+  if (shape.declaration) return declarationExports(shape);
+
+  const clause = findChild(node, "export_clause");
+  if (clause) return namedExports(clause, shape);
+
+  const namespace = findChild(node, "namespace_export");
+  if (namespace) return [namespaceExport(namespace, shape)];
+
+  return shape.source ? [allExport(shape)] : [];
+}
+
+/** Lee del nodo lo que comparten todas las formas de exportar. */
+function exportShape(node: SyntaxNodeLike): ExportShape {
   const sourceNode =
-    node.childForFieldName("source") ??
-    node.namedChildren.find((child) => child.type === "string");
-  const source = sourceNode ? stringLiteralValue(sourceNode) ?? undefined : undefined;
-  const isDefault = node.children.some((child) => child.type === "default");
-  const declaration =
-    node.childForFieldName("declaration") ??
-    node.namedChildren.find((child) => EXPORT_DECLARATIONS.has(child.type));
+    node.childForFieldName("source") ?? findChild(node, "string");
 
-  if (isDefault) {
-    const local = declaration ? declaredNames(declaration)[0] : undefined;
-    return [
-      {
-        name: "default",
-        ...(local ? { local } : {}),
-        kind: "default",
-        ...(typeOnly ? { typeOnly } : {}),
-        line
-      }
-    ];
+  return {
+    line: node.startPosition.row + 1,
+    typeOnly: node.children.some((child) => child.type === "type"),
+    source: sourceNode ? stringLiteralValue(sourceNode) ?? undefined : undefined,
+    isDefault: node.children.some((child) => child.type === "default"),
+    declaration:
+      node.childForFieldName("declaration") ??
+      node.namedChildren.find((child) => EXPORT_DECLARATIONS.has(child.type))
+  };
+}
+
+/** `export default …`, con el nombre local si lo tiene. */
+function defaultExport(shape: ExportShape): ParsedExport {
+  const local = shape.declaration
+    ? declaredNames(shape.declaration)[0]
+    : undefined;
+
+  return {
+    name: "default",
+    ...(local ? { local } : {}),
+    kind: "default",
+    ...(shape.typeOnly ? { typeOnly: true } : {}),
+    line: shape.line
+  };
+}
+
+/** `export function…`, `export const…`: un nombre por lo que declara. */
+function declarationExports(shape: ExportShape): ParsedExport[] {
+  const declaration = shape.declaration as SyntaxNodeLike;
+  return declaredNames(declaration).map((name) => ({
+    name,
+    kind: "declaration" as const,
+    ...(shape.typeOnly ? { typeOnly: true } : {}),
+    line: shape.line
+  }));
+}
+
+/** `export { a, b as c }`, con o sin módulo de origen. */
+function namedExports(
+  clause: SyntaxNodeLike,
+  shape: ExportShape
+): ParsedExport[] {
+  const exports: ParsedExport[] = [];
+
+  for (const specifier of clause.namedChildren) {
+    if (specifier.type !== "export_specifier") continue;
+    const exported = namedExport(specifier, shape);
+    if (exported) exports.push(exported);
   }
 
-  if (declaration) {
-    return declaredNames(declaration).map((name) => ({
-      name,
-      kind: "declaration" as const,
-      ...(typeOnly ? { typeOnly } : {}),
-      line
-    }));
-  }
+  return exports;
+}
 
-  const clause = node.namedChildren.find(
-    (child) => child.type === "export_clause"
+/** Un nombre de `export { … }`: lo de dentro y el alias con el que sale. */
+function namedExport(
+  specifier: SyntaxNodeLike,
+  shape: ExportShape
+): ParsedExport | null {
+  const identifiers = specifier.namedChildren.filter(
+    (inner) => inner.type === "identifier"
   );
-  if (clause) {
-    const exports: ParsedExport[] = [];
-    for (const specifier of clause.namedChildren) {
-      if (specifier.type !== "export_specifier") continue;
-      const identifiers = specifier.namedChildren.filter(
-        (inner) => inner.type === "identifier"
-      );
-      const original = identifiers[0]?.text;
-      if (!original) continue;
-      const alias = identifiers[1]?.text;
-      exports.push({
-        name: alias ?? original,
-        ...(alias ? { local: original } : {}),
-        ...(source ? { source } : {}),
-        kind: "named",
-        ...(typeOnly ? { typeOnly } : {}),
-        line
-      });
-    }
-    return exports;
-  }
+  const original = identifiers[0]?.text;
+  if (!original) return null;
+  const alias = identifiers[1]?.text;
 
-  const namespace = node.namedChildren.find(
-    (child) => child.type === "namespace_export"
+  return {
+    name: alias ?? original,
+    ...(alias ? { local: original } : {}),
+    ...(shape.source ? { source: shape.source } : {}),
+    kind: "named",
+    ...(shape.typeOnly ? { typeOnly: true } : {}),
+    line: shape.line
+  };
+}
+
+/** `export * as ns from "…"`. */
+function namespaceExport(
+  namespace: SyntaxNodeLike,
+  shape: ExportShape
+): ParsedExport {
+  const name = namespace.namedChildren.find(
+    (inner) => inner.type === "identifier"
   );
-  if (namespace) {
-    const name = namespace.namedChildren.find(
-      (inner) => inner.type === "identifier"
-    );
-    return [
-      {
-        name: `* as ${name?.text ?? "?"}`,
-        ...(source ? { source } : {}),
-        kind: "namespace",
-        ...(typeOnly ? { typeOnly } : {}),
-        line
-      }
-    ];
-  }
 
-  if (source) {
-    return [
-      {
-        name: "*",
-        source,
-        kind: "all",
-        ...(typeOnly ? { typeOnly } : {}),
-        line
-      }
-    ];
-  }
+  return {
+    name: `* as ${name?.text ?? "?"}`,
+    ...(shape.source ? { source: shape.source } : {}),
+    kind: "namespace",
+    ...(shape.typeOnly ? { typeOnly: true } : {}),
+    line: shape.line
+  };
+}
 
-  return [];
+/** `export * from "…"`: sale todo el módulo. */
+function allExport(shape: ExportShape): ParsedExport {
+  return {
+    name: "*",
+    source: shape.source as string,
+    kind: "all",
+    ...(shape.typeOnly ? { typeOnly: true } : {}),
+    line: shape.line
+  };
+}
+
+/** El primer hijo con ese tipo, si lo hay. */
+function findChild(
+  node: SyntaxNodeLike,
+  type: string
+): SyntaxNodeLike | undefined {
+  return node.namedChildren.find((child) => child.type === type);
 }
 
 /** Los nombres que declara una declaración exportada. */
