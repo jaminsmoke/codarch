@@ -24,6 +24,7 @@ export default function App() {
   const {
     loadSnapshot,
     loadRest,
+    loadLint,
     loadReport,
     resetReport,
     analyzeFolder,
@@ -88,11 +89,14 @@ export default function App() {
         if (target.refresh) {
           loadSnapshot(target.snapshot, target.label, true);
           loadRest(target.rest ?? null);
+          loadLint(target.lint ?? null);
           return;
         }
         if (loadSnapshot(target.snapshot, target.label)) {
           // El resto llega con el snapshot, de la misma pasada (ADR 0093).
           loadRest(target.rest ?? null);
+          // El lint es un fichero aparte que el proceso principal ya leyó.
+          loadLint(target.lint ?? null);
           setAddons([]);
           // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):
           // esto solo recuerda cuál es el último repo.
@@ -120,6 +124,7 @@ export default function App() {
       loadReport(target.report, target.label);
     });
   }, [
+    loadLint,
     loadReport,
     loadRest,
     loadSnapshot,

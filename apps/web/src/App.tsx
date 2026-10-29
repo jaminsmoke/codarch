@@ -59,6 +59,7 @@ export default function App() {
   const {
     loadSnapshot,
     loadRest,
+    loadLint,
     loadReport,
     resetReport,
     abrirSnapshot,
@@ -152,6 +153,7 @@ export default function App() {
     handlers: {
       snapshot: loadSnapshot,
       rest: loadRest,
+      lint: loadLint,
       report: loadReport,
       resetReport,
       addons: loadAddons,
@@ -292,7 +294,14 @@ export default function App() {
   /** Deja en el mapa lo que trajo una carpeta con `.codarch/`. */
   const showArtifacts = useCallback(
     (artifacts: RepositoryArtifacts) => {
-      if (!abrirSnapshot(artifacts.snapshot, artifacts.label, artifacts.rest ?? null))
+      if (
+        !abrirSnapshot(
+          artifacts.snapshot,
+          artifacts.label,
+          artifacts.rest ?? null,
+          artifacts.lint ?? null
+        )
+      )
         return;
       setServerMode("local");
       setSourceUrl(null);
@@ -453,6 +462,7 @@ export default function App() {
     if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
     loadSnapshot(snapshot, "servidor local");
     loadRest(await fetchJson("data/rest.cc.json"));
+    loadLint(await fetchJson("data/lint.json"));
     setServerMode(meta?.watch ? "live" : "served");
     setSourceUrl(null);
     setReportUrl(null);
@@ -461,7 +471,7 @@ export default function App() {
     if (report) loadReport(report, "servidor local", false);
     else resetReport();
     await loadAddons();
-  }, [loadReport, loadSnapshot, loadRest, resetReport, loadAddons]);
+  }, [loadAddons, loadLint, loadReport, loadRest, loadSnapshot, resetReport]);
 
   const selectFolder = useCallback(
     async (pathValue: string) => {
@@ -508,12 +518,13 @@ export default function App() {
         const snapshot = await fetchJson("data/snapshot.cc.json");
         if (snapshot) loadSnapshot(snapshot, "servidor local", true);
         loadRest(await fetchJson("data/rest.cc.json"));
+        loadLint(await fetchJson("data/lint.json"));
       }
       setServerMode(body.watch ? "live" : "served");
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [serverMode, loadSnapshot, loadRest, setError]);
+  }, [serverMode, loadSnapshot, loadRest, loadLint, setError]);
 
   const openLiveFolder = useCallback(() => {
     closeOpenMenu();

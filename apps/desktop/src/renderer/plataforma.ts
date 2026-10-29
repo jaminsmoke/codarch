@@ -61,6 +61,7 @@ export function plataformaEscritorio(): Plataforma {
           return {
             snapshot: restored.snapshot,
             rest: restored.rest ?? undefined,
+            lint: restored.lint ?? undefined,
             report: restored.report,
             label: root,
             reportLabel: restored.report

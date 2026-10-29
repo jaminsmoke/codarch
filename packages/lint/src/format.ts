@@ -63,6 +63,84 @@ export interface LintArtifact {
   summary: LintSummary;
 }
 
+/**
+ * Un artefacto leído de disco, o `null` si no es uno.
+ *
+ * El lector es de la app y por eso no lanza: un `lint.json` viejo, de otra
+ * versión o escrito a mano no puede tumbar el mapa. Se comprueba la forma
+ * entera y se devuelve una copia con los campos conocidos, para que quien lo
+ * consuma no tenga que volver a mirar si lo que tiene delante es un objeto.
+ */
+export function readLintArtifact(input: unknown): LintArtifact | null {
+  if (!isRecord(input)) return null;
+  if (input.schemaVersion !== LINT_ARTIFACT_VERSION) return null;
+
+  const meta = input.meta;
+  if (!isRecord(meta) || typeof meta.checksum !== "string") return null;
+  if (!Array.isArray(meta.tools) || !meta.tools.every(isText)) return null;
+
+  const files = input.files;
+  if (!isRecord(files)) return null;
+  const parsedFiles: Record<string, LintFile> = {};
+  for (const [file, value] of Object.entries(files)) {
+    const parsed = readLintFile(value);
+    if (!parsed) return null;
+    parsedFiles[file] = parsed;
+  }
+
+  const summary = input.summary;
+  if (
+    !isRecord(summary) ||
+    !isCount(summary.files) ||
+    !isCount(summary.errors) ||
+    !isCount(summary.warnings) ||
+    !isCount(summary.messages)
+  ) {
+    return null;
+  }
+
+  return {
+    schemaVersion: LINT_ARTIFACT_VERSION,
+    meta: { checksum: meta.checksum, tools: [...meta.tools] },
+    files: parsedFiles,
+    summary: {
+      files: summary.files,
+      errors: summary.errors,
+      warnings: summary.warnings,
+      messages: summary.messages
+    }
+  };
+}
+
+function readLintFile(value: unknown): LintFile | null {
+  if (!isRecord(value)) return null;
+  if (!isCount(value.errors) || !isCount(value.warnings)) return null;
+  if (!Array.isArray(value.messages)) return null;
+
+  const messages: LintMessage[] = [];
+  for (const item of value.messages) {
+    const message = readLintMessage(item);
+    if (!message) return null;
+    messages.push(message);
+  }
+  return { errors: value.errors, warnings: value.warnings, messages };
+}
+
+function readLintMessage(value: unknown): LintMessage | null {
+  if (!isRecord(value)) return null;
+  if (!isText(value.rule) || !isText(value.message)) return null;
+  if (!isSeverity(value.severity)) return null;
+  if (value.line !== undefined && !isCount(value.line)) return null;
+  if (value.column !== undefined && !isCount(value.column)) return null;
+  return {
+    rule: value.rule,
+    severity: value.severity,
+    ...(value.line !== undefined ? { line: value.line } : {}),
+    ...(value.column !== undefined ? { column: value.column } : {}),
+    message: value.message
+  };
+}
+
 /** Un artefacto mal formado: versión, ruta o forma. */
 export class LintError extends Error {
   constructor(message: string) {
@@ -161,8 +239,20 @@ function canonicalMessage(message: LintMessage): LintMessage {
   };
 }
 
-function isSeverity(value: string): value is LintSeverity {
+function isSeverity(value: unknown): value is LintSeverity {
   return value === "error" || value === "warn" || value === "info";
+}
+
+function isText(value: unknown): value is string {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function isCount(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function dedupe(messages: readonly LintMessage[]): LintMessage[] {

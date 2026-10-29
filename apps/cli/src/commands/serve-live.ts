@@ -19,6 +19,7 @@ import {
   type RepositoryWatcher
 } from "@codarch/parsers";
 import type { CcJson } from "@codarch/schema";
+import { runProjectLint } from "../lint-store";
 import { VERSION } from "../version";
 
 export interface AnalysisState {
@@ -100,6 +101,50 @@ export function startLive(
     clients.clear();
   };
 
+  /**
+   * El lint de la pasada, en sus propios procesos (ADR 0094).
+   *
+   * Se lanza cuando el análisis dice que hay cambios: escribir `lint.json`
+   * también despierta al vigilante, y lintar antes de saber si la pasada trae
+   * algo nuevo se llamaba a sí mismo sin parar. Si falla, no se toca el
+   * artefacto: se sigue sirviendo el anterior y se dice.
+   */
+  let linting = false;
+  const refreshLint = (root: string): void => {
+    if (linting) return;
+    linting = true;
+    void runProjectLint(root)
+      .then((result) => {
+        if (!result) return; // El repo no declara herramientas: no hay lint.
+        const failed = result.runs.filter((run) => !run.ok);
+        for (const run of failed) {
+          console.warn(`  lint: ${run.name} sin medir: ${run.error ?? "falló"}`);
+        }
+        if (!result.artifact) {
+          console.warn("  lint: ninguna herramienta midió; se sirve el artefacto anterior");
+          return;
+        }
+        const { summary } = result.artifact;
+        if (state.root === root) {
+          broadcast(clients, "lint", {
+            files: summary.files,
+            errors: summary.errors,
+            warnings: summary.warnings,
+            messages: summary.messages
+          });
+        }
+        console.log(
+          `  ⚙ lint · ${summary.errors} errores · ${summary.warnings} avisos`
+        );
+      })
+      .catch((error: Error) => {
+        console.warn(`  lint: no se pudo lintar: ${error.message}`);
+      })
+      .finally(() => {
+        linting = false;
+      });
+  };
+
   const refresh = (hints: readonly string[] = []): void => {
     if (!state.watch) return;
     try {
@@ -110,6 +155,7 @@ export function startLive(
       storeParseCache(state.root, result);
       storeRest(state.root, result);
       state = stateFrom(state.root, result, state.watch);
+      refreshLint(state.root);
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files

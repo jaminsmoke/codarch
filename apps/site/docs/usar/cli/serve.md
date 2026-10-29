@@ -28,7 +28,7 @@ codarch serve [ruta] [opciones]
 
 ## Salida
 
-Imprime la URL y se queda en marcha hasta Ctrl+C. Además de la app expone los datos en `/data/` (`snapshot.cc.json`, `rest.cc.json`, `meta.json`, `report.json`, `head-report.json`, `history.json`, …). El resto —documentos, configuración y assets— sale de la misma pasada que el código y se guarda en `.codarch/rest.cc.json`. Sin ruta analiza la carpeta actual.
+Imprime la URL y se queda en marcha hasta Ctrl+C. Además de la app expone los datos en `/data/` (`snapshot.cc.json`, `rest.cc.json`, `lint.json`, `meta.json`, `report.json`, `head-report.json`, `history.json`, …). El resto —documentos, configuración y assets— sale de la misma pasada que el código y se guarda en `.codarch/rest.cc.json`. El lint es un fichero aparte: se sirve el que haya y se vuelve a medir tras una pasada con cambios, con las herramientas que declara el repo ([`codarch lint`](lint.md)); sin bloque `lint:` no hay artefacto y la app sigue sin lint. Sin ruta analiza la carpeta actual.
 
 ## Ejemplos
 

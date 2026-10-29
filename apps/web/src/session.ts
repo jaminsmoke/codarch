@@ -39,6 +39,8 @@ export interface SessionHandlers {
   snapshot: (raw: unknown, label: string, preserveView?: boolean) => boolean;
   /** El mapa de lo que no es código; `null` si el proyecto no lo trae (ADR 0093). */
   rest: (raw: unknown) => boolean;
+  /** El lint del proyecto; `null` si no se ha medido (ADR 0094). */
+  lint: (raw: unknown) => boolean;
   report: (raw: unknown, label: string, focus?: boolean) => boolean;
   resetReport: () => void;
   addons: () => Promise<void>;
@@ -94,6 +96,8 @@ async function bootFromUrl(
       h.loading(false);
       return;
     }
+    // Un snapshot por URL viene solo: no hay `.codarch/lint.json` que leer.
+    h.lint(null);
     h.mode("local");
     h.sourceUrl(snapshotUrl);
     if (reportUrl) await loadRequestedReport(reportUrl, { isCancelled, h });
@@ -136,6 +140,8 @@ async function bootFromServer({
     h.snapshot(served, "servidor local");
     // Los dos artefactos salen de la misma pasada del servidor (ADR 0093).
     h.rest(await fetchJson("data/rest.cc.json"));
+    // El lint es un fichero más del repo (ADR 0094): si no existe, 204 y nada.
+    h.lint(await fetchJson("data/lint.json"));
     const info = readServerMeta(meta);
     h.mode(info?.watch ? "live" : "served");
     if (info?.rootPath) h.rootPath(info.rootPath);
@@ -170,6 +176,7 @@ async function bootFromSaved({
       h.mode("local");
       // El proyecto guardado puede traer su resto; si no, no hay segundo mapa.
       h.rest(saved.rest ?? null);
+      h.lint(saved.lint ?? null);
       if (saved.report) {
         h.report(saved.report, saved.reportLabel ?? "report.json", false);
       } else {
@@ -193,10 +200,12 @@ async function bootFromSaved({
 export function watchServer({
   snapshot,
   rest,
+  lint,
   report
 }: {
   snapshot: (raw: unknown) => void;
   rest: (raw: unknown) => void;
+  lint: (raw: unknown) => void;
   report: (raw: unknown) => void;
 }): () => void {
   if (typeof EventSource === "undefined") return () => {};
@@ -208,10 +217,17 @@ export function watchServer({
     // El resto se relee del servidor, no del fichero: es de la misma pasada
     // que el snapshot que acaba de llegar (ADR 0093).
     rest(await fetchJson("data/rest.cc.json"));
+    // El lint se mide en paralelo al análisis: cuando llega su aviso, se
+    // relee; el que no existe contesta 204 (ADR 0094).
+    lint(await fetchJson("data/lint.json"));
     // El repo cambió: el reporte HEAD es lo que se ve en Cambios, y el
     // servidor lo acaba de tirar de la caché (ADR 0075).
     const head = await fetchJson(HEAD_REPORT_URL);
     if (head) report(head);
+  });
+  // El lint termina después del análisis: su evento vuelve a leer el artefacto.
+  events.addEventListener("lint", async () => {
+    lint(await fetchJson("data/lint.json"));
   });
   return () => events.close();
 }
@@ -233,6 +249,7 @@ export function useServerSession(options: ServerSessionOptions): void {
   const {
     snapshot,
     rest,
+    lint,
     report,
     resetReport,
     addons,
@@ -254,6 +271,7 @@ export function useServerSession(options: ServerSessionOptions): void {
       handlers: {
         snapshot,
         rest,
+        lint,
         report,
         resetReport,
         addons,
@@ -280,6 +298,7 @@ export function useServerSession(options: ServerSessionOptions): void {
     manual,
     snapshot,
     rest,
+    lint,
     report,
     resetReport,
     addons,
@@ -298,7 +317,8 @@ export function useServerSession(options: ServerSessionOptions): void {
     return watchServer({
       snapshot: (raw) => void snapshot(raw, "servidor local", true),
       rest: (raw) => void rest(raw),
+      lint: (raw) => void lint(raw),
       report: (raw) => void report(raw, "HEAD", false)
     });
-  }, [mode, snapshot, rest, report]);
+  }, [mode, snapshot, rest, lint, report]);
 }

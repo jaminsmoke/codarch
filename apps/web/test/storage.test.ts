@@ -74,6 +74,26 @@ describe("almacenamiento del visor", () => {
     expect(readProject(storage)?.rest).toEqual(project.rest);
   });
 
+  it("guarda el lint junto al proyecto", () => {
+    const storage = memoryStorage();
+    const lint = {
+      schemaVersion: "1.0",
+      meta: { checksum: "abc", tools: ["eslint"] },
+      files: {},
+      summary: { files: 0, errors: 2, warnings: 1, messages: 3 }
+    };
+    const project = {
+      snapshot: { meta: { apiVersion: "2.0" } },
+      lint,
+      report: null,
+      label: "repo/.codarch/snapshot.cc.json",
+      reportLabel: null
+    };
+
+    expect(writeProject(project, storage)).toBe(true);
+    expect(readProject(storage)?.lint).toEqual(lint);
+  });
+
   it("elimina proyectos corruptos y respeta el límite de tamaño", () => {
     const storage = memoryStorage();
     storage.setItem("codarch.project.v1", "{roto");

@@ -5,6 +5,7 @@ import {
   type CcJson
 } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
+import { readLintArtifact, type LintArtifact } from "@codarch/lint/browser";
 import type { RepoAddon } from "@codarch/addons";
 import type { Plataforma } from "../platform";
 import type { ViewPreferences } from "../storage";
@@ -21,6 +22,7 @@ import {
 export interface DocumentSetters {
   setCc: (cc: CcJson | null) => void;
   setRest: (rest: CcJson | null) => void;
+  setLint: (lint: LintArtifact | null) => void;
   setMap: (map: "code" | "rest") => void;
   setSource: (source: string) => void;
   setAreaMetric: (value: string | null | ((current: string | null) => string | null)) => void;
@@ -87,6 +89,7 @@ export function useDocuments(deps: DocumentDeps) {
     source,
     setCc,
     setRest,
+    setLint,
     setMap,
     setSource,
     setAreaMetric,
@@ -152,8 +155,10 @@ export function useDocuments(deps: DocumentDeps) {
         }
         if (!preserveView) {
           // Otro proyecto, otro resto: el mapa vuelve al código hasta que el
-          // nuevo traiga su `rest.cc.json` (ADR 0093).
+          // nuevo traiga su `rest.cc.json` (ADR 0093). El lint es del repo que
+          // se abre; si el nuevo no lo trae, se queda sin medir (ADR 0094).
           setRest(null);
+          setLint(null);
           setMap("code");
           setQuery("");
           selectedPathRef.current = null;
@@ -180,6 +185,7 @@ export function useDocuments(deps: DocumentDeps) {
       setAreaMetric,
       setCc,
       setRest,
+      setLint,
       setMap,
       mapRef,
       setColorMode,
@@ -226,6 +232,22 @@ export function useDocuments(deps: DocumentDeps) {
     [setRest]
   );
 
+  /**
+   * Carga el artefacto del lint (ADR 0094).
+   *
+   * No lanza: un `lint.json` de otra versión o escrito a mano no puede tumbar
+   * el mapa. `null` quita el lint y lo deja «sin medir», que no es lo mismo que
+   * un artefacto sin mensajes.
+   */
+  const loadLint = useCallback(
+    (raw: unknown): boolean => {
+      const parsed = readLintArtifact(raw);
+      setLint(parsed);
+      return parsed !== null;
+    },
+    [setLint]
+  );
+
   const loadReport = useCallback(
     (raw: unknown, label: string, focus = true): boolean => {
       const next = readReport(raw);
@@ -258,15 +280,19 @@ export function useDocuments(deps: DocumentDeps) {
    * URL: una sola escritura y el reporte anterior fuera.
    */
   const abrirSnapshot = useCallback(
-    (raw: unknown, label: string, rest?: unknown): boolean => {
+    (raw: unknown, label: string, rest?: unknown, lint?: unknown): boolean => {
       if (!loadSnapshot(raw, label)) return false;
       setAddons([]);
       // El resto viaja con su snapshot: los dos salen de la misma pasada y se
       // cargan juntos, aunque el mapa abra en el código (ADR 0093).
       if (rest !== undefined && !loadRest(rest)) setRest(null);
+      // El lint es otro artefacto del mismo repo (ADR 0094): viaja junto al
+      // proyecto, y un fichero que no se entiende deja el lint sin medir.
+      loadLint(lint ?? null);
       void plataforma.escribirProyecto({
         snapshot: raw,
         ...(rest !== undefined ? { rest } : {}),
+        ...(lint !== undefined ? { lint } : {}),
         report: null,
         label,
         reportLabel: null,
@@ -275,7 +301,7 @@ export function useDocuments(deps: DocumentDeps) {
       resetReport();
       return true;
     },
-    [loadRest, loadSnapshot, plataforma, resetReport, setAddons, setRest]
+    [loadLint, loadRest, loadSnapshot, plataforma, resetReport, setAddons, setRest]
   );
 
   /** Carga un reporte y lo guarda en el proyecto actual. */
@@ -312,9 +338,12 @@ export function useDocuments(deps: DocumentDeps) {
       if (loadSnapshot(result.snapshot, root, false, result.preferences)) {
         // El análisis trae el resto de la misma pasada (ADR 0093).
         if (result.rest !== undefined) loadRest(result.rest);
+        // Analizar no linta (ADR 0094): se enseña el artefacto que ya había.
+        loadLint(result.lint ?? null);
         setAddons(result.addons.addons);
         void plataforma.escribirProyecto({
           snapshot: result.snapshot,
+          ...(result.lint !== undefined ? { lint: result.lint } : {}),
           report: null,
           label: root,
           reportLabel: null,
@@ -329,6 +358,7 @@ export function useDocuments(deps: DocumentDeps) {
       setLoading(false);
     }
   }, [
+    loadLint,
     loadRest,
     loadSnapshot,
     plataforma,
@@ -370,6 +400,7 @@ export function useDocuments(deps: DocumentDeps) {
   return {
     loadSnapshot,
     loadRest,
+    loadLint,
     loadReport,
     resetReport,
     abrirSnapshot,

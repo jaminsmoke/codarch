@@ -72,6 +72,14 @@ export function useCodarchApp(
    * checksum es suyo y el mapa del código no lo mira.
    */
   const [rest, setRest] = useState<CcJson | null>(null);
+  /**
+   * El lint del proyecto (ADR 0094).
+   *
+   * `null` es «sin medir»; un artefacto con cero mensajes es «medido y
+   * limpio». Lo carga cada plataforma y lo consume el mapa en la fase
+   * siguiente.
+   */
+  const [lint, setLint] = useState<CodarchAppState["lint"]>(null);
   const [map, setMapView] = useState<MapId>("code");
   /**
    * El mapa de ahora, para las piezas que no pueden volver a crearse al
@@ -149,6 +157,7 @@ export function useCodarchApp(
     source,
     setCc,
     setRest,
+    setLint,
     setMap: setMapView,
     setSource,
     setAreaMetric,
@@ -172,6 +181,7 @@ export function useCodarchApp(
   const {
     loadSnapshot,
     loadRest,
+    loadLint,
     loadReport,
     resetReport,
     abrirSnapshot,
@@ -655,6 +665,8 @@ export function useCodarchApp(
         setAddons((saved.addons ?? []) as RepoAddon[]);
         // El proyecto guardado puede traer su resto (ADR 0093).
         if (saved.rest) loadRest(saved.rest);
+        // Y su lint (ADR 0094); sin él, el proyecto está sin medir.
+        loadLint(saved.lint ?? null);
         if (saved.report) {
           loadReport(saved.report, saved.reportLabel ?? "report.json", false);
         }
@@ -666,7 +678,7 @@ export function useCodarchApp(
     return () => {
       cancelled = true;
     };
-  }, [loadSnapshot, loadRest, loadReport, plataforma]);
+  }, [loadSnapshot, loadRest, loadLint, loadReport, plataforma]);
 
   // No hay un efecto que reescriba el proyecto cuando cambia `cc` a propósito:
   // cada camino que carga un snapshot ya lo guarda donde toca —«Abrir cc.json»,
@@ -679,6 +691,7 @@ export function useCodarchApp(
   const state: CodarchAppState = {
     cc,
     rest,
+    lint,
     map,
     source,
     areaMetric,
@@ -709,6 +722,7 @@ export function useCodarchApp(
   const actions: CodarchAppActions = {
     loadSnapshot,
     loadRest,
+    loadLint,
     setMap: changeMap,
     loadReport,
     resetReport,

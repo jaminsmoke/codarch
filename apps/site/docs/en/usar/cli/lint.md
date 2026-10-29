@@ -102,5 +102,5 @@ codarch lint . -o .codarch --config .codarch.yml
 | `1` | Invalid configuration, no tool measured, the artifact could not be written, or `--fail-on` found what it looks for. |
 
 :::note[Learn more]
-The decisions behind this page: [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). The app does not paint it yet; the file is ready for it.
+The decisions behind this page: [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). The app already loads the artifact —at boot, on refresh and from the saved project—, and `serve` measures it again after a pass with changes; it does not paint it in the fichas or on the map yet.
 :::

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LintProcessRunner } from "@codarch/lint";
 import { parseLint } from "../src/args/lint";
 import { runLintCommand } from "../src/commands/lint";
+import { runProjectLint } from "../src/lint-store";
 
 const tempRoots: string[] = [];
 
@@ -173,6 +174,23 @@ describe("codarch lint", () => {
 
     expect(code).toBe(1);
     expect(error.mock.calls.join("\n")).toMatch(/format desconocido/);
+  });
+});
+
+describe("la pasada que comparten lint y serve", () => {
+  it("mide con las herramientas del repo y escribe el artefacto", async () => {
+    const root = tempRepo({ ".codarch.yml": config });
+
+    const result = await runProjectLint(root, { run: runner(root) });
+
+    expect(result?.artifact?.meta.tools).toEqual(["eslint", "oxlint"]);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.json"))).toBe(true);
+  });
+
+  it("un repo sin herramientas no tiene pasada de lint", async () => {
+    const root = tempRepo({ ".codarch.yml": "version: 1\n" });
+
+    expect(await runProjectLint(root)).toBeNull();
   });
 });
 

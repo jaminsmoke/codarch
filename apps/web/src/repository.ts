@@ -26,6 +26,8 @@ export interface RepositoryArtifacts {
   snapshot: unknown;
   /** El mapa de lo que no es código, si el repo lo dejó (ADR 0093). */
   rest: unknown | null;
+  /** El lint del repo, si se ejecutó `codarch lint` (ADR 0094). */
+  lint: unknown | null;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -56,11 +58,13 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
 
   const snapshot = await readJson(codarch, "snapshot.cc.json", true);
   const rest = await readJson(codarch, "rest.cc.json", false);
+  const lint = await readJson(codarch, "lint.json", false);
   const report = await readJson(codarch, "report.json", false);
 
   return {
     snapshot,
     rest,
+    lint,
     report,
     label: `${root.name}/.codarch/snapshot.cc.json`,
     reportLabel: report === null ? null : `${root.name}/.codarch/report.json`
@@ -95,6 +99,11 @@ export async function readRepositoryFromFiles(
       entry.path.endsWith("/.codarch/rest.cc.json") ||
       entry.path === ".codarch/rest.cc.json"
   );
+  const lintEntry = entries.find(
+    (entry) =>
+      entry.path.endsWith("/.codarch/lint.json") ||
+      entry.path === ".codarch/lint.json"
+  );
   const reportEntry = entries.find(
     (entry) =>
       entry.path.endsWith("/.codarch/report.json") ||
@@ -104,6 +113,7 @@ export async function readRepositoryFromFiles(
   return {
     snapshot: await readFileJson(snapshotEntry.file),
     rest: restEntry ? await readFileJson(restEntry.file) : null,
+    lint: lintEntry ? await readFileJson(lintEntry.file) : null,
     report: reportEntry ? await readFileJson(reportEntry.file) : null,
     label: snapshotEntry.path,
     reportLabel: reportEntry?.path ?? null

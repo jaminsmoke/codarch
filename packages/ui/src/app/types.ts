@@ -1,5 +1,6 @@
 import type { CcJson, CcMigrationNode, CcStructureNode } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { RepoAddon } from "@codarch/addons";
 import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginContext, PluginView } from "@codarch/plugin-api";
@@ -38,6 +39,13 @@ export interface CodarchAppState {
    * mapa del resto que enseñar.
    */
   rest: CcJson | null;
+  /**
+   * El lint del proyecto, si lo trae (ADR 0094).
+   *
+   * `null` no es «limpio»: es «sin medir». El artefacto vacío —medido y sin un
+   * solo mensaje— también es un artefacto.
+   */
+  lint: LintArtifact | null;
   /** El mapa que ocupa el escenario. */
   map: MapId;
   source: string;
@@ -95,6 +103,13 @@ export interface CodarchAppActions {
    * puede tumbar el mapa del código.
    */
   loadRest: (raw: unknown) => boolean;
+  /**
+   * Carga el lint del proyecto, o lo quita con `null`.
+   *
+   * Un artefacto que no se entiende se descarta: es una señal opcional y no
+   * puede tumbar el mapa.
+   */
+  loadLint: (raw: unknown) => boolean;
   /** Cambia de mapa; sin resto cargado, a `rest` no se puede ir. */
   setMap: (map: MapId) => void;
   resetReport: () => void;
@@ -115,7 +130,12 @@ export interface CodarchAppActions {
    * Es el paso común de «Abrir cc.json», soltar un fichero y cargar por URL:
    * una sola escritura del proyecto y el reporte anterior fuera.
    */
-  abrirSnapshot: (raw: unknown, label: string, rest?: unknown) => boolean;
+  abrirSnapshot: (
+    raw: unknown,
+    label: string,
+    rest?: unknown,
+    lint?: unknown
+  ) => boolean;
   /** Carga un reporte y lo guarda en el proyecto actual. */
   abrirReporte: (raw: unknown, label: string) => boolean;
   zoomAt: (factor: number, at?: { x: number; y: number }) => void;

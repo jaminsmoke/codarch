@@ -4,6 +4,7 @@ import {
   LintError,
   canonicalLintPath,
   createLintArtifact,
+  readLintArtifact,
   type LintFileResult,
   type LintMessage
 } from "../src/index";
@@ -114,6 +115,41 @@ describe("el artefacto del lint", () => {
       messages: 0
     });
     expect(artifact.meta.checksum).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it("se lee igual que se escribe", () => {
+    const written = createLintArtifact({
+      tools: ["eslint"],
+      files: [file("src/a.ts", [message()])]
+    });
+
+    expect(readLintArtifact(JSON.parse(JSON.stringify(written)))).toEqual(
+      written
+    );
+  });
+
+  it("un fichero que no es un artefacto de esta versión no es lint", () => {
+    const artifact = createLintArtifact({ tools: ["eslint"], files: [] });
+
+    expect(readLintArtifact(null)).toBeNull();
+    expect(readLintArtifact([])).toBeNull();
+    expect(readLintArtifact({ ...artifact, schemaVersion: "0.9" })).toBeNull();
+    expect(readLintArtifact({ ...artifact, meta: { tools: [] } })).toBeNull();
+    expect(readLintArtifact({ ...artifact, files: { "a.ts": [] } })).toBeNull();
+    expect(readLintArtifact({ ...artifact, summary: {} })).toBeNull();
+  });
+
+  it("un mensaje roto invalida el artefacto entero", () => {
+    const artifact = createLintArtifact({
+      tools: ["eslint"],
+      files: [file("src/a.ts", [message()])]
+    });
+    const broken = structuredClone(artifact) as unknown as {
+      files: Record<string, { messages: unknown[] }>;
+    };
+    broken.files["src/a.ts"]?.messages.push({ rule: "x", severity: "fatal" });
+
+    expect(readLintArtifact(broken)).toBeNull();
   });
 
   it("canoniza rutas y rechaza las que no son del repo", () => {

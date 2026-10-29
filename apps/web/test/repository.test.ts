@@ -47,6 +47,31 @@ describe("readRepositoryFromFiles", () => {
     });
   });
 
+  it("trae el lint del repo cuando se ejecutó codarch lint", async () => {
+    const artifacts = await readRepositoryFromFiles([
+      file("repo/.codarch/snapshot.cc.json", '{"meta":{"apiVersion":"2.0"}}'),
+      file(
+        "repo/.codarch/lint.json",
+        '{"schemaVersion":"1.0","meta":{"checksum":"abc","tools":[]},"files":{},"summary":{"files":0,"errors":0,"warnings":0,"messages":0}}'
+      )
+    ]);
+
+    expect(artifacts.lint).toEqual({
+      schemaVersion: "1.0",
+      meta: { checksum: "abc", tools: [] },
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+    });
+  });
+
+  it("sin lint en la carpeta, el proyecto se queda sin medir", async () => {
+    const artifacts = await readRepositoryFromFiles([
+      file("repo/.codarch/snapshot.cc.json", "{}")
+    ]);
+
+    expect(artifacts.lint).toBeNull();
+  });
+
   it("explica qué falta si no hay snapshot", async () => {
     await expect(
       readRepositoryFromFiles([file("repo/README.md", "sin artefactos")])

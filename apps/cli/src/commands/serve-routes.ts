@@ -383,6 +383,11 @@ const GET_ROUTES: Record<string, Route> = {
     (context) => context.live.current().rest
   ),
   "/data/meta.json": getJson((context) => context.live.meta()),
+  // El lint es un fichero aparte del snapshot (ADR 0094): se sirve el que hay,
+  // y `serve` lo reescribe tras una pasada con cambios. Sin él, 204.
+  "/data/lint.json": getOptionalJson((context) =>
+    readCodarchJson(context.live.current().root, "lint.json")
+  ),
   "/data/head-report.json": getHeadReport,
   "/data/report.json": getReport,
   "/data/history.json": getJson((context) =>

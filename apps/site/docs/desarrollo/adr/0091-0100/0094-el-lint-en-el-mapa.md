@@ -172,7 +172,7 @@ Fase **M65 — El lint, en el mapa**.
   tests de determinismo. Vive en `packages/lint`, con entrada de navegador para leerlo sin los
   normalizadores de Node.
 - ✅ `codarch lint`: `.codarch.yml` gana `lint:`, procesos en paralelo, fallo blando y `--fail-on`.
-- ⬜ `serve`, la web y el escritorio cargan el lint; el proyecto guardado lo lleva.
+- ✅ `serve`, la web y el escritorio cargan el lint; el proyecto guardado lo lleva.
 - ⬜ La cuarta señal del riesgo en `@codarch/metrics`, el render, el MCP y la captura, con su
   desglose.
 - ⬜ Las fichas de fichero y de carpeta, con la agregación compartida, y el punto en la barra.

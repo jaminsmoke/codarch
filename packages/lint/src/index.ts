@@ -2,7 +2,8 @@ export {
   LINT_ARTIFACT_VERSION,
   LintError,
   canonicalLintPath,
-  createLintArtifact
+  createLintArtifact,
+  readLintArtifact
 } from "./format";
 export type {
   LintArtifact,

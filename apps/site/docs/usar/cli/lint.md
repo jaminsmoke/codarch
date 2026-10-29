@@ -102,5 +102,5 @@ codarch lint . -o .codarch --config .codarch.yml
 | `1` | Configuración inválida, ninguna herramienta midió, no se pudo escribir el artefacto, o `--fail-on` encontró lo que buscaba. |
 
 :::note[Para saber más]
-Las decisiones detrás de esta página: [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). La app todavía no lo pinta; el fichero está listo para que lo lea.
+Las decisiones detrás de esta página: [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). La app ya carga el artefacto —al arrancar, al refrescar y desde el proyecto guardado—, y `serve` lo vuelve a medir tras una pasada con cambios; todavía no lo pinta en las fichas ni en el mapa.
 :::

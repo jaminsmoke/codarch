@@ -17,6 +17,13 @@ export interface SavedProject {
   snapshot: unknown;
   /** El mapa de lo que no es código, si el proyecto lo traía (ADR 0093). */
   rest?: unknown;
+  /**
+   * El lint del repo, si el proyecto lo traía (ADR 0094).
+   *
+   * En el escritorio vive en `.codarch/lint.json`; la web lo guarda aquí porque
+   * no tiene un `.codarch/` donde dejarlo.
+   */
+  lint?: unknown;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -153,6 +160,10 @@ export function parseSavedProject(value: unknown): SavedProject | null {
   // El resto es opcional: un proyecto guardado antes de tenerlo sigue valiendo.
   if (typeof parsed.rest === "object" && parsed.rest !== null) {
     project.rest = parsed.rest;
+  }
+  // El lint también: un proyecto sin él no está roto, está sin medir.
+  if (typeof parsed.lint === "object" && parsed.lint !== null) {
+    project.lint = parsed.lint;
   }
   return project;
 }

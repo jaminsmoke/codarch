@@ -8,9 +8,9 @@ import {
   type LintRunResult,
   type LintTool
 } from "@codarch/lint";
-import { ensureGitignoreEntry } from "@codarch/parsers";
 import { loadProjectLintTools } from "../config";
 import { directoryProblem, formatBytes } from "../io";
+import { writeLintArtifact } from "../lint-store";
 
 export type LintFailOn = "never" | "errors" | "warnings";
 
@@ -86,37 +86,12 @@ export async function runLintCommand(
     options.out ?? path.join(rootPath, ".codarch")
   );
   const artifactPath = result.artifact
-    ? writeArtifact(outDirectory, rootPath, result.artifact)
+    ? writeLintArtifact(rootPath, result.artifact, outDirectory)
     : null;
   if (result.artifact && artifactPath === null) return 1;
 
   console.log(reportLines(rootPath, artifactPath, result).join("\n"));
   return failOnCode(result, options.failOn ?? "never");
-}
-
-/** Escribe el `lint.json`, o devuelve `null` y deja el error dicho. */
-function writeArtifact(
-  outDirectory: string,
-  rootPath: string,
-  artifact: LintArtifact
-): string | null {
-  const file = path.join(outDirectory, "lint.json");
-  try {
-    // El estado es local: si `.codarch/` nace aquí, se ignora en el repo
-    // (ADR 0050).
-    if (
-      outDirectory === path.join(rootPath, ".codarch") &&
-      !fs.existsSync(outDirectory)
-    ) {
-      ensureGitignoreEntry(rootPath, ".codarch/");
-    }
-    fs.mkdirSync(outDirectory, { recursive: true });
-    fs.writeFileSync(file, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
-    return file;
-  } catch (error) {
-    console.error(`no se pudo escribir ${file}: ${(error as Error).message}`);
-    return null;
-  }
 }
 
 /** La salida del comando: la raíz, el artefacto y lo que hizo cada herramienta. */

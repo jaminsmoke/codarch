@@ -231,6 +231,7 @@ async function refreshFromDisk(
         kind: "snapshot",
         snapshot: outcome.snapshot,
         rest: outcome.rest,
+        lint: readPersistedLint(root),
         label: root,
         refresh: true
       });
@@ -243,6 +244,7 @@ async function refreshFromDisk(
       kind: "snapshot",
       snapshot: outcome.snapshot,
       rest: outcome.rest,
+      lint: readPersistedLint(root),
       label: root,
       refresh: true
     });
@@ -375,6 +377,7 @@ async function openTarget(target: string): Promise<void> {
         kind: "snapshot",
         snapshot: persisted,
         rest: readPersistedRest(target),
+        lint: readPersistedLint(target),
         label: target
       });
       // Lo guardado se pinta al instante, pero el repo sigue vivo: se vigila y
@@ -406,6 +409,7 @@ async function openTarget(target: string): Promise<void> {
           kind: "snapshot",
           snapshot: saved,
           rest: readPersistedRest(target),
+          lint: readPersistedLint(target),
           label: target
         });
         sendHeadReport(target, outcome.headReport);
@@ -429,6 +433,7 @@ async function openTarget(target: string): Promise<void> {
       kind: "snapshot",
       snapshot: outcome.snapshot,
       rest: outcome.rest,
+      lint: readPersistedLint(target),
       label: target
     });
     sendHeadReport(target, outcome.headReport);
@@ -448,8 +453,14 @@ async function openTarget(target: string): Promise<void> {
   }
   updateTitle(target, projectNameOf(raw));
   if (isSnapshot(raw)) {
-    // Un cc.json suelto no trae su resto: no hay segundo mapa que enseñar.
-    send({ kind: "snapshot", snapshot: raw, rest: null, label: target });
+    // Un cc.json suelto no trae su resto ni su lint: los dos son del repo.
+    send({
+      kind: "snapshot",
+      snapshot: raw,
+      rest: null,
+      lint: null,
+      label: target
+    });
     return;
   }
   send({ kind: "report", report: raw, label: target });
@@ -485,6 +496,19 @@ function snapshotPath(root: string): string {
 
 /** El mapa de lo que no es código, al lado del snapshot (ADR 0093). */
 const REST_FILE = "rest.cc.json";
+
+/** El artefacto del lint, del mismo `.codarch/` (ADR 0094). */
+const LINT_FILE = "lint.json";
+
+/**
+ * Lee el lint guardado, si lo hay.
+ *
+ * No se valida aquí: el renderer lo hace con el lector de `@codarch/lint` y un
+ * fichero que no entiende deja el proyecto sin medir.
+ */
+function readPersistedLint(root: string): unknown | null {
+  return readJsonFile(path.join(root, CODARCH_DIR, LINT_FILE));
+}
 
 /**
  * Lee el resto guardado, si lo hay y es de verdad un mapa del resto.
@@ -661,6 +685,7 @@ function persistProject(
 function restoreProject(root: string): {
   snapshot: unknown;
   rest: unknown | null;
+  lint: unknown | null;
   report: unknown | null;
   addons: RepoAddons;
   preferences: ReturnType<typeof readRepoPreferences>;
@@ -671,6 +696,7 @@ function restoreProject(root: string): {
   return {
     snapshot,
     rest: readPersistedRest(root),
+    lint: readPersistedLint(root),
     report: readJsonFile(path.join(root, CODARCH_DIR, "report.json")),
     addons: repoAddons(root),
     preferences: readRepoPreferences(root)
@@ -948,6 +974,7 @@ ipcMain.handle("codarch:analyze", async (_event, root: string) => {
   return {
     snapshot: outcome.snapshot,
     rest: outcome.rest,
+    lint: readPersistedLint(root),
     files: outcome.files,
     edges: outcome.edges,
     warnings: outcome.warnings,
