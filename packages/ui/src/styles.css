@@ -1592,6 +1592,27 @@ button {
   padding-bottom: 2px;
 }
 
+/* Una sección de la ficha y de Cambios se delimita con el mismo contenedor que
+   el contenido de la carpeta (ADR 0092): el filete de la casa y el papel de la
+   hoja. Sin él, las secciones se leían como filas sueltas y los cantos de las
+   tablas parecían del panel. Solo la sección de primer nivel: los grupos de
+   dentro —un grupo de símbolos, un fichero de un cambio— viven en el
+   contenedor de su sección, no en uno propio. */
+.inspector-file:not(.inspector-folder) > .collapsible > .collapsible-body,
+.change-panel > .collapsible > .collapsible-body {
+  padding: 6px 8px 4px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+}
+
+/* Esa línea era la única frontera que tenía una sección: con el contenedor ya
+   puesto, la misma pleca sobra y deja doble canto. Los grupos de dentro la
+   conservan, que ahí sí separan filas. */
+.inspector-file > .collapsible > .collapsible-head,
+.change-panel > .collapsible > .collapsible-head {
+  border-top: 0;
+}
+
 /* Reglas es una sección con dos subsecciones —dominio y deuda de migración—.
    La etiqueta lleva el tinte de la sección, la pleca la separa y la cuenta va
    en palabras a la derecha: son subsecciones, no secciones hermanas. */
