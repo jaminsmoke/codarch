@@ -259,8 +259,8 @@ The map, as a PNG. It is the only tool that is not read-only: it writes the imag
 
 It returns two blocks: the image (`image/png`, so the client paints it) and a JSON with the file, the
 slot, the bytes and the `summary` —project, area, colour, legend scale and the largest cells with
-their path, area and value—. The image is geometry and colour, with no text: the names live in the
-summary.
+their path, area and value—. The image carries the names of the largest cells and of the folders,
+with the package's own bitmap font; the scale and the numbers live in the summary.
 
 There are **two slots**, `map-1.png` and `map-2.png`: the capture takes the free one and, with both
 taken, overwrites the oldest. The previous one stays there, which is what you compare against. An

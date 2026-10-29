@@ -31,7 +31,7 @@ codarch shot <file.cc.json[.gz]> [options]
 
 Writes the PNG into `.codarch/shots/`. There are **two slots**, `map-1.png` and `map-2.png`: the capture takes the free one and, with both taken, overwrites the oldest by modification time. Two and not twenty because what you want to compare against is the previous one, and a capture folder with dates in the names grows on its own.
 
-It prints the path, the slot, the area, the colour, the size and the summary —the colour scale and the largest cells—. The image is geometry and colour, with no text: the names live in the summary, which is also what the MCP's `map_screenshot` tool returns.
+The image carries the names of the largest cells and of the folders, drawn with the package's own bitmap font: a box that has no name in the app has none here either. The colour scale and the numbers do not fit in the PNG, so the command prints the path, the slot, the area, the colour, the size and the summary with the scale and the largest cells —the same the MCP's `map_screenshot` tool returns.
 
 An area or colour the snapshot does not have does not paint an empty map: the command fails with the message about the missing metric. The capture is deterministic: same snapshot, same area, same colour and same size give the same bytes.
 

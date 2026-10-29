@@ -39,13 +39,16 @@ hacen los iconos (`scripts/make-icons.mjs`). El paquete `@codarch/render` gana u
 (`@codarch/render/node`) porque el navegador no tiene `zlib` ni `fs`; lo compartido —layout, colores—
 sigue viviendo en los módulos que ya usaban las dos partes.
 
-### 3. La imagen no lleva texto; el resumen lleva los nombres
+### 3. La imagen no pide prestada ninguna tipografía
 
 Un glifo pide una fuente y un rasterizador de tipografía, y eso es otra dependencia, otro
 mantenimiento y otra cosa que puede salir distinta en cada máquina. La captura es geometría y color;
 al lado viaja un resumen con el proyecto, el área, el color, los extremos de la escala y las doce
 celdas más grandes con su ruta, su área y su valor. Quien mira el PNG sabe qué está mirando sin que el
 PNG sepa escribir.
+
+Los nombres acabaron entrando, pero no así: con una fuente propia de bits, sin dependencia que cargar
+(ver 7). Lo que se descartó fue la tipografía de fuera, no la letra.
 
 ### 4. Dos ranuras que rotan
 
@@ -73,6 +76,23 @@ reales son un servicio de imágenes o una rama publicada, y ninguna se sostiene:
 dependencia externa a un análisis que funciona sin red, y el segundo escribe en el repo desde CI. El
 artefacto ya está ahí, es privado donde el repo lo es y no pide permisos nuevos.
 
+### 7. Los nombres, con una fuente propia
+
+La captura rotula los ficheros y las carpetas con una fuente de mapa de bits de 5x7 escrita en el
+paquete: mayúsculas, minúsculas, dígitos y los signos de una ruta. No hay fuente que cargar ni
+rasterizador al que pedir permiso: cada glifo es una rejilla de bits y cada píxel de un glifo es un
+cuadrado de 1 o 2 px. Un carácter que la tabla no conoce deja su hueco en blanco; no se inventa.
+
+Los umbrales son los del SVG, para que el PNG y la pantalla digan lo mismo: 44x13 para la primera
+línea, dos líneas —nombre y extensión— cuando la caja da para ellas, y la cabecera de una carpeta solo
+cuando el layout se la ha reservado. Lo que no cabe se corta con puntos suspensivos, y un hueco que no
+da ni para el corte se queda sin etiqueta: una caja vacía se lee, tres puntos en seis píxeles no. La
+tinta sale de `inkFor`, la misma que usa la app, así que el nombre se lee igual sobre un riesgo alto
+que sobre uno bajo.
+
+La letra no se puede seleccionar y la escala no cabe en el PNG, así que el resumen sigue haciendo
+falta: la imagen dice **dónde**, el resumen dice **cuánto**.
+
 ## Alternativas descartadas
 
 - **Rasterizar el SVG.** Hace falta un motor de SVG: dependencia nativa, `allowScripts` y una versión
@@ -86,6 +106,8 @@ artefacto ya está ahí, es privado donde el repo lo es y no pide permisos nuevo
   con URL. Se enlaza la del artefacto.
 - **Publicar la captura en una rama o en un servicio de imágenes.** Llena el repo de binarios o mete
   una dependencia externa en un análisis que hoy no usa la red.
+- **Empaquetar una TTF y rasterizarla.** Vuelve el problema que este ADR evita —una tipografía por
+  plataforma, con su motor— para escribir una docena de nombres. Se escribió la letra como bits.
 
 ## Consecuencias
 
@@ -99,11 +121,14 @@ artefacto ya está ahí, es privado donde el repo lo es y no pide permisos nuevo
   una métrica del snapshot.
 - En la acción, la captura tolera el fallo: el CLI se instala desde npm, así que una versión publicada
   sin `shot` deja el comentario sin mapa y un aviso, en vez de tumbar el workflow.
+- La captura pesa más desde que lleva nombres —unos 46 KB frente a 28 en este repositorio— y sigue
+  siendo determinista: los mismos datos dan los mismos bytes.
 
 ## Hoja de ruta
 
 - ✅ `captureMap` con área, color y tamaño; PNG a mano y dos ranuras que rotan.
 - ✅ `codarch shot` con `--area`, `--color`, `--out`, `--width`, `--height` y `--json`.
 - ✅ Tool `map_screenshot` en el MCP, con la imagen y su resumen.
-- ⬜ Etiquetas pintadas: una fuente de mapa de bits para los nombres, si alguien las echa de menos.
+- ✅ Etiquetas pintadas: los nombres de las cajas grandes y de las carpetas, con la fuente de 5x7 del
+  paquete.
 - ✅ La captura en la acción: `head/map.png` en el artefacto, con su bloque en el comentario del PR.

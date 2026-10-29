@@ -31,7 +31,7 @@ codarch shot <fichero.cc.json[.gz]> [opciones]
 
 Escribe el PNG en `.codarch/shots/`. Hay **dos ranuras**, `map-1.png` y `map-2.png`: la captura ocupa la libre y, con las dos ocupadas, pisa la más antigua por fecha de modificación. Son dos y no veinte porque lo que se quiere comparar es con la anterior, y una carpeta de capturas con fecha en el nombre crece sola.
 
-Imprime la ruta, la ranura, el área, el color, el tamaño y el resumen —la escala de color y las celdas más grandes—. La imagen es geometría y color, sin texto: los nombres van en el resumen, que es también lo que devuelve la tool `map_screenshot` del MCP.
+La imagen lleva los nombres de las cajas grandes y de las carpetas, escritos con una fuente de mapa de bits propia: las cajas que en la app no llevan nombre tampoco lo llevan aquí. La escala de color y las cifras no caben en el PNG, así que el comando imprime la ruta, la ranura, el área, el color, el tamaño y el resumen con la escala y las celdas más grandes —lo mismo que devuelve la tool `map_screenshot` del MCP—.
 
 Un área o un color que el snapshot no trae no pintan un mapa vacío: el comando falla con el mensaje de la métrica que falta. La captura es determinista: mismo snapshot, mismo área, mismo color y mismo tamaño dan los mismos bytes.
 

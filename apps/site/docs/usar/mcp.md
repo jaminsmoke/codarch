@@ -257,8 +257,8 @@ El mapa, en un PNG. Es la única herramienta que no es de solo lectura: escribe 
 
 Devuelve dos bloques: la imagen (`image/png`, para que el cliente la pinte) y un JSON con el fichero,
 la ranura, los bytes y el `summary` —proyecto, área, color, escala de la leyenda y las celdas más
-grandes con su ruta, su área y su valor—. La imagen es geometría y color, sin texto: los nombres van
-en el resumen.
+grandes con su ruta, su área y su valor—. La imagen lleva los nombres de las cajas grandes y de las
+carpetas, con una fuente de mapa de bits propia; la escala y las cifras van en el resumen.
 
 Hay **dos ranuras**, `map-1.png` y `map-2.png`: la captura ocupa la libre y, con las dos ocupadas,
 pisa la más antigua. La anterior sigue ahí, que es con lo que se compara. Un área o un color que el
