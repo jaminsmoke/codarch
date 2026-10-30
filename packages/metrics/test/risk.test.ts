@@ -134,8 +134,8 @@ describe("riskBreakdown", () => {
       size: (index + 1) * 10,
       lint: index
     }));
-    const [first] = riskBreakdown(files);
-    const last = riskBreakdown(files)[19];
+    const [first] = riskBreakdown(files, { lint: true });
+    const last = riskBreakdown(files, { lint: true })[19];
     const parts = first!.parts;
 
     expect(parts.complexity.weight).toBeCloseTo(0.4);
@@ -148,12 +148,11 @@ describe("riskBreakdown", () => {
     expect(last!.parts.lint.norm).toBe(1);
   });
 
-  it("sin deuda de lint, el peso vuelve a la cuenta de siempre", () => {
+  it("sin artefacto, los pesos son los de siempre y no hay cuarta señal", () => {
     const files = Array.from({ length: 20 }, (_, index) => ({
       complexity: index + 1,
       churn: index + 1,
-      size: (index + 1) * 10,
-      lint: 0
+      size: (index + 1) * 10
     }));
     const [entry] = riskBreakdown(files);
     const parts = entry!.parts;
@@ -163,11 +162,32 @@ describe("riskBreakdown", () => {
     expect(parts.lint.share).toBe(0);
   });
 
+  it("con artefacto y deuda cero, el lint pesa 20 % y su parte es cero", () => {
+    const files = Array.from({ length: 20 }, (_, index) => ({
+      complexity: index + 1,
+      churn: index + 1,
+      size: (index + 1) * 10,
+      lint: 0
+    }));
+    const [clean] = riskBreakdown(files, { lint: true });
+    const [unmeasured] = riskBreakdown(files);
+    const parts = clean!.parts;
+
+    expect(parts.lint.weight).toBeCloseTo(0.2);
+    expect(parts.lint.share).toBe(0);
+    expect(parts.complexity.weight).toBeCloseTo(0.4);
+    // El 20 % del lint, a cero, rebaja el riesgo de todos.
+    expect(clean!.risk).toBeLessThan(unmeasured!.risk);
+  });
+
   it("el lint suma al riesgo de quien tiene hallazgos", () => {
-    const [clean, dirty] = riskBreakdown([
-      { complexity: 10, churn: 5, size: 100 },
-      { complexity: 10, churn: 5, size: 100, lint: 4 }
-    ]);
+    const [clean, dirty] = riskBreakdown(
+      [
+        { complexity: 10, churn: 5, size: 100 },
+        { complexity: 10, churn: 5, size: 100, lint: 4 }
+      ],
+      { lint: true }
+    );
 
     expect(dirty!.risk).toBeGreaterThan(clean!.risk);
     expect(clean!.risk).toBeCloseTo(Math.pow(0.8, RISK_GAMMA));

@@ -3350,6 +3350,16 @@ button {
   color: var(--ink-soft);
 }
 
+/* La fila del lint sin artefacto: no hay barra, pero el sitio está. */
+.risk-bar-row.unmeasured {
+  grid-template-columns: minmax(0, 1fr) 54px 40px 48px;
+  color: var(--muted);
+}
+
+.risk-bar-row.unmeasured > .risk-weight {
+  white-space: nowrap;
+}
+
 .risk-bar-row > .mono {
   text-align: right;
   font-size: 10px;

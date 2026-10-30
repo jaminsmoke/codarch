@@ -117,15 +117,18 @@ describe("buildRenderModel", () => {
     expect(b!.risk).toBeGreaterThan(before!.risk);
   });
 
-  it("sin hallazgos en el artefacto, el riesgo no cambia", () => {
+  it("un artefacto sin hallazgos ya cuenta: el lint pesa 20 % y a cero", () => {
     const plain = model();
     const withLint = model({
       lint: createLintArtifact({ tools: ["eslint"], files: [] })
     });
+    const file = withLint.files.find((entry) => entry.name === "a.ts");
+    const before = plain.files.find((entry) => entry.name === "a.ts");
 
-    expect(withLint.files.map((file) => file.risk)).toEqual(
-      plain.files.map((file) => file.risk)
-    );
+    expect(file?.lint).toBe(0);
+    expect(file?.riskParts.lint.weight).toBeCloseTo(0.2);
+    expect(file?.riskParts.lint.share).toBe(0);
+    expect(file!.risk).toBeLessThan(before!.risk);
   });
 
   it("calcula secciones estables ordenadas por área", () => {

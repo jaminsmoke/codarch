@@ -33,6 +33,16 @@ rules:
     max: 40
     severity: warn
 
+# El lint de este repo (ADR 0094): `codarch lint` escribe .codarch/lint.json y el
+# riesgo del mapa lo cuenta. Los mismos dos que corre `npm run lint`.
+lint:
+  - name: oxlint
+    command: npx oxlint --format json .
+    format: oxlint-json
+  - name: eslint
+    command: npx eslint . --format json
+    format: eslint-json
+
 # Los plugins que entran en el bundle (ADR 0028).
 plugins:
   - vista-3d

@@ -104,7 +104,9 @@ y la captura:
   de siempre —0,50 · 0,32 · 0,18— renormalizados. El peso de una señal ausente es 0, igual que hoy
   con churn en un repo sin git.
 - **El desglose dice qué señales entraron.** La ficha del fichero ya explica el riesgo por partes; la
-  cuarta parte se llama **Lint** y lleva su valor, su p95 y su peso.
+  cuarta parte se llama **Lint** y lleva su valor, su p95 y su peso. Sin artefacto, la fila sigue
+  ahí y dice **sin medir**, con lo que pesará cuando lo haya: la composición no esconde una señal
+  ausente.
 
 Esto **enmienda el [ADR 0008](0001-0010/0008-diseno-mapa-2d.md)** en un punto: el riesgo puede
 depender de una herramienta. Se acepta porque el lint es justo la señal que faltaba para explicar

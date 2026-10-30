@@ -17,7 +17,12 @@ export {
   riskBreakdown,
   riskScores
 } from "./risk";
-export type { RiskBreakdown, RiskPart, RiskSignals } from "./risk";
+export type {
+  RiskBreakdown,
+  RiskOptions,
+  RiskPart,
+  RiskSignals
+} from "./risk";
 export type {
   ChangedFile,
   CycleComponent,

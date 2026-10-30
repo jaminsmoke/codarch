@@ -353,7 +353,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
 
   warnAboutArea(files, areaMetric, options, warnings);
-  applyRisk(files);
+  applyRisk(files, options.lint != null);
 
   const sections = buildSections(files);
 
@@ -524,14 +524,15 @@ function warnAboutArea(
  * git no debe quedar con un máximo artificial de 68/100, y un proyecto sin
  * lint se queda con la cuenta de siempre (ADR 0094).
  */
-function applyRisk(files: RenderFile[]): void {
+function applyRisk(files: RenderFile[], hasLint: boolean): void {
   const risks = riskBreakdown(
     files.map((file) => ({
       complexity: file.complexity,
       churn: file.churn,
       size: file.actualArea,
       lint: file.lint
-    }))
+    })),
+    { lint: hasLint }
   );
 
   for (const [index, file] of files.entries()) {

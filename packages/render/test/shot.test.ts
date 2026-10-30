@@ -103,7 +103,8 @@ describe("la captura del mapa", () => {
     );
 
     expect(withLint.equals(plain)).toBe(false);
-    // Sin hallazgos, el artefacto no toca ni un píxel.
+    // Un artefacto sin hallazgos también cambia el mapa: el lint entra con su
+    // 20 % y a cero, así que el riesgo baja (ADR 0094).
     expect(
       renderMapPng(
         buildRenderModel(fixture, {
@@ -113,7 +114,7 @@ describe("la captura del mapa", () => {
         200,
         200
       ).equals(plain)
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("pinta distinto según el color pedido", () => {

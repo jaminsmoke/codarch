@@ -110,8 +110,21 @@ export function lintScores(
   return scores;
 }
 
-export function riskScores(files: readonly RiskSignals[]): number[] {
-  return riskBreakdown(files).map((entry) => entry.risk);
+export interface RiskOptions {
+  /**
+   * El proyecto tiene artefacto de lint (ADR 0094).
+   *
+   * Con `true`, la cuarta señal entra con su peso aunque su deuda sea cero: es
+   * el hecho de haber medido lo que cambia la cuenta, no la deuda que tenga.
+   */
+  lint?: boolean;
+}
+
+export function riskScores(
+  files: readonly RiskSignals[],
+  options: RiskOptions = {}
+): number[] {
+  return riskBreakdown(files, options).map((entry) => entry.risk);
 }
 
 /**
@@ -119,10 +132,12 @@ export function riskScores(files: readonly RiskSignals[]): number[] {
  *
  * Es la misma cuenta que `riskScores`, pero devuelve también los valores
  * normalizados y los pesos, que es lo que la ficha del fichero enseña. La señal
- * de lint solo pesa si el proyecto tiene alguna deuda medida.
+ * de lint pesa si el proyecto lo midió; sin artefacto, no hay cuarta señal y
+ * los pesos son los de siempre.
  */
 export function riskBreakdown(
-  files: readonly RiskSignals[]
+  files: readonly RiskSignals[],
+  options: RiskOptions = {}
 ): RiskBreakdown[] {
   const complexityP95 = percentile(
     files.map((file) => file.complexity).filter((value) => value > 0),
@@ -141,11 +156,12 @@ export function riskBreakdown(
     0.95
   );
 
-  const base = lintP95 > 0 ? RISK_WEIGHTS_WITH_LINT : RISK_WEIGHTS;
+  const hasLint = options.lint === true;
+  const base = hasLint ? RISK_WEIGHTS_WITH_LINT : RISK_WEIGHTS;
   const complexityWeight = complexityP95 > 0 ? base.complexity : 0;
   const churnWeight = churnP95 > 0 ? base.churn : 0;
   const sizeWeight = sizeP95 > 0 ? base.size : 0;
-  const lintWeight = lintP95 > 0 ? RISK_WEIGHTS_WITH_LINT.lint : 0;
+  const lintWeight = hasLint ? RISK_WEIGHTS_WITH_LINT.lint : 0;
   const totalWeight = complexityWeight + churnWeight + sizeWeight + lintWeight;
 
   const weights =

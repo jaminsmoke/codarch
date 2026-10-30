@@ -1,3 +1,4 @@
+import { RISK_WEIGHTS_WITH_LINT } from "@codarch/metrics/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
@@ -56,36 +57,60 @@ function joinParts(parts: Array<string | null>): string {
   return parts.filter((part) => part !== null).join(" · ");
 }
 
+const weightFormat = new Intl.NumberFormat("es-ES", {
+  maximumFractionDigits: 1
+});
+
+/** Un peso de la composición, con su decimal cuando lo tiene (25,6 %). */
+function formatWeight(weight: number): string {
+  return `${weightFormat.format(weight * 100)} %`;
+}
+
 /**
  * El porqué del riesgo, en palabras.
  *
  * Los pesos se leen del propio modelo: con lint son otros, y no conviene
- * repetirlos aquí. Si falta alguna señal, se dice cuál: su peso se reparte
- * entre las demás, y un snapshot sin ninguna no trae riesgo que explicar.
+ * repetirlos aquí. Sin artefacto, se dice que el lint no se midió y lo que
+ * pesará cuando lo haya, para que el 20 % no aparezca de la nada. Si falta
+ * alguna de las otras señales, se dice cuál: su peso se reparte entre las
+ * demás, y un snapshot sin ninguna no trae riesgo que explicar.
  */
-function riskNote(
+export function riskNote(
   parts: RenderFile["riskParts"],
-  shown: readonly Signal[],
+  measured: boolean,
   missing: readonly Signal[]
 ): string {
-  if (shown.length === 0) {
-    return "Este snapshot no trae las señales del riesgo.";
-  }
-  if (missing.length === 0) {
-    const weights = shown
-      .map(
-        (signal) =>
-          `${SIGNAL_LABEL[signal].toLowerCase()} ${Math.round(
-            parts[signal].weight * 100
-          )} %`
-      )
-      .join(" · ");
-    return `${weights}, normalizado por el p95 de cada señal.`;
-  }
   const names = missing
     .map((signal) => SIGNAL_LABEL[signal].toLowerCase())
     .join(" ni ");
-  return `Sin ${names}: su peso se reparte entre las demás señales.`;
+
+  if (missing.length === 3) {
+    return measured
+      ? "Este snapshot no trae complejidad, churn ni tamaño: el riesgo es solo el lint."
+      : "Este snapshot no trae las señales del riesgo, y el lint no se midió.";
+  }
+
+  if (!measured) {
+    const three =
+      missing.length === 0
+        ? `${SIGNAL_LABEL.complexity} ${formatWeight(parts.complexity.weight)} · churn ${formatWeight(
+            parts.churn.weight
+          )} · tamaño ${formatWeight(parts.size.weight)}`
+        : `Sin ${names}, el peso se reparte entre las demás señales`;
+    const lint = RISK_WEIGHTS_WITH_LINT;
+    return `${three}. El lint no se midió: con artefacto pesa ${formatWeight(
+      lint.lint
+    )} y los demás bajan a ${formatWeight(lint.complexity)} · ${formatWeight(
+      lint.churn
+    )} · ${formatWeight(lint.size)}.`;
+  }
+  if (missing.length > 0) {
+    return `Sin ${names}: su peso se reparte entre las demás señales.`;
+  }
+  const weights = SIGNALS.map(
+    (signal) => `${SIGNAL_LABEL[signal].toLowerCase()} ${formatWeight(parts[signal].weight)}`
+  ).join(" · ");
+  return `${weights}, normalizado por el p95 de cada señal.`;
 }
 
 /**
@@ -93,49 +118,57 @@ function riskNote(
  *
  * El valor y la barra ya están en la primera fila de la tabla; esto solo
  * separa las señales que lo componen, con su peso y el p95 del proyecto. El
- * lint solo aparece cuando el proyecto tiene artefacto y deuda (ADR 0094).
+ * lint es siempre la cuarta: si el proyecto no lo midió, la fila lo dice —sin
+ * medir— en vez de desaparecer (ADR 0094).
  */
 export function RiskBreakdown({ file }: { file: RenderFile }) {
   const parts = file.riskParts;
-  const shown = SIGNALS.filter(
-    (signal) => signal !== "lint" || parts.lint.weight > 0
+  const measured = parts.lint.weight > 0;
+  const missing = SIGNALS.filter(
+    (signal) => signal !== "lint" && parts[signal].weight === 0
   );
-  const missing = shown.filter((signal) => parts[signal].weight === 0);
 
   return (
     <div className="risk-breakdown">
       <div className="risk-head">De dónde sale el riesgo</div>
       <div className="risk-bars">
-        {shown.map((signal) => {
+        {SIGNALS.map((signal) => {
           const part = parts[signal];
+          const unmeasured = signal === "lint" && !measured;
           return (
             <div
               key={signal}
-              className="risk-bar-row"
-              title={`${formatCompact(part.value)} de p95 ${formatCompact(
-                part.p95
-              )} · peso ${Math.round(part.weight * 100)} %`}
+              className={unmeasured ? "risk-bar-row unmeasured" : "risk-bar-row"}
+              title={
+                unmeasured
+                  ? "El lint no se midió: ejecuta `codarch lint` y el riesgo le dará un 20 %"
+                  : `${formatCompact(part.value)} de p95 ${formatCompact(
+                      part.p95
+                    )} · peso ${formatWeight(part.weight)}`
+              }
             >
               <span>{SIGNAL_LABEL[signal]}</span>
               <span className="risk-bar">
                 <i style={{ width: `${Math.round(part.norm * 100)}%` }} />
               </span>
-              <span className="mono">{formatCompact(part.value)}</span>
+              <span className="mono">
+                {unmeasured ? "—" : formatCompact(part.value)}
+              </span>
               <span className="risk-weight">
-                {Math.round(part.weight * 100)} %
+                {unmeasured ? "sin medir" : `${Math.round(part.weight * 100)} %`}
               </span>
             </div>
           );
         })}
       </div>
       <p className="muted tiny risk-note">
-        {riskNote(parts, shown, missing)}
+        {riskNote(parts, measured, missing)}
       </p>
       <p className="muted tiny mono risk-p95">
         p95 del proyecto · complejidad {formatCompact(parts.complexity.p95)} ·
         churn {formatCompact(parts.churn.p95)} · tamaño{" "}
         {formatCompact(parts.size.p95)}
-        {parts.lint.p95 > 0 ? ` · lint ${formatCompact(parts.lint.p95)}` : ""}
+        {measured ? ` · lint ${formatCompact(parts.lint.p95)}` : ""}
       </p>
     </div>
   );
