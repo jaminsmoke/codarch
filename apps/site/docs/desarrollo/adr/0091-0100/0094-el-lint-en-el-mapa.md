@@ -173,8 +173,8 @@ Fase **M65 — El lint, en el mapa**.
   normalizadores de Node.
 - ✅ `codarch lint`: `.codarch.yml` gana `lint:`, procesos en paralelo, fallo blando y `--fail-on`.
 - ✅ `serve`, la web y el escritorio cargan el lint; el proyecto guardado lo lleva.
-- ⬜ La cuarta señal del riesgo en `@codarch/metrics`, el render, el MCP y la captura, con su
-  desglose.
+- 🟡 La cuarta señal del riesgo: hecha en `@codarch/metrics`, el render, la app y la captura, con su
+  desglose; falta el MCP.
 - ⬜ Las fichas de fichero y de carpeta, con la agregación compartida, y el punto en la barra.
 - ⬜ La lente **Linter**, su leyenda y el aviso sin artefacto.
 - ⬜ Otras herramientas por lenguaje: ruff, checkstyle, `go vet` y los analizadores de .NET.
