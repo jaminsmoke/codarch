@@ -11,9 +11,11 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
+  lintScores,
   riskBreakdown,
   type RiskPart
 } from "@codarch/metrics/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 
 export type Lens = "structure" | "risk" | "metric" | "kind";
 
@@ -24,6 +26,13 @@ export interface RenderOptions {
   color?: string;
   /** Título alternativo para la cabecera. */
   title?: string;
+  /**
+   * El lint del proyecto, si lo hay (ADR 0094).
+   *
+   * Con él, el riesgo gana su cuarta señal; sin él, la cuenta es la de
+   * siempre. Las rutas del artefacto son las del repo, como las del snapshot.
+   */
+  lint?: LintArtifact | null;
 }
 
 export interface RenderMeta {
@@ -47,10 +56,12 @@ export interface RenderFile {
   /** Valor real de la métrica de área, sin el mínimo de 1. */
   actualArea: number;
   risk: number;
-  /** Las tres señales del riesgo, con su peso y su parte (ADR 0057). */
+  /** Las señales del riesgo, con su peso y su parte (ADR 0057, ADR 0094). */
   riskParts: RiskParts;
   complexity: number;
   churn: number;
+  /** Deuda del lint ya ponderada (`errors + ¼ avisos`); 0 sin artefacto. */
+  lint: number;
   /** Valores alineados con `RenderModel.metrics`; `null` cuando la métrica no existe. */
   values: Array<number | null>;
   /**
@@ -62,7 +73,10 @@ export interface RenderFile {
   kind: CcRestKind | null;
 }
 
-export type RiskParts = Record<"complexity" | "churn" | "size", RiskPart>;
+export type RiskParts = Record<
+  "complexity" | "churn" | "size" | "lint",
+  RiskPart
+>;
 
 /** El desglose de un fichero sin señales: el mapa lo rellena después. */
 const NO_SIGNAL: RiskPart = {
@@ -75,7 +89,8 @@ const NO_SIGNAL: RiskPart = {
 const NO_RISK_PARTS: RiskParts = {
   complexity: NO_SIGNAL,
   churn: NO_SIGNAL,
-  size: NO_SIGNAL
+  size: NO_SIGNAL,
+  lint: NO_SIGNAL
 };
 
 export interface RenderSection {
@@ -331,7 +346,9 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     churnKey,
     prefix,
     warnings,
-    restKinds: cc.lenses?.rest?.nodes ?? {}
+    restKinds: cc.lenses?.rest?.nodes ?? {},
+    // La deuda del lint por ruta; sin artefacto, ninguna.
+    lintByPath: options.lint ? lintScores(options.lint.files) : {}
   });
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
 
@@ -444,6 +461,8 @@ function collectFiles(
     warnings: string[];
     /** El tipo de cada fichero del resto, por id (ADR 0093). */
     restKinds: Record<string, CcRestNode>;
+    /** La deuda del lint por ruta, si el proyecto tiene artefacto (ADR 0094). */
+    lintByPath: Readonly<Record<string, number>>;
   }
 ): RenderFile[] {
   const files: RenderFile[] = [];
@@ -469,6 +488,8 @@ function collectFiles(
       riskParts: NO_RISK_PARTS,
       complexity: valueOf(values, context.complexityKey) ?? 0,
       churn: valueOf(values, context.churnKey) ?? 0,
+      // Con carpeta raíz el snapshot lleva su nombre delante; el lint, no.
+      lint: context.lintByPath[fullPath] ?? context.lintByPath[path] ?? 0,
       values: [],
       kind: context.restKinds[entry.node.id]?.kind ?? null
     });
@@ -498,16 +519,18 @@ function warnAboutArea(
 }
 
 /**
- * Riesgo compuesto: complejidad (50%), churn (32%) y tamaño (18%).
+ * Riesgo compuesto: complejidad, churn y tamaño, más el lint cuando lo hay.
  * Si falta una señal, los pesos se renormalizan: un proyecto sin historial
- * git no debe quedar con un máximo artificial de 68/100.
+ * git no debe quedar con un máximo artificial de 68/100, y un proyecto sin
+ * lint se queda con la cuenta de siempre (ADR 0094).
  */
 function applyRisk(files: RenderFile[]): void {
   const risks = riskBreakdown(
     files.map((file) => ({
       complexity: file.complexity,
       churn: file.churn,
-      size: file.actualArea
+      size: file.actualArea,
+      lint: file.lint
     }))
   );
 

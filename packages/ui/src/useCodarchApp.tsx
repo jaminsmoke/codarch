@@ -219,14 +219,17 @@ export function useCodarchApp(
         model: buildRenderModel(activeCc, {
           areaMetric,
           color: colorMode === "status" ? "risk" : colorMode,
-          title: activeCc.meta.projectName
+          title: activeCc.meta.projectName,
+          // El lint es del repo de código (ADR 0094): el mapa del resto no
+          // tiene errores ni avisos que contar.
+          lint: map === "code" ? lint : null
         }),
         error: null
       };
     } catch (cause) {
       return { model: null, error: (cause as Error).message };
     }
-  }, [activeCc, areaMetric, colorMode]);
+  }, [activeCc, areaMetric, colorMode, lint, map]);
 
   const detail = useMemo<DetailResult | null>(() => {
     if (!view.model) return null;

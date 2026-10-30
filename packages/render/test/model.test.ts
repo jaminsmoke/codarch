@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { createLintArtifact } from "@codarch/lint";
 import { RISK_GAMMA } from "@codarch/metrics";
 import { parseCcJson } from "@codarch/schema";
 import { buildRenderModel, RenderError, type RenderOptions } from "../src/index";
@@ -69,18 +70,62 @@ describe("buildRenderModel", () => {
     expect(result.files.some((file) => file.risk >= 0.66)).toBe(true);
   });
 
-  it("explica el riesgo con sus tres señales", () => {
+  it("explica el riesgo con sus cuatro señales, y sin lint la cuarta vale cero", () => {
     const result = model();
     const file = result.files.find((entry) => entry.name === "a.ts");
     const parts = file?.riskParts;
 
     expect(parts).toBeDefined();
     expect(
-      parts!.complexity.weight + parts!.churn.weight + parts!.size.weight
+      parts!.complexity.weight +
+        parts!.churn.weight +
+        parts!.size.weight +
+        parts!.lint.weight
     ).toBeCloseTo(1);
     const raw =
-      parts!.complexity.share + parts!.churn.share + parts!.size.share;
+      parts!.complexity.share +
+      parts!.churn.share +
+      parts!.size.share +
+      parts!.lint.share;
     expect(file!.risk).toBeCloseTo(Math.pow(raw, RISK_GAMMA));
+    expect(file!.lint).toBe(0);
+  });
+
+  it("lleva el lint del proyecto al riesgo de cada fichero", () => {
+    const plain = model();
+    const withLint = model({
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        files: [
+          {
+            path: "src/only/b.ts",
+            messages: [
+              { rule: "no-any", severity: "error", message: "un `any`" },
+              { rule: "no-any", severity: "error", message: "otro `any`" },
+              { rule: "no-any", severity: "error", message: "y otro" }
+            ]
+          }
+        ]
+      })
+    });
+    const b = withLint.files.find((entry) => entry.name === "b.ts");
+    const before = plain.files.find((entry) => entry.name === "b.ts");
+
+    expect(b?.lint).toBe(3);
+    expect(before?.lint).toBe(0);
+    expect(b?.riskParts.lint.value).toBe(3);
+    expect(b!.risk).toBeGreaterThan(before!.risk);
+  });
+
+  it("sin hallazgos en el artefacto, el riesgo no cambia", () => {
+    const plain = model();
+    const withLint = model({
+      lint: createLintArtifact({ tools: ["eslint"], files: [] })
+    });
+
+    expect(withLint.files.map((file) => file.risk)).toEqual(
+      plain.files.map((file) => file.risk)
+    );
   });
 
   it("calcula secciones estables ordenadas por área", () => {

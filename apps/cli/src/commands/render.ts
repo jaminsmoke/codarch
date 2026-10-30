@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import type { LintArtifact } from "@codarch/lint";
 import type { CcJson } from "@codarch/schema";
 import { CcJsonError, parseCcJson, walkFiles } from "@codarch/schema";
 import { formatBytes, readJsonFile } from "../io";
+import { readLintBeside } from "../lint-store";
 import { findWebRoot } from "../web-root";
 
 export interface RenderCommandOptions {
@@ -42,7 +44,12 @@ function field(label: string, value: string): string {
  * Es el único paso que escribe: separado para poder probarlo sin depender de
  * que este checkout tenga `apps/web/dist` construido.
  */
-export function publishSnapshot(cc: CcJson, out: string, webRoot: string): void {
+export function publishSnapshot(
+  cc: CcJson,
+  out: string,
+  webRoot: string,
+  lint: LintArtifact | null = null
+): void {
   fs.mkdirSync(out, { recursive: true });
   // El build va tal cual: es la misma app que sirve `codarch serve`.
   fs.cpSync(webRoot, out, { recursive: true });
@@ -53,6 +60,15 @@ export function publishSnapshot(cc: CcJson, out: string, webRoot: string): void 
     `${JSON.stringify(cc, null, 2)}\n`,
     "utf8"
   );
+  // El lint viaja con el snapshot si estaba al lado (ADR 0094): la app
+  // publicada lo carga igual que la que sirve `codarch serve`.
+  if (lint) {
+    fs.writeFileSync(
+      path.join(data, "lint.json"),
+      `${JSON.stringify(lint, null, 2)}\n`,
+      "utf8"
+    );
+  }
 }
 
 /**
@@ -100,8 +116,9 @@ export function runRender(options: RenderCommandOptions): number {
 
   const started = Date.now();
   const out = options.out ?? defaultOutputPath(options.file);
+  const lint = readLintBeside(options.file);
   try {
-    publishSnapshot(cc, out, webRoot);
+    publishSnapshot(cc, out, webRoot, lint);
   } catch (error) {
     console.error(`no se pudo escribir ${out}: ${(error as Error).message}`);
     return 1;

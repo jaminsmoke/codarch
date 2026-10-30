@@ -3,6 +3,7 @@ import { CcJsonError, parseCcJson } from "@codarch/schema";
 import { RenderError } from "@codarch/render";
 import { captureMap } from "@codarch/render/node";
 import { formatBytes, readJsonFile } from "../io";
+import { readLintBeside } from "../lint-store";
 
 export interface ShotCommandOptions {
   file?: string;
@@ -74,7 +75,8 @@ export function runShot(options: ShotCommandOptions): number {
       color: options.color,
       width: options.width,
       height: options.height,
-      out: options.out
+      out: options.out,
+      lint: readLintBeside(options.file)
     });
   } catch (error) {
     if (error instanceof RenderError || error instanceof RangeError) {

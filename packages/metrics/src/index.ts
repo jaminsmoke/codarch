@@ -85,9 +85,13 @@ export type {
 export {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
+  LINT_WARNING_WEIGHT,
   RISK_GAMMA,
   RISK_WEIGHTS,
+  RISK_WEIGHTS_WITH_LINT,
   firstMetric,
+  lintScore,
+  lintScores,
   riskBreakdown,
   riskScores
 } from "./risk";

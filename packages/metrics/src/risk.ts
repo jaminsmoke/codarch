@@ -3,6 +3,10 @@
  *
  * ADR 0008: complejidad 50%, churn 32%, tamaño 18%, normalizado por p95 y
  * elevado a gamma 1.7. Si una señal no existe, los pesos se renormalizan.
+ *
+ * ADR 0094: cuando hay lint, entra una cuarta señal —deuda ponderada por
+ * fichero— y los pesos pasan a 40 · 25,6 · 14,4 · 20. Sin artefacto de lint, la
+ * cuenta es exactamente la de antes.
  */
 
 export const COMPLEXITY_METRIC_CANDIDATES = [
@@ -19,11 +23,23 @@ export const CHURN_METRIC_CANDIDATES = [
   "number_of_renames"
 ] as const;
 
+/** Los pesos sin lint (ADR 0008), los de siempre. */
 export const RISK_WEIGHTS = {
   complexity: 0.5,
   churn: 0.32,
   size: 0.18
 } as const;
+
+/** Los pesos con lint (ADR 0094); suman 1. */
+export const RISK_WEIGHTS_WITH_LINT = {
+  complexity: 0.4,
+  churn: 0.256,
+  size: 0.144,
+  lint: 0.2
+} as const;
+
+/** Cuánto pesa un aviso frente a un error: un error vale cuatro avisos. */
+export const LINT_WARNING_WEIGHT = 0.25;
 
 export const RISK_GAMMA = 1.7;
 
@@ -32,6 +48,12 @@ export interface RiskSignals {
   churn: number;
   /** Valor de la métrica de tamaño elegida (normalmente `rloc`). */
   size: number;
+  /**
+   * Deuda del lint del fichero, ya ponderada (`lintScore`).
+   *
+   * `undefined` o 0 en un proyecto sin lint (ADR 0094).
+   */
+  lint?: number;
 }
 
 /**
@@ -60,7 +82,32 @@ export interface RiskBreakdown {
     complexity: RiskPart;
     churn: RiskPart;
     size: RiskPart;
+    /** Cero si el proyecto no tiene lint (ADR 0094). */
+    lint: RiskPart;
   };
+}
+
+/** La deuda de un fichero según el lint: errores + ¼ de avisos. */
+export function lintScore(errors: number, warnings: number): number {
+  const errorCount = Number.isFinite(errors) ? Math.max(0, errors) : 0;
+  const warningCount = Number.isFinite(warnings) ? Math.max(0, warnings) : 0;
+  return errorCount + LINT_WARNING_WEIGHT * warningCount;
+}
+
+/**
+ * La deuda por ruta, a partir de los ficheros de un `lint.json`.
+ *
+ * Es la forma estructural del artefacto, no su tipo: `@codarch/metrics` no
+ * necesita depender de `@codarch/lint` para multiplicar por 0,25.
+ */
+export function lintScores(
+  files: Readonly<Record<string, { errors: number; warnings: number }>>
+): Record<string, number> {
+  const scores: Record<string, number> = {};
+  for (const [path, file] of Object.entries(files)) {
+    scores[path] = lintScore(file.errors, file.warnings);
+  }
+  return scores;
 }
 
 export function riskScores(files: readonly RiskSignals[]): number[] {
@@ -68,10 +115,11 @@ export function riskScores(files: readonly RiskSignals[]): number[] {
 }
 
 /**
- * El riesgo de cada fichero con sus tres señales desglosadas.
+ * El riesgo de cada fichero con sus señales desglosadas.
  *
  * Es la misma cuenta que `riskScores`, pero devuelve también los valores
- * normalizados y los pesos, que es lo que la ficha del fichero enseña.
+ * normalizados y los pesos, que es lo que la ficha del fichero enseña. La señal
+ * de lint solo pesa si el proyecto tiene alguna deuda medida.
  */
 export function riskBreakdown(
   files: readonly RiskSignals[]
@@ -88,21 +136,27 @@ export function riskBreakdown(
     files.map((file) => file.size).filter((value) => value > 0),
     0.95
   );
+  const lintP95 = percentile(
+    files.map((file) => file.lint ?? 0).filter((value) => value > 0),
+    0.95
+  );
 
-  const complexityWeight =
-    complexityP95 > 0 ? RISK_WEIGHTS.complexity : 0;
-  const churnWeight = churnP95 > 0 ? RISK_WEIGHTS.churn : 0;
-  const sizeWeight = sizeP95 > 0 ? RISK_WEIGHTS.size : 0;
-  const totalWeight = complexityWeight + churnWeight + sizeWeight;
+  const base = lintP95 > 0 ? RISK_WEIGHTS_WITH_LINT : RISK_WEIGHTS;
+  const complexityWeight = complexityP95 > 0 ? base.complexity : 0;
+  const churnWeight = churnP95 > 0 ? base.churn : 0;
+  const sizeWeight = sizeP95 > 0 ? base.size : 0;
+  const lintWeight = lintP95 > 0 ? RISK_WEIGHTS_WITH_LINT.lint : 0;
+  const totalWeight = complexityWeight + churnWeight + sizeWeight + lintWeight;
 
   const weights =
     totalWeight > 0
       ? {
           complexity: complexityWeight / totalWeight,
           churn: churnWeight / totalWeight,
-          size: sizeWeight / totalWeight
+          size: sizeWeight / totalWeight,
+          lint: lintWeight / totalWeight
         }
-      : { complexity: 0, churn: 0, size: 0 };
+      : { complexity: 0, churn: 0, size: 0, lint: 0 };
 
   return files.map((file) => {
     const complexity = part(
@@ -112,10 +166,11 @@ export function riskBreakdown(
     );
     const churn = part(file.churn, churnP95, weights.churn);
     const size = part(file.size, sizeP95, weights.size);
-    const raw = complexity.share + churn.share + size.share;
+    const lint = part(file.lint ?? 0, lintP95, weights.lint);
+    const raw = complexity.share + churn.share + size.share + lint.share;
     return {
       risk: Math.pow(clamp01(raw), RISK_GAMMA),
-      parts: { complexity, churn, size }
+      parts: { complexity, churn, size, lint }
     };
   });
 }

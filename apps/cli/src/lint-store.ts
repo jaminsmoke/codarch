@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  readLintArtifact,
   runLint,
   type LintArtifact,
   type LintProcessRunner,
@@ -21,6 +22,30 @@ export const LINT_FILE = "lint.json";
 /** El `lint.json` de una carpeta de salida. */
 export function lintPath(outDirectory: string): string {
   return path.join(outDirectory, LINT_FILE);
+}
+
+/**
+ * El lint que vive al lado de un `cc.json`, si lo hay (ADR 0094).
+ *
+ * Un `.codarch/snapshot.cc.json` tiene su `.codarch/lint.json` al lado. Un
+ * `cc.json` en la raíz del repo lo tiene en `.codarch/`, que es donde lo deja
+ * `codarch lint`. Un artefacto que no se entiende se ignora: quien lo pide
+ * sigue sin lint.
+ */
+export function readLintBeside(file: string): LintArtifact | null {
+  const directory = path.dirname(path.resolve(file));
+  for (const candidate of [
+    path.join(directory, LINT_FILE),
+    lintPath(path.join(directory, ".codarch"))
+  ]) {
+    try {
+      const raw = fs.readFileSync(candidate, "utf8");
+      return readLintArtifact(JSON.parse(raw) as unknown);
+    } catch {
+      // Se prueba la siguiente ruta; si no hay ninguna, no hay lint.
+    }
+  }
+  return null;
 }
 
 /** Escribe el artefacto, o devuelve `null` y deja el error dicho. */

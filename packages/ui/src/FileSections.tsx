@@ -26,12 +26,13 @@ import { RuleRow } from "./RuleRow";
  * enseña y con qué cuenta; lo que hay dentro de cada grupo es de su grupo.
  */
 
-type Signal = "complexity" | "churn" | "size";
+type Signal = "complexity" | "churn" | "size" | "lint";
 
 const SIGNAL_LABEL: Record<Signal, string> = {
   complexity: "Complejidad",
   churn: "Churn",
-  size: "Tamaño"
+  size: "Tamaño",
+  lint: "Lint"
 };
 
 const SIGNALS = Object.keys(SIGNAL_LABEL) as Signal[];
@@ -58,37 +59,54 @@ function joinParts(parts: Array<string | null>): string {
 /**
  * El porqué del riesgo, en palabras.
  *
- * Si falta alguna señal, se dice cuál: su peso se reparte entre las demás, y un
- * snapshot sin las tres no trae riesgo que explicar.
+ * Los pesos se leen del propio modelo: con lint son otros, y no conviene
+ * repetirlos aquí. Si falta alguna señal, se dice cuál: su peso se reparte
+ * entre las demás, y un snapshot sin ninguna no trae riesgo que explicar.
  */
-function riskNote(missing: readonly Signal[]): string {
-  if (missing.length === 0) {
-    return "Complejidad 50 % · churn 32 % · tamaño 18 %, normalizado por el p95 de cada señal.";
-  }
-  if (missing.length === SIGNALS.length) {
+function riskNote(
+  parts: RenderFile["riskParts"],
+  shown: readonly Signal[],
+  missing: readonly Signal[]
+): string {
+  if (shown.length === 0) {
     return "Este snapshot no trae las señales del riesgo.";
+  }
+  if (missing.length === 0) {
+    const weights = shown
+      .map(
+        (signal) =>
+          `${SIGNAL_LABEL[signal].toLowerCase()} ${Math.round(
+            parts[signal].weight * 100
+          )} %`
+      )
+      .join(" · ");
+    return `${weights}, normalizado por el p95 de cada señal.`;
   }
   const names = missing
     .map((signal) => SIGNAL_LABEL[signal].toLowerCase())
     .join(" ni ");
-  return `Sin ${names} en este snapshot: su peso se reparte entre las demás señales.`;
+  return `Sin ${names}: su peso se reparte entre las demás señales.`;
 }
 
 /**
  * De dónde sale el riesgo, dentro de Métricas.
  *
  * El valor y la barra ya están en la primera fila de la tabla; esto solo
- * separa las tres señales que lo componen, con su peso y el p95 del proyecto.
+ * separa las señales que lo componen, con su peso y el p95 del proyecto. El
+ * lint solo aparece cuando el proyecto tiene artefacto y deuda (ADR 0094).
  */
 export function RiskBreakdown({ file }: { file: RenderFile }) {
   const parts = file.riskParts;
-  const missing = SIGNALS.filter((signal) => parts[signal].weight === 0);
+  const shown = SIGNALS.filter(
+    (signal) => signal !== "lint" || parts.lint.weight > 0
+  );
+  const missing = shown.filter((signal) => parts[signal].weight === 0);
 
   return (
     <div className="risk-breakdown">
       <div className="risk-head">De dónde sale el riesgo</div>
       <div className="risk-bars">
-        {SIGNALS.map((signal) => {
+        {shown.map((signal) => {
           const part = parts[signal];
           return (
             <div
@@ -110,11 +128,14 @@ export function RiskBreakdown({ file }: { file: RenderFile }) {
           );
         })}
       </div>
-      <p className="muted tiny risk-note">{riskNote(missing)}</p>
+      <p className="muted tiny risk-note">
+        {riskNote(parts, shown, missing)}
+      </p>
       <p className="muted tiny mono risk-p95">
         p95 del proyecto · complejidad {formatCompact(parts.complexity.p95)} ·
         churn {formatCompact(parts.churn.p95)} · tamaño{" "}
         {formatCompact(parts.size.p95)}
+        {parts.lint.p95 > 0 ? ` · lint ${formatCompact(parts.lint.p95)}` : ""}
       </p>
     </div>
   );

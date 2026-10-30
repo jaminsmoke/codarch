@@ -160,12 +160,17 @@ export function fileMetricRows(
     area: false,
     risk: true,
     description:
-      "Combinación de complejidad, churn y tamaño, normalizada por el p95 del proyecto.",
+      places.lint.weight > 0
+        ? "Combinación de complejidad, churn, tamaño y lint, normalizada por el p95 del proyecto."
+        : "Combinación de complejidad, churn y tamaño, normalizada por el p95 del proyecto.",
     hint:
       `${Math.round(file.risk * 100)} de 100 · ` +
       `complejidad ${formatCompact(places.complexity.value)} (p95 ${formatCompact(places.complexity.p95)}) · ` +
       `churn ${formatCompact(places.churn.value)} (p95 ${formatCompact(places.churn.p95)}) · ` +
-      `tamaño ${formatCompact(places.size.value)} (p95 ${formatCompact(places.size.p95)})`
+      `tamaño ${formatCompact(places.size.value)} (p95 ${formatCompact(places.size.p95)})` +
+      (places.lint.weight > 0
+        ? ` · lint ${formatCompact(places.lint.value)} (p95 ${formatCompact(places.lint.p95)})`
+        : "")
   };
 
   if (!model) return [risk];

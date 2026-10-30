@@ -55,10 +55,12 @@ function file(values: Array<number | null>, risk = 0.65): RenderFile {
     riskParts: {
       complexity: part(15, 27, 0.5),
       churn: part(11, 10, 0.32),
-      size: part(1300, 499, 0.18)
+      size: part(1300, 499, 0.18),
+      lint: part(0, 0, 0)
     },
     complexity: 15,
     churn: 11,
+    lint: 0,
     values,
     kind: null
   };

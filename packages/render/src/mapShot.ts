@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { CcJson, CcRestKind } from "@codarch/schema/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import {
   fileFill,
   KIND_COLOR,
@@ -36,6 +37,8 @@ export interface ShotOptions {
   height?: number;
   /** Ruta concreta del PNG; sin esto, ocupa una de las dos ranuras. */
   out?: string;
+  /** El lint del repo: con él, el color de riesgo lleva su cuarta señal (ADR 0094). */
+  lint?: LintArtifact | null;
 }
 
 export interface LegendEntry {
@@ -190,7 +193,8 @@ function cellsOf(model: RenderModel): ShotCell[] {
  *
  * El modelo se construye aquí y no se recibe hecho porque el área y el color
  * son parte de la petición: la captura de un `risk` y la de un `rloc` son dos
- * mapas distintos del mismo snapshot.
+ * mapas distintos del mismo snapshot. El lint entra igual que en la app: si el
+ * repo lo tiene, el riesgo lo cuenta (ADR 0094).
  */
 export function captureMap(
   cc: CcJson,
@@ -204,7 +208,8 @@ export function captureMap(
   const wanted = options.color === CHURN_ALIAS ? CHURN_METRIC : options.color;
   const model = buildRenderModel(cc, {
     areaMetric: options.areaMetric,
-    color: wanted
+    color: wanted,
+    lint: options.lint ?? null
   });
   const png = renderMapPng(model, width, height);
   const written = options.out ? writeOut(options.out, png) : writeShot(root, png);

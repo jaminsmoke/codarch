@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it } from "vitest";
+import { createLintArtifact } from "@codarch/lint";
 import { parseCcJson } from "@codarch/schema";
 import { buildRenderModel, RenderError } from "../src/index";
 import { captureMap, renderMapPng } from "../src/mapShot";
@@ -79,6 +80,39 @@ describe("la captura del mapa", () => {
     // El mismo nombre da los mismos píxeles: la letra no depende del azar.
     expect(
       alpha.equals(renderMapPng(buildRenderModel(withFirstName("alpha.ts")), 400, 300))
+    ).toBe(true);
+  });
+
+  it("pinta el riesgo con el lint del proyecto, y sin él como siempre", () => {
+    const plain = renderMapPng(buildRenderModel(fixture, { color: "risk" }), 200, 200);
+    const errors = Array.from({ length: 40 }, (_, index) => ({
+      rule: "no-any",
+      severity: "error" as const,
+      message: `un \`any\` numero ${index}`
+    }));
+    const withLint = renderMapPng(
+      buildRenderModel(fixture, {
+        color: "risk",
+        lint: createLintArtifact({
+          tools: ["eslint"],
+          files: [{ path: "src/only/b.ts", messages: errors }]
+        })
+      }),
+      200,
+      200
+    );
+
+    expect(withLint.equals(plain)).toBe(false);
+    // Sin hallazgos, el artefacto no toca ni un píxel.
+    expect(
+      renderMapPng(
+        buildRenderModel(fixture, {
+          color: "risk",
+          lint: createLintArtifact({ tools: ["eslint"], files: [] })
+        }),
+        200,
+        200
+      ).equals(plain)
     ).toBe(true);
   });
 
