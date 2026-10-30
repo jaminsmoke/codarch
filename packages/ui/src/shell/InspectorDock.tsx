@@ -3,6 +3,7 @@ import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp } from "../app/types";
 import { Inspector } from "../panels";
 import { FolderPanel } from "../panels/FolderPanel";
+import { ProjectPanel } from "../panels/ProjectPanel";
 import ChangesPanel, { reportHasChanges } from "../ChangesPanel";
 import { InspectorBar, inspectorLabel } from "../InspectorBar";
 import { toggleInspector, type InspectorTab } from "../viewState";
@@ -10,10 +11,11 @@ import { localStore } from "../storage";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
 /**
- * El dock del inspector: la ficha del fichero, la de la carpeta o los cambios.
+ * El dock del inspector: la ficha del fichero, la de la carpeta, la del
+ * proyecto o los cambios.
  *
- * Tres hojas y tres entradas en la barra de actividad (ADR 0092): cada objeto
- * seleccionado tiene la suya, no una hoja que cambia de sujeto.
+ * Cuatro hojas y cuatro entradas en la barra de actividad (ADR 0092 · ADR
+ * 0095): cada objeto tiene la suya, no una hoja que cambia de sujeto.
  *
  * Se pliega desde su entrada abierta, con el mismo gesto y la misma memoria
  * que el dock de herramientas (ADR 0079 · ADR 0083). Ese estado vive aquí
@@ -102,7 +104,14 @@ export function InspectorDock({
           <FolderPanel
             folder={selectedFolderNode}
             model={view.model}
+            lint={state.lint}
             onSelectPath={selectInPlace}
+            onSelectFolder={actions.selectFolder}
+          />
+        ) : state.tab === "project" ? (
+          <ProjectPanel
+            model={view.model}
+            lint={state.lint}
             onSelectFolder={actions.selectFolder}
           />
         ) : (

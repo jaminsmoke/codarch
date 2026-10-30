@@ -1,15 +1,24 @@
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
-import { childFolders, folderContent, folderDepth } from "../folder";
+import {
+  childFolderNodes,
+  childFolders,
+  countFolders,
+  folderContent,
+  folderDepth
+} from "../folder";
+import { withinFolder } from "../lintRollup";
+import { MetricsRollup } from "./MetricsRollup";
 
 /**
  * La hoja de la carpeta: su propia entrada en la barra de actividad (ADR 0092).
  *
- * Lo que se puede decir de una carpeta sin inventar agregados: cuántos ficheros
- * tiene, a qué profundidad está y qué hay dentro, en el orden del treemap. Las
- * métricas con dueño, la frontera y los ciclos son las siguientes rebanadas de
- * la hoja de ruta del ADR; mientras tanto la hoja enseña la composición, que es
- * lo que en un fichero son los miembros.
+ * Lo que se puede decir de una carpeta: cuántos ficheros tiene, a qué
+ * profundidad está, sus totales —sumas, no p95: ficheros, líneas, complejidad
+ * máxima y la deuda de lint del subárbol— y qué hay dentro, en el orden del
+ * treemap (ADR 0095). La tabla de carpetas de Métricas es el descenso: cada
+ * fila abre la ficha de esa carpeta, que cuenta lo mismo de su subárbol.
  *
  * No lleva símbolos, miembros, código ni cadena: una carpeta no tiene cuerpo, y
  * para llegar a un símbolo se entra. Por eso no es la hoja del fichero con otro
@@ -18,11 +27,14 @@ import { childFolders, folderContent, folderDepth } from "../folder";
 export function FolderPanel({
   folder,
   model,
+  lint,
   onSelectPath,
   onSelectFolder
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
+  /** El lint del proyecto, para la deuda del subárbol (ADR 0094). */
+  lint: LintArtifact | null;
   /** Selecciona un fichero del contenido. */
   onSelectPath: (path: string) => void;
   /** Selecciona una carpeta del contenido. */
@@ -34,6 +46,9 @@ export function FolderPanel({
   const files = folder.fileCount;
   const folders = childFolders(folder);
   const areaTitle = model?.areaTitle ?? "área";
+  const subtree = model
+    ? model.files.filter((file) => withinFolder(folder.path, file.path))
+    : [];
 
   return (
     <section className="inspector-file inspector-folder">
@@ -47,6 +62,19 @@ export function FolderPanel({
         <span className="mono">nivel {folderDepth(folder.path)}</span>
         {folders > 0 ? <span className="mono">{folders} carpetas dentro</span> : null}
       </div>
+
+      {model ? (
+        <MetricsRollup
+          id="folder"
+          model={model}
+          files={subtree}
+          folders={childFolderNodes(folder)}
+          folderCount={countFolders(folder)}
+          lint={lint}
+          folder={folder.path}
+          onSelectFolder={onSelectFolder}
+        />
+      ) : null}
 
       {content.rows.length > 0 ? (
         <CollapsibleSection

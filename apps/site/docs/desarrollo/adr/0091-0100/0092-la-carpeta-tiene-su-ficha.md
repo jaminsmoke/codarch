@@ -141,8 +141,9 @@ deja de decir qué hay abierto en el panel.
 
 - ✅ `sel` en el estado y en la URL, con la selección de carpeta y sus tres marcas.
 - ✅ Los gestos: clic selecciona, doble clic entra, la miga selecciona, `Enter` y `Espacio`.
-- ⬜ La agregación compartida, con sus tests.
-- 🟡 La ficha: la cabecera y el contenido ya están; faltan las métricas con dueño.
+- ✅ La agregación compartida, con sus tests ([ADR 0095](0095-la-ficha-del-proyecto.md)).
+- 🟡 La ficha: cabecera, contenido y **Métricas** con la complejidad máxima y su fichero; falta el
+  riesgo máximo con dueño.
 - ⬜ Frontera y ciclos dentro y a través.
 - ⬜ Reglas agrupadas por regla.
 - ⬜ Los cambios acotados: el enlace de la ficha filtra la pestaña.

@@ -3394,6 +3394,104 @@ button {
   font-size: 9px;
 }
 
+/* Las métricas de proyecto y carpeta (ADR 0095): sumas, no p95. */
+.rollup-rows {
+  margin: 0 0 10px;
+  display: grid;
+  gap: 3px;
+}
+
+.rollup-row-data {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1px 8px;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.rollup-row-data dt {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.rollup-row-data dd {
+  margin: 0;
+  text-align: right;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rollup-row-data .rollup-note {
+  grid-column: 1 / -1;
+  text-align: right;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.rollup-row-data.is-lint dd.mono {
+  color: var(--ink);
+}
+
+.rollup-head {
+  margin: 10px 0 4px;
+  font: 9px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rollup-table {
+  display: grid;
+  gap: 1px;
+}
+
+.rollup-cols,
+.rollup-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px 30px 32px 34px;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  text-align: right;
+}
+
+.rollup-cols {
+  padding-bottom: 2px;
+  font: 9px/1 var(--mono);
+  color: var(--muted);
+}
+
+.rollup-cols span:first-child,
+.rollup-table-row .rollup-name {
+  text-align: left;
+}
+
+.rollup-table-row {
+  appearance: none;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.rollup-table-row:hover {
+  background: var(--line);
+}
+
+.rollup-table-row .mono {
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rollup-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lens-new {
   color: var(--debt);
   border-color: var(--debt);

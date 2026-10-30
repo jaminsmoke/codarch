@@ -8,7 +8,7 @@ sidebar:
 ---
 
 The web app is the map in the browser: the treemap, the VISTA panel with its ÁREA and COLOR
-selectors, and the inspector with its three entries: Fichero, Carpeta and Cambios. **It does not
+selectors, and the inspector with its four entries: Fichero, Carpeta, Proyecto and Cambios. **It does not
 analyse on its own in the browser**: it analyses through `codarch serve`, which reads the repository
 from disk and hands it the snapshot.
 
@@ -118,8 +118,8 @@ pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-
 
 ## Inspector › Fichero
 
-The inspector is the right-hand panel and has three entries in its activity bar: **Fichero** (file),
-**Carpeta** (folder) and **Cambios** (changes). Clicking a file, **Fichero** shows its metrics, its
+The inspector is the right-hand panel and has four entries in its activity bar: **Fichero** (file),
+**Carpeta** (folder), **Proyecto** (project) and **Cambios** (changes). Clicking a file, **Fichero** shows its metrics, its
 symbols and its incoming and outgoing dependencies. Clicking a folder, **Carpeta** shows how many
 files it holds, at what depth it sits and what share of its area each child takes, in the map's own
 order; selecting a file goes back to **Fichero**.
@@ -130,10 +130,27 @@ order; selecting a file goes back to **Fichero**.
 
 **Carpeta** is the sheet of the selected folder: its path, its files, its depth and its content, with
 the share of the area each child takes and the files it holds. Clicking a child selects it —if it is
-a file, it moves to **Fichero**. The folder's aggregated metrics, its dependency frontier and its
-cycles are on this phase's roadmap.
+a file, it moves to **Fichero**. Its **Métricas** section adds up the subtree —files, folders, lines,
+the maximum complexity with the file that has it, and the lint debt— and ends with **Lint por
+carpeta**, one row per child folder that opens its sheet. The dependency frontier and the cycles are
+still on this phase's roadmap.
 
 ![The Carpeta sheet open on packages/ui: its path, its counts and the folder's content with the share of the area each child takes](../../images/webapp-inspector-carpeta.png)
+
+## Inspector › Proyecto
+
+**Proyecto** is the sheet of the whole map, always available: the same **Métricas** as a folder, added
+up over the whole repo, and the way down from project to file. The section carries files, folders,
+lines, the maximum complexity with its file and **lint** inside, as one more row: errors, warnings,
+files with findings and its score —errors + ¼ warnings—. Below, **Lint por carpeta** gives one row per
+top-level folder with its files, errors, warnings and score; clicking one opens that folder's sheet,
+which counts the same over its subtree.
+
+Without `.codarch/lint.json` there are no zeros: the row says **sin medir** (unmeasured) and what it
+will weigh once [`codarch lint`](cli/lint.md) runs.
+
+There is no «project risk»: risk is normalised by the project's p95 and belongs to each file, so it is
+read in the file's sheet.
 
 ## Inspector › Cambios
 

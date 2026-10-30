@@ -63,6 +63,28 @@ function FolderIcon() {
   );
 }
 
+/** Un treemap en miniatura: el mapa entero, sin selección. */
+function ProjectIcon() {
+  return (
+    <svg
+      viewBox="0 0 18 18"
+      width="17"
+      height="17"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="2.5" y="2.5" width="7" height="6" />
+      <rect x="11.5" y="2.5" width="4" height="13" />
+      <rect x="2.5" y="10.5" width="7" height="5" />
+    </svg>
+  );
+}
+
 /** Dos flechas: lo que difiere del último commit. */
 function ChangesIcon() {
   return (
@@ -99,6 +121,12 @@ export const INSPECTOR_SECTIONS: readonly InspectorSection[] = [
     label: "Carpeta",
     hint: "la ficha de la carpeta seleccionada",
     icon: <FolderIcon />
+  },
+  {
+    id: "project",
+    label: "Proyecto",
+    hint: "el mapa entero y su deuda, carpeta a carpeta",
+    icon: <ProjectIcon />
   },
   {
     id: "changes",

@@ -8,7 +8,7 @@ sidebar:
 ---
 
 La webapp es el mapa en el navegador: el treemap, el panel VISTA con sus selectores ÁREA y COLOR, y
-el inspector con sus tres entradas: Fichero, Carpeta y Cambios. **No analiza sola en el navegador**:
+el inspector con sus cuatro entradas: Fichero, Carpeta, Proyecto y Cambios. **No analiza sola en el navegador**:
 analiza a través de `codarch serve`, que lee el repositorio del disco y le pasa el snapshot.
 
 ## Dos formas de abrirla
@@ -112,8 +112,8 @@ argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repos
 
 ## Inspector › Fichero
 
-El inspector es el panel de la derecha y tiene tres entradas en su barra de actividad: **Fichero**,
-**Carpeta** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus símbolos y sus
+El inspector es el panel de la derecha y tiene cuatro entradas en su barra de actividad: **Fichero**,
+**Carpeta**, **Proyecto** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus símbolos y sus
 dependencias entrantes y salientes. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
 tiene, en qué nivel está y qué parte de su área ocupa cada hijo, en el mismo orden que el mapa;
 seleccionar un fichero vuelve a **Fichero**.
@@ -124,10 +124,27 @@ seleccionar un fichero vuelve a **Fichero**.
 
 **Carpeta** es la hoja de la carpeta seleccionada: su ruta, sus ficheros, su nivel y su contenido,
 con la parte del área que ocupa cada hijo y los ficheros que lleva dentro. Pulsar un hijo lo
-selecciona —si es un fichero, pasa a **Fichero**—. Las métricas agregadas de la carpeta, su frontera
-de dependencias y sus ciclos están en la hoja de ruta de esta fase.
+selecciona —si es un fichero, pasa a **Fichero**—. Su sección **Métricas** suma el subárbol —ficheros,
+carpetas, líneas, la complejidad máxima con el fichero que la tiene y la deuda de lint— y termina con
+**Lint por carpeta**, una fila por carpeta hija que abre su ficha. La frontera de dependencias y los
+ciclos siguen en la hoja de ruta de esta fase.
 
 ![La hoja Carpeta abierta sobre packages/ui: su ruta, su recuento y el contenido de la carpeta con la parte del área de cada hijo](../images/webapp-inspector-carpeta.png)
+
+## Inspector › Proyecto
+
+**Proyecto** es la hoja del mapa entero, siempre disponible: enseña las mismas **Métricas** que la
+carpeta, sumadas sobre todo el repo, y el descenso para bajar de proyecto a fichero. La sección lleva
+ficheros, carpetas, líneas, la complejidad máxima con su fichero y el **lint** dentro, como una fila
+más: errores, avisos, ficheros con hallazgos y su score —errores + ¼ de avisos—. Debajo, **Lint por
+carpeta** da una fila por carpeta de primer nivel con sus ficheros, errores, avisos y score; pulsar
+una abre la ficha de esa carpeta, que cuenta lo mismo de su subárbol.
+
+Sin `.codarch/lint.json` no hay ceros: la fila dice **sin medir** y lo que pesará cuando se ejecute
+[`codarch lint`](cli/lint.md).
+
+No hay un «riesgo del proyecto»: el riesgo está normalizado por el p95 del proyecto y es de cada
+fichero, así que se lee en su ficha.
 
 ## Inspector › Cambios
 

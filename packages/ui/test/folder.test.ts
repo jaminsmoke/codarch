@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@codarch/render/browser";
-import { childFolders, folderContent, folderDepth } from "../src/folder";
+import {
+  childFolderNodes,
+  childFolders,
+  countFolders,
+  folderContent,
+  folderDepth
+} from "../src/folder";
 
 function file(path: string, value: number, index: number): TreeNode {
   return {
@@ -68,6 +74,15 @@ describe("el contenido de una carpeta (ADR 0092)", () => {
 
   it("cuenta las carpetas que cuelgan directamente", () => {
     expect(childFolders(tree)).toBe(2);
+    expect(childFolderNodes(tree).map((node) => node.path)).toEqual([
+      "src/small",
+      "src/mid"
+    ]);
+  });
+
+  it("cuenta las carpetas del subárbol, sin contarse a sí misma", () => {
+    expect(countFolders(tree)).toBe(2);
+    expect(countFolders(tree.children?.[0] as TreeNode)).toBe(0);
   });
 
   it("mide la profundidad de la ruta", () => {

@@ -5,7 +5,8 @@ import {
   metricShare,
   metricState,
   orderedMetrics,
-  riskState
+  riskState,
+  sumMetric
 } from "../src/metrics";
 
 describe("orden de las métricas", () => {
@@ -69,6 +70,31 @@ function file(values: Array<number | null>, risk = 0.65): RenderFile {
 function model(metrics: RenderMetric[], files: RenderFile[]): RenderModel {
   return { metrics, files } as unknown as RenderModel;
 }
+
+describe("la suma de una métrica en un subárbol", () => {
+  const metrics = [metric("loc"), metric("rloc")];
+
+  it("suma los valores del conjunto", () => {
+    const files = [file([100, 40]), file([50, 10])];
+    expect(sumMetric(model(metrics, files), files, "loc")).toBe(150);
+    expect(sumMetric(model(metrics, files), files, "rloc")).toBe(50);
+  });
+
+  it("no suma los huecos de los ficheros sin el valor", () => {
+    const files = [file([100, 40]), file([null, null])];
+    expect(sumMetric(model(metrics, files), files, "loc")).toBe(100);
+  });
+
+  it("devuelve null cuando el snapshot no trae la métrica", () => {
+    const files = [file([100, 40])];
+    expect(sumMetric(model(metrics, files), files, "churn")).toBeNull();
+  });
+
+  it("sin valores tampoco inventa un cero", () => {
+    const files = [file([null, null])];
+    expect(sumMetric(model(metrics, files), files, "loc")).toBeNull();
+  });
+});
 
 describe("el estado de una métrica", () => {
   it("no pinta las métricas sin dirección de deuda", () => {

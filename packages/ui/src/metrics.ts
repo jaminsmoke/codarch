@@ -117,6 +117,31 @@ export function riskState(risk: number): MetricState {
   return "ok";
 }
 
+/**
+ * La suma de una métrica en un conjunto de ficheros.
+ *
+ * Es lo que la ficha de proyecto y la de carpeta cuentan de su subárbol: los
+ * totales son una suma, no un p95, y se dice cuando el snapshot no trae la
+ * métrica (`null`) en vez de fingir un cero. Los ficheros sin valor no suman.
+ */
+export function sumMetric(
+  model: RenderModel,
+  files: readonly RenderFile[],
+  key: string
+): number | null {
+  const index = model.metrics.findIndex((metric) => metric.key === key);
+  if (index < 0) return null;
+  let total = 0;
+  let seen = false;
+  for (const file of files) {
+    const value = file.values[index];
+    if (value === null || value === undefined) continue;
+    total += value;
+    seen = true;
+  }
+  return seen ? total : null;
+}
+
 /** Una fila de la tabla de métricas del inspector. */
 export interface FileMetricRow {
   key: string;

@@ -62,7 +62,20 @@ export function folderContent(
 
 /** Cuántas carpetas cuelgan directamente de esta. */
 export function childFolders(node: TreeNode): number {
-  return (node.children ?? []).filter((child) => child.kind === "folder").length;
+  return childFolderNodes(node).length;
+}
+
+/** Las carpetas que cuelgan directamente, para la tabla del lint. */
+export function childFolderNodes(node: TreeNode): TreeNode[] {
+  return (node.children ?? []).filter((child) => child.kind === "folder");
+}
+
+/** Las carpetas del subárbol, la propia aparte. */
+export function countFolders(node: TreeNode): number {
+  return childFolderNodes(node).reduce(
+    (total, child) => total + 1 + countFolders(child),
+    0
+  );
 }
 
 /** Los niveles de ruta que tiene la carpeta: `packages/ui` son dos. */

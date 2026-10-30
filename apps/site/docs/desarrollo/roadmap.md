@@ -108,6 +108,9 @@ flowchart TD
   subgraph lint["El lint"]
     M65["M65 · El lint, en el mapa"]
   end
+  subgraph proyecto["El proyecto"]
+    M66["M66 · El proyecto tiene su ficha"]
+  end
   M3 --> M4
   M7 --> M8
   M12 --> M13
@@ -118,6 +121,7 @@ flowchart TD
   M1 -.-> M63
   M1 -.-> M64
   M1 -.-> M65
+  M65 -.-> M66
 ```
 
 | Fase | Qué | Estado | Decisión |
@@ -189,6 +193,7 @@ flowchart TD
 | M63 | La carpeta tiene su ficha | en curso | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
 | M64 | El mapa de lo que no es código | en curso | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
 | M65 | El lint, en el mapa | en curso | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
+| M66 | El proyecto tiene su ficha | en curso | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

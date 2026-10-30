@@ -248,7 +248,9 @@ export function useCodarchApp(
       // hoja de la carpeta no se queda abierta hablando de un fichero.
       if (index !== null) {
         setSelectedFolder(null);
-        setTab((current) => (current === "folder" ? "file" : current));
+        setTab((current) =>
+          current === "folder" || current === "project" ? "file" : current
+        );
       }
     },
     [view.model]

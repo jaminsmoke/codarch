@@ -38,10 +38,20 @@ describe("estado de vista en la URL", () => {
     expect(parseViewState("?tab=inventario").tab).toBeNull();
   });
 
-  it("reconoce las tres pestañas", () => {
+  it("reconoce las cuatro pestañas", () => {
     expect(parseViewState("?tab=file").tab).toBe("file");
     expect(parseViewState("?tab=folder").tab).toBe("folder");
+    expect(parseViewState("?tab=project").tab).toBe("project");
     expect(parseViewState("?tab=changes").tab).toBe("changes");
+  });
+
+  it("la hoja del proyecto se puede enlazar", () => {
+    const search = buildSearch(
+      { ...view, tab: "project" },
+      { snapshotUrl: null, reportUrl: null }
+    );
+    expect(search).toContain("tab=project");
+    expect(parseViewState(search).tab).toBe("project");
   });
 
   it("lleva la hoja de la carpeta en la URL", () => {

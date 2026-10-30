@@ -6,6 +6,7 @@ describe("la barra del inspector", () => {
     expect(INSPECTOR_SECTIONS.map((section) => section.id)).toEqual([
       "file",
       "folder",
+      "project",
       "changes"
     ]);
   });
@@ -22,6 +23,7 @@ describe("la barra del inspector", () => {
   it("el panel se anuncia con el nombre de su apartado", () => {
     expect(inspectorLabel("file")).toBe("Fichero");
     expect(inspectorLabel("folder")).toBe("Carpeta");
+    expect(inspectorLabel("project")).toBe("Proyecto");
     expect(inspectorLabel("changes")).toBe("Cambios");
   });
 });
