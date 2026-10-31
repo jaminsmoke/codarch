@@ -1,0 +1,792 @@
+/* Los símbolos del fichero: lo que hay dentro. */
+.symbol-list {
+  padding-top: 2px;
+}
+
+/* Cada grupo de símbolos es un plegable más, con el mismo tamaño y el mismo
+   punto que las secciones: antes era una tira de 8,5 px en versalitas y
+   desentonaba con los de Cambios (ADR 0067). El color del tipo vive en el
+   punto, no en el título. */
+.symbol-group-function {
+  --section-tint: var(--cobalt);
+}
+
+.symbol-group-class {
+  --section-tint: var(--rust);
+}
+
+.symbol-group-interface,
+.symbol-group-type {
+  --section-tint: var(--patina);
+}
+
+.symbol-group-enum {
+  --section-tint: var(--violet);
+}
+
+.symbol-group-variable {
+  --section-tint: var(--state-slate);
+}
+
+.symbol-group > .collapsible-body {
+  padding-bottom: 0;
+}
+
+/* El código real de un símbolo, con sus números de línea. */
+.symbol-entry,
+.member-entry {
+  margin: 0;
+}
+
+.symbol-code {
+  margin: 2px 0 6px;
+}
+
+.symbol-code-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.symbol-code-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.symbol-code-actions button {
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted);
+  font: 500 8.5px/1.5 var(--mono);
+  cursor: pointer;
+}
+
+.symbol-code-actions button:hover {
+  color: var(--ink);
+  border-color: var(--muted);
+}
+
+.symbol-row.is-open,
+.member-row.is-open {
+  background: color-mix(in srgb, var(--cobalt) 9%, transparent);
+  box-shadow:
+    inset 2px 0 0 var(--cobalt),
+    inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.code-panel {
+  padding-top: 4px;
+}
+
+/* La muestra se aprieta para caber de ancho: letra y canaleta más justas, y
+   la sangría común quitada en el marcado. Si aun así una línea no cabe, se
+   envuelve bajo su columna: el panel es estrecho y una barra horizontal
+   escondería media función. */
+.code-view {
+  max-height: 300px;
+  margin: 0;
+  overflow: auto;
+  padding: 6px 8px;
+  border: 1px solid #1c2432;
+  border-radius: 4px;
+  background: #070a0f;
+  color: #d6deeb;
+  font: 10px/1.4 var(--mono);
+  tab-size: 2;
+}
+
+/* Los colores de los tokens sobre el fondo negro del bloque. */
+.code-view .token.comment,
+.code-view .token.prolog,
+.code-view .token.doctype,
+.code-view .token.cdata {
+  color: #637777;
+  font-style: italic;
+}
+
+.code-view .token.punctuation {
+  color: #89ddff;
+}
+
+.code-view .token.property,
+.code-view .token.tag,
+.code-view .token.constant,
+.code-view .token.symbol,
+.code-view .token.deleted {
+  color: #f78c6c;
+}
+
+.code-view .token.boolean,
+.code-view .token.number {
+  color: #ff5874;
+}
+
+.code-view .token.selector,
+.code-view .token.attr-name,
+.code-view .token.string,
+.code-view .token.char,
+.code-view .token.builtin {
+  color: #ecc48d;
+}
+
+.code-view .token.operator,
+.code-view .token.entity,
+.code-view .token.url {
+  color: #89ddff;
+}
+
+.code-view .token.atrule,
+.code-view .token.attr-value,
+.code-view .token.keyword {
+  color: #c792ea;
+}
+
+.code-view .token.function,
+.code-view .token.class-name {
+  color: #82aaff;
+}
+
+.code-view .token.regex,
+.code-view .token.important,
+.code-view .token.variable {
+  color: #addb67;
+}
+
+/* El editor de la ficha (ADR 0086): el marco, el fondo y la tipografía son
+   los del `.code-view`, y los colores de los tokens son las clases `.token.*`
+   de aquí abajo. El editor solo aporta la canaleta y el pintado por viewport. */
+.code-editor {
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+.code-editor .cm-editor {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.code-editor .cm-editor.cm-focused {
+  outline: none;
+}
+
+.code-editor .cm-scroller {
+  max-height: 300px;
+  overflow: auto;
+  padding: 6px 8px;
+  font: inherit;
+  line-height: inherit;
+}
+
+.code-editor .cm-content {
+  padding: 0;
+  font: inherit;
+}
+
+.code-editor .cm-gutters {
+  min-width: 34px;
+  border: 0;
+  background: transparent;
+  color: #566273;
+  font: inherit;
+}
+
+.code-editor .cm-lineNumbers .cm-gutterElement {
+  min-width: 34px;
+  padding: 0 6px 0 0;
+  text-align: right;
+  user-select: none;
+}
+
+.code-editor .cm-line {
+  padding: 0;
+}
+
+.code-editor .cm-content ::selection {
+  background: #2b3a52;
+}
+
+/* El fichero abierto ocupa el escenario, donde estaba el mapa (ADR 0087):
+   la ruta sigue encima y el editor se lleva el alto. */
+.code-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 10px 12px;
+}
+
+.code-stage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font: 500 9px/1.3 var(--mono);
+  color: var(--muted);
+}
+
+.code-stage-where {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.code-stage-where .mono {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code-stage-head .code-back {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.code-stage-head .code-back:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.code-stage-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.code-stage .code-editor {
+  height: 100%;
+  min-height: 0;
+}
+
+.code-stage .code-editor .cm-editor {
+  height: 100%;
+}
+
+.code-stage .code-editor .cm-scroller {
+  max-height: none;
+  height: 100%;
+  overflow: auto;
+}
+
+.code-note {
+  margin: 4px 0 0;
+}
+
+.symbol-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0 2px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.symbol-group-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.symbol-group-count {
+  color: var(--muted);
+}
+
+.symbol-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px 62px 18px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.symbol-row:hover {
+  background: color-mix(in srgb, var(--cobalt) 6%, transparent);
+}
+
+.symbol-row.is-selected {
+  background: color-mix(in srgb, var(--cobalt) 14%, transparent);
+}
+
+/* La línea y la complejidad, en su columna: el número se lee de un vistazo. */
+.symbol-line,
+.member-line {
+  color: var(--muted);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.symbol-score {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.symbol-bar {
+  flex: 1 1 auto;
+  height: 4px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.symbol-bar i {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+}
+
+/* La vida de un símbolo: sus versiones en el tiempo. */
+.chain-list {
+  padding-top: 2px;
+}
+
+.chain-row {
+  display: grid;
+  grid-template-columns: 74px auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.chain-date {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.chain-events {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.chain-event {
+  font: 500 8.5px/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.chain-created {
+  color: var(--state-teal);
+  border-color: color-mix(in srgb, var(--state-teal) 40%, transparent);
+}
+
+.chain-changed {
+  color: var(--state-rust);
+  border-color: color-mix(in srgb, var(--state-rust) 40%, transparent);
+}
+
+.chain-renamed,
+.chain-moved {
+  color: var(--state-blue);
+  border-color: color-mix(in srgb, var(--state-blue) 40%, transparent);
+}
+
+.chain-removed {
+  color: var(--rust);
+  border-color: color-mix(in srgb, var(--rust) 40%, transparent);
+}
+
+.chain-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.symbol-kind {
+  font: 500 8.5px/1.5 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.symbol-function {
+  color: var(--state-blue);
+  border-color: color-mix(in srgb, var(--state-blue) 40%, transparent);
+}
+
+.symbol-class {
+  color: var(--state-rust);
+  border-color: color-mix(in srgb, var(--state-rust) 35%, transparent);
+}
+
+.symbol-interface,
+.symbol-type {
+  color: var(--state-teal);
+  border-color: color-mix(in srgb, var(--state-teal) 35%, transparent);
+}
+
+.symbol-enum {
+  color: var(--state-violet);
+  border-color: color-mix(in srgb, var(--state-violet) 35%, transparent);
+}
+
+.symbol-variable {
+  color: var(--state-slate);
+  border-color: color-mix(in srgb, var(--state-slate) 40%, transparent);
+}
+
+.surface-list,
+.member-list {
+  padding-top: 2px;
+}
+
+.surface-group + .surface-group,
+.member-group + .member-group {
+  margin-top: 4px;
+}
+
+/* La superficie, en una línea por arista: la flecha dice la dirección, el
+   origen va en mono y los nombres, en fichas (2026-10-25). */
+.surface-row {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1.1fr) minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+/* Los nombres de un import van en su propia línea: en la columna de 96 px solo
+   se veía el primero y el resto se cortaba por la mitad. La fuente y sus
+   etiquetas se quedan arriba; los nombres usan el ancho entero. */
+.surface-row-imports {
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "dir source tags"
+    "dir names names";
+  row-gap: 3px;
+  align-items: start;
+}
+
+.surface-row-imports .surface-dir {
+  grid-area: dir;
+  padding-top: 2px;
+}
+
+.surface-row-imports .surface-source {
+  grid-area: source;
+}
+
+.surface-row-imports .surface-tags {
+  grid-area: tags;
+}
+
+.surface-row-imports .surface-names {
+  grid-area: names;
+  flex-wrap: wrap;
+  overflow: visible;
+  white-space: normal;
+  gap: 4px;
+}
+
+/* En una exportación manda el nombre: la ficha no encoge y el «desde …» cede.
+   Antes la columna del detalle se reservaba su 1fr aunque estuviera vacía y
+   dejaba el nombre en 103 px, recortado. */
+.surface-row-exports {
+  display: flex;
+  gap: 7px;
+}
+
+.surface-row-exports .surface-dir {
+  flex: none;
+  width: 12px;
+}
+
+.surface-row-exports .surface-name {
+  flex: 0 0 auto;
+}
+
+.surface-row-exports .surface-detail {
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.surface-row-exports .surface-tags {
+  flex: none;
+  margin-left: auto;
+}
+
+.surface-dir {
+  color: var(--patina);
+  font: 600 10px/1 var(--mono);
+  text-align: center;
+}
+
+.surface-dir-out {
+  color: var(--cobalt);
+}
+
+.surface-source {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.surface-names {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.surface-detail {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.surface-tags {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.surface-name {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font: 500 9.5px/1.5 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.surface-badge {
+  padding: 0 3px;
+  border: 1px solid color-mix(in srgb, var(--patina) 35%, transparent);
+  border-radius: 2px;
+  font: 500 8px/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--patina);
+}
+
+.member-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 34px 18px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.member-row:hover {
+  background: color-mix(in srgb, var(--cobalt) 6%, transparent);
+}
+
+.member-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.member-kind {
+  font-size: 8px;
+  color: var(--violet);
+  border-color: color-mix(in srgb, var(--violet) 35%, transparent);
+}
+
+/* Las aristas del fichero en el grafo (ADR 0068). */
+.dependency-list {
+  padding-top: 2px;
+}
+
+.dependency-group + .dependency-group {
+  margin-top: 7px;
+}
+
+.dependency-row {
+  display: block;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.dependency-row:hover {
+  background: color-mix(in srgb, var(--cobalt) 6%, transparent);
+}
+
+.dependency-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.dependency-path {
+  display: block;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El contenido de una carpeta en su ficha (ADR 0092). La lista es su propio
+   contenedor —filete y papel de la hoja, con su scroll— y no toma nada del
+   selector de carpetas, que es otra pieza: compartían nombre y la ficha se
+   quedaba con el canto del diálogo. Cada fila es una rejilla propia: la barra
+   mide la parte del área y no se mueve de fila a fila. */
+.folder-content {
+  min-height: 120px;
+  max-height: 340px;
+  padding-top: 2px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+}
+
+.folder-head,
+.folder-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 30px 32px;
+  gap: 6px;
+  align-items: center;
+}
+
+.folder-head {
+  padding: 0 4px 4px 7px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.folder-head span:nth-child(2) {
+  grid-column: span 3;
+}
+
+.folder-row {
+  width: 100%;
+  padding: 3px 4px 3px 7px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--line) 35%, transparent);
+}
+
+.folder-row:hover {
+  background: color-mix(in srgb, var(--cobalt) 6%, transparent);
+}
+
+.folder-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.folder-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.folder-row-folder .folder-row-name {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.folder-bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+}
+
+.folder-bar i {
+  display: block;
+  height: 100%;
+  background: var(--cobalt);
+  opacity: 0.55;
+}
+
+.folder-row-folder .folder-bar i {
+  background: var(--patina);
+  opacity: 0.8;
+}
+
+.folder-share,
+.folder-files {
+  color: var(--muted);
+  font-size: 9.5px;
+  text-align: right;
+}
+
+.symbol-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.symbol-complexity {
+  color: var(--ink);
+}
+

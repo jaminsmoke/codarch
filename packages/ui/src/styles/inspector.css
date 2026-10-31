@@ -1,0 +1,726 @@
+/* Una lista corta con barra: los ficheros más tocados del histórico y los
+   símbolos más reescritos del raíl. Son la misma fila, midan commits o
+   reescrituras (ADR 0078). */
+.mini-list {
+  display: grid;
+  gap: 2px;
+}
+
+.mini-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 34px;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 0;
+  border: 0;
+  border-radius: 1px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mini-row:hover,
+.mini-row.is-selected {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.mini-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.mini-track {
+  height: 5px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.mini-track i {
+  display: block;
+  height: 100%;
+}
+
+.mini-row .mono {
+  text-align: right;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* La línea del tiempo del repositorio. */
+.history-list {
+  display: grid;
+  gap: 1px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 5px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.history-row:hover {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.history-date {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--ink);
+}
+
+.history-count {
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
+.inspector h2 {
+  margin: 6px 0 14px;
+  font: 650 27px/1.08 var(--display);
+  letter-spacing: -0.03em;
+  /* `anywhere` partía «CollapsibleSection.tsx» a mitad de palabra y dejaba un
+     «sx» colgando. La cabecera marca el punto de la extensión con `<wbr>` y
+     solo parte ahí cuando no cabe. */
+  overflow-wrap: break-word;
+}
+
+.inspector-path {
+  font: 10.5px/1.45 var(--mono);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.inspector-empty h2 {
+  margin-top: 6px;
+}
+
+.inspector-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.inspector-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.inspector-status .mono {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+
+.metric {
+  padding: 9px 10px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.metric span {
+  display: block;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metric b {
+  display: block;
+  margin-top: 3px;
+  font: 600 18px/1 var(--display);
+  letter-spacing: -0.02em;
+}
+
+/* El galón de un desplegable: la misma caja en toda la app (ADR 0079).
+   Vale para una sección, un grupo de símbolos, un fichero del cambio o un
+   símbolo que enseña su código, y toma el tinte del sitio donde vive: el del
+   estado de la fila si lo hay y, si no, el de la sección. */
+.caret {
+  --caret-tint: var(--row-tint, var(--section-tint, var(--muted)));
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid color-mix(in srgb, var(--caret-tint) 38%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--caret-tint) 8%, transparent);
+  color: var(--caret-tint);
+  font: 11px/1 var(--mono);
+}
+
+/* Las secciones plegables (ADR 0061). El título es un botón: en negrita,
+   con su cuenta al lado y el resumen a la derecha cuando está cerrada. */
+.collapsible {
+  margin-top: 10px;
+}
+
+.collapsible-head {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 7px;
+  padding: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collapsible-head:hover .collapsible-title {
+  color: var(--section-tint, var(--cobalt));
+}
+
+/* Cada sección de la ficha tiene su color, como las lentes del mapa: un punto
+   en el título y nada más (2026-10-25). */
+.section-rules {
+  --section-tint: var(--debt);
+}
+
+/* El lint es una sección propia de las fichas de código (ADR 0104). */
+.section-lint {
+  --section-tint: var(--debt);
+}
+
+.section-metrics {
+  --section-tint: var(--ink);
+}
+
+.section-symbols {
+  --section-tint: var(--cobalt);
+}
+
+.section-surface {
+  --section-tint: var(--patina);
+}
+
+.section-members {
+  --section-tint: var(--violet);
+}
+
+.section-deps {
+  --section-tint: var(--ochre);
+}
+
+.section-chain {
+  --section-tint: var(--rust);
+}
+
+/* Cambios usa el mismo idioma de sección que la ficha (ADR 0069). */
+.section-changes-rules {
+  --section-tint: var(--debt);
+}
+
+.section-hotspots {
+  --section-tint: var(--ochre);
+}
+
+/* La deuda de migración y el crecimiento de la métrica comparten sección y
+   tinte (ADR 0078). */
+.section-changes-debt {
+  --section-tint: var(--rust);
+}
+
+.section-changes-symbols {
+  --section-tint: var(--cobalt);
+}
+
+.section-cycles {
+  --section-tint: var(--violet);
+}
+
+/* Ficheros lleva los tres estados dentro: el color vive en la fila, no en el
+   punto de la sección (ADR 0070). */
+.section-files {
+  --section-tint: var(--ink);
+}
+
+/* Los totales del cambio: base, head y delta, una fila por métrica (M52). */
+.section-totals {
+  --section-tint: var(--ink);
+}
+
+.totals-table {
+  display: grid;
+  gap: 1px;
+}
+
+.totals-cols,
+.totals-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px 58px 64px;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  text-align: right;
+}
+
+.totals-cols {
+  padding-bottom: 2px;
+  font: 9px/1 var(--mono);
+  color: var(--muted);
+}
+
+.totals-cols span:first-child,
+.totals-name {
+  text-align: left;
+}
+
+.totals-row {
+  padding: 2px 0;
+  color: var(--ink-soft);
+}
+
+.totals-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.totals-row .mono {
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cada sección lleva su punto, del color que declare con `--section-tint`; los
+   grupos de símbolos también, como cualquier plegable de la ficha. */
+.collapsible > .collapsible-head::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--section-tint, var(--muted));
+}
+
+.collapsible-head:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+/* El galón cierra la cabecera: el mismo control que el de una fila de Cambios.
+   Con resumen a la derecha, el resumen se lleva el hueco y el galón le sigue. */
+.collapsible-caret {
+  margin-left: auto;
+}
+
+.collapsible-summary + .collapsible-caret {
+  margin-left: 8px;
+}
+
+.collapsible-head:hover .collapsible-caret {
+  background: color-mix(in srgb, var(--caret-tint) 20%, transparent);
+}
+
+.collapsible-title {
+  /* El título no encoge: primero se recorta el resumen, que tiene su elipsis.
+     Con `min-width:0` en los dos, el título perdía letras antes que el resumen. */
+  flex: 0 0 auto;
+  max-width: 62%;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 12px/1.2 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsible-count {
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8.5px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+.collapsible-summary {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
+  margin-left: auto;
+  overflow: hidden;
+  font: 500 9.5px/1.2 var(--mono);
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsible-body {
+  padding-bottom: 2px;
+}
+
+/* Una sección de la ficha, de la carpeta, del proyecto y de Cambios se delimita
+   con el mismo contenedor que el contenido de la carpeta (ADR 0092): el filete
+   de la casa y el papel de la hoja. Sin él, las secciones se leían como filas
+   sueltas y los cantos de las tablas parecían del panel. Vale para las tres
+   hojas: la tabla de métricas se lee igual en fichero, carpeta y proyecto. Solo
+   la sección de primer nivel: los grupos de dentro —un grupo de símbolos, un
+   fichero de un cambio— viven en el contenedor de su sección, no en uno
+   propio. */
+.inspector-file > .collapsible > .collapsible-body,
+.change-panel > .collapsible > .collapsible-body {
+  padding: 6px 8px 4px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+}
+
+/* Contenido ya trae su marco —la lista con scroll de la carpeta (ADR 0092)—:
+   con el de la sección serían dos cantos alrededor de lo mismo. */
+.inspector-file > .collapsible.section-content > .collapsible-body {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/* Esa línea era la única frontera que tenía una sección: con el contenedor ya
+   puesto, la misma pleca sobra y deja doble canto. Los grupos de dentro la
+   conservan, que ahí sí separan filas. */
+.inspector-file > .collapsible > .collapsible-head,
+.change-panel > .collapsible > .collapsible-head {
+  border-top: 0;
+}
+
+/* Reglas es una sección con dos subsecciones —dominio y deuda de migración—.
+   La etiqueta lleva el tinte de la sección, la pleca la separa y la cuenta va
+   en palabras a la derecha: son subsecciones, no secciones hermanas. */
+.rule-group + .rule-group {
+  margin-top: 10px;
+}
+
+.rule-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0 3px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rule-group-title {
+  color: var(--section-tint, var(--muted));
+}
+
+.rule-group-summary {
+  min-width: 0;
+  overflow: hidden;
+  font: 500 9px/1.2 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La fórmula de la deuda, en una línea: la explicación larga vive en el title. */
+.rule-formula {
+  overflow: hidden;
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La tabla de la ficha, compacta: cabecera en versalitas y una fila por línea,
+   con el mismo ritmo que Métricas (2026-10-25). */
+.card-head {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  padding: 0 6px 3px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card-head > span {
+  text-align: right;
+}
+
+.card-head > span:first-child {
+  text-align: left;
+}
+
+.card-head-symbols {
+  grid-template-columns: minmax(0, 1fr) 34px 62px;
+  /* La columna del galón y el gap: así la cabecera cierra donde las filas. */
+  padding-right: 32px;
+}
+
+.card-head-members {
+  grid-template-columns: 40px minmax(0, 1fr) 34px;
+  padding-right: 32px;
+}
+
+.card-note {
+  margin: 6px 0 0;
+  line-height: 1.35;
+}
+
+/* La tabla de métricas de la ficha del fichero (ADR 0060). */
+.metrics-table {
+  margin-top: 2px;
+}
+
+.metrics-head,
+.metrics-row {
+  display: grid;
+  /* La columna del nombre manda: con 54/52 «Nivel de dependencia» perdía
+     letras. Cada fila es su propia rejilla, así que el valor va fijo: con
+     `auto` la barra cambiaba de sitio en cada fila. «100/100» mide 42. */
+  grid-template-columns: minmax(0, 1fr) 46px 44px;
+  gap: 6px;
+  align-items: center;
+}
+
+.metrics-head {
+  padding: 0 4px 4px 7px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.metrics-head span:nth-child(2) {
+  text-align: center;
+}
+
+.metrics-head span:last-child {
+  text-align: right;
+}
+
+.metrics-rows {
+  display: grid;
+  gap: 1px;
+}
+
+.metrics-row {
+  width: 100%;
+  padding: 3px 4px 3px 7px;
+  border: 0;
+  box-shadow: inset 2px 0 0 transparent;
+  background: transparent;
+  text-align: left;
+  font-size: 11px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.metrics-row:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+.metrics-row:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 1px;
+}
+
+.metrics-row.is-active {
+  box-shadow: inset 2px 0 0 var(--cobalt);
+  background: rgba(47, 111, 237, 0.07);
+}
+
+/* La métrica que decide el área del mapa se pinta entera: sin insignia, el
+   verde dice cuál manda en el tamaño. Si además es la del color, conserva la
+   muesca azul de la izquierda. */
+.metrics-row.is-area {
+  background: color-mix(in srgb, var(--patina) 14%, transparent);
+}
+
+.metrics-row.is-area:hover {
+  background: color-mix(in srgb, var(--patina) 22%, transparent);
+}
+
+.metrics-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.metric-help {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font: 600 8px/1 var(--mono);
+  cursor: help;
+}
+
+.metrics-bar {
+  height: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.metrics-bar i {
+  display: block;
+  height: 100%;
+  background: var(--muted);
+}
+
+/* El color solo aparece cuando «menos es mejor» y el valor pesa (ADR 0060). */
+.metrics-watch .metrics-bar i {
+  background: var(--ochre);
+}
+
+.metrics-debt .metrics-bar i {
+  background: var(--debt);
+}
+
+.metrics-value {
+  justify-self: end;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font: 600 11px/1 var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.metrics-value em {
+  font-size: 8.5px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.metrics-watch .metrics-value {
+  color: var(--ochre);
+}
+
+.metrics-debt .metrics-value {
+  color: var(--debt);
+}
+
+.metrics-row.is-empty .metrics-value {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.metrics-note {
+  margin: 7px 0 0;
+  line-height: 1.35;
+}
+
+/* El control del live, en el header ✓. */
+.live-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.live-toggle i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  box-shadow: 0 0 0 3px transparent;
+  transition: background 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.live-toggle.is-live i {
+  background: var(--patina);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--patina) 22%, transparent);
+}
+
+/* El botón de ajustes, en el header ✓. */
+/* Los controles de zoom: al pie del escenario, fuera del mapa ✓. */
+.map-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-right: 14px;
+  padding: 1px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--panel);
+}
+
+.map-controls button {
+  min-width: 19px;
+  height: 18px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 10px/1 var(--mono);
+  cursor: pointer;
+}
+
+.map-controls .map-fit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  padding: 0;
+}
+
+.map-controls button:hover:not(:disabled) {
+  background: var(--shade-strong);
+  color: var(--ink);
+}
+
+.map-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-zoom-level {
+  min-width: 33px;
+  text-align: center;
+  font: 500 9.5px/1 var(--mono);
+  color: var(--muted);
+}
+

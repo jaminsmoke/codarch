@@ -1,0 +1,425 @@
+.strata-legend {
+  display: grid;
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.strata-row {
+  display: grid;
+  grid-template-columns: 7px 1fr auto;
+  gap: 7px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.strata-row i,
+.legend i,
+.status-chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.strata-row .mono {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  margin-top: 11px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.status-chip b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legend {
+  display: grid;
+  gap: 6px;
+}
+
+.legend > div {
+  display: grid;
+  grid-template-columns: 7px 1fr auto;
+  gap: 7px;
+  align-items: center;
+  font-size: 11px;
+}
+
+.legend .mono {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gradient {
+  height: 9px;
+  border: 1px solid var(--line);
+  border-radius: 1px;
+}
+
+.gradient.risk {
+  background: linear-gradient(
+    90deg,
+    var(--ramp-cold) 0%,
+    #e9cd98 35%,
+    #d68a54 65%,
+    #a42e2c 100%
+  );
+}
+
+.gradient.metric {
+  background: linear-gradient(
+    90deg,
+    var(--ramp-cold) 0%,
+    var(--ramp-cool) 50%,
+    var(--ramp-deep) 100%
+  );
+}
+
+/* La deuda de lint: el tono de limpio no es el papel, para que se lea como
+   una lente y no como un mapa sin pintar. Los tramos son los de `debtColor`. */
+.gradient.lint {
+  background: linear-gradient(
+    90deg,
+    #9fb8ae 0%,
+    #d9c07a 35%,
+    #d68a54 70%,
+    #a42e2c 100%
+  );
+}
+
+.gradient-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font: 10px/1 var(--mono);
+  color: var(--muted);
+}
+
+.stage {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 22px 12px;
+  background: var(--paper);
+}
+
+/* La banda del proyecto: pegada a la cabecera, con el nombre y las cifras.
+   Es el marco que antes ocupaba el alto del escenario y se lleva la lectura
+   del proyecto fuera del mapa (ADR 0061). */
+.project-band {
+  position: relative;
+  z-index: 19;
+  height: var(--band-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  overflow: hidden;
+  background: #1b262e;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  color: #f3f6f5;
+}
+
+.project-ident {
+  /* El nombre del proyecto manda: no encoge cuando la banda se llena; los que
+     ceden son el snapshot y las migas, que tienen su elipsis. */
+  flex: none;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.project-label {
+  font: 500 8px/1.1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #93a2a8;
+}
+
+.project-band h1 {
+  margin: 0;
+  max-width: 360px;
+  overflow: hidden;
+  font: 650 17px/1.1 var(--display);
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-kpis {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: none;
+}
+
+.project-kpis .kpi {
+  min-width: 62px;
+  padding: 0 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.project-kpis .kpi span {
+  font-size: 8px;
+  color: #93a2a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-kpis .kpi b {
+  font: 600 15px/1 var(--display);
+  color: #f3f6f5;
+}
+
+.project-kpis .kpi-debt b {
+  color: #ff9f9f;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpi span {
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.kpi b {
+  font: 600 20px/1 var(--display);
+  letter-spacing: -0.02em;
+}
+
+.kpi-debt b {
+  color: var(--debt);
+}
+
+.map-frame {
+  position: relative;
+  flex: 1;
+  min-height: 440px;
+  border: 1px solid var(--line-strong);
+  background: var(--sheet-soft);
+  box-shadow:
+    0 1px 0 var(--highlight) inset,
+    0 10px 30px var(--shadow-soft);
+  overflow: hidden;
+}
+
+.map-inner {
+  width: 100%;
+  height: 100%;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cell {
+  cursor: pointer;
+}
+
+.cell:hover {
+  filter: brightness(1.08);
+}
+
+.cell:focus-visible {
+  outline: none;
+  stroke: var(--rust);
+  stroke-width: 2.5;
+}
+
+/* Cursor de teclado: por dónde va el usuario entre celdas y carpetas. */
+.cell.is-cursor,
+.folder-block.is-cursor {
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
+/* Un clic selecciona; se entra con doble clic (ADR 0092). */
+.folder-block {
+  cursor: pointer;
+}
+
+.folder-block:hover {
+  fill: var(--shade);
+}
+
+.folder-block:focus-visible {
+  outline: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
+.folder-hit {
+  cursor: pointer;
+}
+
+.folder-hit:focus-visible {
+  outline: none;
+  stroke: var(--rust);
+  stroke-width: 2;
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 30px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty.error {
+  color: var(--debt);
+}
+
+.empty.error span {
+  color: var(--muted);
+  max-width: 520px;
+}
+
+.drop-hint {
+  position: absolute;
+  inset: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--cobalt);
+  background: rgba(47, 111, 237, 0.08);
+  color: var(--cobalt);
+  font: 600 12px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  font: 10px/1.3 var(--mono);
+  color: var(--muted);
+}
+
+.breadcrumb-sep {
+  color: var(--line-strong);
+}
+
+.breadcrumb-current {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* La ruta vive en el escenario y está siempre: sobre el mapa entero dice
+   «Todo» y, con una carpeta enfocada, cada tramo se pulsa para navegar
+   (ADR 0085). En la banda describía el proyecto; aquí navega el mapa. */
+.stage-path {
+  flex: none;
+  margin: 0 0 8px;
+}
+
+/* La flecha de volver no lleva subrayado: es un botón, no una miga. */
+.breadcrumb button.breadcrumb-up {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  border-bottom: 0;
+  color: var(--muted);
+}
+
+.breadcrumb button.breadcrumb-up:hover {
+  color: var(--ink);
+}
+
+.breadcrumb button {
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.breadcrumb button:hover {
+  border-bottom-color: var(--ink);
+}
+
+.stage-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 9px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.stage-foot .mono {
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.progress-cell .detail-note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-cell .button {
+  flex: none;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  font-size: 9px;
+}
+

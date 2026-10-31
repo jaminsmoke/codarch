@@ -1,0 +1,191 @@
+:root {
+  color-scheme: light;
+  --paper: #eef1f2;
+  --panel: #f6f8f8;
+  --ink: #121a20;
+  --ink-soft: #35434c;
+  /* La tinta tenue se mide como el resto: 5,0:1 sobre el panel y 4,7:1 sobre
+     el papel. El valor anterior se quedaba en 4,4:1 sobre el panel. */
+  --muted: #5f6d76;
+  --line: #c8d1d5;
+  --line-strong: #9fadb4;
+  --cobalt: #2f6fed;
+  --ochre: #d9a21b;
+  --rust: #d95d39;
+  --violet: #7b61ff;
+  --patina: #3f8f7a;
+  --debt: #d64545;
+  /* El verde y el rojo de un diff, más saturados que el patina y la deuda:
+     en una cifra de 9,5 px lo que se lee es el color, no el tinte. Los dos
+     siguen por encima de 4,5:1 sobre su banda (medido: 4,60 y 4,77). */
+  --diff-add: #0c713f;
+  --diff-del: #bd1a1a;
+  /* Las hojas de la app: lo que se escribe encima del papel —campos, listas,
+     menús—, la pista de una barra, los velos de lo elegido y lo que se hunde.
+     Son los colores que cambian de lado en el tema oscuro (ADR 0084). */
+  --sheet: #ffffff;
+  --sheet-soft: #f8fafa;
+  --track: #e0e6e8;
+  --shade: rgba(18, 26, 32, 0.05);
+  --shade-soft: rgba(18, 26, 32, 0.035);
+  --shade-strong: rgba(18, 26, 32, 0.07);
+  --veil: rgba(255, 255, 255, 0.04);
+  --sunken: rgba(0, 0, 0, 0.14);
+  --glow: rgba(255, 255, 255, 0.55);
+  --highlight: rgba(255, 255, 255, 0.8);
+  --shadow: rgba(18, 26, 32, 0.18);
+  --shadow-soft: rgba(18, 26, 32, 0.05);
+  --shadow-deep: rgba(18, 26, 32, 0.28);
+  --button: #f3f6f5;
+  --button-hover: #ffffff;
+  --button-ink: #121a20;
+  /* Las rampas de la leyenda: el extremo frío se mide contra el papel. */
+  --ramp-cold: #ebe7df;
+  --ramp-cool: #b9c9cf;
+  --ramp-deep: #355b6b;
+  /* Los estados de un símbolo y de su cadena, que son texto sobre la hoja. */
+  --state-teal: #0f766e;
+  --state-rust: #c2410c;
+  --state-blue: #2f6fed;
+  --state-violet: #6d28d9;
+  --state-slate: #64748b;
+  /* Lo que se dibuja sobre el papel del mapa. Las teselas llevan color
+     semántico y no cambian de tema; la retícula y las carpetas, sí. */
+  --cell-ink: #121a20;
+  --cell-edge: rgba(18, 26, 32, 0.26);
+  --folder-fill: rgba(18, 26, 32, 0.022);
+  --folder-edge: rgba(18, 26, 32, 0.25);
+  --folder-ink: rgba(18, 26, 32, 0.62);
+  --grid-line: rgba(18, 26, 32, 0.045);
+  /* El marco de la app: la cabecera y la barra de actividad del inspector. Va
+     oscuro aunque las hojas sean claras, y es lo que separa el armazón de lo
+     que se lee. Los cuatro valores viven aquí para que un tema los cambie en
+     un sitio, no en cada regla (ADR 0082). */
+  --frame: #121a20;
+  --frame-ink: #f3f6f5;
+  --frame-muted: #93a2a8;
+  --frame-edge: #05090c;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  /* El alto del marco de la app: cabecera y banda del proyecto (ADR 0061). */
+  --topbar-h: 64px;
+  --band-h: 52px;
+}
+
+/*
+ * El tema oscuro (ADR 0084): las hojas bajan y las tintas suben; los datos, no.
+ *
+ * Los colores con significado —las teselas del mapa, los lenguajes, los estados
+ * de migración, el verde y el rojo de un diff— se quedan donde están: un tema
+ * elige los colores, no los invierte. Lo que cambia es el papel, las tintas y
+ * lo que se dibuja sobre la hoja. Cada valor está medido en `tema.test.ts`
+ * contra papel, panel y hoja; un token que no pase 4,5:1 rompe la suite.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0e151a;
+  --panel: #131c22;
+  --ink: #e9eff1;
+  --ink-soft: #c3ced3;
+  --muted: #93a3ab;
+  --line: #26343c;
+  --line-strong: #3d4f59;
+  --cobalt: #7ba4ff;
+  --ochre: #e2b64a;
+  --rust: #f08a6c;
+  --violet: #ab97ff;
+  --patina: #6cc4a8;
+  --debt: #ff8b8b;
+  --diff-add: #4ed693;
+  --diff-del: #ff8f8f;
+  --sheet: #0a1116;
+  --sheet-soft: #0b1319;
+  --track: #22303a;
+  --shade: rgba(240, 246, 247, 0.06);
+  --shade-soft: rgba(240, 246, 247, 0.04);
+  --shade-strong: rgba(240, 246, 247, 0.09);
+  --veil: rgba(255, 255, 255, 0.07);
+  --sunken: rgba(0, 0, 0, 0.28);
+  --glow: rgba(255, 255, 255, 0.05);
+  --highlight: rgba(255, 255, 255, 0.06);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --shadow-soft: rgba(0, 0, 0, 0.35);
+  --shadow-deep: rgba(0, 0, 0, 0.62);
+  --button: #22313b;
+  --button-hover: #2c3d49;
+  --button-ink: #eef4f5;
+  --ramp-cold: #2a3740;
+  --ramp-cool: #6f858f;
+  --ramp-deep: #cfdae0;
+  --state-teal: #6cd0b4;
+  --state-rust: #f09b6b;
+  --state-blue: #7fa6ff;
+  --state-violet: #b39bff;
+  --state-slate: #9fb0bb;
+  --folder-fill: rgba(240, 246, 247, 0.045);
+  --folder-edge: rgba(240, 246, 247, 0.28);
+  --folder-ink: rgba(236, 243, 244, 0.72);
+  --grid-line: rgba(240, 246, 247, 0.06);
+  /* El armazón no se aclara: se oscurece. El borde sigue siendo el borde. */
+  --frame: #080d11;
+  --frame-ink: #eef4f5;
+  --frame-muted: #93a2a8;
+  --frame-edge: #020507;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--rust);
+  outline-offset: 2px;
+}
+
+#boot-error {
+  margin: 0;
+  padding: 24px;
+  background: #2b1111;
+  color: #ffd7d7;
+  font: 12px/1.5 var(--mono);
+  white-space: pre-wrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+

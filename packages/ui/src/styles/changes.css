@@ -1,0 +1,386 @@
+/* Las reglas del cambio, dentro de Cambios (ADR 0069). */
+.rules-meta {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.rules-meta b {
+  color: var(--ink);
+}
+
+.rules-rule-resolved {
+  opacity: 0.72;
+}
+
+.rules-detail {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  font: 9.5px/1.35 var(--mono);
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.change-rows {
+  display: grid;
+  /* Una sola columna que puede encogerse. Sin el `minmax(0, 1fr)` la columna
+     se mide por el contenido más ancho —el diff abierto, que no parte
+     líneas— y estira todas las filas del panel: el delta se sale por la
+     derecha y no se ve. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
+}
+
+/* La ruta lleva la voz: las dos columnas se reparten el ancho y el delta se
+   corta antes de comerse el nombre del fichero. */
+.change-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.change-row:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+/* La fila de Ficheros: letra, ruta y delta, en la misma columna para los tres
+   grupos (ADR 0070). El tinte del estado vive en la entrada entera, para que
+   el interior desplegado herede el mismo color. */
+.file-entry {
+  --row-tint: var(--muted);
+  min-width: 0;
+}
+
+.file-entry.is-added {
+  --row-tint: var(--patina);
+}
+
+.file-entry.is-changed {
+  --row-tint: var(--ochre);
+}
+
+.file-entry.is-removed {
+  --row-tint: var(--debt);
+}
+
+.file-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px;
+  /* La banda y la barra de la izquierda llevan el estado; el texto queda
+     legible porque el tinte es suave. */
+  padding: 2px 3px 2px 0;
+  border-radius: 2px;
+  box-shadow: inset 2px 0 0 var(--row-tint);
+  background: color-mix(in srgb, var(--row-tint) 12%, transparent);
+}
+
+.file-row:hover {
+  background: color-mix(in srgb, var(--row-tint) 24%, transparent);
+}
+
+/* La ruta y su delta: lo pulsable de la fila, que abre la ficha. */
+.file-open {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+  padding: 1px 2px 1px 6px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Un eliminado no está en el head: no hay ficha que abrir. */
+.file-open.is-static {
+  cursor: default;
+}
+
+/* El galón del desplegable: hermano de la ruta, nunca hijo. La caja es la de
+   `.caret`, con el tinte del estado de la fila y su propio cursor. */
+.file-ahead {
+  padding: 0;
+  cursor: pointer;
+}
+
+.file-ahead:hover .caret {
+  background: color-mix(in srgb, var(--caret-tint) 20%, transparent);
+}
+
+/* El hueco de una fila sin interior: reserva la columna y no promete nada. */
+.file-ahead.is-empty {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.file-ahead.is-empty:hover {
+  background: transparent;
+}
+
+/* El interior del fichero, sangrado bajo su fila. */
+.file-symbols {
+  margin: 2px 0 4px 12px;
+  padding: 2px 0 2px 8px;
+  border-left: 1px solid color-mix(in srgb, var(--row-tint) 45%, transparent);
+}
+
+.file-symbols-head {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+
+.file-symbols-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file-symbol {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.symbol-letter {
+  font: 600 8.5px/1 var(--mono);
+  text-align: center;
+}
+
+.symbol-letter.is-added {
+  color: var(--patina);
+}
+
+.symbol-letter.is-removed {
+  color: var(--debt);
+}
+
+.symbol-letter.is-changed {
+  color: var(--ochre);
+}
+
+.symbol-name {
+  overflow: hidden;
+  font: 10px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.symbol-lines {
+  display: inline-flex;
+  gap: 5px;
+  font-size: 9px;
+}
+
+/* La vista de diferencias: dos columnas de número, el signo y el código. Se
+   desplaza en horizontal, no parte las líneas. */
+.file-diff-view {
+  min-width: 0;
+  margin: 2px 0 6px 12px;
+  padding: 2px 0 2px 8px;
+  border-left: 1px solid color-mix(in srgb, var(--row-tint) 45%, transparent);
+}
+
+.diff-body {
+  overflow-x: auto;
+  padding: 2px 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  font: 9.5px/1.5 var(--mono);
+}
+
+.diff-line {
+  display: grid;
+  grid-template-columns: 24px 24px 10px minmax(0, 1fr);
+  min-width: max-content;
+  white-space: pre;
+}
+
+.diff-line.is-add {
+  background: color-mix(in srgb, var(--diff-add) 14%, transparent);
+}
+
+.diff-line.is-del {
+  background: color-mix(in srgb, var(--diff-del) 14%, transparent);
+}
+
+.diff-num {
+  padding-right: 4px;
+  color: var(--muted);
+  text-align: right;
+  user-select: none;
+}
+
+.diff-sign {
+  color: var(--line-strong);
+  text-align: center;
+  user-select: none;
+}
+
+.diff-line.is-add .diff-sign {
+  color: var(--diff-add);
+}
+
+.diff-line.is-del .diff-sign {
+  color: var(--diff-del);
+}
+
+.diff-text {
+  padding-right: 6px;
+  color: var(--ink-soft);
+}
+
+.diff-gap {
+  padding: 1px 6px;
+  color: var(--line-strong);
+  font-size: 9px;
+  user-select: none;
+}
+
+/* Una fila del balance de deuda: ruta y valores en la primera línea, y debajo
+   la barra con cuánto se movió, en la escala del mayor del grupo (ADR 0078). */
+.balance-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 7px;
+}
+
+.balance-bar {
+  grid-column: 1 / -1;
+  height: 3px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  overflow: hidden;
+}
+
+.balance-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 1px;
+}
+
+.balance-bar i.is-worse {
+  background: var(--debt);
+}
+
+.balance-bar i.is-better {
+  background: var(--patina);
+}
+
+/* Las cifras de un símbolo hablan el mismo idioma que el delta del fichero. */
+.symbol-delta {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.symbol-delta.is-changed {
+  color: var(--muted);
+}
+
+.change-status {
+  font: 600 9px/1 var(--mono);
+  text-align: center;
+}
+
+.change-status.is-added {
+  color: var(--patina);
+}
+
+.change-status.is-changed {
+  color: var(--ochre);
+}
+
+.change-status.is-removed {
+  color: var(--debt);
+}
+
+/* Cada grupo tiñe su cabecera con el color de su estado. */
+.change-group.is-added {
+  --section-tint: var(--patina);
+}
+
+.change-group.is-changed {
+  --section-tint: var(--ochre);
+}
+
+.change-group.is-removed {
+  --section-tint: var(--debt);
+}
+
+.change-group + .change-group {
+  margin-top: 9px;
+}
+
+.change-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+.change-delta {
+  overflow: hidden;
+  font-size: 9.5px;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El delta de Ficheros se lee como un diff: lo que suma en verde y lo que resta
+   en rojo, con el signo dentro del color. El tinte se mezcla con la tinta
+   porque el patina y el rojo puros, a 9,5 px sobre su banda, no llegan a AA. */
+.change-delta.is-positive,
+.symbol-delta.is-positive {
+  color: var(--diff-add);
+}
+
+.change-delta.is-negative,
+.symbol-delta.is-negative {
+  color: var(--diff-del);
+}
+
+.change-cycle {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 10.5px;
+}
+
+.panel-error {
+  margin-top: 10px;
+  color: var(--debt);
+  font-size: 11px;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 10px;
+  background: rgba(100, 114, 123, 0.12);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+

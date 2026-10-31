@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { readUiStyles } from "./readStyles";
 import {
   aplicarTema,
   CLAVE_TEMA,
@@ -92,15 +91,12 @@ describe("el tema guardado", () => {
 /*
  * El contraste de la paleta oscura (ADR 0084).
  *
- * Los dos bloques de `styles.css` se leen y se miden: cada tinta sobre papel,
+ * Los dos bloques de la hoja de la UI (`styles.css` y sus piezas) se leen y se miden: cada tinta sobre papel,
  * panel y hoja. Un token nuevo que no llegue a 4,5:1 rompe la suite, que es la
  * manera de que el tema no se degrade regla a regla.
  */
 
-const estilos = readFileSync(
-  path.resolve(import.meta.dirname, "../src/styles.css"),
-  "utf8"
-);
+const estilos = readUiStyles();
 
 const OSCURO = ':root[data-theme="dark"]';
 const claro = estilos.slice(0, estilos.indexOf(OSCURO));

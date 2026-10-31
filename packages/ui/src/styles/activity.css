@@ -1,0 +1,388 @@
+/* Las dos barras de actividad —la del inspector (ADR 0079) y la de las
+   herramientas (ADR 0083)—: una franja fija, fuera del scroll de su hoja, con
+   un icono por apartado. Llevan el color del marco (ADR 0082), no el de las
+   hojas: son la cabecera continuando por los bordes, y así el armazón rodea el
+   contenido en vez de dejar tiras sueltas del color del panel. */
+.inspector-bar,
+.tool-bar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 44px;
+  padding: 14px 0;
+  background: var(--frame);
+  color: var(--frame-ink);
+}
+
+/* La pleca va en la junta con la hoja, no en el canto de la ventana. */
+.inspector-bar {
+  border-left: 1px solid var(--frame-edge);
+}
+
+.tool-bar {
+  border-right: 1px solid var(--frame-edge);
+}
+
+/* Ajustes cierra la barra por abajo, aparte de las herramientas. */
+.tool-spacer {
+  margin-top: auto;
+}
+
+/* Los iconos se leen sobre el marco: gris claro en reposo (6,6:1), blanco al
+   pasar el ratón y en el apartado activo, que marca con una pleca clara en el
+   borde de dentro —la que antes era oscura sobre hoja clara. */
+.inspector-tab,
+.tool-tab {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--frame-muted);
+  cursor: pointer;
+}
+
+.inspector-tab:hover,
+.tool-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--frame-ink);
+}
+
+/* Un mapa que este proyecto no trae no se puede abrir: se ve, no se pulsa. */
+.tool-tab:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tool-tab:disabled:hover {
+  background: transparent;
+  color: var(--frame-muted);
+}
+
+.inspector-tab.is-active,
+.tool-tab.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--frame-ink);
+  box-shadow: inset 2px 0 0 var(--frame-ink);
+}
+
+/* El punto de «hay cambios sin commitear» viaja en el icono. */
+.inspector-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--rust);
+}
+
+.button.dark {
+  margin-top: 12px;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.button.dark:hover {
+  background: color-mix(in srgb, var(--ink) 88%, var(--paper));
+}
+
+.change-panel h2 {
+  margin-bottom: 4px;
+}
+
+.change-checksums {
+  margin-bottom: 14px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* Lo que no tiene sección propia —aristas y ciclos— cabe en una línea (ADR 0070). */
+.change-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-bottom: 14px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.change-line b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.change-line b.is-worse {
+  color: var(--debt);
+}
+
+.change-delta.is-worse {
+  color: var(--debt);
+}
+
+.change-delta.is-better {
+  color: var(--patina);
+}
+
+.change-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 13px;
+  margin-bottom: 7px;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.change-summary b {
+  color: var(--ink);
+}
+
+/* Una violación, con el ritmo de la tabla de Métricas: dos líneas como mucho,
+   el nombre con sus marcas y el mensaje en una sola línea que se corta con
+   puntos suspensivos. El texto entero vive en el tooltip de la fila. */
+.violation-list {
+  display: grid;
+  gap: 1px;
+}
+
+.violation {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+  gap: 7px;
+  width: 100%;
+  padding: 3px 4px 3px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.violation:hover {
+  background: rgba(214, 69, 69, 0.06);
+}
+
+.violation i {
+  width: 6px;
+  height: 6px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.violation-error i {
+  background: var(--debt);
+}
+
+.violation-warn i {
+  background: var(--ochre);
+}
+
+.violation-info i {
+  background: var(--cobalt);
+}
+
+/* El nombre cede el ancho y las etiquetas nunca se recortan: el que trunca es
+   el nombre, no la marca de origen ni la de «nueva». */
+.violation b {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font: 600 11px/1.3 var(--sans);
+}
+
+.violation-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.violation > span {
+  min-width: 0;
+}
+
+.violation small {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Marca de las reglas que vienen de un perfil del catálogo. */
+.violation-source {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-style: normal;
+  vertical-align: 1px;
+}
+
+/* El porqué del riesgo y de la deuda, dentro de la ficha (ADR 0069). */
+.risk-breakdown {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.risk-head {
+  margin-bottom: 4px;
+  font: 500 8.5px/1.1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.risk-bars {
+  display: grid;
+  gap: 2px;
+}
+
+.risk-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 40px 30px;
+  gap: 8px;
+  align-items: center;
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+
+/* La fila del lint sin artefacto: no hay barra, pero el sitio está. */
+.risk-bar-row.unmeasured {
+  grid-template-columns: minmax(0, 1fr) 54px 40px 48px;
+  color: var(--muted);
+}
+
+.risk-bar-row.unmeasured > .risk-weight {
+  white-space: nowrap;
+}
+
+.risk-bar-row > .mono {
+  text-align: right;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.risk-weight {
+  font: 9px/1 var(--mono);
+  color: var(--muted);
+  text-align: right;
+}
+
+.risk-bar {
+  height: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.risk-bar i {
+  display: block;
+  height: 100%;
+  background: var(--rust);
+}
+
+.risk-note,
+.risk-p95 {
+  margin: 5px 0 0;
+  line-height: 1.35;
+}
+
+.risk-p95 {
+  font-size: 9px;
+}
+
+/* Las métricas de proyecto y carpeta (ADR 0095): la tabla del fichero con
+   sumas del subárbol. La barra ya no es el p95 —un total no se compara con el
+   p95 de un fichero—, es la cobertura: la parte de los ficheros que la trae. */
+.rollup-lint {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.rollup-lint-counts {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 3px 0 0;
+  font-family: var(--mono);
+}
+
+/* El lint no es del árbol que se está mirando: se dice, no se esconde. */
+.rollup-lint .lint-stale {
+  margin: 4px 0 0;
+}
+
+.rollup-head {
+  margin: 10px 0 4px;
+  font: 9px/1 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rollup-table {
+  display: grid;
+  gap: 1px;
+}
+
+.rollup-cols,
+.rollup-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px 32px 28px 34px;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  text-align: right;
+}
+
+.rollup-cols {
+  padding-bottom: 2px;
+  font: 9px/1 var(--mono);
+  color: var(--muted);
+}
+
+.rollup-cols span:first-child,
+.rollup-table-row .rollup-name {
+  text-align: left;
+}
+
+.rollup-table-row {
+  appearance: none;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.rollup-table-row:hover {
+  background: var(--line);
+}
+
+.rollup-table-row .mono {
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rollup-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

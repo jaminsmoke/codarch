@@ -1,0 +1,379 @@
+/* Las pestañas del mapa central: el mapa y las vistas de los plugins.
+   El mismo criterio que las pestañas del panel: mono, mayúsculas y una
+   subrayado de 2px ✓. */
+.stage-tabs {
+  display: flex;
+  gap: 18px;
+  margin: 0 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.stage-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: 500 9.5px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.stage-tab:hover {
+  color: var(--ink-soft);
+}
+
+.stage-tab.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* La vista de un plugin, en el mapa central. */
+.plugin-stage {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 18px;
+}
+
+.plugin-view {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.plugin-view h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+/* El store: la lista de plugins. */
+.plugin-list {
+  display: grid;
+  gap: 1px;
+}
+
+.plugin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.plugin-text {
+  display: grid;
+  gap: 2px;
+}
+
+.plugin-title {
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.plugin-version {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.plugin-warning {
+  font-size: 10.5px;
+  color: var(--rust, #be3c28);
+}
+
+.plugin-summary {
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.plugin-summary b {
+  font: 600 12.5px/1 var(--sans);
+}
+
+.plugin-meta {
+  font: 500 9.5px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.plugin-more summary {
+  font-size: 10.5px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+  width: fit-content;
+}
+
+.plugin-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.plugin-more summary::before {
+  content: "▸ ";
+}
+
+.plugin-more[open] summary::before {
+  content: "▾ ";
+}
+
+.plugin-more p {
+  margin: 5px 0 0;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.plugin-more code {
+  font-size: 10px;
+}
+
+.plugin-switch {
+  width: 34px;
+  height: 19px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--shade);
+  cursor: pointer;
+  position: relative;
+}
+
+.plugin-switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.12s ease-out, background 0.12s ease-out;
+}
+
+.plugin-switch.is-on {
+  background: rgba(47, 111, 237, 0.28);
+  border-color: rgba(47, 111, 237, 0.5);
+}
+
+.plugin-switch.is-on i {
+  transform: translateX(15px);
+  background: #7aa2f7;
+}
+
+.plugin-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* El label de un bloque.
+   El texto vive DENTRO del bloque ✓ (un `foreignObject` ✓): el navegador lo
+   envuelve ✓ y lo recorta ✓, así que no puede salirse ✓ por diseño ✓. */
+.map-label {
+  margin: 0;
+  /* Sin padding: en un bloque de cuatro píxeles, cualquier aire lo hace más
+     ancho que el bloque ✓. El texto empieza pegado al borde ✓. */
+  padding: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  line-height: 1.05;
+  font-family: var(--sans);
+  pointer-events: none;
+  user-select: none;
+}
+
+.map-label.is-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.map-label.is-folder {
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--folder-ink);
+}
+
+/* Los ajustes: un diálogo con secciones. */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 16, 0.6);
+  z-index: 40;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 41;
+  width: min(620px, calc(100vw - 48px));
+  max-height: min(560px, calc(100vh - 64px));
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-title {
+  margin: 0;
+  font: 500 13px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.settings-close {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.settings-close:hover {
+  color: var(--ink);
+}
+
+.settings-body {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  min-height: 0;
+}
+
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 8px;
+  border-right: 1px solid var(--line);
+  background: var(--sunken);
+}
+
+.settings-section {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 11.5px/1.3 var(--sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-section:hover {
+  background: var(--veil);
+  color: var(--ink);
+}
+
+.settings-section.is-active {
+  background: rgba(47, 111, 237, 0.16);
+  color: var(--ink);
+}
+
+.settings-content {
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  overflow-y: auto;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-row b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* El tema: tres pastillas en una cuna, como un control segmentado (ADR 0084). */
+.theme-options {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--sunken);
+}
+
+.theme-option {
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 10.5px/1 var(--sans);
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  background: var(--veil);
+  color: var(--ink);
+}
+
+.theme-option.is-active {
+  background: var(--button);
+  color: var(--button-ink);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+/* Las piezas versionadas, en la sección Componentes (ADR 0065). */
+.component-list {
+  display: grid;
+  gap: 8px;
+}
+
+.component-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.component-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.component-name {
+  font: 600 12px/1.2 var(--sans);
+  color: var(--ink);
+}
+
+.component-row p {
+  margin: 3px 0 0;
+}
+

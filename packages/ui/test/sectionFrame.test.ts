@@ -1,9 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { readUiStyles } from "./readStyles";
 
 /**
- * El marco de las secciones y la tinta de la tabla viven en `styles.css`.
+ * El marco de las secciones y la tinta de la tabla viven en la hoja de la UI
+ * (`styles.css` y sus piezas por zona).
  *
  * Las tres hojas —fichero, carpeta y proyecto— enseñan la misma tabla de
  * métricas dentro del mismo contenedor: si el marco se excluye de una hoja, la
@@ -11,10 +11,7 @@ import { describe, expect, it } from "vitest";
  * navegador en las pruebas, la regla se lee del fichero, igual que hace
  * `tema.test.ts` con los tokens.
  */
-const css = fs.readFileSync(
-  path.resolve(import.meta.dirname, "../src/styles.css"),
-  "utf8"
-);
+const css = readUiStyles();
 
 describe("el marco de una sección", () => {
   it("vale para la ficha, la carpeta y el proyecto, no solo para el fichero", () => {

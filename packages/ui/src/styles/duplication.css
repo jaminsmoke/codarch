@@ -1,0 +1,161 @@
+/* La duplicación de la ficha (ADR 0102): líneas, proporción y pares. */
+.duplication-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.duplication-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.duplication-figure .mono {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.duplication-copy {
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.duplication-pairs {
+  display: grid;
+  gap: 1px;
+  margin-top: 8px;
+}
+
+.duplication-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  padding: 3px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.duplication-pair:hover {
+  background: var(--line);
+}
+
+.duplication-pair-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duplication-pair-meta {
+  font-size: 9.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.duplication-diverging .duplication-pair-meta {
+  color: var(--rust);
+}
+
+/* La lista de pares (M70): el filtro por estado y los dos extremos del par. */
+.duplication-list-block {
+  margin-top: 10px;
+}
+
+.duplication-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.duplication-filter {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 9px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.duplication-filter[aria-pressed="true"] {
+  border-color: var(--ink-soft);
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.duplication-filter:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.duplication-list {
+  display: grid;
+  gap: 1px;
+  margin-top: 6px;
+}
+
+.duplication-pair-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 4px;
+  font-size: 10px;
+}
+
+.duplication-pair-row:hover {
+  background: var(--line);
+}
+
+.duplication-ends {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.duplication-end {
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.duplication-end:hover {
+  text-decoration: underline;
+}
+
+.duplication-arrow {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.duplication-divergence {
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--rust);
+}

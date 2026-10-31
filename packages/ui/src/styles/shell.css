@@ -1,0 +1,660 @@
+.app {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 18% 4%, var(--glow), transparent 34%),
+    var(--paper);
+}
+
+.topbar {
+  position: relative;
+  z-index: 20;
+  min-height: var(--topbar-h);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  background: var(--frame);
+  color: var(--frame-ink);
+  border-bottom: 1px solid var(--frame-edge);
+}
+
+/* La marca: el icono del mapa en miniatura y, a su lado, el nombre con su
+   lema debajo. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark-icon {
+  flex: none;
+  display: block;
+  border-radius: 2.4px;
+}
+
+.brand-lockup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brand-mark {
+  font: 750 18px/1 var(--display);
+  letter-spacing: 0.16em;
+}
+
+.brand-sub {
+  font: 500 9.5px/1 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #a9b7bc;
+  white-space: nowrap;
+}
+
+/* El nombre y su vigilancia, en la misma línea: la vigilancia dice del
+   proyecto, no de la app. */
+.project-name {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.project-name .watch-indicator,
+.project-name .paint-notice,
+.project-name .refresh-notice {
+  flex: none;
+}
+
+/* El snapshot es del proyecto abierto: va en la banda, bajo su nombre, que es
+   a quien describe. */
+.project-snapshot {
+  min-width: 0;
+  max-width: 360px;
+  overflow: hidden;
+  font-size: 10px;
+  color: #93a2a8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watch-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #93a2a8;
+}
+
+.watch-indicator i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #7f8b90;
+}
+
+.watch-live {
+  color: #8fe3c0;
+}
+
+.watch-live i {
+  background: #45d6a0;
+  box-shadow: 0 0 0 3px rgba(69, 214, 160, 0.16);
+}
+
+.watch-paused {
+  color: #e7c06b;
+}
+
+.watch-paused i {
+  background: var(--ochre);
+}
+
+/* El aviso de un refresco en vivo: aparece y se apaga solo (ADR 0050). */
+/* El color elegido no se puede pintar con este snapshot: mismo tono que una
+   vigilancia en pausa, porque es un aviso y no un error. */
+.paint-notice {
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e7c06b;
+  cursor: help;
+}
+
+.refresh-notice {
+  font: 500 8.5px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #45d6a0;
+  opacity: 0;
+}
+
+.refresh-notice.is-new {
+  animation: refresh-notice 3s ease-out both;
+}
+
+@keyframes refresh-notice {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.topbar-actions {
+  display: flex;
+  margin-left: auto;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.button-label-short {
+  display: none;
+}
+
+.button {
+  border: 1px solid var(--button);
+  background: var(--button);
+  color: var(--button-ink);
+  border-radius: 2px;
+  padding: 8px 12px;
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.button:hover {
+  background: var(--button-hover);
+}
+
+.button.ghost {
+  background: transparent;
+  color: #dbe3e4;
+  border-color: #596970;
+}
+
+.open-menu {
+  position: relative;
+}
+
+.open-menu > summary {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  cursor: pointer;
+}
+
+.open-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.open-menu[open] > summary {
+  background: var(--button-hover);
+}
+
+.open-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  min-width: 216px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  box-shadow: 0 14px 30px var(--shadow);
+}
+
+.open-menu-panel button {
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: 500 11px/1.3 var(--sans);
+  cursor: pointer;
+}
+
+.open-menu-panel button:hover {
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.open-menu-panel p {
+  margin: 4px 10px 6px;
+  color: var(--muted);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+.open-menu-panel button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Un grupo del menú: el addon y, debajo, sus vistas guardadas. */
+.open-menu-group {
+  display: grid;
+  padding: 2px 0;
+}
+
+.open-menu-group + .open-menu-group {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.open-menu-label {
+  padding: 4px 10px 2px;
+  color: var(--muted);
+  font: 600 9px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.live-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.live-state {
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.live-state.is-live {
+  color: var(--patina);
+}
+
+.button.small {
+  margin-top: 0;
+  padding: 6px 9px;
+  font-size: 9px;
+}
+
+.button.ghost.dark-text {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(18, 26, 32, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: min(660px, 100%);
+  max-height: min(780px, calc(100dvh - 40px));
+  padding: 20px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  box-shadow: 0 24px 60px var(--shadow-deep);
+}
+
+.modal h2 {
+  margin: 2px 0 5px;
+  font: 650 27px/1.08 var(--display);
+  letter-spacing: -0.03em;
+}
+
+.folder-path {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 6px;
+  margin: 14px 0 8px;
+}
+
+.folder-path input {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--ink);
+  font: 11px/1.3 var(--mono);
+}
+
+.folder-up {
+  width: 32px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--ink);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.folder-up:disabled {
+  color: var(--line-strong);
+  cursor: default;
+}
+
+.folder-list {
+  min-height: 120px;
+  max-height: 340px;
+  margin-bottom: 12px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+}
+
+.folder-entry {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 5px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: 12px/1.3 var(--sans);
+  cursor: pointer;
+}
+
+.folder-entry:hover {
+  background: rgba(47, 111, 237, 0.07);
+}
+
+.folder-icon {
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.folder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-empty {
+  padding: 28px 18px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 11.5px;
+}
+
+.folder-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.folder-current {
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 9.5px;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.folder-actions .button {
+  margin-top: 0;
+}
+
+.button.ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shell {
+  display: grid;
+  /* Las barras de actividad ocupan su franja y las hojas conservan la suya: la
+     de herramientas a la izquierda y la del inspector a la derecha. El ancho de
+     la izquierda lo pone su dock —barra de 44 más hoja de 258—, así que al
+     plegar las herramientas el mapa se queda con esos 258 px (ADR 0083). */
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: calc(100dvh - var(--topbar-h) - var(--band-h));
+  background: var(--line);
+  gap: 1px;
+}
+
+/* El panel y su barra de actividad, juntos: la hoja scrollea, la barra no. */
+.inspector-dock {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+}
+
+/* El dock de herramientas es el espejo izquierdo del del inspector (ADR 0083):
+   la barra pegada al borde y la hoja al lado, con el mismo reparto. Los dos
+   docks dicen su ancho —barra más hoja— para que al plegar la hoja el mapa se
+   quede con lo que sobra (ADR 0079). */
+.tool-dock {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  /* Barra más hoja; al plegar, solo la barra y el mapa gana el resto. */
+  width: max-content;
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
+}
+
+/* Las hojas se pliegan con un fundido, no con un cambio de ancho animado: el
+   mapa recupera su hueco de una vez y la hoja se va encima, así el treemap se
+   recalcula una sola vez (ADR 0079 · ADR 0083). Solo se animan opacidad y
+   desplazamiento, que pinta el compositor. */
+.tool-dock.is-folded .toolbar,
+.inspector-dock.is-folded .inspector {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Cada hoja se va hacia su barra: la izquierda, a la izquierda. */
+.tool-dock.is-folded .toolbar {
+  left: 44px;
+  transform: translateX(-8px);
+}
+
+.inspector-dock.is-folded .inspector {
+  right: 44px;
+  transform: translateX(8px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .toolbar,
+  .inspector {
+    transition:
+      opacity 140ms ease,
+      transform 140ms ease;
+  }
+}
+
+.toolbar,
+.inspector {
+  background: var(--panel);
+  padding: 20px 18px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.toolbar {
+  /* El ancho es fijo: sin él, el texto largo del panel estira el dock y el mapa
+     pierde lo que no debe. */
+  flex: 0 0 258px;
+  width: 258px;
+  max-width: 258px;
+  border-right: 1px solid var(--line);
+}
+
+.inspector {
+  /* El ancho lo dice el dock: al plegar la hoja, la columna se encoge. */
+  flex: 0 0 302px;
+  width: 302px;
+  max-width: 302px;
+  min-width: 0;
+}
+
+.panel-block {
+  padding: 0 0 17px;
+  margin: 0 0 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-block:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* En el raíl, el bloque ya trae su filete inferior y su margen: la sección
+   plegable no añade otro encima (ADR 0061, M49). */
+.toolbar .panel-block.collapsible {
+  margin-top: 0;
+}
+
+.toolbar .panel-block.collapsible > .collapsible-head {
+  border-top: 0;
+}
+
+.eyebrow {
+  margin-bottom: 8px;
+  font: 500 9.5px/1.2 var(--mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.field > span {
+  display: block;
+  margin-bottom: 4px;
+  font: 500 9.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field select,
+.field input {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--sheet);
+  color: var(--ink);
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.field select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 13px) 12px,
+    calc(100% - 9px) 12px;
+  background-size: 4px 4px, 4px 4px;
+  background-repeat: no-repeat;
+  padding-right: 24px;
+}
+
+.search-field {
+  margin-top: 13px;
+}
+
+.url-load {
+  display: grid;
+  gap: 2px;
+  margin: 6px 6px 2px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.url-load .field {
+  margin-bottom: 6px;
+}
+
+.url-load .field input {
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.url-load > button {
+  margin-top: 2px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  text-align: center;
+  font: 500 10px/1.3 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tiny {
+  font-size: 10.5px;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.strata {
+  display: flex;
+  gap: 1px;
+  height: 24px;
+  padding: 1px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.strata i {
+  display: block;
+  min-width: 2px;
+  height: 100%;
+}
+

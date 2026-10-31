@@ -1,0 +1,460 @@
+/* El lint dentro de Reglas (ADR 0096): sistemas, reglas activas y hallazgos.
+   La jerarquía es tipográfica y la severidad es color: el nombre del sistema en
+   sans, su config en mono tenue, la cuenta en versalitas y cada número con la
+   tinta de lo que mide. En 286 px no se sube el tamaño de todo; se separa por
+   peso y por color, que es lo que faltaba cuando doce filas se leían iguales. */
+.lint-systems {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+/* Cada sistema lleva un filete a la izquierda: verde si midió, de la línea si
+   no. Es la primera señal, antes de leer la palabra. */
+.lint-system {
+  display: grid;
+  gap: 3px;
+  padding-left: 7px;
+  border-left: 2px solid var(--line);
+}
+
+.lint-system.is-on {
+  border-left-color: color-mix(in srgb, var(--patina) 60%, transparent);
+}
+
+.lint-system-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lint-system-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 11.5px/1.25 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El estado, en versalitas y con su píldora: dos estados, dos tintas. */
+.lint-state {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-state.is-on {
+  border-color: color-mix(in srgb, var(--patina) 42%, transparent);
+  background: color-mix(in srgb, var(--patina) 10%, transparent);
+  color: var(--patina);
+}
+
+.lint-system-config {
+  overflow: hidden;
+  font: 9.5px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-system-config.is-none {
+  color: var(--muted);
+}
+
+/* La configuración de un sistema, en palabras: una regla activa dice cómo está
+   configurada, no cuántas veces saltó, y por eso no lleva tinta de deuda. */
+.lint-config {
+  margin: 0;
+  font: 9px/1.4 var(--mono);
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.lint-system-note {
+  margin: 0;
+}
+
+.lint-systems-note,
+.lint-active-note {
+  margin: 0 0 2px;
+}
+
+/* Medido y sin un solo hallazgo: un dato, no un cero sospechoso. */
+.lint-clean {
+  margin: 3px 0 0;
+  font: 9.5px/1.4 var(--sans);
+  color: var(--patina);
+}
+
+/* Las reglas activas: plegadas, porque a veces son cientos. El galón se dibuja
+   aquí para que la cabecera pueda ser una rejilla con la cuenta a la derecha. */
+.lint-active {
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
+.lint-active > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  list-style: none;
+  cursor: pointer;
+  font: 9px/1.4 var(--mono);
+  color: var(--ink-soft);
+}
+
+.lint-active > summary::-webkit-details-marker {
+  display: none;
+}
+
+.lint-active > summary::before {
+  content: "▸";
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.lint-active[open] > summary::before {
+  content: "▾";
+}
+
+.lint-active > summary:hover .lint-active-label {
+  color: var(--ink);
+}
+
+.lint-active ul {
+  display: grid;
+  gap: 1px;
+  max-height: 180px;
+  margin: 4px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.lint-active li {
+  display: grid;
+  grid-template-columns: 5px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 1px 2px 1px 0;
+  font-size: 9.5px;
+}
+
+/* El punto de una regla activa: neutro. El color de la severidad, en Reglas,
+   solo describe hallazgos (la tabla de abajo). */
+.lint-dot {
+  width: 5px;
+  height: 5px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.lint-rule-id {
+  overflow: hidden;
+  font: 9.5px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-sev {
+  font: 8.5px/1.3 var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.lint-findings {
+  display: grid;
+  gap: 3px;
+}
+
+/* La cabecera de la tabla comparte rejilla con sus filas: «Err.» cae encima de
+   su columna aunque el identificador cambie de largo. */
+.lint-rule-head,
+.lint-rule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px 34px 30px;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.lint-rule-head {
+  padding: 0 2px 1px 0;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+}
+
+.lint-rule-head span:first-child {
+  text-align: left;
+}
+
+.lint-rule-list {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-rule-row {
+  padding: 2px 2px 2px 0;
+  font-size: 10px;
+}
+
+/* El identificador es lo que se lee; la cuenta, lo que se mira. */
+.lint-rule-row .lint-rule-id {
+  color: var(--ink);
+}
+
+.lint-count {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lint-count.is-zero {
+  color: var(--muted);
+}
+
+.lint-count-error {
+  color: var(--debt);
+}
+
+.lint-count-warn {
+  color: var(--ochre);
+}
+
+.lint-count-info {
+  color: var(--cobalt);
+}
+
+/* En Métricas el valor del lint son las tres cuentas: cada una con su tinta y
+   un separador tenue, para no leerlas como una sola cifra ni sumarlas en gris. */
+.lint-counts {
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.lint-counts .lint-count {
+  font-size: inherit;
+}
+
+/* La deuda y su peso en el riesgo: una cifra y una frase, sin catálogo. */
+.lint-risk {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 7px 8px;
+  border-left: 2px solid var(--debt);
+  background: color-mix(in srgb, var(--debt) 6%, transparent);
+}
+
+.lint-risk-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.lint-risk-label {
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-risk-value {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--debt);
+}
+
+.lint-risk-weight {
+  margin-left: auto;
+  font: 9px/1.3 var(--mono);
+  color: var(--debt);
+  white-space: nowrap;
+}
+
+.lint-risk-weight.is-off {
+  color: var(--muted);
+}
+
+.lint-risk-note {
+  margin: 0;
+}
+
+/* Los mensajes del fichero: el punto dice la severidad, la regla el origen y
+   el texto lo que hay que arreglar. */
+.lint-message-list {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-message {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 2px 2px 0;
+  font-size: 10px;
+}
+
+.lint-message-rule {
+  flex: none;
+  max-width: 46%;
+  overflow: hidden;
+  font: 9px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-message-line {
+  flex: none;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.lint-message-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-dot-error {
+  background: var(--debt);
+}
+
+.lint-dot-warn {
+  background: var(--ochre);
+}
+
+.lint-dot-info {
+  background: var(--cobalt);
+}
+
+.ffi-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lint-counts-sep {
+  color: var(--muted);
+}
+
+.lint-advice {
+  display: grid;
+  gap: 6px;
+}
+
+.lint-advice > p {
+  margin: 0;
+}
+
+.lint-advice ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.lint-advice li {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-advice-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.lint-advice li p {
+  margin: 0;
+}
+
+.lens-new {
+  color: var(--debt);
+  border-color: var(--debt);
+}
+
+/* Los cruces FFI, una fila por arista: la flecha dice la dirección, la ruta va
+   en mono y el tipo de cruce se queda a la derecha. */
+.lens-edges {
+  display: grid;
+  gap: 1px;
+  margin-top: 4px;
+}
+
+.lens-edge {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  width: 100%;
+  padding: 3px 4px 3px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lens-edge:hover {
+  background: var(--shade-soft);
+}
+
+.lens-edge:hover .lens-edge-path {
+  color: var(--ink);
+}
+
+.lens-edge-dir {
+  font: 10px/1 var(--mono);
+  text-align: center;
+  color: var(--muted);
+}
+
+.lens-flag {
+  justify-self: end;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font: 500 8.5px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lens-wasm {
+  color: var(--cobalt);
+  border: 1px solid var(--cobalt);
+}
+
+.lens-native {
+  color: var(--ochre);
+  border: 1px solid var(--ochre);
+}
+
+.lens-edge-path {
+  font: 10.5px/1.35 var(--mono);
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
