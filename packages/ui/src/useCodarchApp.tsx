@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { CcJson } from "@codarch/schema/browser";
 import type { RepoAddon } from "@codarch/addons";
 import type { SymbolChain } from "@codarch/schema/browser";
 import { usePlugins } from "./plugins";
-import { metricCoverage, planMapSwitch } from "./app/snapshotView";
-import { planViewState } from "./app/applyView";
 import { useDerivedMap } from "./app/derived";
 import { useRestoreProject, useExistingMap } from "./app/restore";
 import { useRestoreSelection, useSelection } from "./app/useSelection";
@@ -13,7 +11,7 @@ import { usePluginBindings } from "./app/pluginBindings";
 import { platformBridges } from "./app/bridges";
 import type { Plataforma } from "./platform";
 import type { ViewPreferences } from "./storage";
-import type { InspectorTab, ViewState as AppViewState } from "./viewState";
+import type { InspectorTab } from "./viewState";
 import type {
   CodarchApp,
   CodarchAppActions,
@@ -26,6 +24,9 @@ import { useMapCamera } from "./app/camera";
 import { useDocuments } from "./app/documents";
 import { usePreferencesSync } from "./app/preferences";
 import { useShortcuts } from "./app/shortcuts";
+import { useSyncRef } from "./app/useSyncRef";
+import { useChangeMap } from "./app/useChangeMap";
+import { useApplyView } from "./app/useApplyView";
 
 export type { ViewPreferences, SavedProject } from "./storage";
 export type {
@@ -75,9 +76,7 @@ export function useCodarchApp(
    * si cambiara de identidad se volvería a arrancar y se perdería el resto.
    */
   const mapRef = useRef<MapId>(map);
-  useEffect(() => {
-    mapRef.current = map;
-  }, [map]);
+  useSyncRef(mapRef, map);
   const [source, setSource] = useState(options.sourceInicial ?? "sin proyecto");
   const [areaMetric, setAreaMetric] = useState<string | null>(null);
   const [colorMode, setColorMode] = useState("risk");
@@ -120,9 +119,7 @@ export function useCodarchApp(
   // `loadReport` se crea una vez: el ref le deja saber en qué pestaña está el
   // usuario sin volver a crearla en cada render.
   const tabRef = useRef(tab);
-  useEffect(() => {
-    tabRef.current = tab;
-  }, [tab]);
+  useSyncRef(tabRef, tab);
 
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   /** El checksum del snapshot que hay en pantalla: distingue refresco de apertura. */
@@ -284,89 +281,39 @@ export function useCodarchApp(
     [addons]
   );
 
-  /**
-   * Cambia de mapa: el del código o el del resto (ADR 0093).
-   *
-   * Es un cambio de modelo, no de vista. La selección, el foco y el fichero
-   * abierto son del mapa anterior y se sueltan; el área y el color también son
-   * de cada mapa, así que al volver al código se recuperan los suyos. El resto
-   * se mide en bytes y se pinta por tipo (ADR 0093).
-   */
-  const changeMap = useCallback(
-    (next: MapId) => {
-      const plan = planMapSwitch({
-        next,
-        current: map,
-        cc,
-        rest,
-        preferences: preferencesRef.current
-      });
-      if (plan.kind !== "switch") return;
-      setPluginView(null);
-      setSelectedIndex(null);
-      setSelectedFolder(null);
-      setFocusPath(null);
-      setOpenFile(null);
-      setChain(null);
-      selectedPathRef.current = null;
-      setMapView(plan.map);
-      setAreaMetric(plan.areaMetric);
-      setColorMode(plan.colorMode);
-    },
-    [
-      map,
-      rest,
-      cc,
-      preferencesRef,
-      selectedPathRef,
-      setAreaMetric,
-      setChain,
-      setColorMode,
-      setFocusPath,
-      setOpenFile,
-      setPluginView,
-      setSelectedFolder,
-      setSelectedIndex
-    ]
-  );
+  const changeMap = useChangeMap({
+    map,
+    cc,
+    rest,
+    preferencesRef,
+    selectedPathRef,
+    setMapView,
+    setAreaMetric,
+    setColorMode,
+    setPluginView,
+    setSelectedIndex,
+    setSelectedFolder,
+    setFocusPath,
+    setOpenFile,
+    setChain
+  });
 
   useExistingMap({ map, rest, changeMap });
 
-  /**
-   * Aplica un estado de vista al mapa.
-   *
-   * Lo usan la URL de la web y las vistas guardadas de un addon (ADR 0029):
-   * las dos hablan el mismo dialecto. El plan dice qué encaja con este mapa y
-   * qué se ignora en silencio; aquí solo se obedece.
-   */
-  const applyView = useCallback(
-    (wanted: AppViewState) => {
-      if (!view.model || !stats) return;
-      const plan = planViewState(wanted, {
-        model: view.model,
-        coverage: metricCoverage(stats),
-        migration
-      });
-      if (plan.areaMetric !== null) setAreaMetric(plan.areaMetric);
-      if (plan.colorMode !== null) setColorMode(plan.colorMode);
-      if (plan.focusPath !== null) setFocusPath(plan.focusPath);
-      if (plan.folderPath !== null) selectFolder(plan.folderPath);
-      if (plan.fileIndex !== null) selectIndex(plan.fileIndex);
-      if (plan.openFilePath !== null) openFileAt(plan.openFilePath);
-      if (plan.tab !== null) setTab(plan.tab);
-      if (plan.showLabels !== null) setShowLabels(plan.showLabels);
-      if (plan.symbol) void openSymbolChain(plan.symbol.name, plan.symbol.path);
-    },
-    [
-      view.model,
-      stats,
-      migration,
-      selectIndex,
-      selectFolder,
-      openFileAt,
-      openSymbolChain
-    ]
-  );
+  const applyView = useApplyView({
+    model: view.model,
+    stats,
+    migration,
+    setAreaMetric,
+    setColorMode,
+    setFocusPath,
+    setTab,
+    setShowLabels,
+    selectIndex,
+    selectFolder,
+    openFileAt,
+    openSymbolChain
+  });
 
   /** Las puertas opcionales de la plataforma, con las que faltan apagadas. */
   const bridges = useMemo(() => platformBridges(plataforma), [plataforma]);
