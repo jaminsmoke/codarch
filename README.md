@@ -4,22 +4,22 @@
 > en tu agente.
 
 > [!IMPORTANT]
-> **🧪 Alpha.** La funcionalidad está ✓; el producto todavía no ✓. Las versiones llevan prerelease ✓
-> (`0.3.1-alpha.3` ✓), el CLI ✓ y las apps ✓ pueden cambiar ✓ de una versión a otra ✓, y **no hay
-> soporte** ✓. Úsalo si te sirve **mirar** ✓ —un mapa ✓, un diff ✓, un comentario de PR ✓—; no si
-> necesitas que no se rompa ✓. Lo que **sí** es estable ✓: el modelo `cc.json` 2.x ✓ y su checksum ✓.
+> **🧪 Alpha.** La funcionalidad está; el producto todavía no. Las versiones llevan prerelease
+> (`0.3.1-alpha.3`), el CLI y las apps pueden cambiar de una versión a otra, y **no hay
+> soporte**. Úsalo si te sirve **mirar** —un mapa, un diff, un comentario de PR—; no si
+> necesitas que no se rompa. Lo que **sí** es estable: el modelo `cc.json` 2.x y su checksum.
 
-**Qué hay hoy:** el CLI `codarch` ✓ (publicado en npm ✓), la GitHub Action pública ✓
-(`jaminsmoke/codarch/apps/github-action@v1` ✓, que funciona desde otros repositorios ✓), el MCP de solo lectura
-✓, la app web ✓ y la app de escritorio ✓. La lente de migración ✓ mide lenguajes ✓, puentes ✓ y
-deuda ✓; el diff habla **símbolo a símbolo** ✓ y su cadena sobrevive a los renombrados ✓; la web
-analiza una carpeta **en el navegador** ✓ con el mismo checksum ✓ que el CLI ✓; los plugins ✓ y los
-addons ✓ extienden el producto ✓, y los ajustes ✓ traen la sección de actualizaciones ✓.
+**Qué hay hoy:** el CLI `codarch` (publicado en npm), la GitHub Action pública
+(`jaminsmoke/codarch/apps/github-action@v1`, que funciona desde otros repositorios), el MCP de solo lectura,
+la app web y la app de escritorio. La lente de migración mide lenguajes, puentes y
+deuda; el diff habla **símbolo a símbolo** y su cadena sobrevive a los renombrados; la web
+analiza una carpeta **en el navegador** con el mismo checksum que el CLI; los plugins y los
+addons extienden el producto, y los ajustes traen la sección de actualizaciones.
 
 ![El atlas de CodArch sobre su propio repositorio: cada bloque es una carpeta o un fichero, el color es el riesgo y el inspector cuenta los símbolos del fichero](apps/site/docs/images/atlas.png)
 
-*CodArch analizando su propio repo: 210 ficheros ✓, 59 carpetas ✓, el riesgo por bloque ✓ y el
-inspector con los símbolos del fichero ✓.*
+*CodArch analizando su propio repo: 210 ficheros, 59 carpetas, el riesgo por bloque y el
+inspector con los símbolos del fichero.*
 
 ```mermaid
 flowchart LR
@@ -213,7 +213,7 @@ $ codarch diff base.cc.json head.cc.json -o report.json
   reporte      report.json (12 KB)
 
   Ciclos nuevos:
-    ✗ src/domain/service.ts → src/infra/db.ts → src/domain/service.ts
+    src/domain/service.ts → src/infra/db.ts → src/domain/service.ts
 
   Hotspots (maxComplexity):
     ● src/payments/service.ts  18 → 59 (+41)
@@ -438,41 +438,41 @@ Lo mismo aparece en el comentario del PR y en el panel de PR de las dos apps.
 
 Cada símbolo lleva el **hash de su cuerpo**: los tokens, sin comentarios y sin su propio nombre. Con
 ese hash, un renombrado o una mudanza no rompen nada, porque lo que define al símbolo es el código,
-no el sitio donde está. El hash es el mismo en el navegador y en el CLI ✓, así que el checksum del
+no el sitio donde está. El hash es el mismo en el navegador y en el CLI, así que el checksum del
 snapshot no cambia.
 ([ADR 0026](apps/site/docs/desarrollo/adr/0021-0030/0026-la-vida-de-un-simbolo.md))
 
 ### 📝 Los nombres de los bloques
 
-Cada bloque lleva su nombre **dentro** ✓ (`foreignObject` con texto HTML ✓): el navegador lo envuelve
-✓ y lo recorta ✓, así que **no puede salirse** ✓. En bloques altos y estrechos escribe en vertical ✓
-(`writing-mode` ✓), y el tamaño sale del lado corto del bloque ✓ (de 4 a 11 px ✓).
+Cada bloque lleva su nombre **dentro** (`foreignObject` con texto HTML): el navegador lo envuelve
+ y lo recorta, así que **no puede salirse**. En bloques altos y estrechos escribe en vertical
+(`writing-mode`), y el tamaño sale del lado corto del bloque (de 4 a 11 px).
 
-Es un interruptor en **Ajustes → Vista** ✓ y también viaja en el enlace ✓ (`labels=1` ✓). Con el
-botón derecho apretado, el mapa se mueve ✓.
+Es un interruptor en **Ajustes → Vista** y también viaja en el enlace (`labels=1`). Con el
+botón derecho apretado, el mapa se mueve.
 
 ### 📐 El mapa se ajusta a la pantalla
 
-La app ocupa la ventana ✓: el raíl y el inspector scrollean solos ✓ y el mapa se ajusta a lo que
-queda ✓ (nada crece la página ✓). El mapa se acerca con `+` ✓, `−` ✓, `Ajustar` ✓ o la rueda ✓
-— la distribución no se recalcula ✓, solo el rectángulo visible ✓, así que acercar es gratis ✓.
+La app ocupa la ventana: el raíl y el inspector scrollean solos y el mapa se ajusta a lo que
+queda (nada crece la página). El mapa se acerca con `+`, `−`, `Ajustar` o la rueda
+— la distribución no se recalcula, solo el rectángulo visible, así que acercar es gratis.
 
 ### 🧊 La vista 3D
 
-El primer plugin ✓: el mapa en tres dimensiones ✓. Cada fichero es una caja ✓ —la base es su
-rectángulo del treemap ✓ y la altura su riesgo ✓— y el color es el del mapa ✓. Se orbita con el
-ratón ✓ y al pulsar una caja se selecciona el fichero ✓.
+El primer plugin: el mapa en tres dimensiones. Cada fichero es una caja —la base es su
+rectángulo del treemap y la altura su riesgo— y el color es el del mapa. Se orbita con el
+ratón y al pulsar una caja se selecciona el fichero.
 
-Va en **su propio chunk** ✓ (495 KB ✓), así que el bundle principal no crece ✓ y solo se descarga si
-alguien abre la vista ✓. Necesita WebGL2 ✓: si no lo hay, el store lo dice ✓.
+Va en **su propio chunk** (495 KB), así que el bundle principal no crece y solo se descarga si
+alguien abre la vista. Necesita WebGL2: si no lo hay, el store lo dice.
 
-Su hoja de ruta propia (el octree ✓, el nivel de detalle ✓, las carpetas como contenedores ✓) está
-en `plugins/vista-3d/ROADMAP.md` ✓.
+Su hoja de ruta propia (el octree, el nivel de detalle, las carpetas como contenedores) está
+en `plugins/vista-3d/ROADMAP.md`.
 
 ### 🔌 Los plugins
 
-Un plugin es una pieza **del repo** ✓, en `plugins/` ✓, que se activa desde los ajustes ✓ y que
-puede añadir una vista al mapa central ✓.
+Un plugin es una pieza **del repo**, en `plugins/`, que se activa desde los ajustes y que
+puede añadir una vista al mapa central.
 
 ```
 plugins/vista-3d/
@@ -480,29 +480,29 @@ plugins/vista-3d/
   index.tsx       ← el punto de entrada
 ```
 
-El repo declara cuáles están **compilados** (`.codarch.yml`: `plugins: [...]` ✓) y el usuario
-activa cuáles quiere en **su máquina** ✓: el análisis no depende de eso ✓.
+El repo declara cuáles están **compilados** (`.codarch.yml`: `plugins: [...]`) y el usuario
+activa cuáles quiere en **su máquina**: el análisis no depende de eso.
 
-El contrato vive en `@codarch/plugin-api` ✓ y es pequeño a propósito ✓: el modelo ✓, la selección ✓,
-las acciones ✓, las preferencias ✓ y el estado de la URL ✓.
+El contrato vive en `@codarch/plugin-api` y es pequeño a propósito: el modelo, la selección,
+las acciones, las preferencias y el estado de la URL.
 ([ADR 0028](apps/site/docs/desarrollo/adr/0021-0030/0028-los-plugins.md))
 
-Un **addon** es otra cosa ✓ ([ADR 0029](apps/site/docs/desarrollo/adr/0021-0030/0029-los-addons.md) ✓): **datos, no código** ✓.
-Aporta **conocimiento** ✓ — perfiles de arquitectura ✓, reglas ✓ y vistas guardadas ✓ — y vive en
-`addons/<nombre>/` ✓, que viaja con el repo ✓: los compañeros y el CI ven lo mismo ✓. No puede
-aportar lentes ✓, así que no cambia el checksum ✓.
+Un **addon** es otra cosa ([ADR 0029](apps/site/docs/desarrollo/adr/0021-0030/0029-los-addons.md)): **datos, no código**.
+Aporta **conocimiento** — perfiles de arquitectura, reglas y vistas guardadas — y vive en
+`addons/<nombre>/`, que viaja con el repo: los compañeros y el CI ven lo mismo. No puede
+aportar lentes, así que no cambia el checksum.
 
-El repo declara los que usa (`.codarch.yml`: `addons: [...]` ✓) y `codarch diff` aplica sus reglas
-✓, cada una con su origen (`addon:nestjs` ✓) que se ve en el reporte ✓ y en el comentario del PR ✓.
-Las dos apps y el MCP leen la configuración ✓: el menú **Vistas** del mapa aplica las **vistas
-guardadas** del addon ✓ y el MCP las cuenta en `get_project_config` ✓.
+El repo declara los que usa (`.codarch.yml`: `addons: [...]`) y `codarch diff` aplica sus reglas,
+cada una con su origen (`addon:nestjs`) que se ve en el reporte y en el comentario del PR.
+Las dos apps y el MCP leen la configuración: el menú **Vistas** del mapa aplica las **vistas
+guardadas** del addon y el MCP las cuenta en `get_project_config`.
 
 ### 📦 Instalar y quitar
 
-Las dos extensiones se instalan y se quitan igual ✓
-([ADR 0030](apps/site/docs/desarrollo/adr/0021-0030/0030-instalar-y-quitar.md) ✓): una carpeta hija ✓ y una línea en
-`.codarch.yml` ✓, que es la lista de instalados ✓. Quitar borra **solo** la carpeta de esa
-extensión ✓, nunca `plugins/` ni `addons/` ✓.
+Las dos extensiones se instalan y se quitan igual
+([ADR 0030](apps/site/docs/desarrollo/adr/0021-0030/0030-instalar-y-quitar.md)): una carpeta hija y una línea en
+`.codarch.yml`, que es la lista de instalados. Quitar borra **solo** la carpeta de esa
+extensión, nunca `plugins/` ni `addons/`.
 
 ```bash
 codarch plugins list            # los de plugins/ y cuáles declara el repo
@@ -514,23 +514,23 @@ codarch addons add ./nestjs
 codarch addons remove nestjs
 ```
 
-Las dos listas avisan cuando el repo y la lista no cuadran ✓: una carpeta sin declarar ✓ (no entra
-en el build ✓) y una declaración sin carpeta ✓. Con `--json` lo da para el CI ✓.
+Las dos listas avisan cuando el repo y la lista no cuadran: una carpeta sin declarar (no entra
+en el build) y una declaración sin carpeta. Con `--json` lo da para el CI.
 
-Instalar no es activar ✓: un plugin instalado se activa en los ajustes ✓, y un addon no se activa ✗
-— se aplica mientras esté declarado ✓. La diferencia de fondo está en **dónde vive cada uno** ✓: un
-plugin se instala en el build de CodArch ✓ (o en un fork ✓), no en el proyecto que analizas ✗; un
-addon se instala en el proyecto ✓ y viaja con él ✓.
+Instalar no es activar: un plugin instalado se activa en los ajustes, y un addon no se activa
+— se aplica mientras esté declarado. La diferencia de fondo está en **dónde vive cada uno**: un
+plugin se instala en el build de CodArch (o en un fork), no en el proyecto que analizas; un
+addon se instala en el proyecto y viaja con él.
 
 ### ⚙️ Los ajustes
 
-Hay un engranaje en la cabecera que abre los ajustes ✓: la métrica de área ✓, el modo de color ✓,
-el proyecto guardado ✓, los plugins ✓, los addons del proyecto ✓ (en modo lectura ✓: son del repo,
-no se activan) y el diagnóstico ✓ (versión ✓, checksum ✓, si el almacenamiento local está
-disponible ✓). En el escritorio, también desde el menú nativo ✓.
+Hay un engranaje en la cabecera que abre los ajustes: la métrica de área, el modo de color,
+el proyecto guardado, los plugins, los addons del proyecto (en modo lectura: son del repo,
+no se activan) y el diagnóstico (versión, checksum, si el almacenamiento local está
+disponible). En el escritorio, también desde el menú nativo.
 
-Los ajustes son de la **máquina**, no del repositorio ✓: el análisis no cambia por tener el área en
-otro sitio ✓.
+Los ajustes son de la **máquina**, no del repositorio: el análisis no cambia por tener el área en
+otro sitio.
 
 ### 🕰️ La vida de un símbolo
 
@@ -568,15 +568,15 @@ codarch verify
     ✅ Todo encaja: 1 símbolos cuadran con sus cadenas.
        Cabeza del proyecto: 7189039b399b13cf
 
-Si alguien manipula un snapshot, el hash del cuerpo ya no es el de la cadena y se nota ✓.
+Si alguien manipula un snapshot, el hash del cuerpo ya no es el de la cadena y se nota.
 
 ### 🔥 El calor por símbolo
 
 Un fichero con veinte funciones quietas y otro con una que se reescribe cada semana pesan igual en el
-mapa. Con las cadenas, no: la barra lateral lista los **símbolos más reescritos** ✓, y el inspector
-enseña la vida del que elijas ✓ (nació, se renombró, se mudó, cambió su complejidad ✓).
+mapa. Con las cadenas, no: la barra lateral lista los **símbolos más reescritos**, y el inspector
+enseña la vida del que elijas (nació, se renombró, se mudó, cambió su complejidad).
 
-El agente pregunta lo mismo: `get_symbol_chain` ✓.
+El agente pregunta lo mismo: `get_symbol_chain`.
 
 ### 🔗 Resolución de imports
 
@@ -623,9 +623,9 @@ Un **modelo de arquitectura headless** que alimenta tres consumidores:
 ```
 $ codarch analyze . --base origin/main --head HEAD
 
-  ✓ 4.812 ficheros · 1.9 s · 38 MB
-  ✗ 2 ciclos nuevos        src/domain → src/infra → src/domain
-  ✗ 1 capa violada         ui/Checkout.tsx importa db/queries.ts
+  4.812 ficheros · 1.9 s · 38 MB
+  2 ciclos nuevos        src/domain → src/infra → src/domain
+  1 capa violada         ui/Checkout.tsx importa db/queries.ts
   ● 3 hotspots movidos     payments/service.ts  +41 complejidad
   → mapa: .codarch/index.html   reporte: .codarch/report.json
 ```
@@ -692,20 +692,20 @@ independiente, sin código derivado. Ver [ADR 0001](apps/site/docs/desarrollo/ad
 
 ## 🔒 Privacidad
 
-CodArch **no recoge nada** ✓: el análisis ✓, los snapshots ✓, los reportes ✓ y el historial ✓ se
-quedan en tu disco ✓, y nada se manda a ningún sitio ✓. Lo único que sale a la red ✓ es la
-comprobación de actualizaciones ✓ —a npm ✓ y a GitHub ✓— y solo cuando tú la pides ✓ (el botón
-**Comprobar ahora** ✓ de los ajustes ✓).
+CodArch **no recoge nada**: el análisis, los snapshots, los reportes y el historial se
+quedan en tu disco, y nada se manda a ningún sitio. Lo único que sale a la red es la
+comprobación de actualizaciones —a npm y a GitHub— y solo cuando tú la pides (el botón
+**Comprobar ahora** de los ajustes).
 
-El código manda su telemetría ✓ a ningún sitio ✓ porque no tiene dónde mandarla ✓.
+El código manda su telemetría a ningún sitio porque no tiene dónde mandarla.
 
 ## 📄 Los papeles del repo
 
 | Fichero | Qué es |
 |---|---|
-| [`LICENSE`](LICENSE) | MIT ✓: el código ✓ es libre ✓ |
-| [`TRADEMARK.md`](TRADEMARK.md) | el nombre ✓ y el logotipo ✓ **no** se conceden ✓ |
-| [`NOTICE.md`](NOTICE.md) | los créditos ✓: CodeCharta ✓, tree-sitter ✓, las tipografías ✓ |
-| [`SECURITY.md`](SECURITY.md) | cómo se avisa de un fallo de seguridad ✓ |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | cómo se contribuye ✓ |
-| [`AGENTS.md`](AGENTS.md) | las reglas del repo ✓ |
+| [`LICENSE`](LICENSE) | MIT: el código es libre |
+| [`TRADEMARK.md`](TRADEMARK.md) | el nombre y el logotipo **no** se conceden |
+| [`NOTICE.md`](NOTICE.md) | los créditos: CodeCharta, tree-sitter, las tipografías |
+| [`SECURITY.md`](SECURITY.md) | cómo se avisa de un fallo de seguridad |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | cómo se contribuye |
+| [`AGENTS.md`](AGENTS.md) | las reglas del repo |
