@@ -12,3 +12,5 @@ Thumbs.db
 # Artefactos de herramientas locales
 .freebuff/
 .cloud-attachments/
+
+apps/desktop/release-check*
