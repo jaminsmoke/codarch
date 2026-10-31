@@ -4,6 +4,7 @@ import {
   isColorModeAvailable,
   parseSourceRequest,
   parseViewState,
+  tabWhenFolderDisappears,
   toggleInspector,
   viewStateFromSaved,
   type SourceRequest,
@@ -246,6 +247,21 @@ describe("la barra del inspector (ADR 0079)", () => {
   });
 });
 
+describe("la hoja que queda cuando el refresco se lleva la carpeta", () => {
+  it("la del proyecto sigue abierta", () => {
+    expect(tabWhenFolderDisappears("project")).toBe("project");
+  });
+
+  it("la de la carpeta cae en la del fichero", () => {
+    expect(tabWhenFolderDisappears("folder")).toBe("file");
+  });
+
+  it("las demás hojas no se mueven", () => {
+    expect(tabWhenFolderDisappears("file")).toBe("file");
+    expect(tabWhenFolderDisappears("changes")).toBe("changes");
+  });
+});
+
 describe("el modo de color que se puede pintar", () => {
   const coverage = new Set(["rloc", "maxComplexity"]);
 
@@ -262,5 +278,8 @@ describe("el modo de color que se puede pintar", () => {
   it("una métrica vale si está en el snapshot", () => {
     expect(isColorModeAvailable("rloc", coverage, null)).toBe(true);
     expect(isColorModeAvailable("lineas", coverage, null)).toBe(false);
+    // La lente del lint no depende del snapshot: su artefacto va aparte y, si
+    // falta, la banda del proyecto lo dice (ADR 0094).
+    expect(isColorModeAvailable("lint", new Set(), null)).toBe(true);
   });
 });

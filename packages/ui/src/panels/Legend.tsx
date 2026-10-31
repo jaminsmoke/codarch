@@ -20,12 +20,39 @@ import { KIND_LABEL, STATUS_COLOR, STATUS_LABEL } from "../labels";
 export function Legend({
   colorMode,
   migration,
-  model
+  model,
+  hasLint = false
 }: {
   colorMode: string;
   migration: CcMigrationLens | null;
   model: RenderModel | null;
+  /** Hay artefacto de lint: sin él, la leyenda del lint no se dibuja. */
+  hasLint?: boolean;
 }) {
+  // La deuda de lint: la escala es el máximo del mapa, y la cifra que importa
+  // es cuántos ficheros tienen algo, no cuántos hay (ADR 0094).
+  if (colorMode === "lint") {
+    if (!model || !hasLint) return null;
+    const withFindings = model.files.filter((file) => file.lint > 0).length;
+    return (
+      <section className="panel-block">
+        <div className="eyebrow">Leyenda · lint</div>
+        <div className="gradient lint" />
+        <div className="gradient-labels">
+          <span>limpio</span>
+          <span>{model.lintMax > 0 ? formatCompact(model.lintMax) : "deuda"}</span>
+        </div>
+        <div className="muted tiny">
+          {withFindings === 0
+            ? "ningún fichero con hallazgos"
+            : `${formatCompact(withFindings)} de ${formatCompact(
+                model.fileCount
+              )} ficheros con hallazgos`}
+        </div>
+      </section>
+    );
+  }
+
   if (colorMode === "status" && migration) {
     return (
       <section className="panel-block">

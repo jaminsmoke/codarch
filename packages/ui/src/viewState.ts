@@ -59,6 +59,18 @@ export function toggleInspector(
   return { tab: clicked, closed: false };
 }
 
+/**
+ * Qué hoja queda cuando el refresco se llevó la carpeta seleccionada.
+ *
+ * Un refresco del live no es una elección del usuario: la hoja de **Proyecto**
+ * no se cierra porque hayan llegado datos nuevos, y la de una carpeta que sigue
+ * ahí tampoco. Solo la de una carpeta que ya no está en el árbol se queda sin
+ * sujeto, y pasa a la del fichero.
+ */
+export function tabWhenFolderDisappears(tab: InspectorTab): InspectorTab {
+  return tab === "folder" ? "file" : tab;
+}
+
 export interface ViewState {
   /** Métrica que decide el área del treemap. */
   areaMetric: string | null;
@@ -188,13 +200,24 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
  *
  * `risk` y `structure` siempre; `status` pide la lente de migración; el resto
  * es el nombre de una métrica que tiene que venir en el snapshot.
+ *
+ * `lint` tampoco depende del snapshot: su artefacto es otro fichero del mismo
+ * repo y llega por su cuenta (ADR 0094). Se acepta siempre para que un enlace
+ * o una vista guardada con la lente del lint no caigan al riesgo al abrir; si
+ * el artefacto no está, la banda del proyecto lo dice en vez de fingir ceros.
  */
 export function isColorModeAvailable(
   colorMode: string,
   coverage: ReadonlySet<string>,
   migration: unknown
 ): boolean {
-  if (colorMode === "risk" || colorMode === "structure") return true;
+  if (
+    colorMode === "risk" ||
+    colorMode === "structure" ||
+    colorMode === "lint"
+  ) {
+    return true;
+  }
   if (colorMode === "status") return Boolean(migration);
   return coverage.has(colorMode);
 }

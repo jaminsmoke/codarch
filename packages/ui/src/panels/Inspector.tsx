@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type {
   CcMigrationLens,
@@ -48,6 +49,7 @@ export function Inspector({
   structure,
   chain,
   report,
+  lint,
   migration,
   showCode = true,
   onSelectSymbol,
@@ -69,6 +71,8 @@ export function Inspector({
   chain: SymbolChain | null;
   /** El reporte del diff: las reglas de dominio viven ahí (ADR 0069). */
   report: DiffReport | null;
+  /** El lint del proyecto, que ahora vive en Reglas (ADR 0096). */
+  lint: LintArtifact | null;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
   /**
@@ -151,6 +155,7 @@ export function Inspector({
             node={migrationNode}
             model={model}
             file={file}
+            lint={lint}
             onSelectPath={onSelectPath}
           />
           <SymbolsSection

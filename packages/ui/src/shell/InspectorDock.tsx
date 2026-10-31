@@ -90,6 +90,7 @@ export function InspectorDock({
             structure={selectedStructure}
             chain={state.chain}
             report={report}
+            lint={state.lint}
             migration={migration}
             showCode={state.map === "code"}
             onSelectSymbol={(name) => {
@@ -105,6 +106,9 @@ export function InspectorDock({
             folder={selectedFolderNode}
             model={view.model}
             lint={state.lint}
+            metricTitle={metricTitle}
+            colorMode={state.colorMode}
+            onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
           />
@@ -112,6 +116,9 @@ export function InspectorDock({
           <ProjectPanel
             model={view.model}
             lint={state.lint}
+            metricTitle={metricTitle}
+            colorMode={state.colorMode}
+            onColorMode={actions.setColorMode}
             onSelectFolder={actions.selectFolder}
           />
         ) : (

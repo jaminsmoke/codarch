@@ -11,7 +11,8 @@
  * lo grande que sea el repositorio.
  */
 
-import type { TreeNode } from "@codarch/render/browser";
+import type { RenderModel, TreeNode } from "@codarch/render/browser";
+import { findFolder } from "./tree";
 
 export interface DetailOptions {
   /** Un nodo con más ficheros que esto no se expande: sus hijos son bloques. */
@@ -135,4 +136,23 @@ export function pruneTree(
     hiddenFiles: Math.max(0, totalFiles - visibleFiles),
     collapsedFolders
   };
+}
+
+/**
+ * El nivel de detalle de lo que se está mirando: el mapa entero o una carpeta.
+ *
+ * El foco no mueve el mapa: se dibuja el subárbol de esa carpeta como si fuera
+ * la raíz, con su recuento de ficheros para que la poda mida lo mismo. Una
+ * carpeta que ya no está cae al mapa entero, como un enlace viejo.
+ */
+export function detailFor(
+  model: RenderModel | null,
+  focusPath: string | null,
+  options: DetailOptions = DEFAULT_DETAIL_OPTIONS
+): DetailResult | null {
+  if (!model) return null;
+  const folder = focusPath ? findFolder(model.roots, focusPath) : null;
+  const roots = folder ? [folder] : model.roots;
+  const total = folder ? folder.fileCount : model.fileCount;
+  return pruneTree(roots, options, total);
 }

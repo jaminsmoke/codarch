@@ -20,7 +20,7 @@ export interface SavedProject {
   /**
    * El lint del repo, si el proyecto lo traía (ADR 0094).
    *
-   * En el escritorio vive en `.codarch/lint.json`; la web lo guarda aquí porque
+   * En el escritorio vive en `.codarch/lint.cc.json`; la web lo guarda aquí porque
    * no tiene un `.codarch/` donde dejarlo.
    */
   lint?: unknown;

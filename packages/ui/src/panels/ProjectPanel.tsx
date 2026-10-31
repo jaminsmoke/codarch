@@ -1,5 +1,10 @@
-import type { LintArtifact } from "@codarch/lint/browser";
+import {
+  adviceForExtensions,
+  extensionOf,
+  type LintArtifact
+} from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
+import { LintRulesSection } from "../LintRules";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -7,8 +12,9 @@ import { MetricsRollup } from "./MetricsRollup";
  *
  * Es la cuarta entrada del dock porque la raíz no es una carpeta seleccionable:
  * sin ella, el total del repo no tenía dónde contarse. Enseña las métricas del
- * subárbol —con el lint dentro, como una fila más— y la tabla de carpetas para
- * empezar a bajar: proyecto, carpeta, subcarpeta, fichero.
+ * subárbol en la misma tabla que la ficha del fichero —con los totales del lint
+ * dentro, en su bloque— y la tabla de carpetas para empezar a bajar: proyecto,
+ * carpeta, subcarpeta, fichero.
  *
  * No lleva símbolos, miembros ni código: un proyecto no tiene cuerpo. Tampoco
  * inventa un «riesgo del proyecto»: el riesgo está normalizado por el p95 del
@@ -17,10 +23,16 @@ import { MetricsRollup } from "./MetricsRollup";
 export function ProjectPanel({
   model,
   lint,
+  metricTitle,
+  colorMode,
+  onColorMode,
   onSelectFolder
 }: {
   model: RenderModel | null;
   lint: LintArtifact | null;
+  metricTitle: (key: string) => string;
+  colorMode: string;
+  onColorMode: (mode: string) => void;
   onSelectFolder: (path: string) => void;
 }) {
   if (!model) return <EmptyProject />;
@@ -45,10 +57,22 @@ export function ProjectPanel({
         model={model}
         files={model.files}
         folders={folders}
-        folderCount={model.folderCount}
         lint={lint}
         folder=""
+        metricTitle={metricTitle}
+        colorMode={colorMode}
+        onColorMode={onColorMode}
         onSelectFolder={onSelectFolder}
+      />
+
+      <LintRulesSection
+        id="project-rules"
+        artifact={lint}
+        folder=""
+        advice={adviceForExtensions(
+          model.files.map((file) => extensionOf(file.name))
+        )}
+        showSystems
       />
     </section>
   );

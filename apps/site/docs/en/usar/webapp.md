@@ -57,9 +57,12 @@ Each block is a folder or a file. There is no «lenses» menu: they are the two 
 **VISTA** panel, on the left.
 
 - **ÁREA** decides the size of each block (the metric).
-- **COLOR** decides how it is painted: Riesgo (risk), Estructura (structure), Color (commits), Estado
-  de migración (migration status), Deuda de migración (migration debt), among others. When a repo
-  opens, the default lens is Deuda de migración.
+- **COLOR** decides how it is painted: Riesgo (risk), Estructura (structure), **Lint**, Color
+  (commits), Estado de migración (migration status), Deuda de migración (migration debt), among
+  others. When a repo opens, the default lens is Deuda de migración. **Lint** paints each file with
+  its debt —errors + ¼ warnings— over the map's maximum, and appears when the tree you are looking at
+  has measured lint: [`codarch analyze`](cli/analyze.md) measures it in the same pass as the other
+  lenses, and `codarch serve` only re-measures it when the tree changed.
 
 The layers icon, in the tool bar on the left, folds that panel away and leaves the map full screen; the
 app remembers whether it was folded.
@@ -120,7 +123,7 @@ pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-
 
 The inspector is the right-hand panel and has four entries in its activity bar: **Fichero** (file),
 **Carpeta** (folder), **Proyecto** (project) and **Cambios** (changes). Clicking a file, **Fichero** shows its metrics, its
-symbols and its incoming and outgoing dependencies. Clicking a folder, **Carpeta** shows how many
+symbols, its incoming and outgoing dependencies and, under **Reglas**, its lint rules with findings. Clicking a folder, **Carpeta** shows how many
 files it holds, at what depth it sits and what share of its area each child takes, in the map's own
 order; selecting a file goes back to **Fichero**.
 
@@ -132,22 +135,50 @@ order; selecting a file goes back to **Fichero**.
 the share of the area each child takes and the files it holds. Clicking a child selects it —if it is
 a file, it moves to **Fichero**. Its **Métricas** section adds up the subtree —files, folders, lines,
 the maximum complexity with the file that has it, and the lint debt— and ends with **Lint por
-carpeta**, one row per child folder that opens its sheet. The dependency frontier and the cycles are
-still on this phase's roadmap.
+carpeta**, one row per child folder that opens its sheet. The table is the file's, with the same
+section frame and the same ink: the debt red and the warning ochre come from the worst file in the
+subtree, and the row's icon names it. **Reglas** adds the lint rules with findings
+in the folder. The dependency frontier and the cycles are still on this phase's roadmap.
 
 ![The Carpeta sheet open on packages/ui: its path, its counts and the folder's content with the share of the area each child takes](../../images/webapp-inspector-carpeta.png)
 
 ## Inspector › Proyecto
 
 **Proyecto** is the sheet of the whole map, always available: the same **Métricas** as a folder, added
-up over the whole repo, and the way down from project to file. The section carries files, folders,
-lines, the maximum complexity with its file and **lint** inside, as one more row: errors, warnings,
-files with findings and its score —errors + ¼ warnings—. Below, **Lint por carpeta** gives one row per
-top-level folder with its files, errors, warnings and score; clicking one opens that folder's sheet,
-which counts the same over its subtree.
+up over the whole repo, and the way down from project to file. Métricas is the file sheet's table with
+another subject: one row per metric in the snapshot —name, bar and value—, where the bar is the part of
+the files that carries the metric and the value is its sum; maxima —complexity, longest function— are
+shown with the file that holds them, not added up. A maximum measured at zero —no cycles, no FFI crossings—
+names no file: the zero belongs to all of them, and its tooltip says so. The figures carry the same ink
+as the file sheet, with the file that puts them in the tooltip. Clicking a row paints the map by
+that metric. Below,
+**lint** with its totals —errors, warnings and info, files with findings **out of those measured** and
+its score, errors + ¼ warnings— and **Lint por carpeta**, one row per top-level folder with its
+errors, warnings, info and score; clicking one opens
+that folder's sheet, which counts the same over its subtree. If the artifact was measured on another
+tree —the repo changed afterwards—, the sheet says so instead of trusting the figure.
 
-Without `.codarch/lint.json` there are no zeros: the row says **sin medir** (unmeasured) and what it
-will weigh once [`codarch lint`](cli/lint.md) runs.
+![The Métricas section of the Proyecto sheet: one row per metric with its coverage and value, the highest complexity with its file, and lint with its three counts and its per-folder breakdown](../../images/webapp-inspector-metricas.png)
+
+**Reglas** shows the detail of the lint the project already has: the detected systems —with their
+configuration and active rules— and the rules with findings, sorted by what they weigh. Each system
+carries its rule —green when it measured—, the pill of its state and its configuration in words
+(«396 reglas activas · 372 como error · 24 como aviso»): an active rule is **configured** that way, it
+has not fired, which is why that line carries no debt ink. Findings go in a table with the columns **Err.**, **Avis.** and
+**Info**: every number carries the ink of what it measures —the red of debt, the ochre of a warning—
+and a zero reads as a dash, not as a gap. The totals of errors, warnings and info belong to Métricas:
+here the rules that produce them are counted, and when there are none the table says so with the
+coverage («Sin hallazgos en el proyecto: se midieron 496 ficheros»). The folder and file sheets show
+the ones in their scope, without repeating the systems. The number in the header counts the **active rules** in the
+project —not the findings— and the rules with findings in folder and file; it is the same count the
+CLI and the MCP read, and an `info` counts as a finding even though it is neither an error nor a
+warning.
+
+![The Proyecto sheet: its metrics with lint and lint per folder, and Reglas with the repo's systems —eslint with its configuration and active rules, oxlint with no config—](../../images/webapp-inspector-proyecto.png)
+
+Without `.codarch/lint.cc.json` there are no zeros: the lint block says **sin medir** (unmeasured) and
+what it will weigh once [`codarch analyze`](cli/analyze.md) runs, which measures it with the project's
+linter.
 
 There is no «project risk»: risk is normalised by the project's p95 and belongs to each file, so it is
 read in the file's sheet.

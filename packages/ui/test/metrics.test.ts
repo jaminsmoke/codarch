@@ -6,7 +6,7 @@ import {
   metricState,
   orderedMetrics,
   riskState,
-  sumMetric
+  rollupMetricRows
 } from "../src/metrics";
 
 describe("orden de las métricas", () => {
@@ -67,32 +67,140 @@ function file(values: Array<number | null>, risk = 0.65): RenderFile {
   };
 }
 
-function model(metrics: RenderMetric[], files: RenderFile[]): RenderModel {
-  return { metrics, files } as unknown as RenderModel;
+function model(
+  metrics: RenderMetric[],
+  files: RenderFile[],
+  areaMetric: string | null = null
+): RenderModel {
+  return { metrics, files, areaMetric } as unknown as RenderModel;
 }
 
-describe("la suma de una métrica en un subárbol", () => {
-  const metrics = [metric("loc"), metric("rloc")];
+const title = (key: string) => key;
 
-  it("suma los valores del conjunto", () => {
-    const files = [file([100, 40]), file([50, 10])];
-    expect(sumMetric(model(metrics, files), files, "loc")).toBe(150);
-    expect(sumMetric(model(metrics, files), files, "rloc")).toBe(50);
+const a = file([100, 15]);
+const b = { ...file([50, 5]), path: "src/b.ts" };
+const c = { ...file([null, null]), path: "src/c.ts" };
+const subtree = [a, b, c];
+
+describe("las filas de Métricas en proyecto y carpeta", () => {
+  const metrics = [metric("loc"), metric("maxComplexity")];
+
+  it("suma lo que se suma y toma el máximo de lo que ya es un máximo", () => {
+    const rows = rollupMetricRows(model(metrics, subtree), subtree, title);
+    const loc = rows.find((row) => row.key === "loc");
+    const complexity = rows.find((row) => row.key === "maxComplexity");
+
+    expect(loc?.value).toBe(150);
+    expect(loc?.files).toBe(2);
+    // La complejidad de la carpeta no es la suma: es el mayor, con su dueño.
+    expect(complexity?.value).toBe(15);
+    expect(complexity?.owner).toBe("src/a.ts");
   });
 
-  it("no suma los huecos de los ficheros sin el valor", () => {
-    const files = [file([100, 40]), file([null, null])];
-    expect(sumMetric(model(metrics, files), files, "loc")).toBe(100);
+  it("la barra es la cobertura, no una escala que no existe", () => {
+    const rows = rollupMetricRows(model(metrics, subtree), subtree, title);
+
+    expect(rows.find((row) => row.key === "loc")?.share).toBeCloseTo(2 / 3);
+    expect(rows.find((row) => row.key === "maxComplexity")?.share).toBeCloseTo(
+      2 / 3
+    );
   });
 
-  it("devuelve null cuando el snapshot no trae la métrica", () => {
-    const files = [file([100, 40])];
-    expect(sumMetric(model(metrics, files), files, "churn")).toBeNull();
+  it("sin ningún valor no hay cero: el valor es null", () => {
+    const empty = rollupMetricRows(
+      model(metrics, [c]),
+      [c],
+      title
+    );
+
+    expect(empty.find((row) => row.key === "loc")?.value).toBeNull();
   });
 
-  it("sin valores tampoco inventa un cero", () => {
-    const files = [file([null, null])];
-    expect(sumMetric(model(metrics, files), files, "loc")).toBeNull();
+  it("añade la complejidad cuando el snapshot no la trae como métrica", () => {
+    const rows = rollupMetricRows(model([metric("loc")], subtree), subtree, title);
+
+    expect(rows.map((row) => row.key)).toEqual(["loc", "maxComplexity"]);
+    expect(rows.at(-1)?.title).toBe("Complejidad máx.");
+  });
+
+  it("un máximo de cero no nombra fichero: no lo tiene ninguno", () => {
+    const cycles = [metric("inCycle"), metric("loc")];
+    const rows = rollupMetricRows(
+      model(cycles, [{ ...a, values: [0, 100] }, { ...b, values: [0, 50] }]),
+      [{ ...a, values: [0, 100] }, { ...b, values: [0, 50] }],
+      title
+    );
+    const inCycle = rows.find((row) => row.key === "inCycle");
+
+    // El cero es un cero medido: hay valor, pero no hay fichero que lo tenga.
+    expect(inCycle?.value).toBe(0);
+    expect(inCycle?.owner).toBeNull();
+    expect(inCycle?.hint).toContain("el máximo del subárbol es 0");
+    expect(inCycle?.hint).not.toContain("src/a.ts");
+  });
+
+  it("una suma lleva la tinta de su peor fichero, con su nombre", () => {
+    const debt = [metric("loc", { direction: -1, p95: 10 })];
+    const files = [
+      { ...a, path: "src/a.ts", values: [2] },
+      { ...b, path: "src/b.ts", values: [20] },
+      { ...c, path: "src/c.ts", values: [5] }
+    ];
+    const rows = rollupMetricRows(model(debt, files), files, title);
+    const loc = rows.find((row) => row.key === "loc");
+
+    // El total no se compara con el p95: la tinta dice que dentro hay deuda.
+    expect(loc?.value).toBe(27);
+    expect(loc?.state).toBe("debt");
+    expect(loc?.worst).toBe("src/b.ts");
+    expect(loc?.hint).toContain("el peor, src/b.ts (20 sobre p95 10)");
+  });
+
+  it("una métrica sin dirección de deuda no se tiñe", () => {
+    const fanIn = [metric("fanIn", { direction: 1, p95: 1 })];
+    const files = [{ ...a, values: [900] }];
+    const rows = rollupMetricRows(model(fanIn, files), files, title);
+    const row = rows.find((entry) => entry.key === "fanIn");
+
+    expect(row?.state).toBe("none");
+    expect(row?.worst).toBeNull();
+    expect(row?.hint).not.toContain("el peor");
+  });
+
+  it("un máximo se tiñe con su propia cifra, que es la del peor fichero", () => {
+    const complexity = [metric("maxComplexity", { direction: -1, p95: 14 })];
+    const files = [
+      { ...a, path: "src/a.ts", values: [5] },
+      { ...b, path: "src/b.ts", values: [20] }
+    ];
+    const rows = rollupMetricRows(model(complexity, files), files, title);
+    const row = rows.find((entry) => entry.key === "maxComplexity");
+
+    expect(row?.state).toBe("debt");
+    expect(row?.worst).toBe("src/b.ts");
+    expect(row?.owner).toBe("src/b.ts");
+  });
+
+  it("un subárbol en el aviso se queda con el aviso, no con el verde", () => {
+    const debt = [metric("loc", { direction: -1, p95: 10 })];
+    const files = [
+      { ...a, path: "src/a.ts", values: [1] },
+      { ...b, path: "src/b.ts", values: [8] }
+    ];
+    const rows = rollupMetricRows(model(debt, files), files, title);
+
+    expect(rows[0]?.state).toBe("watch");
+    expect(rows[0]?.worst).toBe("src/b.ts");
+  });
+
+  it("marca la métrica que decide el área", () => {
+    const rows = rollupMetricRows(
+      model(metrics, subtree, "loc"),
+      subtree,
+      title
+    );
+
+    expect(rows.find((row) => row.area)?.key).toBe("loc");
   });
 });
 

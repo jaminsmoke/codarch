@@ -3,6 +3,7 @@ import type { CcJson, CcStats } from "@codarch/schema/browser";
 import {
   keepArea,
   keepColor,
+  planMapSwitch,
   planSnapshotView
 } from "../src/app/snapshotView";
 
@@ -111,6 +112,87 @@ describe("planSnapshotView", () => {
 
     // Sin resumen no hay leyenda que enseñar: abre por la métrica de deuda.
     expect(plan.colorMode).toBe("migrationDebt");
+  });
+});
+
+/** Un snapshot con un fichero, sus métricas y la lente de migración. */
+function mapSnapshot(): CcJson {
+  return {
+    files: [{ id: "1", name: "a.ts", type: "File" }],
+    lenses: {
+      metrics: { attributes: { "1": { rloc: 10, migrationDebt: 2 } } },
+      migration: {
+        nodes: { "1": { status: "js", language: "typescript" } },
+        edges: [],
+        summary: {
+          languages: {},
+          status: { js: 1, rust: 0, bridge: 0, native: 0 },
+          ffiEdges: 0,
+          bridgeFiles: 0
+        }
+      }
+    }
+  } as unknown as CcJson;
+}
+
+describe("planMapSwitch", () => {
+  it("no hace nada si ya se está en ese mapa", () => {
+    expect(
+      planMapSwitch({ next: "code", current: "code", cc: null, rest: null, preferences: null })
+    ).toEqual({ kind: "same" });
+  });
+
+  it("sin mapa del resto no se puede ir al resto", () => {
+    expect(
+      planMapSwitch({
+        next: "rest",
+        current: "code",
+        cc: snapshot(false),
+        rest: null,
+        preferences: null
+      })
+    ).toEqual({ kind: "blocked" });
+  });
+
+  it("el resto se mide en bytes y se pinta por tipo", () => {
+    expect(
+      planMapSwitch({
+        next: "rest",
+        current: "code",
+        cc: snapshot(false),
+        rest: snapshot(false),
+        preferences: { areaMetric: "rloc", colorMode: "risk", showLabels: true }
+      })
+    ).toEqual({ kind: "switch", map: "rest", areaMetric: "bytes", colorMode: "kind" });
+  });
+
+  it("volver al código recupera el área y el color de las preferencias", () => {
+    const plan = planMapSwitch({
+      next: "code",
+      current: "rest",
+      cc: mapSnapshot(),
+      rest: snapshot(false),
+      preferences: { areaMetric: "rloc", colorMode: "status", showLabels: true }
+    });
+
+    expect(plan).toEqual({
+      kind: "switch",
+      map: "code",
+      areaMetric: "rloc",
+      colorMode: "status"
+    });
+  });
+
+  it("sin snapshot del código vuelve sin preferencia y por el riesgo", () => {
+    expect(
+      planMapSwitch({
+        next: "code",
+        current: "rest",
+        cc: null,
+        rest: snapshot(false),
+        preferences: { areaMetric: "rloc", colorMode: "risk", showLabels: true }
+      })
+    ).toEqual({ kind: "switch", map: "code", areaMetric: null, colorMode: "risk" });
   });
 });
 

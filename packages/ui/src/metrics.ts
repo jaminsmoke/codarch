@@ -74,6 +74,14 @@ export type MetricState = "ok" | "watch" | "debt" | "none";
 
 const WATCH_RATIO = 0.75;
 
+/** El orden de las tintas: un subárbol se queda con la peor de sus ficheros. */
+const STATE_RANK: Record<MetricState, number> = {
+  none: 0,
+  ok: 1,
+  watch: 2,
+  debt: 3
+};
+
 export function metricState(
   value: number | null,
   metric: Pick<RenderMetric, "direction" | "p95">
@@ -118,28 +126,206 @@ export function riskState(risk: number): MetricState {
 }
 
 /**
- * La suma de una métrica en un conjunto de ficheros.
+ * Las métricas que ya son un máximo por fichero.
  *
- * Es lo que la ficha de proyecto y la de carpeta cuentan de su subárbol: los
- * totales son una suma, no un p95, y se dice cuando el snapshot no trae la
- * métrica (`null`) en vez de fingir un cero. Los ficheros sin valor no suman.
+ * Sumarlas diría una cifra que no existe: la complejidad de una carpeta no es
+ * la suma de las complejidades de sus ficheros. Se enseña el máximo y el fichero
+ * que lo tiene. El resto sí se suma, que es lo que significa un total.
  */
-export function sumMetric(
+const MAX_METRICS = new Set([
+  "maxComplexity",
+  "max_complexity_per_function",
+  "maxFunctionLength",
+  "dependencyLevel",
+  "inCycle",
+  "cycleSize"
+]);
+
+/** Una fila de la tabla de métricas de proyecto y carpeta. */
+export interface RollupMetricRow {
+  key: string;
+  title: string;
+  /** La suma —o el máximo— del subárbol; `null` si ningún fichero la trae. */
+  value: number | null;
+  /** Ficheros del subárbol que declaran la métrica. */
+  files: number;
+  /** La barra, de 0 a 1: la parte de los ficheros que traen la métrica. */
+  share: number;
+  /** La métrica que decide el área del mapa. */
+  area: boolean;
+  /** El fichero donde está el máximo, cuando la métrica no se suma. */
+  owner: string | null;
+  /**
+   * La tinta de la fila.
+   *
+   * Una suma no se puede comparar con el p95 de un fichero sin mentir, así que
+   * la tinta la pone el **peor fichero** del subárbol: dice si dentro hay deuda,
+   * no que el total lo sea. En un máximo —la complejidad, la función más
+   * larga— el peor fichero es el máximo, y la regla coincide con la del fichero.
+   */
+  state: MetricState;
+  /** El fichero que pone la tinta, si la pone uno. */
+  worst: string | null;
+  description: string;
+  hint: string;
+}
+
+/**
+ * Las filas de Métricas en proyecto y carpeta.
+ *
+ * Es la tabla del fichero con otro sujeto: mismo formato —nombre, barra y
+ * valor—, pero lo que se cuenta son las sumas del subárbol. La barra pasa a ser
+ * la **cobertura**: la parte de los ficheros que declara la métrica. Un valor
+ * sumado no se puede comparar con el p95 de un fichero sin mentir, así que la
+ * escala es la que sí se puede leer.
+ *
+ * La complejidad se añade aunque el snapshot no la traiga como métrica: es el
+ * único máximo que el modelo ya tiene por fichero y el ADR 0095 pide enseñarlo
+ * con su dueño.
+ */
+export function rollupMetricRows(
   model: RenderModel,
   files: readonly RenderFile[],
-  key: string
-): number | null {
-  const index = model.metrics.findIndex((metric) => metric.key === key);
-  if (index < 0) return null;
-  let total = 0;
-  let seen = false;
+  metricTitle: (key: string) => string
+): RollupMetricRow[] {
+  const rows: RollupMetricRow[] = [];
+  const hasComplexityMetric = model.metrics.some(
+    (metric) => metric.key === "maxComplexity"
+  );
+
+  if (!hasComplexityMetric) rows.push(complexityRow(files, model.areaMetric));
+
+  model.metrics.forEach((metric, index) => {
+    const maxed = MAX_METRICS.has(metric.key);
+    let total = 0;
+    let top: number | null = null;
+    let owner: string | null = null;
+    let seen = 0;
+    let state: MetricState = "none";
+    let worst: string | null = null;
+    let worstValue = 0;
+    for (const file of files) {
+      const value = file.values[index];
+      if (value === null || value === undefined) continue;
+      seen += 1;
+      total += value;
+      if (maxed && (top === null || value > top)) {
+        top = value;
+        // Un cero medido no tiene dueño: nombrar el primer fichero que lo trae
+        // diría que ahí está el máximo, y el máximo es que no hay ninguno.
+        owner = value > 0 ? file.path : null;
+      }
+      const fileState = metricState(value, metric);
+      if (STATE_RANK[fileState] > STATE_RANK[state]) {
+        state = fileState;
+        worst = file.path;
+        worstValue = value;
+      }
+    }
+    const value = seen === 0 ? null : maxed ? top : total;
+    // Un máximo ya es la cifra del fichero que lo tiene; en una suma, el nombre
+    // solo se enseña si hay tinta que explicar.
+    const worstFile = maxed
+      ? owner
+      : state === "watch" || state === "debt"
+        ? worst
+        : null;
+    rows.push({
+      key: metric.key,
+      title: metricTitle(metric.key),
+      value,
+      files: seen,
+      share: files.length === 0 ? 0 : seen / files.length,
+      area: metric.key === model.areaMetric,
+      owner: maxed ? owner : null,
+      state,
+      worst: worstFile,
+      description: metric.description ?? "Métrica del modelo.",
+      hint: rollupHint({
+        seen,
+        total: files.length,
+        maxed,
+        owner,
+        state,
+        worst: worstFile,
+        worstValue,
+        p95: metric.p95
+      })
+    });
+  });
+
+  const position = (key: string) => {
+    const index = ROW_ORDER.indexOf(key);
+    return index < 0 ? ROW_ORDER.length : index;
+  };
+  rows.sort((left, right) => position(left.key) - position(right.key));
+  return rows;
+}
+
+/** La fila de la complejidad cuando el snapshot no la trae como métrica. */
+function complexityRow(
+  files: readonly RenderFile[],
+  areaMetric: string | null
+): RollupMetricRow {
+  let top: RenderFile | null = null;
   for (const file of files) {
-    const value = file.values[index];
-    if (value === null || value === undefined) continue;
-    total += value;
-    seen = true;
+    if (!top || file.complexity > top.complexity) top = file;
   }
-  return seen ? total : null;
+  const owner = top && top.complexity > 0 ? top.path : null;
+  return {
+    key: "maxComplexity",
+    title: "Complejidad máx.",
+    value: top ? top.complexity : null,
+    files: files.length,
+    share: files.length === 0 ? 0 : 1,
+    area: areaMetric === "maxComplexity",
+    owner,
+    // Sin métrica de complejidad no hay p95 con el que comparar: el valor se
+    // enseña sin tinta, que es lo mismo que hace la tabla del fichero.
+    state: "none",
+    worst: owner,
+    description:
+      "La complejidad más alta del subárbol y el fichero que la tiene.",
+    hint: !top
+      ? "sin datos en este subárbol"
+      : owner
+        ? `el mayor del subárbol en ${owner}`
+        : "el máximo del subárbol es 0"
+  };
+}
+
+function rollupHint({
+  seen,
+  total,
+  maxed,
+  owner,
+  state,
+  worst,
+  worstValue,
+  p95
+}: {
+  seen: number;
+  total: number;
+  maxed: boolean;
+  owner: string | null;
+  state: MetricState;
+  worst: string | null;
+  worstValue: number;
+  p95: number;
+}): string {
+  if (seen === 0) return "sin datos en este subárbol";
+  const coverage = `${formatCompact(seen)} de ${formatCompact(total)} ficheros`;
+  if (maxed) {
+    if (!owner) return `el máximo del subárbol es 0 · ${coverage}`;
+    return `máximo del subárbol en ${owner} · ${coverage}`;
+  }
+  // La tinta de una suma es de su peor fichero: se dice cuál y contra qué p95.
+  if (worst && (state === "watch" || state === "debt")) {
+    return `suma del subárbol · ${coverage} · el peor, ${worst} (${formatCompact(
+      worstValue
+    )} sobre p95 ${formatCompact(p95)})`;
+  }
+  return `suma del subárbol · ${coverage}`;
 }
 
 /** Una fila de la tabla de métricas del inspector. */

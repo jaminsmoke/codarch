@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { TreeNode } from "@codarch/render/browser";
-import { pruneTree } from "../src/detail";
+import type { RenderModel, TreeNode } from "@codarch/render/browser";
+import { detailFor, pruneTree } from "../src/detail";
 
 function file(index: number, path: string, area = 10): TreeNode {
   return {
@@ -85,5 +85,42 @@ describe("nivel de detalle del mapa", () => {
     expect(result.visibleFiles).toBe(0);
     expect(result.hiddenFiles).toBe(1);
     expect(result.cells).toBe(2);
+  });
+});
+
+/** Un modelo con un mapa de dos carpetas, tres ficheros en total. */
+function model(): RenderModel {
+  const roots = [
+    folder("src", [file(0, "src/a.ts"), file(1, "src/b.ts")]),
+    folder("lib", [file(2, "lib/c.ts")])
+  ];
+  return { roots, fileCount: 3 } as unknown as RenderModel;
+}
+
+describe("el detalle de lo que se mira", () => {
+  it("sin modelo no hay mapa que podar", () => {
+    expect(detailFor(null, null)).toBeNull();
+  });
+
+  it("sin foco poda el mapa entero", () => {
+    const result = detailFor(model(), null);
+
+    expect(result?.roots).toHaveLength(2);
+    expect(result?.visibleFiles).toBe(3);
+  });
+
+  it("con foco dibuja esa carpeta como raíz, con su recuento", () => {
+    const result = detailFor(model(), "lib");
+
+    expect(result?.roots).toHaveLength(1);
+    expect(result?.roots[0]?.path).toBe("lib");
+    expect(result?.visibleFiles).toBe(1);
+  });
+
+  it("una carpeta que ya no está cae al mapa entero", () => {
+    const result = detailFor(model(), "fuera");
+
+    expect(result?.roots).toHaveLength(2);
+    expect(result?.visibleFiles).toBe(3);
   });
 });

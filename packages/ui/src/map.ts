@@ -1,5 +1,6 @@
 import type { CcMigrationLens } from "@codarch/schema/browser";
 import {
+  debtColor,
   kindColor,
   metricColor,
   riskColor,
@@ -45,6 +46,9 @@ export function mapColorFor(
     if (!metric) return riskColor(file.risk);
     return metricColor(file.values[index] ?? null, metric);
   }
+  // El lint no es una métrica del snapshot: su deuda vive en el fichero del
+  // modelo y su escala es la del mapa (ADR 0094).
+  if (colorMode === "lint") return debtColor(file.lint, model.lintMax);
   if (colorMode === "risk") return riskColor(file.risk);
   const index = metricIndex.get(colorMode);
   if (index === undefined) return riskColor(file.risk);

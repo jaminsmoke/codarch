@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { LintArtifact, LintMessage } from "@codarch/lint/browser";
 import { lintTotals, withinFolder } from "../src/lintRollup";
+
+/** Un mensaje de relleno con la severidad pedida. */
+function messages(errors: number, warnings: number): LintMessage[] {
+  return [
+    ...Array.from({ length: errors }, () => ({
+      rule: "no-console",
+      severity: "error" as const,
+      message: "Unexpected console"
+    })),
+    ...Array.from({ length: warnings }, () => ({
+      rule: "no-var",
+      severity: "warn" as const,
+      message: "Unexpected var"
+    }))
+  ];
+}
 
 /** Un artefacto con los ficheros y sus hallazgos. */
 function artifact(
@@ -10,13 +26,18 @@ function artifact(
   let errors = 0;
   let warnings = 0;
   for (const [path, entry] of Object.entries(files)) {
-    parsed[path] = { ...entry, messages: [] };
+    const fileMessages = messages(entry.errors, entry.warnings);
+    parsed[path] = { ...entry, messages: fileMessages };
     errors += entry.errors;
     warnings += entry.warnings;
   }
   return {
-    schemaVersion: "1.0",
-    meta: { checksum: "abc", tools: ["eslint"] },
+    schemaVersion: "1.2",
+    meta: {
+      checksum: "abc",
+      tools: ["eslint"],
+      systems: [{ name: "eslint", config: "eslint.config.js" }]
+    },
     files: parsed,
     summary: {
       files: Object.keys(files).length,
@@ -39,6 +60,8 @@ describe("la deuda de lint de una carpeta", () => {
     expect(lintTotals(lint)).toEqual({
       errors: 3,
       warnings: 5,
+      info: 0,
+      findings: 8,
       files: 3,
       score: 4.25
     });
@@ -48,6 +71,8 @@ describe("la deuda de lint de una carpeta", () => {
     expect(lintTotals(lint, "packages/ui")).toEqual({
       errors: 0,
       warnings: 4,
+      info: 0,
+      findings: 4,
       files: 1,
       score: 1
     });
@@ -66,6 +91,8 @@ describe("la deuda de lint de una carpeta", () => {
     expect(lintTotals(lint, "packages/clean")).toEqual({
       errors: 0,
       warnings: 0,
+      info: 0,
+      findings: 0,
       files: 0,
       score: 0
     });

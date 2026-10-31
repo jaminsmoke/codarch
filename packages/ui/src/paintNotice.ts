@@ -10,6 +10,9 @@ import { CHURN_METRIC } from "./labels";
  * - **El estado de migración** necesita la lente del snapshot. Sin ella no hay
  *   estado que enseñar: los ficheros salen con el gris de `js` y la leyenda ni
  *   se dibuja. El mapa se queda **mudo**.
+ * - **La deuda de lint** necesita el artefacto del proyecto. Sin él todos los
+ *   bloques salen con el color de limpio, que se lee como «nadie tiene deuda»:
+ *   es la mentira que este aviso evita (ADR 0094, 0099).
  * - **Una métrica** que no está —o el calor, que es `number_of_commits`— cae al
  *   riesgo: el mapa se pinta, pero el selector dice una cosa y la leyenda
  *   desaparece. El mapa **no** está mudo, pero **miente** sobre lo que enseña.
@@ -34,8 +37,17 @@ interface PaintedMetric {
 export function paintNotice(
   colorMode: string,
   metrics: readonly PaintedMetric[] | null,
-  migration: CcMigrationLens | null
+  migration: CcMigrationLens | null,
+  hasLint = false
 ): PaintNotice | null {
+  if (colorMode === "lint") {
+    if (hasLint) return null;
+    return {
+      label: "sin lint medido",
+      title:
+        "El color es la deuda de lint y este proyecto no tiene lint medido: todos los bloques salen como si estuvieran limpios. Ejecuta `codarch analyze` —lo mide con el resto de lentes— o `codarch lint` para medirlo suelto."
+    };
+  }
   if (colorMode === "status") {
     if (migration) return null;
     return {

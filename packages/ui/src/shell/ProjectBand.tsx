@@ -18,7 +18,8 @@ export function ProjectBand({ app }: { app: CodarchApp }) {
   const notice = paintNotice(
     state.colorMode,
     view.model?.metrics ?? null,
-    migration
+    migration,
+    state.lint !== null
   );
 
   return (

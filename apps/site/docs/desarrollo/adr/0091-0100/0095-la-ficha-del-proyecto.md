@@ -11,6 +11,10 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-10-30
 
+**Enmienda ([ADR 0096](0096-el-lint-es-del-proyecto.md)):** los números del lint —errores, avisos,
+ficheros y score— se quedan en **Métricas**; el detalle —sistemas, configuración, reglas activas y
+hallazgos por regla— vive en **Reglas**, en las hojas de proyecto, carpeta y fichero.
+
 ## Contexto
 
 El dock del inspector tiene tres entradas —**Fichero**, **Carpeta** y **Cambios**—
@@ -54,6 +58,9 @@ barra. Tampoco hay un **riesgo agregado**: el riesgo ya está normalizado por el
 del fichero; un «riesgo de `packages/ui`» sería un número que no se puede arreglar. El máximo con
 dueño que promete el ADR 0092 para la ficha de carpeta queda como lo que es, una rebanada posterior.
 
+El [ADR 0097](0097-la-hoja-del-proyecto-como-la-del-fichero.md) enmienda este punto: la tabla es la
+de la ficha del fichero, con una fila por métrica y la cobertura en la barra.
+
 ### 3. El lint vive dentro de Métricas, con su descenso
 
 El lint es una métrica y una señal del riesgo; una sección propia partiría la ficha en dos relatos y
@@ -70,6 +77,9 @@ La suma vive en `lintRollup`, sobre el artefacto y acotada por ruta; el score es
 `@codarch/metrics`, la misma función que usa el riesgo, para que la app no pueda contar dos deudas
 distintas. La pertenencia compara `path === folder || path.startsWith(folder + "/")`: `packages/ui` no
 contiene `packages/ui2`.
+
+El [ADR 0097](0097-la-hoja-del-proyecto-como-la-del-fichero.md) enmienda este punto: el lint es un
+bloque de totales dentro de Métricas y su descenso enseña err., avis., info y score por carpeta.
 
 ### 4. Lo que no entra
 

@@ -1,3 +1,4 @@
+import type { LintArtifact } from "@codarch/lint/browser";
 import { RISK_WEIGHTS_WITH_LINT } from "@codarch/metrics/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
@@ -11,6 +12,14 @@ import {
   type FileViolation,
   type FfiEdgeView
 } from "./lenses";
+import { LintGroup } from "./LintRules";
+import {
+  SEVERITIES,
+  lintRules,
+  lintTotals,
+  severityCount,
+  severityText
+} from "./lintRollup";
 import { RuleRow } from "./RuleRow";
 
 /**
@@ -270,21 +279,13 @@ function DomainGroup({
   filePath,
   onSelectPath
 }: {
-  report: DiffReport | null;
+  report: DiffReport;
   violations: readonly FileViolation[];
   /** El fichero abierto: una regla no se repite a sí misma. */
   filePath: string;
   onSelectPath: (path: string) => void;
 }) {
   const counts = countViolations(violations);
-
-  if (!report) {
-    return (
-      <p className="muted tiny card-note">
-        Sin reporte cargado no hay reglas de dominio: se evalúan contra el diff.
-      </p>
-    );
-  }
 
   return (
     <div className="rule-group">
@@ -370,6 +371,7 @@ export function RulesSection({
   node,
   model,
   file,
+  lint,
   onSelectPath
 }: {
   report: DiffReport | null;
@@ -377,6 +379,8 @@ export function RulesSection({
   node: CcMigrationNode | null;
   model: RenderModel | null;
   file: RenderFile;
+  /** El lint del proyecto, para las reglas que tocan a este fichero (0096). */
+  lint: LintArtifact | null;
   onSelectPath: (path: string) => void;
 }) {
   const violations = report ? violationsForPath(report, file.path) : [];
@@ -386,28 +390,63 @@ export function RulesSection({
       : [];
   const debt = node?.debt ?? 0;
   const showsMigration = node !== null && (edges.length > 0 || debt > 0);
+  const lintTotalsForFile = lint ? lintTotals(lint, file.path) : null;
+  const lintRuleCount = lint ? lintRules(lint, file.path).length : 0;
 
-  if (!report && !showsMigration) return null;
+  if (!report && !showsMigration && !lint) return null;
 
   return (
     <CollapsibleSection
       id="file-rules"
       title="Reglas"
-      count={violations.length + edges.length}
+      count={violations.length + edges.length + lintRuleCount}
       summary={
-        rulesSummary(countViolations(violations), edges.length) ||
-        "sin violaciones"
+        joinParts([
+          rulesSummary(countViolations(violations), edges.length),
+          lintRuleCount > 0
+            ? `${lintRuleCount} ${lintRuleCount === 1 ? "regla" : "reglas"} de lint`
+            : null
+        ]) ||
+        (lintTotalsForFile ? "sin hallazgos de lint" : "lint sin medir")
       }
       className="section-rules"
     >
-      <DomainGroup
-        report={report}
-        violations={violations}
-        filePath={file.path}
-        onSelectPath={onSelectPath}
-      />
+      {report ? (
+        <DomainGroup
+          report={report}
+          violations={violations}
+          filePath={file.path}
+          onSelectPath={onSelectPath}
+        />
+      ) : null}
       {showsMigration ? (
         <MigrationGroup edges={edges} onSelectPath={onSelectPath} />
+      ) : null}
+      {lint ? (
+        <div className="rule-group">
+          <GroupHead
+            label="Lint"
+            summary={
+              !lintTotalsForFile
+                ? "sin medir"
+                : lintTotalsForFile.findings === 0
+                  ? "sin hallazgos"
+                  : // Las tres severidades, con su palabra: un fichero con solo
+                    // `info` no puede decir «0 errores · 0 avisos».
+                    SEVERITIES.filter(
+                      (severity) => severityCount(lintTotalsForFile, severity) > 0
+                    )
+                      .map((severity) =>
+                        severityText(
+                          severityCount(lintTotalsForFile, severity),
+                          severity
+                        )
+                      )
+                      .join(" · ")
+            }
+          />
+          <LintGroup artifact={lint} folder={file.path} />
+        </div>
       ) : null}
     </CollapsibleSection>
   );

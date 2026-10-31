@@ -52,8 +52,11 @@ Cada bloque es una carpeta o un fichero. No hay un menú de «lentes»: son los 
 **VISTA**, a la izquierda.
 
 - **ÁREA** decide el tamaño de cada bloque (la métrica).
-- **COLOR** decide cómo se pinta: Riesgo, Estructura, Color (commits), Estado de migración, Deuda de
-  migración, entre otros. Al abrir un repo, la lente por defecto es Deuda de migración.
+- **COLOR** decide cómo se pinta: Riesgo, Estructura, **Lint**, Color (commits), Estado de migración,
+  Deuda de migración, entre otros. Al abrir un repo, la lente por defecto es Deuda de migración.
+  **Lint** pinta cada fichero con su deuda —errores + ¼ avisos— sobre el máximo del mapa, y aparece
+  cuando el árbol que miras tiene lint medido: lo mide [`codarch analyze`](cli/analyze.md) en la misma
+  pasada que las demás lentes, y `codarch serve` solo lo remide si el árbol cambió.
 
 El icono de capas, en la barra de herramientas de la izquierda, pliega ese panel y deja el mapa a
 pantalla completa; la app recuerda si estaba plegado.
@@ -112,9 +115,8 @@ argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repos
 
 ## Inspector › Fichero
 
-El inspector es el panel de la derecha y tiene cuatro entradas en su barra de actividad: **Fichero**,
-**Carpeta**, **Proyecto** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus símbolos y sus
-dependencias entrantes y salientes. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
+El inspector es el panel de la derecha y tiene cuatro entradas en su barra de actividad: **Fichero**,**Carpeta**, **Proyecto** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus
+símbolos, sus dependencias entrantes y salientes y, en **Reglas**, sus reglas de lint con hallazgos. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
 tiene, en qué nivel está y qué parte de su área ocupa cada hijo, en el mismo orden que el mapa;
 seleccionar un fichero vuelve a **Fichero**.
 
@@ -126,22 +128,49 @@ seleccionar un fichero vuelve a **Fichero**.
 con la parte del área que ocupa cada hijo y los ficheros que lleva dentro. Pulsar un hijo lo
 selecciona —si es un fichero, pasa a **Fichero**—. Su sección **Métricas** suma el subárbol —ficheros,
 carpetas, líneas, la complejidad máxima con el fichero que la tiene y la deuda de lint— y termina con
-**Lint por carpeta**, una fila por carpeta hija que abre su ficha. La frontera de dependencias y los
-ciclos siguen en la hoja de ruta de esta fase.
+**Lint por carpeta**, una fila por carpeta hija que abre su ficha. La tabla es la del fichero, con el
+mismo marco de sección y la misma tinta: el rojo de la deuda y el ocre del aviso salen del peor fichero
+del subárbol, y el icono de la fila dice cuál. **Reglas** añade las reglas de lint
+con hallazgos en la carpeta. La frontera de dependencias y los ciclos siguen en la hoja de ruta de esta
+fase.
 
 ![La hoja Carpeta abierta sobre packages/ui: su ruta, su recuento y el contenido de la carpeta con la parte del área de cada hijo](../images/webapp-inspector-carpeta.png)
 
 ## Inspector › Proyecto
 
 **Proyecto** es la hoja del mapa entero, siempre disponible: enseña las mismas **Métricas** que la
-carpeta, sumadas sobre todo el repo, y el descenso para bajar de proyecto a fichero. La sección lleva
-ficheros, carpetas, líneas, la complejidad máxima con su fichero y el **lint** dentro, como una fila
-más: errores, avisos, ficheros con hallazgos y su score —errores + ¼ de avisos—. Debajo, **Lint por
-carpeta** da una fila por carpeta de primer nivel con sus ficheros, errores, avisos y score; pulsar
-una abre la ficha de esa carpeta, que cuenta lo mismo de su subárbol.
+carpeta, sumadas sobre todo el repo, y el descenso para bajar de proyecto a fichero. Métricas es la
+tabla de la ficha del fichero con otro sujeto: una fila por cada métrica del snapshot —nombre, barra y
+valor—, donde la barra es la parte de los ficheros que trae la métrica y el valor su suma; los
+máximos —la complejidad, la función más larga— se enseñan con el fichero que los tiene, no sumados. Las
+cifras llevan la misma tinta que en la ficha del fichero, con el fichero que las pone en la ayuda.
+Un máximo medido a cero —sin ciclos, sin cruces de FFI— no nombra fichero: el cero es de todos, y su
+ayuda lo dice. Pulsar una fila pinta el mapa por esa métrica. Debajo, el **lint** con sus totales —errores, avisos e
+info, ficheros con hallazgos **de los medidos** y su score, errores + ¼ de avisos— y **Lint por
+carpeta**, una fila por carpeta de primer nivel con
+sus errores, avisos, info y score; pulsar una abre la ficha de esa carpeta, que cuenta lo mismo de su
+subárbol. Si el artefacto se midió sobre otro árbol —el repo cambió después—, la hoja lo avisa en vez
+de dar la cifra por buena.
 
-Sin `.codarch/lint.json` no hay ceros: la fila dice **sin medir** y lo que pesará cuando se ejecute
-[`codarch lint`](cli/lint.md).
+![La sección Métricas de la hoja Proyecto: una fila por métrica con su cobertura y su valor, la complejidad más alta con su fichero y el lint con sus tres cuentas y su desglose por carpeta](../images/webapp-inspector-metricas.png)
+
+**Reglas** enseña el detalle del lint que el proyecto ya tiene: los sistemas detectados —con su
+configuración y sus reglas activas— y las reglas con hallazgos, ordenadas por lo que pesan. Cada
+sistema lleva su filete —verde si midió—, la píldora de su estado y su configuración en palabras
+(«396 reglas activas · 372 como error · 24 como aviso»): una regla activa está **configurada** así, no
+ha saltado, y por eso esa línea no lleva la tinta de la deuda. Los hallazgos van en tabla, con las columnas **Err.**,
+**Avis.** e **Info**: cada número lleva la tinta de lo que mide —el rojo de la deuda, el ocre del
+aviso— y un cero se lee como raya, no como hueco. Los totales de errores, avisos e info son de
+Métricas: aquí se cuentan las reglas que los producen, y cuando no hay ninguno la tabla lo dice con la
+cobertura («Sin hallazgos en el proyecto: se midieron 496 ficheros»). En las fichas de carpeta y de
+fichero se ven las de su ámbito, sin repetir los sistemas. El número de la cabecera cuenta las **reglas activas** en
+el proyecto —no los hallazgos— y las reglas con hallazgos en carpeta y fichero; es el mismo recuento
+que leen el CLI y el MCP, y un `info` cuenta como hallazgo aunque no sea error ni aviso.
+
+![La hoja Proyecto: sus métricas con el lint y el lint por carpeta, y Reglas con los sistemas del repo —eslint con su configuración y sus reglas activas, oxlint sin config—](../images/webapp-inspector-proyecto.png)
+
+Sin `.codarch/lint.cc.json` no hay ceros: el bloque de lint dice **sin medir** y lo que pesará cuando se
+ejecute [`codarch analyze`](cli/analyze.md), que lo mide con el linter del proyecto.
 
 No hay un «riesgo del proyecto»: el riesgo está normalizado por el p95 del proyecto y es de cada
 fichero, así que se lee en su ficha.

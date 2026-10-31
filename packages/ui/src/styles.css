@@ -939,6 +939,18 @@ button {
   );
 }
 
+/* La deuda de lint: el tono de limpio no es el papel, para que se lea como
+   una lente y no como un mapa sin pintar. Los tramos son los de `debtColor`. */
+.gradient.lint {
+  background: linear-gradient(
+    90deg,
+    #9fb8ae 0%,
+    #d9c07a 35%,
+    #d68a54 70%,
+    #a42e2c 100%
+  );
+}
+
 .gradient-labels {
   display: flex;
   justify-content: space-between;
@@ -1592,17 +1604,27 @@ button {
   padding-bottom: 2px;
 }
 
-/* Una sección de la ficha y de Cambios se delimita con el mismo contenedor que
-   el contenido de la carpeta (ADR 0092): el filete de la casa y el papel de la
-   hoja. Sin él, las secciones se leían como filas sueltas y los cantos de las
-   tablas parecían del panel. Solo la sección de primer nivel: los grupos de
-   dentro —un grupo de símbolos, un fichero de un cambio— viven en el
-   contenedor de su sección, no en uno propio. */
-.inspector-file:not(.inspector-folder) > .collapsible > .collapsible-body,
+/* Una sección de la ficha, de la carpeta, del proyecto y de Cambios se delimita
+   con el mismo contenedor que el contenido de la carpeta (ADR 0092): el filete
+   de la casa y el papel de la hoja. Sin él, las secciones se leían como filas
+   sueltas y los cantos de las tablas parecían del panel. Vale para las tres
+   hojas: la tabla de métricas se lee igual en fichero, carpeta y proyecto. Solo
+   la sección de primer nivel: los grupos de dentro —un grupo de símbolos, un
+   fichero de un cambio— viven en el contenedor de su sección, no en uno
+   propio. */
+.inspector-file > .collapsible > .collapsible-body,
 .change-panel > .collapsible > .collapsible-body {
   padding: 6px 8px 4px;
   border: 1px solid var(--line);
   background: var(--sheet);
+}
+
+/* Contenido ya trae su marco —la lista con scroll de la carpeta (ADR 0092)—:
+   con el de la sección serían dos cantos alrededor de lo mismo. */
+.inspector-file > .collapsible.section-content > .collapsible-body {
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 /* Esa línea era la única frontera que tenía una sección: con el contenedor ya
@@ -3394,43 +3416,26 @@ button {
   font-size: 9px;
 }
 
-/* Las métricas de proyecto y carpeta (ADR 0095): sumas, no p95. */
-.rollup-rows {
-  margin: 0 0 10px;
-  display: grid;
-  gap: 3px;
+/* Las métricas de proyecto y carpeta (ADR 0095): la tabla del fichero con
+   sumas del subárbol. La barra ya no es el p95 —un total no se compara con el
+   p95 de un fichero—, es la cobertura: la parte de los ficheros que la trae. */
+.rollup-lint {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
 }
 
-.rollup-row-data {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+.rollup-lint-counts {
+  display: flex;
   align-items: baseline;
-  gap: 1px 8px;
-  font-size: 10.5px;
-  color: var(--ink-soft);
+  gap: 8px;
+  margin: 3px 0 0;
+  font-family: var(--mono);
 }
 
-.rollup-row-data dt {
-  font-size: 10px;
-  color: var(--muted);
-}
-
-.rollup-row-data dd {
-  margin: 0;
-  text-align: right;
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-}
-
-.rollup-row-data .rollup-note {
-  grid-column: 1 / -1;
-  text-align: right;
-  font-size: 9px;
-  color: var(--muted);
-}
-
-.rollup-row-data.is-lint dd.mono {
-  color: var(--ink);
+/* El lint no es del árbol que se está mirando: se dice, no se esconde. */
+.rollup-lint .lint-stale {
+  margin: 4px 0 0;
 }
 
 .rollup-head {
@@ -3449,7 +3454,7 @@ button {
 .rollup-cols,
 .rollup-table-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px 30px 32px 34px;
+  grid-template-columns: minmax(0, 1fr) 28px 32px 28px 34px;
   gap: 6px;
   align-items: center;
   font-size: 10px;
@@ -3490,6 +3495,297 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* El lint dentro de Reglas (ADR 0096): sistemas, reglas activas y hallazgos.
+   La jerarquía es tipográfica y la severidad es color: el nombre del sistema en
+   sans, su config en mono tenue, la cuenta en versalitas y cada número con la
+   tinta de lo que mide. En 286 px no se sube el tamaño de todo; se separa por
+   peso y por color, que es lo que faltaba cuando doce filas se leían iguales. */
+.lint-systems {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+/* Cada sistema lleva un filete a la izquierda: verde si midió, de la línea si
+   no. Es la primera señal, antes de leer la palabra. */
+.lint-system {
+  display: grid;
+  gap: 3px;
+  padding-left: 7px;
+  border-left: 2px solid var(--line);
+}
+
+.lint-system.is-on {
+  border-left-color: color-mix(in srgb, var(--patina) 60%, transparent);
+}
+
+.lint-system-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lint-system-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 11.5px/1.25 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El estado, en versalitas y con su píldora: dos estados, dos tintas. */
+.lint-state {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8px/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-state.is-on {
+  border-color: color-mix(in srgb, var(--patina) 42%, transparent);
+  background: color-mix(in srgb, var(--patina) 10%, transparent);
+  color: var(--patina);
+}
+
+.lint-system-config {
+  overflow: hidden;
+  font: 9.5px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-system-config.is-none {
+  color: var(--muted);
+}
+
+/* La configuración de un sistema, en palabras: una regla activa dice cómo está
+   configurada, no cuántas veces saltó, y por eso no lleva tinta de deuda. */
+.lint-config {
+  margin: 0;
+  font: 9px/1.4 var(--mono);
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.lint-system-note {
+  margin: 0;
+}
+
+.lint-systems-note,
+.lint-active-note {
+  margin: 0 0 2px;
+}
+
+/* Medido y sin un solo hallazgo: un dato, no un cero sospechoso. */
+.lint-clean {
+  margin: 3px 0 0;
+  font: 9.5px/1.4 var(--sans);
+  color: var(--patina);
+}
+
+/* Las reglas activas: plegadas, porque a veces son cientos. El galón se dibuja
+   aquí para que la cabecera pueda ser una rejilla con la cuenta a la derecha. */
+.lint-active {
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
+.lint-active > summary {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  list-style: none;
+  cursor: pointer;
+  font: 9px/1.4 var(--mono);
+  color: var(--ink-soft);
+}
+
+.lint-active > summary::-webkit-details-marker {
+  display: none;
+}
+
+.lint-active > summary::before {
+  content: "▸";
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.lint-active[open] > summary::before {
+  content: "▾";
+}
+
+.lint-active > summary:hover .lint-active-label {
+  color: var(--ink);
+}
+
+.lint-active ul {
+  display: grid;
+  gap: 1px;
+  max-height: 180px;
+  margin: 4px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.lint-active li {
+  display: grid;
+  grid-template-columns: 5px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 1px 2px 1px 0;
+  font-size: 9.5px;
+}
+
+/* El punto de una regla activa: neutro. El color de la severidad, en Reglas,
+   solo describe hallazgos (la tabla de abajo). */
+.lint-dot {
+  width: 5px;
+  height: 5px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.lint-rule-id {
+  overflow: hidden;
+  font: 9.5px/1.3 var(--mono);
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-sev {
+  font: 8.5px/1.3 var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.lint-findings {
+  display: grid;
+  gap: 3px;
+}
+
+/* La cabecera de la tabla comparte rejilla con sus filas: «Err.» cae encima de
+   su columna aunque el identificador cambie de largo. */
+.lint-rule-head,
+.lint-rule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px 34px 30px;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.lint-rule-head {
+  padding: 0 2px 1px 0;
+  font: 500 8.5px/1.2 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: right;
+}
+
+.lint-rule-head span:first-child {
+  text-align: left;
+}
+
+.lint-rule-list {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-rule-row {
+  padding: 2px 2px 2px 0;
+  font-size: 10px;
+}
+
+/* El identificador es lo que se lee; la cuenta, lo que se mira. */
+.lint-rule-row .lint-rule-id {
+  color: var(--ink);
+}
+
+.lint-count {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lint-count.is-zero {
+  color: var(--muted);
+}
+
+.lint-count-error {
+  color: var(--debt);
+}
+
+.lint-count-warn {
+  color: var(--ochre);
+}
+
+.lint-count-info {
+  color: var(--cobalt);
+}
+
+/* En Métricas el valor del lint son las tres cuentas: cada una con su tinta y
+   un separador tenue, para no leerlas como una sola cifra ni sumarlas en gris. */
+.lint-counts {
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.lint-counts .lint-count {
+  font-size: inherit;
+}
+
+.lint-counts-sep {
+  color: var(--muted);
+}
+
+.lint-advice {
+  display: grid;
+  gap: 6px;
+}
+
+.lint-advice > p {
+  margin: 0;
+}
+
+.lint-advice ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.lint-advice li {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-advice-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.lint-advice li p {
+  margin: 0;
 }
 
 .lens-new {

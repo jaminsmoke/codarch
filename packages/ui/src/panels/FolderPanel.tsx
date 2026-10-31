@@ -1,14 +1,18 @@
-import type { LintArtifact } from "@codarch/lint/browser";
+import {
+  adviceForExtensions,
+  extensionOf,
+  type LintArtifact
+} from "@codarch/lint/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
 import {
   childFolderNodes,
   childFolders,
-  countFolders,
   folderContent,
   folderDepth
 } from "../folder";
 import { withinFolder } from "../lintRollup";
+import { LintRulesSection } from "../LintRules";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -28,6 +32,9 @@ export function FolderPanel({
   folder,
   model,
   lint,
+  metricTitle,
+  colorMode,
+  onColorMode,
   onSelectPath,
   onSelectFolder
 }: {
@@ -35,6 +42,10 @@ export function FolderPanel({
   model: RenderModel | null;
   /** El lint del proyecto, para la deuda del subárbol (ADR 0094). */
   lint: LintArtifact | null;
+  /** Cómo se llama cada métrica en el snapshot. */
+  metricTitle: (key: string) => string;
+  colorMode: string;
+  onColorMode: (mode: string) => void;
   /** Selecciona un fichero del contenido. */
   onSelectPath: (path: string) => void;
   /** Selecciona una carpeta del contenido. */
@@ -69,10 +80,23 @@ export function FolderPanel({
           model={model}
           files={subtree}
           folders={childFolderNodes(folder)}
-          folderCount={countFolders(folder)}
           lint={lint}
           folder={folder.path}
+          metricTitle={metricTitle}
+          colorMode={colorMode}
+          onColorMode={onColorMode}
           onSelectFolder={onSelectFolder}
+        />
+      ) : null}
+
+      {model ? (
+        <LintRulesSection
+          id="folder-rules"
+          artifact={lint}
+          folder={folder.path}
+          advice={adviceForExtensions(
+            subtree.map((file) => extensionOf(file.name))
+          )}
         />
       ) : null}
 

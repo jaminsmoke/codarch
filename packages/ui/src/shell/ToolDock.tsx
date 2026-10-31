@@ -69,6 +69,7 @@ export function ToolDock({ app }: { app: CodarchApp }) {
           colorMode={state.colorMode}
           migration={app.migration}
           model={app.view.model}
+          hasLint={state.lint !== null}
         />
 
         {/* El calor es del código del repo abierto: en el mapa del resto no
@@ -94,8 +95,9 @@ export function ToolDock({ app }: { app: CodarchApp }) {
 /** El bloque «Vista»: qué mide el área, con qué se colorea y el buscador. */
 function ViewControls({ app }: { app: CodarchApp }) {
   const { state, actions, view } = app;
-  const { matches, metricOptions, metricTitle, hasChurn, migration, searchRef } =
-    app;
+  // El color se pinta con la misma lista que los Ajustes (ADR 0094): dos listas
+  // de lentes era la forma de que una ofreciera lo que la otra no.
+  const { matches, metricOptions, metricTitle, colorOptions, searchRef } = app;
 
   const submitSearch = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== "Enter" || !view.model) return;
@@ -132,21 +134,9 @@ function ViewControls({ app }: { app: CodarchApp }) {
           value={state.colorMode}
           onChange={(event) => actions.setColorMode(event.target.value)}
         >
-          {state.map === "code" ? (
-            <>
-              <option value="risk">Riesgo</option>
-              <option value="structure">Estructura</option>
-              {hasChurn ? <option value="churn">Calor (commits)</option> : null}
-              {migration ? (
-                <option value="status">Estado de migración</option>
-              ) : null}
-            </>
-          ) : (
-            <option value="kind">Tipo</option>
-          )}
-          {metricOptions.map((key) => (
-            <option key={key} value={key}>
-              {metricTitle(key)}
+          {colorOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
