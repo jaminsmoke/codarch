@@ -11,5 +11,6 @@ export { LanguageSample } from "./panels/LanguageSample";
 export { Legend } from "./panels/Legend";
 export { HistoryPanel, historyFileName } from "./panels/HistoryPanel";
 export { HeatList } from "./panels/HeatList";
+export { RestKinds } from "./panels/RestKinds";
 export { dedentLines, symbolTarget, memberTarget } from "./panels/CodePeek";
 export { Inspector } from "./panels/Inspector";

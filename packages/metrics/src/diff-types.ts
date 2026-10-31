@@ -176,6 +176,19 @@ export interface DuplicationReport {
   diverging: DuplicationPairChange[];
 }
 
+/** Un total por métrica, con su antes y su después. */
+export interface MetricTotal {
+  base: number | null;
+  head: number | null;
+  /** `head - base`; `null` si la métrica solo existe en un lado. */
+  delta: number | null;
+}
+
+/** Los totales de cada métrica en los dos lados (ADR 0071). */
+export interface ReportTotals {
+  metrics: Record<string, MetricTotal>;
+}
+
 export interface DiffSummary {
   addedFiles: number;
   removedFiles: number;
@@ -205,6 +218,13 @@ export interface DiffReport {
   base: SnapshotSummary;
   head: SnapshotSummary;
   summary: DiffSummary;
+  /**
+   * Los totales de cada métrica en base y head.
+   *
+   * Es `null` en un reporte reconstruido desde una versión anterior: no se
+   * midieron, y la pestaña Cambios no pinta la tabla.
+   */
+  totals: ReportTotals | null;
   hotspotMetric: string | null;
   rules: RuleReport;
   files: {

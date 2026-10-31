@@ -12,6 +12,7 @@ import {
   FilesSection,
   HistorySection
 } from "./changes/sections";
+import { TotalsSection } from "./changes/TotalsSection";
 
 // La pestaña exporta sus lecturas puras desde aquí: la app y los tests las
 // piden a este módulo, y el que las implementa es `changes/summary`.
@@ -78,6 +79,7 @@ export default function ChangesPanel({
     <section className="change-panel">
       <ChangesHead report={report} source={source} />
       <ChangesSummary report={report} />
+      <TotalsSection report={report} model={model} />
       <FilesSection
         report={report}
         loadDiff={loadDiff}

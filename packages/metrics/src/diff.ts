@@ -9,6 +9,7 @@ import { buildDuplicationReport } from "./diff-duplication";
 import { buildHotspots, chooseHotspotMetric } from "./diff-hotspots";
 import { indexSnapshot } from "./diff-index";
 import { buildMigrationReport } from "./diff-migration";
+import { buildTotals } from "./diff-totals";
 import { ruleInput } from "./diff-rules";
 import type { DiffOptions, DiffReport } from "./diff-types";
 
@@ -27,10 +28,12 @@ export type {
   Hotspot,
   IndexedSnapshot,
   MetricChange,
+  MetricTotal,
   MigrationDelta,
   MigrationFileChange,
   MigrationFileDebt,
   MigrationReport,
+  ReportTotals,
   SnapshotSummary
 } from "./diff-types";
 
@@ -94,6 +97,7 @@ export function diffSnapshots(
     schemaVersion: REPORT_SCHEMA_VERSION,
     base: summarize(baseIndex),
     head: summarize(headIndex),
+    totals: buildTotals(baseIndex, headIndex),
     summary: {
       addedFiles: added.length,
       removedFiles: removed.length,

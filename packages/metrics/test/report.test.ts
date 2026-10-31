@@ -54,6 +54,8 @@ describe("parseReport", () => {
     expect(report.schemaVersion).toBe(REPORT_SCHEMA_VERSION);
     // La sección de migración no se midió en la versión anterior: se dice.
     expect(report.migration).toBeNull();
+    // Los totales tampoco: la pestaña Cambios no pinta su tabla.
+    expect(report.totals).toBeNull();
     // El resto del reporte se conserva.
     expect(report.summary.changedFiles).toBe(1);
     expect(report.base.checksum).toBe("base");

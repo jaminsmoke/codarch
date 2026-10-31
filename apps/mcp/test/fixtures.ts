@@ -146,6 +146,7 @@ export function makeStore(
 export function makeReport(): DiffReport {
   return {
     schemaVersion: REPORT_SCHEMA_VERSION,
+    totals: null,
     base: {
       projectName: "Acme",
       checksum: "checksum-base",

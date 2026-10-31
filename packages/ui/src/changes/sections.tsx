@@ -487,6 +487,9 @@ export function CyclesSection({ report }: { report: DiffReport }) {
       className="section-cycles"
       defaultOpen={false}
       count={cycles.length || undefined}
+      summary={
+        cycles.length > 0 ? `${cycles.length} nuevos` : "sin ciclos nuevos"
+      }
     >
       {cycles.length > 0 ? (
         <>

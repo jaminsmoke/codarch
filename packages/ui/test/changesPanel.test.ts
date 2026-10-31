@@ -25,6 +25,7 @@ function emptyReport(): DiffReport {
       removedRloc: 0,
       changedRloc: 0
     },
+    totals: null,
     hotspotMetric: null,
     rules: {
       configured: false,

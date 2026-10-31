@@ -109,6 +109,7 @@ export function MetricsRollup({
   );
   const rows = rollupMetricRows(model, files, metricTitle);
   const heaviest = rows.find((row) => row.key === "maxComplexity" && row.owner);
+  const riskiest = rows.find((row) => row.key === "risk" && row.owner);
   // Cerrada, la sección enseña el total de la métrica que decide el área: es
   // la cifra con la que se compara un proyecto con una carpeta.
   const area = rows.find((row) => row.area && row.value !== null);
@@ -179,6 +180,11 @@ export function MetricsRollup({
         {heaviest ? (
           <p className="muted tiny metrics-note">
             La complejidad más alta está en <code>{heaviest.owner}</code>.
+          </p>
+        ) : null}
+        {riskiest ? (
+          <p className="muted tiny metrics-note">
+            El riesgo más alto está en <code>{riskiest.owner}</code>.
           </p>
         ) : null}
       </div>

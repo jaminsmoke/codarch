@@ -1,4 +1,5 @@
 export { CONFIG_VERSION } from "@codarch/versions";
+export { MAX_METRICS } from "./diff-totals";
 export {
   ConfigError,
   parseIgnoreConfig,
@@ -36,10 +37,12 @@ export type {
   EdgeChange,
   Hotspot,
   MetricChange,
+  MetricTotal,
   MigrationDelta,
   MigrationFileChange,
   MigrationFileDebt,
   MigrationReport,
+  ReportTotals,
   SnapshotSummary
 } from "./diff";
 export type { RuleReport, RuleViolation, ViolationType } from "./rules";

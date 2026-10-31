@@ -26,6 +26,7 @@ function report(duplication: DiffReport["duplication"]): DiffReport {
       removedRloc: 0,
       changedRloc: 0
     },
+    totals: null,
     hotspotMetric: null,
     rules: {
       configured: false,

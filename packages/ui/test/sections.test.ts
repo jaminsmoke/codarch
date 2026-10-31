@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  missingSectionParts,
   readSectionClosed,
   sectionKey,
   writeSectionClosed,
@@ -42,6 +43,15 @@ describe("el estado de una sección", () => {
     expect(
       readSectionClosed(store({ "codarch:section:metrics": "plegado" }), "metrics")
     ).toBe(false);
+  });
+
+  it("dice qué le falta a una sección para leerse cerrada", () => {
+    expect(
+      missingSectionParts({ id: "x", title: "X", count: 1, summary: "uno" })
+    ).toEqual([]);
+    expect(
+      missingSectionParts({ id: "", title: " ", count: undefined, summary: "" })
+    ).toEqual(["id", "title", "count", "summary"]);
   });
 
   it("sigue funcionando si el almacenamiento lanza", () => {

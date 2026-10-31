@@ -23,6 +23,7 @@ export type {
   ThresholdRuleConfig
 } from "./config";
 export { diffSnapshots } from "./diff";
+export { MAX_METRICS } from "./diff-totals";
 export { buildSymbolReport } from "./symbol-diff";
 export type {
   DiffSymbolChange,
@@ -58,10 +59,12 @@ export type {
   EdgeChange,
   Hotspot,
   MetricChange,
+  MetricTotal,
   MigrationDelta,
   MigrationFileChange,
   MigrationFileDebt,
   MigrationReport,
+  ReportTotals,
   SnapshotSummary
 } from "./diff";
 export { emptyRuleReport, evaluateRules } from "./rules";

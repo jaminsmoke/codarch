@@ -242,7 +242,7 @@ describe("la ficha del proyecto", () => {
     expect(markup).not.toContain("Lint por carpeta");
   });
 
-  it("Reglas enseña los sistemas, sus reglas activas y los hallazgos", () => {
+  it("la sección Lint no enseña sistemas ni el catálogo de reglas activas", () => {
     const markup = projectMarkup({
       ...lint,
       meta: {
@@ -258,13 +258,10 @@ describe("la ficha del proyecto", () => {
       }
     });
 
-    expect(markup).toContain("eslint.config.js");
-    expect(markup).toContain("medido");
-    expect(markup).toContain("1 regla activa");
-    expect(markup).toContain("Reglas con hallazgos");
+    expect(markup).not.toContain("eslint.config.js");
+    expect(markup).not.toContain("regla activa");
+    expect(markup).toContain("Hallazgos por regla");
     expect(markup).toContain("no-console");
-    // La cabecera cuenta reglas activas, no reglas con hallazgos.
-    expect(markup).toContain('collapsible-count">1');
   });
 
   it("un proyecto medido y limpio dice que se miró, no solo que hay cero", () => {
@@ -287,16 +284,16 @@ describe("la ficha del proyecto", () => {
       summary: { files: 0, errors: 0, warnings: 0, messages: 0, measured: 4 }
     });
 
-    expect(markup).toContain('collapsible-count">2');
+    expect(markup).toContain('collapsible-count">0');
     expect(markup).toContain(
       "Medido y limpio: 4 ficheros mirados, ninguno con hallazgos."
     );
     expect(markup).toContain(
       "Sin hallazgos en el proyecto: se midieron 4 ficheros."
     );
-    // La configuración no se disfraza de hallazgo.
-    expect(markup).toContain("Configuración · 1 como error · 1 como aviso");
-    expect(markup).not.toContain("lint-bar-error");
+    // El catálogo de reglas activas ya no está en la ficha de código.
+    expect(markup).not.toContain("Configuración ·");
+    expect(markup).not.toContain("regla activa");
   });
 
   it("sin artefacto, Reglas recomienda el mínimo del stack", () => {
@@ -335,6 +332,35 @@ describe("la ficha de carpeta", () => {
     expect(markup).toContain("60");
     expect(markup).toContain("Lint por carpeta");
     expect(markup).toContain("ui/");
+  });
+});
+
+describe("el riesgo con dueño en la ficha", () => {
+  const risky = {
+    ...model,
+    files: model.files.map((file) =>
+      file.path === "packages/ui/src/panel.ts" ? { ...file, risk: 0.81 } : file
+    )
+  };
+
+  it("nombra al fichero con el riesgo máximo del subárbol", () => {
+    const markup = renderToStaticMarkup(
+      createElement(FolderPanel, {
+        folder: packages,
+        model: risky,
+        lint,
+        metricTitle: (key: string) => key,
+        colorMode: "",
+        onColorMode: () => {},
+        onSelectPath: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+
+    expect(markup).toContain("Riesgo máx.");
+    expect(markup).toContain("El riesgo más alto está en");
+    expect(markup).toContain("packages/ui/src/panel.ts");
+    expect(markup).toContain("81");
   });
 });
 

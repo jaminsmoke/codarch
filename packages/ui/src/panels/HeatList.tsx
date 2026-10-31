@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { SymbolHeat } from "@codarch/schema/browser";
+import { CollapsibleSection } from "../CollapsibleSection";
 
 /**
  * Los símbolos más reescritos.
@@ -34,8 +35,13 @@ export function HeatList({
   const max = Math.max(1, heat[0]?.churn ?? 1);
 
   return (
-    <section className="panel-block">
-      <div className="eyebrow">Más reescritos</div>
+    <CollapsibleSection
+      id="rail-heat"
+      title="Más reescritos"
+      className="panel-block"
+      count={heat.length}
+      summary={`${heat.length} símbolos`}
+    >
       <div className="mini-list">
         {heat.map((entry) => (
           <button
@@ -58,6 +64,6 @@ export function HeatList({
           </button>
         ))}
       </div>
-    </section>
+    </CollapsibleSection>
   );
 }

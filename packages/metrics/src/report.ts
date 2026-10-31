@@ -23,6 +23,7 @@ const KNOWN_VERSIONS = new Set([
   "1.2",
   "1.3",
   "1.4",
+  "1.5",
   REPORT_SCHEMA_VERSION
 ]);
 
@@ -121,6 +122,7 @@ function upgradeReport(report: DiffReport): DiffReport {
   return {
     ...report,
     schemaVersion: REPORT_SCHEMA_VERSION,
+    totals: report.totals ?? null,
     migration: report.migration ?? null,
     symbols: symbolsWithLines(report.symbols),
     duplication: report.duplication ?? null,

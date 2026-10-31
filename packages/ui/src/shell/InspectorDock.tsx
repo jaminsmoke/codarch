@@ -89,7 +89,6 @@ export function InspectorDock({
             symbols={selectedSymbols}
             structure={selectedStructure}
             chain={state.chain}
-            report={report}
             lint={state.lint}
             migration={migration}
             showCode={state.map === "code"}

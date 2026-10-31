@@ -45,6 +45,7 @@ function emptyReport(): DiffReport {
     hotspots: [],
     migration: null,
     symbols: null,
+    totals: null,
     duplication: null
   };
 }

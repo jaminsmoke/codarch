@@ -1,3 +1,4 @@
+import { MAX_METRICS } from "@codarch/metrics/browser";
 import type { RenderFile, RenderMetric, RenderModel } from "@codarch/render/browser";
 import { formatCompact } from "@codarch/render/browser";
 
@@ -38,6 +39,7 @@ export function orderedMetrics(names: Iterable<string>): string[] {
  * modelo.
  */
 const ROW_ORDER = [
+  "risk",
   "rloc",
   "loc",
   "maxComplexity",
@@ -129,22 +131,6 @@ export function riskState(risk: number): MetricState {
   return "ok";
 }
 
-/**
- * Las métricas que ya son un máximo por fichero.
- *
- * Sumarlas diría una cifra que no existe: la complejidad de una carpeta no es
- * la suma de las complejidades de sus ficheros. Se enseña el máximo y el fichero
- * que lo tiene. El resto sí se suma, que es lo que significa un total.
- */
-const MAX_METRICS = new Set([
-  "maxComplexity",
-  "max_complexity_per_function",
-  "maxFunctionLength",
-  "dependencyLevel",
-  "inCycle",
-  "cycleSize"
-]);
-
 /** Una fila de la tabla de métricas de proyecto y carpeta. */
 export interface RollupMetricRow {
   key: string;
@@ -192,7 +178,7 @@ export function rollupMetricRows(
   files: readonly RenderFile[],
   metricTitle: (key: string) => string
 ): RollupMetricRow[] {
-  const rows: RollupMetricRow[] = [];
+  const rows: RollupMetricRow[] = [riskRow(files)];
   const hasComplexityMetric = model.metrics.some(
     (metric) => metric.key === "maxComplexity"
   );
@@ -264,6 +250,33 @@ export function rollupMetricRows(
   };
   rows.sort((left, right) => position(left.key) - position(right.key));
   return rows;
+}
+
+/** La fila del riesgo: el máximo del subárbol y el fichero que lo tiene. */
+function riskRow(files: readonly RenderFile[]): RollupMetricRow {
+  let top: RenderFile | null = null;
+  for (const file of files) {
+    if (!top || file.risk > top.risk) top = file;
+  }
+  const owner = top && top.risk > 0 ? top.path : null;
+  return {
+    key: "risk",
+    title: "Riesgo máx.",
+    value: top ? Math.round(top.risk * 100) : null,
+    files: files.length,
+    share: files.length === 0 ? 0 : 1,
+    area: false,
+    owner,
+    state: "none",
+    worst: owner,
+    description:
+      "El riesgo más alto del subárbol y el fichero que lo tiene. Pulsa para pintar el mapa por riesgo.",
+    hint: !top
+      ? "sin datos en este subárbol"
+      : owner
+        ? `el mayor del subárbol en ${owner}`
+        : "el máximo del subárbol es 0"
+  };
 }
 
 /** La fila de la complejidad cuando el snapshot no la trae como métrica. */

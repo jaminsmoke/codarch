@@ -1,5 +1,8 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { dedentLines } from "../src/panels";
+import { DependenciesSection } from "../src/panels/InspectorSections";
 
 describe("dedentLines", () => {
   it("quita la sangría común y conserva la relativa", () => {
@@ -32,5 +35,24 @@ describe("dedentLines", () => {
   it("devuelve una copia, no la lista que recibe", () => {
     const lines = ["const a = 1;"];
     expect(dedentLines(lines)).not.toBe(lines);
+  });
+});
+
+describe("Dependencias", () => {
+  it("lee los cruces FFI en su propia lista", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DependenciesSection, {
+        outgoing: [],
+        incoming: [],
+        edges: [{ direction: "out", path: "native/bridge.rs", kind: "ffi" }],
+        onSelectPath: () => {}
+      })
+    );
+
+    expect(markup).toContain("Cruces FFI");
+    expect(markup).toContain("native/bridge.rs");
+    expect(markup).toContain("ffi");
+    // Una ficha con solo un cruce sigue abriendo la sección.
+    expect(markup).toContain("section-deps");
   });
 });

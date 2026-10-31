@@ -45,7 +45,7 @@ export function DuplicationSection({
       <CollapsibleSection
         id={sectionId}
         title="Duplicación"
-        className="section-duplication"
+        className="section-duplication section-empty"
         summary="sin medir"
       >
         <p className="muted tiny card-note">

@@ -119,7 +119,11 @@ describe("las filas de Métricas en proyecto y carpeta", () => {
   it("añade la complejidad cuando el snapshot no la trae como métrica", () => {
     const rows = rollupMetricRows(model([metric("loc")], subtree), subtree, title);
 
-    expect(rows.map((row) => row.key)).toEqual(["loc", "maxComplexity"]);
+    expect(rows.map((row) => row.key)).toEqual([
+      "risk",
+      "loc",
+      "maxComplexity"
+    ]);
     expect(rows.at(-1)?.title).toBe("Complejidad máx.");
   });
 
@@ -188,9 +192,10 @@ describe("las filas de Métricas en proyecto y carpeta", () => {
       { ...b, path: "src/b.ts", values: [8] }
     ];
     const rows = rollupMetricRows(model(debt, files), files, title);
+    const row = rows.find((entry) => entry.key === "loc");
 
-    expect(rows[0]?.state).toBe("watch");
-    expect(rows[0]?.worst).toBe("src/b.ts");
+    expect(row?.state).toBe("watch");
+    expect(row?.worst).toBe("src/b.ts");
   });
 
   it("marca la métrica que decide el área", () => {

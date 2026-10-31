@@ -6,7 +6,7 @@
   "mcp": "0.3.41",
   "docker": "0.3.71",
   "ccJson": "2.0",
-  "report": "1.5",
+  "report": "1.6",
   "config": 1,
   "history": 1,
   "chainLedger": 2

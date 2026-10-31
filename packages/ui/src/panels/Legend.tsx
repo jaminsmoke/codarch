@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   formatCompact,
   KIND_COLOR,
@@ -8,6 +9,7 @@ import type {
   CcMigrationStatus,
   CcRestKind
 } from "@codarch/schema/browser";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { KIND_LABEL, STATUS_COLOR, STATUS_LABEL } from "../labels";
 
 /**
@@ -15,7 +17,8 @@ import { KIND_LABEL, STATUS_COLOR, STATUS_LABEL } from "../labels";
  *
  * Cada modo dice lo suyo —los estados de migración, las secciones o la escala
  * de la métrica— y un modo sin leyenda no pinta nada en vez de mentir con la
- * de otro.
+ * de otro. El bloque pliega como los demás del raíl (ADR 0061, M49), con la
+ * cifra corta que se lee cerrado.
  */
 export function Legend({
   colorMode,
@@ -35,8 +38,12 @@ export function Legend({
     if (!model || !hasLint) return null;
     const withFindings = model.files.filter((file) => file.lint > 0).length;
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda · lint</div>
+      <RailBlock
+        id="legend-lint"
+        title="Leyenda · lint"
+        count={2}
+        summary={`${formatCompact(withFindings)} con hallazgos`}
+      >
         <div className="gradient lint" />
         <div className="gradient-labels">
           <span>limpio</span>
@@ -49,14 +56,18 @@ export function Legend({
                 model.fileCount
               )} ficheros con hallazgos`}
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
   if (colorMode === "status" && migration) {
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda</div>
+      <RailBlock
+        id="legend-status"
+        title="Leyenda"
+        count={4}
+        summary={`${migration.summary.bridgeFiles} puentes`}
+      >
         <div className="legend">
           {(["js", "rust", "bridge", "native"] as CcMigrationStatus[]).map((status) => (
             <div key={status}>
@@ -66,7 +77,7 @@ export function Legend({
             </div>
           ))}
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
@@ -84,8 +95,12 @@ export function Legend({
     if (kinds.length === 0) return null;
 
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda · tipo</div>
+      <RailBlock
+        id="legend-kind"
+        title="Leyenda · tipo"
+        count={kinds.length}
+        summary={`${kinds.length} tipos`}
+      >
         <div className="legend">
           {kinds.map((kind) => (
             <div key={kind}>
@@ -95,14 +110,18 @@ export function Legend({
             </div>
           ))}
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
   if (colorMode === "structure" && model) {
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda</div>
+      <RailBlock
+        id="legend-structure"
+        title="Leyenda"
+        count={Math.min(model.sections.length, 8)}
+        summary={`${model.sections.length} secciones`}
+      >
         <div className="legend">
           {model.sections.slice(0, 8).map((section) => (
             <div key={section.key}>
@@ -114,20 +133,24 @@ export function Legend({
             </div>
           ))}
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
   if (colorMode === "risk") {
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda · riesgo</div>
+      <RailBlock
+        id="legend-risk"
+        title="Leyenda · riesgo"
+        count={2}
+        summary="bajo → alto"
+      >
         <div className="gradient risk" />
         <div className="gradient-labels">
           <span>bajo</span>
           <span>alto</span>
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
@@ -147,8 +170,12 @@ export function Legend({
       return repeated ? node?.repeatedLines : node?.duplicatedLines;
     }).length;
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Leyenda · duplicación</div>
+      <RailBlock
+        id="legend-duplication"
+        title="Leyenda · duplicación"
+        count={2}
+        summary={`${formatCompact(withDuplication)} con copias`}
+      >
         <div className="gradient metric" />
         <div className="gradient-labels">
           <span>{formatCompact(metric.min)}</span>
@@ -164,7 +191,7 @@ export function Legend({
             <>{" · "}{formatCompact(model.duplication.pairs)} pares</>
           )}
         </div>
-      </section>
+      </RailBlock>
     );
   }
 
@@ -172,8 +199,12 @@ export function Legend({
   if (!metric) return null;
 
   return (
-    <section className="panel-block">
-      <div className="eyebrow">Leyenda · {metric.title}</div>
+    <RailBlock
+      id="legend-metric"
+      title={`Leyenda · ${metric.title}`}
+      count={2}
+      summary={`máx ${formatCompact(metric.max)}`}
+    >
       <div className="gradient metric" />
       <div className="gradient-labels">
         <span>{formatCompact(metric.min)}</span>
@@ -185,6 +216,33 @@ export function Legend({
           ? ` · máx real ${formatCompact(metric.actualMax)}`
           : ""}
       </div>
-    </section>
+    </RailBlock>
+  );
+}
+
+/** Un bloque del raíl: pliega como los demás y dice su cifra cerrado (M49). */
+function RailBlock({
+  id,
+  title,
+  count,
+  summary,
+  children
+}: {
+  id: string;
+  title: string;
+  count: number;
+  summary: string;
+  children: ReactNode;
+}) {
+  return (
+    <CollapsibleSection
+      id={id}
+      title={title}
+      className="panel-block"
+      count={count}
+      summary={summary}
+    >
+      {children}
+    </CollapsibleSection>
   );
 }

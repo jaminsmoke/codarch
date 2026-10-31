@@ -1,7 +1,8 @@
 import { useId, useState, type KeyboardEvent } from "react";
 import type { CodarchApp, MapId } from "../app/types";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { ToolBar, toolLabel } from "../ToolBar";
-import { HeatList, LanguageSample, Legend } from "../panels";
+import { HeatList, LanguageSample, Legend, RestKinds } from "../panels";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
@@ -63,7 +64,9 @@ export function ToolDock({ app }: { app: CodarchApp }) {
 
         {state.map === "code" ? (
           <LanguageSample model={app.view.model} migration={app.migration} />
-        ) : null}
+        ) : (
+          <RestKinds model={app.view.model} />
+        )}
 
         <Legend
           colorMode={state.colorMode}
@@ -113,8 +116,13 @@ function ViewControls({ app }: { app: CodarchApp }) {
   };
 
   return (
-    <section className="panel-block">
-      <div className="eyebrow">Vista</div>
+    <CollapsibleSection
+      id="rail-view"
+      title="Vista"
+      className="panel-block"
+      count={metricOptions.length}
+      summary={`${metricOptions.length} áreas · ${colorOptions.length} colores`}
+    >
       <label className="field">
         <span>Área</span>
         <select
@@ -158,6 +166,6 @@ function ViewControls({ app }: { app: CodarchApp }) {
           {matches} de {view.model?.fileCount ?? 0} ficheros
         </div>
       ) : null}
-    </section>
+    </CollapsibleSection>
   );
 }

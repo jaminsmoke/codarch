@@ -12,6 +12,29 @@ export interface SectionStorage {
   setItem(key: string, value: string): void;
 }
 
+/**
+ * Lo que una sección plegable tiene que declarar (ADR 0061).
+ *
+ * Cerrada, una sección enseña su resumen: sin él, plegar es esconder. La
+ * cuenta dice cuántas cosas hay dentro y el título, de qué habla.
+ */
+export interface SectionHeading {
+  id: string;
+  title: string;
+  count?: number;
+  summary?: string;
+}
+
+/** Los datos que le faltan a una sección para leerse cerrada. */
+export function missingSectionParts(section: SectionHeading): string[] {
+  const missing: string[] = [];
+  if (!section.id.trim()) missing.push("id");
+  if (!section.title.trim()) missing.push("title");
+  if (section.count === undefined) missing.push("count");
+  if (!section.summary?.trim()) missing.push("summary");
+  return missing;
+}
+
 /** El prefijo de todas las secciones: `codarch:section:<id>`. */
 const PREFIX = "codarch:section:";
 

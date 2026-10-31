@@ -12,7 +12,7 @@ import {
   folderDepth
 } from "../folder";
 import { withinFolder } from "../lintRollup";
-import { LintRulesSection } from "../LintRules";
+import { LintSection } from "../LintSection";
 import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
 
@@ -100,8 +100,8 @@ export function FolderPanel({
       ) : null}
 
       {model ? (
-        <LintRulesSection
-          id="folder-rules"
+        <LintSection
+          id="folder-lint"
           artifact={lint}
           folder={folder.path}
           advice={adviceForExtensions(

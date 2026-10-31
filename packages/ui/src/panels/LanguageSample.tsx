@@ -4,6 +4,7 @@ import type {
   CcMigrationLens,
   CcMigrationStatus
 } from "@codarch/schema/browser";
+import { CollapsibleSection } from "../CollapsibleSection";
 import { LANGUAGE_COLOR, STATUS_COLOR, STATUS_LABEL } from "../labels";
 
 /**
@@ -21,10 +22,15 @@ export function LanguageSample({
 }) {
   if (!migration) {
     return (
-      <section className="panel-block">
-        <div className="eyebrow">Estratos</div>
+      <CollapsibleSection
+        id="rail-strata"
+        title="Estratos"
+        className="panel-block"
+        count={0}
+        summary="sin lente de migración"
+      >
         <p className="muted small">Este snapshot no trae lente de migración.</p>
-      </section>
+      </CollapsibleSection>
     );
   }
 
@@ -34,8 +40,13 @@ export function LanguageSample({
   const total = languages.reduce((sum, [, stats]) => sum + stats.rloc, 0);
 
   return (
-    <section className="panel-block">
-      <div className="eyebrow">Estratos</div>
+    <CollapsibleSection
+      id="rail-strata"
+      title="Estratos"
+      className="panel-block"
+      count={languages.length}
+      summary={`${formatCompact(total)} rloc`}
+    >
       <div className="strata" aria-label="Reparto por lenguaje">
         {languages.map(([language, stats]) => {
           if (stats.rloc === 0) return null;
@@ -72,6 +83,6 @@ export function LanguageSample({
         {migration.summary.ffiEdges} aristas FFI · {migration.summary.bridgeFiles} puentes ·{" "}
         {model ? `${formatCompact(model.fileCount)} ficheros` : ""}
       </div>
-    </section>
+    </CollapsibleSection>
   );
 }

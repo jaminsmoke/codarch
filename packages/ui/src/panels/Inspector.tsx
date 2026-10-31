@@ -8,9 +8,9 @@ import type {
   CcSymbol,
   SymbolChain
 } from "@codarch/schema/browser";
-import type { DiffReport } from "@codarch/metrics/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "../platform";
-import { RulesSection } from "../FileSections";
+import { LintSection } from "../LintSection";
+import { ffiEdgesForFile } from "../lenses";
 import { maxComplexity, relatedFiles, type CodeState } from "../inspector";
 import {
   ChainSection,
@@ -26,7 +26,7 @@ import type { CodeTarget } from "./CodePeek";
 import { DuplicationSection } from "./DuplicationSection";
 
 /**
- * La ficha: métricas, reglas, símbolos, superficie, dependencias, miembros y la
+ * La ficha: métricas, lint, símbolos, superficie, dependencias, miembros y la
  * vida del símbolo elegido; en una carpeta, su contenido (ADR 0092).
  *
  * Cada apartado es una sección plegable con su cuenta en el encabezado, así
@@ -49,7 +49,6 @@ export function Inspector({
   symbols,
   structure,
   chain,
-  report,
   lint,
   migration,
   showCode = true,
@@ -70,9 +69,7 @@ export function Inspector({
   /** Miembros, imports y exports del fichero (ADR 0064). */
   structure: CcStructureNode | null;
   chain: SymbolChain | null;
-  /** El reporte del diff: las reglas de dominio viven ahí (ADR 0069). */
-  report: DiffReport | null;
-  /** El lint del proyecto, que ahora vive en Reglas (ADR 0096). */
+  /** El lint del proyecto, que se lee por hallazgos (ADR 0104). */
   lint: LintArtifact | null;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
@@ -107,6 +104,9 @@ export function Inspector({
   const heaviest = maxComplexity(symbols);
   const outgoing = relatedFiles(model, file, "out");
   const incoming = relatedFiles(model, file, "in");
+  const ffiEdges = migration
+    ? ffiEdgesForFile(migration, file.nodeId, model?.files ?? [])
+    : [];
 
   const openCode = async (target: CodeTarget): Promise<void> => {
     if (code?.target.id === target.id) {
@@ -159,14 +159,12 @@ export function Inspector({
       ) : null}
       {showCode ? (
         <>
-          <RulesSection
-            report={report}
-            migration={migration}
-            node={migrationNode}
-            model={model}
-            file={file}
-            lint={lint}
-            onSelectPath={onSelectPath}
+          <LintSection
+            id="file-lint"
+            artifact={lint}
+            folder={file.path}
+            filePath={file.path}
+            risk={file.riskParts}
           />
           <SymbolsSection
             file={file}
@@ -184,6 +182,7 @@ export function Inspector({
       <DependenciesSection
         outgoing={outgoing}
         incoming={incoming}
+        edges={ffiEdges}
         onSelectPath={onSelectPath}
       />
       {showCode ? (

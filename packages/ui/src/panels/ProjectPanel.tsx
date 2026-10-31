@@ -4,7 +4,7 @@ import {
   type LintArtifact
 } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
-import { LintRulesSection } from "../LintRules";
+import { LintSection } from "../LintSection";
 import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
 
@@ -76,14 +76,13 @@ export function ProjectPanel({
         onSelectPath={onSelectPath}
       />
 
-      <LintRulesSection
-        id="project-rules"
+      <LintSection
+        id="project-lint"
         artifact={lint}
         folder=""
         advice={adviceForExtensions(
           model.files.map((file) => extensionOf(file.name))
         )}
-        showSystems
       />
     </section>
   );
