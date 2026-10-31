@@ -229,11 +229,17 @@ dice «sin duplicación medida» y el mapa sigue siendo legible.
 
 ### M70 — La divergencia, con nombre
 
-- ⬜ La lista de pares con su estado `copy`/`diverging`, su similitud y sus líneas, ordenada y con
+- ✅ La lista de pares con su estado `copy`/`diverging`, su similitud y sus líneas, ordenada y con
   `+N más`.
-- ⬜ El filtro por estado y el salto de un par a sus dos fichas.
-- ⬜ El aviso de divergencia en la ficha: «comparte el 72 % con `…`».
-- ⬜ Tests del orden, del filtro, del corte y del enlace entre par y ficheros.
+- ✅ El filtro por estado y el salto de un par a sus dos fichas.
+- ✅ El aviso de divergencia en la ficha: «comparte el 72 % con `…`».
+- ✅ Tests del orden, del filtro, del corte y del enlace entre par y ficheros.
+
+El modelo gana `duplication.list`: los pares con sus **dos** extremos, ya con las rutas del mapa y
+ordenados por similitud, líneas y rutas. `pairsByNode` se queda para la ficha del fichero. Un par
+cuenta en el subárbol solo si sus dos ficheros están dentro; el que cruza la frontera es de la
+carpeta padre, porque contarlo en los dos lados sumaría las mismas líneas dos veces. La lista no
+reordena a su manera: el orden es el del snapshot, y el filtro solo elige qué se enseña.
 
 ### M71 — La duplicación, en el diff
 
