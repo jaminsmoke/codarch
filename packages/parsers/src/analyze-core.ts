@@ -1,5 +1,5 @@
 import { walkTree } from "@codarch/schema/browser";
-import { applyChurn, applyGraph, applyMigration } from "./analyze/apply";
+import { applyChurn, applyDuplication, applyGraph, applyMigration } from "./analyze/apply";
 import { measureFile, prepareParsers } from "./analyze/measure";
 import { closeNamespaces } from "./analyze/namespaces";
 import {
@@ -12,6 +12,7 @@ import type {
   AnalyzeCoreResult
 } from "./analyze/types";
 import { buildGraph } from "./graph";
+import { analyzeDuplicationFingerprints } from "./duplication";
 import type { FileSystem } from "./fs";
 import { ImportTargetIndex } from "./import-targets";
 import { buildMigration, MIGRATION_EXTENSIONS } from "./migration";
@@ -105,6 +106,11 @@ export function analyzeFiles(
   const migration = buildMigration(state.migrationFiles, state.migrationLinks);
   applyMigration(state, migration);
 
+  // La duplicación se mide con el árbol ya completo: compara ficheros entre sí
+  // (ADR 0102). Las huellas salieron del parseo, así que no se relee nada.
+  const duplication = analyzeDuplicationFingerprints(state.duplication);
+  applyDuplication(state, duplication);
+
   if (state.unresolved.length > 0) {
     state.warnings.push(
       `${state.unresolved.length} imports sin resolver; se excluyen del grafo`
@@ -116,6 +122,7 @@ export function analyzeFiles(
     files: state.parsedFiles,
     graph,
     migration,
+    duplication,
     commitHash: options.commitHash
   });
 
@@ -156,6 +163,7 @@ export function analyzeFiles(
     typeOnlyImports: state.typeOnly,
     unresolvedImports: state.unresolved.length,
     migration: migration.summary,
+    duplication: duplication.summary,
     churn: churnResult,
     cache: { hits: state.cacheHits, misses: state.cacheMisses },
     rest,

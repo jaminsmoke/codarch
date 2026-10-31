@@ -1,4 +1,4 @@
-import type { CcJson, CcMigrationSummary } from "@codarch/schema/browser";
+import type { CcDuplicationSummary, CcJson, CcMigrationSummary } from "@codarch/schema/browser";
 import type { ParseCache } from "../cache";
 import type { FileSystem } from "../fs";
 import type { SourceParser } from "../types";
@@ -116,6 +116,8 @@ export interface AnalyzeCoreResult {
   typeOnlyImports: number;
   unresolvedImports: number;
   migration: CcMigrationSummary;
+  /** Resumen de la duplicación medida (ADR 0102). */
+  duplication: CcDuplicationSummary;
   /** Resumen del historial, si lo hubo. */
   churn: ChurnResult | null;
   /** Ficheros reutilizados de la caché y ficheros parseados de nuevo. */

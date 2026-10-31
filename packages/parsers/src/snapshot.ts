@@ -7,6 +7,8 @@ import {
   type CcAttributeDescriptor,
   type CcAttributeType,
   type CcDependencyLens,
+  type CcDuplicatePair,
+  type CcDuplicationLens,
   type CcEdge,
   type CcJson,
   type CcMetricsLens,
@@ -19,6 +21,7 @@ import {
   type CcSymbolsSummary
 } from "@codarch/schema/browser";
 import type { GraphResult } from "./graph";
+import type { DuplicationResult } from "./duplication";
 import type { MigrationResult } from "./migration";
 import type { ParsedExport, ParsedImport, ParsedMember, ParsedSymbol } from "./types";
 
@@ -40,6 +43,7 @@ export interface SnapshotInput {
   files: readonly SnapshotFile[];
   graph: GraphResult;
   migration?: MigrationResult;
+  duplication?: DuplicationResult;
   /** El commit del repo cuando se analizó, si lo hay (lo pone el CLI con git). */
   commitHash?: string;
 }
@@ -68,6 +72,16 @@ const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
   maxFunctionLength: {
     title: "Función más larga",
     description: "Líneas de la función más larga",
+    direction: -1
+  },
+  duplicatedLines: {
+    title: "Líneas duplicadas",
+    description: "Líneas en bloques de 8+ líneas compartidos con otro fichero",
+    direction: -1
+  },
+  repeatedLines: {
+    title: "Líneas repetidas",
+    description: "Líneas en bloques repetidos dentro del mismo fichero",
     direction: -1
   },
   number_of_commits: {
@@ -175,11 +189,15 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
   const migrationLens = input.migration
     ? migrationLensFrom(input.migration)
     : undefined;
+  const duplicationLens = input.duplication
+    ? duplicationLensFrom(input.duplication)
+    : undefined;
 
   const lenses = {
     metrics: metricLens(tree.attributes, tree.metricNames),
     dependency: dependencyLens(input.graph),
     ...(migrationLens ? { migration: migrationLens } : {}),
+    ...(duplicationLens ? { duplication: duplicationLens } : {}),
     symbols: symbolsLens(tree.symbolNodes, tree.symbols),
     structure: { nodes: tree.structureNodes } satisfies CcStructureLens
   };
@@ -457,6 +475,28 @@ function migrationLensFrom(migration: MigrationResult): CcMigrationLens {
     edges,
     summary: migration.summary
   };
+}
+
+/** La lente de duplicación, con sus ids de fichero y sus pares. */
+function duplicationLensFrom(duplication: DuplicationResult): CcDuplicationLens {
+  const nodes: CcDuplicationLens["nodes"] = {};
+  for (const [relativePath, node] of duplication.nodes) {
+    nodes[fileId(relativePath)] = {
+      duplicatedLines: node.duplicatedLines,
+      repeatedLines: node.repeatedLines,
+      ...(node.duplicateOf ? { duplicateOf: node.duplicateOf } : {})
+    };
+  }
+
+  const pairs: CcDuplicatePair[] = duplication.pairs.map((pair) => ({
+    fromId: fileId(pair.from),
+    toId: fileId(pair.to),
+    lines: pair.lines,
+    similarity: pair.similarity,
+    status: pair.status
+  }));
+
+  return { nodes, pairs, summary: duplication.summary };
 }
 
 export function checksumFor(files: readonly CcNode[], lenses: unknown): string {

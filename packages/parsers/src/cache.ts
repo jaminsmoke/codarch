@@ -1,3 +1,4 @@
+import type { DuplicationDigest } from "./duplication";
 import type { FileParseResult } from "./types";
 
 /**
@@ -29,6 +30,13 @@ export interface CachedParse {
   parsed: FileParseResult;
   /** Si el fichero puentea a otro lenguaje (`jsIsBridge`), ya medido. */
   bridge: boolean;
+  /**
+   * Lo que la duplicación necesita del fuente, para no releerlo (ADR 0102).
+   *
+   * Una entrada sin huella —una caché de antes de la lente— se completa con
+   * una lectura y se vuelve a guardar.
+   */
+  duplication?: DuplicationDigest;
 }
 
 /**

@@ -1,4 +1,5 @@
 import type { buildGraph } from "../graph";
+import type { DuplicationResult } from "../duplication";
 import type { buildMigration } from "../migration";
 import type { AnalysisState } from "./state";
 import type { AnalyzeCoreOptions, ChurnResult } from "./types";
@@ -57,5 +58,17 @@ export function applyMigration(
     if (!node) continue;
     file.metrics.ffiCrossings = node.crossings;
     if (node.debt !== undefined) file.metrics.migrationDebt = node.debt;
+  }
+}
+
+/** Las líneas duplicadas y repetidas de cada fichero (ADR 0102). */
+export function applyDuplication(
+  state: AnalysisState,
+  duplication: DuplicationResult
+): void {
+  for (const file of state.parsedFiles) {
+    const node = duplication.nodes.get(file.relativePath);
+    file.metrics.duplicatedLines = node?.duplicatedLines ?? 0;
+    file.metrics.repeatedLines = node?.repeatedLines ?? 0;
   }
 }

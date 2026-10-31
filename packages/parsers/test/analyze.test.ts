@@ -113,11 +113,26 @@ describe("analyzeRepository", () => {
         cycleSize: expect.any(Number),
         dependencyLevel: expect.any(Number),
         migrationDebt: expect.any(Number),
-        ffiCrossings: expect.any(Number)
+        ffiCrossings: expect.any(Number),
+        duplicatedLines: expect.any(Number),
+        repeatedLines: expect.any(Number)
       });
     }
 
-    expect(result.metricNames).toHaveLength(17);
+    expect(result.metricNames).toHaveLength(19);
+  });
+
+  it("mide la duplicación y deja su lente en el snapshot", () => {
+    const result = analyzeRepository(fixture, { git: false });
+    const lens = result.snapshot.lenses?.duplication;
+    if (!lens) throw new Error("falta la lente de duplicación");
+
+    expect(Object.keys(lens.nodes)).toHaveLength(15);
+    expect(result.duplication.pairs).toBe(lens.pairs.length);
+    expect(result.duplication.ratio).toBeGreaterThanOrEqual(0);
+    expect(result.metricNames).toEqual(
+      expect.arrayContaining(["duplicatedLines", "repeatedLines"])
+    );
   });
 
   it("marca el self-loop y las aristas type-only", () => {

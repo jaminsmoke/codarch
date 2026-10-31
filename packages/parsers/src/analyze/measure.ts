@@ -1,5 +1,10 @@
 import type { CcMigrationLanguage } from "@codarch/schema/browser";
 import type { CachedParse } from "../cache";
+import {
+  duplicationFingerprint,
+  type DuplicationDigest,
+  type DuplicationFingerprint
+} from "../duplication";
 import type { FileSystem } from "../fs";
 import {
   isNativeLanguage,
@@ -91,6 +96,12 @@ export function measureFile(file: WalkedFile, context: MeasureContext): void {
   const parsed = parseFile(context, file, parser, source, cached, version);
   if (!parsed) return;
 
+  // La huella de duplicación viaja con el parseo cacheado: sin esto, medir la
+  // duplicación releería todos los ficheros en cada pasada y rompería el
+  // análisis incremental (ADR 0056, ADR 0102).
+  const duplicate = fingerprintOf(context, file, parsed, source, cached, version);
+  if (duplicate) context.state.duplication.push(duplicate);
+
   // Los espacios de nombres del fichero, para lo que busquen los `using` de
   // los demás.
   noteNamespaces(
@@ -130,6 +141,11 @@ function measureRustFile(
   source: string
 ): void {
   const measured = measureRustSource(source);
+  if (measured.rloc > 0) {
+    state.duplication.push(
+      duplicationFingerprint(file.relativePath, measured.rloc, source)
+    );
+  }
   state.parsedFiles.push({
     relativePath: file.relativePath,
     metrics: { loc: measured.loc, rloc: measured.rloc }
@@ -178,10 +194,17 @@ function parseFile(
   source: string,
   cached: CachedParse | null,
   version: string | null
-): { parsed: FileParseResult; bridge: boolean } | null {
+): {
+  parsed: FileParseResult;
+  bridge: boolean;
+  duplication: DuplicationDigest | null;
+} | null {
   if (cached) {
-    context.state.cacheHits += 1;
-    return { parsed: cached.parsed, bridge: cached.bridge };
+    context.state.cacheHits += 1;  return {
+    parsed: cached.parsed,
+    bridge: cached.bridge,
+    duplication: cached.duplication ?? null
+  };
   }
 
   let parsed: FileParseResult;
@@ -205,16 +228,79 @@ function parseFile(
         )
       : false;
 
+  const duplication = duplicationFingerprint(
+    file.relativePath,
+    parsed.metrics.rloc ?? 0,
+    source
+  );
+
   context.state.cacheMisses += 1;
   if (version && context.cache) {
     context.cache.set(file.relativePath, {
       version,
       parser: parser.name,
       parsed,
-      bridge
+      bridge,
+      duplication: {
+        windows: duplication.windows,
+        whole: duplication.whole
+      }
     });
   }
-  return { parsed, bridge };
+  return {
+    parsed,
+    bridge,
+    duplication: { windows: duplication.windows, whole: duplication.whole }
+  };
+}
+
+/**
+ * La huella del fichero, de la caché o del fuente.
+ *
+ * Una entrada de caché anterior a la lente no trae huella: se lee una vez, se
+ * calcula y se guarda, y la siguiente pasada ya no lee.
+ */
+function fingerprintOf(
+  context: MeasureContext,
+  file: WalkedFile,
+  parsed: {
+    parsed: FileParseResult;
+    duplication: DuplicationDigest | null;
+  },
+  source: string,
+  cached: CachedParse | null,
+  version: string | null
+): DuplicationFingerprint | null {
+  const rloc = parsed.parsed.metrics.rloc ?? 0;
+  if (rloc <= 0) return null;
+
+  if (parsed.duplication) {
+    return {
+      relativePath: file.relativePath,
+      rloc,
+      windows: parsed.duplication.windows,
+      whole: parsed.duplication.whole
+    };
+  }
+
+  let text = source;
+  if (cached) {
+    const read = readSource(context.state, context.fileSystem, file);
+    if (read === null) return null;
+    text = read;
+  }
+
+  const fingerprint = duplicationFingerprint(file.relativePath, rloc, text);
+  if (cached && version && context.cache) {
+    context.cache.set(file.relativePath, {
+      ...cached,
+      duplication: {
+        windows: fingerprint.windows,
+        whole: fingerprint.whole
+      }
+    });
+  }
+  return fingerprint;
 }
 
 /**

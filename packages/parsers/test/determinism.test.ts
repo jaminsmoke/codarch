@@ -173,7 +173,7 @@ describe("el mapa no depende del disco", () => {
     // cambio sea legítimo —otro fuente, no otra forma de leerlo—, se actualiza
     // este valor a mano y se dice en el commit.
     expect(analyze(new MemoryFileSystem(SOURCES)).meta.checksum).toBe(
-      "4a8014762327181c50fdc566ab92d4a4"
+      "ac991ee2cda13378883578efd0a7eec5"
     );
   });
 });

@@ -6,6 +6,7 @@ import type { ParseCache } from "../cache";
 import type { RestFile } from "../rest";
 import type { ImportResolver } from "../resolve";
 import type { SourceParser } from "../types";
+import type { DuplicationFingerprint } from "../duplication";
 import type { MigrationFileInput, MigrationLinkInput } from "../migration";
 import type { UnresolvedImportIssue } from "./types";
 import type { PendingNamespaceImport } from "./namespaces";
@@ -22,6 +23,8 @@ export interface AnalysisState {
   migrationFiles: MigrationFileInput[];
   migrationLinks: MigrationLinkInput[];
   links: DependencyLink[];
+  /** Las huellas de duplicación de los ficheros medidos (ADR 0102). */
+  duplication: DuplicationFingerprint[];
   unresolved: UnresolvedImportIssue[];
   /** Lo que no es código, ya medido (ADR 0093). */
   restFiles: RestFile[];
@@ -48,6 +51,7 @@ export function emptyState(warnings: readonly string[]): AnalysisState {
     migrationFiles: [],
     migrationLinks: [],
     links: [],
+    duplication: [],
     unresolved: [],
     restFiles: [],
     namespaceDeclarations: new Map(),

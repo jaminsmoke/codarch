@@ -98,6 +98,7 @@ Cada lente es un mapa `id → datos`. Desconocida = se preserva tal cual al reex
 | `migration` | LOC por lenguaje, estado, deuda y frontera FFI | sí (v1) |
 | `symbols` | lo que hay dentro de cada fichero: funciones, clases, tipos y variables del módulo | sí (M11) |
 | `structure` | miembros de clase e imports/exports del fichero | sí (M44) |
+| `duplication` | líneas compartidas entre ficheros y dentro de uno, y pares `copy`/`diverging` | sí (M68) |
 | `domain` | palabras, frecuencia, tf-idf | después |
 | `evolution` | series temporales, acoplamiento temporal | después |
 
@@ -125,6 +126,7 @@ Métricas actuales del analizador:
 | Grafo | `fanIn`, `fanOut` (todos los imports), `inCycle`, `cycleSize`, `dependencyLevel` (ejecución) |
 | Historial | `number_of_commits`, `number_of_authors` |
 | Migración | `migrationDebt`, `ffiCrossings` |
+| Duplicación | `duplicatedLines`, `repeatedLines` |
 
 Todas se emiten como `absolute`. Las métricas se agregan por fichero; los símbolos quedan para una
 lente posterior. Las dos métricas de historial solo aparecen si `git` está disponible y el análisis
@@ -196,6 +198,43 @@ porque el glue no está en el fuente. Las aristas FFI solo existen cuando un imp
 un `.wasm` o `.node` incluido en el análisis.
 
 Si la herramienta no sirve para gestionar su propia migración, no sirve.
+
+### La lente de duplicación
+
+La escala de lo que está **escrito dos veces**. Nace de este repo: la app web y el escritorio comparten
+`main.tsx` carácter a carácter, y los barrels de `schema` y `lint` repiten buena parte de sus módulos
+([ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md)).
+
+```ts
+type DuplicationNode = {
+  duplicatedLines: number   // líneas en bloques de 8 compartidos con otro fichero
+  repeatedLines: number     // líneas en bloques de 8 repetidos dentro del fichero
+  duplicateOf?: string      // el fichero del que es copia literal, si lo hay
+}
+
+type DuplicatePair = {
+  fromId: string
+  toId: string
+  lines: number             // líneas del bloque compartido, sin contar dos veces
+  similarity: number        // 0..100: ventanas compartidas / las del fichero menor
+  status: 'copy' | 'diverging'
+}
+```
+
+El detector no sabe de gramáticas: toma las líneas significativas que ya cuenta `rloc`, las normaliza
+—sin espacios, sin líneas vacías, sin cierres sueltos— y busca ventanas de **8** líneas por SHA-256. Dos
+ficheros con la misma ventana comparten bloque; las ventanas contiguas se funden antes de contar, así
+que `lines` es la unión de rangos. Un fichero con menos de ocho líneas significativas no genera
+ventana.
+
+`similarity = ventanas compartidas / min(ventanas de A, ventanas de B)`. **`copy`** es 100;
+**`diverging`** va de 40 a 99, la copia que se ha separado; por debajo de 40 no hay par, para no llenar
+el snapshot de coincidencias de azar. Un renombrado o un reformateo no se detecta en v1: pediría AST o
+normalizar identificadores y rompería la paridad nativo/WASM.
+
+La proporción no es una métrica del snapshot: se calcula al leer (`duplicatedLines / rloc`). Carpetas y
+proyecto suman líneas y dividen por su `rloc`; los porcentajes no se suman nunca. La duplicación **no**
+se suma a `migrationDebt`: una copia no cuesta migrarla dos veces y el porcentaje no es aditivo.
 
 ### La lente de símbolos
 

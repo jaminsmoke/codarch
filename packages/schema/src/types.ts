@@ -107,6 +107,49 @@ export interface CcMigrationLens {
   summary: CcMigrationSummary;
 }
 
+/** Lo que la lente de duplicación sabe de un fichero (ADR 0102). */
+export interface CcDuplicationNode {
+  /** Líneas dentro de bloques compartidos con otro fichero. */
+  duplicatedLines: number;
+  /** Líneas dentro de bloques repetidos en el mismo fichero. */
+  repeatedLines: number;
+  /** Ruta del gemelo canónico, si el fichero entero es idéntico a otro. */
+  duplicateOf?: string;
+}
+
+/** Un par de ficheros que comparten bloques de código. */
+export interface CcDuplicatePair {
+  fromId: string;
+  toId: string;
+  /** Líneas compartidas, contadas una vez por bloque maximal. */
+  lines: number;
+  /** 0..100: ventanas compartidas / mínimo de ventanas de los dos. */
+  similarity: number;
+  status: "copy" | "diverging";
+}
+
+export interface CcDuplicationSummary {
+  pairs: number;
+  /** Ficheros que son copia de otro. */
+  copies: number;
+  duplicatedLines: number;
+  repeatedLines: number;
+  /** 0..100 sobre el rloc del árbol. Se calcula, no se suma. */
+  ratio: number;
+}
+
+/**
+ * La lente de duplicación: lo copiado, entre ficheros y dentro de uno.
+ *
+ * Es opcional como las demás: un snapshot sin ella está **sin medir**, no
+ * limpio (ADR 0102).
+ */
+export interface CcDuplicationLens {
+  nodes: Record<string, CcDuplicationNode>;
+  pairs: CcDuplicatePair[];
+  summary: CcDuplicationSummary;
+}
+
 export interface CcSymbol {
   name: string;
   kind: "function" | "class" | "interface" | "type" | "enum" | "variable";
@@ -233,6 +276,7 @@ export interface CcLenses {
   metrics?: CcMetricsLens;
   dependency?: CcDependencyLens;
   migration?: CcMigrationLens;
+  duplication?: CcDuplicationLens;
   symbols?: CcSymbolsLens;
   structure?: CcStructureLens;
   rest?: CcRestLens;

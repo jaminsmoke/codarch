@@ -27,7 +27,7 @@ Hoy CodArch tiene:
 
 Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
 M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63, M64, M65, M66 y M67 en curso, y M68, M69, M70 y M71 sin empezar.
+curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63, M64, M65, M66 y M67 en curso, M68 cerrada, y M69, M70 y M71 sin empezar.
 
 ## Las fases
 
@@ -208,7 +208,7 @@ flowchart TD
 | M65 | El lint, en el mapa | en curso | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 | M66 | El proyecto tiene su ficha | en curso | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
 | M67 | El lint es del proyecto | en curso | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
-| M68 | La duplicación, medida | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
+| M68 | La duplicación, medida | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M69 | La duplicación, en el mapa | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M70 | La divergencia, con nombre | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M71 | La duplicación, en el diff | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |

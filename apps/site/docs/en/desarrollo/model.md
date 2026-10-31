@@ -99,6 +99,7 @@ Each lens is a map `id → data`. Unknown means it is preserved as-is when re-ex
 | `migration` | LOC per language, status, debt and FFI boundary | yes (v1) |
 | `symbols` | what is inside each file: functions, classes, types and module variables | yes (M11) |
 | `structure` | class members and the file's imports/exports | yes (M44) |
+| `duplication` | shared lines across files and within one, and `copy`/`diverging` pairs | yes (M68) |
 | `domain` | words, frequency, tf-idf | later |
 | `evolution` | time series, temporal coupling | later |
 
@@ -126,6 +127,7 @@ Current analyser metrics:
 | Graph | `fanIn`, `fanOut` (all imports), `inCycle`, `cycleSize`, `dependencyLevel` (runtime) |
 | History | `number_of_commits`, `number_of_authors` |
 | Migration | `migrationDebt`, `ffiCrossings` |
+| Duplication | `duplicatedLines`, `repeatedLines` |
 
 All of them are emitted as `absolute`. Metrics are aggregated per file; symbols are left for a later
 lens. The two history metrics only appear if `git` is available and the analysis is not run with
@@ -197,6 +199,43 @@ because the glue is not in the source. FFI edges only exist when a TS/JS import 
 `.wasm` or `.node` file included in the analysis.
 
 If the tool is not good at managing its own migration, it is not good.
+
+### The duplication lens
+
+The scale of what is **written twice**. It comes from this repo: the web and desktop apps share
+`main.tsx` character for character, and the `schema` and `lint` barrels repeat a good part of their
+modules ([ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md)).
+
+```ts
+type DuplicationNode = {
+  duplicatedLines: number   // lines in 8-line blocks shared with another file
+  repeatedLines: number     // lines in 8-line blocks repeated inside the file
+  duplicateOf?: string      // the file it is a literal copy of, if any
+}
+
+type DuplicatePair = {
+  fromId: string
+  toId: string
+  lines: number             // lines in the shared block, not counted twice
+  similarity: number        // 0..100: shared windows / the smaller file's windows
+  status: 'copy' | 'diverging'
+}
+```
+
+The detector knows nothing about grammars: it takes the significant lines `rloc` already counts,
+normalizes them —no whitespace, no empty lines, no bare closing braces— and looks for windows of **8**
+lines by SHA-256. Two files with the same window share a block; adjacent windows are merged before
+counting, so `lines` is the union of ranges. A file with fewer than eight significant lines produces
+no window.
+
+`similarity = shared windows / min(A's windows, B's windows)`. **`copy`** is 100; **`diverging`** is 40
+to 99, the copy that has drifted apart; below 40 there is no pair, so the snapshot is not filled with
+chance matches. A rename or a reformat is not detected in v1: it would need an AST or normalizing
+identifiers, and that would break native/WASM parity.
+
+The ratio is not a snapshot metric: it is computed on read (`duplicatedLines / rloc`). Folders and the
+project add up lines and divide by their `rloc`; percentages are never added. Duplication is **not**
+added to `migrationDebt`: a copy does not cost migrating twice, and the percentage is not additive.
 
 ### The symbols lens
 
