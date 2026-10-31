@@ -82,6 +82,29 @@ export const SNAPSHOT: CcJson = {
         migrationDebt: 72
       }
     },
+    duplication: {
+      nodes: {
+        a: { duplicatedLines: 20, repeatedLines: 0 },
+        b: { duplicatedLines: 30, repeatedLines: 4 }
+      },
+      pairs: [
+        { fromId: "a", toId: "b", lines: 20, similarity: 100, status: "copy" },
+        {
+          fromId: "b",
+          toId: "c",
+          lines: 30,
+          similarity: 72,
+          status: "diverging"
+        }
+      ],
+      summary: {
+        pairs: 2,
+        copies: 0,
+        duplicatedLines: 50,
+        repeatedLines: 4,
+        ratio: 20
+      }
+    },
     symbols: {
       nodes: {
         a: [
@@ -327,6 +350,45 @@ export function makeReport(): DiffReport {
           debt: 16,
           rloc: 30,
           crossings: 1
+        }
+      ]
+    },
+    duplication: {
+      base: {
+        pairs: 1,
+        copies: 0,
+        duplicatedLines: 20,
+        repeatedLines: 0
+      },
+      head: {
+        pairs: 2,
+        copies: 0,
+        duplicatedLines: 50,
+        repeatedLines: 4
+      },
+      lines: { base: 20, head: 50, delta: 30 },
+      counts: { added: 1, removed: 0, diverging: 1 },
+      added: [
+        {
+          from: "src/a.ts",
+          to: "src/b.ts",
+          kind: "added",
+          lines: 20,
+          similarity: 100,
+          previousSimilarity: null,
+          linesDelta: null
+        }
+      ],
+      removed: [],
+      diverging: [
+        {
+          from: "src/b.ts",
+          to: "src/domain/c.ts",
+          kind: "diverging",
+          lines: 30,
+          similarity: 72,
+          previousSimilarity: 90,
+          linesDelta: 10
         }
       ]
     },

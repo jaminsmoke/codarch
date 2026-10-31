@@ -6,6 +6,7 @@
 export * from "./tools/types";
 export * from "./tools/map";
 export * from "./tools/migration";
+export * from "./tools/duplication";
 export * from "./tools/history";
 export * from "./tools/config";
 export * from "./tools/symbols";

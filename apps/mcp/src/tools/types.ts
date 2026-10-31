@@ -267,6 +267,63 @@ export interface MigrationPlanResult {
   reason?: string;
 }
 
+export interface DuplicationReportInput {
+  /** Carpeta o fichero del que enseñar los pares; vacío = todo el proyecto. */
+  path?: string;
+  /** Máximo de pares y de cambios listados (por defecto 20). */
+  limit?: number;
+}
+
+/** Un par de la lente, tal como lo lee un agente. */
+export interface DuplicationPairView {
+  from: string;
+  to: string;
+  lines: number;
+  similarity: number;
+  status: "copy" | "diverging";
+}
+
+/** Un par que cambia en el reporte. */
+export interface DuplicationChangeView {
+  from: string;
+  to: string;
+  kind: "added" | "removed" | "diverging";
+  lines: number;
+  similarity: number;
+  previousSimilarity: number | null;
+  linesDelta: number | null;
+}
+
+export interface DuplicationReportResult {
+  /** `false` si el snapshot no trae la lente: sin medir, no limpio. */
+  available: boolean;
+  /** La carpeta o el fichero pedido; vacío es todo el proyecto. */
+  scope: string;
+  summary: {
+    duplicatedLines: number;
+    repeatedLines: number;
+    /** 0..100 sobre el `rloc` del ámbito. */
+    ratio: number;
+    files: number;
+    /** Ficheros del ámbito con alguna línea duplicada. */
+    affected: number;
+  } | null;
+  /** Los pares actuales dentro del ámbito, de más a menos. */
+  pairs: DuplicationPairView[];
+  totalPairs: number;
+  changes:
+    | { available: false; reason: string }
+    | {
+        available: true;
+        lines: { base: number; head: number; delta: number };
+        counts: { added: number; removed: number; diverging: number };
+        added: DuplicationChangeView[];
+        removed: DuplicationChangeView[];
+        diverging: DuplicationChangeView[];
+      };
+  reason?: string;
+}
+
 export interface ListViolationsInput {
   status?: ViolationStatusFilter;
   severity?: "all" | "info" | "warn" | "error";

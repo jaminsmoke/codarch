@@ -8,6 +8,7 @@ import {
   explainModule,
   findHotspots,
   getArchitectureMap,
+  getDuplicationReport,
   getHistory,
   getLintReport,
   getMigrationPlan,
@@ -258,6 +259,30 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => getMigrationPlan(store, args))
+  );
+
+  server.registerTool(
+    "get_duplication_report",
+    {
+      title: "La duplicación",
+      description:
+        "Cuánto código se copia en un ámbito y entre quiénes: líneas duplicadas y repetidas, proporción sobre el rloc, y los pares de ficheros con su similitud. Con report.json cuenta además qué pares aparecen, cuáles se separan y cuáles desaparecen, y las líneas ganadas o perdidas. Sin la lente de duplicación no está limpio: está sin medir.",
+      inputSchema: {
+        path: z
+          .string()
+          .optional()
+          .describe("Carpeta o fichero; vacío = todo el proyecto"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe("Máximo de pares listados (por defecto 20)")
+      },
+      annotations: READ_ONLY
+    },
+    (args) => invoke(() => getDuplicationReport(store, args))
   );
 
   server.registerTool(
