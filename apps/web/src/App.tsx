@@ -40,7 +40,7 @@ import {
   type SessionHandlers
 } from "./session";
 import { selectRoot, setWatch as setServerWatch } from "./server-control";
-import { platformWeb } from "./plataforma";
+import { platformWeb } from "./platform";
 import { useApplyUrlOnce, useSyncUrl } from "./urlView";
 import { WEB_VERSION } from "@codarch/versions";
 

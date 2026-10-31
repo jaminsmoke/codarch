@@ -57,17 +57,17 @@ const webgpu = hasWebgpu();
 
 const updates: SettingsUpdateAdapter = {
   async check(current) {
-    const resultado = await checkSource(
+    const result = await checkSource(
       current,
       { kind: "npm", package: NPM_PACKAGE },
       fetch
     );
     return {
-      current: resultado.current,
-      latest: resultado.latest,
-      outdated: resultado.outdated,
-      error: resultado.error,
-      url: resultado.url
+      current: result.current,
+      latest: result.latest,
+      outdated: result.outdated,
+      error: result.error,
+      url: result.url
     };
   },
   action: (update) => (
