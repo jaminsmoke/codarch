@@ -67,7 +67,9 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
    snapshot o diff, añade un caso de determinismo.
 2. **Commit y push frecuentes.** Commits pequeños y con intención; `main` debe quedar verde.
 3. **No commitear artefactos.** `node_modules/`, `dist/`, `.codarch/`, `coverage/` y `samples/` están
-   ignorados. No forzar su entrada.
+   ignorados. No forzar su entrada. **`.codarch/` es del producto, no del desarrollo**: es lo que deja
+   el análisis de este mismo repo —snapshot, lint, caché, preferencias— y nada de código, pruebas ni
+   scripts se escribe ahí, ni temporal. Si hace falta un temporal, no vive en el árbol analizado.
 4. **Dependencias.** npm workspaces y `package-lock.json`; nada de pnpm/Bun sin ADR. No usar
    `npm audit fix --force`: actualizar de forma controlada y repetir la suite.
 5. **Scripts nativos.** npm 12 bloquea install scripts no aprobados. Si añades esbuild/tree-sitter u
