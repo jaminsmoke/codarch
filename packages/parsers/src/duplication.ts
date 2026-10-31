@@ -103,7 +103,7 @@ export function significantLines(source: string): string[] {
 
     line = line.trim();
     if (line === "") continue;
-    if (/^[{}()\[\];,]+$/.test(line)) continue;
+    if (/^[{}()[\];,]+$/.test(line)) continue;
     lines.push(line);
   }
 
