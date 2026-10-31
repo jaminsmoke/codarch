@@ -1,0 +1,160 @@
+import type { LintArtifact } from "@codarch/lint/browser";
+import type { RiskPart } from "@codarch/metrics/browser";
+import type { CcRestKind } from "@codarch/schema/browser";
+
+/**
+ * El contrato del modelo: lo que el SVG, el cliente y la captura se pasan.
+ *
+ * Vive aparte de `model.ts` porque los dos lados lo leen —el que construye y el
+ * que pinta— y ninguno tiene por qué arrastrar los pasos del otro.
+ */
+
+export type Lens = "structure" | "risk" | "metric" | "kind" | "lint";
+
+export interface RenderOptions {
+  /** Métrica que decide el área. Por defecto `rloc` o la de mayor cobertura. */
+  areaMetric?: string;
+  /**
+   * `risk`, `structure`, `kind`, `lint` o el nombre de una métrica.
+   *
+   * `lint` pide el artefacto: sin él no hay deuda que pintar y es un error, no
+   * un mapa en blanco (ADR 0094).
+   */
+  color?: string;
+  /** Título alternativo para la cabecera. */
+  title?: string;
+  /**
+   * El lint del proyecto, si lo hay (ADR 0094).
+   *
+   * Con él, el riesgo gana su cuarta señal; sin él, la cuenta es la de
+   * siempre. Las rutas del artefacto son las del repo, como las del snapshot.
+   */
+  lint?: LintArtifact | null;
+}
+
+export interface RenderMeta {
+  project: string;
+  title: string;
+  commit: string;
+  checksum: string;
+  apiVersion: string;
+  rootName: string;
+}
+
+export interface RenderFile {
+  index: number;
+  /** Id del nodo en cc.json. Útil para unir lentes; no se serializa al HTML. */
+  nodeId: string;
+  path: string;
+  name: string;
+  section: number;
+  /** Área usada por el layout. Nunca es menor que 1 para que el fichero siga visible. */
+  area: number;
+  /** Valor real de la métrica de área, sin el mínimo de 1. */
+  actualArea: number;
+  risk: number;
+  /** Las señales del riesgo, con su peso y su parte (ADR 0057, ADR 0094). */
+  riskParts: RiskParts;
+  complexity: number;
+  churn: number;
+  /** Deuda del lint ya ponderada (`errors + ¼ avisos`); 0 sin artefacto. */
+  lint: number;
+  /** Valores alineados con `RenderModel.metrics`; `null` cuando la métrica no existe. */
+  values: Array<number | null>;
+  /**
+   * El tipo del fichero en el mapa del resto (ADR 0093); `null` en el código.
+   *
+   * Es lo que pinta el color por tipo y lo que cuenta la leyenda, sin que la
+   * app tenga que volver al snapshot.
+   */
+  kind: CcRestKind | null;
+}
+
+export type RiskParts = Record<
+  "complexity" | "churn" | "size" | "lint",
+  RiskPart
+>;
+
+export interface RenderSection {
+  key: string;
+  label: string;
+  files: number;
+  area: number;
+  color: string;
+}
+
+export interface RenderMetric {
+  key: string;
+  title: string;
+  /** Explicación breve del descriptor, si el snapshot la trae. */
+  description?: string;
+  /** -1: menos es mejor. 1: más es mejor. 0: sin dirección declarada. */
+  direction: number;
+  min: number;
+  /** Máximo de la escala de color (p95 si hay mucha cola). */
+  max: number;
+  actualMax: number;
+  p95: number;
+  mode: "linear" | "log";
+  coverage: number;
+}
+
+export interface TreeNode {
+  kind: "file" | "folder";
+  key: string;
+  name: string;
+  path: string;
+  value: number;
+  fileCount: number;
+  section: number;
+  fileIndex?: number;
+  children?: TreeNode[];
+}
+
+export interface EdgePair {
+  from: number;
+  to: number;
+}
+
+export interface RenderModel {
+  meta: RenderMeta;
+  files: RenderFile[];
+  sections: RenderSection[];
+  metrics: RenderMetric[];
+  edges: EdgePair[];
+  cycles: EdgePair[];
+  roots: TreeNode[];
+  areaMetric: string | null;
+  areaTitle: string;
+  totalArea: number;
+  fileCount: number;
+  folderCount: number;
+  hotspotCount: number;
+  defaultSelection: number | null;
+  initialLens: Lens;
+  initialMetric: string | null;
+  /**
+   * La deuda de lint más alta del mapa, para la escala de su lente.
+   *
+   * 0 sin artefacto o cuando ningún fichero tiene hallazgos. Vive aquí porque
+   * la necesitan el mapa de la app, la leyenda y el PNG, y ninguna de las tres
+   * puede recalcularla a su manera (ADR 0094).
+   */
+  lintMax: number;
+  warnings: string[];
+}
+
+export class RenderError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RenderError";
+  }
+}
+
+/** id de nodo → nombre de métrica → valor, tal como lo trae la lente. */
+export type MetricAttributes = Record<string, Record<string, number>>;
+
+/** Un objeto con claves, ni lista ni `null`: lo que llega de un cc.json ajeno. */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
