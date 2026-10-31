@@ -44,6 +44,7 @@ export {
 } from "./rest";
 export type { RestFile, RestInput } from "./rest";
 export { DEFAULT_EXTENSIONS } from "./extensions";
+export { INTERNAL_DIRECTORIES, isInternalDirectory } from "./scope";
 export * as path from "./path";
 export type {
   FileParseResult,

@@ -2,11 +2,9 @@ import ignore, { type Ignore } from "ignore";
 import { CODARCH_DIR } from "@codarch/schema";
 import { DEFAULT_EXTENSIONS } from "./extensions";
 import type { FileSystem } from "./fs";
+import { INTERNAL_DIRECTORIES } from "./scope";
 
 export { DEFAULT_EXTENSIONS };
-
-/** Patrones que no dependen del `.gitignore` del proyecto. */
-const ALWAYS_IGNORED = [".git", "node_modules", CODARCH_DIR];
 
 export interface WalkedFile {
   /** Ruta virtual absoluta: `/src/app/main.ts`. */
@@ -92,7 +90,7 @@ function walkAllFiles(fileSystem: FileSystem, options: WalkOptions): WalkResult 
   const warnings: string[] = [];
   const files: WalkedFile[] = [];
 
-  const rootMatcher = ignore().add(ALWAYS_IGNORED);
+  const rootMatcher = ignore().add([...INTERNAL_DIRECTORIES]);
   for (const pattern of options.ignore ?? []) rootMatcher.add(pattern);
 
   const rootGitignore = readGitignore(fileSystem, "/", "", warnings);
@@ -179,7 +177,9 @@ export function walkProjectDirectories(
   const directories: WalkedDirectory[] = [];
 
   // Sin `.codarch`: aquí es justo lo que se busca, y se corta al encontrarlo.
-  const rootMatcher = ignore().add([".git", "node_modules"]);
+  const rootMatcher = ignore().add(
+    INTERNAL_DIRECTORIES.filter((name) => name !== CODARCH_DIR)
+  );
   for (const pattern of options.ignore ?? []) rootMatcher.add(pattern);
 
   const rootGitignore = readGitignore(fileSystem, "/", "", warnings);

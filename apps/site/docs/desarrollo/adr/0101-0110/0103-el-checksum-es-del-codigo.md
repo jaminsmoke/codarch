@@ -139,8 +139,7 @@ conozca se rompe.
 
 ## Hoja de ruta
 
-**Estado:** abierta. M72 cerrada; M73 iguala el alcance del navegador y M74 ajusta la comparación en
-la app.
+**Estado:** abierta. M72 y M73 cerradas; M74 ajusta la comparación en la app.
 
 ### M72 — El checksum es del código
 
@@ -158,13 +157,17 @@ Medido al cerrarla: el mismo árbol de **626 ficheros** da un solo checksum con 
 
 ### M73 — El navegador lee el mismo alcance
 
-- ⬜ La lista de directorios internos se comparte entre el walker y el lector del navegador: solo
+- ✅ La lista de directorios internos se comparte entre el walker y el lector del navegador: solo
   `node_modules`, `.git` y `.codarch`.
-- ⬜ El lector deja de saltar `dist`, `build`, `out`, `target`, `coverage` y los demás por su nombre; el
+- ✅ El lector deja de saltar `dist`, `build`, `out`, `target`, `coverage` y los demás por su nombre; el
   `.gitignore` y el `ignore` se aplican en el analizador.
-- ⬜ Test: un repo con `build/generated.ts` versionado y sin ignorar da el mismo conjunto de ficheros y
+- ✅ Test: un repo con `build/generated.ts` versionado y sin ignorar da el mismo conjunto de ficheros y
   el mismo checksum en el CLI con `--no-git` y en el navegador.
-- ⬜ El tope de 20 000 ficheros sigue abortando con error, nunca con un snapshot parcial.
+- ✅ El tope de 20 000 ficheros sigue abortando con error, nunca con un snapshot parcial.
+
+Al implementarla se vio que el lector **no leía los `.gitignore`**: sin ellos en memoria, el walker no
+podía aplicar el alcance del proyecto y el navegador medía de más. Ahora los lee como un fichero de
+configuración más y las reglas las aplica el analizador.
 
 ### M74 — La app compara código e historial
 

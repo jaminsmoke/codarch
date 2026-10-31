@@ -1,6 +1,9 @@
-import { DEFAULT_EXTENSIONS } from "@codarch/parsers/browser";
+import {
+  DEFAULT_EXTENSIONS,
+  INTERNAL_DIRECTORIES
+} from "@codarch/parsers/browser";
 import { MemoryFileSystem } from "@codarch/parsers/fs";
-import { CODARCH_DIR, CONFIG_FILE_NAMES } from "@codarch/schema/browser";
+import { CONFIG_FILE_NAMES } from "@codarch/schema/browser";
 import type { DirectoryHandleLike } from "../fs-access";
 
 /**
@@ -10,13 +13,16 @@ import type { DirectoryHandleLike } from "../fs-access";
  * Access API y se guarda el contenido en un `MemoryFileSystem`: el mismo que
  * usa el analizador en el CLI, pero en memoria.
  *
- * Solo se leen los ficheros que el análisis necesita (código y configuración).
- * Java, Python, Go y C# entran con la lista de lenguajes (ADR 0090).
- * Los directorios pesados se saltan al leer; el resto de las reglas del
- * `.gitignore` las aplica el walker del analizador.
+ * Solo se leen los ficheros que el análisis necesita (código, configuración y
+ * los `.gitignore`). Java, Python, Go y C# entran con la lista de lenguajes
+ * (ADR 0090). Se saltan únicamente los directorios internos del modelo
+ * (`node_modules`, `.git`, `.codarch`); cualquier otro nombre lo decide el
+ * `.gitignore` o el `ignore` del proyecto, y lo aplica el walker (ADR 0038,
+ * ADR 0103).
  */
 
 const CONFIG_FILES = new Set([
+  ".gitignore",
   "package.json",
   "tsconfig.json",
   "jsconfig.json",
@@ -25,22 +31,8 @@ const CONFIG_FILES = new Set([
   "go.mod"
 ]);
 
-/** Directorios que no se leen: ruido y peso. */
-const SKIPPED_DIRECTORIES = new Set([
-  ".git",
-  "node_modules",
-  CODARCH_DIR,
-  "dist",
-  "build",
-  "coverage",
-  ".next",
-  "out",
-  "target",
-  ".turbo",
-  ".cache",
-  ".venv",
-  "__pycache__"
-]);
+/** Los únicos directorios que no se leen: los internos del modelo. */
+const INTERNAL = new Set<string>(INTERNAL_DIRECTORIES);
 
 export interface ReadProgress {
   /** Ficheros leídos hasta ahora. */
@@ -121,7 +113,7 @@ export async function readDirectoryToMemory(
       const path = prefix === "" ? `/${name}` : `${prefix}/${name}`;
 
       if (handle.kind === "directory") {
-        if (SKIPPED_DIRECTORIES.has(name)) continue;
+        if (INTERNAL.has(name)) continue;
         await walk(handle, path);
         continue;
       }
