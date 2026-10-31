@@ -28,7 +28,7 @@ export const DEFAULT_LOCALE: Locale = "es";
 export type Key = keyof typeof es;
 
 /** El diccionario tiene que estar completo en cada idioma. */
-const DICCIONARIO: Record<Locale, Record<Key, string>> = { es, en };
+const DICTIONARY: Record<Locale, Record<Key, string>> = { es, en };
 
 /* eslint-disable @typescript-eslint/no-namespace, @typescript-eslint/no-empty-object-type -- la ampliación de Starlight se declara con namespace y merging */
 declare global {
@@ -47,6 +47,6 @@ export function localeOf(valor: string | undefined): Locale {
   return isLocale(valor) ? valor : DEFAULT_LOCALE;
 }
 
-export function t(lang: Locale, clave: Key): string {
-  return DICCIONARIO[lang][clave] ?? DICCIONARIO[DEFAULT_LOCALE][clave];
+export function t(lang: Locale, key: Key): string {
+  return DICTIONARY[lang][key] ?? DICTIONARY[DEFAULT_LOCALE][key];
 }

@@ -19,8 +19,8 @@ export default function Marco({
   children: ReactNode;
   lang?: string;
 }) {
-  const idioma = localeOf(lang);
-  const raiz = rootOf(idioma);
+  const locale = localeOf(lang);
+  const raiz = rootOf(locale);
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">
@@ -35,28 +35,28 @@ export default function Marco({
 
       <footer className="mt-16 border-t border-line">
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-1 px-5 py-6 text-sm text-muted">
-          <span>{t(idioma, "marco.licencia")}</span>
+          <span>{t(locale, "marco.licencia")}</span>
           <span className="ml-auto flex gap-3">
             <a
               href={`${raiz}/docs/usar/instalacion/`}
               className="text-muted no-underline hover:text-rust-ink"
             >
-              {t(idioma, "home.empezar")}
+              {t(locale, "home.empezar")}
             </a>
             <a
               href={`${raiz}/desarrollo/`}
               className="text-muted no-underline hover:text-rust-ink"
             >
-              {t(idioma, "home.construye")}
+              {t(locale, "home.construye")}
             </a>
             <a href="https://github.com/jaminsmoke/codarch">
-              {t(idioma, "marco.repo")}
+              {t(locale, "marco.repo")}
             </a>
             <a href="https://www.npmjs.com/package/codarch">
-              {t(idioma, "marco.npm")}
+              {t(locale, "marco.npm")}
             </a>
             <a href="https://github.com/jaminsmoke/codarch-action">
-              {t(idioma, "marco.accion")}
+              {t(locale, "marco.accion")}
             </a>
           </span>
         </div>

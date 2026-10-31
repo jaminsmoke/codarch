@@ -28,34 +28,34 @@ interface Props {
 }
 
 export default function Future({ upcoming, days, lang = "es" }: Props) {
-  const idioma = localeOf(lang);
-  const raiz = idioma === "en" ? `${BASE}/en` : BASE;
+  const locale = localeOf(lang);
+  const raiz = locale === "en" ? `${BASE}/en` : BASE;
   useTitle(
-    t(idioma, "guia.futuro.titulo"),
-    t(idioma, "guia.futuro.desc"),
-    idioma
+    t(locale, "guia.futuro.titulo"),
+    t(locale, "guia.futuro.desc"),
+    locale
   );
   const ultima = days.at(-1)?.date ?? "";
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
       <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
-        {t(idioma, "guia.registro")}
+        {t(locale, "guia.registro")}
       </p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <h1 className="font-display text-5xl leading-none font-bold tracking-tight sm:text-6xl">
-          {t(idioma, "guia.futuro.titulo")}
+          {t(locale, "guia.futuro.titulo")}
         </h1>
         <span className="guia-contador">
           {upcoming.length}{" "}
-          {t(idioma, upcoming.length === 1 ? "guia.idea" : "guia.ideas")}
+          {t(locale, upcoming.length === 1 ? "guia.idea" : "guia.ideas")}
         </span>
       </div>
       <p className="mt-4 mb-8 max-w-2xl text-lg leading-relaxed text-ink-soft">
-        {t(idioma, "guia.futuro.desc")}{" "}
-        {t(idioma, "guia.futuro.desc.link")}{" "}
+        {t(locale, "guia.futuro.desc")}{" "}
+        {t(locale, "guia.futuro.desc.link")}{" "}
         <a className="text-rust-ink" href={`${raiz}/desarrollo/roadmap/`}>
-          {t(idioma, "guia.futuro.roadmap")}
+          {t(locale, "guia.futuro.roadmap")}
         </a>
         .
       </p>
@@ -72,7 +72,7 @@ export default function Future({ upcoming, days, lang = "es" }: Props) {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="guia-chip">
                   <span aria-hidden="true" className="guia-chip-punto" />
-                  {categoryName(entrada.category, idioma)}
+                  {categoryName(entrada.category, locale)}
                 </span>
                 <span
                   style={{ "--tono": "var(--color-muted)" } as CSSProperties}
@@ -83,10 +83,10 @@ export default function Future({ upcoming, days, lang = "es" }: Props) {
                     className="size-3.5"
                     strokeWidth={2.2}
                   />
-                  {verdictName("esperar", idioma)}
+                  {verdictName("esperar", locale)}
                 </span>
                 <span className="ml-auto font-mono text-[0.66rem] tracking-[0.08em] text-muted uppercase">
-                  {shortDate(entrada.date, idioma)}
+                  {shortDate(entrada.date, locale)}
                 </span>
               </div>
               <h2 className="font-display mt-2 text-xl font-bold tracking-tight">
@@ -96,11 +96,11 @@ export default function Future({ upcoming, days, lang = "es" }: Props) {
                 {entrada.summary}
               </p>
               <a
-                href={`${BASE}${dayPath(entrada.date, ultima, idioma)}#${entrada.id}`}
+                href={`${BASE}${dayPath(entrada.date, ultima, locale)}#${entrada.id}`}
                 className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline"
               >
                 <ArrowDown aria-hidden="true" className="size-3" />
-                {t(idioma, "guia.leer")}
+                {t(locale, "guia.leer")}
               </a>
             </li>
           );
@@ -112,7 +112,7 @@ export default function Future({ upcoming, days, lang = "es" }: Props) {
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />
-        {t(idioma, "guia.volver")}
+        {t(locale, "guia.volver")}
       </a>
     </div>
   );

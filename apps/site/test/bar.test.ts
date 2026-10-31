@@ -15,7 +15,7 @@ function fuente(file: string): string {
 
 describe("la cabecera del sitio", () => {
   it("lleva los tres destinos, en su orden y sin repetir", () => {
-    expect(LINKS.map((enlace) => enlace.ruta)).toEqual([
+    expect(LINKS.map((enlace) => enlace.path)).toEqual([
       "/",
       "/docs/",
       "/desarrollo/"
@@ -24,8 +24,8 @@ describe("la cabecera del sitio", () => {
 
   it("cada destino se llama algo en los dos idiomas", () => {
     for (const enlace of LINKS) {
-      for (const idioma of idiomas) {
-        expect(t(idioma, enlace.clave).trim()).not.toBe("");
+      for (const locale of idiomas) {
+        expect(t(locale, enlace.key).trim()).not.toBe("");
       }
     }
   });

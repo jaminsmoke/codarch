@@ -7,8 +7,8 @@ import type { Key } from "./i18n";
  * propias y la de los documentos no puedan separarse, y para poder probarlos
  * sin montar Astro.
  */
-export const LINKS: { ruta: string; clave: Key }[] = [
-  { ruta: "/", clave: "nav.inicio" },
-  { ruta: "/docs/", clave: "nav.documentacion" },
-  { ruta: "/desarrollo/", clave: "nav.desarrollo" }
+export const LINKS: { path: string; key: Key }[] = [
+  { path: "/", key: "nav.inicio" },
+  { path: "/docs/", key: "nav.documentacion" },
+  { path: "/desarrollo/", key: "nav.desarrollo" }
 ];

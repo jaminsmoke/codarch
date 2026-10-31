@@ -210,10 +210,10 @@ export interface DaySummary {
 
 /** Los días, en corto: fecha, cuántas ideas y sus categorías. */
 export function summarizeDays(days: Day[]): DaySummary[] {
-  return days.map((dia) => ({
-    date: dia.date,
-    count: dia.entries.length,
-    categories: [...new Set(dia.entries.map((entrada) => entrada.category))]
+  return days.map((day) => ({
+    date: day.date,
+    count: day.entries.length,
+    categories: [...new Set(day.entries.map((entrada) => entrada.category))]
   }));
 }
 
@@ -245,34 +245,34 @@ export type GuideRoute =
  */
 export function parseGuidePath(
   pathname: string,
-  fechas: readonly string[],
+  dates: readonly string[],
   lang: string = "es"
 ): GuideRoute {
   const crudo = pathname.split("/").filter(Boolean);
   const sinLocale =
     lang === "en" && crudo[0] === "en" ? crudo.slice(1) : crudo;
-  const ultima = fechas.at(-1) ?? "";
+  const ultima = dates.at(-1) ?? "";
   const desde = sinLocale.indexOf("guia");
 
   if (desde === -1) return { kind: "day", date: ultima };
   const resto = sinLocale.slice(desde + 1);
   if (resto[0] === "futuro") return { kind: "future" };
   if (resto[0] === "normas") return { kind: "rules" };
-  const fecha = resto[0];
-  if (fecha && fechas.includes(fecha)) return { kind: "day", date: fecha };
+  const date = resto[0];
+  if (date && dates.includes(date)) return { kind: "day", date: date };
   return { kind: "day", date: ultima };
 }
 
 /** La dirección canónica de una vista de la guía. */
 export function guideRoute(
-  ruta: GuideRoute,
+  path: GuideRoute,
   ultima: string,
   lang: string = "es"
 ): string {
   const prefijo = lang === "en" ? "/en" : "";
-  if (ruta.kind === "future") return `${prefijo}/desarrollo/guia/futuro/`;
-  if (ruta.kind === "rules") return `${prefijo}/desarrollo/guia/normas/`;
-  return dayPath(ruta.date, ultima, lang);
+  if (path.kind === "future") return `${prefijo}/desarrollo/guia/futuro/`;
+  if (path.kind === "rules") return `${prefijo}/desarrollo/guia/normas/`;
+  return dayPath(path.date, ultima, lang);
 }
 
 /** La guía entera: las normas, los días y lo que falta. */

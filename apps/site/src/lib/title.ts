@@ -13,10 +13,10 @@ export function useTitle(
   lang: string = "es"
 ): void {
   useEffect(() => {
-    const idioma = localeOf(lang);
+    const locale = localeOf(lang);
     document.title = title
       ? `${title} · CodArch`
-      : t(idioma, "meta.titulo");
+      : t(locale, "meta.titulo");
 
     const meta = document.querySelector<HTMLMetaElement>(
       'meta[name="description"]'

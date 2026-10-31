@@ -8,8 +8,8 @@ import { zoneOfPath } from "./lib/zones.mjs";
  */
 export const onRequest = defineRouteMiddleware((contexto) => {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-  const zoneOf = (ruta: string) =>
-    zoneOfPath(ruta.startsWith(base) ? ruta.slice(base.length) || "/" : ruta);
+  const zoneOf = (path: string) =>
+    zoneOfPath(path.startsWith(base) ? path.slice(base.length) || "/" : path);
   const { pagination } = contexto.locals.starlightRoute;
   const zona = zoneOf(contexto.url.pathname);
   if (pagination.prev && zoneOf(pagination.prev.href) !== zona)

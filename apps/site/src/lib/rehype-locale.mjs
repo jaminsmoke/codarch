@@ -27,7 +27,7 @@ const ANCLAS = {
 
 const ANCLA = /^(?:Sección titulada «(?<es>.*)»|Section titled “(?<en>.*)”)$/;
 
-function idioma(docsRoot, file) {
+function locale(docsRoot, file) {
   if (!file.path) return null;
   const relativa = path.relative(docsRoot, file.path).split(path.sep).join("/");
   if (!relativa.endsWith(".md")) return null;
@@ -55,7 +55,7 @@ function primerTexto(node) {
 
 export function rehypeLocale({ docsRoot }) {
   return (tree, file) => {
-    const lang = idioma(docsRoot, file);
+    const lang = locale(docsRoot, file);
     if (!lang) return;
 
     visit(tree, "element", (node) => {

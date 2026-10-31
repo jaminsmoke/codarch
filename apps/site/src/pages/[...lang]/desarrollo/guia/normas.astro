@@ -10,17 +10,17 @@ export function getStaticPaths() {
   return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
 }
 
-const idioma = localeOf(Astro.params.lang);
-const datos = await loadGuide(idioma);
+const locale = localeOf(Astro.params.lang);
+const datos = await loadGuide(locale);
 const canonical = canonicalUrl(
-  idioma === "en" ? "/en/desarrollo/guia/normas/" : "/desarrollo/guia/normas/"
+  locale === "en" ? "/en/desarrollo/guia/normas/" : "/desarrollo/guia/normas/"
 );
 ---
 
 <Site
-  title={t(idioma, "meta.guia.normas.titulo")}
-  description={t(idioma, "meta.guia.normas.desc")}
+  title={t(locale, "meta.guia.normas.titulo")}
+  description={t(locale, "meta.guia.normas.desc")}
   {canonical}
 >
-  <GuideApp client:only="react" datos={datos} lang={idioma} />
+  <GuideApp client:only="react" datos={datos} lang={locale} />
 </Site>

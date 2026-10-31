@@ -65,16 +65,16 @@ describe("prepareGuide", () => {
 
   it("agrupa cada día por categoría, en el orden del changelog", () => {
     const guia = prepareGuide(fuentes, normas);
-    const dia = guia.days.find((d) => d.date === "2026-10-22");
-    expect(dia).toBeDefined();
-    expect(dia?.groups.map((grupo) => grupo.category)).toEqual([
+    const day = guia.days.find((d) => d.date === "2026-10-22");
+    expect(day).toBeDefined();
+    expect(day?.groups.map((grupo) => grupo.category)).toEqual([
       "feature",
       "fix"
     ]);
-    expect(dia?.groups[0]?.entries.map((e) => e.title)).toEqual([
+    expect(day?.groups[0]?.entries.map((e) => e.title)).toEqual([
       "Una feature"
     ]);
-    expect(dia?.groups[1]?.entries.map((e) => e.title)).toEqual(["Un fix"]);
+    expect(day?.groups[1]?.entries.map((e) => e.title)).toEqual(["Un fix"]);
   });
 
   it("baja los apartados de una entrada por debajo de su título", () => {
@@ -215,10 +215,10 @@ describe("la guía del repo", () => {
 
   it("tiene días y ninguno se queda sin grupos", () => {
     expect(guia.days.length).toBeGreaterThan(0);
-    for (const dia of guia.days) {
-      expect(dia.groups.length).toBeGreaterThan(0);
-      const sumadas = dia.groups.reduce((n, g) => n + g.entries.length, 0);
-      expect(sumadas).toBe(dia.entries.length);
+    for (const day of guia.days) {
+      expect(day.groups.length).toBeGreaterThan(0);
+      const sumadas = day.groups.reduce((n, g) => n + g.entries.length, 0);
+      expect(sumadas).toBe(day.entries.length);
     }
   });
 
@@ -231,14 +231,14 @@ describe("la guía del repo", () => {
   });
 
   it("pinta los grupos en el orden del changelog", () => {
-    for (const dia of guia.days) {
-      const orden = dia.groups.map((grupo) => CATEGORIES[grupo.category].orden);
+    for (const day of guia.days) {
+      const orden = day.groups.map((grupo) => CATEGORIES[grupo.category].orden);
       expect(orden).toEqual([...orden].sort((a, b) => a - b));
     }
   });
 
   it("no lleva marcas de estado en el cuerpo de las entradas", () => {
-    for (const entrada of guia.days.flatMap((dia) => dia.entries)) {
+    for (const entrada of guia.days.flatMap((day) => day.entries)) {
       expect(entrada.html).not.toMatch(/[✓✗✅]/);
       expect(entrada.summary).not.toMatch(/[✓✗✅]/);
     }
@@ -251,49 +251,49 @@ describe("la guía del repo", () => {
 });
 
 describe("la ruta de la guía", () => {
-  const fechas = ["2026-10-21", "2026-10-22"];
+  const dates = ["2026-10-21", "2026-10-22"];
 
   it("lee el día que pide la dirección, también con la sección y la base delante", () => {
     // Regresión: se exigía que `guia` fuese la primera parte, así que la
     // dirección de un día acababa siempre en el último.
-    expect(parseGuidePath("/desarrollo/guia/2026-10-21/", fechas)).toEqual({
+    expect(parseGuidePath("/desarrollo/guia/2026-10-21/", dates)).toEqual({
       kind: "day",
       date: "2026-10-21"
     });
-    expect(parseGuidePath("/codarch/desarrollo/guia/2026-10-21/", fechas)).toEqual(
+    expect(parseGuidePath("/codarch/desarrollo/guia/2026-10-21/", dates)).toEqual(
       { kind: "day", date: "2026-10-21" }
     );
     expect(
-      parseGuidePath("/en/desarrollo/guia/2026-10-21/", fechas, "en")
+      parseGuidePath("/en/desarrollo/guia/2026-10-21/", dates, "en")
     ).toEqual({ kind: "day", date: "2026-10-21" });
   });
 
   it("deja el último día en la portada de la guía", () => {
-    expect(parseGuidePath("/desarrollo/guia/", fechas)).toEqual({
+    expect(parseGuidePath("/desarrollo/guia/", dates)).toEqual({
       kind: "day",
       date: "2026-10-22"
     });
-    expect(parseGuidePath("/codarch/desarrollo/guia/", fechas)).toEqual({
+    expect(parseGuidePath("/codarch/desarrollo/guia/", dates)).toEqual({
       kind: "day",
       date: "2026-10-22"
     });
   });
 
   it("reconoce el futuro y las normas", () => {
-    expect(parseGuidePath("/desarrollo/guia/futuro/", fechas)).toEqual({
+    expect(parseGuidePath("/desarrollo/guia/futuro/", dates)).toEqual({
       kind: "future"
     });
-    expect(parseGuidePath("/desarrollo/guia/normas/", fechas)).toEqual({
+    expect(parseGuidePath("/desarrollo/guia/normas/", dates)).toEqual({
       kind: "rules"
     });
   });
 
   it("cae al último día con una fecha que no existe o una ruta ajena", () => {
-    expect(parseGuidePath("/desarrollo/guia/2026-01-01/", fechas)).toEqual({
+    expect(parseGuidePath("/desarrollo/guia/2026-01-01/", dates)).toEqual({
       kind: "day",
       date: "2026-10-22"
     });
-    expect(parseGuidePath("/docs/model/", fechas)).toEqual({
+    expect(parseGuidePath("/docs/model/", dates)).toEqual({
       kind: "day",
       date: "2026-10-22"
     });

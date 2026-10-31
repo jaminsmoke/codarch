@@ -76,36 +76,36 @@ interface Props {
 }
 
 export default function Timeline({ days, active, lang = "es" }: Props) {
-  const idioma = localeOf(lang);
+  const locale = localeOf(lang);
   const ultima = days.at(-1)?.date ?? "";
 
   const steps = useMemo<Step[]>(
     () => [
-      ...days.map((dia) => ({
-        keyName: dia.date,
-        path: dayPath(dia.date, ultima, idioma),
-        texto: shortDate(dia.date, idioma),
-        corto: String(Number(dia.date.slice(8, 10))),
-        count: dia.count,
+      ...days.map((day) => ({
+        keyName: day.date,
+        path: dayPath(day.date, ultima, locale),
+        texto: shortDate(day.date, locale),
+        corto: String(Number(day.date.slice(8, 10))),
+        count: day.count,
         isFuture: false
       })),
       {
         keyName: "futuro",
-        path: `${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`,
-        texto: t(idioma, "guia.futuro"),
+        path: `${locale === "en" ? "/en" : ""}/desarrollo/guia/futuro/`,
+        texto: t(locale, "guia.futuro"),
         corto: "futuro",
         count: 0,
         isFuture: true
       }
     ],
-    [days, ultima, idioma]
+    [days, ultima, locale]
   );
 
   const indice = Math.max(
     0,
     steps.findIndex((paso) => paso.keyName === active)
   );
-  const ideas = days.reduce((total, dia) => total + dia.count, 0);
+  const ideas = days.reduce((total, day) => total + day.count, 0);
 
   const ventana = useRef<HTMLDivElement>(null);
   const pista = useRef<HTMLDivElement>(null);
@@ -297,18 +297,18 @@ export default function Timeline({ days, active, lang = "es" }: Props) {
 
   return (
     <nav
-      aria-label={t(idioma, "guia.linea")}
+      aria-label={t(locale, "guia.linea")}
       onClickCapture={alClic}
       className="border-t border-line/70 bg-gradient-to-b from-ink/[0.04] to-ink/[0.01]"
     >
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-1.5">
         <p className="hidden shrink-0 items-center gap-1.5 font-mono text-[0.62rem] tracking-[0.16em] text-muted uppercase md:flex">
           {days.length}{" "}
-          {t(idioma, days.length === 1 ? "guia.dia" : "guia.dias")}
+          {t(locale, days.length === 1 ? "guia.dia" : "guia.dias")}
           <span aria-hidden="true" className="text-line-strong">
             ·
           </span>
-          {ideas} {t(idioma, ideas === 1 ? "guia.idea" : "guia.ideas")}
+          {ideas} {t(locale, ideas === 1 ? "guia.idea" : "guia.ideas")}
         </p>
 
         {/* El carrete: el día active en el centro y niebla en los bordes. */}
@@ -401,9 +401,9 @@ export default function Timeline({ days, active, lang = "es" }: Props) {
                   aria-current={esActivo ? "page" : undefined}
                   aria-label={
                     paso.isFuture
-                      ? t(idioma, "guia.futuro.aria")
-                      : `${shortDate(paso.keyName, idioma)} · ${paso.count} ${t(
-                          idioma,
+                      ? t(locale, "guia.futuro.aria")
+                      : `${shortDate(paso.keyName, locale)} · ${paso.count} ${t(
+                          locale,
                           paso.count === 1 ? "guia.idea" : "guia.ideas"
                         )}`
                   }
@@ -481,7 +481,7 @@ export default function Timeline({ days, active, lang = "es" }: Props) {
           {anterior ? (
             <a
               href={`${BASE}${anterior.path}`}
-              aria-label={t(idioma, "guia.paso.anterior")}
+              aria-label={t(locale, "guia.paso.anterior")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronLeft
@@ -502,7 +502,7 @@ export default function Timeline({ days, active, lang = "es" }: Props) {
           {siguiente ? (
             <a
               href={`${BASE}${siguiente.path}`}
-              aria-label={t(idioma, "guia.paso.siguiente")}
+              aria-label={t(locale, "guia.paso.siguiente")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
               <ChevronRight

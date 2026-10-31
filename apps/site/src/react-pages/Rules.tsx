@@ -17,24 +17,24 @@ export default function Rules({
   rules: string;
   lang?: string;
 }) {
-  const idioma = localeOf(lang);
-  const raiz = idioma === "en" ? `${BASE}/en` : BASE;
+  const locale = localeOf(lang);
+  const raiz = locale === "en" ? `${BASE}/en` : BASE;
   useTitle(
-    t(idioma, "guia.normas.titulo"),
-    t(idioma, "guia.normas.desc"),
-    idioma
+    t(locale, "guia.normas.titulo"),
+    t(locale, "guia.normas.desc"),
+    locale
   );
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10">
       <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
-        {t(idioma, "guia.registro")}
+        {t(locale, "guia.registro")}
       </p>
       <h1 className="font-display mt-2 text-5xl leading-none font-bold tracking-tight">
-        {t(idioma, "guia.normas.titulo")}
+        {t(locale, "guia.normas.titulo")}
       </h1>
       <p className="mt-4 mb-8 text-lg leading-relaxed text-ink-soft">
-        {t(idioma, "guia.normas.desc")}
+        {t(locale, "guia.normas.desc")}
       </p>
       <div
         className="prosa prosa-guia"
@@ -45,7 +45,7 @@ export default function Rules({
         className="mt-10 inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
       >
         <ArrowLeft aria-hidden="true" className="size-3" />
-        {t(idioma, "guia.volver")}
+        {t(locale, "guia.volver")}
       </a>
     </div>
   );

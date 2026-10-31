@@ -30,7 +30,7 @@ describe("documentKeys", () => {
   });
 
   it("deja fuera la guía en los dos idiomas", () => {
-    expect(claves.some((clave) => /(^|\/)guideline\//.test(clave))).toBe(false);
+    expect(claves.some((key) => /(^|\/)guideline\//.test(key))).toBe(false);
   });
 });
 

@@ -47,18 +47,18 @@ describe("las redirects", () => {
 
   it("solo apunta a páginas que existen", () => {
     for (const destino of Object.values(mapa)) {
-      const ruta = destino.replace(/^\/en(?=\/)/, "");
-      if (ruta.startsWith("/desarrollo/guia/")) continue;
-      const clave = ruta.replace(/^\/docs\//, "").replace(/^\//, "").replace(/\/$/, "");
+      const urlPath = destino.replace(/^\/en(?=\/)/, "");
+      if (urlPath.startsWith("/desarrollo/guia/")) continue;
+      const key = urlPath.replace(/^\/docs\//, "").replace(/^\//, "").replace(/\/$/, "");
       const fichero = [
-        path.join(docs, `${clave}.md`),
-        path.join(docs, clave, "index.md")
+        path.join(docs, `${key}.md`),
+        path.join(docs, key, "index.md")
       ].find((candidato) => fs.existsSync(candidato));
       // Si alguna redirección deja de tener página, el error dice cuál.
       if (!fichero) {
         throw new Error(`la redirección a ${destino} no apunta a una página`);
       }
-      expect(webPath(clave)).toBe(ruta);
+      expect(webPath(key)).toBe(urlPath);
     }
   });
 });

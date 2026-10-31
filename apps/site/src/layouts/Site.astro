@@ -17,7 +17,7 @@ const {
   canonical
 } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const idioma = localeOf(Astro.currentLocale);
+const locale = localeOf(Astro.currentLocale);
 ---
 
 <!doctype html>
@@ -31,9 +31,9 @@ const idioma = localeOf(Astro.currentLocale);
     {/* El tema se aplica antes de pintar: sin esto se ve un fogonazo claro al
         abrir la página guardada en oscuro. La clave es la de Starlight, así
         que lo elegido en los documentos vale también aquí. */}
-    <script is:inline define:vars={{ clave: THEME_KEY }}>
+    <script is:inline define:vars={{ key: THEME_KEY }}>
       (() => {
-        const guardado = localStorage.getItem(clave);
+        const guardado = localStorage.getItem(key);
         const sistema = matchMedia("(prefers-color-scheme: dark)").matches
           ? "dark"
           : "light";
@@ -52,7 +52,7 @@ const idioma = localeOf(Astro.currentLocale);
   </head>
   <body>
     <div class="sitio-barra">
-      <Bar idioma={idioma} />
+      <Bar locale={locale} />
     </div>
     <slot />
   </body>

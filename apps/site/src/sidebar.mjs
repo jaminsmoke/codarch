@@ -24,9 +24,9 @@ function andar(carpeta) {
   return fs.readdirSync(carpeta, { withFileTypes: true }).flatMap((entrada) => {
     // El inglés tiene su propio árbol y la guía su propia página.
     if (entrada.name === "en" || entrada.name === "guideline") return [];
-    const ruta = path.join(carpeta, entrada.name);
-    if (entrada.isDirectory()) return andar(ruta);
-    return entrada.name.endsWith(".md") ? [ruta] : [];
+    const entryPath = path.join(carpeta, entrada.name);
+    if (entrada.isDirectory()) return andar(entryPath);
+    return entrada.name.endsWith(".md") ? [entryPath] : [];
   });
 }
 
@@ -46,11 +46,11 @@ function leer(archivo) {
     .split(path.sep)
     .join("/")
     .replace(/\.md$/, "");
-  return { clave: documentId(relativa), relativa, datos };
+  return { key: documentId(relativa), relativa, datos };
 }
 
-function etiqueta(clave, datos) {
-  return datos.sidebar?.label ?? datos.title ?? clave;
+function etiqueta(key, datos) {
+  return datos.sidebar?.label ?? datos.title ?? key;
 }
 
 /** La etiqueta inglesa del mismo documento, si está traducido. */
@@ -61,11 +61,11 @@ function etiquetaEn(relativa) {
 }
 
 function item(documento) {
-  const { clave, relativa, datos } = documento;
+  const { key, relativa, datos } = documento;
   const en = etiquetaEn(relativa);
   return {
-    slug: clave,
-    label: etiqueta(clave, datos),
+    slug: key,
+    label: etiqueta(key, datos),
     ...(en ? { translations: { en } } : {}),
     ...(datos.sidebar?.order !== undefined
       ? { attrs: { "data-order": datos.sidebar.order } }
@@ -80,7 +80,7 @@ const documentos = andar(DOCS)
 function orden(a, b) {
   return (
     (a.datos.sidebar?.order ?? 0) - (b.datos.sidebar?.order ?? 0) ||
-    a.clave.localeCompare(b.clave)
+    a.key.localeCompare(b.key)
   );
 }
 
@@ -89,7 +89,7 @@ const enSeccion = (seccion) =>
 
 /** Cada comando del CLI tiene su página en `docs/usar/cli/` y forman un grupo. */
 const ORDEN_CLI = 20;
-const esCli = (documento) => documento.clave.startsWith("docs/usar/cli/");
+const esCli = (documento) => documento.key.startsWith("docs/usar/cli/");
 
 const comandos = enSeccion("usar").filter(esCli).sort(orden).map(item);
 
@@ -98,24 +98,24 @@ const usar = [
     .filter((documento) => !esCli(documento))
     .map((documento) => ({
       orden: documento.datos.sidebar?.order ?? 0,
-      clave: documento.clave,
+      key: documento.key,
       entrada: item(documento)
     })),
   ...(comandos.length > 0
     ? [
         {
           orden: ORDEN_CLI,
-          clave: "docs/usar/cli",
+          key: "docs/usar/cli",
           entrada: { label: "CLI", translations: { en: "CLI" }, items: comandos }
         }
       ]
     : [])
 ]
-  .sort((a, b) => a.orden - b.orden || a.clave.localeCompare(b.clave))
+  .sort((a, b) => a.orden - b.orden || a.key.localeCompare(b.key))
   .map(({ entrada }) => entrada);
 
 const ADR = "desarrollo/adr/";
-const esAdr = (documento) => documento.clave.startsWith(ADR);
+const esAdr = (documento) => documento.key.startsWith(ADR);
 
 const construir = enSeccion("desarrollo")
   .filter((documento) => !esAdr(documento))
@@ -124,9 +124,9 @@ const construir = enSeccion("desarrollo")
 
 const decisiones = enSeccion("desarrollo")
   .filter(esAdr)
-  .filter((documento) => documento.clave !== `${ADR}index`)
+  .filter((documento) => documento.key !== `${ADR}index`)
   .reduce((grupos, documento) => {
-    const carpeta = documento.clave.slice(ADR.length).split("/")[0] ?? "";
+    const carpeta = documento.key.slice(ADR.length).split("/")[0] ?? "";
     if (!/^\d{4}-\d{4}$/.test(carpeta)) return grupos;
     const lista = grupos.get(carpeta) ?? [];
     lista.push(documento);
@@ -134,7 +134,7 @@ const decisiones = enSeccion("desarrollo")
     return grupos;
   }, new Map());
 
-const gruposDecisiones = [...decisiones.entries()]
+const decisionGroups = [...decisiones.entries()]
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([carpeta, lista]) => ({
     label: carpeta.replace("-", "–"),
@@ -143,7 +143,7 @@ const gruposDecisiones = [...decisiones.entries()]
   }));
 
 const indice = documentos.find(
-  (documento) => documento.clave === `${ADR}index`
+  (documento) => documento.key === `${ADR}index`
 );
 
 /** La zona «Documentación» (`/docs/`): lo que necesita quien usa CodArch. */
@@ -166,7 +166,7 @@ export function sidebarDesarrollo() {
         label: "Decisiones (ADR)",
         translations: { en: "Decisions (ADR)" },
         collapsed: true,
-        items: [...(indice ? [item(indice)] : []), ...gruposDecisiones]
+        items: [...(indice ? [item(indice)] : []), ...decisionGroups]
       },
       {
         label: "La guía",

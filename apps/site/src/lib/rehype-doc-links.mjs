@@ -37,29 +37,29 @@ export function rehypeDocLinks({ docsRoot, base }) {
       if (/^(?:https?:|mailto:|tel:|#)/.test(href)) return;
 
       const corte = href.indexOf("#");
-      const ruta = corte === -1 ? href : href.slice(0, corte);
+      const hrefPath = corte === -1 ? href : href.slice(0, corte);
       const ancla = corte === -1 ? "" : href.slice(corte);
-      if (!ruta) return;
+      if (!hrefPath) return;
 
-      if (ruta.startsWith("/")) {
-        node.properties.href = isInternalPath(ruta)
-          ? `${prefijo}${ruta}`.replace(/\/\/+/g, "/")
+      if (hrefPath.startsWith("/")) {
+        node.properties.href = isInternalPath(hrefPath)
+          ? `${prefijo}${hrefPath}`.replace(/\/\/+/g, "/")
           : href;
         return;
       }
 
-      const destino = path.posix.normalize(path.posix.join(sourceDir, ruta));
+      const destino = path.posix.normalize(path.posix.join(sourceDir, hrefPath));
       const fuera = destino === ".." || destino.startsWith("../");
 
       // Lo que no es un documento vive en el repositorio, no en la web.
-      if (!ruta.endsWith(".md") || fuera) {
+      if (!hrefPath.endsWith(".md") || fuera) {
         const enRepo = fuera ? destino.replace(/^(\.\.\/)+/, "") : destino;
         node.properties.href = `${REPO}/${enRepo}${ancla}`;
         return;
       }
 
-      const clave = destino.replace(/\.md$/, "");
-      node.properties.href = `${prefijo}${webPath(clave)}${ancla}`.replace(
+      const key = destino.replace(/\.md$/, "");
+      node.properties.href = `${prefijo}${webPath(key)}${ancla}`.replace(
         /\/\/+/g,
         "/"
       );

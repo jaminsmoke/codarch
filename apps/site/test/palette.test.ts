@@ -56,10 +56,10 @@ function contraste(a: string, b: string): number {
 
 const leyenda = [
   ...Object.entries(VERDICTS).map(
-    ([clave, meta]) => [`el veredicto ${clave}`, meta] as const
+    ([key, meta]) => [`el veredicto ${key}`, meta] as const
   ),
   ...Object.entries(CATEGORIES).map(
-    ([clave, meta]) => [`la categoría ${clave}`, meta] as const
+    ([key, meta]) => [`la categoría ${key}`, meta] as const
   )
 ];
 

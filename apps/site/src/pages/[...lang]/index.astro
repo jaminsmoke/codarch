@@ -15,14 +15,14 @@ export function getStaticPaths() {
   return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
 }
 
-const idioma = localeOf(Astro.params.lang);
-const canonical = canonicalUrl(idioma === "en" ? "/en/" : "/");
+const locale = localeOf(Astro.params.lang);
+const canonical = canonicalUrl(locale === "en" ? "/en/" : "/");
 ---
 
 <Site
-  title={t(idioma, "meta.home.titulo")}
-  description={t(idioma, "meta.home.desc")}
+  title={t(locale, "meta.home.titulo")}
+  description={t(locale, "meta.home.desc")}
   {canonical}
 >
-  <ReactSite client:only="react" lang={idioma} />
+  <ReactSite client:only="react" lang={locale} />
 </Site>

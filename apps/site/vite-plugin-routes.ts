@@ -26,11 +26,11 @@ export function documentKeys(root: string): string[] {
       const relativa = carpeta ? `${carpeta}/${entrada.name}` : entrada.name;
       if (entrada.isDirectory()) andar(relativa);
       else if (relativa.endsWith(".md")) {
-        const clave = relativa.slice(0, -3);
+        const key = relativa.slice(0, -3);
         // La guía tiene su propia página y sus entradas no son documentos, en
         // ningún idioma (`guideline/…` y `en/guideline/…`).
-        if (!/(^|\/)guideline\//.test(clave)) {
-          salida.push(clave);
+        if (!/(^|\/)guideline\//.test(key)) {
+          salida.push(key);
         }
       }
     }

@@ -12,7 +12,7 @@ import { THEME_KEY } from "../lib/theme";
  * botón no parpadea al cambiar de tema.
  */
 
-const { idioma: lang } = Astro.props as { idioma?: string };
+const { locale: lang } = Astro.props as { locale?: string };
 const etiqueta = t(localeOf(lang), "marco.tema");
 ---
 

@@ -72,9 +72,9 @@ interface Props {
 }
 
 export default function Guide({ day, days, isLast, lang = "es" }: Props) {
-  const idioma = localeOf(lang);
-  const date = splitDate(day.date, idioma);
-  const fechaLarga = fullDate(day.date, idioma);
+  const locale = localeOf(lang);
+  const date = splitDate(day.date, locale);
+  const fechaLarga = fullDate(day.date, locale);
   const ultima = days.at(-1)?.date ?? day.date;
   const indice = days.findIndex((d) => d.date === day.date);
   const anterior = indice > 0 ? days[indice - 1] : undefined;
@@ -114,9 +114,9 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
   }, [day]);
 
   useTitle(
-    t(idioma, "guia.fecha.titulo").replace("{fecha}", fechaLarga),
-    t(idioma, "guia.hero.desc"),
-    idioma
+    t(locale, "guia.fecha.titulo").replace("{fecha}", fechaLarga),
+    t(locale, "guia.hero.desc"),
+    locale
   );
 
   return (
@@ -124,22 +124,22 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
       {isLast ? (
         <header className="mb-10">
           <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
-            {t(idioma, "guia.registro")}
+            {t(locale, "guia.registro")}
           </p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
             <div>
               <h1 className="font-display text-5xl leading-none font-bold tracking-tight sm:text-6xl">
-                {t(idioma, "guia.titulo")}
+                {t(locale, "guia.titulo")}
               </h1>
               <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
-                {t(idioma, "guia.hero.desc")}
+                {t(locale, "guia.hero.desc")}
               </p>
             </div>
             <dl className="flex shrink-0 gap-6">
               {[
-                [t(idioma, "guia.dias"), days.length],
-                [t(idioma, "guia.ideas"), total],
-                [t(idioma, "guia.categorias"), categories.size]
+                [t(locale, "guia.dias"), days.length],
+                [t(locale, "guia.ideas"), total],
+                [t(locale, "guia.categorias"), categories.size]
               ].map(([etiqueta, cuenta]) => (
                 <div key={etiqueta}>
                   <dt className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">
@@ -159,12 +159,12 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
             href={`${BASE}/desarrollo/guia/`}
             className="text-rust-ink no-underline hover:underline"
           >
-            {t(idioma, "guia.titulo")}
+            {t(locale, "guia.titulo")}
           </a>
           <span aria-hidden="true" className="text-line-strong">
             /
           </span>
-          {shortDate(day.date, idioma)}
+          {shortDate(day.date, locale)}
         </p>
       )}
 
@@ -192,7 +192,7 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
             <p className="font-mono text-[0.66rem] tracking-[0.14em] text-muted uppercase">
               {day.entries.length}{" "}
               {t(
-                idioma,
+                locale,
                 day.entries.length === 1 ? "guia.idea" : "guia.ideas"
               )}
             </p>
@@ -212,7 +212,7 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
                       }
                     >
                       <span aria-hidden="true" className="guia-chip-punto" />
-                      {categoryName(grupo.category, idioma)}
+                      {categoryName(grupo.category, locale)}
                       <span className="guia-chip-cuenta">
                         {grupo.entries.length}
                       </span>
@@ -229,7 +229,7 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
                     }
                     className="guia-chip"
                   >
-                    {t(idioma, "guia.mostrarTodas")}
+                    {t(locale, "guia.mostrarTodas")}
                   </button>
                 </li>
               ) : null}
@@ -243,14 +243,14 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
             return (
               <section
                 key={grupo.category}
-                aria-label={categoryName(grupo.category, idioma)}
+                aria-label={categoryName(grupo.category, locale)}
                 style={tono(category.color, category.ink)}
                 className="guia-grupo"
               >
                 <h3 className="guia-grupo-cabecera">
                   <span aria-hidden="true" className="guia-grupo-punto" />
                   <span className="guia-grupo-nombre">
-                    {categoryName(grupo.category, idioma)}
+                    {categoryName(grupo.category, locale)}
                   </span>
                   <span className="guia-grupo-cuenta">
                     {grupo.entries.length}
@@ -279,7 +279,7 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
                           <span className="guia-entrada-meta">
                             <Etiqueta
                               verdict={entrada.verdict}
-                              lang={idioma}
+                              lang={locale}
                             />
                           </span>
                           <ChevronDown
@@ -292,7 +292,7 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
                         </button>
                         <a
                           href={`#${entrada.id}`}
-                          aria-label={`${t(idioma, "guia.enlace")} ${entrada.title}`}
+                          aria-label={`${t(locale, "guia.enlace")} ${entrada.title}`}
                           className="guia-ancla"
                         >
                           #
@@ -328,32 +328,32 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
       </motion.section>
 
       <nav
-        aria-label={t(idioma, "guia.dias.nav")}
+        aria-label={t(locale, "guia.dias.nav")}
         className="mt-10 flex items-center justify-between gap-4 border-t border-line pt-5"
       >
         {anterior ? (
           <a
-            href={`${BASE}${dayPath(anterior.date, ultima, idioma)}`}
+            href={`${BASE}${dayPath(anterior.date, ultima, locale)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
             <ArrowLeft aria-hidden="true" className="size-3" />
-            {shortDate(anterior.date, idioma)}
+            {shortDate(anterior.date, locale)}
           </a>
         ) : (
           <span />
         )}
         <a
-          href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`}
+          href={`${BASE}${locale === "en" ? "/en" : ""}/desarrollo/guia/futuro/`}
           className="font-mono text-[0.66rem] tracking-[0.1em] text-muted uppercase no-underline hover:text-rust-ink"
         >
-          {t(idioma, "guia.futuro")}
+          {t(locale, "guia.futuro")}
         </a>
         {siguiente ? (
           <a
-            href={`${BASE}${dayPath(siguiente.date, ultima, idioma)}`}
+            href={`${BASE}${dayPath(siguiente.date, ultima, locale)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
-            {shortDate(siguiente.date, idioma)}
+            {shortDate(siguiente.date, locale)}
             <ArrowRight aria-hidden="true" className="size-3" />
           </a>
         ) : (
@@ -363,12 +363,12 @@ export default function Guide({ day, days, isLast, lang = "es" }: Props) {
 
       <p className="mt-5 text-sm text-muted">
         <a
-          href={`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia/normas/`}
+          href={`${BASE}${locale === "en" ? "/en" : ""}/desarrollo/guia/normas/`}
           className="text-rust-ink no-underline hover:underline"
         >
-          {t(idioma, "guia.normas")}
+          {t(locale, "guia.normas")}
         </a>
-        : {t(idioma, "guia.normas.pie")}
+        : {t(locale, "guia.normas.pie")}
       </p>
     </div>
   );

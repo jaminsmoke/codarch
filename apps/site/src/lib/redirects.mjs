@@ -5,8 +5,8 @@ import { GUIDE } from "./zones.mjs";
 function listar(carpeta) {
   if (!fs.existsSync(carpeta)) return [];
   return fs.readdirSync(carpeta, { withFileTypes: true }).flatMap((entrada) => {
-    const ruta = path.join(carpeta, entrada.name);
-    return entrada.isDirectory() ? listar(ruta) : [ruta];
+    const entryPath = path.join(carpeta, entrada.name);
+    return entrada.isDirectory() ? listar(entryPath) : [entryPath];
   });
 }
 
@@ -26,13 +26,13 @@ export function redirects(docsRoot, base = "") {
   poner("/docs/adr", "/desarrollo/adr/");
   for (const fichero of listar(adr)) {
     if (!fichero.endsWith(".md")) continue;
-    const clave = path
+    const key = path
       .relative(adr, fichero)
       .split(path.sep)
       .join("/")
       .replace(/\.md$/, "");
-    if (clave === "index") continue;
-    poner(`/docs/adr/${clave}`, `/desarrollo/adr/${clave}/`);
+    if (key === "index") continue;
+    poner(`/docs/adr/${key}`, `/desarrollo/adr/${key}/`);
   }
   poner("/docs/adr/roadmap", "/desarrollo/roadmap/");
   poner("/docs/model", "/desarrollo/model/");
@@ -45,7 +45,7 @@ export function redirects(docsRoot, base = "") {
   poner("/guia", "/desarrollo/guia/");
   poner("/guia/normas", "/desarrollo/guia/normas/");
   poner("/guia/futuro", "/desarrollo/guia/futuro/");
-  const fechas = new Set(
+  const dates = new Set(
     [
       path.join(docsRoot, GUIDE, "entradas"),
       path.join(docsRoot, "en", GUIDE, "entradas")
@@ -54,8 +54,8 @@ export function redirects(docsRoot, base = "") {
       .map((fichero) => /^(\d{4}-\d{2}-\d{2})/.exec(path.basename(fichero))?.[1])
       .filter(Boolean)
   );
-  for (const fecha of [...fechas].sort())
-    poner(`/guia/${fecha}`, `/desarrollo/guia/${fecha}/`);
+  for (const date of [...dates].sort())
+    poner(`/guia/${date}`, `/desarrollo/guia/${date}/`);
 
   return Object.fromEntries([...pares.entries()].sort(([a], [b]) => a.localeCompare(b)));
 }

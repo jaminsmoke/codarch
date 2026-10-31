@@ -28,17 +28,17 @@ export function documentId(relativa) {
  * La ruta web de una clave canónica (`usar/webapp`, `desarrollo/model`, …),
  * sin la base ni el idioma, con barra final.
  */
-export function webPath(clave) {
-  if (clave === GUIDE || clave.startsWith(`${GUIDE}/`)) return "/desarrollo/guia/";
-  const sinIndice = clave.replace(/(^|\/)index$/, "");
+export function webPath(key) {
+  if (key === GUIDE || key.startsWith(`${GUIDE}/`)) return "/desarrollo/guia/";
+  const sinIndice = key.replace(/(^|\/)index$/, "");
   if (sinIndice === "desarrollo" || sinIndice.startsWith("desarrollo/"))
     return `/${sinIndice}/`;
   return sinIndice ? `/docs/${sinIndice}/` : "/docs/";
 }
 
 /** La zona de una ruta del sitio (sin base): `usar`, `desarrollo` o `null`. */
-export function zoneOfPath(ruta) {
-  const limpia = ruta.replace(/^\/en(?=\/|$)/, "");
+export function zoneOfPath(path) {
+  const limpia = path.replace(/^\/en(?=\/|$)/, "");
   if (limpia === "/desarrollo" || limpia.startsWith("/desarrollo/"))
     return "desarrollo";
   if (limpia === "/docs" || limpia.startsWith("/docs/")) return "usar";
@@ -46,11 +46,11 @@ export function zoneOfPath(ruta) {
 }
 
 /** Si una ruta absoluta del markdown es del sitio (le falta la base). */
-export function isInternalPath(ruta) {
+export function isInternalPath(path) {
   return (
-    ruta === "/" ||
-    ruta.startsWith("/docs/") ||
-    ruta.startsWith("/desarrollo/")
+    path === "/" ||
+    path.startsWith("/docs/") ||
+    path.startsWith("/desarrollo/")
   );
 }
 
@@ -64,18 +64,18 @@ export const ZONE_LABELS = {
 };
 
 /** La etiqueta de la zona de una ruta del sitio (sin base), o `null`. */
-export function zoneLabel(ruta) {
-  const zona = zoneOfPath(ruta);
+export function zoneLabel(path) {
+  const zona = zoneOfPath(path);
   if (!zona) return null;
-  const idioma = /^\/en(?=\/|$)/.test(ruta) ? "en" : "es";
-  return ZONE_LABELS[idioma][zona];
+  const locale = /^\/en(?=\/|$)/.test(path) ? "en" : "es";
+  return ZONE_LABELS[locale][zona];
 }
 
 /**
  * Los filtros con los que se abre la búsqueda en una ruta: los de su zona, para
  * que buscar desde `/docs/` no devuelva solo ADR. Fuera de las zonas, ninguno.
  */
-export function searchFilters(ruta) {
-  const etiqueta = zoneLabel(ruta);
+export function searchFilters(path) {
+  const etiqueta = zoneLabel(path);
   return etiqueta ? { zona: [etiqueta] } : {};
 }

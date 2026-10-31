@@ -17,31 +17,31 @@ export async function getStaticPaths() {
   const es = await loadGuide("es");
   const en = await loadGuide("en");
   return [
-    ...es.days.map((dia) => ({
-      params: { lang: undefined, fecha: dia.date }
+    ...es.days.map((day) => ({
+      params: { lang: undefined, fecha: day.date }
     })),
-    ...en.days.map((dia) => ({
-      params: { lang: "en", fecha: dia.date }
+    ...en.days.map((day) => ({
+      params: { lang: "en", fecha: day.date }
     }))
   ];
 }
 
-const idioma = localeOf(Astro.params.lang);
-const clave = Astro.params.fecha;
-const datos = await loadGuide(idioma);
-const dia = datos.days.find((d) => d.date === clave);
-if (!dia) throw new Error(`Día desconocido: ${clave}`);
+const locale = localeOf(Astro.params.lang);
+const key = Astro.params.fecha;
+const datos = await loadGuide(locale);
+const day = datos.days.find((d) => d.date === key);
+if (!day) throw new Error(`Día desconocido: ${key}`);
 
-const longDate = fullDate(dia.date, idioma);
-const titulo = t(idioma, "meta.guia.dia.titulo").replace("{fecha}", longDate);
-const descripcion = t(idioma, "meta.guia.dia.desc").replace(
+const longDate = fullDate(day.date, locale);
+const titulo = t(locale, "meta.guia.dia.titulo").replace("{fecha}", longDate);
+const descripcion = t(locale, "meta.guia.dia.desc").replace(
   "{fecha}",
   longDate
 );
-const ultima = datos.days.at(-1)?.date ?? dia.date;
-const canonical = canonicalUrl(dayPath(dia.date, ultima, idioma));
+const ultima = datos.days.at(-1)?.date ?? day.date;
+const canonical = canonicalUrl(dayPath(day.date, ultima, locale));
 ---
 
 <Site title={titulo} description={descripcion} {canonical}>
-  <GuideApp client:only="react" datos={datos} lang={idioma} />
+  <GuideApp client:only="react" datos={datos} lang={locale} />
 </Site>

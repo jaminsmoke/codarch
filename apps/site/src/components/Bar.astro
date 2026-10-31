@@ -19,32 +19,32 @@ import ThemeButton from "./ThemeButton.astro";
  */
 
 const {
-  idioma: crudo,
-  ruta = Astro.url.pathname
-} = Astro.props as { idioma?: string; ruta?: string };
+  locale: crudo,
+  path = Astro.url.pathname
+} = Astro.props as { locale?: string; path?: string };
 
-const idioma: Locale = localeOf(crudo);
-const raiz = rootOf(idioma);
+const locale: Locale = localeOf(crudo);
+const raiz = rootOf(locale);
 
 ---
 
 <header class="barra">
   <a class="barra-marca" href={`${raiz}/`}>
     <span class="barra-nombre">CodArch</span>
-    <span class="barra-lema">{t(idioma, "marco.tagline")}</span>
+    <span class="barra-lema">{t(locale, "marco.tagline")}</span>
   </a>
 
-  <nav class="barra-nav" aria-label={t(idioma, "nav.aria")}>
+  <nav class="barra-nav" aria-label={t(locale, "nav.aria")}>
     {
       LINKS.map((enlace) => {
-        const activo = isActive(raiz, enlace.ruta, ruta);
+        const activo = isActive(raiz, enlace.path, path);
         return (
           <a
-            href={`${raiz}${enlace.ruta}`}
+            href={`${raiz}${enlace.path}`}
             aria-current={activo ? "page" : undefined}
             class:list={["barra-enlace", { activo }]}
           >
-            {t(idioma, enlace.clave)}
+            {t(locale, enlace.key)}
           </a>
         );
       })
@@ -55,30 +55,30 @@ const raiz = rootOf(idioma);
     <slot />
 
     <div class="barra-preferencias">
-      <span class="barra-idioma" role="group" aria-label={t(idioma, "marco.idioma")}>
+      <span class="barra-idioma" role="group" aria-label={t(locale, "marco.idioma")}>
         <a
-          href={localePath(ruta, "es")}
-          aria-current={idioma === "es" ? "true" : undefined}
+          href={localePath(path, "es")}
+          aria-current={locale === "es" ? "true" : undefined}
           lang="es"
-          class:list={["barra-idioma-enlace", { activo: idioma === "es" }]}>ES</a
+          class:list={["barra-idioma-enlace", { activo: locale === "es" }]}>ES</a
         >
         <span class="barra-separador" aria-hidden="true">/</span>
         <a
-          href={localePath(ruta, "en")}
-          aria-current={idioma === "en" ? "true" : undefined}
+          href={localePath(path, "en")}
+          aria-current={locale === "en" ? "true" : undefined}
           lang="en"
-          class:list={["barra-idioma-enlace", { activo: idioma === "en" }]}>EN</a
+          class:list={["barra-idioma-enlace", { activo: locale === "en" }]}>EN</a
         >
       </span>
 
-      <ThemeButton idioma={idioma} />
+      <ThemeButton locale={locale} />
     </div>
 
     <a
       class="barra-github"
       href="https://github.com/jaminsmoke/codarch"
-      title={t(idioma, "marco.repo")}
-      aria-label={t(idioma, "marco.repo")}
+      title={t(locale, "marco.repo")}
+      aria-label={t(locale, "marco.repo")}
     >
       <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
         <path

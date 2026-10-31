@@ -15,12 +15,12 @@ import Bar from "./Bar.astro";
  * cabecera no era la misma que en la portada. Dentro, es una pieza más.
  */
 
-const idioma = localeOf(
+const locale = localeOf(
   Astro.locals.starlightRoute?.locale ?? Astro.currentLocale
 );
 ---
 
-<Bar idioma={idioma} ruta={Astro.url.pathname}>
+<Bar locale={locale} path={Astro.url.pathname}>
   <Search />
   <MobileMenuToggle slot="menu" />
 </Bar>

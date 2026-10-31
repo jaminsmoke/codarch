@@ -32,9 +32,9 @@ const PIEZAS: { title: Key; texto: Key }[] = [
 ];
 
 export default function Home({ lang = "es" }: { lang?: string }) {
-  const idioma = localeOf(lang);
-  const raiz = idioma === "en" ? `${BASE}/en` : BASE;
-  useTitle(undefined, t(idioma, "home.intro"), idioma);
+  const locale = localeOf(lang);
+  const raiz = locale === "en" ? `${BASE}/en` : BASE;
+  useTitle(undefined, t(locale, "home.intro"), locale);
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14">
       <section className="max-w-3xl">
@@ -44,9 +44,9 @@ export default function Home({ lang = "es" }: { lang?: string }) {
           transition={{ duration: 0.55, ease: [0.22, 0.61, 0.36, 1] }}
           className="font-display text-5xl leading-[1.05] font-bold tracking-tight"
         >
-          {t(idioma, "home.h1.a")}
-          <span className="text-rust-ink">{t(idioma, "home.h1.b")}</span>
-          {t(idioma, "home.h1.c")}
+          {t(locale, "home.h1.a")}
+          <span className="text-rust-ink">{t(locale, "home.h1.b")}</span>
+          {t(locale, "home.h1.c")}
         </motion.h1>
 
         <motion.p
@@ -55,7 +55,7 @@ export default function Home({ lang = "es" }: { lang?: string }) {
           transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 0.61, 0.36, 1] }}
           className="mt-5 text-lg text-ink-soft"
         >
-          {t(idioma, "home.intro")}
+          {t(locale, "home.intro")}
         </motion.p>
       </section>
 
@@ -66,25 +66,25 @@ export default function Home({ lang = "es" }: { lang?: string }) {
         className="mt-10"
       >
         <h2 className="font-display text-xl font-bold tracking-tight">
-          {t(idioma, "home.empezar")}
+          {t(locale, "home.empezar")}
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-ink-soft">
-          {t(idioma, "home.empezar.desc")}
+          {t(locale, "home.empezar.desc")}
         </p>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
             <h3 className="font-display text-base font-bold">
-              {t(idioma, "home.cli")}
+              {t(locale, "home.cli")}
             </h3>
             <p className="flex-1 text-sm text-ink-soft">
-              {t(idioma, "home.cli.desc")}
+              {t(locale, "home.cli.desc")}
             </p>
             <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
               npm i -g codarch
             </code>
             <span className="text-xs text-muted">
-              {t(idioma, "home.cli.serve")}
+              {t(locale, "home.cli.serve")}
             </span>
             <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
               codarch serve .
@@ -93,22 +93,22 @@ export default function Home({ lang = "es" }: { lang?: string }) {
               className="font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
               href="https://www.npmjs.com/package/codarch"
             >
-              {t(idioma, "home.npm")} →
+              {t(locale, "home.npm")} →
             </a>
           </article>
 
           <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
             <h3 className="font-display text-base font-bold">
-              {t(idioma, "home.web")}
+              {t(locale, "home.web")}
             </h3>
             <p className="flex-1 text-sm text-ink-soft">
-              {t(idioma, "home.web.desc")}
+              {t(locale, "home.web.desc")}
             </p>
             <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
               {DOCKER_RUN}
             </code>
             <span className="text-xs text-muted">
-              {t(idioma, "home.web.docker")}
+              {t(locale, "home.web.docker")}
             </span>
             <code className="block overflow-x-auto rounded-lg border border-line bg-paper px-3 py-2 font-mono text-xs whitespace-pre text-ink">
               docker compose up --build
@@ -117,19 +117,19 @@ export default function Home({ lang = "es" }: { lang?: string }) {
 
           <article className="flex flex-col gap-3 rounded-card border border-line bg-panel p-5">
             <h3 className="font-display text-base font-bold">
-              {t(idioma, "home.desktop")}
+              {t(locale, "home.desktop")}
             </h3>
             <p className="flex-1 text-sm text-ink-soft">
-              {t(idioma, "home.desktop.desc")}
+              {t(locale, "home.desktop.desc")}
             </p>
             <a
               className="inline-flex rounded-lg border border-line-strong bg-paper px-3 py-2 text-sm font-medium text-ink no-underline transition-colors hover:border-ink-soft"
               href="https://github.com/jaminsmoke/codarch/releases"
             >
-              {t(idioma, "home.releases")} →
+              {t(locale, "home.releases")} →
             </a>
             <span className="text-xs text-muted">
-              {t(idioma, "home.desktop.nota")}
+              {t(locale, "home.desktop.nota")}
             </span>
           </article>
         </div>
@@ -139,13 +139,13 @@ export default function Home({ lang = "es" }: { lang?: string }) {
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
             href={`${raiz}/docs/usar/instalacion/`}
           >
-            {t(idioma, "home.empezar")}
+            {t(locale, "home.empezar")}
           </a>
           <a
             className="rounded-full border border-line-strong bg-panel px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
             href={`${raiz}/desarrollo/`}
           >
-            {t(idioma, "home.construye")}
+            {t(locale, "home.construye")}
           </a>
         </div>
       </motion.section>
@@ -157,7 +157,7 @@ export default function Home({ lang = "es" }: { lang?: string }) {
         className="mt-6 inline-flex items-center gap-2 rounded-full border border-ochre/50 bg-ochre/10 px-4 py-1.5 text-sm text-ink-soft"
       >
         <span>🧪</span>
-        <span>{t(idioma, "home.alpha")}</span>
+        <span>{t(locale, "home.alpha")}</span>
       </motion.p>
 
       <motion.figure
@@ -169,20 +169,20 @@ export default function Home({ lang = "es" }: { lang?: string }) {
       >
         <img
           src={retrato}
-          alt={t(idioma, "home.figura.alt")}
+          alt={t(locale, "home.figura.alt")}
           className="block w-full"
         />
         <figcaption className="border-t border-line px-4 py-2.5 text-sm text-muted">
-          {t(idioma, "home.figura.desc")}
+          {t(locale, "home.figura.desc")}
         </figcaption>
       </motion.figure>
 
       <section className="mt-16">
         <h2 className="font-display text-2xl font-bold tracking-tight">
-          {t(idioma, "home.quehay")}
+          {t(locale, "home.quehay")}
         </h2>
         <p className="mt-2 max-w-2xl text-ink-soft">
-          {t(idioma, "home.quehay.desc")}
+          {t(locale, "home.quehay.desc")}
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PIEZAS.map((pieza, indice) => (
@@ -199,10 +199,10 @@ export default function Home({ lang = "es" }: { lang?: string }) {
               className="rounded-card border border-line bg-panel p-5"
             >
               <h3 className="font-display text-lg font-bold">
-                {t(idioma, pieza.title)}
+                {t(locale, pieza.title)}
               </h3>
               <p className="mt-1.5 text-sm text-ink-soft">
-                {t(idioma, pieza.texto)}
+                {t(locale, pieza.texto)}
               </p>
             </motion.article>
           ))}
@@ -218,17 +218,17 @@ export default function Home({ lang = "es" }: { lang?: string }) {
       >
         <div className="max-w-xl">
           <h2 className="font-display text-xl font-bold tracking-tight">
-            {t(idioma, "home.dentro.titulo")}
+            {t(locale, "home.dentro.titulo")}
           </h2>
           <p className="mt-1 text-sm text-ink-soft">
-            {t(idioma, "home.dentro.desc")}
+            {t(locale, "home.dentro.desc")}
           </p>
         </div>
         <a
           href={`${raiz}/desarrollo/`}
           className="ml-auto rounded-full border border-line-strong bg-paper px-5 py-2.5 font-medium text-ink no-underline transition-colors hover:border-ink-soft"
         >
-          {t(idioma, "home.construye")}
+          {t(locale, "home.construye")}
         </a>
       </motion.section>
     </div>

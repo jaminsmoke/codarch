@@ -37,21 +37,21 @@ const Timeline = lazy(() => import("./Timeline"));
 
 /** Las fechas de la guía, en orden: lo que sabe el parser de rutas. */
 function datesOf(datos: GuideData): string[] {
-  return datos.days.map((dia) => dia.date);
+  return datos.days.map((day) => day.date);
 }
 
 export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lang?: string }) {
-  const idioma = localeOf(lang);
+  const locale = localeOf(lang);
   const dias = summarizeDays(datos.days);
   const ultima = datos.days.at(-1)?.date ?? "";
-  const fechas = useMemo(() => datesOf(datos), [datos]);
-  const [ruta, setRoute] = useState<GuideRoute>(() =>
+  const dates = useMemo(() => datesOf(datos), [datos]);
+  const [path, setRoute] = useState<GuideRoute>(() =>
     parseGuidePath(
       typeof window === "undefined"
         ? "/desarrollo/guia/"
         : window.location.pathname,
-      fechas,
-      idioma
+      dates,
+      locale
     )
   );
   const [visita, setVisita] = useState(0);
@@ -63,7 +63,7 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
 
   useEffect(() => {
     const alVolver = (): void => {
-      setRoute(parseGuidePath(window.location.pathname, fechas, idioma));
+      setRoute(parseGuidePath(window.location.pathname, dates, locale));
       pendiente.current = window.location.hash
         ? decodeURIComponent(window.location.hash.slice(1))
         : null;
@@ -71,7 +71,7 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
     };
     window.addEventListener("popstate", alVolver);
     return () => window.removeEventListener("popstate", alVolver);
-  }, [fechas, idioma]);
+  }, [dates, locale]);
 
   useEffect(() => {
     const id = pendiente.current;
@@ -86,9 +86,9 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
       'link[rel="canonical"]'
     );
     if (canonical) {
-      canonical.href = `${SITIO}${BASE}${guideRoute(ruta, ultima, idioma)}`;
+      canonical.href = `${SITIO}${BASE}${guideRoute(path, ultima, locale)}`;
     }
-  }, [visita, ruta, ultima, idioma]);
+  }, [visita, path, ultima, locale]);
 
   const navegar = (destino: string): void => {
     const url = new URL(destino, window.location.href);
@@ -96,7 +96,7 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
       ? decodeURIComponent(url.hash.slice(1))
       : null;
     history.pushState({}, "", `${url.pathname}${url.hash}`);
-    setRoute(parseGuidePath(url.pathname, fechas, idioma));
+    setRoute(parseGuidePath(url.pathname, dates, locale));
     setVisita((n) => n + 1);
   };
 
@@ -113,7 +113,7 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
 
     const href = ancla.getAttribute("href");
     if (!href || href.startsWith("#")) return;
-    if (!href.startsWith(`${BASE}${idioma === "en" ? "/en" : ""}/desarrollo/guia`)) {
+    if (!href.startsWith(`${BASE}${locale === "en" ? "/en" : ""}/desarrollo/guia`)) {
       return;
     }
 
@@ -121,10 +121,10 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
     navegar(href);
   };
 
-  const activo = ruta.kind === "day" ? ruta.date : ruta.kind;
-  const dia =
-    ruta.kind === "day"
-      ? datos.days.find((d) => d.date === ruta.date) ?? datos.days.at(-1)
+  const activo = path.kind === "day" ? path.date : path.kind;
+  const day =
+    path.kind === "day"
+      ? datos.days.find((d) => d.date === path.date) ?? datos.days.at(-1)
       : undefined;
 
   return (
@@ -143,18 +143,18 @@ export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lan
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
           >
-          {ruta.kind === "day" && dia ? (
+          {path.kind === "day" && day ? (
             <Guide
-              day={dia}
+              day={day}
               days={dias}
-              isLast={dia.date === ultima}
+              isLast={day.date === ultima}
               lang={lang}
             />
           ) : null}
-          {ruta.kind === "future" ? (
+          {path.kind === "future" ? (
             <Future upcoming={datos.upcoming} days={dias} lang={lang} />
           ) : null}
-          {ruta.kind === "rules" ? <Rules rules={datos.rules} lang={lang} /> : null}
+          {path.kind === "rules" ? <Rules rules={datos.rules} lang={lang} /> : null}
         </motion.div>
       </AnimatePresence>
       </Marco>

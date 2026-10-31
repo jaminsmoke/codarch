@@ -17,8 +17,8 @@ import { zoneOfPath } from "../lib/zones.mjs";
 
 const { sidebar } = Astro.locals.starlightRoute;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const ruta = Astro.url.pathname.slice(base.length) || "/";
-const indice = zoneOfPath(ruta) === "desarrollo" ? 1 : 0;
+const path = Astro.url.pathname.slice(base.length) || "/";
+const indice = zoneOfPath(path) === "desarrollo" ? 1 : 0;
 const grupo = sidebar[indice];
 const entradas = grupo && grupo.type === "group" ? grupo.entries : sidebar;
 ---
