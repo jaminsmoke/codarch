@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createLintArtifact } from "@codarch/lint";
+import { aggregateFolder } from "@codarch/metrics";
 import { saveHistory, type CcJson } from "@codarch/schema";
 import { afterEach, describe, expect, it } from "vitest";
 import { createServer } from "../src/server";
@@ -343,6 +344,39 @@ describe("explainModule", () => {
   });
 });
 
+
+  it("size, maxComplexity y risk coinciden con aggregateFolder", () => {
+    const store = makeStore();
+    const folder = store.resolveTarget("src");
+    if ("id" in folder) throw new Error("esperaba carpeta");
+    const agg = aggregateFolder(
+      folder.files.map((file) => ({
+        path: file.path,
+        size: file.size,
+        complexity: file.complexity,
+        risk: file.risk
+      }))
+    );
+    expect(folder.size).toBe(agg.size);
+    expect(folder.maxComplexity).toBe(agg.maxComplexity);
+    expect(folder.risk).toBe(agg.risk);
+    // Sin dueños en la salida del MCP: solo las tres cifras.
+    const explained = explainModule(store, { path: "src" });
+    expect(explained.metrics).toEqual({
+      size: agg.size,
+      maxComplexity: agg.maxComplexity,
+      risk: agg.risk
+    });
+    expect(explained).not.toHaveProperty("maxComplexityOwner");
+    expect(explained).not.toHaveProperty("riskOwner");
+  });
+
+  it("lint es null sin artefacto", () => {
+    const file = explainModule(makeStore(), { path: "src/a.ts" });
+    const folder = explainModule(makeStore(), { path: "src" });
+    expect(file.lint).toBeNull();
+    expect(folder.lint).toBeNull();
+  });
 describe("rutas e ids", () => {
   it("normaliza separadores, prefijo de raíz e id", () => {
     const store = makeStore();
@@ -675,6 +709,38 @@ describe("el lint del proyecto", () => {
     }
     return loadArchitectureStore({ root });
   }
+
+  it("explain_module trae lint del ámbito; null si no se midió", () => {
+    const withLint = lintStore();
+    const file = explainModule(withLint, { path: "src/a.ts" });
+    const folder = explainModule(withLint, { path: "src" });
+    const domain = explainModule(withLint, { path: "src/domain" });
+    expect(file.lint).toEqual({
+      errors: 1,
+      warnings: 1,
+      info: 0,
+      findings: 2,
+      files: 1
+    });
+    expect(folder.lint).toEqual({
+      errors: 1,
+      warnings: 2,
+      info: 0,
+      findings: 3,
+      files: 2
+    });
+    expect(domain.lint).toEqual({
+      errors: 0,
+      warnings: 1,
+      info: 0,
+      findings: 1,
+      files: 1
+    });
+
+    const without = lintStore(null);
+    expect(explainModule(without, { path: "src/a.ts" }).lint).toBeNull();
+    expect(explainModule(without, { path: "src" }).lint).toBeNull();
+  });
 
   it("lee los sistemas, sus reglas activas y los hallazgos", () => {
     const report = getLintReport(lintStore());

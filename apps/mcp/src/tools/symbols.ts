@@ -5,6 +5,8 @@ import { chainsPayload } from "@codarch/schema";
 import { edgeViews, aggregateEdgeViews, sortMetrics } from "./scope";
 import { clampInteger, compareStrings } from "./helpers";
 import { symbolsOf } from "@codarch/schema";
+import { lintTotals } from "@codarch/lint/browser";
+import { loadLintArtifact } from "./lint";
 import {
   ArchitectureStore,
   type StatusViolation,
@@ -52,6 +54,7 @@ export function explainModule(
 ): ExplainModuleResult {
   const target = store.resolveTarget(input.path);
   const limit = clampInteger(input.limit, 5, 1, 50);
+  const lintArtifact = loadLintArtifact(store)?.artifact ?? null;
   const base = {
     projectName: store.snapshot.meta.projectName ?? "",
     checksum: store.snapshot.meta.checksum ?? "",
@@ -127,6 +130,7 @@ export function explainModule(
             reason:
               "no hay report.json cargado; no sé si este fichero cambió en el PR"
           },
+      lint: lintTotals(lintArtifact, file.path),
       violations: store.violationsForPaths([file.path], 10)
     };
   }
@@ -193,6 +197,7 @@ export function explainModule(
           reason:
             "no hay report.json cargado; no sé qué cambió bajo esta carpeta"
         },
+    lint: lintTotals(lintArtifact, folder.path),
     violations: store.violationsForPaths(
       folderFiles.map((file) => file.path),
       10

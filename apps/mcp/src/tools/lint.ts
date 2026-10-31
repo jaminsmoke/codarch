@@ -135,7 +135,7 @@ function lintSummaryOf(artifact: LintArtifact): LintSummary {
  *
  * Un solo nombre (ADR 0100). Un artefacto ilegible es como no tenerlo.
  */
-function loadLintArtifact(
+export function loadLintArtifact(
   store: ArchitectureStore
 ): { artifact: LintArtifact; file: string } | null {
   const beside = store.snapshotPath

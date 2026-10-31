@@ -6,7 +6,8 @@ import type { RepoAddon } from "@codarch/addons";
 import type {
   LintSeverity,
   LintSummary,
-  LintSystem
+  LintSystem,
+  LintTotals
 } from "@codarch/lint/browser";
 import {
   CcMigrationLanguage,
@@ -457,6 +458,8 @@ export interface ExplainModuleResult {
           | null;
         counts?: ReturnType<ArchitectureStore["diffCounts"]>;
       };
+  /** Totales de lint del ámbito; `null` si no se ha medido. */
+  lint: LintTotals | null;
   violations: StatusViolation[];
 }
 
