@@ -1,5 +1,7 @@
 export { CONFIG_VERSION } from "@codarch/versions";
 export { MAX_METRICS } from "./diff-totals";
+export { aggregateFolder } from "./folder-aggregate";
+export type { FolderAggregate, FolderMetricFile } from "./folder-aggregate";
 export {
   ConfigError,
   parseIgnoreConfig,

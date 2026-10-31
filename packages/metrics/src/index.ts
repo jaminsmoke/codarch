@@ -24,6 +24,8 @@ export type {
 } from "./config";
 export { diffSnapshots } from "./diff";
 export { MAX_METRICS } from "./diff-totals";
+export { aggregateFolder } from "./folder-aggregate";
+export type { FolderAggregate, FolderMetricFile } from "./folder-aggregate";
 export { buildSymbolReport } from "./symbol-diff";
 export type {
   DiffSymbolChange,

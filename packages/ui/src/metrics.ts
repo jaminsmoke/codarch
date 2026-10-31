@@ -1,4 +1,4 @@
-import { MAX_METRICS } from "@codarch/metrics/browser";
+import { aggregateFolder, MAX_METRICS } from "@codarch/metrics/browser";
 import type { RenderFile, RenderMetric, RenderModel } from "@codarch/render/browser";
 import { formatCompact } from "@codarch/render/browser";
 
@@ -254,15 +254,19 @@ export function rollupMetricRows(
 
 /** La fila del riesgo: el máximo del subárbol y el fichero que lo tiene. */
 function riskRow(files: readonly RenderFile[]): RollupMetricRow {
-  let top: RenderFile | null = null;
-  for (const file of files) {
-    if (!top || file.risk > top.risk) top = file;
-  }
-  const owner = top && top.risk > 0 ? top.path : null;
+  const agg = aggregateFolder(
+    files.map((file) => ({
+      path: file.path,
+      size: 0,
+      complexity: 0,
+      risk: file.risk
+    }))
+  );
+  const owner = agg.riskOwner;
   return {
     key: "risk",
     title: "Riesgo máx.",
-    value: top ? Math.round(top.risk * 100) : null,
+    value: files.length === 0 ? null : Math.round(agg.risk * 100),
     files: files.length,
     share: files.length === 0 ? 0 : 1,
     area: false,
@@ -271,11 +275,12 @@ function riskRow(files: readonly RenderFile[]): RollupMetricRow {
     worst: owner,
     description:
       "El riesgo más alto del subárbol y el fichero que lo tiene. Pulsa para pintar el mapa por riesgo.",
-    hint: !top
-      ? "sin datos en este subárbol"
-      : owner
-        ? `el mayor del subárbol en ${owner}`
-        : "el máximo del subárbol es 0"
+    hint:
+      files.length === 0
+        ? "sin datos en este subárbol"
+        : owner
+          ? `el mayor del subárbol en ${owner}`
+          : "el máximo del subárbol es 0"
   };
 }
 
@@ -284,15 +289,19 @@ function complexityRow(
   files: readonly RenderFile[],
   areaMetric: string | null
 ): RollupMetricRow {
-  let top: RenderFile | null = null;
-  for (const file of files) {
-    if (!top || file.complexity > top.complexity) top = file;
-  }
-  const owner = top && top.complexity > 0 ? top.path : null;
+  const agg = aggregateFolder(
+    files.map((file) => ({
+      path: file.path,
+      size: 0,
+      complexity: file.complexity,
+      risk: 0
+    }))
+  );
+  const owner = agg.maxComplexityOwner;
   return {
     key: "maxComplexity",
     title: "Complejidad máx.",
-    value: top ? top.complexity : null,
+    value: files.length === 0 ? null : agg.maxComplexity,
     files: files.length,
     share: files.length === 0 ? 0 : 1,
     area: areaMetric === "maxComplexity",
@@ -303,11 +312,12 @@ function complexityRow(
     worst: owner,
     description:
       "La complejidad más alta del subárbol y el fichero que la tiene.",
-    hint: !top
-      ? "sin datos en este subárbol"
-      : owner
-        ? `el mayor del subárbol en ${owner}`
-        : "el máximo del subárbol es 0"
+    hint:
+      files.length === 0
+        ? "sin datos en este subárbol"
+        : owner
+          ? `el mayor del subárbol en ${owner}`
+          : "el máximo del subárbol es 0"
   };
 }
 
