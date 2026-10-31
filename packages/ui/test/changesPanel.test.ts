@@ -45,7 +45,8 @@ function emptyReport(): DiffReport {
     cycles: { introduced: [], fixed: [] },
     hotspots: [],
     migration: null,
-    symbols: null
+    symbols: null,
+    duplication: null
   };
 }
 
@@ -68,6 +69,20 @@ describe("reportHasChanges", () => {
     const cycle = emptyReport();
     cycle.summary.introducedCycles = 1;
     expect(reportHasChanges(cycle)).toBe(true);
+  });
+
+  it("un par nuevo o que se separa cuenta como cambio (ADR 0102)", () => {
+    const report = emptyReport();
+    report.duplication = {
+      base: { pairs: 1, copies: 0, duplicatedLines: 10, repeatedLines: 0 },
+      head: { pairs: 2, copies: 0, duplicatedLines: 20, repeatedLines: 0 },
+      lines: { base: 10, head: 20, delta: 10 },
+      counts: { added: 1, removed: 0, diverging: 0 },
+      added: [],
+      removed: [],
+      diverging: []
+    };
+    expect(reportHasChanges(report)).toBe(true);
   });
 
   it("las reglas no cuentan: no son un cambio del código (ADR 0075)", () => {

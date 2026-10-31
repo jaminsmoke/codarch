@@ -8,6 +8,7 @@ import {
   ChangesSummary,
   CyclesSection,
   DebtSection,
+  DuplicationChangesSection,
   FilesSection,
   HistorySection
 } from "./changes/sections";
@@ -83,6 +84,10 @@ export default function ChangesPanel({
         onSelectPath={onSelectPath}
       />
       <DebtSection report={report} onSelectPath={onSelectPath} />
+      <DuplicationChangesSection
+        report={report}
+        onSelectPath={onSelectPath}
+      />
       <CyclesSection report={report} />
       <HistorySection
         model={model}

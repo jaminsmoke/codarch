@@ -7,19 +7,22 @@ import { CHURN_METRIC } from "../labels";
 const TOUCHED_ROWS = 8;
 
 /**
- * Si el reporte trae algo que enseñar: ficheros, aristas o ciclos.
+ * Si el reporte trae algo que enseñar: ficheros, aristas, ciclos o pares.
  *
  * Las reglas no cuentan: no son un cambio del código sino una lectura de la
  * configuración, y viven en la ficha del fichero (ADR 0075). Las métricas y
  * los símbolos tampoco: un cambio de métrica siempre viene con su fichero en
- * `changed`.
+ * `changed`. La duplicación sí: un par nuevo o que se separa es una lectura
+ * que el diff estrena (ADR 0102).
  */
 export function reportHasChanges(report: DiffReport): boolean {
   const summary = report.summary;
+  const duplication = report.duplication;
   return (
     summary.addedFiles + summary.removedFiles + summary.changedFiles > 0 ||
     summary.addedEdges + summary.removedEdges > 0 ||
-    summary.introducedCycles + summary.fixedCycles > 0
+    summary.introducedCycles + summary.fixedCycles > 0 ||
+    (duplication?.counts.added ?? 0) + (duplication?.counts.diverging ?? 0) > 0
   );
 }
 

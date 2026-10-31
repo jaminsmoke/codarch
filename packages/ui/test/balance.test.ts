@@ -44,7 +44,8 @@ function emptyReport(): DiffReport {
     cycles: { introduced: [], fixed: [] },
     hotspots: [],
     migration: null,
-    symbols: null
+    symbols: null,
+    duplication: null
   };
 }
 
