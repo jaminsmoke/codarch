@@ -27,7 +27,7 @@ graph is made of single files or JavaScript. Copying the two names into `plugin-
 shorter and is exactly what the names registry exists to avoid (ADR 0101): the list stays in one place and
 the module that needs it imports it.
 
-**Verified**: `web:build` writes the bundle (`✓ built in 1.70s`) and so does the desktop one (`184ms`);
+**Verified**: `web:build` writes the bundle (Vite says “built in 1.70s”) and so does the desktop one (`184ms`);
 typecheck and lint silent; the whole suite green. The plugin graph is unchanged: manifests still come from
 `.codarch.yml` as before.
 

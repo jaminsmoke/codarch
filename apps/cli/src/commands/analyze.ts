@@ -27,7 +27,12 @@ import {
   type LintProcessRunner
 } from "@codarch/lint";
 import { loadProjectIgnore } from "../config";
-import { directoryProblem, formatBytes } from "../io";
+import { directoryProblem } from "../io";
+import {
+  reportLines,
+  type LintLine,
+  type ReportFacts
+} from "../analyze-report";
 import { runProjectLint } from "../lint-store";
 import {
   discoverScopePaths,
@@ -64,21 +69,6 @@ type Analysis = ReturnType<typeof analyzeRepository>;
 interface Reused {
   scopes: number;
   entries: number;
-}
-
-const numberFormat = new Intl.NumberFormat("es-ES");
-
-function num(value: number): string {
-  return numberFormat.format(value);
-}
-
-function field(label: string, value: string): string {
-  return `  ${label.padEnd(12)} ${value}`;
-}
-
-/** «1 error», «3 errores»: la cuenta con su palabra. */
-function tally(value: number, one: string, many: string): string {
-  return `${num(value)} ${value === 1 ? one : many}`;
 }
 
 /**
@@ -167,7 +157,9 @@ export async function runAnalyze(
     ? ({ kind: "skipped" } as const)
     : await measureLint(rootPath, outDirectory, cc, options.lintRun);
 
-  const lines = reportLines({
+  // Lo que se escribe y lo que se cuenta: la pasada deja sus artefactos y el
+  // resumen recibe los números hechos (`analyze-report.ts`).
+  const facts = collectReport({
     root,
     rootPath,
     outDirectory,
@@ -188,7 +180,7 @@ export async function runAnalyze(
     outDirectory === codarchDir(rootPath) ? sweepCodarch(rootPath) : [];
   if (swept.length > 0) console.warn(sweptWarning(swept));
 
-  console.log(lines.join("\n"));
+  console.log(reportLines(facts).join("\n"));
   // Un mapa vacío no es un análisis correcto: se dice con código de error para
   // que un script no crea que ha mapeado un repo de Python.
   return result.files === 0 ? 1 : 0;
@@ -342,14 +334,12 @@ async function measureLint(
 }
 
 /** Lo que necesita el resumen para contar la pasada. */
-interface ReportContext {
+interface ReportInput {
   root: string;
   rootPath: string;
   outDirectory: string;
   snapshotPath: string;
-  /** El snapshot del resto, si esta pasada lo escribió. */
   restPath: string | null;
-  /** El lint de esta pasada: medido, omitido, sin herramientas o sin medir. */
   lint: LintMeasure;
   cc: CcJson;
   result: Analysis;
@@ -359,226 +349,153 @@ interface ReportContext {
   history: boolean;
 }
 
-/** La salida del comando: cabecera, métricas, estado guardado y avisos. */
-function reportLines(context: ReportContext): string[] {
-  const { result, rootPath, outDirectory, scopePaths, cache, cc } = context;
-  const snapshotBytes = Buffer.byteLength(
-    fs.readFileSync(context.snapshotPath),
-    "utf8"
-  );
-  const lines = [
-    "",
-    "  CodArch · análisis",
-    "",
-    field("raíz", rootPath),
-    field(
-      "snapshot",
-      `${context.snapshotPath} (${formatBytes(snapshotBytes)})`
-    ),
-    ...restLines(context),
-    ...lintLines(context),
-    field(
-      "estructura",
-      `${num(result.files)} ficheros · ${num(result.folders)} carpetas · ${num(
-        result.edges
-      )} aristas · ${num(result.cycles.length)} ciclos`
-    ),
-    field(
-      "imports",
-      `${num(result.externalImports)} externos · ${num(
-        result.builtinImports
-      )} builtins · ${num(result.typeOnlyImports)} type-only · ${num(
-        result.unresolvedImports
-      )} sin resolver`
-    ),
-    field("migración", migrationText(result)),
-    parseField(outDirectory, rootPath, cache, result, context.reused),
-    field("alcances", scopesText(rootPath, outDirectory, scopePaths)),
-    field("tiempo", `${num(result.durationMs)} ms`)
-  ];
-
-  if (context.history) {
-    lines.push(field("historial", historyText(context.root, cc)));
-  }
-  lines.push(field("churn", churnText(result)));
-  lines.push(...warningLines(result));
-  lines.push(...unresolvedLines(result));
-  lines.push("");
-  return lines;
+/**
+ * Deja escritos los artefactos de la pasada y devuelve lo que se cuenta.
+ *
+ * Las tres escrituras que colgaban del resumen —la caché de parseo, el registro
+ * de alcances y la foto del historial— viven aquí: el formateador recibe los
+ * números hechos y no toca el disco (`analyze-report.ts`).
+ */
+function collectReport(input: ReportInput): ReportFacts {
+  const { rootPath, outDirectory, result, reused } = input;
+  return {
+    rootPath,
+    snapshot: {
+      path: input.snapshotPath,
+      bytes: fileBytes(input.snapshotPath)
+    },
+    rest: restFacts(input.restPath, result),
+    lint: lintFacts(input.lint),
+    structure: {
+      files: result.files,
+      folders: result.folders,
+      edges: result.edges,
+      cycles: result.cycles.length
+    },
+    imports: {
+      external: result.externalImports,
+      builtin: result.builtinImports,
+      typeOnly: result.typeOnlyImports,
+      unresolved: result.unresolvedImports
+    },
+    migration: {
+      languages: Object.entries(result.migration.languages).map(
+        ([language, stats]) => [language, stats?.rloc ?? 0] as [string, number]
+      ),
+      bridges: result.migration.bridgeFiles,
+      ffi: result.migration.ffiEdges,
+      debt: result.migration.migrationDebt
+    },
+    parse: parseFacts(outDirectory, rootPath, input.cache, result, reused),
+    scopes: scopesFacts(rootPath, outDirectory, input.scopePaths),
+    durationMs: result.durationMs,
+    history: input.history ? historyFacts(input.root, input.cc) : null,
+    churn: {
+      enabled: result.git.enabled,
+      commits: result.git.commits,
+      authors: result.git.authors,
+      shallow: result.git.shallow,
+      files: result.files
+    },
+    warnings: result.warnings,
+    unresolved: result.unresolved
+  };
 }
 
-/**
- * El fichero del resto: dónde quedó, cuánto ocupa y qué tiene.
- *
- * Es una línea más del resumen porque el resto es un artefacto más: quien
- * mira `.codarch/` tiene que saber que hay dos mapas y cuál es cuál.
- */
-function restLines(context: ReportContext): string[] {
-  const file = context.restPath;
-  if (!file) return [];
-  const edges = context.result.rest?.lenses?.dependency?.edges?.length ?? 0;
-  const bytes = Buffer.byteLength(fs.readFileSync(file), "utf8");
-  return [
-    field(
-      "resto",
-      `${file} (${formatBytes(bytes)}) · ${num(
-        context.result.restFiles
-      )} ficheros · ${num(edges)} enlaces`
-    )
-  ];
+/** Los bytes de un fichero que se acaba de escribir. */
+function fileBytes(file: string): number {
+  return Buffer.byteLength(fs.readFileSync(file), "utf8");
 }
 
-/**
- * El lint de la pasada, en una línea: dónde quedó y cuánto midió.
- *
- * Con la cobertura (`de N medidos`), el cero es un dato y no una duda
- * (ADR 0098); sin ella, no se enseña.
- */
-function lintLines(context: ReportContext): string[] {
-  const lint = context.lint;
-  if (lint.kind === "skipped") return [field("lint", "omitido (--no-lint)")];
-  if (lint.kind === "none") {
-    return [field("lint", "sin medir: el proyecto no declara lint")];
-  }
-  if (lint.kind === "failed") {
-    return [field("lint", `sin medir: ${lint.error}`)];
-  }
+/** El mapa del resto, si esta pasada lo escribió (ADR 0093). */
+function restFacts(
+  restPath: string | null,
+  result: Analysis
+): ReportFacts["rest"] {
+  if (!restPath) return null;
+  return {
+    path: restPath,
+    bytes: fileBytes(restPath),
+    files: result.restFiles,
+    links: result.rest?.lenses?.dependency?.edges?.length ?? 0
+  };
+}
 
+/** El lint, con su cobertura si la herramienta la dio (ADR 0098). */
+function lintFacts(lint: LintMeasure): LintLine {
+  if (lint.kind !== "measured") return lint;
   const totals = lintTotals(lint.artifact);
-  const errors = totals?.errors ?? 0;
-  const warnings = totals?.warnings ?? 0;
-  const info = totals?.info ?? 0;
-  const files = totals?.files ?? 0;
   const measured = lint.artifact.summary.measured;
-  const bytes = Buffer.byteLength(fs.readFileSync(lint.path), "utf8");
-  const counts = [
-    `${tally(files, "fichero con hallazgos", "ficheros con hallazgos")}${
-      measured === undefined ? "" : ` de ${num(measured)} medidos`
-    }`,
-    tally(errors, "error", "errores"),
-    tally(warnings, "aviso", "avisos"),
-    ...(info > 0 ? [tally(info, "info", "info")] : [])
-  ].join(" · ");
-  return [field("lint", `${lint.path} (${formatBytes(bytes)}) · ${counts}`)];
-}
-
-/** Las líneas de migración: qué hay de cada lengua y cuánto pesa. */
-function migrationText(result: Analysis): string {
-  const languages = Object.entries(result.migration.languages)
-    .map(([language, stats]) => `${language} ${num(stats?.rloc ?? 0)}`)
-    .join(" · ");
-  return `${languages || "—"} · ${num(
-    result.migration.bridgeFiles
-  )} puentes · ${num(result.migration.ffiEdges)} FFI · deuda ${num(
-    result.migration.migrationDebt
-  )}`;
+  return {
+    kind: "measured",
+    path: lint.path,
+    bytes: fileBytes(lint.path),
+    totals: totals
+      ? {
+          errors: totals.errors,
+          warnings: totals.warnings,
+          info: totals.info,
+          files: totals.files
+        }
+      : null,
+    ...(measured === undefined ? {} : { measured })
+  };
 }
 
 /** La caché de parseo de esta pasada, para el análisis que venga por encima. */
-function parseField(
+function parseFacts(
   outDirectory: string,
   rootPath: string,
   cache: ParseCache,
   result: Analysis,
   reused: Reused
-): string {
+): ReportFacts["parse"] {
   try {
     writeParseCache(outDirectory, rootPath, cache);
-    const fromScopes =
-      reused.entries > 0 ? ` · ${num(reused.entries)} de alcances de debajo` : "";
-    return field(
-      "parseo",
-      `${num(result.cache.hits)} reutilizados · ${num(
-        result.cache.misses
-      )} parseados${fromScopes}`
-    );
+    return {
+      hits: result.cache.hits,
+      misses: result.cache.misses,
+      fromScopes: reused.entries
+    };
   } catch (error) {
-    return field(
-      "parseo",
-      `no se pudo guardar la caché: ${(error as Error).message}`
-    );
+    return { error: (error as Error).message };
   }
 }
 
 /**
  * Los alcances de debajo (ADR 0089).
  *
- * El padre apunta qué alcances tiene por debajo. Solo se lee hacia abajo: el
- * `.codarch/` del hijo lo escribe quien analiza el hijo.
+ * Sin alcances y sin registro, no se crea un fichero vacío; con registro, se
+ * reescribe aunque ya no quede ninguno, para no dejar fantasmas.
  */
-function scopesText(
+function scopesFacts(
   rootPath: string,
   outDirectory: string,
   scopePaths: readonly string[]
-): string {
+): ReportFacts["scopes"] {
   try {
     const nested: ScopeEntry[] = readScopes(rootPath, scopePaths);
     const stale = nested.filter((scope) =>
       scopeHasNewerFiles(rootPath, scope.path)
     ).length;
-    // Sin alcances y sin registro, no se crea un fichero vacío; con registro,
-    // se reescribe aunque ya no quede ninguno, para no dejar fantasmas.
     if (nested.length > 0 || fs.existsSync(scopesFile(outDirectory))) {
       writeScopeRegister(outDirectory, nested);
     }
-    if (nested.length === 0) return "—";
-    return `${num(nested.length)} anidados${
-      stale > 0 ? ` · ${num(stale)} con ficheros más nuevos` : ""
-    }`;
+    return { nested: nested.length, stale };
   } catch (error) {
-    return `no se pudo registrar: ${(error as Error).message}`;
+    return { error: (error as Error).message };
   }
 }
 
 /** La foto de esta pasada en el historial, si se pidió. */
-function historyText(root: string, cc: CcJson): string {
+function historyFacts(
+  root: string,
+  cc: CcJson
+): NonNullable<ReportFacts["history"]> {
   try {
     const saved = saveHistory(path.resolve(root), cc, new Date());
-    return saved.saved
-      ? `guardado ${saved.file}`
-      : "sin cambios; ya había una foto igual";
+    return saved.saved ? { saved: saved.file } : { unchanged: true };
   } catch (error) {
-    return `no se pudo guardar: ${(error as Error).message}`;
+    return { error: (error as Error).message };
   }
-}
-
-/** El historial de git: commits, autores y si el clon está recortado. */
-function churnText(result: Analysis): string {
-  if (result.git.enabled) {
-    return `${num(result.git.commits)} commits · ${num(
-      result.git.authors
-    )} autores${result.git.shallow ? " · shallow" : ""}`;
-  }
-  // Sin ficheros analizados no hay a qué atribuir commits: decir «sin git» en
-  // un repo git era mentira.
-  return result.files === 0
-    ? "sin ficheros que analizar; se omite churn"
-    : "sin git; se omite churn";
-}
-
-function warningLines(result: Analysis): string[] {
-  const lines = result.warnings
-    .slice(0, 10)
-    .map((warning) => field("aviso", warning));
-  if (result.warnings.length > 10) {
-    lines.push(field("aviso", `y ${num(result.warnings.length - 10)} más`));
-  }
-  return lines;
-}
-
-function unresolvedLines(result: Analysis): string[] {
-  const lines = result.unresolved
-    .slice(0, 5)
-    .map((issue) =>
-      field(
-        "sin resolver",
-        `${issue.file}:${issue.line} ${issue.specifier} (${issue.reason})`
-      )
-    );
-  if (result.unresolved.length > 5) {
-    lines.push(
-      field("sin resolver", `y ${num(result.unresolved.length - 5)} más`)
-    );
-  }
-  return lines;
 }

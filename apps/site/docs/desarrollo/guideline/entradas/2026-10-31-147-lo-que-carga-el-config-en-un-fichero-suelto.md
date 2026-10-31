@@ -27,7 +27,7 @@ regla es que su grafo sea de ficheros sueltos o JavaScript. Copiar los dos nombr
 sido más corto y es justo lo que el registro de nombres existe para evitar (ADR 0101): la lista se queda
 en un sitio y el módulo que la necesita la importa.
 
-**Verificado**: `web:build` escribe el bundle (`✓ built in 1.70s`) y el del escritorio también (`184ms`);
+**Verificado**: `web:build` escribe el bundle (Vite dice «built in 1.70s») y el del escritorio también (`184ms`);
 typecheck y lint sin mensajes; la suite entera en verde. El gráfico de plugins no cambia: los manifiestos
 salen de `.codarch.yml` igual que antes.
 
