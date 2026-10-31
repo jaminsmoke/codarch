@@ -118,15 +118,19 @@ reanaliza detrás: los cambios hechos sin la app se ven antes de ponerse en live
 
 ### M34 — El estado vive en el repositorio
 
+**Estado:** cerrada.
+
 - [x] El escritorio escribe `.codarch/` en el repo y lo ignora al crearlo (M32).
 - [x] El CLI `analyze` ignora `.codarch/` cuando lo crea; `--out` no toca el `.gitignore`.
 - [x] La cabecera dice si el repo se vigila: `live`, `live en pausa` o `sin vigilancia`.
 - [x] Al abrir un repo con `.codarch/`, enseñar lo guardado al instante y refrescar en segundo plano.
 - [x] Una vigilancia compartida (`watchRepository`, chokidar) para `serve` y el escritorio.
 - [x] El libro de cadenas y el historial viven en el repo; un fichero suelto no mezcla estados.
-- [ ] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo.
-- [ ] Reutilizar el parseo de los alcances anidados, leyendo siempre hacia abajo
+- [x] Probar la regla de anclaje con subcarpetas y decir en la app qué raíz se está viendo: la banda
+  enseña la fuente del snapshot y el título de la ventana, la carpeta; el anclaje tiene su test
+  diferencial en el [ADR 0089](../0081-0090/0089-cada-alcance-lee-los-de-abajo.md).
+- [x] Reutilizar el parseo de los alcances anidados, leyendo siempre hacia abajo
       ([ADR 0089](../0081-0090/0089-cada-alcance-lee-los-de-abajo.md)).
-- [ ] Decidir si la vigilancia del escritorio se puede pausar desde los ajustes, como la web.
+- [x] La vigilancia se pausa desde los ajustes (`live` / `live en pausa`), también en el escritorio.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

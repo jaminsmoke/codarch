@@ -83,8 +83,9 @@ bloque de totales dentro de Métricas y su descenso enseña err., avis., info y 
 
 ### 4. Lo que no entra
 
-- **Sin listado de mensajes**: la ficha de fichero ya enseña las reglas de arquitectura; los
-  mensajes del lint pertenecen a la lente **Linter**, que sigue en la hoja de ruta del ADR 0094.
+- **Enmienda ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)):** la ficha del fichero
+  sí enseña sus mensajes de lint, en la sección **Lint**; el catálogo de reglas activas no está en
+  ninguna ficha de código. La lente **Linter** sigue siendo la lectura del mapa.
 - **Sin riesgo agregado** y sin un color nuevo en el mapa.
 - **El MCP no cambia** en esta decisión; su deuda por módulo es otra rebanada.
 
@@ -103,8 +104,8 @@ Fase **M66 — El proyecto tiene su ficha**.
 - ✅ La cuarta entrada y su hoja, con **Métricas** y el descenso por carpetas.
 - ✅ El lint agregado por subárbol, compartido con la ficha de carpeta.
 - ✅ La complejidad máxima con su fichero, en las dos fichas.
-- ⬜ El riesgo máximo con dueño en la ficha de carpeta (ADR 0092).
-- ⬜ La lente **Linter** y el listado de mensajes (M65).
+- ✅ El riesgo máximo con dueño en la ficha de carpeta (ADR 0092).
+- ✅ La lente **Linter** y el listado de mensajes (M65).
 - ⬜ El MCP: la deuda de lint en `explain_module`.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

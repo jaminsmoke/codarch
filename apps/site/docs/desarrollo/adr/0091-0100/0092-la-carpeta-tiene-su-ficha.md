@@ -142,10 +142,10 @@ deja de decir qué hay abierto en el panel.
 - ✅ `sel` en el estado y en la URL, con la selección de carpeta y sus tres marcas.
 - ✅ Los gestos: clic selecciona, doble clic entra, la miga selecciona, `Enter` y `Espacio`.
 - ✅ La agregación compartida, con sus tests ([ADR 0095](0095-la-ficha-del-proyecto.md)).
-- 🟡 La ficha: cabecera, contenido y **Métricas** con la complejidad máxima y su fichero; falta el
-  riesgo máximo con dueño.
+- ✅ La ficha: cabecera, contenido y **Métricas** con la complejidad máxima y el riesgo máximo, cada
+  uno con su fichero.
 - ⬜ Frontera y ciclos dentro y a través.
-- ⬜ Reglas agrupadas por regla.
+- ✗ Reglas agrupadas por regla: **cancelada** (2026-10-31). La ficha de código no tiene sección Reglas; el lint se lee por hallazgos y las reglas de arquitectura, cuando se fijen, serán una subsección de Reglas en doc y config ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)).
 - ⬜ Los cambios acotados: el enlace de la ficha filtra la pestaña.
 - ⬜ El MCP usa la agregación compartida en vez de su copia.
 

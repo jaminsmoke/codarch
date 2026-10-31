@@ -187,6 +187,6 @@ Fase **M65 — El lint, en el mapa**.
 - ✅ La lente **Linter**, su leyenda y el aviso sin artefacto (ADR 0098), con el lint medido en el
   propio análisis ([ADR 0099](0099-el-lint-se-mide-al-analizar.md)).
 - ⬜ El punto del lint en la barra.
-- ⬜ Otras herramientas por lenguaje: ruff, checkstyle, `go vet` y los analizadores de .NET.
+- ✅ Otras herramientas por lenguaje: ruff, checkstyle, `go vet` y los analizadores de .NET, con sus lectores y sus reglas ([ADR 0096](0096-el-lint-es-del-proyecto.md)).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

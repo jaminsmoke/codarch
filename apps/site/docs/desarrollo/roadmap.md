@@ -25,9 +25,8 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0-M22 están cerradas. M23 está en curso, M24 sin empezar, M25 cerrada, M26 cerrada,
-M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 en curso, M32 cerrada, M33 cerrada, M34 en
-curso, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 en curso, M50 cerrada, M51 cerrada, M52 no empezada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63, M64, M65, M66 y M67 en curso, M68 cerrada, M69 cerrada, M70 cerrada, M71 cerrada, M72 cerrada, M73 cerrada y M74 cerrada.
+Las fases M0-M22 están cerradas. M23 cerrada, M24 descartada, M25 cerrada, M26 cerrada,
+M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 cerrada, M32 cerrada, M33 cerrada, M34 cerrada, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 cerrada, M50 cerrada, M51 cerrada, M52 cerrada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63, M64, M65 y M66 en curso, M68 cerrada, M69 cerrada, M70 cerrada, M71 cerrada, M72 cerrada, M73 cerrada, M74 cerrada y M75 cerrada.
 
 ## Las fases
 
@@ -108,6 +107,7 @@ flowchart TD
   subgraph lint["El lint"]
     M65["M65 · El lint, en el mapa"]
     M67["M67 · El lint es del proyecto"]
+    M65 --> M75["M75 · El lint se lee por hallazgos"]
   end
   subgraph proyecto["El proyecto"]
     M66["M66 · El proyecto tiene su ficha"]
@@ -163,18 +163,18 @@ flowchart TD
 | M20 | La guía, en HTML | cerrada | [ADR 0031](adr/0031-0040/0031-los-documentos.md) |
 | M21 | Las versiones y las actualizaciones | cerrada | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.md) |
 | M22 | El repo, con sus papeles | cerrada | [ADR 0033](adr/0031-0040/0033-abrir-el-repo.md) |
-| M23 | La web del proyecto | en curso | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta) |
-| M24 | El índice SQLite de los documentos | sin empezar | [ADR 0036](adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
+| M23 | La web del proyecto | cerrada | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta) |
+| M24 | El índice SQLite de los documentos | descartada | [ADR 0036](adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
 | M25 | La entrega se automatiza | cerrada | [ADR 0042](adr/0041-0050/0042-la-entrega-se-automatiza.md#hoja-de-ruta) |
 | M26 | La UI compartida | cerrada | [ADR 0043](adr/0041-0050/0043-la-ui-compartida.md#hoja-de-ruta) |
 | M27 | La app web en Docker | cerrada | [ADR 0044](adr/0041-0050/0044-la-web-en-docker.md#hoja-de-ruta) |
 | M28 | El escritorio se instala y se actualiza | cerrada | [ADR 0045](adr/0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md#hoja-de-ruta) |
 | M29 | Los documentos con Starlight | cerrada | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M30 | El changelog es la guía | cerrada | [ADR 0047](adr/0041-0050/0047-el-changelog-es-la-guia.md#hoja-de-ruta) |
-| M31 | El sitio en dos idiomas | en curso | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
+| M31 | El sitio en dos idiomas | cerrada | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M32 | El escritorio persiste en `.codarch/` | cerrada | [ADR 0048](adr/0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
 | M33 | La orquestación compartida | cerrada | [ADR 0049](adr/0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
-| M34 | El estado vive en el repositorio | en curso | [ADR 0050](adr/0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
+| M34 | El estado vive en el repositorio | cerrada | [ADR 0050](adr/0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
 | M35 | La segunda red del lint | cerrada | [ADR 0054](adr/0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
 | M36 | El live no repite el análisis | cerrada | [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta) |
 | M37 | La ficha del fichero habla de sus lentes | cerrada | [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta) |
@@ -189,10 +189,10 @@ flowchart TD
 | M46 | La acción vuelve al monorepo | cerrada | [ADR 0066](adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta) |
 | M47 | La ficha enseña el código | cerrada | [ADR 0067](adr/0061-0070/0067-la-ficha-ensena-el-codigo.md#hoja-de-ruta) |
 | M48 | La ficha abre el editor y sus dependencias | cerrada | [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta) |
-| M49 | El lenguaje de la ficha, en todo el reporte | en curso | [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
+| M49 | El lenguaje de la ficha, en todo el reporte | cerrada | [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M50 | Dos pestañas: el fichero y el cambio | cerrada | [ADR 0069](adr/0061-0070/0069-dos-pestanas.md#hoja-de-ruta) |
 | M51 | Los ficheros del cambio, en una lista | cerrada | [ADR 0070](adr/0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md#hoja-de-ruta) |
-| M52 | La tabla de Cambios va de base a head | no empezada | [ADR 0071](adr/0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
+| M52 | La tabla de Cambios va de base a head | cerrada | [ADR 0071](adr/0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
 | M53 | Cambios desde el último commit | cerrada | [ADR 0072](adr/0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
 | M54 | Una sola interfaz | cerrada | [ADR 0073](adr/0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 | M55 | Una sola sesión de análisis | cerrada | [ADR 0074](adr/0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
@@ -207,7 +207,7 @@ flowchart TD
 | M64 | El mapa de lo que no es código | en curso | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
 | M65 | El lint, en el mapa | en curso | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 | M66 | El proyecto tiene su ficha | en curso | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
-| M67 | El lint es del proyecto | en curso | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
+| M67 | El lint es del proyecto | cerrada | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
 | M68 | La duplicación, medida | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M69 | La duplicación, en el mapa | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M70 | La divergencia, con nombre | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
@@ -215,6 +215,7 @@ flowchart TD
 | M72 | El checksum es del código | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M73 | El navegador lee el mismo alcance | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M74 | La app compara código e historial | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
+| M75 | El lint se lee por hallazgos | cerrada | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

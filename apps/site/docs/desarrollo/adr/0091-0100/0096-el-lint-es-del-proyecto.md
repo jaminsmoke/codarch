@@ -47,7 +47,9 @@ origen de las herramientas, no en el artefacto ni en su ciclo de vida.
 - **Reglas** gana el bloque de lint en las tres hojas: el proyecto enseña los sistemas detectados, su
   configuración y sus reglas activas; la carpeta y el fichero, las reglas con hallazgos en su ámbito y
   su cuenta. Repetir la lista de sistemas en cada hoja sería ruido: se lee una vez, en el proyecto.
-- No hay una sección **Lint**: repetiría la ficha en dos relatos y obligaría a mirar en dos sitios.
+- **Enmienda ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)):** sí hay una sección
+  **Lint** en las fichas de código, y **Reglas** no está en ellas. Lint cuenta los hallazgos y su
+  peso en el riesgo; el catálogo de reglas activas es configuración y no se enseña en la ficha.
 
 Reglas cuenta **reglas** —activas, con su severidad de config— y cede los totales a Métricas. Las
 mismas palabras en las dos hojas convertían un dato en dos: «22 errores» eran reglas configuradas en
@@ -132,6 +134,8 @@ negaba con un cero.
 ## Hoja de ruta
 
 Fase **M67 — El lint es del proyecto**.
+
+**Estado:** cerrada.
 
 - ✅ Detección de sistemas por configuración y binario; ejecución con el binario del proyecto.
 - ✅ El bloque `lint:` como override y `--no-detect`.

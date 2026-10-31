@@ -365,7 +365,7 @@ it computes it between two immutable snapshots. `rules` is optional; if missing,
 
 ```ts
 type DiffReport = {
-  schemaVersion: '1.5'
+  schemaVersion: '1.6'
   base: { projectName, checksum, files, folders, edges }
   head: { projectName, checksum, files, folders, edges }
   summary: {
@@ -374,6 +374,9 @@ type DiffReport = {
     cyclicEdgesAdded, cyclicEdgesRemoved,
     introducedCycles, fixedCycles, hotspots
   }
+  totals: {
+    metrics: Record<string, MetricTotal>  // base, head and delta per metric
+  } | null
   rules: RuleReport
   files: {
     added: DiffFile[]      // id, path, metrics
@@ -420,6 +423,10 @@ Rules:
   They do not come from the snapshots, which store no code: they are measured by whoever has both
   sources at hand —the HEAD comparison, with the exported base and the tree— and injected as
   `source`. From two loose `cc.json` they stay `null`, which means "not measured", not zero.
+- `totals` stores each metric's total in the base and the head, with its delta: it sums additive
+  metrics and takes the maximum of those that already are a maximum (`maxComplexity`,
+  `maxFunctionLength`…). A metric one side does not declare comes out `null`, and so does its delta.
+  The Changes tab paints the table from these totals; without the section, it does not paint it.
 - The `duplication` section compares the duplication lens of the base with that of the head: duplicated
   and repeated lines, the pairs that appear, those that stop sharing and those drifting apart, with
   their similarity before and after. Pairs are matched by their **two paths**, not by id: a pair is the
@@ -427,8 +434,8 @@ Rules:
   `lines.delta` is `null` and the report says which side is unmeasured.
 - `schemaVersion` goes up when the report's shape changes. Readers reconstruct reports from previous
   versions to the current one, so the newest is always used: what could not be measured (the
-  migration section in a `1.0`, duplication before `1.5`) is marked `null` instead of inventing
-  zeros.
+  migration section in a `1.0`, duplication before `1.5`, totals before `1.6`) is marked `null`
+  instead of inventing zeros.
 - Violations are compared by a stable key between base and head; only introduced ones with `error`
   severity block with `--fail-on violations`.
 - `report.json` is deterministic and has no timestamps. See

@@ -168,8 +168,11 @@ Fase **M64 — El mapa de lo que no es código**.
 - ✅ La web y el escritorio cargan el resto; la barra de actividad gana el botón `Docs y config`.
 - ✅ Vista y Leyenda por tipo en el raíl del resto: cuatro tonos —documento, configuración, asset y
   otro— y el reparto de ficheros por tipo.
-- ⬜ Estratos agrupados por `kind` en el raíl del resto.
-- ⬜ La ficha de un fichero que no es código y la de carpeta con el resto dentro.
-- ⬜ Las reglas del resto, en su ADR: enlaces rotos, huérfanos, frontmatter y la gemela declarada.
+- ✅ Estratos agrupados por `kind` en el raíl del resto.
+- ✗ La ficha de un fichero que no es código y la de carpeta con el resto dentro: **cancelada**
+  (2026-10-31). El fichero del resto ya se lee con la ficha comçn —métricas sin riesgo y sus enlaces—,
+  y una hoja propia era un malentendido: no hay símbolos, miembros ni código que enseñar. Lo que falta
+  de verdad está en las fichas que ya existen.
+- ⬜ Las reglas de doc y config, en su ADR: enlaces rotos, huérfanos, frontmatter y la gemela declarada. La sección **Reglas** vive solo aquí, no en la vista de código; las violaciones de arquitectura serán una subsección cuando se fijen ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

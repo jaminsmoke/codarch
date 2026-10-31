@@ -56,10 +56,14 @@ la tabla sin releer los dos snapshots en la UI.
 
 ### M52 — La tabla de Cambios
 
-- [ ] El diff calcula los totales de cada métrica en base y head, y los escribe en `report.json`.
-- [ ] El esquema del reporte admite el campo nuevo sin romper los reportes que no lo traen.
-- [ ] La pestaña Cambios pinta la tabla base → head, con el color de cada delta según su dirección.
-- [ ] Un reporte sin totales no rompe la pestaña y no pinta la tabla.
-- [ ] Tests del cálculo de totales, del delta y del reporte viejo.
+**Estado:** cerrada.
+
+- [x] El diff calcula los totales de cada métrica en base y head, y los escribe en `report.json`
+  (`totals.metrics`, con suma o máximo según la métrica).
+- [x] El esquema del reporte admite el campo nuevo sin romper los reportes que no lo traen: sube a
+  `1.6` y un `1.5` se reconstruye con `totals: null`.
+- [x] La pestaña Cambios pinta la tabla base → head, con el color de cada delta según su dirección.
+- [x] Un reporte sin totales no rompe la pestaña y no pinta la tabla.
+- [x] Tests del cálculo de totales, del delta y del reporte viejo.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

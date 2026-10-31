@@ -103,8 +103,8 @@ lo que se decidió ese día ✅:
 
 ### M23 — La web del proyecto
 
-**Estado:** en curso. La web está publicada y navegable, con búsqueda y en dos idiomas; falta el
-**dominio propio**, que empieza por una compra y un DNS.
+**Estado:** cerrada (2026-10-31). La web está publicada, navegable, con búsqueda y en dos idiomas.
+El dominio propio se descarta: la dirección de Pages se queda y, si vuelve, entra como fase nueva.
 
 - [x] El sitio generado del markdown: portada, documentos, ADR y guía, una página por documento con
   su índice y sus vecinos (ADR 0046).
@@ -113,9 +113,9 @@ lo que se decidió ese día ✅:
 - [x] **Búsqueda** con Pagefind sobre el sitio entero, y sitemap de las 173 páginas.
 - [x] Los dos idiomas —`/en/`, `/en/guia/` y los documentos de producto— con una sola ruta por
   vista (M31).
-- [ ] **El dominio propio**: apuntar el DNS a GitHub Pages y quitar el `base` del config de Astro,
-  que cambia todas las rutas internas y el sitemap; después, redirigir
-  `jaminsmoke.github.io/codarch` para no romper los enlaces que ya existen.
+- [x] **El dominio propio, descartado** (2026-10-31): el sitio se queda en `jaminsmoke.github.io/codarch`.
+  Un dominio no cambia lo que la web hace, y mantener el `base` deja las rutas y los enlaces
+  estables. Si algún día hace falta, entra como fase nueva con su compra y su DNS.
 
 ### Ideas abiertas
 

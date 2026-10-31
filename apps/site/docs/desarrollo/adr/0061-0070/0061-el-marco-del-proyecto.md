@@ -125,7 +125,7 @@ modelo de métricas. Todo es lectura y disposición.
 
 ### M49 — El lenguaje de la ficha, en todo el reporte
 
-**Estado:** en curso. Nace de la criba del backlog del 2026-10-25: la tabla de métricas y las
+**Estado:** cerrada. Nació de la criba del backlog del 2026-10-25: la tabla de métricas y las
 secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en tres ADR. La M50
 ([ADR 0069](0069-dos-pestanas.md)) cumplió la mitad al llevar el pliegue a la ficha y a **Cambios**.
 
@@ -136,14 +136,13 @@ secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en 
   no queda nada suelto por ahí.
 - [x] El plegado se recuerda por sección: `sections.ts` guarda el estado en el almacenamiento local
   con el identificador de cada sección, también al cambiar de fichero.
-- [ ] Los bloques del raíl dejan su encabezado suelto y pliegan igual: **Vista**, **Estratos**,
-  **Leyenda** y **Más reescritos**. **Deuda de migración** y **Más tocados** ya no están en el raíl:
-  viven en **Cambios**, con el diff delante y junto al histórico (ADR 0078). El resumen tiene que
-  caber en los ~260 px del raíl: una cifra corta, no la frase de la ficha.
-- [ ] Un guard en `@codarch/ui` que exija título, cuenta y resumen en toda sección nueva, con la
-  misma comprobación en la web y en el escritorio. Hoy `sections.test.ts` solo prueba el
-  almacenamiento.
-- [ ] La tabla de métricas de **Cambios** va de **base → head**, con los totales en el reporte. Es
+- [x] Los bloques del raíl pliegan igual: **Vista**, **Estratos**, **Leyenda** y **Más reescritos**
+  son secciones con su cuenta y una cifra corta de resumen. **Deuda de migración** y **Más tocados**
+  ya no están en el raíl: viven en **Cambios**, con el diff delante y junto al histórico (ADR 0078).
+- [x] Un guard en `@codarch/ui` que exige título, cuenta y resumen en toda sección: `sectionGuard`
+  lee el código del paquete, así que la web y el escritorio heredan la misma comprobación. Los grupos
+  de símbolos y las secciones sin datos quedan fuera con nombre propio.
+- [x] La tabla de métricas de **Cambios** va de **base → head**, con los totales en el reporte (M52). Es
   la decisión del [ADR 0071](0071-la-tabla-de-cambios-va-de-base-a-head.md), y se hace en la M52: no es
   la tabla de la ficha, que mide un fichero y no un cambio.
 

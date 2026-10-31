@@ -194,6 +194,8 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
 
 ### M31 — El sitio en dos idiomas
 
+**Estado:** cerrada.
+
 - [x] Selector de idioma en la portada, la guía y los documentos.
 - [x] Rutas inglesas: `/en/`, `/en/guia/`, `/en/guia/AAAA-MM-DD/`, `/en/guia/futuro/` y
   `/en/guia/normas/`.
@@ -206,7 +208,9 @@ M29 queda cerrada: los documentos y la guía se publican desde el markdown del r
   mapa, más el índice de ADR y la hoja de ruta.
 - [x] La guía entera en inglés: sus entradas y las normas, con el mismo nombre de fichero y un test
   que exige la pareja.
-- [ ] Traducir los 50 ADR; hasta entonces caen al español con aviso.
+- [x] Los ADR se quedan en español, con su aviso de caída: son documentos de construcción y el
+  producto ya tiene su documentación traducida. Traducir 103 ADR envejecidos no aporta lo que
+  cuesta mantenerlos en dos idiomas.
 
-La infraestructura, los documentos de producto y la guía están completos; M31 sigue abierta por los
-ADR.
+La infraestructura, los documentos de producto y la guía están completos; los ADR se leen en español,
+con su aviso de caída.

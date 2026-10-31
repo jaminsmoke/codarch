@@ -92,8 +92,10 @@ página del ADR; el ADR muestra su hoja de ruta en el cuerpo. No hay texto copia
 
 ### M24 — El índice SQLite de los documentos
 
-**Estado:** sin empezar. Se hará cuando el número de documentos justifique la consulta; hoy son 272 KB
-de markdown y el sitio se genera sin base.
+**Estado:** descartada (2026-10-31). El volumen llegó —554 documentos, 848 KB de ADR y 937 KB de
+guía— pero la consulta no: Pagefind indexa el sitio en el build y el markdown sigue siendo la fuente.
+Una base solo añadiría un artefacto que regenerar para responder lo que la búsqueda ya responde. Se
+reabre si el MCP necesita consultar en vez de leer; los pasos quedan como registro de qué haría falta.
 
 - [ ] **M24.1** Elegir el motor: `node:sqlite` con FTS5, sin dependencia nativa, o una alternativa
   que no rompa `npm ci`.

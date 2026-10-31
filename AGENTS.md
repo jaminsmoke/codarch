@@ -98,19 +98,9 @@ Antes de cada push: lint, typecheck, tests y `check:action`.
     `apps/site/src/content/i18n/<idioma>.json` y el contenido en `apps/site/docs/<idioma>/`. Añadir
     un idioma es copiar la carpeta, traducirla y añadirlo a `locales` (Starlight) e `i18n` (Astro);
     las cadenas que falten caen al español. No se generan traducciones automáticamente.
-11. **`AGENTS.md` son reglas, no un diario.** Aquí no se acumula lo hecho: el estado de las fases
+11. **`AGENTS.md` son reglas, no un diario.** Aquí no se acumula lo hecho ni lo abierto: el estado de las fases
     está en `apps/site/docs/desarrollo/roadmap.md`, lo abierto en las hojas de ruta de los ADR y lo hecho
     en la guía. Si algo hay que contarlo, va allí.
-
-## Estado
-
-La versión publicada de cada componente está en `versions.json`; aquí no se fija. Fases abiertas:
-**M23** (dominio propio y búsqueda de la web), **M31** (los ADR en inglés), **M34** (la app dice qué
-raíz analiza; pausa del escritorio), **M49** (el lenguaje de la ficha en todo el reporte), **M63** (la
-carpeta tiene su ficha), **M64** (el mapa de lo que no es código), **M65** (el lint, en el mapa),
-**M66** (el proyecto tiene su ficha) y **M67** (el lint es del proyecto). **M24** (índice SQLite)
-sigue aparcada. El detalle está en
-`apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo repite.
 
 ## No objetivos de v1
 
