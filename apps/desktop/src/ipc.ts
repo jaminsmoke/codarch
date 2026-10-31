@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
 import { ipcMain, shell } from "electron";
 import {
@@ -179,6 +179,19 @@ export function registerIpcHandlers({ live }: IpcOptions): void {
         ? resolvedRoot
         : `${resolvedRoot}${path.sep}`;
       if (!file.startsWith(prefix)) return false;
+      // Un symlink dentro del repo no puede abrir un fichero de fuera. Si el
+      // fichero no existe (borrado en el árbol y aún en el mapa), vale la ruta
+      // del snapshot: el editor lo abrirá vacío, como hacía.
+      try {
+        const realRoot = realpathSync(resolvedRoot);
+        const realFile = realpathSync(file);
+        const realPrefix = realRoot.endsWith(path.sep)
+          ? realRoot
+          : `${realRoot}${path.sep}`;
+        if (!realFile.startsWith(realPrefix)) return false;
+      } catch {
+        // Sin fichero real no hay enlace que comprobar.
+      }
       const line =
         typeof request.line === "number" && request.line > 0
           ? Math.trunc(request.line)
