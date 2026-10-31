@@ -19,6 +19,9 @@ const cycles = report.cycles?.introduced ?? [];
 const hotspots = report.hotspots ?? [];
 const migration = report.migration ?? null;
 const symbols = report.symbols ?? null;
+const duplication = report.duplication ?? null;
+const duplicationChanges =
+  (duplication?.counts?.added ?? 0) + (duplication?.counts?.diverging ?? 0);
 const blocked = status === "2";
 const errored = status === "1";
 const changes =
@@ -32,7 +35,8 @@ const changes =
   introducedViolations.length +
   (symbols?.summary?.changed ?? 0) +
   (symbols?.summary?.added ?? 0) +
-  (symbols?.summary?.removed ?? 0);
+  (symbols?.summary?.removed ?? 0) +
+  duplicationChanges;
 
 const lines = [];
 lines.push("<!-- codarch-report -->");
@@ -84,6 +88,40 @@ if (migration) {
       signed(migration.debt?.delta ?? 0)
     }) · ${migration.crossings?.head ?? 0} cruces FFI |`
   );
+}
+if (duplication) {
+  const totals = duplication.lines ?? {};
+  if (totals.delta === null || totals.delta === undefined) {
+    lines.push(
+      `| Duplicación | sin medir en ${
+        duplication.base ? "el head" : "la base"
+      } |`
+    );
+  } else {
+    const bits = [`${format(totals.head)} líneas (${signed(totals.delta)})`];
+    if (duplication.counts?.added) {
+      bits.push(
+        `+${duplication.counts.added} ${
+          duplication.counts.added === 1 ? "par" : "pares"
+        }`
+      );
+    }
+    if (duplication.counts?.diverging) {
+      bits.push(
+        `${duplication.counts.diverging} ${
+          duplication.counts.diverging === 1 ? "se separa" : "se separan"
+        }`
+      );
+    }
+    if (duplication.counts?.removed) {
+      bits.push(
+        `−${duplication.counts.removed} ${
+          duplication.counts.removed === 1 ? "par" : "pares"
+        }`
+      );
+    }
+    lines.push(`| Duplicación | ${bits.join(" · ")} |`);
+  }
 }
 lines.push("");
 
@@ -196,15 +234,49 @@ if (migration) {
   }
 }
 
+if (duplication && duplication.lines?.delta !== null) {
+  const added = duplication.added ?? [];
+  const diverging = duplication.diverging ?? [];
+  if (added.length > 0 || diverging.length > 0) {
+    lines.push("### Duplicación");
+    for (const pair of added.slice(0, 5)) {
+      lines.push(
+        `- \`${escapeInline(pair.from)}\` ↔ \`${escapeInline(
+          pair.to
+        )}\`: ${pair.similarity === 100 ? "copia" : `${pair.similarity} %`} · ${
+          pair.lines
+        } líneas`
+      );
+    }
+    for (const pair of diverging.slice(0, 5)) {
+      lines.push(
+        `- \`${escapeInline(pair.from)}\` ↔ \`${escapeInline(
+          pair.to
+        )}\`: ${pair.previousSimilarity} % → ${pair.similarity} % · ${
+          pair.lines
+        } líneas (${signed(pair.linesDelta ?? 0)})`
+      );
+    }
+    const shown = Math.min(added.length, 5) + Math.min(diverging.length, 5);
+    const total =
+      (duplication.counts?.added ?? 0) + (duplication.counts?.diverging ?? 0);
+    if (total > shown) lines.push(`- … y ${total - shown} más`);
+    lines.push("");
+  }
+}
+
 if (
   cycles.length === 0 &&
   hotspots.length === 0 &&
   introducedViolations.length === 0 &&
   (migration?.files?.increased?.length ?? 0) === 0 &&
   (migration?.files?.decreased?.length ?? 0) === 0 &&
-  (symbols?.files?.length ?? 0) === 0
+  (symbols?.files?.length ?? 0) === 0 &&
+  duplicationChanges === 0
 ) {
-  lines.push("Sin ciclos, hotspots, violaciones ni cambios de símbolos nuevos.");
+  lines.push(
+    "Sin ciclos, hotspots, violaciones, duplicación ni cambios de símbolos nuevos."
+  );
   lines.push("");
 }
 

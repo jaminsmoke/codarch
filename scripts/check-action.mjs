@@ -214,6 +214,35 @@ const report = {
       decreased: []
     },
     topDebt: []
+  },
+  duplication: {
+    base: { pairs: 1, copies: 0, duplicatedLines: 20, repeatedLines: 0 },
+    head: { pairs: 2, copies: 0, duplicatedLines: 50, repeatedLines: 4 },
+    lines: { base: 20, head: 50, delta: 30 },
+    counts: { added: 1, removed: 0, diverging: 1 },
+    added: [
+      {
+        from: "src/a.ts",
+        to: "src/b.ts",
+        kind: "added",
+        lines: 12,
+        similarity: 100,
+        previousSimilarity: null,
+        linesDelta: null
+      }
+    ],
+    removed: [],
+    diverging: [
+      {
+        from: "src/b.ts",
+        to: "src/c.ts",
+        kind: "diverging",
+        lines: 30,
+        similarity: 66,
+        previousSimilarity: 90,
+        linesDelta: 10
+      }
+    ]
   }
 };
 
@@ -250,6 +279,10 @@ try {
     "addon `ejemplo`",
     "Migración",
     "deuda 10 → 14",
+    "| Duplicación | 50 líneas (+30) · +1 par · 1 se separa |",
+    "### Duplicación",
+    "`src/a.ts` ↔ `src/b.ts`",
+    "90 % → 66 %",
     "base-checksum",
     "head-checksum"
   ]) {
