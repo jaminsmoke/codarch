@@ -19,7 +19,12 @@ import {
  * La comparación es por id de nodo, no por posición, y el cambio de cada métrica
  * se calcula sobre la unión de claves: una métrica que aparece o desaparece
  * tiene `delta: null`, no un cero engañoso.
+ *
+ * El historial no cuenta como cambio de código (ADR 0103): un PR no «cambia» un
+ * fichero porque su número de commits suba.
  */
+
+const HISTORY_METRICS = new Set(["number_of_commits", "number_of_authors"]);
 
 /** De dónde sale la cuenta de ficheros y carpetas de un lado. */
 export function summarize(index: IndexedSnapshot): SnapshotSummary {
@@ -68,6 +73,7 @@ export function changedFiles(
     const changes: MetricChange[] = [];
 
     for (const metric of [...keys].sort(compareStrings)) {
+      if (HISTORY_METRICS.has(metric)) continue;
       const baseValue = finiteNumber(baseValues[metric]);
       const headValue = finiteNumber(headValues[metric]);
       if (baseValue === null && headValue === null) continue;

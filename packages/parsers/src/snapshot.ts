@@ -11,6 +11,7 @@ import {
   type CcDuplicationLens,
   type CcEdge,
   type CcJson,
+  type CcLenses,
   type CcMetricsLens,
   type CcMigrationLens,
   type CcNode,
@@ -158,6 +159,19 @@ const METRIC_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
 
 const METRIC_ORDER = Object.keys(METRIC_DESCRIPTORS);
 
+/**
+ * Las métricas que salen del historial y no del código (ADR 0103).
+ *
+ * Git las da, el navegador no, y un clon superficial cuenta otra cosa. Por eso
+ * no entran en el checksum: la identidad es el código, y el calor tiene su
+ * propio hash en `meta.historyChecksum`.
+ */
+const HISTORY_METRICS = ["number_of_commits", "number_of_authors"] as const;
+
+function isHistoryMetric(metric: string): boolean {
+  return (HISTORY_METRICS as readonly string[]).includes(metric);
+}
+
 const EDGE_DESCRIPTORS: Record<string, CcAttributeDescriptor> = {
   weight: {
     title: "Peso",
@@ -201,6 +215,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
     symbols: symbolsLens(tree.symbolNodes, tree.symbols),
     structure: { nodes: tree.structureNodes } satisfies CcStructureLens
   };
+  const historyChecksum = historyChecksumFor(lenses.metrics);
 
   return {
     meta: {
@@ -208,6 +223,7 @@ export function buildSnapshot(input: SnapshotInput): CcJson {
       apiVersion: CC_JSON_VERSION,
       // El commit no entra en el checksum: dos clones del mismo código pesan igual.
       ...(input.commitHash ? { commitHash: input.commitHash } : {}),
+      ...(historyChecksum ? { historyChecksum } : {}),
       checksum: checksumFor([tree.root], lenses)
     },
     files: [tree.root],
@@ -499,8 +515,78 @@ function duplicationLensFrom(duplication: DuplicationResult): CcDuplicationLens 
   return { nodes, pairs, summary: duplication.summary };
 }
 
+/**
+ * El hash del historial medido, o `undefined` si no se midió.
+ *
+ * No es identidad del código: dos snapshots con el mismo `checksum` pueden
+ * tener calores distintos, y este hash es lo que lo dice (ADR 0103).
+ */
+function historyChecksumFor(metrics: CcMetricsLens): string | undefined {
+  const attributes: Record<string, Record<string, number>> = {};
+  let measured = false;
+
+  for (const [id, values] of Object.entries(metrics.attributes)) {
+    const history: Record<string, number> = {};
+    for (const metric of HISTORY_METRICS) {
+      const value = values[metric];
+      if (value === undefined) continue;
+      history[metric] = value;
+      measured = true;
+    }
+    if (Object.keys(history).length > 0) attributes[id] = history;
+  }
+
+  return measured ? md5Hex(stableStringify({ attributes })) : undefined;
+}
+
+/**
+ * La lente tal como entra en el checksum: sin lo que no sale del código.
+ *
+ * Se quitan las métricas de historial de sus valores, de sus descriptores y de
+ * sus tipos. El resto —tamaño, complejidad, acoplamiento, migración, símbolos,
+ * estructura, duplicación— entra igual (ADR 0103).
+ */
+function identityLenses(lenses: unknown): unknown {
+  const candidate = lenses as CcLenses;
+  const metrics = candidate.metrics;
+  if (!metrics) return lenses;
+
+  return {
+    ...candidate,
+    metrics: {
+      ...metrics,
+      attributes: withoutHistoryValues(metrics.attributes),
+      ...(metrics.attributeDescriptors
+        ? { attributeDescriptors: withoutHistoryKeys(metrics.attributeDescriptors) }
+        : {}),
+      ...(metrics.attributeTypes
+        ? { attributeTypes: withoutHistoryKeys(metrics.attributeTypes) }
+        : {})
+    }
+  };
+}
+
+function withoutHistoryValues(
+  attributes: Record<string, Record<string, number>>
+): Record<string, Record<string, number>> {
+  const kept: Record<string, Record<string, number>> = {};
+  for (const [id, values] of Object.entries(attributes)) {
+    kept[id] = withoutHistoryKeys(values);
+  }
+  return kept;
+}
+
+function withoutHistoryKeys<T>(record: Record<string, T>): Record<string, T> {
+  const kept: Record<string, T> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (isHistoryMetric(key)) continue;
+    kept[key] = value;
+  }
+  return kept;
+}
+
 export function checksumFor(files: readonly CcNode[], lenses: unknown): string {
-  return md5Hex(stableStringify({ files, lenses }));
+  return md5Hex(stableStringify({ files, lenses: identityLenses(lenses) }));
 }
 
 export function sortChildren(node: CcNode): void {

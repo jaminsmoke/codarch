@@ -63,6 +63,45 @@ describe("buildSnapshot", () => {
     expect(otherCommit.meta.commitHash).not.toBe(first.meta.commitHash);
   });
 
+  it("deja el historial fuera del checksum y le da su propio hash", () => {
+    const plain = buildSnapshot({
+      projectName: "demo",
+      files: [{ relativePath: "src/a.ts", metrics: { rloc: 10 } }],
+      graph: buildGraph(["src/a.ts"], [])
+    });
+    const first = buildSnapshot({
+      projectName: "demo",
+      files: [
+        {
+          relativePath: "src/a.ts",
+          metrics: { rloc: 10, number_of_commits: 3, number_of_authors: 1 }
+        }
+      ],
+      graph: buildGraph(["src/a.ts"], [])
+    });
+    const second = buildSnapshot({
+      projectName: "demo",
+      files: [
+        {
+          relativePath: "src/a.ts",
+          metrics: { rloc: 10, number_of_commits: 4, number_of_authors: 1 }
+        }
+      ],
+      graph: buildGraph(["src/a.ts"], [])
+    });
+
+    // El mismo código pesa igual con y sin historial, y con otro historial.
+    expect(plain.meta.checksum).toBe(first.meta.checksum);
+    expect(first.meta.checksum).toBe(second.meta.checksum);
+    expect(plain.meta.historyChecksum).toBeUndefined();
+    expect(first.meta.historyChecksum).toMatch(/^[0-9a-f]{32}$/);
+    expect(first.meta.historyChecksum).not.toBe(second.meta.historyChecksum);
+    // El churn sigue en la lente: solo deja de ser identidad.
+    expect(first.lenses?.metrics?.attributes[fileId("src/a.ts")]).toMatchObject({
+      number_of_commits: 3
+    });
+  });
+
   it("pone las métricas conocidas antes que las que añade un addon", () => {
     const cc = buildSnapshot(input());
     // Las conocidas llevan descriptor; la del addon solo tipo, y va al final.

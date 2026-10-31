@@ -76,6 +76,10 @@ un poco y el checksum de los snapshots cambia; es el precio de que el navegador 
    así que su snapshot no lleva churn; comparar un snapshot de navegador con uno de CI solo es
    legítimo si ambos se generaron sin historial.
 
+> Enmendado por el [ADR 0103](../0101-0110/0103-el-checksum-es-del-codigo.md): el checksum ya no
+> incluye el historial, así que el navegador y el CLI coinciden sin `--no-git`; el calor viaja en
+> `meta.historyChecksum`.
+
 ## Consecuencias
 
 - El navegador puede medir lo mismo que el CLI, con la misma gramática y el mismo código de

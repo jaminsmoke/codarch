@@ -20,7 +20,10 @@ export interface CcNode {
 export interface CcMeta {
   projectName?: string;
   apiVersion: string;
+  /** md5 de `files` + `lenses` sin las métricas de historial (ADR 0103). */
   checksum?: string;
+  /** md5 de los valores de historial medidos; ausente si no se midió (ADR 0103). */
+  historyChecksum?: string;
   commitHash?: string;
   [key: string]: unknown;
 }

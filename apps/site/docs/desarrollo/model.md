@@ -37,7 +37,7 @@ type Snapshot = {
   meta: {
     projectName: string
     apiVersion: "2.0"
-    checksum: string          // md5 canónico de files + lenses
+    checksum: string          // md5 canónico de files + lenses, sin historial
     commitHash?: string
   }
   files: FileNode[]           // raíz única (normalmente una carpeta)
@@ -477,14 +477,22 @@ Para que el checksum signifique algo:
 4. Números con representación estable (nada de `1.0` vs `1`).
 5. Orden de recorrido del filesystem irrelevante por construcción.
 6. Churn derivado del historial del commit, no de la hora de ejecución; sin fechas ni autores en el
-   payload.
+   payload, y **fuera del checksum**.
 
-El checksum actual es MD5 de `{ files, lenses }` serializado canónicamente. MD5 es suficiente para
-detectar cambios de payload; si más adelante se usa como identificador de caché entre máquinas,
-se puede migrar a SHA-256 sin cambiar el contrato.
+El checksum actual es MD5 de `{ files, lenses }` serializado canónicamente, con una excepción: la
+lente de métricas entra sin `number_of_commits` ni `number_of_authors`, ni sus descriptores ni sus
+tipos. La identidad es el código, así que el CLI con git, `--no-git`, el navegador y cualquier clon
+dan el mismo número ([ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md)). El historial sigue
+en el snapshot: cuando se mide, `meta.historyChecksum` hashea sus valores para distinguir «mismo
+código, otro calor» de «otro código». Un snapshot sin historial no tiene ese campo: está sin medir,
+no a cero.
+
+MD5 es suficiente para detectar cambios de payload; si más adelante se usa como identificador de
+caché entre máquinas, se puede migrar a SHA-256 sin cambiar el contrato.
 
 Test de conformidad: analizar el mismo commit dos veces produce el mismo snapshot y el mismo
-checksum. Está en `packages/parsers/test/analyze.test.ts`.
+checksum, y con git o sin git da el mismo. Está en `packages/parsers/test/analyze.test.ts` y
+`packages/parsers/test/git.test.ts`.
 
 ## Preguntas abiertas
 
@@ -499,4 +507,6 @@ checksum. Está en `packages/parsers/test/analyze.test.ts`.
    con su propia versión.
 5. **¿Churn dentro del snapshot o derivado?** Decidido en M2: dentro del snapshot como
    `number_of_commits` y `number_of_authors`, para que el diff sea autocontenido. Un shallow clone
-   produce un warning; no hay ventana temporal relativa.
+   produce un warning; no hay ventana temporal relativa. Desde el
+   [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md) no entra en el checksum: el calor tiene
+   su propio `meta.historyChecksum`.

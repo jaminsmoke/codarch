@@ -139,6 +139,26 @@ function snapshot(
 }
 
 describe("diffSnapshots", () => {
+  it("no cuenta el historial como cambio de código", () => {
+    const base = snapshot("demo", [
+      {
+        path: "src/a.ts",
+        metrics: { rloc: 10, number_of_commits: 1, number_of_authors: 1 }
+      }
+    ]);
+    const head = snapshot("demo", [
+      {
+        path: "src/a.ts",
+        metrics: { rloc: 10, number_of_commits: 9, number_of_authors: 2 }
+      }
+    ]);
+
+    const report = diffSnapshots(base, head);
+    expect(report.summary.changedFiles).toBe(0);
+    expect(report.files.changed).toEqual([]);
+    expect(report.hotspots).toEqual([]);
+  });
+
   it("detecta ficheros, métricas, aristas y ciclos nuevos", () => {
     const base = snapshot(
       "proj",

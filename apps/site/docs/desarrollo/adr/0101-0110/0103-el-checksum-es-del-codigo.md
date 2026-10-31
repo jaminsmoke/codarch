@@ -139,19 +139,22 @@ conozca se rompe.
 
 ## Hoja de ruta
 
-**Estado:** abierta. M72 implementa la identidad; M73 iguala el alcance del navegador y M74 ajusta la
-comparación en la app.
+**Estado:** abierta. M72 cerrada; M73 iguala el alcance del navegador y M74 ajusta la comparación en
+la app.
 
 ### M72 — El checksum es del código
 
-- ⬜ Normalizar el payload del checksum: fuera `number_of_commits` y `number_of_authors` de atributos,
+- ✅ Normalizar el payload del checksum: fuera `number_of_commits` y `number_of_authors` de atributos,
   descriptores y tipos; el resto de lentes entra igual.
-- ⬜ `meta.historyChecksum` cuando hay churn, calculado sobre los valores medidos; ausente sin git.
-- ⬜ Tests: mismo árbol con y sin git da el mismo checksum; historial distinto da el mismo checksum y
+- ✅ `meta.historyChecksum` cuando hay churn, calculado sobre los valores medidos; ausente sin git.
+- ✅ Tests: mismo árbol con y sin git da el mismo checksum; historial distinto da el mismo checksum y
   otro `historyChecksum`; un snapshot sin historial no es cero; determinismo del payload.
-- ⬜ El diff y el reporte no cuentan el churn como cambio de código.
-- ⬜ Documentos: `model.md` (ES/EN), el punto 5 del ADR 0020 queda enmendado y la guía recoge la cifra
+- ✅ El diff y el reporte no cuentan el churn como cambio de código.
+- ✅ Documentos: `model.md` (ES/EN), el punto 5 del ADR 0020 queda enmendado y la guía recoge la cifra
   del cambio único de checksum.
+
+Medido al cerrarla: el mismo árbol de **626 ficheros** da un solo checksum con git y sin git, y el
+`historyChecksum` aparece solo cuando se mide el historial. El auditor de lentes queda en verde.
 
 ### M73 — El navegador lee el mismo alcance
 

@@ -309,6 +309,10 @@ describe("analyzeRepository con git", () => {
     // El commit existe para `inspect` y para el historial; sin git no se inventa.
     expect(withGit.snapshot.meta.commitHash).toMatch(/^[0-9a-f]{40}$/);
     expect(without.snapshot.meta.commitHash).toBeUndefined();
+    // La identidad es el código: el historial no cambia el checksum (ADR 0103).
+    expect(withGit.snapshot.meta.checksum).toBe(without.snapshot.meta.checksum);
+    expect(withGit.snapshot.meta.historyChecksum).toMatch(/^[0-9a-f]{32}$/);
+    expect(without.snapshot.meta.historyChecksum).toBeUndefined();
   });
 
   it("no emite churn cuando git está desactivado", () => {
