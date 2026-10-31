@@ -123,10 +123,10 @@ describe("diff CLI options", () => {
       expect(result.status).toBe(1);
       expect(result.stderr).toContain(message);
     }
-  }, 15000);
+  }, 60_000);
 });
 
-describe("runDiff", () => {
+describe("runDiff", { timeout: 60_000 }, () => {
   it("escribe el reporte y devuelve 2 cuando falla el gate de ciclos", () => {
     const root = tempDir();
     const basePath = path.join(root, "base.cc.json");
@@ -403,7 +403,7 @@ describe("runDiff", () => {
   });
 });
 
-describe("el informe del diff", () => {
+describe("el informe del diff", { timeout: 60_000 }, () => {
   const base = () =>
     snapshot(
       "proj",

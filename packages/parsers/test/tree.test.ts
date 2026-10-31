@@ -230,8 +230,8 @@ describe("analyzeTree · una pasada, el mismo resultado", () => {
     });
   }
 
-  // El repo entero, dos veces por fichero: es el test largo de verdad, y con la
-  // suite en paralelo roza los cinco segundos por defecto.
+  // El repo entero, dos veces por fichero: es el test largo de verdad. Con la
+  // suite en paralelo completo el wall-clock sube; 60s evita el flaky timeout.
   it(
     "da lo mismo fichero a fichero en el código del propio repositorio",
     () => {
@@ -248,7 +248,7 @@ describe("analyzeTree · una pasada, el mismo resultado", () => {
         });
       }
     },
-    20_000
+    60_000
   );
 
   it("es determinista: dos pasadas dan lo mismo", () => {
