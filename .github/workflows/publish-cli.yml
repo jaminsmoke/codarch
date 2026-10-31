@@ -76,6 +76,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add apps/github-action/action.yml
           git commit -m "chore: pin codarch ${{ steps.version.outputs.version }} en la acción"
+          # La release y este pin compiten por `main`: se rebasa antes de
+          # empujar para que el commit no se pierda (le pasó a la 0.3.70).
+          git pull --rebase origin main
           git push origin HEAD:main
 
       # `uses: jaminsmoke/codarch/apps/github-action@v1`. El tag se mueve

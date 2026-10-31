@@ -20,8 +20,9 @@ if (!version || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) {
 }
 
 const text = fs.readFileSync(ACTION, "utf8");
+// Con CRLF o LF: el script corre en Linux (CI) y en Windows (local).
 const pattern =
-  /(\n  version:\n(?:[ \t]+.*\n)*?[ \t]+default: ")[^"]+(")/;
+  /(\r?\n  version:\r?\n(?:[ \t]+.*\r?\n)*?[ \t]+default: ")[^"]+(")/;
 if (!pattern.test(text)) {
   console.error("no encontré el input version en action.yml");
   process.exit(1);
