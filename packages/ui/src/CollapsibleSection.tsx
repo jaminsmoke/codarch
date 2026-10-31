@@ -1,5 +1,5 @@
 import { useId, useState, type ReactNode } from "react";
-import { localStore } from "./storage";
+import { localStore } from "./storage-local";
 import { readSectionClosed, writeSectionClosed } from "./sections";
 
 /**

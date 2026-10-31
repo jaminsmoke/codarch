@@ -7,7 +7,7 @@ import { ProjectPanel } from "../panels/ProjectPanel";
 import ChangesPanel, { reportHasChanges } from "../ChangesPanel";
 import { InspectorBar, inspectorLabel } from "../InspectorBar";
 import { toggleInspector, type InspectorTab } from "../viewState";
-import { localStore } from "../storage";
+import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
 /**

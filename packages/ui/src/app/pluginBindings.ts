@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { PluginContext } from "@codarch/plugin-api";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type { readMigration } from "../data";
-import { localStore } from "../storage";
+import { localStore } from "../storage-local";
 import type { PluginRuntime } from "../plugins";
 import type { InspectorTab } from "../viewState";
 import {

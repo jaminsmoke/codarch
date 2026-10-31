@@ -2,7 +2,7 @@ import { useId, useState, type KeyboardEvent } from "react";
 import type { CodarchApp, MapId } from "../app/types";
 import { ToolBar, toolLabel } from "../ToolBar";
 import { HeatList, LanguageSample, Legend } from "../panels";
-import { localStore } from "../storage";
+import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
 /**

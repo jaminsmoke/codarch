@@ -1,4 +1,4 @@
-import { localStore } from "./storage";
+import { localStore } from "./storage-local";
 
 /**
  * El tema de la app: claro, oscuro o el del sistema (ADR 0084).
