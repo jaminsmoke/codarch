@@ -127,6 +127,55 @@ export interface Hotspot {
   change: "added" | "changed";
 }
 
+/** Lo que un lado mide de la duplicación, tal como lo resume su lente. */
+export interface DuplicationSide {
+  pairs: number;
+  /** Ficheros que son copia de otro. */
+  copies: number;
+  duplicatedLines: number;
+  repeatedLines: number;
+}
+
+/** Qué le ha pasado a un par entre la base y el head. */
+export type DuplicationChangeKind = "added" | "removed" | "diverging";
+
+/**
+ * Un par que cambia, con lo que se parecía antes y lo que se parece ahora.
+ *
+ * `lines` y `similarity` son del lado que informa el cambio: el head cuando el
+ * par sigue, la base cuando ha desaparecido. `previousSimilarity` y
+ * `linesDelta` son `null` cuando el par solo existe en un lado.
+ */
+export interface DuplicationPairChange {
+  from: string;
+  to: string;
+  kind: DuplicationChangeKind;
+  lines: number;
+  similarity: number;
+  previousSimilarity: number | null;
+  linesDelta: number | null;
+}
+
+/**
+ * Cómo ha cambiado el código copiado entre la base y el head (ADR 0102).
+ *
+ * Un lado sin la lente es `null`, no cero: sin medir no hay comparación, y el
+ * reporte lo dice en vez de inventar una cifra. `counts` cuenta los pares de
+ * cada lista antes de recortarlas a `top`, para que el `+N` sea verdad.
+ */
+export interface DuplicationReport {
+  base: DuplicationSide | null;
+  head: DuplicationSide | null;
+  lines: { base: number | null; head: number | null; delta: number | null };
+  counts: { added: number; removed: number; diverging: number };
+  /** Pares que aparecen en el head. */
+  added: DuplicationPairChange[];
+  /** Pares que dejan de compartir. */
+  removed: DuplicationPairChange[];
+  /** Pares que siguen y comparten menos que antes. */
+  diverging: DuplicationPairChange[];
+}
+
 export interface DiffSummary {
   addedFiles: number;
   removedFiles: number;
@@ -189,6 +238,14 @@ export interface DiffReport {
    * anterior, o snapshots sin la lente de símbolos).
    */
   symbols: DiffSymbolReport | null;
+  /**
+   * Cómo ha cambiado lo copiado: pares nuevos, pares que se separan y líneas
+   * ganadas o perdidas.
+   *
+   * Es `null` cuando ninguno de los dos lados midió la lente; con un solo lado
+   * medido, el reporte dice cuál falta y no compara.
+   */
+  duplication: DuplicationReport | null;
 }
 
 export interface DiffOptions {

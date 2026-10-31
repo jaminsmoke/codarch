@@ -5,6 +5,7 @@ import { buildSymbolReport } from "./symbol-diff";
 import { cycleDifference, cycleGroups } from "./diff-cycles";
 import { diffEdges } from "./diff-edges";
 import { changedFiles, changedRloc, difference, summarize, sumRloc } from "./diff-files";
+import { buildDuplicationReport } from "./diff-duplication";
 import { buildHotspots, chooseHotspotMetric } from "./diff-hotspots";
 import { indexSnapshot } from "./diff-index";
 import { buildMigrationReport } from "./diff-migration";
@@ -18,6 +19,10 @@ export type {
   DiffOptions,
   DiffReport,
   DiffSummary,
+  DuplicationChangeKind,
+  DuplicationPairChange,
+  DuplicationReport,
+  DuplicationSide,
   EdgeChange,
   Hotspot,
   IndexedSnapshot,
@@ -111,6 +116,7 @@ export function diffSnapshots(
     cycles: { introduced: introducedCycles, fixed: fixedCycles },
     hotspots,
     migration: buildMigrationReport(baseIndex, headIndex, top),
+    duplication: buildDuplicationReport(baseIndex, headIndex, top),
     symbols: buildSymbolReport(
       baseIndex,
       headIndex,
