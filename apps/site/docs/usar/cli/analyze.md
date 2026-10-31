@@ -58,13 +58,20 @@ codarch analyze [ruta] [opciones]
 | `--no-config` | No lee el YAML de alcance. |
 | `--project <nombre>` | Nombre del proyecto en el snapshot. |
 | `--no-git` | No lee el churn del historial git. |
+| `--no-lint` | No ejecuta el lint del proyecto. |
 | `--history` | Guarda además la foto en `.codarch-history/`. |
 | `-h, --help` | Ayuda. |
 | `-v, --version` | Versión. |
 
 ## Salida
 
-Escribe `snapshot.cc.json` en la carpeta de salida y, a su lado, `rest.cc.json`: el mapa de lo que no es código —documentos, configuración y assets— en su propio snapshot y con su propio checksum, así que cambiar un `.md` no mueve el del código. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore` (si la carpeta ya existía, no lo toca). Imprime un resumen: raíz, ruta y tamaño de los dos snapshots, ficheros, carpetas, aristas, ciclos, imports (externos, builtins, type-only, sin resolver), migración, caché de parseo, alcances anidados y tiempo.
+Escribe `snapshot.cc.json` en la carpeta de salida y, a su lado, `rest.cc.json`: el mapa de lo que no es código —documentos, configuración y assets— en su propio snapshot y con su propio checksum, así que cambiar un `.md` no mueve el del código. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore` (si la carpeta ya existía, no lo toca). Imprime un resumen: raíz, ruta y tamaño de los dos snapshots, el lint (con su cobertura), ficheros, carpetas, aristas, ciclos, imports (externos, builtins, type-only, sin resolver), migración, caché de parseo, alcances anidados y tiempo.
+
+Si el proyecto tiene lint —su configuración y su herramienta, como en [`codarch lint`](lint.md)—,
+`analyze` lo ejecuta y escribe también `.codarch/lint.cc.json`, firmado con el checksum del snapshot que
+acaba de escribir. Es una lente más del análisis: no entra en `cc.json` —el checksum depende del código,
+no de lo que tengas instalado— y `serve` no la vuelve a medir mientras el artefacto sea de ese mismo
+árbol. `--no-lint` se la salta.
 
 La **caché de parseo** queda en `.codarch/parse-cache.json` y la **lista de alcances** anidados en `.codarch/scopes.json`: son derivadas, se pueden borrar, y sirven para que el análisis que contiene a este alcance no vuelva a parsear lo que ya está parseado ([`codarch scopes`](scopes.md)).
 

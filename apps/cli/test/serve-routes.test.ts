@@ -102,9 +102,30 @@ describe("las rutas del servidor", () => {
     const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
     const base = await serve(root);
 
-    const sinLint = await fetch(`${base}/data/lint.json`);
+    const sinLint = await fetch(`${base}/data/lint.cc.json`);
     expect(sinLint.status).toBe(204);
 
+    fs.writeFileSync(
+      path.join(root, ".codarch", "lint.cc.json"),
+      JSON.stringify({
+        schemaVersion: "1.0",
+        meta: { checksum: "abc", tools: ["eslint"] },
+        files: {},
+        summary: { files: 0, errors: 1, warnings: 2, messages: 3 }
+      })
+    );
+
+    const served = await fetch(`${base}/data/lint.cc.json`);
+    expect(served.status).toBe(200);
+    expect(await served.json()).toMatchObject({
+      schemaVersion: "1.0",
+      summary: { errors: 1, warnings: 2 }
+    });
+  });
+
+  it("sigue sirviendo el lint.json con el nombre anterior", async () => {
+    const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
+    fs.mkdirSync(path.join(root, ".codarch"), { recursive: true });
     fs.writeFileSync(
       path.join(root, ".codarch", "lint.json"),
       JSON.stringify({
@@ -114,11 +135,11 @@ describe("las rutas del servidor", () => {
         summary: { files: 0, errors: 1, warnings: 2, messages: 3 }
       })
     );
+    const base = await serve(root);
 
-    const served = await fetch(`${base}/data/lint.json`);
+    const served = await fetch(`${base}/data/lint.cc.json`);
     expect(served.status).toBe(200);
     expect(await served.json()).toMatchObject({
-      schemaVersion: "1.0",
       summary: { errors: 1, warnings: 2 }
     });
   });

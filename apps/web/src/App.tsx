@@ -462,7 +462,7 @@ export default function App() {
     if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
     loadSnapshot(snapshot, "servidor local");
     loadRest(await fetchJson("data/rest.cc.json"));
-    loadLint(await fetchJson("data/lint.json"));
+    loadLint(await fetchJson("data/lint.cc.json"));
     setServerMode(meta?.watch ? "live" : "served");
     setSourceUrl(null);
     setReportUrl(null);
@@ -518,7 +518,7 @@ export default function App() {
         const snapshot = await fetchJson("data/snapshot.cc.json");
         if (snapshot) loadSnapshot(snapshot, "servidor local", true);
         loadRest(await fetchJson("data/rest.cc.json"));
-        loadLint(await fetchJson("data/lint.json"));
+        loadLint(await fetchJson("data/lint.cc.json"));
       }
       setServerMode(body.watch ? "live" : "served");
     } catch (cause) {

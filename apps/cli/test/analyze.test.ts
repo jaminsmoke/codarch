@@ -38,7 +38,7 @@ function tempOut(): string {
   return directory;
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describe("alcance de analyze", () => {
-  it("lee ignore del .codarch.yml y suma el --ignore puntual", () => {
+  it("lee ignore del .codarch.yml y suma el --ignore puntual", async () => {
     const root = tempRepo({
       ".codarch.yml": "version: 1\nignore:\n  - src/config-skip/**\n",
       "src/keep.ts": "export const keep = 1;\n",
@@ -55,7 +55,7 @@ describe("alcance de analyze", () => {
     });
     vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    const code = runAnalyze({
+    const code = await runAnalyze({
       root,
       out: path.join(root, "out"),
       ignore: ["src/cli-skip/**"],
@@ -67,7 +67,7 @@ describe("alcance de analyze", () => {
     expect(getStats(readSnapshot(path.join(root, "out"))).files).toBe(1);
   });
 
-  it("con --no-config no aplica el alcance del YAML", () => {
+  it("con --no-config no aplica el alcance del YAML", async () => {
     const root = tempRepo({
       ".codarch.yml": "version: 1\nignore:\n  - src/skip/**\n",
       "src/keep.ts": "export const keep = 1;\n",
@@ -75,7 +75,7 @@ describe("alcance de analyze", () => {
     });
     vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    const code = runAnalyze({
+    const code = await runAnalyze({
       root,
       out: path.join(root, "out"),
       noConfig: true,
@@ -87,14 +87,14 @@ describe("alcance de analyze", () => {
     expect(getStats(readSnapshot(path.join(root, "out"))).files).toBe(2);
   });
 
-  it("falla con un alcance inválido antes de analizar", () => {
+  it("falla con un alcance inválido antes de analizar", async () => {
     const root = tempRepo({
       ".codarch.yml": "version: 1\nignore: fixtures/**\n",
       "src/keep.ts": "export const keep = 1;\n"
     });
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
-    const code = runAnalyze({
+    const code = await runAnalyze({
       root,
       out: path.join(root, "out"),
       git: false,
@@ -112,14 +112,14 @@ describe("alcance de analyze", () => {
 });
 
 describe("el resumen de analyze", () => {
-  it("cuenta las fases en orden, de la raíz al churn", () => {
+  it("cuenta las fases en orden, de la raíz al churn", async () => {
     const root = tempRepo({
       "src/a.ts": "export const a = 1;\n",
       "src/b.ts": "import { a } from './a';\nexport const b = () => a;\n"
     });
     const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-    const code = runAnalyze({
+    const code = await runAnalyze({
       root,
       out: path.join(root, "out"),
       git: false,
@@ -144,6 +144,7 @@ describe("el resumen de analyze", () => {
       "raíz",
       "snapshot",
       "resto",
+      "lint",
       "estructura",
       "imports",
       "migración",
@@ -158,7 +159,7 @@ describe("el resumen de analyze", () => {
 });
 
 describe("el resto de analyze", () => {
-  it("escribe su snapshot aparte y no lo mezcla con el código", () => {
+  it("escribe su snapshot aparte y no lo mezcla con el código", async () => {
     const root = tempRepo({
       "src/a.ts": "export const a = 1;\n",
       "README.md": "# Hola\n\nDos líneas.\n",
@@ -167,7 +168,7 @@ describe("el resto de analyze", () => {
     vi.spyOn(console, "log").mockImplementation(() => undefined);
 
     expect(
-      runAnalyze({
+      await runAnalyze({
         root,
         out: path.join(root, "out"),
         git: false,
@@ -193,7 +194,7 @@ describe("el resto de analyze", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("un documento que cambia mueve su checksum y no el del código", () => {
+  it("un documento que cambia mueve su checksum y no el del código", async () => {
     const root = tempRepo({
       "src/a.ts": "export const a = 1;\n",
       "README.md": "# Hola\n"
@@ -202,18 +203,18 @@ describe("el resto de analyze", () => {
     // La salida va fuera del repo: dentro, el segundo análisis la leería.
     const out = tempOut();
 
-    runAnalyze({ root, out, git: false, help: false });
+    await runAnalyze({ root, out, git: false, help: false });
     const code = readSnapshot(out).meta.checksum;
     const rest = readRest(out).meta.checksum;
 
     fs.appendFileSync(path.join(root, "README.md"), "Una línea más.\n");
-    runAnalyze({ root, out, git: false, help: false });
+    await runAnalyze({ root, out, git: false, help: false });
 
     expect(readSnapshot(out).meta.checksum).toBe(code);
     expect(readRest(out).meta.checksum).not.toBe(rest);
   });
 
-  it("deja el mismo resto byte a byte en dos pasadas", () => {
+  it("deja el mismo resto byte a byte en dos pasadas", async () => {
     const root = tempRepo({
       "src/a.ts": "export const a = 1;\n",
       "README.md": "[Guía](docs/guia.md)\n",
@@ -223,12 +224,98 @@ describe("el resto de analyze", () => {
     const first = tempOut();
     const second = tempOut();
 
-    runAnalyze({ root, out: first, git: false, help: false });
-    runAnalyze({ root, out: second, git: false, help: false });
+    await runAnalyze({ root, out: first, git: false, help: false });
+    await runAnalyze({ root, out: second, git: false, help: false });
 
     const read = (out: string) =>
       fs.readFileSync(path.join(out, "rest.cc.json"), "utf8");
     expect(read(second)).toBe(read(first));
     expect(readRest(first).meta.checksum).toBe(readRest(second).meta.checksum);
+  });
+});
+
+describe("el lint de la pasada (ADR 0099)", () => {
+  const LINT_CONFIG = `version: 1
+lint:
+  - name: eslint
+    command: eslint-json
+    format: eslint-json
+`;
+
+  it("mide el lint del proyecto y lo firma con el árbol analizado", async () => {
+    const root = tempRepo({
+      ".codarch.yml": LINT_CONFIG,
+      "src/a.ts": "export const a = 1;\n"
+    });
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const code = await runAnalyze({
+      root,
+      git: false,
+      help: false,
+      lintRun: async () => ({
+        stdout: JSON.stringify([
+          // Un fichero limpio y otro con un error: el limpio también se midió.
+          { filePath: path.join(root, "src", "a.ts"), messages: [] },
+          {
+            filePath: path.join(root, "src", "b.ts"),
+            messages: [
+              { ruleId: "no-var", severity: 2, message: "var", line: 1 }
+            ]
+          }
+        ]),
+        stderr: "",
+        code: 1
+      })
+    });
+
+    expect(code).toBe(0);
+    const artifact = JSON.parse(
+      fs.readFileSync(path.join(root, ".codarch", "lint.cc.json"), "utf8")
+    ) as { schemaVersion: string; meta: { tree: string }; summary: object };
+    expect(artifact.schemaVersion).toBe("1.2");
+    expect(artifact.meta.tree).toBe(
+      readSnapshot(path.join(root, ".codarch")).meta.checksum
+    );
+    expect(artifact.summary).toMatchObject({ files: 1, measured: 2 });
+  });
+
+  it("con --no-lint no se lanza ningún linter", async () => {
+    const root = tempRepo({
+      ".codarch.yml": LINT_CONFIG,
+      "src/a.ts": "export const a = 1;\n"
+    });
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    let called = false;
+
+    const code = await runAnalyze({
+      root,
+      git: false,
+      noLint: true,
+      help: false,
+      lintRun: async () => {
+        called = true;
+        return { stdout: "[]", stderr: "", code: 0 };
+      }
+    });
+
+    expect(code).toBe(0);
+    expect(called).toBe(false);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+      false
+    );
+  });
+
+  it("dice que el proyecto no declara lint en vez de fingir ceros", async () => {
+    const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await runAnalyze({ root, git: false, help: false });
+
+    const text = log.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
+    expect(text).toContain("el proyecto no declara lint");
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+      false
+    );
   });
 });

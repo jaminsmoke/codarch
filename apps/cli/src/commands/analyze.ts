@@ -13,8 +13,14 @@ import {
 } from "@codarch/parsers";
 import { CcJsonError, parseCcJson, saveHistory } from "@codarch/schema";
 import type { CcJson } from "@codarch/schema";
+import {
+  lintTotals,
+  type LintArtifact,
+  type LintProcessRunner
+} from "@codarch/lint";
 import { loadProjectIgnore } from "../config";
 import { directoryProblem, formatBytes } from "../io";
+import { runProjectLint } from "../lint-store";
 import {
   discoverScopePaths,
   readScopes,
@@ -36,6 +42,10 @@ export interface AnalyzeCommandOptions {
   git?: boolean;
   /** Guarda la foto en el historial del repo. */
   history?: boolean;
+  /** No ejecuta el lint del proyecto en esta pasada. */
+  noLint?: boolean;
+  /** Cómo se lanzan las herramientas; por defecto, un proceso por herramienta. */
+  lintRun?: LintProcessRunner;
   help: boolean;
 }
 
@@ -58,16 +68,28 @@ function field(label: string, value: string): string {
   return `  ${label.padEnd(12)} ${value}`;
 }
 
+/** «1 error», «3 errores»: la cuenta con su palabra. */
+function tally(value: number, one: string, many: string): string {
+  return `${num(value)} ${value === 1 ? one : many}`;
+}
+
 /**
  * `codarch analyze`: analiza una carpeta, escribe su `cc.json` y cuenta lo que
  * ha visto.
  *
  * El comando solo ordena las fases. Cada una es su función —la política del
- * proyecto, las cachés, el snapshot y el resumen— porque tienen motivos
- * distintos para fallar y para cambiar: el resumen es presentación y el resto
- * es el análisis.
+ * proyecto, las cachés, el snapshot, el lint y el resumen— porque tienen
+ * motivos distintos para fallar y para cambiar: el resumen es presentación y
+ * el resto es el análisis.
+ *
+ * El lint se mide aquí, en la misma pasada (ADR 0099): es una lente del mapa y
+ * las lentes se calculan al analizar. Se ejecuta el lint que el proyecto ya
+ * tiene —su configuración y su binario—, no uno inventado, y el artefacto
+ * queda firmado con el checksum del snapshot que se acaba de escribir.
  */
-export function runAnalyze(options: AnalyzeCommandOptions): number {
+export async function runAnalyze(
+  options: AnalyzeCommandOptions
+): Promise<number> {
   const root = options.root ?? ".";
   const denied = protectedRootReason(root);
   if (denied) {
@@ -134,12 +156,18 @@ export function runAnalyze(options: AnalyzeCommandOptions): number {
   const restPath = result.rest ? writeRest(outDirectory, result.rest) : null;
   if (result.rest && restPath === null) return 1;
 
+  // El lint, en la misma pasada y firmado con el árbol que se acaba de medir.
+  const lint = options.noLint
+    ? ({ kind: "skipped" } as const)
+    : await measureLint(rootPath, outDirectory, cc, options.lintRun);
+
   const lines = reportLines({
     root,
     rootPath,
     outDirectory,
     snapshotPath,
     restPath,
+    lint,
     cc,
     result,
     cache,
@@ -248,6 +276,51 @@ function writeRest(outDirectory: string, rest: CcJson): string | null {
   }
 }
 
+/** Lo que pasó con el lint en esta pasada. */
+type LintMeasure =
+  | { kind: "measured"; path: string; artifact: LintArtifact }
+  | { kind: "none" }
+  | { kind: "failed"; error: string }
+  | { kind: "skipped" };
+
+/**
+ * Mide el lint que declara el proyecto y lo escribe junto al snapshot.
+ *
+ * Falla blando: el análisis ya está escrito y un linter que no está o revienta
+ * no puede tirarlo. `runProjectLint` devuelve `null` cuando el repo no declara
+ * ninguna herramienta, que no es un fallo: es que no hay lint que medir.
+ */
+async function measureLint(
+  rootPath: string,
+  outDirectory: string,
+  cc: CcJson,
+  run?: LintProcessRunner
+): Promise<LintMeasure> {
+  let measured;
+  try {
+    measured = await runProjectLint(rootPath, {
+      out: outDirectory,
+      tree: cc.meta.checksum ?? "",
+      ...(run ? { run } : {})
+    });
+  } catch (error) {
+    return { kind: "failed", error: (error as Error).message };
+  }
+  if (!measured) return { kind: "none" };
+  if (!measured.artifact || !measured.path) {
+    const reason = measured.runs.find((entry) => !entry.ok)?.error;
+    return {
+      kind: "failed",
+      error: reason ?? "ninguna herramienta respondió"
+    };
+  }
+  return {
+    kind: "measured",
+    path: measured.path,
+    artifact: measured.artifact
+  };
+}
+
 /** Lo que necesita el resumen para contar la pasada. */
 interface ReportContext {
   root: string;
@@ -256,6 +329,8 @@ interface ReportContext {
   snapshotPath: string;
   /** El snapshot del resto, si esta pasada lo escribió. */
   restPath: string | null;
+  /** El lint de esta pasada: medido, omitido, sin herramientas o sin medir. */
+  lint: LintMeasure;
   cc: CcJson;
   result: Analysis;
   cache: ParseCache;
@@ -281,6 +356,7 @@ function reportLines(context: ReportContext): string[] {
       `${context.snapshotPath} (${formatBytes(snapshotBytes)})`
     ),
     ...restLines(context),
+    ...lintLines(context),
     field(
       "estructura",
       `${num(result.files)} ficheros · ${num(result.folders)} carpetas · ${num(
@@ -330,6 +406,40 @@ function restLines(context: ReportContext): string[] {
       )} ficheros · ${num(edges)} enlaces`
     )
   ];
+}
+
+/**
+ * El lint de la pasada, en una línea: dónde quedó y cuánto midió.
+ *
+ * Con la cobertura (`de N medidos`), el cero es un dato y no una duda
+ * (ADR 0098); sin ella, no se enseña.
+ */
+function lintLines(context: ReportContext): string[] {
+  const lint = context.lint;
+  if (lint.kind === "skipped") return [field("lint", "omitido (--no-lint)")];
+  if (lint.kind === "none") {
+    return [field("lint", "sin medir: el proyecto no declara lint")];
+  }
+  if (lint.kind === "failed") {
+    return [field("lint", `sin medir: ${lint.error}`)];
+  }
+
+  const totals = lintTotals(lint.artifact);
+  const errors = totals?.errors ?? 0;
+  const warnings = totals?.warnings ?? 0;
+  const info = totals?.info ?? 0;
+  const files = totals?.files ?? 0;
+  const measured = lint.artifact.summary.measured;
+  const bytes = Buffer.byteLength(fs.readFileSync(lint.path), "utf8");
+  const counts = [
+    `${tally(files, "fichero con hallazgos", "ficheros con hallazgos")}${
+      measured === undefined ? "" : ` de ${num(measured)} medidos`
+    }`,
+    tally(errors, "error", "errores"),
+    tally(warnings, "aviso", "avisos"),
+    ...(info > 0 ? [tally(info, "info", "info")] : [])
+  ].join(" · ");
+  return [field("lint", `${lint.path} (${formatBytes(bytes)}) · ${counts}`)];
 }
 
 /** Las líneas de migración: qué hay de cada lengua y cuánto pesa. */

@@ -62,6 +62,12 @@ const SWITCHES: Array<SwitchFlag<AnalyzeCommandOptions>> = [
     set: (options) => {
       options.history = true;
     }
+  },
+  {
+    names: ["--no-lint"],
+    set: (options) => {
+      options.noLint = true;
+    }
   }
 ];
 

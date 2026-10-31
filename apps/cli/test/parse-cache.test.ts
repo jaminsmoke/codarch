@@ -64,7 +64,7 @@ function silence(): void {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
@@ -72,10 +72,10 @@ afterEach(() => {
 });
 
 describe("la caché de parseo por alcance", () => {
-  it("el hijo la deja en su `.codarch/` y el padre reutiliza su parseo", () => {
+  it("el hijo la deja en su `.codarch/` y el padre reutiliza su parseo", async () => {
     silence();
     const { parent, child } = fixture();
-    expect(runAnalyze({ root: child, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: child, help: false, git: false })).toBe(0);
     expect(fs.existsSync(parseCachePath(path.join(child, ".codarch")))).toBe(true);
 
     const cold = analyzeParent(parent, false).result;
@@ -89,10 +89,10 @@ describe("la caché de parseo por alcance", () => {
     expect(checksumOf(warm.result)).toBe(checksumOf(cold));
   });
 
-  it("una caché de hijo desactualizada no se reutiliza y no cambia el resultado", () => {
+  it("una caché de hijo desactualizada no se reutiliza y no cambia el resultado", async () => {
     silence();
     const { parent, child } = fixture();
-    expect(runAnalyze({ root: child, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: child, help: false, git: false })).toBe(0);
 
     // El fichero del hijo cambia sin volver a analizar el hijo: su caché
     // guarda otra versión, así que esa entrada no vale.
@@ -106,10 +106,10 @@ describe("la caché de parseo por alcance", () => {
     );
   });
 
-  it("ignora una caché de otro formato, de otro parser o de otra raíz", () => {
+  it("ignora una caché de otro formato, de otro parser o de otra raíz", async () => {
     silence();
     const { parent, child } = fixture();
-    expect(runAnalyze({ root: child, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: child, help: false, git: false })).toBe(0);
 
     const file = parseCachePath(path.join(child, ".codarch"));
     const payload = JSON.parse(fs.readFileSync(file, "utf8")) as {
@@ -128,16 +128,16 @@ describe("la caché de parseo por alcance", () => {
     expect(checksumOf(warm.result)).toBe(checksumOf(cold));
   });
 
-  it("el padre guarda su caché con su prefijo y no escribe en la del hijo", () => {
+  it("el padre guarda su caché con su prefijo y no escribe en la del hijo", async () => {
     silence();
     const { parent, child } = fixture();
-    expect(runAnalyze({ root: child, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: child, help: false, git: false })).toBe(0);
     const childCacheBefore = fs.readFileSync(
       parseCachePath(path.join(child, ".codarch")),
       "utf8"
     );
 
-    expect(runAnalyze({ root: parent, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: parent, help: false, git: false })).toBe(0);
 
     const parentCache = JSON.parse(
       fs.readFileSync(parseCachePath(path.join(parent, ".codarch")), "utf8")
@@ -154,10 +154,10 @@ describe("la caché de parseo por alcance", () => {
     ).toBe(childCacheBefore);
   });
 
-  it("repetir el análisis de la misma raíz no vuelve a parsear", () => {
+  it("repetir el análisis de la misma raíz no vuelve a parsear", async () => {
     silence();
     const { parent } = fixture();
-    expect(runAnalyze({ root: parent, help: false, git: false })).toBe(0);
+    expect(await runAnalyze({ root: parent, help: false, git: false })).toBe(0);
     const first = JSON.parse(
       fs.readFileSync(
         path.join(parent, ".codarch", "snapshot.cc.json"),
@@ -174,7 +174,7 @@ describe("la caché de parseo por alcance", () => {
     expect(checksumOf(again)).toBe(first.meta.checksum);
   });
 
-  it("escribir la caché no cambia lo que se guarda en el snapshot", () => {
+  it("escribir la caché no cambia lo que se guarda en el snapshot", async () => {
     silence();
     const { child } = fixture();
     const cache = new ParseCache();

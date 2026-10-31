@@ -79,8 +79,21 @@ function runLintCommandAsync(args: string[]): number {
   return 0;
 }
 
+/**
+ * `analyze` también espera a procesos —los del lint del proyecto (ADR 0099)—,
+ * así que devuelve el código de salida cuando acaba, igual que `lint`.
+ */
+function runAnalyzeCommandAsync(args: string[]): number {
+  const parsed = parseAnalyze(args);
+  if (typeof parsed === "number") return parsed;
+  void runAnalyze(parsed).then((code) => {
+    process.exitCode = code;
+  });
+  return 0;
+}
+
 const COMMANDS: Record<string, (args: string[]) => number> = {
-  analyze: (args) => runParsed(parseAnalyze, runAnalyze, args),
+  analyze: runAnalyzeCommandAsync,
   lint: runLintCommandAsync,
   inspect: (args) => runParsed(parseInspect, runInspect, args),
   render: (args) => runParsed(parseRender, runRender, args),

@@ -35,19 +35,21 @@ function fixture(): { parent: string; child: string } {
 }
 
 /** Silencia el análisis y devuelve lo que se imprimió, junto. */
-function captured(run: () => number): { code: number; output: string } {
+async function captured(
+  run: () => number | Promise<number>
+): Promise<{ code: number; output: string }> {
   const lines: string[] = [];
   const log = vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
     lines.push(args.map(String).join(" "));
   });
   vi.spyOn(console, "warn").mockImplementation(() => undefined);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
-  const code = run();
+  const code = await run();
   log.mockRestore();
   return { code, output: lines.join("\n") };
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
@@ -55,14 +57,14 @@ afterEach(() => {
 });
 
 describe("el registro de alcances", () => {
-  it("analizar el padre apunta el hijo con su checksum y sus ficheros", () => {
+  it("analizar el padre apunta el hijo con su checksum y sus ficheros", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
     const childSnapshot = JSON.parse(
       fs.readFileSync(path.join(child, ".codarch", "snapshot.cc.json"), "utf8")
     ) as { meta: { checksum: string } };
 
-    const { output } = captured(() =>
+    const { output } = await captured(() =>
       runAnalyze({ root: parent, help: false, git: false })
     );
 
@@ -73,27 +75,27 @@ describe("el registro de alcances", () => {
     expect(output).toContain("1 anidados");
   });
 
-  it("no crea el registro si no hay ningún alcance debajo", () => {
+  it("no crea el registro si no hay ningún alcance debajo", async () => {
     const { child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
     expect(fs.existsSync(path.join(child, ".codarch", "scopes.json"))).toBe(false);
     expect(readScopeRegister(path.join(child, ".codarch"))).toEqual([]);
   });
 
-  it("no mira el `.codarch/` de la propia raíz", () => {
+  it("no mira el `.codarch/` de la propia raíz", async () => {
     const { child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
     expect(discoverScopes(child)).toEqual([]);
   });
 
-  it("no cuenta un alcance dentro de una carpeta ignorada", () => {
+  it("no cuenta un alcance dentro de una carpeta ignorada", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
     write(path.join(parent, ".gitignore"), "samples/\n");
 
     const ignored = path.join(parent, "samples", "demo");
     write(path.join(ignored, "src", "e.ts"), "export const e = 6;\n");
-    captured(() => runAnalyze({ root: ignored, help: false, git: false }));
+    await captured(() => runAnalyze({ root: ignored, help: false, git: false }));
 
     // El padre no mira `samples/`, así que su `.codarch/` no es un alcance suyo.
     expect(discoverScopes(parent).map((scope) => scope.path)).toEqual([
@@ -101,9 +103,9 @@ describe("el registro de alcances", () => {
     ]);
   });
 
-  it("ignora snapshots ilegibles y no baja a node_modules", () => {
+  it("ignora snapshots ilegibles y no baja a node_modules", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
     write(
       path.join(parent, "node_modules", "pkg", ".codarch", "snapshot.cc.json"),
       "{ roto"
@@ -120,12 +122,12 @@ describe("el registro de alcances", () => {
 });
 
 describe("el listado de alcances", () => {
-  it("enseña el alcance y su estado", () => {
+  it("enseña el alcance y su estado", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
-    captured(() => runAnalyze({ root: parent, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: parent, help: false, git: false }));
 
-    const { code, output } = captured(() =>
+    const { code, output } = await captured(() =>
       runScopes({ root: parent, json: false, help: false })
     );
     expect(code).toBe(0);
@@ -134,10 +136,10 @@ describe("el listado de alcances", () => {
     expect(output).toContain("al día");
   });
 
-  it("avisa cuando hay ficheros más nuevos que el snapshot del hijo", () => {
+  it("avisa cuando hay ficheros más nuevos que el snapshot del hijo", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
-    captured(() => runAnalyze({ root: parent, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: parent, help: false, git: false }));
 
     // Un fichero del hijo tocado después de su última foto.
     const file = path.join(child, "src", "b.ts");
@@ -145,19 +147,19 @@ describe("el listado de alcances", () => {
     const later = new Date(Date.now() + 60_000);
     fs.utimesSync(file, later, later);
 
-    const { output } = captured(() =>
+    const { output } = await captured(() =>
       runScopes({ root: parent, json: false, help: false })
     );
     expect(output).toContain("ficheros más nuevos");
   });
 
-  it("marca «se analizó otra vez» cuando el hijo tiene otro checksum", () => {
+  it("marca «se analizó otra vez» cuando el hijo tiene otro checksum", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
-    captured(() => runAnalyze({ root: parent, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: parent, help: false, git: false }));
 
     write(path.join(child, "src", "c.ts"), "export const c = 4;\n");
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
 
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
@@ -176,14 +178,14 @@ describe("el listado de alcances", () => {
     });
   });
 
-  it("marca «nuevo» lo que el padre no había visto", () => {
+  it("marca «nuevo» lo que el padre no había visto", async () => {
     const { parent, child } = fixture();
-    captured(() => runAnalyze({ root: child, help: false, git: false }));
-    captured(() => runAnalyze({ root: parent, help: false, git: false }));
+    await captured(() => runAnalyze({ root: child, help: false, git: false }));
+    await captured(() => runAnalyze({ root: parent, help: false, git: false }));
 
     const other = path.join(parent, "packages", "ui");
     write(path.join(other, "src", "d.ts"), "export const d = 5;\n");
-    captured(() => runAnalyze({ root: other, help: false, git: false }));
+    await captured(() => runAnalyze({ root: other, help: false, git: false }));
 
     const lines: string[] = [];
     vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
@@ -199,9 +201,9 @@ describe("el listado de alcances", () => {
     expect(nuevo?.state).toBe("nuevo");
   });
 
-  it("no confunde una carpeta que no existe con ningún alcance", () => {
+  it("no confunde una carpeta que no existe con ningún alcance", async () => {
     const missing = path.join(tempDir(), "no-existe");
-    const { code } = captured(() =>
+    const { code } = await captured(() =>
       runScopes({ root: missing, json: false, help: false })
     );
     expect(code).toBe(1);

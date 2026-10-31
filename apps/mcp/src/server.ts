@@ -9,6 +9,7 @@ import {
   findHotspots,
   getArchitectureMap,
   getHistory,
+  getLintReport,
   getMigrationPlan,
   getProjectConfig,
   getSymbolChain,
@@ -177,6 +178,38 @@ export function createServer(store: ArchitectureStore): McpServer {
       annotations: READ_ONLY
     },
     (args) => invoke(() => listViolations(store, args))
+  );
+
+  server.registerTool(
+    "get_lint_report",
+    {
+      title: "Lint del proyecto",
+      description:
+        "El lint que el proyecto tiene: los sistemas detectados con su configuración, sus reglas activas y su nota, el resumen de hallazgos y los mensajes con su fichero, regla, severidad y posición. Lee el .codarch/lint.cc.json que dejan codarch analyze y serve; no lanza herramientas. Sin artefacto devuelve available: false con el motivo: el lint no está limpio, está sin medir. Filtra por carpeta o fichero, por regla y por severidad.",
+      inputSchema: {
+        path: z
+          .string()
+          .optional()
+          .describe("Carpeta o fichero del que enseñar hallazgos; vacío = todo el proyecto"),
+        rule: z
+          .string()
+          .optional()
+          .describe("Una regla concreta, tal y como la nombra su herramienta"),
+        severity: z
+          .enum(["all", "error", "warn", "info"])
+          .optional()
+          .describe("Severidad de los hallazgos (por defecto all)"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(200)
+          .optional()
+          .describe("Máximo de hallazgos listados (por defecto 20)")
+      },
+      annotations: READ_ONLY
+    },
+    (args) => invoke(() => getLintReport(store, args))
   );
 
   server.registerTool(

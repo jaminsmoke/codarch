@@ -19,6 +19,10 @@ import {
 } from "@codarch/parsers";
 import { historyLocation, readHistoryIndex } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
+import {
+  LINT_ARTIFACT_FILE,
+  LINT_ARTIFACT_FILE_LEGACY
+} from "@codarch/lint";
 import { chainsPayload } from "./chains-payload";
 import type { Live } from "./serve-live";
 
@@ -385,9 +389,13 @@ const GET_ROUTES: Record<string, Route> = {
   "/data/meta.json": getJson((context) => context.live.meta()),
   // El lint es un fichero aparte del snapshot (ADR 0094): se sirve el que hay,
   // y `serve` lo reescribe tras una pasada con cambios. Sin él, 204.
-  "/data/lint.json": getOptionalJson((context) =>
-    readCodarchJson(context.live.current().root, "lint.json")
-  ),
+  "/data/lint.cc.json": getOptionalJson((context) => {
+    const root = context.live.current().root;
+    return (
+      readCodarchJson(root, LINT_ARTIFACT_FILE) ??
+      readCodarchJson(root, LINT_ARTIFACT_FILE_LEGACY)
+    );
+  }),
   "/data/head-report.json": getHeadReport,
   "/data/report.json": getReport,
   "/data/history.json": getJson((context) =>

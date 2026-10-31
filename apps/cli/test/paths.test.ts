@@ -30,7 +30,7 @@ function silence(): void {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
@@ -38,15 +38,15 @@ afterEach(() => {
 });
 
 describe("rutas que no existen", () => {
-  it("analyze no crea la carpeta que falta", () => {
+  it("analyze no crea la carpeta que falta", async () => {
     silence();
     const missing = path.join(tempDir(), "no-existe");
 
-    expect(runAnalyze({ root: missing, help: false })).toBe(1);
+    expect(await runAnalyze({ root: missing, help: false })).toBe(1);
     expect(fs.existsSync(missing)).toBe(false);
   });
 
-  it("serve no arranca sobre una carpeta que falta", () => {
+  it("serve no arranca sobre una carpeta que falta", async () => {
     silence();
     const missing = path.join(tempDir(), "no-existe");
 
@@ -62,7 +62,7 @@ describe("rutas que no existen", () => {
     ).toBe(1);
   });
 
-  it("history distingue una carpeta que falta de un historial vacío", () => {
+  it("history distingue una carpeta que falta de un historial vacío", async () => {
     silence();
     const missing = path.join(tempDir(), "no-existe");
 
@@ -71,7 +71,7 @@ describe("rutas que no existen", () => {
 });
 
 describe("una carpeta donde se espera un fichero", () => {
-  it("inspect dice qué necesita en vez de un EISDIR", () => {
+  it("inspect dice qué necesita en vez de un EISDIR", async () => {
     silence();
     const folder = tempDir();
     const error = vi.spyOn(console, "error");
@@ -83,7 +83,7 @@ describe("una carpeta donde se espera un fichero", () => {
     expect(error.mock.calls[0]?.[0]).toContain("es una carpeta");
   });
 
-  it("diff rechaza las carpetas como snapshots y no escribe reporte", () => {
+  it("diff rechaza las carpetas como snapshots y no escribe reporte", async () => {
     silence();
     const folder = tempDir();
     const error = vi.spyOn(console, "error");
@@ -99,7 +99,7 @@ describe("una carpeta donde se espera un fichero", () => {
 });
 
 describe("el HEAD que sirve serve (ADR 0072)", () => {
-  it("lee head-report.json de .codarch y devuelve null si no existe", () => {
+  it("lee head-report.json de .codarch y devuelve null si no existe", async () => {
     const root = tempDir();
     const codarch = path.join(root, ".codarch");
     fs.mkdirSync(codarch);
@@ -111,7 +111,7 @@ describe("el HEAD que sirve serve (ADR 0072)", () => {
     expect(readCodarchJson(tempDir(), "head-report.json")).toBeNull();
   });
 
-  it("no toca report.json: el HEAD vive en su propio fichero", () => {
+  it("no toca report.json: el HEAD vive en su propio fichero", async () => {
     const root = tempDir();
     const codarch = path.join(root, ".codarch");
     fs.mkdirSync(codarch);
@@ -124,7 +124,7 @@ describe("el HEAD que sirve serve (ADR 0072)", () => {
 });
 
 describe("un repo de un lenguaje que el análisis no lee", () => {
-  it("analyze avisa, falla y no dice «sin git»", () => {
+  it("analyze avisa, falla y no dice «sin git»", async () => {
     silence();
     const root = tempDir();
     // Ruby no está en la hornada de lenguajes (ADR 0090): sigue sin mapa.
@@ -133,7 +133,7 @@ describe("un repo de un lenguaje que el análisis no lee", () => {
     const warning = vi.spyOn(console, "warn");
 
     // Un mapa vacío no es un análisis correcto: código 1.
-    expect(runAnalyze({ root, help: false })).toBe(1);
+    expect(await runAnalyze({ root, help: false })).toBe(1);
     expect(
       warning.mock.calls.some(([message]) =>
         String(message).includes("el snapshot sale vacío")
@@ -144,13 +144,13 @@ describe("un repo de un lenguaje que el análisis no lee", () => {
     expect(lines).not.toContain("sin git");
   });
 
-  it("un repo solo de Python ya no sale vacío", () => {
+  it("un repo solo de Python ya no sale vacío", async () => {
     silence();
     const root = tempDir();
     fs.writeFileSync(path.join(root, "app.py"), "def saluda():\n  return 1\n", "utf8");
     const warning = vi.spyOn(console, "warn");
 
-    expect(runAnalyze({ root, help: false })).toBe(0);
+    expect(await runAnalyze({ root, help: false })).toBe(0);
     expect(
       warning.mock.calls.some(([message]) =>
         String(message).includes("el snapshot sale vacío")

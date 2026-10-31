@@ -17,7 +17,7 @@ export type DesktopTarget =
       snapshot: unknown;
       /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
       rest: unknown | null;
-      /** El `.codarch/lint.json` del repo, si existe (ADR 0094). */
+      /** El `.codarch/lint.cc.json` del repo, si existe (ADR 0094). */
       lint: unknown | null;
       label: string;
       /**
@@ -34,7 +34,10 @@ export interface DesktopAnalysis {
   snapshot: unknown;
   /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
   rest: unknown;
-  /** El lint que ya tenía el repo: analizar no linta (ADR 0094). */
+  /**
+   * El lint que ya tenía el repo. El escritorio analiza sin herramientas: lee
+   * el artefacto que dejó `codarch analyze` (ADR 0099).
+   */
   lint: unknown | null;
   files: number;
   edges: number;
@@ -54,7 +57,7 @@ export interface DesktopRestore {
   snapshot: unknown;
   /** El mapa de lo que no es código, si el repo lo tenía (ADR 0093). */
   rest: unknown | null;
-  /** El lint del repo, si se ejecutó `codarch lint` (ADR 0094). */
+  /** El lint del repo, si `codarch analyze` o `codarch lint` lo midieron. */
   lint: unknown | null;
   report: unknown | null;
   /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */

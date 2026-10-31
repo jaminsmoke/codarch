@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@codarch/addons": "*",
+    "@codarch/lint": "*",
     "@codarch/metrics": "*",
     "@codarch/render": "*",
     "@codarch/schema": "*",

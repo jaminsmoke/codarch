@@ -72,13 +72,13 @@ function capture(file: string, name: string): Buffer {
   return fs.readFileSync(out);
 }
 
-function lintAt(dir: string): void {
+function lintAt(dir: string, name = "lint.cc.json"): void {
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "lint.json"), JSON.stringify(dirty), "utf8");
+  fs.writeFileSync(path.join(dir, name), JSON.stringify(dirty), "utf8");
 }
 
 describe("codarch shot con lint", () => {
-  it("lee `.codarch/lint.json` cuando el snapshot está en la raíz", () => {
+  it("lee `.codarch/lint.cc.json` cuando el snapshot está en la raíz", () => {
     const root = scratch();
     const file = ccAt(path.join(root, "mapa.cc.json"));
 
@@ -89,13 +89,24 @@ describe("codarch shot con lint", () => {
     expect(withLint.equals(plain)).toBe(false);
   });
 
-  it("lee el `lint.json` que está al lado de un snapshot dentro de `.codarch/`", () => {
+  it("lee el `lint.cc.json` que está al lado de un snapshot dentro de `.codarch/`", () => {
     const root = scratch();
     const file = ccAt(path.join(root, ".codarch", "snapshot.cc.json"));
 
     const plain = capture(file, "sin.png");
     lintAt(path.join(root, ".codarch"));
     const withLint = capture(file, "con.png");
+
+    expect(withLint.equals(plain)).toBe(false);
+  });
+
+  it("sigue leyendo el `lint.json` anterior", () => {
+    const root = scratch();
+    const file = ccAt(path.join(root, "mapa.cc.json"));
+
+    const plain = capture(file, "sin-viejo.png");
+    lintAt(path.join(root, ".codarch"), "lint.json");
+    const withLint = capture(file, "con-viejo.png");
 
     expect(withLint.equals(plain)).toBe(false);
   });
@@ -107,7 +118,7 @@ describe("codarch shot con lint", () => {
     const plain = capture(file, "sin.png");
     fs.mkdirSync(path.join(root, ".codarch"), { recursive: true });
     fs.writeFileSync(
-      path.join(root, ".codarch", "lint.json"),
+      path.join(root, ".codarch", "lint.cc.json"),
       JSON.stringify({ schemaVersion: "0.1", files: {} }),
       "utf8"
     );

@@ -9,8 +9,8 @@ sidebar:
 
 CodArch expone su modelo a agentes mediante un servidor **MCP local y por stdio**. Todo lo que
 devuelve es lectura del snapshot, salvo `map_screenshot`, que además deja un PNG en el repo.
-No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existe, el
-`report.json` del diff. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
+No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existen, el
+`report.json` del diff y el `lint.cc.json` del lint. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
 
 El servidor **no es un subcomando** de `codarch`: es un binario aparte, `codarch-mcp`, que el agente
 arranca por stdio.
@@ -184,6 +184,28 @@ Lista las violaciones del reporte separando `introduced`, `existing` y `resolved
 Solo las violaciones `introduced` con severidad `error` bloquean el gate del diff; MCP las muestra
 todas para que el agente pueda explicar deuda previa sin confundirla con un fallo nuevo.
 
+### `get_lint_report`
+
+El lint que el proyecto tiene: los sistemas detectados, sus reglas activas y sus hallazgos.
+
+| Parámetro | Tipo | Por defecto | Descripción |
+|---|---|---|---|
+| `path` | string | raíz | Carpeta o fichero del que enseñar hallazgos |
+| `rule` | string | — | Una regla concreta, tal y como la nombra su herramienta |
+| `severity` | `all` \| `error` \| `warn` \| `info` | `all` | Severidad de los hallazgos |
+| `limit` | 1–200 | 20 | Hallazgos listados |
+
+Lee el `.codarch/lint.cc.json` que dejan `codarch lint` y `serve`, al lado del snapshot; no lanza
+herramientas. Devuelve `systems` (nombre, configuración, reglas activas con su severidad y la nota
+de por qué no se midió o no se pudieron enumerar), `tools` (las que midieron), `summary`, `files` y
+`total` del ámbito, `rules` con la cuenta de cada regla y `findings` con fichero, regla, severidad,
+línea, columna y mensaje, los errores primero y luego por ruta y línea. El `limit` recorta la lista
+sin cambiar `total`. La cuenta es la misma que enseñan el CLI y la app: un `info` es un hallazgo,
+pero no suma a `errors` ni a `warnings`.
+
+Sin artefacto no dice que el lint esté limpio: devuelve `available: false` con el motivo, porque
+sin medir no es lo mismo que sin hallazgos.
+
 ### `get_project_config`
 
 La configuración del repo, leída igual que la lee el CLI: el `.codarch.yml` y los addons que declara. Sin parámetros.
@@ -280,7 +302,8 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 ## Comportamiento y límites
 
 - **Lectura, con una excepción.** Ninguna herramienta analiza, escribe reglas, crea snapshots ni
-  toca el código. Leen el snapshot, el reporte y, si existe, la configuración del repo. La excepción
+  toca el código. Leen el snapshot, el reporte y, si existen, la configuración del repo y el
+  artefacto del lint. La excepción
   es `map_screenshot`, que deja un PNG en `.codarch/shots/` —su `readOnlyHint` es `false`— y no toca
   nada más.
 - **Sin red.** No consulta GitHub; para un PR, apunta a los artefactos que ya existen en disco.
@@ -302,10 +325,10 @@ entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y fich
 apps/mcp/
 ├── bin/codarch-mcp.mjs   lanzador sin ruido de npm
 ├── src/store.ts          índice del snapshot/reporte, rutas, riesgo, ciclos, agregados
-├── src/tools.ts          las trece consultas
+├── src/tools.ts          las catorce consultas
 ├── src/server.ts         registro MCP y esquemas de entrada
 ├── src/index.ts          entrada stdio y opciones
-└── test/                 45 tests, incluido transporte en memoria
+└── test/                 51 tests, incluido transporte en memoria
 ```
 
 El servidor carga e indexa una vez; las llamadas trabajan en memoria. `npm test` cubre las

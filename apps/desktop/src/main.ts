@@ -498,7 +498,10 @@ function snapshotPath(root: string): string {
 const REST_FILE = "rest.cc.json";
 
 /** El artefacto del lint, del mismo `.codarch/` (ADR 0094). */
-const LINT_FILE = "lint.json";
+const LINT_FILE = "lint.cc.json";
+
+/** El nombre anterior del artefacto del lint (ADR 0094), que se sigue leyendo. */
+const LINT_FILE_LEGACY = "lint.json";
 
 /**
  * Lee el lint guardado, si lo hay.
@@ -507,7 +510,10 @@ const LINT_FILE = "lint.json";
  * fichero que no entiende deja el proyecto sin medir.
  */
 function readPersistedLint(root: string): unknown | null {
-  return readJsonFile(path.join(root, CODARCH_DIR, LINT_FILE));
+  return (
+    readJsonFile(path.join(root, CODARCH_DIR, LINT_FILE)) ??
+    readJsonFile(path.join(root, CODARCH_DIR, LINT_FILE_LEGACY))
+  );
 }
 
 /**

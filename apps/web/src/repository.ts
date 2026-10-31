@@ -58,7 +58,9 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
 
   const snapshot = await readJson(codarch, "snapshot.cc.json", true);
   const rest = await readJson(codarch, "rest.cc.json", false);
-  const lint = await readJson(codarch, "lint.json", false);
+  const lint =
+    (await readJson(codarch, "lint.cc.json", false)) ??
+    (await readJson(codarch, "lint.json", false));
   const report = await readJson(codarch, "report.json", false);
 
   return {
@@ -101,6 +103,8 @@ export async function readRepositoryFromFiles(
   );
   const lintEntry = entries.find(
     (entry) =>
+      entry.path.endsWith("/.codarch/lint.cc.json") ||
+      entry.path === ".codarch/lint.cc.json" ||
       entry.path.endsWith("/.codarch/lint.json") ||
       entry.path === ".codarch/lint.json"
   );

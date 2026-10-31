@@ -96,7 +96,7 @@ async function bootFromUrl(
       h.loading(false);
       return;
     }
-    // Un snapshot por URL viene solo: no hay `.codarch/lint.json` que leer.
+    // Un snapshot por URL viene solo: no hay `.codarch/lint.cc.json` que leer.
     h.lint(null);
     h.mode("local");
     h.sourceUrl(snapshotUrl);
@@ -141,7 +141,7 @@ async function bootFromServer({
     // Los dos artefactos salen de la misma pasada del servidor (ADR 0093).
     h.rest(await fetchJson("data/rest.cc.json"));
     // El lint es un fichero más del repo (ADR 0094): si no existe, 204 y nada.
-    h.lint(await fetchJson("data/lint.json"));
+    h.lint(await fetchJson("data/lint.cc.json"));
     const info = readServerMeta(meta);
     h.mode(info?.watch ? "live" : "served");
     if (info?.rootPath) h.rootPath(info.rootPath);
@@ -219,7 +219,7 @@ export function watchServer({
     rest(await fetchJson("data/rest.cc.json"));
     // El lint se mide en paralelo al análisis: cuando llega su aviso, se
     // relee; el que no existe contesta 204 (ADR 0094).
-    lint(await fetchJson("data/lint.json"));
+    lint(await fetchJson("data/lint.cc.json"));
     // El repo cambió: el reporte HEAD es lo que se ve en Cambios, y el
     // servidor lo acaba de tirar de la caché (ADR 0075).
     const head = await fetchJson(HEAD_REPORT_URL);
@@ -227,7 +227,7 @@ export function watchServer({
   });
   // El lint termina después del análisis: su evento vuelve a leer el artefacto.
   events.addEventListener("lint", async () => {
-    lint(await fetchJson("data/lint.json"));
+    lint(await fetchJson("data/lint.cc.json"));
   });
   return () => events.close();
 }

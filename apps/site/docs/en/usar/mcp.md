@@ -185,6 +185,28 @@ Lists the report's violations, separating `introduced`, `existing` and `resolved
 Only `introduced` violations with `error` severity block the diff gate; MCP shows them all so the
 agent can explain previous debt without confusing it with a new failure.
 
+### `get_lint_report`
+
+The lint the project actually has: detected systems, their active rules and their findings.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `path` | string | root | Folder or file to show findings for |
+| `rule` | string | — | A specific rule, as named by its tool |
+| `severity` | `all` \| `error` \| `warn` \| `info` | `all` | Finding severity |
+| `limit` | 1–200 | 20 | Listed findings |
+
+It reads the `.codarch/lint.cc.json` left by `codarch lint` and `serve`, next to the snapshot; it
+does not run tools. It returns `systems` (name, configuration, active rules with their severity and
+the note saying why it was not measured or its rules could not be enumerated), `tools` (the ones
+that measured), `summary`, the scope's `files` and `total`, `rules` with each rule's count and
+`findings` with file, rule, severity, line, column and message, errors first and then by path and
+line. `limit` trims the list without changing `total`. The count is the same one the CLI and the
+app show: an `info` is a finding, but it adds to neither `errors` nor `warnings`.
+
+With no artifact it does not claim the lint is clean: it returns `available: false` with the reason,
+because not measured is not the same as no findings.
+
 ### `get_project_config`
 
 The repo's configuration, read the same way the CLI reads it: the `.codarch.yml` and the addons it
@@ -283,7 +305,8 @@ or entering the set. `limit` (1–50, default 5) controls the detail edges and f
 ## Behaviour and limits
 
 - **Read-only.** There are no tools to analyse, write rules, create snapshots or modify the
-  repository. It reads the snapshot, the report and, if it exists, the repo's configuration.
+  repository. It reads the snapshot, the report and, if they exist, the repo's configuration and
+  lint artifact.
 - **No network.** It does not query GitHub; for a PR, point it at the artefacts already on disk.
 - **No invented prose.** The server returns JSON with the observed fields. The agent decides how to
   explain it.
@@ -303,10 +326,10 @@ or entering the set. `limit` (1–50, default 5) controls the detail edges and f
 apps/mcp/
 ├── bin/codarch-mcp.mjs   launcher without npm noise
 ├── src/store.ts          snapshot/report index, paths, risk, cycles, aggregates
-├── src/tools.ts          the thirteen queries
+├── src/tools.ts          the fourteen queries
 ├── src/server.ts         MCP registration and input schemas
 ├── src/index.ts          stdio entry and options
-└── test/                 45 tests, including in-memory transport
+└── test/                 51 tests, including in-memory transport
 ```
 
 The server loads and indexes once; calls work in memory. `npm test` covers the tools, the server and

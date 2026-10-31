@@ -19,7 +19,8 @@ import {
   type RepositoryWatcher
 } from "@codarch/parsers";
 import type { CcJson } from "@codarch/schema";
-import { runProjectLint } from "../lint-store";
+import { createLintQueue } from "../lint-queue";
+import { readProjectLint, runProjectLint } from "../lint-store";
 import { VERSION } from "../version";
 
 export interface AnalysisState {
@@ -104,45 +105,59 @@ export function startLive(
   /**
    * El lint de la pasada, en sus propios procesos (ADR 0094).
    *
-   * Se lanza cuando el análisis dice que hay cambios: escribir `lint.json`
+   * Se lanza cuando el análisis dice que hay cambios: escribir `lint.cc.json`
    * también despierta al vigilante, y lintar antes de saber si la pasada trae
    * algo nuevo se llamaba a sí mismo sin parar. Si falla, no se toca el
-   * artefacto: se sigue sirviendo el anterior y se dice.
+   * artefacto: se sigue sirviendo el anterior y se dice. Una pasada en curso no
+   * se pisa: el guardado que llega mientras tanto se lintará al acabar.
    */
-  let linting = false;
-  const refreshLint = (root: string): void => {
-    if (linting) return;
-    linting = true;
-    void runProjectLint(root)
-      .then((result) => {
-        if (!result) return; // El repo no declara herramientas: no hay lint.
-        const failed = result.runs.filter((run) => !run.ok);
-        for (const run of failed) {
-          console.warn(`  lint: ${run.name} sin medir: ${run.error ?? "falló"}`);
-        }
-        if (!result.artifact) {
-          console.warn("  lint: ninguna herramienta midió; se sirve el artefacto anterior");
-          return;
-        }
-        const { summary } = result.artifact;
-        if (state.root === root) {
-          broadcast(clients, "lint", {
-            files: summary.files,
-            errors: summary.errors,
-            warnings: summary.warnings,
-            messages: summary.messages
-          });
-        }
-        console.log(
-          `  ⚙ lint · ${summary.errors} errores · ${summary.warnings} avisos`
-        );
-      })
-      .catch((error: Error) => {
-        console.warn(`  lint: no se pudo lintar: ${error.message}`);
-      })
-      .finally(() => {
-        linting = false;
-      });
+  /**
+   * El último árbol que se pidió medir.
+   *
+   * Un mismo estado solo se linta una vez: el vigilante avisa dos veces del
+   * mismo guardado y una pasada cuesta segundos. Si la pasada falla se olvida,
+   * para que el siguiente aviso lo vuelva a intentar.
+   */
+  let lintQueued = "";
+  const lintQueue = createLintQueue(async ({ root, tree }) => {
+    try {
+      const result = await runProjectLint(root, tree ? { tree } : {});
+      if (!result) return; // El repo no declara herramientas: no hay lint.
+      const failed = result.runs.filter((run) => !run.ok);
+      for (const run of failed) {
+        console.warn(`  lint: ${run.name} sin medir: ${run.error ?? "falló"}`);
+      }
+      if (!result.artifact) {
+        console.warn("  lint: ninguna herramienta midió; se sirve el artefacto anterior");
+        return;
+      }
+      const { summary } = result.artifact;
+      if (state.root === root) {
+        broadcast(clients, "lint", {
+          files: summary.files,
+          errors: summary.errors,
+          warnings: summary.warnings,
+          messages: summary.messages
+        });
+      }
+      console.log(
+        `  ⚙ lint · ${summary.errors} errores · ${summary.warnings} avisos`
+      );
+    } catch (error) {
+      lintQueued = "";
+      console.warn(`  lint: no se pudo lintar: ${(error as Error).message}`);
+    }
+  });
+  const refreshLint = (root: string, tree: string): void => {
+    if (tree !== "" && tree === lintQueued) return;
+    // El artefacto puede ser ya de este árbol —lo acaba de escribir `codarch
+    // analyze` (ADR 0099)—: entonces no se vuelve a lanzar el linter.
+    if (tree !== "" && readProjectLint(root)?.meta.tree === tree) {
+      lintQueued = tree;
+      return;
+    }
+    lintQueued = tree;
+    lintQueue.request({ root, tree });
   };
 
   const refresh = (hints: readonly string[] = []): void => {
@@ -155,7 +170,7 @@ export function startLive(
       storeParseCache(state.root, result);
       storeRest(state.root, result);
       state = stateFrom(state.root, result, state.watch);
-      refreshLint(state.root);
+      refreshLint(state.root, state.checksum);
       broadcast(clients, "update", {
         checksum: state.checksum,
         files: state.files
@@ -212,6 +227,7 @@ export function startLive(
         console.error(`watch no disponible en ${resolved}: ${error}`);
       }
     }
+    if (state.watch) refreshLint(state.root, state.checksum);
     broadcast(clients, "update", {
       checksum: state.checksum,
       files: state.files
@@ -237,6 +253,10 @@ export function startLive(
   if (state.watch) {
     watchWarning = startWatcher();
     if (watchWarning) state = { ...state, watch: false };
+    // Recién arrancado, el lint que hay puede ser de otro árbol —o no haber—:
+    // se mide una vez, en segundo plano, y la app deja de enseñar cifras de
+    // ayer (ADR 0098). Sin live no se lanzan linters: el servidor solo sirve.
+    else refreshLint(state.root, state.checksum);
   }
 
   return {

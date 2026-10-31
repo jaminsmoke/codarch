@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { LintArtifact } from "@codarch/lint";
+import { LINT_ARTIFACT_FILE, type LintArtifact } from "@codarch/lint";
 import type { CcJson } from "@codarch/schema";
 import { CcJsonError, parseCcJson, walkFiles } from "@codarch/schema";
 import { formatBytes, readJsonFile } from "../io";
@@ -64,7 +64,7 @@ export function publishSnapshot(
   // publicada lo carga igual que la que sirve `codarch serve`.
   if (lint) {
     fs.writeFileSync(
-      path.join(data, "lint.json"),
+      path.join(data, LINT_ARTIFACT_FILE),
       `${JSON.stringify(lint, null, 2)}\n`,
       "utf8"
     );

@@ -40,13 +40,15 @@ Opciones de analyze:
   --project <nombre> nombre del proyecto en el snapshot
   --no-git           no leer churn del historial git
   --history          guardar la foto en el historial del repo (.codarch-history/)
+  --no-lint          no medir el lint del proyecto en esta pasada
   -h, --help         esta ayuda
   -v, --version      versión
 
 Opciones de lint:
   -o, --out <dir>    directorio de salida (por defecto <ruta>/.codarch)
-  --config <file>    YAML de las herramientas (por defecto .codarch.yml si existe)
-  --no-config        no leer las herramientas del YAML
+  --config <file>    YAML con el override de herramientas (.codarch.yml si existe)
+  --no-config        no leer el override del YAML; usa el lint del proyecto
+  --no-detect        no detectar el lint del proyecto
   --fail-on <modo>   never | errors | warnings (por defecto never)
   -h, --help         esta ayuda
 
