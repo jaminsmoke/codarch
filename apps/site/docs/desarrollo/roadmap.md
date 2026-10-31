@@ -25,8 +25,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0-M22 están cerradas. M23 cerrada, M24 descartada, M25 cerrada, M26 cerrada,
-M27 cerrada, M28 cerrada, M29 cerrada, M30 cerrada, M31 cerrada, M32 cerrada, M33 cerrada, M34 cerrada, M35 cerrada, M36 cerrada, M37 cerrada, M38 cerrada, M39 cerrada, M40 cerrada, M41 cerrada, M42 cerrada, M43 cerrada, M44 cerrada, M45 cerrada, M46 cerrada, M47 cerrada, M48 cerrada, M49 cerrada, M50 cerrada, M51 cerrada, M52 cerrada, M53 cerrada, M54 cerrada, M55 cerrada, M56 cerrada, M57 cerrada, M58 cerrada, M59 cerrada, M60 cerrada, M61 cerrada, M62 cerrada, M63, M64, M65 y M66 en curso, M68 cerrada, M69 cerrada, M70 cerrada, M71 cerrada, M72 cerrada, M73 cerrada, M74 cerrada y M75 cerrada.
+Las fases M0–M62 están cerradas (M24 descartada). M63–M66 están abiertas. M68–M75 están cerradas.
 
 ## Las fases
 
