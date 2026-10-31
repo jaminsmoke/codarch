@@ -19,19 +19,19 @@ export type {
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export { historyEntries, symbolHeat } from "./platform";
 export {
-  CLAVE_TEMA,
-  TEMAS,
-  aplicarTema,
-  aplicarTemaGuardado,
-  escribirTema,
-  leerTema,
-  parseTema,
-  prefiereOscuro,
-  temaEfectivo,
-  type Tema,
-  type TemaEfectivo
+  THEME_KEY,
+  THEMES,
+  applyTheme,
+  applySavedTheme,
+  writeTheme,
+  readTheme,
+  parseTheme,
+  prefersDark,
+  effectiveTheme,
+  type Theme,
+  type EffectiveTheme
 } from "./theme";
-export { useTema, type TemaApp } from "./useTema";
+export { useTheme, type ThemeApp } from "./useTheme";
 export {
   EMPTY_SOURCE_REQUEST,
   EMPTY_VIEW_STATE,

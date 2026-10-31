@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { RenderModel } from "@codarch/render/browser";
 import type { PluginDescriptor } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
-import type { Tema } from "./theme";
+import type { Theme } from "./theme";
 import {
   AddonsSection,
   ComponentsSection,
@@ -70,8 +70,8 @@ export interface SettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** El tema de la app: claro, oscuro o el del sistema (ADR 0084). */
-  tema: Tema;
-  onTema: (tema: Tema) => void;
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
   /** La métrica que decide el área del mapa. */
   areaMetric: string | null;
   onAreaMetric: (value: string) => void;
@@ -149,8 +149,8 @@ const SECTIONS: Array<{ id: Section; label: string }> = [
 export default function Settings({
   open,
   onOpenChange,
-  tema,
-  onTema,
+  theme,
+  onTheme,
   areaMetric,
   onAreaMetric,
   colorMode,
@@ -215,7 +215,7 @@ export default function Settings({
   // Una sección, un componente: la lista de arriba y el contenido salen del
   // mismo sitio, así que añadir una sección no toca este render.
   const content: Record<Section, ReactNode> = {
-    general: <GeneralSection tema={tema} onTema={onTema} />,
+    general: <GeneralSection theme={theme} onTheme={onTheme} />,
     vista: (
       <ViewSection
         areaMetric={areaMetric}

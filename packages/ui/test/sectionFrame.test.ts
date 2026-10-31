@@ -9,7 +9,7 @@ import { readUiStyles } from "./readStyles";
  * métricas dentro del mismo contenedor: si el marco se excluye de una hoja, la
  * sección se lee como filas sueltas aunque el marcado sea el mismo. Como no hay
  * navegador en las pruebas, la regla se lee del fichero, igual que hace
- * `tema.test.ts` con los tokens.
+ * `theme.test.ts` con los tokens.
  */
 const css = readUiStyles();
 

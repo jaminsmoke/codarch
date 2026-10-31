@@ -7,7 +7,7 @@ import {
 } from "@codarch/plugin-api";
 import type { RepoAddon } from "@codarch/addons";
 import { summarizePlugins } from "../pluginState";
-import type { Tema } from "../theme";
+import type { Theme } from "../theme";
 import type {
   SettingsColorOption,
   SettingsComponent,
@@ -25,7 +25,7 @@ import type {
  */
 
 /** Las tres opciones del tema, en el orden en que se ofrecen (ADR 0084). */
-const TEMA_OPTIONS: Array<{ value: Tema; label: string; hint: string }> = [
+const THEME_OPTIONS: Array<{ value: Theme; label: string; hint: string }> = [
   {
     value: "system",
     label: "El sistema",
@@ -37,27 +37,27 @@ const TEMA_OPTIONS: Array<{ value: Tema; label: string; hint: string }> = [
 
 /** General: el tema de la máquina (ADR 0084). */
 export function GeneralSection({
-  tema,
-  onTema
+  theme,
+  onTheme
 }: {
-  tema: Tema;
-  onTema: (tema: Tema) => void;
+  theme: Theme;
+  onTheme: (theme: Theme) => void;
 }) {
   return (
     <>
       <div className="settings-row">
         <span>Tema</span>
         <div className="theme-options" role="group" aria-label="Tema">
-          {TEMA_OPTIONS.map((option) => (
+          {THEME_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
-              aria-pressed={tema === option.value}
+              aria-pressed={theme === option.value}
               className={`theme-option${
-                tema === option.value ? " is-active" : ""
+                theme === option.value ? " is-active" : ""
               }`}
               title={option.hint}
-              onClick={() => onTema(option.value)}
+              onClick={() => onTheme(option.value)}
             >
               {option.label}
             </button>

@@ -8,37 +8,37 @@ import { localStore } from "./storage-local";
  * —«el sistema» pasa a claro u oscuro—, porque lo que atiende el CSS es un solo
  * caso: `data-theme` en `<html>`.
  */
-export const CLAVE_TEMA = "codarch-theme";
+export const THEME_KEY = "codarch-theme";
 
-export type Tema = "light" | "dark" | "system";
+export type Theme = "light" | "dark" | "system";
 
 /** El tema que se aplica de verdad, ya resuelto. */
-export type TemaEfectivo = "light" | "dark";
+export type EffectiveTheme = "light" | "dark";
 
 /** Las tres opciones, en el orden en que se ofrecen en Ajustes. */
-export const TEMAS: readonly Tema[] = ["system", "light", "dark"];
+export const THEMES: readonly Theme[] = ["system", "light", "dark"];
 
 /** Lo que no sea una de las tres opciones se lee como «el del sistema». */
-export function parseTema(valor: unknown): Tema {
-  return typeof valor === "string" &&
-    (TEMAS as readonly string[]).includes(valor)
-    ? (valor as Tema)
+export function parseTheme(value: unknown): Theme {
+  return typeof value === "string" &&
+    (THEMES as readonly string[]).includes(value)
+    ? (value as Theme)
     : "system";
 }
 
 /** El tema que toca: el elegido, o el del sistema si no se eligió ninguno. */
-export function temaEfectivo(
-  tema: Tema,
-  prefiereOscuro: boolean
-): TemaEfectivo {
-  if (tema === "system") return prefiereOscuro ? "dark" : "light";
-  return tema;
+export function effectiveTheme(
+  theme: Theme,
+  prefersDark: boolean
+): EffectiveTheme {
+  if (theme === "system") return prefersDark ? "dark" : "light";
+  return theme;
 }
 
 /** El tema guardado en la máquina; sin nada guardado, el del sistema. */
-export function leerTema(store: Storage | null = localStore()): Tema {
+export function readTheme(store: Storage | null = localStore()): Theme {
   try {
-    return parseTema(store?.getItem(CLAVE_TEMA));
+    return parseTheme(store?.getItem(THEME_KEY));
   } catch {
     return "system";
   }
@@ -50,19 +50,19 @@ export function leerTema(store: Storage | null = localStore()): Tema {
  * Sin almacenamiento —modo privado, cuota llena— el tema vale para esta
  * sesión; la app no se rompe por no poder recordarlo.
  */
-export function escribirTema(
-  tema: Tema,
+export function writeTheme(
+  theme: Theme,
   store: Storage | null = localStore()
 ): void {
   try {
-    store?.setItem(CLAVE_TEMA, tema);
+    store?.setItem(THEME_KEY, theme);
   } catch {
     // Sin almacenamiento, la elección vive lo que viva la pestaña.
   }
 }
 
 /** Si el sistema pide oscuro. Sin `matchMedia`, se queda en claro. */
-export function prefiereOscuro(): boolean {
+export function prefersDark(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return false;
   }
@@ -73,19 +73,19 @@ export function prefiereOscuro(): boolean {
  * Escribe el tema en el documento: `data-theme` para el CSS y `color-scheme`
  * para lo que pinta el navegador —barras de scroll, campos nativos—.
  */
-export function aplicarTema(
-  tema: Tema,
-  oscuroDelSistema: boolean,
+export function applyTheme(
+  theme: Theme,
+  systemDark: boolean,
   root?: HTMLElement | null
-): TemaEfectivo {
-  const efectivo = temaEfectivo(tema, oscuroDelSistema);
-  const nodo =
+): EffectiveTheme {
+  const effective = effectiveTheme(theme, systemDark);
+  const node =
     root ?? (typeof document === "undefined" ? null : document.documentElement);
-  if (nodo) {
-    nodo.dataset.theme = efectivo;
-    nodo.style.colorScheme = efectivo;
+  if (node) {
+    node.dataset.theme = effective;
+    node.style.colorScheme = effective;
   }
-  return efectivo;
+  return effective;
 }
 
 /**
@@ -94,8 +94,8 @@ export function aplicarTema(
  * Lo llaman los `main.tsx` de la web y del escritorio: así la primera pintura
  * ya sale en el tema elegido y no hay fogonazo del contrario.
  */
-export function aplicarTemaGuardado(
+export function applySavedTheme(
   root?: HTMLElement | null
-): TemaEfectivo {
-  return aplicarTema(leerTema(), prefiereOscuro(), root);
+): EffectiveTheme {
+  return applyTheme(readTheme(), prefersDark(), root);
 }

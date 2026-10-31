@@ -1,32 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { readUiStyles } from "./readStyles";
 import {
-  aplicarTema,
-  CLAVE_TEMA,
-  escribirTema,
-  leerTema,
-  parseTema,
-  temaEfectivo,
-  type Tema
+  applyTheme,
+  THEME_KEY,
+  writeTheme,
+  readTheme,
+  parseTheme,
+  effectiveTheme,
+  type Theme
 } from "../src/theme";
 
 /** Un almacenamiento de mentira: ni navegador ni cuota. */
-function almacen(inicial: Record<string, string> = {}): Storage {
-  const datos = new Map(Object.entries(inicial));
+function memoryStore(initial: Record<string, string> = {}): Storage {
+  const data = new Map(Object.entries(initial));
   return {
     get length() {
-      return datos.size;
+      return data.size;
     },
-    clear: () => datos.clear(),
-    getItem: (clave: string) => datos.get(clave) ?? null,
-    key: (indice: number) => [...datos.keys()][indice] ?? null,
-    removeItem: (clave: string) => void datos.delete(clave),
-    setItem: (clave: string, valor: string) => void datos.set(clave, valor)
+    clear: () => data.clear(),
+    getItem: (key: string) => data.get(key) ?? null,
+    key: (indice: number) => [...data.keys()][indice] ?? null,
+    removeItem: (key: string) => void data.delete(key),
+    setItem: (key: string, value: string) => void data.set(key, value)
   } satisfies Storage;
 }
 
 /** Un documento de mentira: solo lo que toca el tema. */
-function documento(): HTMLElement {
+function fakeDocument(): HTMLElement {
   return {
     dataset: {} as DOMStringMap,
     style: {} as CSSStyleDeclaration
@@ -35,29 +35,29 @@ function documento(): HTMLElement {
 
 describe("el tema guardado", () => {
   it("lee las tres opciones y deja «el sistema» para lo demás", () => {
-    for (const tema of ["light", "dark", "system"] as Tema[]) {
-      expect(parseTema(tema)).toBe(tema);
+    for (const theme of ["light", "dark", "system"] as Theme[]) {
+      expect(parseTheme(theme)).toBe(theme);
     }
-    expect(parseTema("sepia")).toBe("system");
-    expect(parseTema(null)).toBe("system");
-    expect(parseTema(undefined)).toBe("system");
+    expect(parseTheme("sepia")).toBe("system");
+    expect(parseTheme(null)).toBe("system");
+    expect(parseTheme(undefined)).toBe("system");
   });
 
   it("sin nada guardado, sigue al sistema", () => {
-    expect(leerTema(almacen())).toBe("system");
+    expect(readTheme(memoryStore())).toBe("system");
   });
 
   it("recuerda lo elegido en la máquina", () => {
-    for (const tema of ["light", "dark", "system"] as Tema[]) {
-      const store = almacen();
-      escribirTema(tema, store);
-      expect(store.getItem(CLAVE_TEMA)).toBe(tema);
-      expect(leerTema(store)).toBe(tema);
+    for (const theme of ["light", "dark", "system"] as Theme[]) {
+      const store = memoryStore();
+      writeTheme(theme, store);
+      expect(store.getItem(THEME_KEY)).toBe(theme);
+      expect(readTheme(store)).toBe(theme);
     }
   });
 
   it("no se rompe si el almacenamiento está bloqueado", () => {
-    const roto = {
+    const broken = {
       getItem: () => {
         throw new Error("sin almacenamiento");
       },
@@ -65,26 +65,26 @@ describe("el tema guardado", () => {
         throw new Error("sin almacenamiento");
       }
     } as unknown as Storage;
-    expect(leerTema(roto)).toBe("system");
-    expect(() => escribirTema("dark", roto)).not.toThrow();
+    expect(readTheme(broken)).toBe("system");
+    expect(() => writeTheme("dark", broken)).not.toThrow();
   });
 
   it("resuelve «el sistema» a claro u oscuro", () => {
-    expect(temaEfectivo("system", true)).toBe("dark");
-    expect(temaEfectivo("system", false)).toBe("light");
-    expect(temaEfectivo("light", true)).toBe("light");
-    expect(temaEfectivo("dark", false)).toBe("dark");
+    expect(effectiveTheme("system", true)).toBe("dark");
+    expect(effectiveTheme("system", false)).toBe("light");
+    expect(effectiveTheme("light", true)).toBe("light");
+    expect(effectiveTheme("dark", false)).toBe("dark");
   });
 
   it("escribe data-theme y color-scheme en el documento", () => {
-    const raiz = documento();
-    expect(aplicarTema("system", true, raiz)).toBe("dark");
-    expect(raiz.dataset.theme).toBe("dark");
-    expect(raiz.style.colorScheme).toBe("dark");
+    const root = fakeDocument();
+    expect(applyTheme("system", true, root)).toBe("dark");
+    expect(root.dataset.theme).toBe("dark");
+    expect(root.style.colorScheme).toBe("dark");
 
-    expect(aplicarTema("light", true, raiz)).toBe("light");
-    expect(raiz.dataset.theme).toBe("light");
-    expect(raiz.style.colorScheme).toBe("light");
+    expect(applyTheme("light", true, root)).toBe("light");
+    expect(root.dataset.theme).toBe("light");
+    expect(root.style.colorScheme).toBe("light");
   });
 });
 
@@ -98,21 +98,21 @@ describe("el tema guardado", () => {
 
 const estilos = readUiStyles();
 
-const OSCURO = ':root[data-theme="dark"]';
-const claro = estilos.slice(0, estilos.indexOf(OSCURO));
-const oscuro = estilos.slice(estilos.indexOf(OSCURO));
+const DARK_BLOCK = ':root[data-theme="dark"]';
+const lightCss = estilos.slice(0, estilos.indexOf(DARK_BLOCK));
+const darkCss = estilos.slice(estilos.indexOf(DARK_BLOCK));
 
 type Color = [number, number, number, number];
 
-function color(valor: string): Color {
-  const hex = valor.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/)?.[1];
+function color(value: string): Color {
+  const hex = value.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/)?.[1];
   if (hex) {
     const ancho = hex.length / 3;
     const parte = (indice: number) =>
       parseInt(hex.slice(indice * ancho, (indice + 1) * ancho), 16);
     return [parte(0), parte(1), parte(2), 1];
   }
-  const rgba = valor.match(
+  const rgba = value.match(
     /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/
   );
   if (rgba) {
@@ -123,16 +123,16 @@ function color(valor: string): Color {
       rgba[4] === undefined ? 1 : Number(rgba[4])
     ];
   }
-  throw new Error(`no es un color: ${valor}`);
+  throw new Error(`no es un color: ${value}`);
 }
 
 function token(bloque: string, nombre: string): Color {
   const match = bloque.match(
     new RegExp(`${nombre}\\s*:\\s*(#[0-9a-fA-F]{3,6}|rgba?\\([^)]*\\))`)
   );
-  const valor = match?.[1];
-  if (!valor) throw new Error(`el bloque no define ${nombre}`);
-  return color(valor);
+  const raw = match?.[1];
+  if (!raw) throw new Error(`el bloque no define ${nombre}`);
+  return color(raw);
 }
 
 /** Pone `encima` sobre `debajo`, como haría el navegador. */
@@ -187,20 +187,20 @@ describe("el contraste del tema oscuro", () => {
   it.each(TINTAS)("%s se lee sobre las tres hojas", (nombre) => {
     for (const fondo of fondos) {
       expect(
-        contraste(token(oscuro, nombre), token(oscuro, fondo))
+        contraste(token(darkCss, nombre), token(darkCss, fondo))
       ).toBeGreaterThanOrEqual(4.5);
     }
   });
 
   it("el botón y el marco se leen sobre su fondo", () => {
     expect(
-      contraste(token(oscuro, "--button-ink"), token(oscuro, "--button"))
+      contraste(token(darkCss, "--button-ink"), token(darkCss, "--button"))
     ).toBeGreaterThanOrEqual(4.5);
     expect(
-      contraste(token(oscuro, "--frame-ink"), token(oscuro, "--frame"))
+      contraste(token(darkCss, "--frame-ink"), token(darkCss, "--frame"))
     ).toBeGreaterThanOrEqual(4.5);
     expect(
-      contraste(token(oscuro, "--frame-muted"), token(oscuro, "--frame"))
+      contraste(token(darkCss, "--frame-muted"), token(darkCss, "--frame"))
     ).toBeGreaterThanOrEqual(4.5);
   });
 });
@@ -211,7 +211,7 @@ describe("el contraste del tema claro", () => {
     (nombre) => {
       for (const fondo of ["--paper", "--panel"] as const) {
         expect(
-          contraste(token(claro, nombre), token(claro, fondo))
+          contraste(token(lightCss, nombre), token(lightCss, fondo))
         ).toBeGreaterThanOrEqual(4.5);
       }
     }
@@ -219,10 +219,10 @@ describe("el contraste del tema claro", () => {
 
   it("el botón y el marco se leen sobre su fondo", () => {
     expect(
-      contraste(token(claro, "--button-ink"), token(claro, "--button"))
+      contraste(token(lightCss, "--button-ink"), token(lightCss, "--button"))
     ).toBeGreaterThanOrEqual(4.5);
     expect(
-      contraste(token(claro, "--frame-muted"), token(claro, "--frame"))
+      contraste(token(lightCss, "--frame-muted"), token(lightCss, "--frame"))
     ).toBeGreaterThanOrEqual(4.5);
   });
 });

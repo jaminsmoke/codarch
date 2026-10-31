@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import type { HistoryEntry } from "@codarch/schema/browser";
-import { AppShell, OpenMenu, useCodarchApp, useTema } from "@codarch/ui";
+import { AppShell, OpenMenu, useCodarchApp, useTheme } from "@codarch/ui";
 import { desktop } from "./bridge";
 import { desktopPlatform } from "./plataforma";
 import type { CodarchDesktop } from "../preload";
@@ -11,7 +11,7 @@ export default function App() {
   const platform = useMemo(() => desktopPlatform(), []);
   const app = useCodarchApp(platform);
   // El tema es de la máquina y lo comparten todos los ajustes (ADR 0084).
-  const { tema, setTema } = useTema();
+  const { theme, setTheme } = useTheme();
   const {
     cc,
     source,
@@ -163,8 +163,8 @@ export default function App() {
         <Settings
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
-          tema={tema}
-          onTema={setTema}
+          theme={theme}
+          onTheme={setTheme}
           areaMetric={areaMetric}
           onAreaMetric={(value) => setAreaMetric(value)}
           colorMode={colorMode}
