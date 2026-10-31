@@ -1,7 +1,7 @@
 {
   "name": "codarch",
   "private": true,
-  "version": "0.3.72",
+  "version": "0.3.73",
   "type": "module",
   "workspaces": [
     "packages/*",
