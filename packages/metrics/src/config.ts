@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { findRepoConfig } from "@codarch/schema";
 import { CONFIG_VERSION } from "@codarch/versions";
 import { parse as parseYaml } from "yaml";
 import { findDomainProfile, domainProfileIds, type DomainProfile } from "./profiles";
@@ -360,13 +361,9 @@ export function loadIgnoreConfig(file: string): string[] {
   return withFile(file, parseIgnoreConfig);
 }
 
-/** El `.codarch.yml` de una raíz, si lo tiene. */
+/** El `.codarch.yml` de una raíz, si lo tiene. El nombre lo decide el registro. */
 export function findProjectConfig(root: string): string | undefined {
-  for (const file of [".codarch.yml", ".codarch.yaml"]) {
-    const candidate = path.resolve(root, file);
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  return undefined;
+  return findRepoConfig(path.resolve(root)) ?? undefined;
 }
 
 /**

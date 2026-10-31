@@ -43,6 +43,12 @@ Esto enmienda el punto 5 del ADR 0100: el nombre ya no lo declara cada paquete q
 **el registro**; el paquete que escribe lo importa y lo reexporta si su API lo usaba. Es la misma regla
 —un nombre, un sitio— con un solo sitio en vez de once.
 
+El registro cubre también los dos nombres del producto que no viven dentro de la carpeta pero se buscan
+igual: la configuración del repo (`CONFIG_FILE_NAMES`, `.yml` primero) la resuelve `findRepoConfig`, y la
+línea del `.gitignore` la escribe `ensureStateIgnored` en `@codarch/parsers`, no cada consumidor con su
+propia comprobación. Un repo con `.codarch.yaml` leía su configuración en `analyze` y no en el build de
+plugins: la copia que se quedó atrás.
+
 ### 2. Analizar deja la carpeta limpia
 
 `codarch analyze` y el análisis del escritorio, después de escribir sus artefactos, borran de
@@ -97,6 +103,8 @@ repetida en cada consumidor.
 ## Hoja de ruta
 
 - ✅ El registro de nombres, la limpieza con aviso y el módulo de los dos reportes.
+- ✅ La configuración del repo y la línea del `.gitignore`, también en el registro, con el `.yaml`
+  leído por todos los consumidores.
 - ⬜ Lo que `serve` deja por el camino: hoy no limpia a propósito; si aparece basura que solo escribe
   el servidor, se decidirá si le toca a él o a la pasada completa.
 - ⬜ El estado local no tiene versión: `chains.json`, `scopes.json` y `parse-cache.json` se leen por su

@@ -12,7 +12,7 @@ import path from "node:path";
 import { existsSync, readFileSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { autoUpdater } from "electron-updater";
 import {
-  ensureGitignoreEntry,
+  ensureStateIgnored,
   protectedRootReason,
   readFileDiff,
   readSourceFile,
@@ -626,17 +626,6 @@ function persistedChecksum(root: string): string {
   const checksum = stored?.meta?.checksum ?? "";
   storedChecksums.set(root, checksum);
   return checksum;
-}
-
-/**
- * Deja `.codarch/` fuera de git si el directorio nace ahora (ADR 0050).
- *
- * Si ya existía, o el usuario quitó la línea del `.gitignore`, no se toca.
- */
-function ensureStateIgnored(root: string): void {
-  if (!existsSync(codarchDir(root))) {
-    ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
-  }
 }
 
 /** Lee el snapshot persistido de un repo, si existe y se entiende. */

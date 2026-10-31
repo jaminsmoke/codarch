@@ -4,7 +4,7 @@ import { ConfigError } from "@codarch/metrics";
 import {
   ParseCache,
   analyzeRepository,
-  ensureGitignoreEntry,
+  ensureStateIgnored,
   loadOwnParseCache,
   loadScopeParseCaches,
   protectedRootReason,
@@ -272,9 +272,7 @@ function writeSnapshot(
     // El estado es local: si `.codarch/` nace aquí, se ignora en el repo. Si
     // ya existía (o el usuario quitó la línea), no se toca el `.gitignore`
     // (ADR 0050).
-    if (outDirectory === codarchDir(rootPath) && !fs.existsSync(outDirectory)) {
-      ensureGitignoreEntry(rootPath, `${CODARCH_DIR}/`);
-    }
+    if (outDirectory === codarchDir(rootPath)) ensureStateIgnored(rootPath);
     fs.mkdirSync(outDirectory, { recursive: true });
     fs.writeFileSync(snapshotPath, `${JSON.stringify(cc, null, 2)}\n`, "utf8");
     return snapshotPath;

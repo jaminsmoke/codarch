@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { findRepoConfig } from "@codarch/schema";
 import { parse as parseYaml } from "yaml";
 import type { Plugin } from "vite";
 import type { PluginManifest } from "./index";
@@ -26,10 +27,10 @@ export interface PluginBuildOptions {
   root: string;
 }
 
-/** Los plugins que el repo declara compilados. */
+/** Los plugins que el repo declara compilados (`.codarch.yml` o `.yaml`). */
 export function compiledPlugins(root: string): string[] {
-  const file = path.join(root, ".codarch.yml");
-  if (!fs.existsSync(file)) return [];
+  const file = findRepoConfig(root);
+  if (!file) return [];
   try {
     const parsed = parseYaml(fs.readFileSync(file, "utf8")) as {
       plugins?: unknown;

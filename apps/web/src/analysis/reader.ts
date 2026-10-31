@@ -1,5 +1,5 @@
 import { MemoryFileSystem } from "@codarch/parsers/fs";
-import { CODARCH_DIR } from "@codarch/schema/browser";
+import { CODARCH_DIR, CONFIG_FILE_NAMES } from "@codarch/schema/browser";
 import type { DirectoryHandleLike } from "../fs-access";
 
 /**
@@ -34,8 +34,7 @@ const CONFIG_FILES = new Set([
   "package.json",
   "tsconfig.json",
   "jsconfig.json",
-  ".codarch.yml",
-  ".codarch.yaml",
+  ...CONFIG_FILE_NAMES,
   // El módulo de Go: sin él, sus imports se resuelven por sufijo.
   "go.mod"
 ]);

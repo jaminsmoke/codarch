@@ -8,8 +8,8 @@ import {
   type LintProcessRunner,
   type LintToolRun
 } from "@codarch/lint";
-import { ensureGitignoreEntry } from "@codarch/parsers";
-import { CODARCH_DIR, codarchDir } from "@codarch/schema";
+import { ensureStateIgnored } from "@codarch/parsers";
+import { codarchDir } from "@codarch/schema";
 import { planProjectLint, planSystems } from "./lint-plan";
 
 /**
@@ -82,9 +82,7 @@ export function writeLintArtifact(
   try {
     // El estado es local: si `.codarch/` nace aquí, se ignora en el repo
     // (ADR 0050).
-    if (outDirectory === codarchDir(root) && !fs.existsSync(outDirectory)) {
-      ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
-    }
+    if (outDirectory === codarchDir(root)) ensureStateIgnored(root);
     fs.mkdirSync(outDirectory, { recursive: true });
     fs.writeFileSync(file, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
     return file;

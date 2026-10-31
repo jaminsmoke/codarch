@@ -11,7 +11,7 @@ import http from "node:http";
 import path from "node:path";
 import type { DiffReport } from "@codarch/metrics";
 import {
-  ensureGitignoreEntry,
+  ensureStateIgnored,
   headReportFor,
   preferredReport,
   readFileDiff,
@@ -21,7 +21,6 @@ import {
 import {
   CODARCH_DIR,
   REPORT_FILE,
-  codarchDir,
   codarchPath,
   historyLocation,
   readHistoryIndex
@@ -296,9 +295,7 @@ function getReport(context: RouteContext): void {
  */
 function getChains(context: RouteContext): void {
   const root = context.live.current().root;
-  if (!fs.existsSync(codarchDir(root))) {
-    ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
-  }
+  ensureStateIgnored(root);
   sendJson(
     context.response,
     chainsPayload(root, context.url.searchParams.get("symbol"))

@@ -15,7 +15,8 @@
     }
   },
   "dependencies": {
-    "@codarch/render": "0.0.0"
+    "@codarch/render": "0.0.0",
+    "@codarch/schema": "*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

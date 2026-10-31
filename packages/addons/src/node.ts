@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CONFIG_FILE_NAMES } from "@codarch/schema";
 import { parse as parseYaml } from "yaml";
 import {
   AddonError,
@@ -21,9 +22,6 @@ import {
 
 /** La carpeta donde viven los addons de un repo. */
 export const ADDONS_DIR = "addons";
-
-/** Los nombres que puede tener el archivo de reglas del repo. */
-const CONFIG_FILES = [".codarch.yml", ".codarch.yaml"] as const;
 
 export interface AddonLoadResult {
   addons: Addon[];
@@ -119,7 +117,7 @@ export function repoAddons(root: string): RepoAddons {
 
 /** Los addons que declara el repo, en orden. */
 export function declaredAddons(root: string): string[] {
-  for (const name of CONFIG_FILES) {
+  for (const name of CONFIG_FILE_NAMES) {
     const file = path.join(root, name);
     if (!fs.existsSync(file)) continue;
     let text: string;

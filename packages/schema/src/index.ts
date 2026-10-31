@@ -56,6 +56,7 @@ export {
   CODARCH_DIR,
   CODARCH_ENTRIES,
   CODARCH_KNOWN,
+  CONFIG_FILE_NAMES,
   HEAD_REPORT_FILE,
   LINT_FILE,
   LINT_RULES_FILE,
@@ -69,7 +70,7 @@ export {
   isCodarchEntry
 } from "./artifacts";
 export type { CodarchArtifact } from "./artifacts";
-export { codarchDir, codarchPath } from "./codarch-path";
+export { codarchDir, codarchPath, findRepoConfig } from "./codarch-path";
 export { CcJsonError, parseCcJson } from "./parse";
 export { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
 export {

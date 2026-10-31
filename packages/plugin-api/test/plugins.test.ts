@@ -141,6 +141,19 @@ describe("el registro de plugins", () => {
     expect(compiledPlugins(root)).toEqual([]);
   });
 
+  it("lee también el repo que usa .codarch.yaml", () => {
+    // El nombre de la configuración lo decide el registro de `@codarch/schema`:
+    // el build no puede buscar un fichero que `analyze` sí encuentra.
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-plugins-"));
+    temporales.push(root);
+    fs.writeFileSync(
+      path.join(root, ".codarch.yaml"),
+      "version: 1\nplugins:\n  - ejemplo\n",
+      "utf8"
+    );
+    expect(compiledPlugins(root)).toEqual(["ejemplo"]);
+  });
+
   it("un nombre que no es de plugin no entra en el build", () => {
     const root = repo("version: 1\nplugins:\n  - ../fuera\n  - vista-3d\n");
     expect(compiledPlugins(root)).toEqual(["vista-3d"]);

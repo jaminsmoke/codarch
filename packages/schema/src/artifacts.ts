@@ -11,6 +11,16 @@
 export const CODARCH_DIR = ".codarch";
 
 /**
+ * Los nombres que puede tener la configuración del repo (ADR 0038).
+ *
+ * `.yml` primero: si el repo tiene los dos, se lee ese. No vive en
+ * `.codarch/` —la configuración sí se versiona—, pero es un nombre del
+ * producto y se busca en un solo sitio: `analyze`, los addons, los plugins, la
+ * web y el MCP tienen que encontrar el mismo fichero.
+ */
+export const CONFIG_FILE_NAMES = [".codarch.yml", ".codarch.yaml"] as const;
+
+/**
  * Todo lo que la carpeta puede contener, por su papel.
  *
  * Es la lista que reconoce `codarch analyze` al limpiar: lo que no está aquí se

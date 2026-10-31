@@ -1,8 +1,8 @@
 // La configuración del repo y los perfiles de arquitectura: lo que la app
 // lee de `.codarch.yml` y lo que se propone cuando no hay config.
 
-import { readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename } from "node:path";
+import { findRepoConfig } from "@codarch/schema";
 import {
   CONFIG_VERSION,
   ConfigError,
@@ -77,18 +77,9 @@ export function getProjectConfig(store: ArchitectureStore): ProjectConfigResult 
   }
 }
 
-/** El `.codarch.yml` del repo, si lo hay. */
+/** El `.codarch.yml` del repo, si lo hay. El nombre lo decide el registro. */
 function configFile(root: string): string | null {
-  for (const name of [".codarch.yml", ".codarch.yaml"]) {
-    const candidate = join(root, name);
-    try {
-      readFileSync(candidate);
-      return candidate;
-    } catch {
-      // Se prueba el siguiente.
-    }
-  }
-  return null;
+  return findRepoConfig(root);
 }
 
 /**

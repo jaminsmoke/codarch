@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { ensureGitignoreEntry } from "../src/gitignore";
+import { ensureGitignoreEntry, ensureStateIgnored } from "../src/gitignore";
 
 function repo(content?: string): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-gitignore-"));
@@ -46,6 +46,31 @@ describe("el estado no se versiona", () => {
       } finally {
         fs.rmSync(root, { recursive: true, force: true });
       }
+    }
+  });
+
+  it("solo añade la línea si el estado del repo es nuevo", () => {
+    const root = repo();
+    try {
+      expect(ensureStateIgnored(root)).toBe(true);
+      expect(leer(root)).toBe(".codarch/\n");
+      // La segunda vez la carpeta ya existe: no se vuelve a tocar.
+      fs.mkdirSync(path.join(root, ".codarch"));
+      fs.writeFileSync(path.join(root, ".gitignore"), ".codarch/\n", "utf8");
+      expect(ensureStateIgnored(root)).toBe(false);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("no toca el .gitignore de un repo que ya tenía su .codarch/", () => {
+    const root = repo("node_modules/\n");
+    try {
+      fs.mkdirSync(path.join(root, ".codarch"));
+      expect(ensureStateIgnored(root)).toBe(false);
+      expect(leer(root)).toBe("node_modules/\n");
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
     }
   });
 

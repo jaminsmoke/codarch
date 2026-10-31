@@ -1,5 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CODARCH_DIR } from "@codarch/schema";
+
+/** La línea que deja el estado local fuera de git. */
+export const STATE_IGNORE_ENTRY = `${CODARCH_DIR}/`;
+
+/**
+ * Deja `.codarch/` fuera de git si la carpeta nace ahora (ADR 0050).
+ *
+ * Es el único sitio donde la CLI, `serve` y el escritorio tocan el
+ * `.gitignore`: la línea se añade una vez, con el mismo texto, y solo si el
+ * estado de este repo es nuevo. Si la carpeta ya existía —o el usuario quitó
+ * la línea— no se vuelve a poner.
+ */
+export function ensureStateIgnored(root: string): boolean {
+  if (fs.existsSync(path.join(root, CODARCH_DIR))) return false;
+  return ensureGitignoreEntry(root, STATE_IGNORE_ENTRY);
+}
 
 /**
  * Deja una entrada en el `.gitignore` del repositorio, sin tocar el resto.

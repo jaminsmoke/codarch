@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { CONFIG_VERSION } from "@codarch/metrics";
+import { CONFIG_FILE_NAMES, findRepoConfig } from "@codarch/schema";
 import { parseDocument, type Document } from "yaml";
 
 /**
@@ -24,15 +25,9 @@ export interface InstalledOptions {
   json: boolean;
 }
 
-const CONFIG_FILES = [".codarch.yml", ".codarch.yaml"];
-
-/** El `.codarch.yml` del repo, si lo hay. */
+/** El `.codarch.yml` del repo, si lo hay. El nombre lo decide el registro. */
 export function findConfig(root: string): string | null {
-  for (const file of CONFIG_FILES) {
-    const full = path.join(root, file);
-    if (fs.existsSync(full)) return full;
-  }
-  return null;
+  return findRepoConfig(root);
 }
 
 /** Los nombres declarados en `.codarch.yml`, en orden. */
@@ -56,7 +51,7 @@ export function declareIn(
 
   if (!file) {
     fs.writeFileSync(
-      path.join(root, ".codarch.yml"),
+      path.join(root, CONFIG_FILE_NAMES[0]),
       `version: ${CONFIG_VERSION}\n\n${kind}:\n  - ${name}\n`,
       "utf8"
     );

@@ -106,7 +106,7 @@ export {
   writeRestSnapshot
 } from "./rest-store";
 export type { RestWrite } from "./rest-store";
-export { ensureGitignoreEntry } from "./gitignore";
+export { STATE_IGNORE_ENTRY, ensureGitignoreEntry, ensureStateIgnored } from "./gitignore";
 export { sweepCodarch } from "./codarch-dir";
 export {
   preferredReport,
