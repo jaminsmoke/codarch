@@ -108,8 +108,8 @@ La versión publicada de cada componente está en `versions.json`; aquí no se f
 **M23** (dominio propio y búsqueda de la web), **M31** (los ADR en inglés), **M34** (la app dice qué
 raíz analiza; pausa del escritorio), **M49** (el lenguaje de la ficha en todo el reporte), **M63** (la
 carpeta tiene su ficha), **M64** (el mapa de lo que no es código), **M65** (el lint, en el mapa),
-**M66** (el proyecto tiene su ficha), **M67** (el lint es del proyecto) y **M71** (la duplicación, en
-el diff). **M24** (índice SQLite) sigue aparcada. El detalle está en
+**M66** (el proyecto tiene su ficha) y **M67** (el lint es del proyecto). **M24** (índice SQLite)
+sigue aparcada. El detalle está en
 `apps/site/docs/desarrollo/roadmap.md` y en la guía; este fichero no lo repite.
 
 ## No objetivos de v1

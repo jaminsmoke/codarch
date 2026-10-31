@@ -365,7 +365,7 @@ entre dos snapshots inmutables. `rules` es opcional; si falta, `rules.configured
 
 ```ts
 type DiffReport = {
-  schemaVersion: '1.4'
+  schemaVersion: '1.5'
   base: { projectName, checksum, files, folders, edges }
   head: { projectName, checksum, files, folders, edges }
   summary: {
@@ -392,8 +392,9 @@ type DiffReport = {
   }
   hotspots: Hotspot[]
   hotspotMetric: string | null
-  migration: MigrationReport      // la migración, que es el motivo de ser
+  migration: MigrationReport | null // la migración, que es el motivo de ser
   symbols: DiffSymbolReport | null // qué pasó dentro de los ficheros
+  duplication: DuplicationReport | null // el código copiado, entre quiénes
 }
 ```
 
@@ -419,9 +420,15 @@ Reglas:
   11 en neto. No salen de los snapshots, que no guardan código: las mide quien tiene las dos
   fuentes a mano —la comparación HEAD, con la base exportada y el árbol— y las inyecta como
   `source`. Desde dos `cc.json` sueltos quedan en `null`, que es «no medido», no un cero.
+- La sección `duplication` compara la lente de duplicación de la base con la del head: las líneas
+  duplicadas y repetidas, los pares que aparecen, los que dejan de compartir y los que se separan, con
+  su similitud antes y después. Los pares se cruzan por sus **dos rutas**, no por id: un par sigue
+  siendo el mismo si los ficheros siguen siendo los mismos. Con la lente en un solo lado no hay
+  comparación: `lines.delta` es `null` y el reporte dice qué lado está sin medir.
 - `schemaVersion` sube cuando cambia la forma del reporte. Los lectores reconstruyen los reportes de
   versiones anteriores a la actual, así que siempre se usa la más nueva: lo que no se pudo medir
-  (la sección de migración en un `1.0`) se marca con `null` en vez de inventar ceros.
+  (la sección de migración en un `1.0`, la duplicación antes de la `1.5`) se marca con `null` en vez
+  de inventar ceros.
 - Las violaciones se comparan por clave estable entre base y head; solo las introducidas con
   severidad `error` bloquean con `--fail-on violations`.
 - `report.json` es determinista y no tiene timestamps. Ver

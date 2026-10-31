@@ -243,11 +243,23 @@ reordena a su manera: el orden es el del snapshot, y el filtro solo elige qué s
 
 ### M71 — La duplicación, en el diff
 
-- ⬜ La sección **Duplicación** del reporte: pares nuevos, pares que se separan y líneas ganadas o
+- ✅ La sección **Duplicación** del reporte: pares nuevos, pares que se separan y líneas ganadas o
   perdidas.
-- ⬜ El comentario del PR y la acción, con el mismo corte y el mismo resumen que la app.
-- ⬜ Una consulta del MCP para la duplicación y los pares de un ámbito.
-- ⬜ Una regla optativa `duplication-max` en `.codarch.yml`, solo si el uso la pide.
-- ⬜ Tests del diff (par nuevo, par roto, sin lente en base o en head).
+- ✅ El comentario del PR y la acción, con el mismo corte y el mismo resumen que la app.
+- ✅ Una consulta del MCP para la duplicación y los pares de un ámbito.
+- ⬜ Una regla optativa `duplication-max` en `.codarch.yml`, solo si el uso la pide. No entra: el
+  ADR la condiciona a que el uso la pida, y hoy nadie la ha pedido.
+- ✅ Tests del diff (par nuevo, par roto, sin lente en base o en head).
+
+El reporte sube a `1.5` con la sección `duplication`: las líneas de cada lado con su delta, los pares
+que aparecen, los que desaparecen y los que se separan —con su similitud antes y después— y las
+cuentas antes de recortar, para que el `+N` sea verdad. Los pares se cruzan por sus **dos rutas**, no
+por id, porque la lente habla de ficheros y un id puede cambiar entre fotos. Con la lente en un solo
+lado no hay comparación: el reporte se para, dice qué lado está sin medir y no inventa un cero.
+
+La app gana **Duplicación** en Cambios, el CLI su línea y su sección, el comentario del PR su fila y
+su bloque, y el MCP `get_duplication_report` con el ámbito por carpeta o fichero. El corte es el
+mismo en los cuatro: cinco filas en el comentario, `+N` cuando hay más, y el par cuenta en un subárbol
+solo si sus dos ficheros están dentro.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

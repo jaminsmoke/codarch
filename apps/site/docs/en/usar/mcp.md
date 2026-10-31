@@ -244,6 +244,22 @@ status and crossings) and `changes` (if there is a `report.json`: the files whos
 shrank, and the total debt delta). If the snapshot does not have the migration lens, `available` is
 `false` and it says so.
 
+### `get_duplication_report`
+
+How much code is copied and between whom: the snapshot's duplication lens and, if there is a
+`report.json`, what changes against the base.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `path` | string | root | Folder or file to show pairs for |
+| `limit` | 1–100 | 20 | Pairs and changes listed |
+
+Returns `summary` —duplicated and repeated lines, proportion over the scope's `rloc` and affected
+files—, `pairs` with both ends of each pair, its similarity and its lines, `totalPairs`, and `changes`
+with `added`, `removed` and `diverging`, the lines gained or lost and their counts. A pair counts in
+the scope when both its files are inside; the one crossing the border belongs to the parent folder.
+Without the lens, `available` is `false` and it says so: unmeasured is not the same as clean.
+
 ### `get_history`
 
 The repository's timeline: the snapshots saved with `codarch analyze --history`.
@@ -330,7 +346,7 @@ or entering the set. `limit` (1–50, default 5) controls the detail edges and f
 apps/mcp/
 ├── bin/codarch-mcp.mjs   launcher without npm noise
 ├── src/store.ts          snapshot/report index, paths, risk, cycles, aggregates
-├── src/tools.ts          the fourteen queries
+├── src/tools.ts          the fifteen queries
 ├── src/server.ts         MCP registration and input schemas
 ├── src/index.ts          stdio entry and options
 └── test/                 51 tests, including in-memory transport
