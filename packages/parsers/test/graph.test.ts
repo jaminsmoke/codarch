@@ -142,8 +142,9 @@ describe("buildGraph", () => {
     expect(graph.edges).toEqual([
       { from: "a.ts", to: "b.ts", weight: 2, typeOnly: 1, isCyclic: false }
     ]);
-    expect(graph.metrics.get("a.ts")?.fanOut).toBe(1);
-    expect(graph.metrics.get("b.ts")?.fanIn).toBe(1);
+    // Dos imports al mismo destino pesan dos: la arista ya lo dice.
+    expect(graph.metrics.get("a.ts")?.fanOut).toBe(2);
+    expect(graph.metrics.get("b.ts")?.fanIn).toBe(2);
   });
 
   it("ignora aristas hacia nodos que no se analizan", () => {

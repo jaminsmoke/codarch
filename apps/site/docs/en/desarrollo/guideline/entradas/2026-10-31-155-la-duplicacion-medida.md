@@ -37,13 +37,14 @@ files (ADR 0056), and the checksum still comes from the measured code.
 
 **Verified**: **11 new tests** —the `K` cutoff (7 lines no, 8 yes), the identical file and its
 canonical, internal repetition, the thresholds, scope, reading without the lens and determinism—; the
-whole suite green (**174 files and 1508 tests**), typecheck and lint clean and the site builds. This
-repo measured with its own lens: **598 files**, **2,183 duplicated lines** and **518 repeated**, 3 % of
-`rloc`, in **5 pairs** —one `copy`, the two `main.tsx` files; four `diverging`, from the web's
-`reader.ts` to the parsers' `extensions.ts` at 86 %, and the `schema` and `lint` barrels against their
-modules at 97 and 28 lines—. By file, the top ones are `schema/src/index.ts` (98) and `browser.ts`
-(97), the Go and Java analyzers (53 and 52) and the UI's `InspectorBar` (52, plus another 52 repeated
-inside).
+whole suite green (**174 files and 1509 tests**), typecheck and lint clean and the site builds. The
+first measurement of this repo gave **598 files**, **2,183 duplicated lines**, **518 repeated** and
+**5 pairs**. With the shared blocks already removed —the `schema` and `lint` surfaces, the web's
+`reader.ts`, the `InspectorBar` frame and the profile projection— **626 files** remain, with **1,839
+duplicated lines** and **466 repeated**, 3 % of `rloc`, in **2 pairs**: the two `main.tsx` files, which
+differ only in a comment, and the CLI's `history` and `scopes` arguments at 43 %. By file, the top ones
+are the Go, Java and Python analyzers (53, 52 and 49 lines), which share a skeleton below the pair
+threshold.
 
 **Verdict**: phase. M68 closes the measurement; M69 paints it, M70 names the divergence and M71 takes it
 to the diff.

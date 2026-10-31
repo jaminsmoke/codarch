@@ -21,8 +21,8 @@ interface InspectorSection {
   icon: ReactNode;
 }
 
-/** El documento: la ficha del fichero seleccionado. */
-function FileIcon() {
+/** El marco de todos los iconos: mismo tamaño, mismo trazo, mismo encuadre. */
+function Icon({ children }: { children: ReactNode }) {
   return (
     <svg
       viewBox="0 0 18 18"
@@ -36,75 +36,51 @@ function FileIcon() {
       aria-hidden="true"
       focusable="false"
     >
+      {children}
+    </svg>
+  );
+}
+
+/** El documento: la ficha del fichero seleccionado. */
+function FileIcon() {
+  return (
+    <Icon>
       <path d="M5 2.5h5L14 6.5v9H5z" />
       <path d="M10 2.5v4h4" />
-    </svg>
+    </Icon>
   );
 }
 
 /** El contenedor: la ficha de la carpeta seleccionada. */
 function FolderIcon() {
   return (
-    <svg
-      viewBox="0 0 18 18"
-      width="17"
-      height="17"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <Icon>
       <path d="M2.5 4.5h5l1.5 2h6.5v7h-13z" />
       <path d="M2.5 6.5h13" />
-    </svg>
+    </Icon>
   );
 }
 
 /** Un treemap en miniatura: el mapa entero, sin selección. */
 function ProjectIcon() {
   return (
-    <svg
-      viewBox="0 0 18 18"
-      width="17"
-      height="17"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <Icon>
       <rect x="2.5" y="2.5" width="7" height="6" />
       <rect x="11.5" y="2.5" width="4" height="13" />
       <rect x="2.5" y="10.5" width="7" height="5" />
-    </svg>
+    </Icon>
   );
 }
 
 /** Dos flechas: lo que difiere del último commit. */
 function ChangesIcon() {
   return (
-    <svg
-      viewBox="0 0 18 18"
-      width="17"
-      height="17"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <Icon>
       <path d="M3.5 6.5h9.5" />
       <path d="M10.5 4 13 6.5 10.5 9" />
       <path d="M14.5 11.5H5" />
       <path d="M7.5 9 5 11.5 7.5 14" />
-    </svg>
+    </Icon>
   );
 }
 

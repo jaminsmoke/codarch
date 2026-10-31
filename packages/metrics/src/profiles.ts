@@ -341,6 +341,48 @@ export const DOMAIN_PROFILES: readonly DomainProfile[] = [
   }
 ];
 
+/** Una entrada del catálogo, ya plana y serializable. */
+export interface DomainProfileEntry {
+  id: string;
+  title: string;
+  description: string;
+  when: string;
+  layers: Array<{ name: string; patterns: string[] }>;
+  rules: Array<{
+    name: string;
+    from: string;
+    to: string;
+    severity: ForbiddenRuleConfig["severity"];
+    message: string | null;
+  }>;
+}
+
+/**
+ * El catálogo como lo enseñan el CLI y el MCP.
+ *
+ * La proyección vive aquí para que las dos puertas digan lo mismo: capas con
+ * sus patrones y reglas con su severidad, sin el `type` interno de la regla.
+ */
+export function profileEntries(): DomainProfileEntry[] {
+  return DOMAIN_PROFILES.map((profile) => ({
+    id: profile.id,
+    title: profile.title,
+    description: profile.description,
+    when: profile.when,
+    layers: profile.layers.map((layer) => ({
+      name: layer.name,
+      patterns: [...layer.patterns]
+    })),
+    rules: profile.rules.map((rule) => ({
+      name: rule.name,
+      from: rule.from,
+      to: rule.to,
+      severity: rule.severity,
+      message: rule.message ?? null
+    }))
+  }));
+}
+
 /** Un perfil por su id. */
 export function findDomainProfile(id: string): DomainProfile | undefined {
   return DOMAIN_PROFILES.find((profile) => profile.id === id);

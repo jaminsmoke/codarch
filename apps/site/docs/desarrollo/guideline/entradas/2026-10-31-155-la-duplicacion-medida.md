@@ -37,11 +37,13 @@ duplicación viaja en la caché de parseo, así que un guardado no relee los fic
 
 **Verificado**: **11 tests nuevos** —el corte de `K` (7 líneas no, 8 sí), el idéntico y su canónico, la
 repetición interna, los umbrales, el alcance, la lectura sin lente y la determinación—; suite entera en
-verde (**174 ficheros y 1508 tests**), typecheck y lint limpios y el sitio se escribe. Medido este repo
-con su propia lente: **598 ficheros**, **2.183 líneas duplicadas** y **518 repetidas**, el 3 % del
-`rloc`, en **5 pares** —uno `copy`, los dos `main.tsx`; cuatro `diverging`, del `reader.ts` de la web al
-`extensions.ts` de los parsers con un 86 %, y los barrels de `schema` y `lint` contra sus módulos con
-97 y 28 líneas—. Por fichero, los primeros son `schema/src/index.ts` (98) y `browser.ts` (97), los
-analizadores de Go y Java (53 y 52) y el `InspectorBar` de la UI (52, más otras 52 repetidas dentro).
+verde (**174 ficheros y 1509 tests**), typecheck y lint limpios y el sitio se escribe. La primera medida
+de este repo dio **598 ficheros**, **2.183 líneas duplicadas**, **518 repetidas** y **5 pares**. Con los
+bloques compartidos ya quitados —la superficie de `schema` y `lint`, el `reader.ts` de la web, el marco
+del `InspectorBar` y la proyección de perfiles— quedan **626 ficheros**, **1.839 líneas duplicadas** y
+**466 repetidas**, el 3 % del `rloc`, en **2 pares**: los dos `main.tsx`, que solo difieren en un
+comentario, y los argumentos de `history` y `scopes` del CLI, al 43 %. Por fichero, los primeros son
+los analizadores de Go, Java y Python (53, 52 y 49 líneas), que comparten esqueleto por debajo del
+umbral de par.
 
 **Veredicto**: fase. M68 cierra la medida; M69 la pinta, M70 nombra la divergencia y M71 la lleva al diff.

@@ -166,8 +166,8 @@ siendo `rloc`; la duplicación es un color y una ficha, no una tercera dimensió
 
 - El código copiado deja de ser gratis: aparece en el fichero, en la carpeta y en el proyecto, y una
   copia que se separa tiene nombre (`diverging`) en vez de quedarse a medias.
-- El `main.tsx` de la web y el del escritorio son un par `copy` desde el primer análisis, y los
-  barrels de `schema` y `lint` contra sus módulos salen como `diverging`: la lista de trabajo real.
+- El `main.tsx` de la web y el del escritorio difieren en un comentario y salen como `copy`; los
+  argumentos de `history` y `scopes` del CLI, como `diverging`: la lista de trabajo real.
 - La deuda de migración mantiene su fórmula y su ranking; la duplicación no la maquilla.
 - El snapshot crece con los pares que superan el umbral. La lista se ordena y la UI recorta con `+N más`;
   el snapshot no recorta, porque un reporte no puede depender de lo que cupo en pantalla.
@@ -208,9 +208,10 @@ siendo `rloc`; la duplicación es un color y una ficha, no una tercera dimensió
 - ✅ La lente dentro del checksum y la lectura de un snapshot que no la trae como **sin medir**.
 - ✅ Tests del corte de `K`, del idéntico y su canónico, de la repetición interna, de los umbrales, del
   alcance y de la determinación.
-- ✅ Medir este repo con su propia lente: **598 ficheros**, **2.183 líneas duplicadas** y **518
-  repetidas** (el 3 % de `rloc`), en **5 pares** —uno `copy`, los dos `main.tsx`, y cuatro `diverging`—.
-  Las cifras quedan en la [guía](/desarrollo/guia/).
+- ✅ Medir este repo con su propia lente: **626 ficheros**, **1.839 líneas duplicadas** y **466
+  repetidas** (el 3 % de `rloc`), en **2 pares** —uno `copy` y uno `diverging`—, después de quitar los
+  bloques compartidos que la primera pasada encontró (2.183 y 518 en 5 pares). Las cifras quedan en la
+  [guía](/desarrollo/guia/).
 
 ### M69 — La duplicación, en el mapa
 

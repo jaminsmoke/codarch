@@ -1,3 +1,4 @@
+import { DEFAULT_EXTENSIONS } from "@codarch/parsers/browser";
 import { MemoryFileSystem } from "@codarch/parsers/fs";
 import { CODARCH_DIR, CONFIG_FILE_NAMES } from "@codarch/schema/browser";
 import type { DirectoryHandleLike } from "../fs-access";
@@ -14,21 +15,6 @@ import type { DirectoryHandleLike } from "../fs-access";
  * Los directorios pesados se saltan al leer; el resto de las reglas del
  * `.gitignore` las aplica el walker del analizador.
  */
-
-const SOURCE_EXTENSIONS = [
-  ".ts",
-  ".tsx",
-  ".mts",
-  ".cts",
-  ".js",
-  ".jsx",
-  ".mjs",
-  ".cjs",
-  ".java",
-  ".py",
-  ".go",
-  ".cs"
-] as const;
 
 const CONFIG_FILES = new Set([
   "package.json",
@@ -165,5 +151,5 @@ export async function readDirectoryToMemory(
 function isInteresting(name: string): boolean {
   if (CONFIG_FILES.has(name)) return true;
   const lower = name.toLowerCase();
-  return SOURCE_EXTENSIONS.some((extension) => lower.endsWith(extension));
+  return DEFAULT_EXTENSIONS.some((extension) => lower.endsWith(extension));
 }

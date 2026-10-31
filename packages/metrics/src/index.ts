@@ -64,9 +64,10 @@ export { emptyRuleReport, evaluateRules } from "./rules";
 export {
   DOMAIN_PROFILES,
   domainProfileIds,
-  findDomainProfile
+  findDomainProfile,
+  profileEntries
 } from "./profiles";
-export type { DomainProfile } from "./profiles";
+export type { DomainProfile, DomainProfileEntry } from "./profiles";
 export { suggestLayers } from "./suggest";
 export type {
   Suggestion,

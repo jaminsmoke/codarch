@@ -1,4 +1,4 @@
-import { CONFIG_VERSION, DOMAIN_PROFILES } from "@codarch/metrics";
+import { CONFIG_VERSION, DOMAIN_PROFILES, profileEntries } from "@codarch/metrics";
 
 /**
  * Lista el catálogo de perfiles de arquitectura.
@@ -9,31 +9,7 @@ import { CONFIG_VERSION, DOMAIN_PROFILES } from "@codarch/metrics";
  */
 export function runProfiles(json: boolean): number {
   if (json) {
-    console.log(
-      JSON.stringify(
-        {
-          profiles: DOMAIN_PROFILES.map((profile) => ({
-            id: profile.id,
-            title: profile.title,
-            description: profile.description,
-            when: profile.when,
-            layers: profile.layers.map((layer) => ({
-              name: layer.name,
-              patterns: layer.patterns
-            })),
-            rules: profile.rules.map((rule) => ({
-              name: rule.name,
-              from: rule.from,
-              to: rule.to,
-              severity: rule.severity,
-              message: rule.message ?? null
-            }))
-          }))
-        },
-        null,
-        2
-      )
-    );
+    console.log(JSON.stringify({ profiles: profileEntries() }, null, 2));
     return 0;
   }
 

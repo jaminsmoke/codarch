@@ -6,7 +6,7 @@ import { findRepoConfig } from "@codarch/schema";
 import {
   CONFIG_VERSION,
   ConfigError,
-  DOMAIN_PROFILES,
+  profileEntries,
   loadIgnoreConfig,
   loadRuleConfig,
   suggestLayers
@@ -110,22 +110,6 @@ export function suggestArchitecture(
 export function listProfiles(): ListProfilesResult {
   return {
     configVersion: CONFIG_VERSION,
-    profiles: DOMAIN_PROFILES.map((profile) => ({
-      id: profile.id,
-      title: profile.title,
-      description: profile.description,
-      when: profile.when,
-      layers: profile.layers.map((layer) => ({
-        name: layer.name,
-        patterns: layer.patterns
-      })),
-      rules: profile.rules.map((rule) => ({
-        name: rule.name,
-        from: rule.from,
-        to: rule.to,
-        severity: rule.severity,
-        message: rule.message ?? null
-      }))
-    }))
+    profiles: profileEntries()
   };
 }

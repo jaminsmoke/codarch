@@ -43,10 +43,8 @@ interface AggregatedEdge {
   typeOnly: number;
 }
 
-/** Las cuatro listas de vecinos: todas las aristas y solo las de ejecución. */
+/** Las listas de vecinos del grafo de ejecución, en los dos sentidos. */
 interface GraphIndex {
-  adjacency: Map<string, string[]>;
-  reverse: Map<string, string[]>;
   runtime: Map<string, string[]>;
   runtimeReverse: Map<string, string[]>;
 }
@@ -71,6 +69,7 @@ export function buildGraph(
   const runtimeEdges = edges.filter(isRuntimeEdge);
   const index = buildIndex(nodes, edges);
 
+  const { fanIn, fanOut } = fanSums(edges);
   const components = stronglyConnectedComponents(
     nodes,
     index.runtime,
@@ -86,11 +85,12 @@ export function buildGraph(
     edges,
     metrics: nodeMetrics({
       nodes,
-      index,
       components,
       componentOf,
       cyclic,
-      levels
+      levels,
+      fanIn,
+      fanOut
     }),
     cycles: components.filter((_, index) => cyclic.has(index))
   };
@@ -133,32 +133,23 @@ function aggregateEdges(
     .map((edge) => ({ ...edge, isCyclic: false }));
 }
 
-/** Las listas de vecinos, con todos los imports y con los que se ejecutan. */
+/** Las listas de vecinos de las aristas que se ejecutan. */
 function buildIndex(
   nodes: readonly string[],
   edges: readonly GraphEdge[]
 ): GraphIndex {
   const index: GraphIndex = {
-    adjacency: emptyLists(nodes),
-    reverse: emptyLists(nodes),
     runtime: emptyLists(nodes),
     runtimeReverse: emptyLists(nodes)
   };
 
   for (const edge of edges) {
-    index.adjacency.get(edge.from)?.push(edge.to);
-    index.reverse.get(edge.to)?.push(edge.from);
     if (!isRuntimeEdge(edge)) continue;
     index.runtime.get(edge.from)?.push(edge.to);
     index.runtimeReverse.get(edge.to)?.push(edge.from);
   }
 
-  for (const lists of [
-    index.adjacency,
-    index.reverse,
-    index.runtime,
-    index.runtimeReverse
-  ]) {
+  for (const lists of [index.runtime, index.runtimeReverse]) {
     for (const neighbors of lists.values()) neighbors.sort(compareStrings);
   }
   return index;
@@ -221,13 +212,33 @@ function gradeEdges(
   }
 }
 
+/**
+ * Cuántos imports tocan cada fichero, contando los que van al mismo destino.
+ *
+ * No es lo mismo que vecinos únicos: dos `import` al mismo módulo pesan dos en
+ * la arista y tienen que pesar dos aquí, o la métrica y la lente de
+ * dependencias dirían cosas distintas del mismo snapshot.
+ */
+function fanSums(
+  edges: readonly GraphEdge[]
+): { fanIn: Map<string, number>; fanOut: Map<string, number> } {
+  const fanIn = new Map<string, number>();
+  const fanOut = new Map<string, number>();
+  for (const edge of edges) {
+    fanOut.set(edge.from, (fanOut.get(edge.from) ?? 0) + edge.weight);
+    fanIn.set(edge.to, (fanIn.get(edge.to) ?? 0) + edge.weight);
+  }
+  return { fanIn, fanOut };
+}
+
 interface NodeMetricInput {
   nodes: readonly string[];
-  index: GraphIndex;
   components: readonly string[][];
   componentOf: ReadonlyMap<string, number>;
   cyclic: ReadonlySet<number>;
   levels: readonly number[];
+  fanIn: ReadonlyMap<string, number>;
+  fanOut: ReadonlyMap<string, number>;
 }
 
 function nodeMetrics(input: NodeMetricInput): Map<string, FileGraphMetrics> {
@@ -240,7 +251,7 @@ function nodeMetrics(input: NodeMetricInput): Map<string, FileGraphMetrics> {
   return metrics;
 }
 
-/** Lo que mide un fichero: cuántos lo importan, y si está en un ciclo. */
+/** Lo que mide un fichero: cuántos imports lo tocan, y si está en un ciclo. */
 function metricFor(
   node: string,
   component: number,
@@ -248,8 +259,8 @@ function metricFor(
 ): FileGraphMetrics {
   const inCycle = input.cyclic.has(component);
   return {
-    fanIn: input.index.reverse.get(node)?.length ?? 0,
-    fanOut: input.index.adjacency.get(node)?.length ?? 0,
+    fanIn: input.fanIn.get(node) ?? 0,
+    fanOut: input.fanOut.get(node) ?? 0,
     inCycle: inCycle ? 1 : 0,
     cycleSize: inCycle ? (input.components[component]?.length ?? 0) : 0,
     dependencyLevel: input.levels[component] ?? 0
