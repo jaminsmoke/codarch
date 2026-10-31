@@ -7,6 +7,8 @@
  */
 
 export {
+  LINT_ARTIFACT_FILE,
+  LINT_ARTIFACT_FILE_LEGACY,
   LINT_ARTIFACT_VERSION,
   LintError,
   canonicalLintPath,
@@ -18,6 +20,18 @@ export type {
   LintFile,
   LintFileResult,
   LintMessage,
+  LintRule,
   LintSeverity,
-  LintSummary
+  LintSummary,
+  LintSystem
 } from "./format";
+export { MINIMAL_LINT, adviceForExtensions, extensionOf } from "./advice";
+export type { LintAdvice } from "./advice";
+export {
+  lintFileCounts,
+  lintRuleCounts,
+  lintRules,
+  lintTotals,
+  withinLintFolder
+} from "./rollup";
+export type { LintFileCount, LintRuleCount, LintTotals } from "./rollup";

@@ -46,6 +46,12 @@ const SWITCHES: Array<SwitchFlag<LintCommandOptions>> = [
     set: (options) => {
       options.noConfig = true;
     }
+  },
+  {
+    names: ["--no-detect"],
+    set: (options) => {
+      options.noDetect = true;
+    }
   }
 ];
 

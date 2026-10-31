@@ -11,7 +11,15 @@ import { LintError } from "./format";
  */
 
 /** Los dialectos que el normalizador sabe leer. */
-export const LINT_FORMATS = ["eslint-json", "oxlint-json"] as const;
+export const LINT_FORMATS = [
+  "eslint-json",
+  "oxlint-json",
+  "biome-json",
+  "ruff-json",
+  "checkstyle-xml",
+  "govet-text",
+  "dotnet-text"
+] as const;
 
 export type LintFormat = (typeof LINT_FORMATS)[number];
 
@@ -64,7 +72,7 @@ export function parseLintConfig(input: unknown): LintTool[] {
       throw new LintError(
         `config.lint[${index}] (${name}) lleva un format desconocido: "${String(
           format
-        )}". Son ${LINT_FORMATS.join(" y ")}.`
+        )}". Son ${listFormats()}.`
       );
     }
     names.add(name);
@@ -91,6 +99,13 @@ export function loadLintConfig(file: string): LintTool[] {
     );
   }
   return parseLintConfig(document);
+}
+
+/** La lista de dialectos, con su «y» delante del último. */
+function listFormats(): string {
+  if (LINT_FORMATS.length < 2) return LINT_FORMATS.join("");
+  const head = LINT_FORMATS.slice(0, -1).join(", ");
+  return `${head} y ${LINT_FORMATS[LINT_FORMATS.length - 1]}`;
 }
 
 function isFormat(value: unknown): value is LintFormat {

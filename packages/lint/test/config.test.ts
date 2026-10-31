@@ -61,12 +61,28 @@ describe("el bloque lint de .codarch.yml", () => {
     );
   });
 
-  it("rechaza un formato que el normalizador no sabe leer", () => {
+  it("acepta los cuatro dialectos y rechaza uno inventado", () => {
+    for (const format of [
+      "eslint-json",
+      "oxlint-json",
+      "biome-json",
+      "ruff-json",
+      "checkstyle-xml",
+      "govet-text",
+      "dotnet-text"
+    ]) {
+      expect(
+        parseLintConfig({ lint: [{ name: "x", command: "x", format }] })
+      ).toHaveLength(1);
+    }
+
     expect(() =>
       parseLintConfig({
-        lint: [{ name: "ruff", command: "ruff check --output-format json", format: "ruff-json" }]
+        lint: [{ name: "x", command: "x", format: "lint-json" }]
       })
-    ).toThrow(/format desconocido.*eslint-json y oxlint-json/);
+    ).toThrow(
+      /format desconocido.*eslint-json, oxlint-json, biome-json, ruff-json, checkstyle-xml, govet-text y dotnet-text/
+    );
   });
 
   it("lee un fichero y dice cuál falla", () => {

@@ -1,40 +1,53 @@
 ---
 title: "codarch lint"
-description: "Corre las herramientas de lint que declara el repo y escribe el artefacto .codarch/lint.json."
+description: "Lee el lint que el proyecto ya tiene —su configuración y su herramienta— y escribe el artefacto .codarch/lint.cc.json."
 section: usar
 sidebar:
   label: "lint"
   order: 29
 ---
 
-Corre las herramientas de lint que declara el repositorio y escribe un artefacto con lo que dijeron. El lint no entra en el snapshot: depende de qué herramientas tengas instaladas y de cómo estén configuradas, así que tiene su propio fichero, su propio checksum y su propio ciclo de vida.
+`codarch lint` no trae un linter ni escribe configuración: **lee el lint que el proyecto ya tiene** y escribe un artefacto con lo que dijo. Si el repo no tiene lint, no se lo inventa: recomienda el mínimo y no escribe artefacto. El lint no entra en el snapshot —depende de las herramientas instaladas y de su configuración—, así que tiene su propio fichero, su propio checksum y su propio ciclo de vida. Quien lo mide en el uso normal es [`codarch analyze`](analyze.md), en la misma pasada que las demás lentes; este comando es para medirlo suelto, sin mapa.
 
-## Qué mide
+## Qué detecta
 
-`codarch lint` no trae un linter: lanza los que el repo declare. Hoy entiende dos dialectos, y cada uno se declara con su `format`:
+| Sistema | Configuración que busca | Qué se lee |
+| --- | --- | --- |
+| **ESLint** | `eslint.config.*`, `.eslintrc*`, `eslintConfig` en `package.json` | `eslint --format json` y sus reglas activas con `--print-config`. |
+| **oxlint** | `oxlint.json`, `.oxlintrc.json`, `.oxlintrc` | `oxlint --format json` y las reglas de su JSON. |
+| **Biome** | `biome.json`, `biome.jsonc` | `biome lint --reporter=json`; sus reglas activas no se enumeran todavía. |
+| **Ruff** | `ruff.toml`, `.ruff.toml`, `[tool.ruff]` en `pyproject.toml` | `ruff check --output-format=json`, con el `ruff` del PATH. |
+| **Checkstyle** | `checkstyle.xml`, `config/checkstyle/checkstyle.xml`, el plugin en `build.gradle` | `checkstyle -c <config> -f xml .`, con el `checkstyle` del PATH. El plugin de Gradle no dice qué XML usa: ahí no se mide. |
+| **go vet** | `go.mod` | `go vet ./...`, con el `go vet` del PATH. |
+| **.NET** | `*.csproj`, `*.sln` | `dotnet format <solución|proyecto> analyzers --verify-no-changes --severity info`, con el SDK del PATH; la solución manda sobre un proyecto suelto. |
 
-| `format` | Lo que se lee |
-| --- | --- |
-| `eslint-json` | La lista de ficheros de `eslint --format json`. |
-| `oxlint-json` | Los diagnósticos de `oxlint --format json`, con o sin la envoltura `diagnostics`. |
+Un sistema entra si tiene su configuración **o** si su herramienta está instalada. Si hay configuración y no hay binario, el comando lo dice: **no se completa con `npx`**, porque descargar una versión que el repo no eligió sería inventar la medida. Las herramientas corren con el binario del proyecto (`node_modules/…`) —Ruff y Checkstyle, que no viven ahí, con los que el proyecto tenga en el PATH— y su propia configuración.
 
-De los dos sale el mismo mensaje normalizado: la regla, la severidad, la línea, la columna y el texto. Las rutas absolutas se hacen relativas a la raíz y las que caen fuera del repo se descartan. Si dos herramientas dicen exactamente lo mismo del mismo sitio, se cuenta una vez.
+Biome no da línea ni columna en su JSON —su `span` son desplazamientos de bytes—, así que sus mensajes entran sin posición en vez de calcularla a mano. Ruff no da severidad: todos sus hallazgos cuentan como error, que es como los trata al salir con código distinto de cero.
 
-## Configuración del repo
+ESLint y oxlint dan el mismo mensaje normalizado: regla, severidad, línea, columna y texto. Las rutas absolutas se hacen relativas a la raíz y las que caen fuera del repo se descartan. Si dos herramientas dicen exactamente lo mismo del mismo sitio, se cuenta una vez.
 
-Las herramientas viven en el bloque `lint:` de `.codarch.yml`:
+## Reglas activas
+
+- **ESLint** se resuelve con `eslint --print-config <fichero>`, que lee la configuración real —flat config, plugins y overrides— en vez de interpretar el fichero a mano.
+- **oxlint** se lee de su JSON; sin configuración corre sus reglas de corrección por defecto y el artefacto dice que no se enumeran.
+- **Biome** lee de su config las reglas que escribe, con su grupo y su nivel (`style/useConst`). Las de `recommended` dependen de la versión de Biome y no se enumeran: la nota del sistema lo dice.
+- **Ruff** enumera sus reglas, no sus selectores: lee `select` y `extend-select` (menos `ignore` y `extend-ignore`), pide el catálogo a su propia versión con `ruff rule --all --output-format=json` y expande por prefijo con la especificidad de Ruff: gana el selector más concreto y, si empatan, el ignorado. Sin `select`, corren las de por defecto y no se enumeran; sin catálogo, se listan los selectores y se dice. El catálogo se guarda en `.codarch/lint-cache.json` con la versión de Ruff que lo dio: solo se vuelve a pedir cuando actualizas Ruff. No es parte del artefacto ni del checksum, y no se crea `.codarch/` para escribirlo.
+- **Checkstyle** lee los `<module name="…">` de su XML, sin contenedores (`Checker`, `TreeWalker`) ni filtros de supresión. Su config no da severidad a cada módulo: la trae cada hallazgo.
+- **go vet** y los **analizadores de .NET** no enumeran sus reglas: van con la versión de Go o con el SDK y `AnalysisLevel`. Los hallazgos de `go vet` entran como `go vet` —su texto no firma el analizador—; los de .NET llevan su código (`CA1822`, `CS0168`). Una lista plausible sería peor que un hueco.
+
+## El override opcional
+
+El bloque `lint:` de `.codarch.yml` es para los comandos que la detección no cubre. Si está, **manda** y se ejecuta tal cual:
 
 ```yaml
 lint:
   - name: eslint
-    command: npx eslint . --format json
+    command: node node_modules/eslint/bin/eslint.js . --format json
     format: eslint-json
-  - name: oxlint
-    command: npx oxlint --format json .
-    format: oxlint-json
 ```
 
-Cada entrada lleva tres cosas: `name` —el nombre con el que sale en el artefacto y en el resumen—, `command` —el comando completo, que se ejecuta en la raíz del repo— y `format`. Sin bloque `lint:` no hay nada que medir y el comando lo dice; un bloque mal formado también, en vez de adivinar qué se quería lanzar.
+Cada entrada lleva `name`, `command` y `format` (`eslint-json`, `oxlint-json`, `biome-json`, `ruff-json`, `checkstyle-xml`, `govet-text` o `dotnet-text`). Un bloque mal formado es un error en vez de una adivinanza.
 
 ## Uso
 
@@ -47,36 +60,51 @@ codarch lint [ruta] [opciones]
 | Opción | Qué hace |
 | --- | --- |
 | `-o, --out <dir>` | Carpeta del artefacto. Por defecto `<ruta>/.codarch`. |
-| `--config <file>` | YAML con las herramientas. Por defecto `.codarch.yml` si existe. |
-| `--no-config` | No lee las herramientas del YAML. |
+| `--config <file>` | YAML con el override. Por defecto `.codarch.yml` si existe. |
+| `--no-config` | Ignora el override del YAML; usa el lint del proyecto. |
+| `--no-detect` | No detecta el lint del proyecto. |
 | `--fail-on <modo>` | `never`, `errors` o `warnings`. Por defecto `never`. |
 | `-h, --help` | Ayuda. |
 | `-v, --version` | Versión. |
 
 ## Salida
 
-Escribe `lint.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore`; si la carpeta ya existía, no lo toca.
+Escribe `lint.cc.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore`; si la carpeta ya existía, no lo toca. Un repo que ya tenía `.codarch/lint.json` se sigue leyendo: el nombre viejo no se vuelve a escribir.
 
 ```json
 {
-  "schemaVersion": "1.0",
-  "meta": { "checksum": "…", "tools": ["eslint", "oxlint"] },
+  "schemaVersion": "1.2",
+  "meta": {
+    "checksum": "…",
+    "tools": ["eslint"],
+    "systems": [
+      {
+        "name": "eslint",
+        "config": "eslint.config.js",
+        "rules": [{ "id": "no-console", "severity": "warn" }]
+      }
+    ]
+  },
   "files": {
     "src/a.ts": {
-      "errors": 1,
+      "errors": 0,
       "warnings": 1,
       "messages": [
-        { "rule": "no-var", "severity": "error", "line": 1, "column": 1, "message": "Unexpected var" }
+        { "rule": "no-console", "severity": "warn", "line": 1, "column": 1, "message": "Unexpected console" }
       ]
     }
   },
-  "summary": { "files": 1, "errors": 1, "warnings": 1, "messages": 2 }
+  "summary": { "files": 1, "errors": 0, "warnings": 1, "messages": 1, "measured": 1 }
 }
 ```
 
+`meta.systems` dice qué lint **tiene** el proyecto —con su configuración y sus reglas activas— y `meta.tools` cuáles midieron de verdad. Un artefacto `1.0` se sigue leyendo: sus herramientas pasan a ser los sistemas, sin configuración.
+
+`summary.measured` es lo que separa «medido y limpio» de «no se midió»: cuenta los ficheros que la herramienta miró, **incluidos los limpios**, que no aparecen en `files`. `meta.tree` es el checksum del snapshot que se midió; lo rellena quien analiza —`codarch analyze` y, en el live, `serve`—. Este comando suelto no analiza el repo, así que por sí solo no escribe `tree`: la app no puede comparar y no lo finge.
+
 Ficheros por ruta relativa, mensajes ordenados por línea y columna, y un checksum que no cambia si la salida de las herramientas no cambia. **Un artefacto sin mensajes es un repo medido y limpio**; que no haya artefacto significa que nadie midió, que es otra cosa.
 
-El resumen cuenta la raíz, el artefacto y lo que hizo cada herramienta:
+El resumen cuenta la raíz, la fuente, el artefacto, lo que hizo cada herramienta y cada sistema con su configuración. Los **ficheros con hallazgos** son los que tienen algún mensaje, y se enseñan **de los medidos** —`3 ficheros con hallazgos de 494 medidos`—: eso es lo que distingue un repo limpio de uno sin medir. El recuento de reglas y hallazgos es el mismo que leen la app y el MCP, y `--fail-on` decide con esa misma cuenta, no con el resumen que declare el fichero.
 
 ![Salida de `codarch lint .` en la terminal](../../images/cli-lint.png)
 
@@ -86,12 +114,24 @@ Las herramientas se lanzan en paralelo y el comando espera a todas. Una que no e
 
 Un linter con hallazgos sale con código distinto de cero, y eso **no** es un fallo si dejó su JSON. Por eso el comando no bloquea por defecto: `--fail-on errors` es lo que se usa en CI, y `--fail-on warnings` cuenta errores y avisos.
 
+## Si el proyecto no tiene lint
+
+No escribe configuración ni lanza un linter que el repo no tiene: el comando sale con `1` y recomienda el mínimo por lenguaje.
+
+| Lenguaje | Mínimo recomendable |
+| --- | --- |
+| TypeScript y JavaScript | ESLint + `typescript-eslint` en `recommended`. |
+| Python | Ruff con `select = ["E", "F"]`. |
+| Go | `go vet ./...` y staticcheck en CI. |
+| Java | Checkstyle con `google_checks.xml`. |
+| C# | Analizadores de .NET con `AnalysisLevel=latest-recommended`. |
+
 ## Ejemplos
 
 ```sh
 codarch lint .
 codarch lint . --fail-on errors
-codarch lint . -o .codarch --config .codarch.yml
+codarch lint . --no-detect --config .codarch.yml
 ```
 
 ## Códigos de salida
@@ -99,8 +139,8 @@ codarch lint . -o .codarch --config .codarch.yml
 | Código | Significado |
 | --- | --- |
 | `0` | Artefacto escrito. No dice que el código esté limpio: eso lo dicen sus cuentas. |
-| `1` | Configuración inválida, ninguna herramienta midió, no se pudo escribir el artefacto, o `--fail-on` encontró lo que buscaba. |
+| `1` | Configuración inválida, ninguna herramienta midió (incluido «el proyecto no tiene lint»), no se pudo escribir el artefacto, o `--fail-on` encontró lo que buscaba. |
 
 :::note[Para saber más]
-Las decisiones detrás de esta página: [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). La app ya carga el artefacto —al arrancar, al refrescar y desde el proyecto guardado—, y `serve` lo vuelve a medir tras una pasada con cambios; todavía no lo pinta en las fichas ni en el mapa.
+Las decisiones detrás de esta página: [ADR 0096 — El lint es del proyecto](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — El lint se mide al analizar](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md) y [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). La app enseña los sistemas y sus reglas en **Reglas**, en las hojas de proyecto, carpeta y fichero.
 :::

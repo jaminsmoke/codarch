@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LintProcessRunner } from "@codarch/lint";
 import { parseLint } from "../src/args/lint";
 import { runLintCommand } from "../src/commands/lint";
-import { runProjectLint } from "../src/lint-store";
+import { readProjectLint, runProjectLint } from "../src/lint-store";
 
 const tempRoots: string[] = [];
 
@@ -81,13 +81,71 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    const file = path.join(root, ".codarch", "lint.json");
+    const file = path.join(root, ".codarch", "lint.cc.json");
     const artifact = readArtifact(file);
     expect(artifact.meta.tools).toEqual(["eslint", "oxlint"]);
     expect(artifact.summary).toMatchObject({ errors: 1, warnings: 1 });
     // El estado local nace ignorado.
     expect(fs.readFileSync(path.join(root, ".gitignore"), "utf8")).toContain(
       ".codarch/"
+    );
+  });
+
+  it("dice ficheros con hallazgos, no ficheros analizados", async () => {
+    const root = tempRepo({ ".codarch.yml": config });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await runLintCommand({ root, run: runner(root), help: false });
+
+    const text = log.mock.calls
+      .map((call) => call.map(String).join(" "))
+      .join("\n");
+    // Con la cobertura: «1 con hallazgos» de un total medido (ADR 0098).
+    expect(text).toContain(
+      "1 fichero con hallazgos de 1 medidos · 1 error · 1 aviso"
+    );
+    // La segunda herramienta no encontró nada: la frase no cambia de sentido.
+    expect(text).toContain("0 ficheros con hallazgos · 0 mensajes");
+  });
+
+  it("cuenta los info: un lint con solo sugerencias no dice cero", async () => {
+    const root = tempRepo({ ".codarch.yml": config });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    await runLintCommand({
+      root,
+      run: async (command) => {
+        if (command === "eslint-json") {
+          return {
+            stdout: JSON.stringify([
+              {
+                filePath: path.join(root, "src", "a.ts"),
+                messages: [
+                  {
+                    ruleId: "no-console",
+                    severity: 0,
+                    message: "Unexpected console",
+                    line: 1,
+                    column: 1
+                  }
+                ]
+              }
+            ]),
+            stderr: "",
+            code: 0
+          };
+        }
+        return { stdout: JSON.stringify({ diagnostics: [] }), stderr: "", code: 0 };
+      },
+      help: false
+    });
+
+    const text = log.mock.calls
+      .map((call) => call.map(String).join(" "))
+      .join("\n");
+    // Las tres cuentas, como en la app: la de info no se queda fuera.
+    expect(text).toContain(
+      "1 fichero con hallazgos de 1 medidos · 0 errores · 0 avisos · 1 info"
     );
   });
 
@@ -104,7 +162,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(1);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(true);
   });
 
   it("una herramienta caída no impide escribir lo que sí se midió", async () => {
@@ -118,7 +176,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    const artifact = readArtifact(path.join(root, ".codarch", "lint.json"));
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
     expect(artifact.meta.tools).toEqual(["eslint"]);
   });
 
@@ -135,7 +193,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(1);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.json"))).toBe(false);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(false);
   });
 
   it("--out escribe el artefacto donde se pide", async () => {
@@ -151,17 +209,18 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    expect(fs.existsSync(path.join(out, "lint.json"))).toBe(true);
+    expect(fs.existsSync(path.join(out, "lint.cc.json"))).toBe(true);
   });
 
-  it("sin herramientas declaradas no hay nada que medir", async () => {
+  it("un repo sin lint no se inventa: recomienda el mínimo", async () => {
     const root = tempRepo({ ".codarch.yml": "version: 1\n" });
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
 
     const code = await runLintCommand({ root, help: false });
 
     expect(code).toBe(1);
-    expect(error.mock.calls.join("\n")).toMatch(/bloque `lint:`/);
+    expect(error.mock.calls.join("\n")).toMatch(/no se encontró lint/);
+    expect(error.mock.calls.join("\n")).toMatch(/mínimo recomendable/);
   });
 
   it("una configuración inválida se dice y no se linta", async () => {
@@ -184,13 +243,136 @@ describe("la pasada que comparten lint y serve", () => {
     const result = await runProjectLint(root, { run: runner(root) });
 
     expect(result?.artifact?.meta.tools).toEqual(["eslint", "oxlint"]);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(true);
   });
 
   it("un repo sin herramientas no tiene pasada de lint", async () => {
     const root = tempRepo({ ".codarch.yml": "version: 1\n" });
 
     expect(await runProjectLint(root)).toBeNull();
+  });
+
+  it("lee el lint guardado y su árbol, con los dos nombres", async () => {
+    const artifact = {
+      schemaVersion: "1.2",
+      meta: {
+        checksum: "abc",
+        tools: ["eslint"],
+        systems: [],
+        tree: "107a6ce8"
+      },
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0, measured: 4 }
+    };
+    const root = tempRepo({
+      ".codarch/lint.cc.json": JSON.stringify(artifact)
+    });
+    const legacy = tempRepo({
+      ".codarch/lint.json": JSON.stringify({
+        ...artifact,
+        schemaVersion: "1.1",
+        meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+        summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+      })
+    });
+
+    expect(readProjectLint(root)?.meta.tree).toBe("107a6ce8");
+    expect(readProjectLint(root)?.summary.measured).toBe(4);
+    // El nombre anterior se sigue leyendo, sin árbol ni cobertura.
+    expect(readProjectLint(legacy)?.meta.tree).toBeUndefined();
+    expect(readProjectLint(legacy)?.summary.measured).toBeUndefined();
+    expect(readProjectLint(tempRepo({}))).toBeNull();
+  });
+});
+
+describe("codarch lint con el lint del proyecto", () => {
+  it("sin bloque lint:, detecta y ejecuta el binario del repo", async () => {
+    const root = tempRepo({
+      "eslint.config.js": "export default [];",
+      "node_modules/eslint/bin/eslint.js": "// binario",
+      "src/a.ts": "export const a = 1;"
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const commands: string[] = [];
+
+    const code = await runLintCommand({
+      root,
+      help: false,
+      run: async (command) => {
+        commands.push(command);
+        if (command.includes("--print-config")) {
+          return {
+            stdout: JSON.stringify({ rules: { "no-console": 2 } }),
+            stderr: "",
+            code: 0
+          };
+        }
+        return { stdout: eslintJson(root), stderr: "", code: 1 };
+      }
+    });
+
+    expect(code).toBe(0);
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
+    expect(artifact.meta.tools).toEqual(["eslint"]);
+    expect(artifact.meta.systems).toEqual([
+      {
+        name: "eslint",
+        config: "eslint.config.js",
+        rules: [{ id: "no-console", severity: "error" }]
+      }
+    ]);
+    expect(commands).toContain(
+      "node node_modules/eslint/bin/eslint.js . --format json"
+    );
+    expect(log.mock.calls.join("\n")).toMatch(/lint del proyecto/);
+  });
+
+  it("una config sin binario se enseña y no escribe artefacto", async () => {
+    const root = tempRepo({ "eslint.config.js": "export default [];" });
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const code = await runLintCommand({ root, help: false });
+
+    expect(code).toBe(1);
+    expect(error.mock.calls.join("\n")).toMatch(/declara lint/);
+    expect(error.mock.calls.join("\n")).toMatch(/eslint · eslint.config.js/);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+      false
+    );
+  });
+
+  it("--no-detect no inventa herramientas", async () => {
+    const root = tempRepo({
+      "eslint.config.js": "export default [];",
+      "node_modules/eslint/bin/eslint.js": "// binario"
+    });
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const code = await runLintCommand({ root, help: false, noDetect: true });
+
+    expect(code).toBe(1);
+    expect(error.mock.calls.join("\n")).toMatch(/no se encontró lint/);
+  });
+
+  it("el override de .codarch.yml manda sobre la detección", async () => {
+    const root = tempRepo({
+      ".codarch.yml": config,
+      "eslint.config.js": "export default [];"
+    });
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const code = await runLintCommand({
+      root,
+      run: runner(root),
+      help: false
+    });
+
+    expect(code).toBe(0);
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
+    expect(artifact.meta.systems).toEqual([
+      { name: "eslint", config: null },
+      { name: "oxlint", config: null }
+    ]);
   });
 });
 

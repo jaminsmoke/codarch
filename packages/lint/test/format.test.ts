@@ -46,7 +46,9 @@ describe("el artefacto del lint", () => {
       files: 2,
       errors: 2,
       warnings: 1,
-      messages: 4
+      messages: 4,
+      // Lo canónico: `./src/a.ts` y `src/a.ts` son el mismo fichero medido.
+      measured: 2
     });
     expect(artifact.files["src/a.ts"]?.errors).toBe(1);
     expect(artifact.files["src/a.ts"]?.warnings).toBe(0);
@@ -112,7 +114,8 @@ describe("el artefacto del lint", () => {
       files: 0,
       errors: 0,
       warnings: 0,
-      messages: 0
+      messages: 0,
+      measured: 0
     });
     expect(artifact.meta.checksum).toMatch(/^[0-9a-f]{32}$/);
   });
@@ -126,6 +129,104 @@ describe("el artefacto del lint", () => {
     expect(readLintArtifact(JSON.parse(JSON.stringify(written)))).toEqual(
       written
     );
+  });
+
+  it("un artefacto 1.0 se lee y sus herramientas pasan a sistemas sin config", () => {
+    const legacy = {
+      schemaVersion: "1.0",
+      meta: { checksum: "abc", tools: ["oxlint", "eslint"] },
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+    };
+
+    expect(readLintArtifact(legacy)).toEqual({
+      schemaVersion: LINT_ARTIFACT_VERSION,
+      meta: {
+        checksum: "abc",
+        tools: ["oxlint", "eslint"],
+        systems: [
+          { name: "eslint", config: null },
+          { name: "oxlint", config: null }
+        ]
+      },
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+    });
+  });
+
+  it("un sistema con reglas se ordena y viaja en el checksum", () => {
+    const artifact = createLintArtifact({
+      tools: ["eslint"],
+      systems: [
+        {
+          name: "eslint",
+          config: "eslint.config.js",
+          rules: [
+            { id: "no-var", severity: "warn" },
+            { id: "no-console", severity: "error" }
+          ]
+        }
+      ],
+      files: []
+    });
+
+    expect(artifact.meta.systems[0]?.rules?.map((rule) => rule.id)).toEqual([
+      "no-console",
+      "no-var"
+    ]);
+    expect(
+      createLintArtifact({
+        tools: ["eslint"],
+        systems: [{ name: "eslint", config: "eslint.config.js" }],
+        files: []
+      }).meta.checksum
+    ).not.toBe(artifact.meta.checksum);
+  });
+
+  it("un artefacto 1.1 se sigue leyendo, sin cobertura ni árbol", () => {
+    const previous = {
+      schemaVersion: "1.1",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+    };
+
+    const read = readLintArtifact(previous);
+    expect(read?.schemaVersion).toBe(LINT_ARTIFACT_VERSION);
+    expect(read?.summary.measured).toBeUndefined();
+    expect(read?.meta.tree).toBeUndefined();
+  });
+
+  it("dice cuántos ficheros midió y de qué árbol", () => {
+    const artifact = createLintArtifact({
+      tools: ["eslint"],
+      tree: "0c74d0ac80a995135ecff96096be41a5",
+      files: [
+        // Un fichero limpio: no aparece en `files`, pero se midió.
+        file("src/a.ts", []),
+        file("src/b.ts", [message()])
+      ]
+    });
+
+    expect(artifact.meta.tree).toBe("0c74d0ac80a995135ecff96096be41a5");
+    expect(artifact.summary).toMatchObject({ files: 1, measured: 2 });
+    expect(readLintArtifact(JSON.parse(JSON.stringify(artifact)))).toEqual(
+      artifact
+    );
+  });
+
+  it("una procedencia rota invalida el artefacto", () => {
+    const artifact = createLintArtifact({ tools: ["eslint"], files: [] });
+
+    expect(
+      readLintArtifact({ ...artifact, meta: { ...artifact.meta, tree: 7 } })
+    ).toBeNull();
+    expect(
+      readLintArtifact({
+        ...artifact,
+        summary: { ...artifact.summary, measured: -1 }
+      })
+    ).toBeNull();
   });
 
   it("un fichero que no es un artefacto de esta versión no es lint", () => {

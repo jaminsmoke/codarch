@@ -4,9 +4,18 @@ import {
   LintError,
   createLintArtifact,
   type LintArtifact,
-  type LintFileResult
+  type LintFileResult,
+  type LintSystem
 } from "./format";
-import { normalizeEslintJson, normalizeOxlintJson } from "./normalize";
+import {
+  normalizeBiomeJson,
+  normalizeCheckstyleXml,
+  normalizeDotnetText,
+  normalizeEslintJson,
+  normalizeGoVetText,
+  normalizeOxlintJson,
+  normalizeRuffJson
+} from "./normalize";
 
 /**
  * Lanzar las herramientas del lint (ADR 0094).
@@ -58,6 +67,15 @@ export interface LintRunOptions {
   /** La raíz del repo: los comandos corren ahí y las rutas se relativizan a ella. */
   root: string;
   tools: readonly LintTool[];
+  /** Los sistemas que declara el proyecto, para el artefacto (ADR 0096). */
+  systems?: readonly LintSystem[];
+  /**
+   * El checksum del snapshot que se acaba de analizar (ADR 0098).
+   *
+   * Lo pone quien analiza —`serve` y el live—, que es el único que sabe de qué
+   * árbol habla el lint. El comando suelto no lo pasa: no analiza.
+   */
+  tree?: string;
   /** Por defecto, un proceso por herramienta. */
   run?: LintProcessRunner;
   /** Tope por herramienta; por defecto, dos minutos. */
@@ -78,6 +96,8 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
       ? null
       : createLintArtifact({
           tools: measured.map((result) => result.run.name),
+          ...(options.systems ? { systems: options.systems } : {}),
+          ...(options.tree ? { tree: options.tree } : {}),
           files: measured.flatMap((result) => result.files)
         });
 
@@ -140,17 +160,31 @@ function normalizeOutput(
   root: string
 ): LintFileResult[] {
   const text = stdout.replace(/^\uFEFF/, "").trim();
-  if (!text) throw new LintError("no escribió JSON en la salida");
+  if (!text) throw new LintError("no escribió nada en la salida");
+
+  // Checkstyle habla XML y go vet y dotnet, texto; el resto, JSON.
+  if (tool.format === "checkstyle-xml") {
+    return normalizeCheckstyleXml(text, { root });
+  }
+  if (tool.format === "govet-text") {
+    return normalizeGoVetText(text, { root });
+  }
+  if (tool.format === "dotnet-text") {
+    return normalizeDotnetText(text, { root });
+  }
 
   const raw = parseJsonOutput(text);
 
-  // Las rutas de ESLint suelen ser absolutas: sin la raíz no entran.
-  return tool.format === "eslint-json"
-    ? normalizeEslintJson(raw, { root })
-    : normalizeOxlintJson(raw, { root });
+  // Las rutas de ESLint y de Ruff suelen ser absolutas: sin la raíz no entran.
+  if (tool.format === "eslint-json") return normalizeEslintJson(raw, { root });
+  if (tool.format === "oxlint-json") return normalizeOxlintJson(raw, { root });
+  if (tool.format === "biome-json") return normalizeBiomeJson(raw, { root });
+  return normalizeRuffJson(raw, { root });
 }
 
 /** El comando por defecto: un proceso, con la raíz del repo como cwd. */
+export const defaultLintRunner: LintProcessRunner = execCommand;
+
 function execCommand(
   command: string,
   root: string,
