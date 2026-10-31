@@ -6,4 +6,4 @@
  * abren con el tema que se eligió en cualquier página del sitio. Los valores
  * son `light` y `dark`; vacío o ausente, el del sistema.
  */
-export const CLAVE_TEMA = "starlight-theme";
+export const THEME_KEY = "starlight-theme";

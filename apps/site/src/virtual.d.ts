@@ -1,5 +1,5 @@
 /** Las claves de los documentos, que salen del build (`vite.config.ts`). */
-declare module "virtual:docs-rutas" {
+declare module "virtual:docs-routes" {
   const claves: string[];
   export default claves;
 }

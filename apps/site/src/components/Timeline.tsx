@@ -10,21 +10,21 @@ import {
   type PointerEvent as ReactPointerEvent
 } from "react";
 import {
-  duracionVuelo,
-  masCercano,
-  proyectar,
-  velocidad,
-  VENTANA,
-  type Muestra
-} from "../lib/carrete";
-import { fechaCorta, rutaDia, type ResumenDia } from "../lib/guia";
-import { idiomaDe, t } from "../lib/i18n";
+  flightDuration,
+  nearest,
+  project,
+  velocity,
+  WINDOW,
+  type Sample
+} from "../lib/carousel";
+import { shortDate, dayPath, type DaySummary } from "../lib/guide";
+import { localeOf, t } from "../lib/i18n";
 
 /**
  * La línea del tiempo de la guía (ADR 0047).
  *
  * Va pegada al header y cada paso es un enlace: un día, el futuro. La página
- * activa la marca la ruta, no el scroll; por eso no hay observadores.
+ * activa la marca la path, no el scroll; por eso no hay observadores.
  *
  * El día activo vive siempre en el centro y el resto es un carrete: los de
  * al lado se alejan en profundidad y los de más allá se deshacen en niebla.
@@ -36,76 +36,76 @@ import { idiomaDe, t } from "../lib/i18n";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /** Cuánto hay que mover el puntero para que cuente como arrastre. */
-const UMBRAL = 6;
+const THRESHOLD = 6;
 
 /** La curva de siempre: entra rápido y frena al final. */
-const CURVA = "cubic-bezier(0.22, 0.61, 0.36, 1)";
+const EASE = "cubic-bezier(0.22, 0.61, 0.36, 1)";
 
 /** El imán: frena seco al final y se pasa un pelo antes de encajar. */
-const RESORTE = "cubic-bezier(0.2, 1.15, 0.3, 1)";
+const SPRING = "cubic-bezier(0.2, 1.15, 0.3, 1)";
 
-/** Opacidad y desenfoque por distancia al centro: el fondo se vuelve niebla. */
-const PROFUNDIDAD = [
-  { opacidad: 1, desenfoque: 0, escala: 1 },
-  { opacidad: 0.78, desenfoque: 0, escala: 0.985 },
-  { opacidad: 0.52, desenfoque: 0.4, escala: 0.97 },
-  { opacidad: 0.3, desenfoque: 1.1, escala: 0.955 },
-  { opacidad: 0.14, desenfoque: 2, escala: 0.94 },
-  { opacidad: 0.05, desenfoque: 3, escala: 0.93 }
+/** Opacidad y blur por distancia al centro: el fondo se vuelve niebla. */
+const DEPTH = [
+  { opacity: 1, blur: 0, scale: 1 },
+  { opacity: 0.78, blur: 0, scale: 0.985 },
+  { opacity: 0.52, blur: 0.4, scale: 0.97 },
+  { opacity: 0.3, blur: 1.1, scale: 0.955 },
+  { opacity: 0.14, blur: 2, scale: 0.94 },
+  { opacity: 0.05, blur: 3, scale: 0.93 }
 ];
 
-interface Paso {
+interface Step {
   /** El nombre del día, o `futuro`. */
-  clave: string;
-  /** Su ruta en el sitio, sin la base. */
-  ruta: string;
+  keyName: string;
+  /** Su path en el sitio, sin la base. */
+  path: string;
   /** El nombre largo: "21 oct". */
   texto: string;
   /** El nombre corto, para pantallas estrechas: "21". */
   corto: string;
   /** Cuántas ideas tiene el día. */
-  cuantas: number;
+  count: number;
   /** Si es el futuro. */
-  futuro: boolean;
+  isFuture: boolean;
 }
 
 interface Props {
-  dias: ResumenDia[];
-  activo: string;
+  days: DaySummary[];
+  active: string;
   lang?: string;
 }
 
-export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
-  const idioma = idiomaDe(lang);
-  const ultima = dias.at(-1)?.fecha ?? "";
+export default function Timeline({ days, active, lang = "es" }: Props) {
+  const idioma = localeOf(lang);
+  const ultima = days.at(-1)?.date ?? "";
 
-  const pasos = useMemo<Paso[]>(
+  const steps = useMemo<Step[]>(
     () => [
-      ...dias.map((dia) => ({
-        clave: dia.fecha,
-        ruta: rutaDia(dia.fecha, ultima, idioma),
-        texto: fechaCorta(dia.fecha, idioma),
-        corto: String(Number(dia.fecha.slice(8, 10))),
-        cuantas: dia.cuantas,
-        futuro: false
+      ...days.map((dia) => ({
+        keyName: dia.date,
+        path: dayPath(dia.date, ultima, idioma),
+        texto: shortDate(dia.date, idioma),
+        corto: String(Number(dia.date.slice(8, 10))),
+        count: dia.count,
+        isFuture: false
       })),
       {
-        clave: "futuro",
-        ruta: `${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`,
+        keyName: "futuro",
+        path: `${idioma === "en" ? "/en" : ""}/desarrollo/guia/futuro/`,
         texto: t(idioma, "guia.futuro"),
         corto: "futuro",
-        cuantas: 0,
-        futuro: true
+        count: 0,
+        isFuture: true
       }
     ],
-    [dias, ultima, idioma]
+    [days, ultima, idioma]
   );
 
   const indice = Math.max(
     0,
-    pasos.findIndex((paso) => paso.clave === activo)
+    steps.findIndex((paso) => paso.keyName === active)
   );
-  const ideas = dias.reduce((total, dia) => total + dia.cuantas, 0);
+  const ideas = days.reduce((total, dia) => total + dia.count, 0);
 
   const ventana = useRef<HTMLDivElement>(null);
   const pista = useRef<HTMLDivElement>(null);
@@ -129,8 +129,8 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     x0: 0,
     dx: 0,
     movido: false,
-    activo: false,
-    muestras: [] as Muestra[]
+    active: false,
+    muestras: [] as Sample[]
   });
   /** Un arrastre acaba en clic: ese clic no navega dos veces. */
   const suprimir = useRef(false);
@@ -148,7 +148,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     // Un segundo intento cuando el navegador ya ha colocado las pastillas.
     const cuadro = requestAnimationFrame(() => medir());
     return () => cancelAnimationFrame(cuadro);
-  }, [medir, pasos.length]);
+  }, [medir, steps.length]);
 
   // Hasta que no está centrado no se enseña: nada de verse saltar de sitio.
   useEffect(() => {
@@ -208,27 +208,27 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
       x0: evento.clientX,
       dx: 0,
       movido: false,
-      activo: true,
+      active: true,
       muestras: [{ x: evento.clientX, t: evento.timeStamp }]
     };
   };
 
   const alMover = (evento: ReactPointerEvent<HTMLDivElement>): void => {
-    if (!gesto.current.activo) return;
+    if (!gesto.current.active) return;
     const dx = evento.clientX - gesto.current.x0;
     gesto.current.dx = dx;
 
-    // La velocidad se mide solo con el final del gesto: lo de antes ya no cuenta.
+    // La velocity se mide solo con el final del gesto: lo de antes ya no cuenta.
     const muestras = gesto.current.muestras;
     muestras.push({ x: evento.clientX, t: evento.timeStamp });
     for (;;) {
       const vieja = muestras[0];
       if (!vieja || muestras.length <= 1) break;
-      if (evento.timeStamp - vieja.t <= VENTANA) break;
+      if (evento.timeStamp - vieja.t <= WINDOW) break;
       muestras.shift();
     }
 
-    if (Math.abs(dx) <= UMBRAL) return;
+    if (Math.abs(dx) <= THRESHOLD) return;
 
     if (!gesto.current.movido) {
       gesto.current.movido = true;
@@ -243,9 +243,9 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
   };
 
   const alSoltar = (evento: ReactPointerEvent<HTMLDivElement>): void => {
-    if (!gesto.current.activo) return;
+    if (!gesto.current.active) return;
     const { dx, movido, muestras } = gesto.current;
-    gesto.current.activo = false;
+    gesto.current.active = false;
     if (!movido) return;
 
     setMoviendo(false);
@@ -263,20 +263,20 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     );
     // Soltar después de una pausa no es un tirón: se mide solo lo último.
     const recientes = muestras.filter(
-      (muestra) => evento.timeStamp - muestra.t <= VENTANA
+      (muestra) => evento.timeStamp - muestra.t <= WINDOW
     );
-    const destino = masCercano(
+    const destino = nearest(
       centros,
-      (centro ?? 0) - proyectar(dx, velocidad(recientes)),
+      (centro ?? 0) - project(dx, velocity(recientes)),
       indice
     );
     const acaba = (centro ?? 0) - (centros[destino] ?? 0);
-    setVuelo({ destino, dx: acaba, ms: duracionVuelo(acaba - dx) });
+    setVuelo({ destino, dx: acaba, ms: flightDuration(acaba - dx) });
   };
 
   /** Si el navegador cancela el gesto, el carrete vuelve y no se navega. */
   const alCancelar = (): void => {
-    gesto.current.activo = false;
+    gesto.current.active = false;
     gesto.current.movido = false;
     setMoviendo(false);
     setArrastre(0);
@@ -288,9 +288,9 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     evento.stopPropagation();
   };
 
-  const anterior = indice > 0 ? pasos[indice - 1] : undefined;
+  const anterior = indice > 0 ? steps[indice - 1] : undefined;
   const siguiente =
-    indice < pasos.length - 1 ? pasos[indice + 1] : undefined;
+    indice < steps.length - 1 ? steps[indice + 1] : undefined;
 
   const niebla =
     "linear-gradient(to right, transparent 0%, #000 13%, #000 87%, transparent 100%)";
@@ -303,15 +303,15 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
     >
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-5 py-1.5">
         <p className="hidden shrink-0 items-center gap-1.5 font-mono text-[0.62rem] tracking-[0.16em] text-muted uppercase md:flex">
-          {dias.length}{" "}
-          {t(idioma, dias.length === 1 ? "guia.dia" : "guia.dias")}
+          {days.length}{" "}
+          {t(idioma, days.length === 1 ? "guia.dia" : "guia.dias")}
           <span aria-hidden="true" className="text-line-strong">
             ·
           </span>
           {ideas} {t(idioma, ideas === 1 ? "guia.idea" : "guia.ideas")}
         </p>
 
-        {/* El carrete: el día activo en el centro y niebla en los bordes. */}
+        {/* El carrete: el día active en el centro y niebla en los bordes. */}
         <div
           ref={ventana}
           onPointerDown={alBajar}
@@ -347,8 +347,8 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
               transform: `translate3d(${-(centro ?? 0) + (vuelo?.dx ?? arrastre)}px, 0, 0)`,
               opacity: visible ? 1 : 0,
               ...(vuelo
-                ? { transition: `transform ${vuelo.ms}ms ${RESORTE}` }
-                : { transitionTimingFunction: CURVA })
+                ? { transition: `transform ${vuelo.ms}ms ${SPRING}` }
+                : { transitionTimingFunction: EASE })
             }}
           >
             {/* La vía: el raíl por el que ruedan los días. Va bajo las pastillas,
@@ -365,7 +365,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                 )}
                 style={{
                   width: `${recorrido}px`,
-                  transitionTimingFunction: CURVA
+                  transitionTimingFunction: EASE
                 }}
               />
             </span>
@@ -377,34 +377,34 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
               )}
               style={{
                 left: `${recorrido}px`,
-                transitionTimingFunction: CURVA
+                transitionTimingFunction: EASE
               }}
             />
 
-            {pasos.map((paso, i) => {
-              const esActivo = paso.clave === activo;
+            {steps.map((paso, i) => {
+              const esActivo = paso.keyName === active;
               const distancia = Math.abs(i - indice);
-              const { opacidad, desenfoque, escala } =
-                PROFUNDIDAD[Math.min(distancia, PROFUNDIDAD.length - 1)] ?? {
-                  opacidad: 1,
-                  desenfoque: 0,
-                  escala: 1
+              const { opacity, blur, scale } =
+                DEPTH[Math.min(distancia, DEPTH.length - 1)] ?? {
+                  opacity: 1,
+                  blur: 0,
+                  scale: 1
                 };
 
               return (
                 <a
-                  key={paso.clave}
+                  key={paso.keyName}
                   ref={(nodo) => {
                     enlaces.current[i] = nodo;
                   }}
-                  href={`${BASE}${paso.ruta}`}
+                  href={`${BASE}${paso.path}`}
                   aria-current={esActivo ? "page" : undefined}
                   aria-label={
-                    paso.futuro
+                    paso.isFuture
                       ? t(idioma, "guia.futuro.aria")
-                      : `${fechaCorta(paso.clave, idioma)} · ${paso.cuantas} ${t(
+                      : `${shortDate(paso.keyName, idioma)} · ${paso.count} ${t(
                           idioma,
-                          paso.cuantas === 1 ? "guia.idea" : "guia.ideas"
+                          paso.count === 1 ? "guia.idea" : "guia.ideas"
                         )}`
                   }
                   draggable={false}
@@ -413,17 +413,17 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                     esActivo
                       ? clsx(
                           "border-transparent",
-                          paso.futuro ? "text-ink" : "text-paper"
+                          paso.isFuture ? "text-ink" : "text-paper"
                         )
-                      : paso.futuro
+                      : paso.isFuture
                         ? "border-dashed border-line-strong/80 bg-paper text-muted hover:border-line-strong hover:text-ink"
                         : "border-line bg-paper text-ink-soft hover:border-line-strong hover:text-ink"
                   )}
                   style={{
-                    opacity: esActivo ? 1 : opacidad,
-                    filter: desenfoque ? `blur(${desenfoque}px)` : undefined,
-                    transform: `scale(${esActivo ? 1 : escala})`,
-                    transition: `opacity 300ms ${CURVA}, filter 300ms ${CURVA}, transform 300ms ${CURVA}`
+                    opacity: esActivo ? 1 : opacity,
+                    filter: blur ? `blur(${blur}px)` : undefined,
+                    transform: `scale(${esActivo ? 1 : scale})`,
+                    transition: `opacity 300ms ${EASE}, filter 300ms ${EASE}, transform 300ms ${EASE}`
                   }}
                 >
                   {esActivo ? (
@@ -431,14 +431,14 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                       aria-hidden="true"
                       className={clsx(
                         "absolute inset-0 rounded-full",
-                        paso.futuro
+                        paso.isFuture
                           ? "border border-line-strong bg-panel"
                           : "bg-gradient-to-b from-rust-ink to-rust-ink/90 shadow-[0_10px_24px_-12px_var(--color-rust-ink)]"
                       )}
                     />
                   ) : null}
 
-                  {paso.futuro ? (
+                  {paso.isFuture ? (
                     <Sparkles
                       aria-hidden="true"
                       className="relative size-3"
@@ -459,7 +459,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                     <span className="hidden sm:inline">{paso.texto}</span>
                   </span>
 
-                  {paso.futuro ? null : (
+                  {paso.isFuture ? null : (
                     <span
                       className={clsx(
                         "relative hidden rounded-full px-1 text-[0.6rem] leading-4 tabular-nums sm:inline",
@@ -468,7 +468,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
                           : "bg-ink/6 text-muted"
                       )}
                     >
-                      {paso.cuantas}
+                      {paso.count}
                     </span>
                   )}
                 </a>
@@ -480,7 +480,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
         <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
           {anterior ? (
             <a
-              href={`${BASE}${anterior.ruta}`}
+              href={`${BASE}${anterior.path}`}
               aria-label={t(idioma, "guia.paso.anterior")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >
@@ -501,7 +501,7 @@ export default function LineaTiempo({ dias, activo, lang = "es" }: Props) {
           )}
           {siguiente ? (
             <a
-              href={`${BASE}${siguiente.ruta}`}
+              href={`${BASE}${siguiente.path}`}
               aria-label={t(idioma, "guia.paso.siguiente")}
               className="rounded-md p-1 text-muted transition-colors outline-offset-2 outline-rust hover:bg-ink/8 hover:text-ink focus-visible:outline-2"
             >

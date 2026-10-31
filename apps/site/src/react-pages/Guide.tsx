@@ -3,33 +3,33 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState, useEffect, type CSSProperties } from "react";
 import clsx from "clsx";
 import {
-  CATEGORIAS,
-  VEREDICTOS,
-  fechaCompleta,
-  fechaCorta,
-  fechaPartida,
-  nombreCategoria,
-  nombreVeredicto,
-  rutaDia,
-  type Categoria,
-  type Dia,
-  type ResumenDia,
-  type Veredicto
-} from "../lib/guia";
-import { idiomaDe, t } from "../lib/i18n";
-import { useTitulo } from "../lib/titulo";
+  CATEGORIES,
+  VERDICTS,
+  fullDate,
+  shortDate,
+  splitDate,
+  categoryName,
+  verdictName,
+  dayPath,
+  type Category,
+  type Day,
+  type DaySummary,
+  type Verdict
+} from "../lib/guide";
+import { localeOf, t } from "../lib/i18n";
+import { useTitle } from "../lib/title";
 
 /**
  * Un día de la guía, con su changelog (ADR 0035 · ADR 0047).
  *
- * La página del día pinta solo sus entradas; la línea del tiempo del header
+ * La página del día pinta solo sus entries; la línea del tiempo del header
  * lleva a los demás días. La cabecera solo se lee en `/desarrollo/guia/`.
  */
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-/** El icono de cada veredicto. */
-const ICONOS: Record<Veredicto, LucideIcon> = {
+/** El icono de cada verdict. */
+const ICONOS: Record<Verdict, LucideIcon> = {
   idea: Beaker,
   fase: Check,
   adr: ScrollText,
@@ -39,66 +39,66 @@ const ICONOS: Record<Veredicto, LucideIcon> = {
 };
 
 /**
- * El color de una categoría o un veredicto, como variables de CSS: `--tono`
+ * El color de una categoría o un verdict, como variables de CSS: `--tono`
  * para la masa y `--tono-ink` para el texto de la etiqueta.
  */
 function tono(color: string, ink: string): CSSProperties {
   return { "--tono": color, "--tono-ink": ink } as CSSProperties;
 }
 
-/** La etiqueta de un veredicto, con su icono y su color. */
+/** La etiqueta de un verdict, con su icono y su color. */
 function Etiqueta({
-  veredicto,
+  verdict,
   lang
 }: {
-  veredicto: Veredicto;
+  verdict: Verdict;
   lang: string;
 }) {
-  const meta = VEREDICTOS[veredicto];
-  const Icono = ICONOS[veredicto];
+  const meta = VERDICTS[verdict];
+  const Icono = ICONOS[verdict];
   return (
     <span style={tono(meta.color, meta.ink)} className="guia-veredicto">
       <Icono aria-hidden="true" className="size-3" strokeWidth={2.2} />
-      {nombreVeredicto(veredicto, lang)}
+      {verdictName(verdict, lang)}
     </span>
   );
 }
 
 interface Props {
-  dia: Dia;
-  dias: ResumenDia[];
-  esUltimo?: boolean;
+  day: Day;
+  days: DaySummary[];
+  isLast?: boolean;
   lang?: string;
 }
 
-export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
-  const idioma = idiomaDe(lang);
-  const fecha = fechaPartida(dia.fecha, idioma);
-  const fechaLarga = fechaCompleta(dia.fecha, idioma);
-  const ultima = dias.at(-1)?.fecha ?? dia.fecha;
-  const indice = dias.findIndex((d) => d.fecha === dia.fecha);
-  const anterior = indice > 0 ? dias[indice - 1] : undefined;
+export default function Guide({ day, days, isLast, lang = "es" }: Props) {
+  const idioma = localeOf(lang);
+  const date = splitDate(day.date, idioma);
+  const fechaLarga = fullDate(day.date, idioma);
+  const ultima = days.at(-1)?.date ?? day.date;
+  const indice = days.findIndex((d) => d.date === day.date);
+  const anterior = indice > 0 ? days[indice - 1] : undefined;
   const siguiente =
-    indice >= 0 && indice < dias.length - 1 ? dias[indice + 1] : undefined;
-  const total = dias.reduce((cuenta, d) => cuenta + d.cuantas, 0);
-  const categorias = new Set(dias.flatMap((d) => d.categorias));
-  const [visibles, setVisibles] = useState<Set<Categoria>>(
-    () => new Set(dia.grupos.map((grupo) => grupo.categoria))
+    indice >= 0 && indice < days.length - 1 ? days[indice + 1] : undefined;
+  const total = days.reduce((cuenta, d) => cuenta + d.count, 0);
+  const categories = new Set(days.flatMap((d) => d.categories));
+  const [visibles, setVisibles] = useState<Set<Category>>(
+    () => new Set(day.groups.map((grupo) => grupo.category))
   );
-  const alternar = (categoria: Categoria) => {
+  const alternar = (category: Category) => {
     setVisibles((prev) => {
       const siguiente = new Set(prev);
-      if (siguiente.has(categoria)) siguiente.delete(categoria);
-      else siguiente.add(categoria);
+      if (siguiente.has(category)) siguiente.delete(category);
+      else siguiente.add(category);
       return siguiente;
     });
   };
-  const gruposVisibles = dia.grupos.filter((grupo) =>
-    visibles.has(grupo.categoria)
+  const gruposVisibles = day.groups.filter((grupo) =>
+    visibles.has(grupo.category)
   );
 
   const [abiertos, setAbiertos] = useState<Set<string>>(() => new Set());
-  const alternarEntrada = (id: string) => {
+  const toggleEntry = (id: string) => {
     setAbiertos((prev) => {
       const siguiente = new Set(prev);
       if (siguiente.has(id)) siguiente.delete(id);
@@ -108,12 +108,12 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
   };
   useEffect(() => {
     const id = window.location.hash.slice(1);
-    if (id && dia.entradas.some((entrada) => entrada.id === id)) {
+    if (id && day.entries.some((entrada) => entrada.id === id)) {
       setAbiertos(new Set([id]));
     }
-  }, [dia]);
+  }, [day]);
 
-  useTitulo(
+  useTitle(
     t(idioma, "guia.fecha.titulo").replace("{fecha}", fechaLarga),
     t(idioma, "guia.hero.desc"),
     idioma
@@ -121,7 +121,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-5 py-10">
-      {esUltimo ? (
+      {isLast ? (
         <header className="mb-10">
           <p className="font-mono text-xs tracking-[0.22em] text-rust-ink uppercase">
             {t(idioma, "guia.registro")}
@@ -137,9 +137,9 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
             </div>
             <dl className="flex shrink-0 gap-6">
               {[
-                [t(idioma, "guia.dias"), dias.length],
+                [t(idioma, "guia.dias"), days.length],
                 [t(idioma, "guia.ideas"), total],
-                [t(idioma, "guia.categorias"), categorias.size]
+                [t(idioma, "guia.categorias"), categories.size]
               ].map(([etiqueta, cuenta]) => (
                 <div key={etiqueta}>
                   <dt className="font-mono text-[0.62rem] tracking-[0.14em] text-muted uppercase">
@@ -164,13 +164,13 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
           <span aria-hidden="true" className="text-line-strong">
             /
           </span>
-          {fechaCorta(dia.fecha, idioma)}
+          {shortDate(day.date, idioma)}
         </p>
       )}
 
       <motion.section
-        id={`dia-${dia.fecha}`}
-        data-fecha={dia.fecha}
+        id={`dia-${day.date}`}
+        data-date={day.date}
         initial={{ opacity: 1, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
@@ -180,41 +180,41 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
         <header className="guia-dia-cabecera">
           <h2
             className="guia-fecha"
-            aria-label={`${fecha.dia} de ${fecha.mes} de ${fecha.anio}`}
+            aria-label={`${date.day} de ${date.month} de ${date.year}`}
           >
-            <span className="guia-fecha-dia">{fecha.dia}</span>
+            <span className="guia-fecha-dia">{date.day}</span>
             <span className="guia-fecha-mes">
-              {fecha.mes}
-              <span className="guia-fecha-anio">{fecha.anio}</span>
+              {date.month}
+              <span className="guia-fecha-anio">{date.year}</span>
             </span>
           </h2>
           <div className="min-w-0">
             <p className="font-mono text-[0.66rem] tracking-[0.14em] text-muted uppercase">
-              {dia.entradas.length}{" "}
+              {day.entries.length}{" "}
               {t(
                 idioma,
-                dia.entradas.length === 1 ? "guia.idea" : "guia.ideas"
+                day.entries.length === 1 ? "guia.idea" : "guia.ideas"
               )}
             </p>
             <ul className="mt-2 flex flex-wrap gap-1.5">
-              {dia.grupos.map((grupo) => {
-                const categoria = CATEGORIAS[grupo.categoria];
-                const activa = visibles.has(grupo.categoria);
+              {day.groups.map((grupo) => {
+                const category = CATEGORIES[grupo.category];
+                const activa = visibles.has(grupo.category);
                 return (
-                  <li key={grupo.categoria}>
+                  <li key={grupo.category}>
                     <button
                       type="button"
-                      onClick={() => alternar(grupo.categoria)}
+                      onClick={() => alternar(grupo.category)}
                       aria-pressed={activa}
-                      style={tono(categoria.color, categoria.ink)}
+                      style={tono(category.color, category.ink)}
                       className={
                         activa ? "guia-chip" : "guia-chip guia-chip--inactivo"
                       }
                     >
                       <span aria-hidden="true" className="guia-chip-punto" />
-                      {nombreCategoria(grupo.categoria, idioma)}
+                      {categoryName(grupo.category, idioma)}
                       <span className="guia-chip-cuenta">
-                        {grupo.entradas.length}
+                        {grupo.entries.length}
                       </span>
                     </button>
                   </li>
@@ -225,7 +225,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                   <button
                     type="button"
                     onClick={() =>
-                      setVisibles(new Set(dia.grupos.map((g) => g.categoria)))
+                      setVisibles(new Set(day.groups.map((g) => g.category)))
                     }
                     className="guia-chip"
                   >
@@ -239,26 +239,26 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
 
         <div className="guia-grupos">
           {gruposVisibles.map((grupo) => {
-            const categoria = CATEGORIAS[grupo.categoria];
+            const category = CATEGORIES[grupo.category];
             return (
               <section
-                key={grupo.categoria}
-                aria-label={nombreCategoria(grupo.categoria, idioma)}
-                style={tono(categoria.color, categoria.ink)}
+                key={grupo.category}
+                aria-label={categoryName(grupo.category, idioma)}
+                style={tono(category.color, category.ink)}
                 className="guia-grupo"
               >
                 <h3 className="guia-grupo-cabecera">
                   <span aria-hidden="true" className="guia-grupo-punto" />
                   <span className="guia-grupo-nombre">
-                    {nombreCategoria(grupo.categoria, idioma)}
+                    {categoryName(grupo.category, idioma)}
                   </span>
                   <span className="guia-grupo-cuenta">
-                    {grupo.entradas.length}
+                    {grupo.entries.length}
                   </span>
                   <span aria-hidden="true" className="guia-grupo-linea" />
                 </h3>
 
-                {grupo.entradas.map((entrada) => {
+                {grupo.entries.map((entrada) => {
                   const abierto = abiertos.has(entrada.id);
                   return (
                     <article
@@ -269,16 +269,16 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                       <div className="guia-entrada-fila">
                         <button
                           type="button"
-                          onClick={() => alternarEntrada(entrada.id)}
+                          onClick={() => toggleEntry(entrada.id)}
                           aria-expanded={abierto}
                           className="guia-entrada-disparador"
                         >
                           <h4 className="guia-entrada-titulo">
-                            {entrada.titulo}
+                            {entrada.title}
                           </h4>
                           <span className="guia-entrada-meta">
                             <Etiqueta
-                              veredicto={entrada.veredicto}
+                              verdict={entrada.verdict}
                               lang={idioma}
                             />
                           </span>
@@ -292,7 +292,7 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
                         </button>
                         <a
                           href={`#${entrada.id}`}
-                          aria-label={`${t(idioma, "guia.enlace")} ${entrada.titulo}`}
+                          aria-label={`${t(idioma, "guia.enlace")} ${entrada.title}`}
                           className="guia-ancla"
                         >
                           #
@@ -333,11 +333,11 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
       >
         {anterior ? (
           <a
-            href={`${BASE}${rutaDia(anterior.fecha, ultima, idioma)}`}
+            href={`${BASE}${dayPath(anterior.date, ultima, idioma)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
             <ArrowLeft aria-hidden="true" className="size-3" />
-            {fechaCorta(anterior.fecha, idioma)}
+            {shortDate(anterior.date, idioma)}
           </a>
         ) : (
           <span />
@@ -350,10 +350,10 @@ export default function Guia({ dia, dias, esUltimo, lang = "es" }: Props) {
         </a>
         {siguiente ? (
           <a
-            href={`${BASE}${rutaDia(siguiente.fecha, ultima, idioma)}`}
+            href={`${BASE}${dayPath(siguiente.date, ultima, idioma)}`}
             className="inline-flex items-center gap-1.5 font-mono text-[0.66rem] tracking-[0.1em] text-rust-ink uppercase no-underline hover:underline"
           >
-            {fechaCorta(siguiente.fecha, idioma)}
+            {shortDate(siguiente.date, idioma)}
             <ArrowRight aria-hidden="true" className="size-3" />
           </a>
         ) : (

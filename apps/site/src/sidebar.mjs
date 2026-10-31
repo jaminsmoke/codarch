@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
-import { idDocumento } from "./lib/zonas.mjs";
+import { documentId } from "./lib/zones.mjs";
 
 /**
  * La sidebar de Starlight se genera del frontmatter de `docs/` (ADR 0046).
@@ -46,7 +46,7 @@ function leer(archivo) {
     .split(path.sep)
     .join("/")
     .replace(/\.md$/, "");
-  return { clave: idDocumento(relativa), relativa, datos };
+  return { clave: documentId(relativa), relativa, datos };
 }
 
 function etiqueta(clave, datos) {

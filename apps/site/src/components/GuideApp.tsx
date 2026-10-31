@@ -9,17 +9,17 @@ import {
   type MouseEvent
 } from "react";
 import {
-  parseRutaGuia,
-  resumenDias,
-  rutaGuia,
-  type DatosGuia,
-  type RutaGuia
-} from "../lib/guia";
-import { idiomaDe } from "../lib/i18n";
+  parseGuidePath,
+  summarizeDays,
+  guideRoute,
+  type GuideData,
+  type GuideRoute
+} from "../lib/guide";
+import { localeOf } from "../lib/i18n";
 import Marco from "../Marco";
-import Futuro from "../react-pages/Futuro";
-import Guia from "../react-pages/Guia";
-import Normas from "../react-pages/Normas";
+import Future from "../react-pages/Future";
+import Guide from "../react-pages/Guide";
+import Rules from "../react-pages/Rules";
 
 /**
  * La guía como una sola isla (ADR 0047).
@@ -33,20 +33,20 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const SITIO = "https://jaminsmoke.github.io";
 
 /** La línea del tiempo se carga solo en la guía. */
-const LineaTiempo = lazy(() => import("./LineaTiempo"));
+const Timeline = lazy(() => import("./Timeline"));
 
 /** Las fechas de la guía, en orden: lo que sabe el parser de rutas. */
-function fechasDe(datos: DatosGuia): string[] {
-  return datos.dias.map((dia) => dia.fecha);
+function datesOf(datos: GuideData): string[] {
+  return datos.days.map((dia) => dia.date);
 }
 
-export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang?: string }) {
-  const idioma = idiomaDe(lang);
-  const dias = resumenDias(datos.dias);
-  const ultima = datos.dias.at(-1)?.fecha ?? "";
-  const fechas = useMemo(() => fechasDe(datos), [datos]);
-  const [ruta, setRuta] = useState<RutaGuia>(() =>
-    parseRutaGuia(
+export default function GuideApp({ datos, lang = "es" }: { datos: GuideData; lang?: string }) {
+  const idioma = localeOf(lang);
+  const dias = summarizeDays(datos.days);
+  const ultima = datos.days.at(-1)?.date ?? "";
+  const fechas = useMemo(() => datesOf(datos), [datos]);
+  const [ruta, setRoute] = useState<GuideRoute>(() =>
+    parseGuidePath(
       typeof window === "undefined"
         ? "/desarrollo/guia/"
         : window.location.pathname,
@@ -63,7 +63,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
 
   useEffect(() => {
     const alVolver = (): void => {
-      setRuta(parseRutaGuia(window.location.pathname, fechas, idioma));
+      setRoute(parseGuidePath(window.location.pathname, fechas, idioma));
       pendiente.current = window.location.hash
         ? decodeURIComponent(window.location.hash.slice(1))
         : null;
@@ -86,7 +86,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       'link[rel="canonical"]'
     );
     if (canonical) {
-      canonical.href = `${SITIO}${BASE}${rutaGuia(ruta, ultima, idioma)}`;
+      canonical.href = `${SITIO}${BASE}${guideRoute(ruta, ultima, idioma)}`;
     }
   }, [visita, ruta, ultima, idioma]);
 
@@ -96,7 +96,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
       ? decodeURIComponent(url.hash.slice(1))
       : null;
     history.pushState({}, "", `${url.pathname}${url.hash}`);
-    setRuta(parseRutaGuia(url.pathname, fechas, idioma));
+    setRoute(parseGuidePath(url.pathname, fechas, idioma));
     setVisita((n) => n + 1);
   };
 
@@ -121,10 +121,10 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
     navegar(href);
   };
 
-  const activo = ruta.tipo === "dia" ? ruta.fecha : ruta.tipo;
+  const activo = ruta.kind === "day" ? ruta.date : ruta.kind;
   const dia =
-    ruta.tipo === "dia"
-      ? datos.dias.find((d) => d.fecha === ruta.fecha) ?? datos.dias.at(-1)
+    ruta.kind === "day"
+      ? datos.days.find((d) => d.date === ruta.date) ?? datos.days.at(-1)
       : undefined;
 
   return (
@@ -133,7 +133,7 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
         <Suspense
           fallback={<div className="h-[3.8rem] border-t border-line/70" />}
         >
-          <LineaTiempo dias={dias} activo={activo} lang={lang} />
+          <Timeline days={dias} active={activo} lang={lang} />
         </Suspense>
         <AnimatePresence mode="wait">
           <motion.div
@@ -143,18 +143,18 @@ export default function GuiaApp({ datos, lang = "es" }: { datos: DatosGuia; lang
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1] }}
           >
-          {ruta.tipo === "dia" && dia ? (
-            <Guia
-              dia={dia}
-              dias={dias}
-              esUltimo={dia.fecha === ultima}
+          {ruta.kind === "day" && dia ? (
+            <Guide
+              day={dia}
+              days={dias}
+              isLast={dia.date === ultima}
               lang={lang}
             />
           ) : null}
-          {ruta.tipo === "futuro" ? (
-            <Futuro futuras={datos.futuras} dias={dias} lang={lang} />
+          {ruta.kind === "future" ? (
+            <Future upcoming={datos.upcoming} days={dias} lang={lang} />
           ) : null}
-          {ruta.tipo === "normas" ? <Normas normas={datos.normas} lang={lang} /> : null}
+          {ruta.kind === "rules" ? <Rules rules={datos.rules} lang={lang} /> : null}
         </motion.div>
       </AnimatePresence>
       </Marco>

@@ -2,7 +2,7 @@ import es from "../content/i18n/es.json";
 import en from "../content/i18n/en.json";
 
 /**
- * Idiomas del sitio (ADR 0046 · ADR 0047).
+ * Locales del sitio (ADR 0046 · ADR 0047).
  *
  * Las cadenas de la interfaz viven en `src/content/i18n/`, la colección `i18n`
  * de Starlight: una entrada por idioma, con las claves de todo el sitio. La
@@ -18,35 +18,35 @@ import en from "../content/i18n/en.json";
  * El idioma por defecto es el español; las cadenas que falten caen a él.
  */
 
-export type Idioma = "es" | "en";
+export type Locale = "es" | "en";
 
-export const IDIOMAS: Idioma[] = ["es", "en"];
+export const LOCALES: Locale[] = ["es", "en"];
 
-export const IDIOMA_POR_DEFECTO: Idioma = "es";
+export const DEFAULT_LOCALE: Locale = "es";
 
 /** Las claves de la interfaz: las mismas en todos los idiomas. */
-export type Clave = keyof typeof es;
+export type Key = keyof typeof es;
 
 /** El diccionario tiene que estar completo en cada idioma. */
-const DICCIONARIO: Record<Idioma, Record<Clave, string>> = { es, en };
+const DICCIONARIO: Record<Locale, Record<Key, string>> = { es, en };
 
 /* eslint-disable @typescript-eslint/no-namespace, @typescript-eslint/no-empty-object-type -- la ampliación de Starlight se declara con namespace y merging */
 declare global {
   /** Las claves propias también se leen con `Astro.locals.t` (Starlight). */
   namespace StarlightApp {
-    interface I18n extends Record<Clave, string> {}
+    interface I18n extends Record<Key, string> {}
   }
 }
 /* eslint-enable @typescript-eslint/no-namespace, @typescript-eslint/no-empty-object-type */
 
-export function esIdioma(valor: string | undefined): valor is Idioma {
-  return valor !== undefined && IDIOMAS.includes(valor as Idioma);
+export function isLocale(valor: string | undefined): valor is Locale {
+  return valor !== undefined && LOCALES.includes(valor as Locale);
 }
 
-export function idiomaDe(valor: string | undefined): Idioma {
-  return esIdioma(valor) ? valor : IDIOMA_POR_DEFECTO;
+export function localeOf(valor: string | undefined): Locale {
+  return isLocale(valor) ? valor : DEFAULT_LOCALE;
 }
 
-export function t(lang: Idioma, clave: Clave): string {
-  return DICCIONARIO[lang][clave] ?? DICCIONARIO[IDIOMA_POR_DEFECTO][clave];
+export function t(lang: Locale, clave: Key): string {
+  return DICCIONARIO[lang][clave] ?? DICCIONARIO[DEFAULT_LOCALE][clave];
 }

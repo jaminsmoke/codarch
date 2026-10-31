@@ -5,12 +5,12 @@ import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { unified } from "@astrojs/markdown-remark";
 import { defineConfig } from "astro/config";
-import { redirecciones } from "./src/lib/redirecciones.mjs";
+import { redirects } from "./src/lib/redirects.mjs";
 import { rehypeDocLinks } from "./src/lib/rehype-doc-links.mjs";
-import { rehypeIdioma } from "./src/lib/rehype-idioma.mjs";
+import { rehypeLocale } from "./src/lib/rehype-locale.mjs";
 import { sidebar } from "./src/sidebar.mjs";
 import { faviconDev } from "./vite-plugin-favicon.ts";
-import { rutasDocs } from "./vite-plugin-rutas.ts";
+import { docsRoutes } from "./vite-plugin-routes.ts";
 
 /**
  * La web del proyecto (ADR 0046).
@@ -26,7 +26,7 @@ export default defineConfig({
   site: "https://jaminsmoke.github.io",
   base: "/codarch",
   // Las direcciones de antes de las dos zonas siguen funcionando (ADR 0081).
-  redirects: redirecciones(path.join(root, "docs"), "/codarch"),
+  redirects: redirects(path.join(root, "docs"), "/codarch"),
   markdown: {
     processor: unified({
       // Los avisos de Starlight (`:::note`) llegan hasta aquí como nodos de hast
@@ -62,7 +62,7 @@ export default defineConfig({
         MarkdownContent: "./src/components/MarkdownContent.astro",
         Search: "./src/components/Search.astro"
       },
-      routeMiddleware: "./src/middleware-rutas.ts",
+      routeMiddleware: "./src/middleware-routes.ts",
       sidebar: sidebar(),
       social: [
         {
@@ -75,14 +75,14 @@ export default defineConfig({
       prerender: true
     }),
     // Starlight monta sus avisos y sus anclas después de leer el markdown, así
-    // que `rehypeIdioma` se engancha al cerrar la configuración —con la lista de
+    // que `rehypeLocale` se engancha al cerrar la configuración —con la lista de
     // plugins de Starlight ya puesta— para encontrarlos montados.
     {
       name: "codarch-idioma",
       hooks: {
         "astro:config:done": ({ config }) => {
           config.markdown.processor.options.rehypePlugins.push([
-            rehypeIdioma,
+            rehypeLocale,
             { docsRoot }
           ]);
         }
@@ -90,7 +90,7 @@ export default defineConfig({
     }
   ],
   vite: {
-    plugins: [tailwindcss(), rutasDocs(root), faviconDev(root)],
+    plugins: [tailwindcss(), docsRoutes(root), faviconDev(root)],
     server: {
       fs: {
         // El markdown, las imágenes y los paquetes del monorepo viven fuera

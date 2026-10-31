@@ -2,7 +2,7 @@
  * La guía: sus tipos, sus categorías y sus veredictos (ADR 0035 · ADR 0046).
  *
  * El contenido ya no se parte aquí: cada idea es un fichero en
- * `docs/desarrollo/guideline/entradas/` y `lib/guia-servidor.ts` lo convierte en datos
+ * `docs/desarrollo/guideline/entradas/` y `lib/guide-server.ts` lo convierte en datos
  * para la página. Este módulo es puro: lo usan el build y los tests.
  */
 
@@ -13,7 +13,7 @@
  * con el que se escribe la etiqueta: el puro no llega a 4,5:1 en versalitas de
  * 9 px, así que cada uno tiene su versión de lectura (ver `styles.css`).
  */
-export type Veredicto =
+export type Verdict =
   | "idea"
   | "fase"
   | "adr"
@@ -21,8 +21,8 @@ export type Veredicto =
   | "esperar"
   | "otro";
 
-export const VEREDICTOS: Record<
-  Veredicto,
+export const VERDICTS: Record<
+  Verdict,
   { texto: string; color: string; ink: string }
 > = {
   idea: {
@@ -58,7 +58,7 @@ export const VEREDICTOS: Record<
 };
 
 /** Los mismos veredictos, en inglés. */
-const VEREDICTOS_EN: Record<Veredicto, string> = {
+const VERDICTS_EN: Record<Verdict, string> = {
   idea: "idea",
   fase: "phase",
   adr: "ADR",
@@ -68,11 +68,11 @@ const VEREDICTOS_EN: Record<Veredicto, string> = {
 };
 
 /** El texto de un veredicto en el idioma pedido. */
-export function nombreVeredicto(
-  veredicto: Veredicto,
+export function verdictName(
+  verdict: Verdict,
   lang: string = "es"
 ): string {
-  return lang === "en" ? VEREDICTOS_EN[veredicto] : VEREDICTOS[veredicto].texto;
+  return lang === "en" ? VERDICTS_EN[verdict] : VERDICTS[verdict].texto;
 }
 
 /**
@@ -81,7 +81,7 @@ export function nombreVeredicto(
  * Son un set cerrado: cada entrada elige la suya y el día pinta solo las que
  * tienen algo, en este orden.
  */
-export type Categoria =
+export type Category =
   | "feature"
   | "fix"
   | "optimized"
@@ -92,8 +92,8 @@ export type Categoria =
   | "removed"
   | "otro";
 
-export const CATEGORIAS: Record<
-  Categoria,
+export const CATEGORIES: Record<
+  Category,
   { texto: string; color: string; ink: string; orden: number }
 > = {
   feature: {
@@ -153,7 +153,7 @@ export const CATEGORIAS: Record<
 };
 
 /** Las mismas categorías, en inglés. */
-const CATEGORIAS_EN: Record<Categoria, string> = {
+const CATEGORIES_EN: Record<Category, string> = {
   feature: "Features",
   fix: "Fixes",
   optimized: "Performance",
@@ -166,74 +166,74 @@ const CATEGORIAS_EN: Record<Categoria, string> = {
 };
 
 /** El texto de una categoría en el idioma pedido. */
-export function nombreCategoria(
-  categoria: Categoria,
+export function categoryName(
+  category: Category,
   lang: string = "es"
 ): string {
-  return lang === "en" ? CATEGORIAS_EN[categoria] : CATEGORIAS[categoria].texto;
+  return lang === "en" ? CATEGORIES_EN[category] : CATEGORIES[category].texto;
 }
 
 /** Una entrada de la guía, ya lista para pintar. */
-export interface Entrada {
+export interface Entry {
   /** El ancla: el nombre del título, en kebab-case. */
   id: string;
-  titulo: string;
-  categoria: Categoria;
-  veredicto: Veredicto;
-  fecha: string;
+  title: string;
+  category: Category;
+  verdict: Verdict;
+  date: string;
   /** El primer párrafo en llano: la entrada cabe en una línea. */
-  resumen: string;
+  summary: string;
   html: string;
 }
 
 /** Un grupo de un día: las entradas de una categoría. */
-export interface Grupo {
-  categoria: Categoria;
-  entradas: Entrada[];
+export interface Group {
+  category: Category;
+  entries: Entry[];
 }
 
 /** Un día de trabajo: las entradas de esa fecha, por categoría. */
-export interface Dia {
-  fecha: string;
+export interface Day {
+  date: string;
   /** Las entradas del día, en el orden en que se escribieron. */
-  entradas: Entrada[];
+  entries: Entry[];
   /** Las mismas, agrupadas por categoría. */
-  grupos: Grupo[];
+  groups: Group[];
 }
 
 /** Un día, en corto: lo que necesita la línea del tiempo. */
-export interface ResumenDia {
-  fecha: string;
-  cuantas: number;
-  categorias: Categoria[];
+export interface DaySummary {
+  date: string;
+  count: number;
+  categories: Category[];
 }
 
 /** Los días, en corto: fecha, cuántas ideas y sus categorías. */
-export function resumenDias(dias: Dia[]): ResumenDia[] {
-  return dias.map((dia) => ({
-    fecha: dia.fecha,
-    cuantas: dia.entradas.length,
-    categorias: [...new Set(dia.entradas.map((entrada) => entrada.categoria))]
+export function summarizeDays(days: Day[]): DaySummary[] {
+  return days.map((dia) => ({
+    date: dia.date,
+    count: dia.entries.length,
+    categories: [...new Set(dia.entries.map((entrada) => entrada.category))]
   }));
 }
 
 /** La ruta de un día: el último vive en `/desarrollo/guia/`, los demás en su fecha. */
-export function rutaDia(
-  fecha: string,
+export function dayPath(
+  date: string,
   ultima: string,
   lang: string = "es"
 ): string {
   const prefijo = lang === "en" ? "/en" : "";
-  return fecha === ultima
+  return date === ultima
     ? `${prefijo}/desarrollo/guia/`
-    : `${prefijo}/desarrollo/guia/${fecha}/`;
+    : `${prefijo}/desarrollo/guia/${date}/`;
 }
 
 /** La vista de la guía que pide una dirección. */
-export type RutaGuia =
-  | { tipo: "dia"; fecha: string }
-  | { tipo: "futuro" }
-  | { tipo: "normas" };
+export type GuideRoute =
+  | { kind: "day"; date: string }
+  | { kind: "future" }
+  | { kind: "rules" };
 
 /**
  * La vista que pide una dirección del sitio.
@@ -243,49 +243,49 @@ export type RutaGuia =
  * exigirlo en la primera posición: antes se exigía ahí y cualquier dirección
  * —también la de un día concreto— caía al último día.
  */
-export function parseRutaGuia(
+export function parseGuidePath(
   pathname: string,
   fechas: readonly string[],
   lang: string = "es"
-): RutaGuia {
+): GuideRoute {
   const crudo = pathname.split("/").filter(Boolean);
-  const sinIdioma =
+  const sinLocale =
     lang === "en" && crudo[0] === "en" ? crudo.slice(1) : crudo;
   const ultima = fechas.at(-1) ?? "";
-  const desde = sinIdioma.indexOf("guia");
+  const desde = sinLocale.indexOf("guia");
 
-  if (desde === -1) return { tipo: "dia", fecha: ultima };
-  const resto = sinIdioma.slice(desde + 1);
-  if (resto[0] === "futuro") return { tipo: "futuro" };
-  if (resto[0] === "normas") return { tipo: "normas" };
+  if (desde === -1) return { kind: "day", date: ultima };
+  const resto = sinLocale.slice(desde + 1);
+  if (resto[0] === "futuro") return { kind: "future" };
+  if (resto[0] === "normas") return { kind: "rules" };
   const fecha = resto[0];
-  if (fecha && fechas.includes(fecha)) return { tipo: "dia", fecha };
-  return { tipo: "dia", fecha: ultima };
+  if (fecha && fechas.includes(fecha)) return { kind: "day", date: fecha };
+  return { kind: "day", date: ultima };
 }
 
 /** La dirección canónica de una vista de la guía. */
-export function rutaGuia(
-  ruta: RutaGuia,
+export function guideRoute(
+  ruta: GuideRoute,
   ultima: string,
   lang: string = "es"
 ): string {
   const prefijo = lang === "en" ? "/en" : "";
-  if (ruta.tipo === "futuro") return `${prefijo}/desarrollo/guia/futuro/`;
-  if (ruta.tipo === "normas") return `${prefijo}/desarrollo/guia/normas/`;
-  return rutaDia(ruta.fecha, ultima, lang);
+  if (ruta.kind === "future") return `${prefijo}/desarrollo/guia/futuro/`;
+  if (ruta.kind === "rules") return `${prefijo}/desarrollo/guia/normas/`;
+  return dayPath(ruta.date, ultima, lang);
 }
 
 /** La guía entera: las normas, los días y lo que falta. */
-export interface DatosGuia {
+export interface GuideData {
   /** Cómo se escribe la guía: la leyenda, las categorías y las reglas. */
-  normas: string;
-  dias: Dia[];
+  rules: string;
+  days: Day[];
   /** Las ideas que esperan: lo que todavía no ha pasado. */
-  futuras: Entrada[];
+  upcoming: Entry[];
 }
 
 /** Los meses, cortos y largos. */
-const MESES_CORTOS = [
+const SHORT_MONTHS = [
   "ene",
   "feb",
   "mar",
@@ -300,7 +300,7 @@ const MESES_CORTOS = [
   "dic"
 ];
 
-const MESES = [
+const MONTHS = [
   "enero",
   "febrero",
   "marzo",
@@ -315,7 +315,7 @@ const MESES = [
   "diciembre"
 ];
 
-const MESES_CORTOS_EN = [
+const SHORT_MONTHS_EN = [
   "Jan",
   "Feb",
   "Mar",
@@ -330,7 +330,7 @@ const MESES_CORTOS_EN = [
   "Dec"
 ];
 
-const MESES_EN = [
+const MONTHS_EN = [
   "January",
   "February",
   "March",
@@ -346,50 +346,50 @@ const MESES_EN = [
 ];
 
 /** "2026-10-21" -> "21 oct" (o "Oct 21") */
-export function fechaCorta(fecha: string, lang: string = "es"): string {
-  const partes = fecha.split("-");
-  if (partes.length !== 3) return fecha;
-  const mes = Number(partes[1]) - 1;
+export function shortDate(date: string, lang: string = "es"): string {
+  const parts = date.split("-");
+  if (parts.length !== 3) return date;
+  const month = Number(parts[1]) - 1;
   if (lang === "en") {
-    return `${MESES_CORTOS_EN[mes] ?? partes[1]} ${Number(partes[2])}`;
+    return `${SHORT_MONTHS_EN[month] ?? parts[1]} ${Number(parts[2])}`;
   }
-  return `${Number(partes[2])} ${MESES_CORTOS[mes] ?? partes[1]}`;
+  return `${Number(parts[2])} ${SHORT_MONTHS[month] ?? parts[1]}`;
 }
 
 /** La fecha larga, en el orden de cada idioma: "24 de octubre de 2026" / "October 24, 2026". */
-export function fechaCompleta(fecha: string, lang: string = "es"): string {
-  const partes = fechaPartida(fecha, lang);
+export function fullDate(date: string, lang: string = "es"): string {
+  const parts = splitDate(date, lang);
   return lang === "en"
-    ? `${partes.mes} ${partes.dia}, ${partes.anio}`
-    : `${partes.dia} de ${partes.mes} de ${partes.anio}`;
+    ? `${parts.month} ${parts.day}, ${parts.year}`
+    : `${parts.day} de ${parts.month} de ${parts.year}`;
 }
 
-/** "2026-10-21" -> { dia: "21", mes: "octubre", anio: "2026" } */
-export function fechaPartida(
-  fecha: string,
+/** "2026-10-21" -> { day: "21", month: "octubre", year: "2026" } */
+export function splitDate(
+  date: string,
   lang: string = "es"
 ): {
-  dia: string;
-  mes: string;
-  anio: string;
+  day: string;
+  month: string;
+  year: string;
 } {
-  const [anio = "", mes = "", dia = ""] = fecha.split("-");
+  const [year = "", month = "", day = ""] = date.split("-");
   return {
-    dia: String(Number(dia)),
-    mes: (lang === "en" ? MESES_EN : MESES)[Number(mes) - 1] ?? mes,
-    anio
+    day: String(Number(day)),
+    month: (lang === "en" ? MONTHS_EN : MONTHS)[Number(month) - 1] ?? month,
+    year
   };
 }
 
 /** Agrupa las entradas de un día por categoría, en el orden del changelog. */
-export function agrupar(entradas: Entrada[]): Grupo[] {
-  const porCategoria = new Map<Categoria, Entrada[]>();
-  for (const entrada of entradas) {
-    const lista = porCategoria.get(entrada.categoria) ?? [];
+export function groupEntries(entries: Entry[]): Group[] {
+  const byCategory = new Map<Category, Entry[]>();
+  for (const entrada of entries) {
+    const lista = byCategory.get(entrada.category) ?? [];
     lista.push(entrada);
-    porCategoria.set(entrada.categoria, lista);
+    byCategory.set(entrada.category, lista);
   }
-  return [...porCategoria.entries()]
-    .sort(([a], [b]) => CATEGORIAS[a].orden - CATEGORIAS[b].orden)
-    .map(([categoria, lista]) => ({ categoria, entradas: lista }));
+  return [...byCategory.entries()]
+    .sort(([a], [b]) => CATEGORIES[a].orden - CATEGORIES[b].orden)
+    .map(([category, lista]) => ({ category, entries: lista }));
 }

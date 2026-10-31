@@ -1,18 +1,18 @@
 ---
-import GuiaApp from "../../../../components/GuiaApp";
+import GuideApp from "../../../../components/GuideApp";
 import Site from "../../../../layouts/Site.astro";
-import { cargarGuia } from "../../../../lib/guia-carga";
-import { idiomaDe, t } from "../../../../lib/i18n";
-import { urlCanonica } from "../../../../lib/rutas";
+import { loadGuide } from "../../../../lib/guide-load";
+import { localeOf, t } from "../../../../lib/i18n";
+import { canonicalUrl } from "../../../../lib/routes";
 
 /** Cómo se escribe la guía: `/desarrollo/guia/normas/` y `/en/desarrollo/guia/normas/`. */
 export function getStaticPaths() {
   return [{ params: { lang: undefined } }, { params: { lang: "en" } }];
 }
 
-const idioma = idiomaDe(Astro.params.lang);
-const datos = await cargarGuia(idioma);
-const canonical = urlCanonica(
+const idioma = localeOf(Astro.params.lang);
+const datos = await loadGuide(idioma);
+const canonical = canonicalUrl(
   idioma === "en" ? "/en/desarrollo/guia/normas/" : "/desarrollo/guia/normas/"
 );
 ---
@@ -22,5 +22,5 @@ const canonical = urlCanonica(
   description={t(idioma, "meta.guia.normas.desc")}
   {canonical}
 >
-  <GuiaApp client:only="react" datos={datos} lang={idioma} />
+  <GuideApp client:only="react" datos={datos} lang={idioma} />
 </Site>

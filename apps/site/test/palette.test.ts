@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { CATEGORIAS, VEREDICTOS } from "../src/lib/guia";
+import { CATEGORIES, VERDICTS } from "../src/lib/guide";
 
 /**
  * La leyenda de la guía se escribe con versalitas de 9 px, así que cada tono
@@ -28,7 +28,7 @@ function valor(bloque: string, nombre: string): string {
 }
 
 /** `var(--color-x)` → el valor de ese token en el bloque. */
-function resolver(bloque: string, referencia: string): string {
+function resolve(bloque: string, referencia: string): string {
   const nombre = referencia.match(/var\((--[\w-]+)\)/)?.[1];
   if (!nombre) throw new Error(`no es un token: ${referencia}`);
   return valor(bloque, nombre);
@@ -55,17 +55,17 @@ function contraste(a: string, b: string): number {
 }
 
 const leyenda = [
-  ...Object.entries(VEREDICTOS).map(
+  ...Object.entries(VERDICTS).map(
     ([clave, meta]) => [`el veredicto ${clave}`, meta] as const
   ),
-  ...Object.entries(CATEGORIAS).map(
+  ...Object.entries(CATEGORIES).map(
     ([clave, meta]) => [`la categoría ${clave}`, meta] as const
   )
 ];
 
 describe("la leyenda de la guía", () => {
   it.each(leyenda)("%s se lee sobre el papel y el panel", (_nombre, meta) => {
-    const tinta = resolver(claro, meta.ink);
+    const tinta = resolve(claro, meta.ink);
     for (const fondo of [
       valor(claro, "--color-paper"),
       valor(claro, "--color-panel")
@@ -75,7 +75,7 @@ describe("la leyenda de la guía", () => {
   });
 
   it.each(leyenda)("%s se lee en oscuro", (_nombre, meta) => {
-    const tinta = resolver(oscuro, meta.ink);
+    const tinta = resolve(oscuro, meta.ink);
     for (const fondo of [
       valor(oscuro, "--color-paper"),
       valor(oscuro, "--color-panel")

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { sidebar, sidebarDesarrollo, sidebarUsar } from "../src/sidebar.mjs";
 
-type Entrada = { label: string; slug?: string; link?: string; items?: Entrada[] };
+type Entry = { label: string; slug?: string; link?: string; items?: Entry[] };
 
-const grupos = sidebar() as Entrada[];
-const usar = sidebarUsar() as Entrada;
-const construir = sidebarDesarrollo() as Entrada;
+const grupos = sidebar() as Entry[];
+const usar = sidebarUsar() as Entry;
+const construir = sidebarDesarrollo() as Entry;
 const cli = usar.items?.find((item) => item.label === "CLI");
 const decisiones = construir.items?.find(
   (item) => item.label === "Decisiones (ADR)"
@@ -21,8 +21,8 @@ describe("la sidebar de los documentos", () => {
   });
 
   it("no mezcla las zonas", () => {
-    const slugs = (entradas: Entrada[] = []): string[] =>
-      entradas.flatMap((e) => [...(e.slug ? [e.slug] : []), ...slugs(e.items)]);
+    const slugs = (entries: Entry[] = []): string[] =>
+      entries.flatMap((e) => [...(e.slug ? [e.slug] : []), ...slugs(e.items)]);
     expect(slugs(usar.items).every((slug) => slug.startsWith("docs/"))).toBe(true);
     expect(
       slugs(construir.items).every((slug) => slug.startsWith("desarrollo/"))

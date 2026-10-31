@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import captura from "../../docs/images/atlas.png";
-import { idiomaDe, t, type Clave } from "../lib/i18n";
-import { useTitulo } from "../lib/titulo";
+import { localeOf, t, type Key } from "../lib/i18n";
+import { useTitle } from "../lib/title";
 
 /**
  * La portada: qué es CodArch, cómo se ve y sus tres formas de instalarlo
@@ -22,19 +22,19 @@ const DOCKER_RUN = [
 ].join("\n");
 
 /** Las seis piezas del producto, como claves del diccionario. */
-const PIEZAS: { titulo: Clave; texto: Clave }[] = [
-  { titulo: "home.pieza.cli", texto: "home.pieza.cli.desc" },
-  { titulo: "home.pieza.action", texto: "home.pieza.action.desc" },
-  { titulo: "home.pieza.mcp", texto: "home.pieza.mcp.desc" },
-  { titulo: "home.pieza.apps", texto: "home.pieza.apps.desc" },
-  { titulo: "home.pieza.ext", texto: "home.pieza.ext.desc" },
-  { titulo: "home.pieza.reglas", texto: "home.pieza.reglas.desc" }
+const PIEZAS: { title: Key; texto: Key }[] = [
+  { title: "home.pieza.cli", texto: "home.pieza.cli.desc" },
+  { title: "home.pieza.action", texto: "home.pieza.action.desc" },
+  { title: "home.pieza.mcp", texto: "home.pieza.mcp.desc" },
+  { title: "home.pieza.apps", texto: "home.pieza.apps.desc" },
+  { title: "home.pieza.ext", texto: "home.pieza.ext.desc" },
+  { title: "home.pieza.reglas", texto: "home.pieza.reglas.desc" }
 ];
 
-export default function Inicio({ lang = "es" }: { lang?: string }) {
-  const idioma = idiomaDe(lang);
+export default function Home({ lang = "es" }: { lang?: string }) {
+  const idioma = localeOf(lang);
   const raiz = idioma === "en" ? `${BASE}/en` : BASE;
-  useTitulo(undefined, t(idioma, "home.intro"), idioma);
+  useTitle(undefined, t(idioma, "home.intro"), idioma);
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-14">
       <section className="max-w-3xl">
@@ -187,7 +187,7 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PIEZAS.map((pieza, indice) => (
             <motion.article
-              key={pieza.titulo}
+              key={pieza.title}
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
@@ -199,7 +199,7 @@ export default function Inicio({ lang = "es" }: { lang?: string }) {
               className="rounded-card border border-line bg-panel p-5"
             >
               <h3 className="font-display text-lg font-bold">
-                {t(idioma, pieza.titulo)}
+                {t(idioma, pieza.title)}
               </h3>
               <p className="mt-1.5 text-sm text-ink-soft">
                 {t(idioma, pieza.texto)}

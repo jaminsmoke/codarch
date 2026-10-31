@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
-import { idiomaDe, t } from "../lib/i18n";
-import { useTitulo } from "../lib/titulo";
+import { localeOf, t } from "../lib/i18n";
+import { useTitle } from "../lib/title";
 
 /**
  * Cómo se escribe la guía: la leyenda, las categorías y las reglas.
@@ -10,16 +10,16 @@ import { useTitulo } from "../lib/titulo";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-export default function Normas({
-  normas,
+export default function Rules({
+  rules,
   lang = "es"
 }: {
-  normas: string;
+  rules: string;
   lang?: string;
 }) {
-  const idioma = idiomaDe(lang);
+  const idioma = localeOf(lang);
   const raiz = idioma === "en" ? `${BASE}/en` : BASE;
-  useTitulo(
+  useTitle(
     t(idioma, "guia.normas.titulo"),
     t(idioma, "guia.normas.desc"),
     idioma
@@ -38,7 +38,7 @@ export default function Normas({
       </p>
       <div
         className="prosa prosa-guia"
-        dangerouslySetInnerHTML={{ __html: normas }}
+        dangerouslySetInnerHTML={{ __html: rules }}
       />
       <a
         href={`${raiz}/desarrollo/guia/`}

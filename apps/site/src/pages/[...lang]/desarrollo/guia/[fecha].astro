@@ -1,10 +1,10 @@
 ---
-import GuiaApp from "../../../../components/GuiaApp";
+import GuideApp from "../../../../components/GuideApp";
 import Site from "../../../../layouts/Site.astro";
-import { cargarGuia } from "../../../../lib/guia-carga";
-import { fechaCompleta, rutaDia } from "../../../../lib/guia";
-import { idiomaDe, t } from "../../../../lib/i18n";
-import { urlCanonica } from "../../../../lib/rutas";
+import { loadGuide } from "../../../../lib/guide-load";
+import { fullDate, dayPath } from "../../../../lib/guide";
+import { localeOf, t } from "../../../../lib/i18n";
+import { canonicalUrl } from "../../../../lib/routes";
 
 /**
  * Un día de la guía, en los dos idiomas.
@@ -14,34 +14,34 @@ import { urlCanonica } from "../../../../lib/rutas";
  * idioma que toca.
  */
 export async function getStaticPaths() {
-  const es = await cargarGuia("es");
-  const en = await cargarGuia("en");
+  const es = await loadGuide("es");
+  const en = await loadGuide("en");
   return [
-    ...es.dias.map((dia) => ({
-      params: { lang: undefined, fecha: dia.fecha }
+    ...es.days.map((dia) => ({
+      params: { lang: undefined, fecha: dia.date }
     })),
-    ...en.dias.map((dia) => ({
-      params: { lang: "en", fecha: dia.fecha }
+    ...en.days.map((dia) => ({
+      params: { lang: "en", fecha: dia.date }
     }))
   ];
 }
 
-const idioma = idiomaDe(Astro.params.lang);
+const idioma = localeOf(Astro.params.lang);
 const clave = Astro.params.fecha;
-const datos = await cargarGuia(idioma);
-const dia = datos.dias.find((d) => d.fecha === clave);
+const datos = await loadGuide(idioma);
+const dia = datos.days.find((d) => d.date === clave);
 if (!dia) throw new Error(`Día desconocido: ${clave}`);
 
-const fechaLarga = fechaCompleta(dia.fecha, idioma);
-const titulo = t(idioma, "meta.guia.dia.titulo").replace("{fecha}", fechaLarga);
+const longDate = fullDate(dia.date, idioma);
+const titulo = t(idioma, "meta.guia.dia.titulo").replace("{fecha}", longDate);
 const descripcion = t(idioma, "meta.guia.dia.desc").replace(
   "{fecha}",
-  fechaLarga
+  longDate
 );
-const ultima = datos.dias.at(-1)?.fecha ?? dia.fecha;
-const canonical = urlCanonica(rutaDia(dia.fecha, ultima, idioma));
+const ultima = datos.days.at(-1)?.date ?? dia.date;
+const canonical = canonicalUrl(dayPath(dia.date, ultima, idioma));
 ---
 
 <Site title={titulo} description={descripcion} {canonical}>
-  <GuiaApp client:only="react" datos={datos} lang={idioma} />
+  <GuideApp client:only="react" datos={datos} lang={idioma} />
 </Site>

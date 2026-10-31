@@ -1,6 +1,6 @@
-import claves from "virtual:docs-rutas";
+import claves from "virtual:docs-routes";
 import { REPO } from "./markdown";
-import { GUIA, rutaWeb } from "./zonas.mjs";
+import { GUIDE, webPath } from "./zones.mjs";
 
 /**
  * Las direcciones de los documentos ✓ ✅.
@@ -14,12 +14,12 @@ import { GUIA, rutaWeb } from "./zonas.mjs";
 const conocidas = new Set<string>(claves);
 
 /** Si una clave es un documento del sitio ✓ ✅. */
-export function esDocumento(clave: string): boolean {
+export function isDocument(clave: string): boolean {
   return conocidas.has(clave);
 }
 
 /** Junta dos rutas de `docs/`, con sus `..` y sus `.` ✓ ✅. */
-export function juntar(desde: string, destino: string): string {
+export function joinPath(desde: string, destino: string): string {
   const partes = desde.split("/").slice(0, -1);
   for (const trozo of destino.split("/")) {
     if (!trozo || trozo === ".") continue;
@@ -33,12 +33,12 @@ export function juntar(desde: string, destino: string): string {
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 /** La raíz de un idioma: el español vive en la base y el inglés en `/en`. */
-export function raizDe(idioma: string): string {
+export function rootOf(idioma: string): string {
   return idioma === "en" ? `${BASE}/en` : BASE;
 }
 
 /** La misma página en el otro idioma, sin perder la ruta. */
-export function rutaIdioma(actual: string, destino: string): string {
+export function localePath(actual: string, destino: string): string {
   const sinBase = actual.startsWith(BASE)
     ? actual.slice(BASE.length)
     : actual;
@@ -55,7 +55,7 @@ export function rutaIdioma(actual: string, destino: string): string {
 }
 
 /** Si una ruta del menú de la cabecera es la página actual. */
-export function esActiva(raiz: string, ruta: string, actual: string): boolean {
+export function isActive(raiz: string, ruta: string, actual: string): boolean {
   if (ruta === "/") return actual === `${raiz}/` || actual === raiz;
   return actual.startsWith(`${raiz}${ruta}`);
 }
@@ -64,18 +64,18 @@ export function esActiva(raiz: string, ruta: string, actual: string): boolean {
  * Un enlace que **no** pasa por el router ✓ ✅: los del markdown son `<a>` ✓ ✅
  * y necesitan la raíz del sitio ✅ ✅.
  */
-export function conBase(ruta: string): string {
+export function withBase(ruta: string): string {
   return `${BASE}${ruta}`;
 }
 
 /** La dirección absoluta de una ruta del sitio, para el `canonical`. */
-export function urlCanonica(ruta: string): string {
+export function canonicalUrl(ruta: string): string {
   return `https://jaminsmoke.github.io${BASE}${ruta}`;
 }
 
 /** Cómo se llama un documento dentro del sitio ✓ ✅ (ruta del router ✓). */
-export function rutaDe(clave: string): string {
-  return rutaWeb(clave);
+export function pathOf(clave: string): string {
+  return webPath(clave);
 }
 
 /**
@@ -84,8 +84,8 @@ export function rutaDe(clave: string): string {
  * Si el destino es otro documento ✓ ✅, se queda en el sitio ✓; si no ✓, sale al
  * repo ✓ ✅, que es donde está el fichero ✅ ✅.
  */
-export function resolver(
-  desdeClave: string,
+export function resolve(
+  fromKey: string,
   destino: string,
   lang: string = "es"
 ): string {
@@ -100,14 +100,14 @@ export function resolver(
 
   const relativa = ruta.startsWith("/")
     ? ruta.replace(/^\/+/, "")
-    : juntar(desdeClave, ruta);
+    : joinPath(fromKey, ruta);
 
   if (/\.md$/i.test(relativa)) {
     const clave = relativa.replace(/\.md$/i, "");
-    if (clave.startsWith(`${GUIA}/`))
-      return conBase(`${prefijo}${rutaWeb(clave)}${ancla}`);
+    if (clave.startsWith(`${GUIDE}/`))
+      return withBase(`${prefijo}${webPath(clave)}${ancla}`);
     if (conocidas.has(clave))
-      return `${conBase(`${prefijo}${rutaDe(clave)}`)}${ancla}`;
+      return `${withBase(`${prefijo}${pathOf(clave)}`)}${ancla}`;
   }
 
   return `${REPO}/${relativa}${ancla}`;

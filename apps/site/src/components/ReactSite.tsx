@@ -1,10 +1,10 @@
 import Marco from "../Marco";
-import Inicio from "../react-pages/Inicio";
+import Home from "../react-pages/Home";
 
 export default function ReactSite({ lang = "es" }: { lang?: string }) {
   return (
     <Marco lang={lang}>
-      <Inicio lang={lang} />
+      <Home lang={lang} />
     </Marco>
   );
 }

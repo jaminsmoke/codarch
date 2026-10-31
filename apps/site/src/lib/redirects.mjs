@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { GUIA } from "./zonas.mjs";
+import { GUIDE } from "./zones.mjs";
 
 function listar(carpeta) {
   if (!fs.existsSync(carpeta)) return [];
@@ -15,7 +15,7 @@ function listar(carpeta) {
  * idiomas. Las claves van sin barra final, como las pide Astro, y los destinos
  * llevan `base` delante porque Astro no se la añade.
  */
-export function redirecciones(docsRoot, base = "") {
+export function redirects(docsRoot, base = "") {
   const pares = new Map();
   const poner = (antigua, nueva) => {
     pares.set(antigua, `${base}${nueva}`);
@@ -47,8 +47,8 @@ export function redirecciones(docsRoot, base = "") {
   poner("/guia/futuro", "/desarrollo/guia/futuro/");
   const fechas = new Set(
     [
-      path.join(docsRoot, GUIA, "entradas"),
-      path.join(docsRoot, "en", GUIA, "entradas")
+      path.join(docsRoot, GUIDE, "entradas"),
+      path.join(docsRoot, "en", GUIDE, "entradas")
     ]
       .flatMap(listar)
       .map((fichero) => /^(\d{4}-\d{2}-\d{2})/.exec(path.basename(fichero))?.[1])

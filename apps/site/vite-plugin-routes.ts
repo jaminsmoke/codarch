@@ -10,11 +10,11 @@ import type { Plugin } from "vite";
  * propia página ✅ ✅. Vive aquí porque también lo usa el test ✅ ✅.
  */
 
-export const VIRTUAL = "virtual:docs-rutas";
+export const VIRTUAL = "virtual:docs-routes";
 const RESUELTO = `\0${VIRTUAL}`;
 
 /** Las claves de `docs/`, en orden. */
-export function clavesDocumentos(root: string): string[] {
+export function documentKeys(root: string): string[] {
   const docs = path.join(root, "docs");
   const salida: string[] = [];
 
@@ -40,16 +40,16 @@ export function clavesDocumentos(root: string): string[] {
   return salida.sort();
 }
 
-/** El plugin de Vite: `virtual:docs-rutas` → las claves. */
-export function rutasDocs(root: string): Plugin {
+/** El plugin de Vite: `virtual:docs-routes` → las claves. */
+export function docsRoutes(root: string): Plugin {
   return {
-    name: "codarch-docs-rutas",
+    name: "codarch-docs-routes",
     resolveId(id) {
       return id === VIRTUAL ? RESUELTO : undefined;
     },
     load(id) {
       return id === RESUELTO
-        ? `export default ${JSON.stringify(clavesDocumentos(root))};`
+        ? `export default ${JSON.stringify(documentKeys(root))};`
         : undefined;
     },
     configureServer(servidor) {

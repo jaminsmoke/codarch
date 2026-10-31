@@ -26,7 +26,7 @@ Cada zona tiene su sidebar y su filtro de búsqueda (ADR 0081). El frontmatter e
 
 - **Astro + Starlight** para los documentos: cada uno sale como HTML estático en su ruta `/docs/...` o `/desarrollo/...`, con Pagefind, sitemap y metadatos validados (ADR 0046).
 
-- **`docs/` sigue siendo la verdad**: un loader `glob` lee `./docs` y asigna ids según la zona (`src/lib/zonas.mjs`): `usar/...` → `/docs/usar/...` y `desarrollo/...` → `/desarrollo/...`. No hay texto copiado. Las direcciones antiguas redirigen (`src/lib/redirecciones.mjs`).
+- **`docs/` sigue siendo la verdad**: un loader `glob` lee `./docs` y asigna ids según la zona (`src/lib/zones.mjs`): `usar/...` → `/docs/usar/...` y `desarrollo/...` → `/desarrollo/...`. No hay texto copiado. Las direcciones antiguas redirigen (`src/lib/redirects.mjs`).
 
 - **Frontmatter obligatorio**: `title`, `description`, `section`, `sidebar`. En los ADR, también `status` y `date`. El esquema está en `src/content.config.ts`; si falta, el build falla.
 
@@ -34,7 +34,7 @@ Cada zona tiene su sidebar y su filtro de búsqueda (ADR 0081). El frontmatter e
 
 - **Enlaces reescritos en el build**: (`src/lib/rehype-doc-links.mjs`). `../desarrollo/model.md` → `/codarch/desarrollo/model/`. Lo que no es un documento (imágenes, HTML) sale al repo.
 
-- **Portada y guía en React**: Montadas como islas desde Astro. `ReactSite.tsx` para la portada y `GuiaApp.tsx` para la guía. La guía es una sola isla: la cabecera y la línea del tiempo se montan una vez y solo cambia el contenido de abajo al pasar de día.
+- **Portada y guía en React**: Montadas como islas desde Astro. `ReactSite.tsx` para la portada y `GuideApp.tsx` para la guía. La guía es una sola isla: la cabecera y la línea del tiempo se montan una vez y solo cambia el contenido de abajo al pasar de día.
 
 - **Cabecera de documentos**: Lleva **Inicio**, **Documentación** y **Desarrollo** (la guía está dentro de Desarrollo) (`src/components/Header.astro`). Conserva la búsqueda, el tema y el GitHub de Starlight.
 

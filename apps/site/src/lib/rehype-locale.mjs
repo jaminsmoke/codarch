@@ -53,7 +53,7 @@ function primerTexto(node) {
   return (node?.children ?? []).find((hijo) => hijo.type === "text");
 }
 
-export function rehypeIdioma({ docsRoot }) {
+export function rehypeLocale({ docsRoot }) {
   return (tree, file) => {
     const lang = idioma(docsRoot, file);
     if (!lang) return;

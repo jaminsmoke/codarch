@@ -2,27 +2,27 @@ import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 import { i18nLoader } from "@astrojs/starlight/loaders";
 import { docsSchema, i18nSchema } from "@astrojs/starlight/schema";
-import { ZONAS, idDocumento } from "./lib/zonas.mjs";
+import { ZONES, documentId } from "./lib/zones.mjs";
 
 /**
  * Los documentos siguen viviendo en `docs/` (ADR 0046).
  *
  * Hay dos zonas (ADR 0081): `docs/usar/` sale en `/docs/...` y
- * `docs/desarrollo/` en `/desarrollo/...` (el id es la ruta, ver `zonas.mjs`);
+ * `docs/desarrollo/` en `/desarrollo/...` (el id es la ruta, ver `zones.mjs`);
  * la carpeta `desarrollo/guideline` queda fuera porque la guía tiene su
  * propia página.
  * El esquema obliga a que cada documento declare lo que el sitio necesita.
  */
 
 const metadata = z.object({
-  section: z.enum(ZONAS),
+  section: z.enum(ZONES),
   status: z.string().optional(),
   date: z.string().optional(),
   tags: z.array(z.string()).default([])
 });
 
 /** Una entrada de la guía: una idea, con su fecha, su categoría y su veredicto. */
-const entradaGuia = z.object({
+const guideEntry = z.object({
   title: z.string(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   category: z.enum([
@@ -49,17 +49,17 @@ export const collections = {
         "!desarrollo/guideline/**",
         "!en/desarrollo/guideline/**"
       ],
-      generateId: ({ entry }) => idDocumento(entry)
+      generateId: ({ entry }) => documentId(entry)
     }),
     schema: docsSchema({ extend: metadata })
   }),
   guia: defineCollection({
     loader: glob({ base: "./docs/desarrollo/guideline/entradas", pattern: "**/*.md" }),
-    schema: entradaGuia
+    schema: guideEntry
   }),
   guiaEn: defineCollection({
     loader: glob({ base: "./docs/en/desarrollo/guideline/entradas", pattern: "**/*.md" }),
-    schema: entradaGuia
+    schema: guideEntry
   }),
   /** Las cadenas de la interfaz: una entrada por idioma (Starlight). */
   i18n: defineCollection({

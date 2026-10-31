@@ -1,6 +1,6 @@
 import path from "node:path";
 import { visit } from "unist-util-visit";
-import { esRutaInterna, rutaWeb } from "./zonas.mjs";
+import { isInternalPath, webPath } from "./zones.mjs";
 
 const REPO = "https://github.com/jaminsmoke/codarch/blob/main/apps/site/docs";
 
@@ -42,7 +42,7 @@ export function rehypeDocLinks({ docsRoot, base }) {
       if (!ruta) return;
 
       if (ruta.startsWith("/")) {
-        node.properties.href = esRutaInterna(ruta)
+        node.properties.href = isInternalPath(ruta)
           ? `${prefijo}${ruta}`.replace(/\/\/+/g, "/")
           : href;
         return;
@@ -59,7 +59,7 @@ export function rehypeDocLinks({ docsRoot, base }) {
       }
 
       const clave = destino.replace(/\.md$/, "");
-      node.properties.href = `${prefijo}${rutaWeb(clave)}${ancla}`.replace(
+      node.properties.href = `${prefijo}${webPath(clave)}${ancla}`.replace(
         /\/\/+/g,
         "/"
       );

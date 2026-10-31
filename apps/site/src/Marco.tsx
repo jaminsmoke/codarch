@@ -1,12 +1,12 @@
 import { type ReactNode } from "react";
 import { motion } from "motion/react";
-import { idiomaDe, t } from "./lib/i18n";
-import { raizDe } from "./lib/rutas";
+import { localeOf, t } from "./lib/i18n";
+import { rootOf } from "./lib/routes";
 
 /**
  * El marco de las páginas propias: el contenido y el pie.
  *
- * La cabecera ya no vive aquí. Es `components/Barra.astro`, la misma que la de
+ * La cabecera ya no vive aquí. Es `components/Bar.astro`, la misma que la de
  * los documentos, y la pone la plantilla `Site.astro`: así todo el sitio tiene
  * una sola cabecera y el idioma y el tema no cambian de sitio al cambiar de
  * zona.
@@ -19,8 +19,8 @@ export default function Marco({
   children: ReactNode;
   lang?: string;
 }) {
-  const idioma = idiomaDe(lang);
-  const raiz = raizDe(idioma);
+  const idioma = localeOf(lang);
+  const raiz = rootOf(idioma);
 
   return (
     <div className="flex min-h-screen flex-col bg-paper font-sans text-ink">

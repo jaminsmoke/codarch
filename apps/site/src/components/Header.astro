@@ -1,8 +1,8 @@
 ---
 import MobileMenuToggle from "virtual:starlight/components/MobileMenuToggle";
 import Search from "virtual:starlight/components/Search";
-import { idiomaDe } from "../lib/i18n";
-import Barra from "./Barra.astro";
+import { localeOf } from "../lib/i18n";
+import Bar from "./Bar.astro";
 
 /**
  * La cabecera de los documentos: la misma que la del resto del sitio.
@@ -15,15 +15,15 @@ import Barra from "./Barra.astro";
  * cabecera no era la misma que en la portada. Dentro, es una pieza más.
  */
 
-const idioma = idiomaDe(
+const idioma = localeOf(
   Astro.locals.starlightRoute?.locale ?? Astro.currentLocale
 );
 ---
 
-<Barra idioma={idioma} ruta={Astro.url.pathname}>
+<Bar idioma={idioma} ruta={Astro.url.pathname}>
   <Search />
   <MobileMenuToggle slot="menu" />
-</Barra>
+</Bar>
 
 <style>
   @layer starlight.core {

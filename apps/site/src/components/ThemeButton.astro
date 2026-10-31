@@ -1,6 +1,6 @@
 ---
-import { idiomaDe, t } from "../lib/i18n";
-import { CLAVE_TEMA } from "../lib/tema";
+import { localeOf, t } from "../lib/i18n";
+import { THEME_KEY } from "../lib/theme";
 
 /**
  * El botón de tema de la cabecera: claro u oscuro, y lo recuerda.
@@ -13,10 +13,10 @@ import { CLAVE_TEMA } from "../lib/tema";
  */
 
 const { idioma: lang } = Astro.props as { idioma?: string };
-const etiqueta = t(idiomaDe(lang), "marco.tema");
+const etiqueta = t(localeOf(lang), "marco.tema");
 ---
 
-<button type="button" class="boton-tema" data-boton-tema title={etiqueta} aria-label={etiqueta}>
+<button type="button" class="theme-button" data-theme-button title={etiqueta} aria-label={etiqueta}>
   <svg
     class="tema-icono tema-sol"
     viewBox="0 0 24 24"
@@ -44,16 +44,16 @@ const etiqueta = t(idiomaDe(lang), "marco.tema");
 </button>
 
 <script>
-  import { CLAVE_TEMA } from "../lib/tema";
+  import { THEME_KEY } from "../lib/theme";
 
-  const boton = document.querySelector<HTMLButtonElement>("[data-boton-tema]");
+  const boton = document.querySelector<HTMLButtonElement>("[data-theme-button]");
   const raiz = document.documentElement;
 
   boton?.addEventListener("click", () => {
     const siguiente = raiz.dataset.theme === "dark" ? "light" : "dark";
     raiz.dataset.theme = siguiente;
     try {
-      localStorage.setItem(CLAVE_TEMA, siguiente);
+      localStorage.setItem(THEME_KEY, siguiente);
     } catch {
       // Sin almacenamiento (modo privado) el tema vale para esta página.
     }
@@ -61,7 +61,7 @@ const etiqueta = t(idiomaDe(lang), "marco.tema");
 </script>
 
 <style>
-  .boton-tema {
+  .theme-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -78,12 +78,12 @@ const etiqueta = t(idiomaDe(lang), "marco.tema");
       border-color 0.15s ease;
   }
 
-  .boton-tema:hover {
+  .theme-button:hover {
     color: var(--barra-tinta, #121a20);
     border-color: var(--barra-tenue, #55626a);
   }
 
-  .boton-tema:focus-visible {
+  .theme-button:focus-visible {
     outline: 2px solid var(--barra-acento-suave, #d95d39);
     outline-offset: 2px;
   }

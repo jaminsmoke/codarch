@@ -1,5 +1,5 @@
 import { defineRouteMiddleware } from "@astrojs/starlight/route-data";
-import { zonaDeRuta } from "./lib/zonas.mjs";
+import { zoneOfPath } from "./lib/zones.mjs";
 
 /**
  * «Anterior» y «Siguiente» no cruzan de zona (ADR 0081): la sidebar de
@@ -8,12 +8,12 @@ import { zonaDeRuta } from "./lib/zonas.mjs";
  */
 export const onRequest = defineRouteMiddleware((contexto) => {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-  const zonaDe = (ruta: string) =>
-    zonaDeRuta(ruta.startsWith(base) ? ruta.slice(base.length) || "/" : ruta);
+  const zoneOf = (ruta: string) =>
+    zoneOfPath(ruta.startsWith(base) ? ruta.slice(base.length) || "/" : ruta);
   const { pagination } = contexto.locals.starlightRoute;
-  const zona = zonaDe(contexto.url.pathname);
-  if (pagination.prev && zonaDe(pagination.prev.href) !== zona)
+  const zona = zoneOf(contexto.url.pathname);
+  if (pagination.prev && zoneOf(pagination.prev.href) !== zona)
     pagination.prev = undefined;
-  if (pagination.next && zonaDe(pagination.next.href) !== zona)
+  if (pagination.next && zoneOf(pagination.next.href) !== zona)
     pagination.next = undefined;
 });

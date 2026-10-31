@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { rehypeIdioma } from "../src/lib/rehype-idioma.mjs";
+import { rehypeLocale } from "../src/lib/rehype-locale.mjs";
 
 const docs = path.resolve(import.meta.dirname, "../docs");
 
@@ -76,7 +76,7 @@ function procesar(desde: string, nodos: Nodo[]): Nodo[] {
     type: "root",
     children: nodos
   };
-  rehypeIdioma({ docsRoot: docs })(tree, { path: path.join(docs, desde) });
+  rehypeLocale({ docsRoot: docs })(tree, { path: path.join(docs, desde) });
   return tree.children;
 }
 
@@ -130,7 +130,7 @@ describe("los rótulos de los avisos", () => {
 
   it("se pueden pasar dos veces sin cambiar nada", () => {
     const avisos = procesar("en/usar/mcp.md", [aviso("Nota")]);
-    rehypeIdioma({ docsRoot: docs })(
+    rehypeLocale({ docsRoot: docs })(
       { type: "root", children: avisos },
       { path: path.join(docs, "en/usar/mcp.md") }
     );

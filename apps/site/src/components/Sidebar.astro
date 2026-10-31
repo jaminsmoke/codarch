@@ -1,7 +1,7 @@
 ---
 import SidebarPersister from "@astrojs/starlight/components/SidebarPersister.astro";
 import SidebarSublist from "@astrojs/starlight/components/SidebarSublist.astro";
-import { zonaDeRuta } from "../lib/zonas.mjs";
+import { zoneOfPath } from "../lib/zones.mjs";
 
 /**
  * Una sidebar por zona (ADR 0081).
@@ -18,7 +18,7 @@ import { zonaDeRuta } from "../lib/zonas.mjs";
 const { sidebar } = Astro.locals.starlightRoute;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const ruta = Astro.url.pathname.slice(base.length) || "/";
-const indice = zonaDeRuta(ruta) === "desarrollo" ? 1 : 0;
+const indice = zoneOfPath(ruta) === "desarrollo" ? 1 : 0;
 const grupo = sidebar[indice];
 const entradas = grupo && grupo.type === "group" ? grupo.entries : sidebar;
 ---

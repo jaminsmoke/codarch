@@ -3,25 +3,25 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
 import {
-  CATEGORIAS,
-  fechaCorta,
-  fechaPartida,
-  nombreCategoria,
-  nombreVeredicto,
-  parseRutaGuia,
-  rutaDia,
-  rutaGuia,
-  type Categoria,
-  type Veredicto
-} from "../src/lib/guia";
+  CATEGORIES,
+  shortDate,
+  splitDate,
+  categoryName,
+  verdictName,
+  parseGuidePath,
+  dayPath,
+  guideRoute,
+  type Category,
+  type Verdict
+} from "../src/lib/guide";
 import {
-  prepararGuia,
-  type FuenteGuia
-} from "../src/lib/guia-servidor";
-import { conBase } from "../src/lib/rutas";
+  prepareGuide,
+  type GuideSource
+} from "../src/lib/guide-server";
+import { withBase } from "../src/lib/routes";
 
 /** Unas entradas pequeñas, con la forma de la guía. */
-const fuentes: FuenteGuia[] = [
+const fuentes: GuideSource[] = [
   {
     id: "2026-10-22-01-una-feature",
     body: "El cuerpo de la feature.\n\n### Un apartado\n\nCon su texto.",
@@ -56,105 +56,105 @@ const fuentes: FuenteGuia[] = [
 
 const normas = "## La leyenda\n\nCómo se escribe.";
 
-describe("prepararGuia", () => {
+describe("prepareGuide", () => {
   it("renderiza las normas", () => {
-    const guia = prepararGuia(fuentes, normas);
-    expect(guia.normas).toContain("La leyenda");
-    expect(guia.normas).not.toContain("Una feature");
+    const guia = prepareGuide(fuentes, normas);
+    expect(guia.rules).toContain("La leyenda");
+    expect(guia.rules).not.toContain("Una feature");
   });
 
   it("agrupa cada día por categoría, en el orden del changelog", () => {
-    const guia = prepararGuia(fuentes, normas);
-    const dia = guia.dias.find((d) => d.fecha === "2026-10-22");
+    const guia = prepareGuide(fuentes, normas);
+    const dia = guia.days.find((d) => d.date === "2026-10-22");
     expect(dia).toBeDefined();
-    expect(dia?.grupos.map((grupo) => grupo.categoria)).toEqual([
+    expect(dia?.groups.map((grupo) => grupo.category)).toEqual([
       "feature",
       "fix"
     ]);
-    expect(dia?.grupos[0]?.entradas.map((e) => e.titulo)).toEqual([
+    expect(dia?.groups[0]?.entries.map((e) => e.title)).toEqual([
       "Una feature"
     ]);
-    expect(dia?.grupos[1]?.entradas.map((e) => e.titulo)).toEqual(["Un fix"]);
+    expect(dia?.groups[1]?.entries.map((e) => e.title)).toEqual(["Un fix"]);
   });
 
   it("baja los apartados de una entrada por debajo de su título", () => {
-    const guia = prepararGuia(fuentes, normas);
-    const entrada = guia.dias.find((d) => d.fecha === "2026-10-22")?.entradas[0];
+    const guia = prepareGuide(fuentes, normas);
+    const entrada = guia.days.find((d) => d.date === "2026-10-22")?.entries[0];
     expect(entrada?.html).toContain("<h5");
     expect(entrada?.html).toContain('id="un-apartado"');
     expect(entrada?.html).not.toContain("<h3");
   });
 
   it("ordena los días y no pierde ninguna entrada", () => {
-    const guia = prepararGuia(fuentes, normas);
-    expect(guia.dias.map((d) => d.fecha)).toEqual(["2026-10-21", "2026-10-22"]);
-    const total = guia.dias.reduce((n, d) => n + d.entradas.length, 0);
+    const guia = prepareGuide(fuentes, normas);
+    expect(guia.days.map((d) => d.date)).toEqual(["2026-10-21", "2026-10-22"]);
+    const total = guia.days.reduce((n, d) => n + d.entries.length, 0);
     expect(total).toBe(3);
   });
 
   it("deja en Futuro las que esperan", () => {
-    const guia = prepararGuia(fuentes, normas);
-    expect(guia.futuras.map((entrada) => entrada.titulo)).toEqual([
+    const guia = prepareGuide(fuentes, normas);
+    expect(guia.upcoming.map((entrada) => entrada.title)).toEqual([
       "Otra feature, la primera del día anterior"
     ]);
   });
 
   it("reescribe los enlaces de una entrada a su documento", () => {
-    const guia = prepararGuia(fuentes, normas);
-    const entrada = guia.dias
-      .find((d) => d.fecha === "2026-10-22")
-      ?.entradas.find((e) => e.titulo === "Un fix");
+    const guia = prepareGuide(fuentes, normas);
+    const entrada = guia.days
+      .find((d) => d.date === "2026-10-22")
+      ?.entries.find((e) => e.title === "Un fix");
     expect(entrada?.html).toContain(
-      `href="${conBase("/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
+      `href="${withBase("/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
     );
   });
 
   it("da el mismo resultado dos veces", () => {
-    expect(prepararGuia(fuentes, normas)).toEqual(
-      prepararGuia(fuentes, normas)
+    expect(prepareGuide(fuentes, normas)).toEqual(
+      prepareGuide(fuentes, normas)
     );
   });
 
   it("parte la fecha para la cabecera del día", () => {
-    expect(fechaPartida("2026-10-21")).toEqual({
-      dia: "21",
-      mes: "octubre",
-      anio: "2026"
+    expect(splitDate("2026-10-21")).toEqual({
+      day: "21",
+      month: "octubre",
+      year: "2026"
     });
   });
 });
 
 describe("la guía en inglés", () => {
   it("lleva los días a `/en/desarrollo/guia/` y deja la última fecha en la portada", () => {
-    expect(rutaDia("2026-10-21", "2026-10-22", "en")).toBe(
+    expect(dayPath("2026-10-21", "2026-10-22", "en")).toBe(
       "/en/desarrollo/guia/2026-10-21/"
     );
-    expect(rutaDia("2026-10-22", "2026-10-22", "en")).toBe("/en/desarrollo/guia/");
-    expect(rutaDia("2026-10-21", "2026-10-22")).toBe("/desarrollo/guia/2026-10-21/");
+    expect(dayPath("2026-10-22", "2026-10-22", "en")).toBe("/en/desarrollo/guia/");
+    expect(dayPath("2026-10-21", "2026-10-22")).toBe("/desarrollo/guia/2026-10-21/");
   });
 
   it("escribe la fecha en el orden del inglés", () => {
-    expect(fechaPartida("2026-10-21", "en")).toEqual({
-      dia: "21",
-      mes: "October",
-      anio: "2026"
+    expect(splitDate("2026-10-21", "en")).toEqual({
+      day: "21",
+      month: "October",
+      year: "2026"
     });
-    expect(fechaCorta("2026-10-21", "en")).toBe("Oct 21");
+    expect(shortDate("2026-10-21", "en")).toBe("Oct 21");
   });
 
   it("nombra categorías y veredictos en inglés", () => {
-    expect(nombreCategoria("feature", "en")).toBe("Features");
-    expect(nombreVeredicto("fase", "en")).toBe("phase");
-    expect(nombreCategoria("feature")).toBe("Novedades");
+    expect(categoryName("feature", "en")).toBe("Features");
+    expect(verdictName("fase", "en")).toBe("phase");
+    expect(categoryName("feature")).toBe("Novedades");
   });
 
   it("lleva los enlaces de una entrada a `/en/desarrollo/`", () => {
-    const guia = prepararGuia(fuentes, normas, "en");
-    const entrada = guia.dias
-      .find((d) => d.fecha === "2026-10-22")
-      ?.entradas.find((e) => e.titulo === "Un fix");
+    const guia = prepareGuide(fuentes, normas, "en");
+    const entrada = guia.days
+      .find((d) => d.date === "2026-10-22")
+      ?.entries.find((e) => e.title === "Un fix");
     expect(entrada?.html).toContain(
-      `href="${conBase("/en/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
+      `href="${withBase("/en/desarrollo/adr/0031-0040/0034-la-web-del-proyecto/")}"`
     );
   });
 });
@@ -188,7 +188,7 @@ describe("la guía del repo", () => {
     .readdirSync(path.join(guideline, "entradas"))
     .filter((archivo) => archivo.endsWith(".md"))
     .sort()
-    .map((archivo): FuenteGuia => {
+    .map((archivo): GuideSource => {
       const texto = fs.readFileSync(
         path.join(guideline, "entradas", archivo),
         "utf8"
@@ -198,8 +198,8 @@ describe("la guía del repo", () => {
       const data = parseYaml(match[1] ?? "") as {
         title: string;
         date: string;
-        category: Categoria;
-        verdict: Veredicto;
+        category: Category;
+        verdict: Verdict;
       };
       return {
         id: archivo.replace(/\.md$/, ""),
@@ -208,45 +208,45 @@ describe("la guía del repo", () => {
       };
     });
 
-  const guia = prepararGuia(
+  const guia = prepareGuide(
     entradas,
     fs.readFileSync(path.join(guideline, "normas.md"), "utf8")
   );
 
   it("tiene días y ninguno se queda sin grupos", () => {
-    expect(guia.dias.length).toBeGreaterThan(0);
-    for (const dia of guia.dias) {
-      expect(dia.grupos.length).toBeGreaterThan(0);
-      const sumadas = dia.grupos.reduce((n, g) => n + g.entradas.length, 0);
-      expect(sumadas).toBe(dia.entradas.length);
+    expect(guia.days.length).toBeGreaterThan(0);
+    for (const dia of guia.days) {
+      expect(dia.groups.length).toBeGreaterThan(0);
+      const sumadas = dia.groups.reduce((n, g) => n + g.entries.length, 0);
+      expect(sumadas).toBe(dia.entries.length);
     }
   });
 
   it("declara una categoría y un veredicto conocidos", () => {
     for (const fuente of entradas) {
-      expect(CATEGORIAS[fuente.data.category]).toBeDefined();
+      expect(CATEGORIES[fuente.data.category]).toBeDefined();
       expect(typeof fuente.data.date).toBe("string");
       expect(fuente.data.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   });
 
   it("pinta los grupos en el orden del changelog", () => {
-    for (const dia of guia.dias) {
-      const orden = dia.grupos.map((grupo) => CATEGORIAS[grupo.categoria].orden);
+    for (const dia of guia.days) {
+      const orden = dia.groups.map((grupo) => CATEGORIES[grupo.category].orden);
       expect(orden).toEqual([...orden].sort((a, b) => a - b));
     }
   });
 
   it("no lleva marcas de estado en el cuerpo de las entradas", () => {
-    for (const entrada of guia.dias.flatMap((dia) => dia.entradas)) {
+    for (const entrada of guia.days.flatMap((dia) => dia.entries)) {
       expect(entrada.html).not.toMatch(/[✓✗✅]/);
-      expect(entrada.resumen).not.toMatch(/[✓✗✅]/);
+      expect(entrada.summary).not.toMatch(/[✓✗✅]/);
     }
   });
 
   it("deja las normas fuera de las entradas", () => {
-    expect(guia.normas).toContain("Las categorías");
-    expect(guia.normas).not.toContain("**Qué es**");
+    expect(guia.rules).toContain("Las categorías");
+    expect(guia.rules).not.toContain("**Qué es**");
   });
 });
 
@@ -256,60 +256,60 @@ describe("la ruta de la guía", () => {
   it("lee el día que pide la dirección, también con la sección y la base delante", () => {
     // Regresión: se exigía que `guia` fuese la primera parte, así que la
     // dirección de un día acababa siempre en el último.
-    expect(parseRutaGuia("/desarrollo/guia/2026-10-21/", fechas)).toEqual({
-      tipo: "dia",
-      fecha: "2026-10-21"
+    expect(parseGuidePath("/desarrollo/guia/2026-10-21/", fechas)).toEqual({
+      kind: "day",
+      date: "2026-10-21"
     });
-    expect(parseRutaGuia("/codarch/desarrollo/guia/2026-10-21/", fechas)).toEqual(
-      { tipo: "dia", fecha: "2026-10-21" }
+    expect(parseGuidePath("/codarch/desarrollo/guia/2026-10-21/", fechas)).toEqual(
+      { kind: "day", date: "2026-10-21" }
     );
     expect(
-      parseRutaGuia("/en/desarrollo/guia/2026-10-21/", fechas, "en")
-    ).toEqual({ tipo: "dia", fecha: "2026-10-21" });
+      parseGuidePath("/en/desarrollo/guia/2026-10-21/", fechas, "en")
+    ).toEqual({ kind: "day", date: "2026-10-21" });
   });
 
   it("deja el último día en la portada de la guía", () => {
-    expect(parseRutaGuia("/desarrollo/guia/", fechas)).toEqual({
-      tipo: "dia",
-      fecha: "2026-10-22"
+    expect(parseGuidePath("/desarrollo/guia/", fechas)).toEqual({
+      kind: "day",
+      date: "2026-10-22"
     });
-    expect(parseRutaGuia("/codarch/desarrollo/guia/", fechas)).toEqual({
-      tipo: "dia",
-      fecha: "2026-10-22"
+    expect(parseGuidePath("/codarch/desarrollo/guia/", fechas)).toEqual({
+      kind: "day",
+      date: "2026-10-22"
     });
   });
 
   it("reconoce el futuro y las normas", () => {
-    expect(parseRutaGuia("/desarrollo/guia/futuro/", fechas)).toEqual({
-      tipo: "futuro"
+    expect(parseGuidePath("/desarrollo/guia/futuro/", fechas)).toEqual({
+      kind: "future"
     });
-    expect(parseRutaGuia("/desarrollo/guia/normas/", fechas)).toEqual({
-      tipo: "normas"
+    expect(parseGuidePath("/desarrollo/guia/normas/", fechas)).toEqual({
+      kind: "rules"
     });
   });
 
   it("cae al último día con una fecha que no existe o una ruta ajena", () => {
-    expect(parseRutaGuia("/desarrollo/guia/2026-01-01/", fechas)).toEqual({
-      tipo: "dia",
-      fecha: "2026-10-22"
+    expect(parseGuidePath("/desarrollo/guia/2026-01-01/", fechas)).toEqual({
+      kind: "day",
+      date: "2026-10-22"
     });
-    expect(parseRutaGuia("/docs/model/", fechas)).toEqual({
-      tipo: "dia",
-      fecha: "2026-10-22"
+    expect(parseGuidePath("/docs/model/", fechas)).toEqual({
+      kind: "day",
+      date: "2026-10-22"
     });
   });
 
   it("escribe la dirección canónica de cada vista", () => {
-    expect(rutaGuia({ tipo: "dia", fecha: "2026-10-21" }, "2026-10-22")).toBe(
+    expect(guideRoute({ kind: "day", date: "2026-10-21" }, "2026-10-22")).toBe(
       "/desarrollo/guia/2026-10-21/"
     );
-    expect(rutaGuia({ tipo: "dia", fecha: "2026-10-22" }, "2026-10-22")).toBe(
+    expect(guideRoute({ kind: "day", date: "2026-10-22" }, "2026-10-22")).toBe(
       "/desarrollo/guia/"
     );
-    expect(rutaGuia({ tipo: "futuro" }, "2026-10-22", "en")).toBe(
+    expect(guideRoute({ kind: "future" }, "2026-10-22", "en")).toBe(
       "/en/desarrollo/guia/futuro/"
     );
-    expect(rutaGuia({ tipo: "normas" }, "2026-10-22")).toBe(
+    expect(guideRoute({ kind: "rules" }, "2026-10-22")).toBe(
       "/desarrollo/guia/normas/"
     );
   });

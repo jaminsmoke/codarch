@@ -1,14 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { redirecciones } from "../src/lib/redirecciones.mjs";
-import { rutaWeb } from "../src/lib/zonas.mjs";
+import { redirects } from "../src/lib/redirects.mjs";
+import { webPath } from "../src/lib/zones.mjs";
 
 const docs = path.resolve(import.meta.dirname, "../docs");
-const mapa = redirecciones(docs);
+const mapa = redirects(docs);
 
 /** Las direcciones de antes de las dos zonas siguen llevando a su página (ADR 0081). */
-describe("las redirecciones", () => {
+describe("las redirects", () => {
   it("lleva los ADR, el modelo, la migración y el diseño a Desarrollo", () => {
     expect(mapa["/docs/adr"]).toBe("/desarrollo/adr/");
     expect(mapa["/docs/adr/roadmap"]).toBe("/desarrollo/roadmap/");
@@ -40,9 +40,9 @@ describe("las redirecciones", () => {
   });
 
   it("antepone la base a los destinos, que Astro no la añade", () => {
-    const conBase = redirecciones(docs, "/codarch");
-    expect(conBase["/docs/model"]).toBe("/codarch/desarrollo/model/");
-    expect(conBase["/en/guia"]).toBe("/codarch/en/desarrollo/guia/");
+    const withBase = redirects(docs, "/codarch");
+    expect(withBase["/docs/model"]).toBe("/codarch/desarrollo/model/");
+    expect(withBase["/en/guia"]).toBe("/codarch/en/desarrollo/guia/");
   });
 
   it("solo apunta a páginas que existen", () => {
@@ -58,7 +58,7 @@ describe("las redirecciones", () => {
       if (!fichero) {
         throw new Error(`la redirección a ${destino} no apunta a una página`);
       }
-      expect(rutaWeb(clave)).toBe(ruta);
+      expect(webPath(clave)).toBe(ruta);
     }
   });
 });
