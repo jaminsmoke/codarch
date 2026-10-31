@@ -37,9 +37,9 @@ decision is written down instead of papered over.
 
 **Verified**: whole suite green (**174 files and 1509 tests**), typecheck and lint clean and the site
 builds. The auditor is green on everything except the checksum with and without git, which is the open
-finding. With the duplication removed, this repo measures **626 files**, **1,839 duplicated lines** and
-**466 repeated** —3 % of `rloc`— in **2 pairs**: the two `main.tsx` files, which differ only in a
-comment, and the `history` and `scopes` arguments at 43 %. The Go, Java and Python analyzers still
+finding. With the duplication removed, this repo measures **626 files**, **1,820 duplicated lines** and
+**466 repeated** —3 % of `rloc`— in **1 pair**: the two `main.tsx` files, which differ only in a
+comment. The Go, Java and Python analyzers still
 share a skeleton below the pair threshold: that is the next lens to improve, not a literal copy.
 
 **Verdict**: fix, with a model decision pending on the checksum between environments.

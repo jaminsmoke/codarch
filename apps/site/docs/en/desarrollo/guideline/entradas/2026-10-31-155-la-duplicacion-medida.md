@@ -40,9 +40,9 @@ canonical, internal repetition, the thresholds, scope, reading without the lens 
 whole suite green (**174 files and 1509 tests**), typecheck and lint clean and the site builds. The
 first measurement of this repo gave **598 files**, **2,183 duplicated lines**, **518 repeated** and
 **5 pairs**. With the shared blocks already removed —the `schema` and `lint` surfaces, the web's
-`reader.ts`, the `InspectorBar` frame and the profile projection— **626 files** remain, with **1,839
-duplicated lines** and **466 repeated**, 3 % of `rloc`, in **2 pairs**: the two `main.tsx` files, which
-differ only in a comment, and the CLI's `history` and `scopes` arguments at 43 %. By file, the top ones
+`reader.ts`, the `InspectorBar` frame, the profile projection and the `history` and `scopes`
+arguments— **626 files** remain, with **1,820 duplicated lines** and **466 repeated**, 3 % of `rloc`,
+in **1 pair**: the two `main.tsx` files, which differ only in a comment. By file, the top ones
 are the Go, Java and Python analyzers (53, 52 and 49 lines), which share a skeleton below the pair
 threshold.
 

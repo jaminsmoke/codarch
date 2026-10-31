@@ -40,9 +40,9 @@ repetición interna, los umbrales, el alcance, la lectura sin lente y la determi
 verde (**174 ficheros y 1509 tests**), typecheck y lint limpios y el sitio se escribe. La primera medida
 de este repo dio **598 ficheros**, **2.183 líneas duplicadas**, **518 repetidas** y **5 pares**. Con los
 bloques compartidos ya quitados —la superficie de `schema` y `lint`, el `reader.ts` de la web, el marco
-del `InspectorBar` y la proyección de perfiles— quedan **626 ficheros**, **1.839 líneas duplicadas** y
-**466 repetidas**, el 3 % del `rloc`, en **2 pares**: los dos `main.tsx`, que solo difieren en un
-comentario, y los argumentos de `history` y `scopes` del CLI, al 43 %. Por fichero, los primeros son
+del `InspectorBar`, la proyección de perfiles y los argumentos de `history` y `scopes`— quedan **626
+ficheros**, **1.820 líneas duplicadas** y **466 repetidas**, el 3 % del `rloc`, en **1 par**: los dos
+`main.tsx`, que solo difieren en un comentario. Por fichero, los primeros son
 los analizadores de Go, Java y Python (53, 52 y 49 líneas), que comparten esqueleto por debajo del
 umbral de par.
 

@@ -37,9 +37,9 @@ se deja escrito en vez de maquillado.
 
 **Verificado**: suite entera en verde (**174 ficheros y 1509 tests**), typecheck y lint limpios y el
 sitio se escribe. El auditor queda en verde en todo menos el checksum con y sin git, que es el hallazgo
-abierto. Con la duplicación quitada, este repo mide **626 ficheros**, **1.839 líneas duplicadas** y
-**466 repetidas** —el 3 % del `rloc`— en **2 pares**: los dos `main.tsx`, que solo difieren en un
-comentario, y los argumentos de `history` y `scopes`, al 43 %. Los analizadores de Go, Java y Python
+abierto. Con la duplicación quitada, este repo mide **626 ficheros**, **1.820 líneas duplicadas** y
+**466 repetidas** —el 3 % del `rloc`— en **1 par**: los dos `main.tsx`, que solo difieren en un
+comentario. Los analizadores de Go, Java y Python
 siguen compartiendo esqueleto por debajo del umbral de par: es la siguiente lente que hay que mejorar,
 no una copia literal.
 
