@@ -314,6 +314,7 @@ Ficha de un fichero o carpeta:
 - ciclo de ejecución (pertenencia y tamaño);
 - estado en el diff, cambios y hotspot;
 - violaciones que mencionan la ruta.
+- `lint`: totales del ámbito (`errors`, `warnings`, `info`, `findings`, `files`), o `null` si no se ha medido.
 
 Para una carpeta agrega sus ficheros, muestra los de mayor riesgo y resume las aristas que salen o
 entran del conjunto. `limit` (1–50, por defecto 5) controla las aristas y ficheros de detalle.

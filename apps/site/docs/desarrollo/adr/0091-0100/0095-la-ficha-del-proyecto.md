@@ -106,6 +106,6 @@ Fase **M66 — El proyecto tiene su ficha**.
 - ✅ La complejidad máxima con su fichero, en las dos fichas.
 - ✅ El riesgo máximo con dueño en la ficha de carpeta (ADR 0092).
 - ✅ La lente **Linter** y el listado de mensajes (M65).
-- ⬜ El MCP: la deuda de lint en `explain_module`.
+- ✅ El MCP: la deuda de lint en `explain_module`.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

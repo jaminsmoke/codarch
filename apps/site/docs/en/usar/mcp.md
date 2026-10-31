@@ -318,6 +318,7 @@ A file or folder's sheet:
 - runtime cycle (membership and size);
 - status in the diff, changes and hotspot;
 - violations that mention the path.
+- `lint`: totals for the scope (`errors`, `warnings`, `info`, `findings`, `files`), or `null` if not measured.
 
 For a folder it aggregates its files, shows the highest-risk ones and summarises the edges leaving
 or entering the set. `limit` (1–50, default 5) controls the detail edges and files.
