@@ -33,8 +33,15 @@ import { analyzeInBrowser, AnalysisCancelled } from "./analysis/client";
 import type { AnalysisHandle } from "./analysis/client";
 import { readDirectoryToMemory } from "./analysis/reader";
 import { directoryPicker } from "./fs-access";
-import { fetchJson, fetchJsonStrict } from "./http";
-import { useServerSession, watchState } from "./session";
+import { fetchJson } from "./http";
+import {
+  loadServedProject,
+  runBoot,
+  useServerSession,
+  watchState,
+  type SessionHandlers
+} from "./session";
+import { selectRoot, setWatch as setServerWatch } from "./server-control";
 import { plataformaWeb } from "./plataforma";
 import { WEB_VERSION } from "@codarch/versions";
 
@@ -146,11 +153,11 @@ export default function App() {
   }, [setAddons]);
 
   // De dónde sale el mapa y qué se refresca al guardar: la sesión de la web.
-  useServerSession({
-    mode: serverMode,
-    requested: urlRequest.source,
-    manual: manualLoadRef,
-    handlers: {
+  //
+  // Este contrato lo usan el arranque, el refresco tras cambiar de carpeta y
+  // la vigilancia; antes cada uno tenía su copia de los manejadores.
+  const sessionHandlers: SessionHandlers = useMemo(
+    () => ({
       snapshot: loadSnapshot,
       rest: loadRest,
       lint: loadLint,
@@ -165,7 +172,30 @@ export default function App() {
       error: setError,
       reportError: setReportError,
       loading: setLoading
-    }
+    }),
+    [
+      loadSnapshot,
+      loadRest,
+      loadLint,
+      loadReport,
+      resetReport,
+      loadAddons,
+      setServerMode,
+      setSourceUrl,
+      setReportUrl,
+      setServerRootPath,
+      setServerVersion,
+      setError,
+      setReportError,
+      setLoading
+    ]
+  );
+
+  useServerSession({
+    mode: serverMode,
+    requested: urlRequest.source,
+    manual: manualLoadRef,
+    handlers: sessionHandlers
   });
 
   /** La URL decide la vista una sola vez, cuando ya hay modelo. */
@@ -328,37 +358,25 @@ export default function App() {
     async (snapshotUrlInput: string, reportUrlInput: string) => {
       const snapshotUrl = snapshotUrlInput.trim();
       if (!snapshotUrl) return;
-      const reportTarget = reportUrlInput.trim();
+      const reportUrl = reportUrlInput.trim();
       closeOpenMenu();
       manualLoadRef.current = true;
-      setLoading(true);
       setError(null);
+      setLoading(true);
       try {
-        const raw = await fetchJsonStrict(snapshotUrl);
-        if (!abrirSnapshot(raw, snapshotUrl)) {
-          setLoading(false);
-          return;
-        }
-        setServerMode("local");
-        setSourceUrl(snapshotUrl);
-        setReportUrl(reportTarget || null);
-        if (reportTarget) {
-          try {
-            const report = await fetchJsonStrict(reportTarget);
-            if (report) abrirReporte(report, reportTarget);
-          } catch (cause) {
-            setReportError(
-              `No se pudo cargar el reporte: ${(cause as Error).message}`
-            );
-          }
-        }
-      } catch (cause) {
-        setError(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
+        // El mismo camino que el arranque por URL: una sola forma de abrir un
+        // enlace y los mismos mensajes cuando falla (ADR 0034).
+        await runBoot({
+          requested: { snapshotUrl, reportUrl: reportUrl || null },
+          manual: manualLoadRef,
+          isCancelled: () => false,
+          handlers: sessionHandlers
+        });
       } finally {
         setLoading(false);
       }
     },
-    [closeOpenMenu, abrirSnapshot, abrirReporte, setError, setLoading, setReportError]
+    [closeOpenMenu, sessionHandlers, setError, setLoading]
   );
 
   /**
@@ -453,42 +471,21 @@ export default function App() {
     return true;
   }, []);
 
+  /** Relee del servidor lo que sirve, tras cambiar de carpeta. */
   const refreshFromServer = useCallback(async () => {
-    const meta = (await fetchJson("data/meta.json")) as {
-      watch?: boolean;
-      rootPath?: string;
-    } | null;
-    const snapshot = await fetchJson("data/snapshot.cc.json");
-    if (!snapshot) throw new Error("el servidor no devolvió el snapshot");
-    loadSnapshot(snapshot, "servidor local");
-    loadRest(await fetchJson("data/rest.cc.json"));
-    loadLint(await fetchJson("data/lint.repmod.json"));
-    setServerMode(meta?.watch ? "live" : "served");
+    // La misma lectura que hace el arranque con servidor: una sola versión.
+    if (!(await loadServedProject(sessionHandlers))) {
+      throw new Error("el servidor no devolvió el snapshot");
+    }
     setSourceUrl(null);
     setReportUrl(null);
-    if (meta?.rootPath) setServerRootPath(meta.rootPath);
-    const report = await fetchJson("data/report.json");
-    if (report) loadReport(report, "servidor local", false);
-    else resetReport();
-    await loadAddons();
-  }, [loadAddons, loadLint, loadReport, loadRest, loadSnapshot, resetReport]);
+  }, [sessionHandlers, setSourceUrl, setReportUrl]);
 
   const selectFolder = useCallback(
     async (pathValue: string) => {
       setLoading(true);
       try {
-        const response = await fetch("/api/root", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: pathValue })
-        });
-        const body = (await response.json()) as {
-          error?: string;
-          watch?: boolean;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? "no se pudo analizar la carpeta");
-        }
+        await selectRoot(pathValue);
         setFolderPickerOpen(false);
         await refreshFromServer();
       } finally {
@@ -502,29 +499,16 @@ export default function App() {
     if (serverMode !== "live" && serverMode !== "served") return;
     const enabled = serverMode !== "live";
     try {
-      const response = await fetch("/api/watch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled })
-      });
-      const body = (await response.json()) as {
-        error?: string;
-        watch?: boolean;
-      };
-      if (!response.ok) {
-        throw new Error(body.error ?? "no se pudo cambiar el modo live");
-      }
+      const info = await setServerWatch(enabled);
+      // Al encender, el mapa se pone al día sin perder la vista abierta.
       if (enabled) {
-        const snapshot = await fetchJson("data/snapshot.cc.json");
-        if (snapshot) loadSnapshot(snapshot, "servidor local", true);
-        loadRest(await fetchJson("data/rest.cc.json"));
-        loadLint(await fetchJson("data/lint.repmod.json"));
+        await loadServedProject(sessionHandlers, { preserveView: true });
       }
-      setServerMode(body.watch ? "live" : "served");
+      setServerMode(info?.watch ? "live" : "served");
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [serverMode, loadSnapshot, loadRest, loadLint, setError]);
+  }, [serverMode, sessionHandlers, setError, setServerMode]);
 
   const openLiveFolder = useCallback(() => {
     closeOpenMenu();

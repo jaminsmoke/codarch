@@ -1,37 +1,66 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { runBoot, type SessionHandlers } from "../src/session";
+import {
+  loadServedProject,
+  runBoot,
+  type SessionHandlers
+} from "../src/session";
 import { writeProject } from "../src/storage";
 
 /** Un `fetch` que contesta lo que diga el mapa; lo que no está, 204. */
-function fakeFetch(answers: Record<string, unknown>): void {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (input: string) => {
-      const body = answers[input];
-      if (body === undefined) {
-        return { ok: true, status: 204, json: async () => null };
-      }
-      return { ok: true, status: 200, json: async () => body };
-    })
-  );
+function fakeFetch(answers: Record<string, unknown>): ReturnType<typeof vi.fn> {
+  const mock = vi.fn(async (input: string) => {
+    const body = answers[input];
+    if (body === undefined) {
+      return { ok: true, status: 204, json: async () => null };
+    }
+    return { ok: true, status: 200, json: async () => body };
+  });
+  vi.stubGlobal("fetch", mock);
+  return mock;
 }
 
 function handlers(overrides: Partial<SessionHandlers> = {}): {
   handlers: SessionHandlers;
-  calls: { lint: unknown[] };
+  calls: {
+    lint: unknown[];
+    snapshot: { label: string; preserveView?: boolean }[];
+    report: string[];
+    resetReport: number;
+    mode: string[];
+    addons: number;
+  };
 } {
-  const calls: { lint: unknown[] } = { lint: [] };
+  const calls = {
+    lint: [] as unknown[],
+    snapshot: [] as { label: string; preserveView?: boolean }[],
+    report: [] as string[],
+    resetReport: 0,
+    mode: [] as string[],
+    addons: 0
+  };
   const base: SessionHandlers = {
-    snapshot: () => true,
+    snapshot: (_raw, label, preserveView) => {
+      calls.snapshot.push({ label, preserveView });
+      return true;
+    },
     rest: () => true,
     lint: (raw) => {
       calls.lint.push(raw);
       return true;
     },
-    report: () => true,
-    resetReport: () => undefined,
-    addons: async () => undefined,
-    mode: () => undefined,
+    report: (_raw, label) => {
+      calls.report.push(label);
+      return true;
+    },
+    resetReport: () => {
+      calls.resetReport += 1;
+    },
+    addons: async () => {
+      calls.addons += 1;
+    },
+    mode: (mode) => {
+      calls.mode.push(mode);
+    },
     sourceUrl: () => undefined,
     reportUrl: () => undefined,
     rootPath: () => undefined,
@@ -90,6 +119,27 @@ describe("el arranque de la web", () => {
     expect(calls.lint).toEqual([null]);
   });
 
+  it("una URL que no carga no cambia el modo del mapa", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: false, status: 404, json: async () => null }))
+    );
+    const { handlers: h, calls } = handlers();
+
+    await runBoot({
+      requested: {
+        snapshotUrl: "https://ejemplo/snapshot.cc.json",
+        reportUrl: null
+      },
+      manual: { current: false },
+      isCancelled: () => false,
+      handlers: h
+    });
+
+    // Se queda como estaba: no hay nada nuevo en el mapa.
+    expect(calls.mode).toEqual([]);
+  });
+
   it("el proyecto guardado trae su lint", async () => {
     const map = new Map<string, string>();
     const storage = {
@@ -124,5 +174,101 @@ describe("el arranque de la web", () => {
     });
 
     expect(calls.lint).toEqual([lintArtifact]);
+  });
+});
+
+/**
+ * El refresco de lo que sirve el servidor.
+ *
+ * Lo usa el arranque y, después, el cambio de carpeta y el encendido del live:
+ * no puede quedarse una versión para cada uno.
+ */
+describe("loadServedProject", () => {
+  it("deja snapshot, resto, lint, reporte HEAD y addons", async () => {
+    fakeFetch({
+      "data/meta.json": { watch: true, rootPath: "/repo", version: "0.3.0" },
+      "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] },
+      "data/rest.cc.json": { meta: { checksum: "def" }, files: [] },
+      "data/lint.repmod.json": lintArtifact,
+      "data/head-report.json": { added: 0, removed: 0, files: [] }
+    });
+    const { handlers: h, calls } = handlers();
+
+    await expect(loadServedProject(h)).resolves.toBe(true);
+
+    expect(calls.snapshot).toEqual([
+      { label: "servidor local", preserveView: false }
+    ]);
+    expect(calls.lint).toEqual([lintArtifact]);
+    expect(calls.report).toEqual(["HEAD"]);
+    expect(calls.resetReport).toBe(0);
+    expect(calls.mode).toEqual(["live"]);
+    expect(calls.addons).toBe(1);
+  });
+
+  it("sin servidor detrás, el reporte es el del artefacto", async () => {
+    fakeFetch({
+      "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] },
+      "data/report.json": { added: 1, removed: 0, files: [] }
+    });
+    const { handlers: h, calls } = handlers();
+
+    await expect(loadServedProject(h)).resolves.toBe(true);
+
+    expect(calls.report).toEqual(["report.json"]);
+    expect(calls.mode).toEqual(["served"]);
+  });
+
+  it("sin reporte que enseñar, Cambios se vacía", async () => {
+    fakeFetch({
+      "data/meta.json": { watch: false, rootPath: "/repo" },
+      "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] }
+    });
+    const { handlers: h, calls } = handlers();
+
+    await loadServedProject(h);
+
+    expect(calls.report).toEqual([]);
+    expect(calls.resetReport).toBe(1);
+  });
+
+  it("sin snapshot no toca la app y lo dice", async () => {
+    fakeFetch({ "data/meta.json": { watch: true, rootPath: "/repo" } });
+    const { handlers: h, calls } = handlers();
+
+    await expect(loadServedProject(h)).resolves.toBe(false);
+
+    expect(calls.snapshot).toEqual([]);
+    expect(calls.addons).toBe(0);
+  });
+
+  it("conserva la vista cuando lo pide el refresco en vivo", async () => {
+    fakeFetch({
+      "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] }
+    });
+    const { handlers: h, calls } = handlers();
+
+    await loadServedProject(h, { preserveView: true });
+
+    expect(calls.snapshot).toEqual([
+      { label: "servidor local", preserveView: true }
+    ]);
+  });
+
+  it("acepta lo ya leído, sin volver a pedirlo", async () => {
+    const fetchMock = fakeFetch({
+      "data/rest.cc.json": { meta: { checksum: "rest" }, files: [] }
+    });
+    const { handlers: h, calls } = handlers();
+
+    await loadServedProject(h, {
+      meta: { watch: false, rootPath: "/repo" },
+      served: { meta: { checksum: "abc" }, files: [] }
+    });
+
+    expect(calls.snapshot).toHaveLength(1);
+    const pedidas = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(pedidas).not.toContain("data/meta.json");
+    expect(pedidas).not.toContain("data/snapshot.cc.json");
   });
 });

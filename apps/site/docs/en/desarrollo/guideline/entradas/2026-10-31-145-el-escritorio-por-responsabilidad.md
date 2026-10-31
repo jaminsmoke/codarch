@@ -5,7 +5,7 @@ category: "refactor"
 verdict: "arreglo"
 ---
 
-**What it was**: `apps/desktop/src/main.ts` had **1171 lines** and seven jobs: create the window, bridge to
+**What it was**: `apps/desktop/src/main.ts` had **1160 lines** and seven jobs: create the window, bridge to
 the renderer, watch the repo, reanalyse, write `.codarch/`, open folders and files, the native menu, the
 system dialogs, sixteen IPC handlers and updates. All with module-scope mutable state (`window`,
 `lastRoot`, `repositoryWatcher`, `storedChecksums`) any function could touch. None of it could be tested

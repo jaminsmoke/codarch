@@ -5,7 +5,7 @@ category: "refactor"
 verdict: "arreglo"
 ---
 
-**Qué era**: `apps/desktop/src/main.ts` tenía **1171 líneas** y siete trabajos: crear la ventana, tender el
+**Qué era**: `apps/desktop/src/main.ts` tenía **1160 líneas** y siete trabajos: crear la ventana, tender el
 puente con el renderer, vigilar el repo, reanalizar, escribir `.codarch/`, abrir carpetas y ficheros, el
 menú nativo, los diálogos del sistema, dieciséis manejadores de IPC y las actualizaciones. Todo eso con
 estado mutable en el ámbito del módulo (`window`, `lastRoot`, `repositoryWatcher`, `storedChecksums`) que

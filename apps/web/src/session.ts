@@ -103,7 +103,8 @@ async function bootFromUrl(
     if (reportUrl) await loadRequestedReport(reportUrl, { isCancelled, h });
   } catch (cause) {
     if (isCancelled()) return;
-    h.mode("local");
+    // Nada se cargó: el modo se queda como estaba, que es lo que hay en el
+    // mapa. Decir «local» aquí encendía el live sin servidor detrás.
     h.error(`No se pudo cargar ${snapshotUrl}: ${(cause as Error).message}`);
     h.loading(false);
   }
@@ -125,6 +126,66 @@ async function loadRequestedReport(
   }
 }
 
+/**
+ * Lo que el servidor ya está sirviendo, si sirve algo.
+ *
+ * El arranque los mira antes de decidir si hay servidor delante; quien
+ * refresca después de cambiar de carpeta no los tiene y se leen aquí.
+ */
+export interface ServedProject {
+  meta?: unknown;
+  served?: unknown;
+  /**
+   * `true` para no perder la vista al refrescar: encender el live o relevar el
+   * mapa no es abrir otro proyecto.
+   */
+  preserveView?: boolean;
+}
+
+/**
+ * Deja en la app lo que sirve el servidor local: snapshot, resto, lint,
+ * reporte HEAD y addons (ADR 0075, 0093, 0094).
+ *
+ * Devuelve `false` si no había snapshot que enseñar. Lo usan el arranque y el
+ * refresco tras cambiar de carpeta: era la misma lectura escrita dos veces.
+ */
+export async function loadServedProject(
+  handlers: SessionHandlers,
+  project: ServedProject = {}
+): Promise<boolean> {
+  const meta =
+    "meta" in project ? project.meta : await fetchJson("data/meta.json");
+  const served =
+    "served" in project ? project.served : await fetchJson("data/snapshot.cc.json");
+  if (!served) return false;
+
+  handlers.snapshot(served, "servidor local", project.preserveView === true);
+  // Los dos artefactos salen de la misma pasada del servidor (ADR 0093).
+  handlers.rest(await fetchJson("data/rest.cc.json"));
+  // El lint es un fichero más del repo (ADR 0094): si no existe, 204 y nada.
+  handlers.lint(await fetchJson("data/lint.repmod.json"));
+  const info = readServerMeta(meta);
+  handlers.mode(info?.watch ? "live" : "served");
+  if (info?.rootPath) handlers.rootPath(info.rootPath);
+  if (info?.version) handlers.version(info.version);
+  // Con servidor, Cambios es del repo y lo compara el servidor con HEAD
+  // (ADR 0075): `report.json` de dos fotos viejas no entra, porque
+  // enseñaría cambios de hace semanas como si fueran de ahora. Un
+  // artefacto estático sí trae su `report.json` como único cambio.
+  const servedReport = await fetchJson(servedReportUrl(meta !== null));
+  if (servedReport) {
+    handlers.report(
+      servedReport,
+      meta !== null ? "HEAD" : "report.json",
+      false
+    );
+  } else {
+    handlers.resetReport();
+  }
+  await handlers.addons();
+  return true;
+}
+
 async function bootFromServer({
   manual,
   isCancelled,
@@ -137,28 +198,7 @@ async function bootFromServer({
 
   if (served) {
     if (isCancelled()) return;
-    h.snapshot(served, "servidor local");
-    // Los dos artefactos salen de la misma pasada del servidor (ADR 0093).
-    h.rest(await fetchJson("data/rest.cc.json"));
-    // El lint es un fichero más del repo (ADR 0094): si no existe, 204 y nada.
-    h.lint(await fetchJson("data/lint.repmod.json"));
-    const info = readServerMeta(meta);
-    h.mode(info?.watch ? "live" : "served");
-    if (info?.rootPath) h.rootPath(info.rootPath);
-    if (info?.version) h.version(info.version);
-    // Con servidor, Cambios es del repo y lo compara el servidor con HEAD
-    // (ADR 0075): `report.json` de dos fotos viejas no entra, porque
-    // enseñaría cambios de hace semanas como si fueran de ahora. Un
-    // artefacto estático sí trae su `report.json` como único cambio.
-    const servedReport = await fetchJson(servedReportUrl(meta !== null));
-    if (!isCancelled()) {
-      if (servedReport) {
-        h.report(servedReport, meta !== null ? "HEAD" : "report.json", false);
-      } else {
-        h.resetReport();
-      }
-    }
-    await h.addons();
+    await loadServedProject(h, { meta, served });
     return;
   }
 
