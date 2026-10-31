@@ -8,6 +8,7 @@ import {
   type LintProcessRunner,
   type LintRunResult
 } from "@codarch/lint";
+import { codarchDir } from "@codarch/schema";
 import { noLintLines, planProjectLint, planSystems } from "../lint-plan";
 import { directoryProblem, formatBytes } from "../io";
 import { writeLintArtifact } from "../lint-store";
@@ -97,9 +98,7 @@ export async function runLintCommand(
     ...(options.run ? { run: options.run } : {})
   });
 
-  const outDirectory = path.resolve(
-    options.out ?? path.join(rootPath, ".codarch")
-  );
+  const outDirectory = path.resolve(options.out ?? codarchDir(rootPath));
   const artifactPath = result.artifact
     ? writeLintArtifact(rootPath, result.artifact, outDirectory)
     : null;

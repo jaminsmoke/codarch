@@ -1,4 +1,5 @@
 import { MemoryFileSystem } from "@codarch/parsers/fs";
+import { CODARCH_DIR } from "@codarch/schema/browser";
 import type { DirectoryHandleLike } from "../fs-access";
 
 /**
@@ -43,7 +44,7 @@ const CONFIG_FILES = new Set([
 const SKIPPED_DIRECTORIES = new Set([
   ".git",
   "node_modules",
-  ".codarch",
+  CODARCH_DIR,
   "dist",
   "build",
   "coverage",

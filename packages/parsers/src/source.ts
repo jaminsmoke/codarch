@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CODARCH_DIR, HISTORY_DIR } from "@codarch/schema";
 
 /**
  * Un trozo de código real para la ficha del símbolo (ADR 0067).
@@ -35,8 +36,8 @@ const SOURCE_EXTENSIONS = new Set([
 const DENIED_SEGMENTS = new Set([
   ".git",
   "node_modules",
-  ".codarch",
-  ".codarch-history",
+  CODARCH_DIR,
+  HISTORY_DIR,
   "dist",
   "build",
   "coverage"

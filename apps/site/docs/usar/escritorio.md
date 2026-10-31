@@ -78,11 +78,14 @@ El estado del repo se guarda en su carpeta `.codarch/`, no en la app. Lo que esc
 | `preferences.json` | las preferencias de la vista |
 | `parse-cache.json` | la caché de parseo de la última pasada |
 | `lint.repmod.json` | el lint medido, con el árbol que midió |
+| `lint-cache.json` | las reglas de lint ya resueltas, para no volver a cargarlas |
 | `scopes.json` | los `.codarch/` que se vieron por debajo de esta raíz |
+| `shots/` | las capturas del mapa, en sus dos ranuras |
 
 Eso es todo lo que CodArch escribe ahí, y nada más: la carpeta es del producto, no un sitio donde
 dejarlo tuyo. Si aparece cualquier otra cosa —un mapa estático, una captura hecha a mano, un script—
-es un resto de trabajo y se borra. Las fotos del historial no van aquí, sino en `.codarch-history/`, en
+es un resto de trabajo, y cada análisis **lo borra** y lo dice con su nombre en la consola. El estado
+local (preferencias, cachés, cadenas, alcances y capturas) no se toca aunque esa pasada no lo escriba. Las fotos del historial no van aquí, sino en `.codarch-history/`, en
 la raíz del repo. Un mapa estático tampoco: [`codarch render`](cli/render.md) copia la webapp entera a
 la carpeta que le digas, con el snapshot en `data/snapshot.cc.json`.
 

@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CHAINS_FILE } from "./artifacts";
+import { codarchPath } from "./codarch-path";
 import { CHAIN_LEDGER_VERSION } from "@codarch/versions";
 import {
   buildChains,
@@ -26,7 +28,7 @@ import type { HistoryEntry } from "./history";
  * ellas.
  */
 
-export const CHAINS_FILE = "chains.json";
+export { CHAINS_FILE };
 
 export interface ChainLedger {
   version: typeof CHAIN_LEDGER_VERSION;
@@ -37,7 +39,7 @@ export interface ChainLedger {
 }
 
 export function chainLedgerPath(root: string): string {
-  return path.join(root, ".codarch", CHAINS_FILE);
+  return codarchPath(root, CHAINS_FILE);
 }
 
 /** Lee el libro mayor; si no hay o no se entiende, uno vacío. */

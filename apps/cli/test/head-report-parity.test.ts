@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { forgetHeadReport } from "@codarch/parsers";
-import type { DiffReport } from "@codarch/metrics";
+import { REPORT_SCHEMA_VERSION, type DiffReport } from "@codarch/metrics";
 import { analyze } from "../../desktop/src/analyze-worker";
 import { analyzeState, computeHeadReport } from "../src/commands/serve";
 
@@ -19,6 +19,29 @@ import { analyzeState, computeHeadReport } from "../src/commands/serve";
  */
 
 const tempRoots: string[] = [];
+
+/**
+ * Un reporte válido y vacío, como el que deja un repo sin cambios.
+ *
+ * Se construye a mano porque lo que se prueba es el respaldo en disco: el
+ * lector de `@codarch/metrics` tiene que reconocerlo para servirlo.
+ */
+function emptyReport(): DiffReport {
+  return {
+    schemaVersion: REPORT_SCHEMA_VERSION,
+    base: {},
+    head: {},
+    summary: {},
+    rules: {
+      configured: false,
+      summary: {},
+      violations: { introduced: [], existing: [], resolved: [] }
+    },
+    cycles: { introduced: [], fixed: [] },
+    files: { added: [], changed: [], removed: [] },
+    hotspots: []
+  } as unknown as DiffReport;
+}
 
 function git(cwd: string, args: string[]): void {
   execFileSync("git", args, { cwd, stdio: "ignore" });
@@ -124,14 +147,30 @@ describe("reporte HEAD · serve y escritorio dicen lo mismo", () => {
   it("sin commits, el servidor sirve el reporte que dejó el escritorio", () => {
     const root = tempRepo(false);
     // El escritorio no puede comparar sin HEAD, pero su fichero queda en disco.
-    const fromFile = { source: "escritorio", files: { added: [], changed: [], removed: [] } };
+    // Es un reporte de verdad: el que no se entiende es como no tenerlo.
+    const fromFile = emptyReport();
     fs.mkdirSync(path.join(root, ".codarch"));
-    fs.writeFileSync(path.join(root, ".codarch", "head-report.json"), JSON.stringify(fromFile));
+    fs.writeFileSync(
+      path.join(root, ".codarch", "head-report.json"),
+      JSON.stringify(fromFile)
+    );
 
     // El escritorio devuelve `null`: no hay contra qué comparar.
     expect(fromDesktop(root)).toBeNull();
     // El servidor, en cambio, no deja la pestaña vacía: sirve el respaldo.
     expect(computeHeadReport(root)).toEqual(fromFile);
+  });
+
+  it("sin commits y sin reporte guardado, el servidor tampoco inventa uno", () => {
+    const root = tempRepo(false);
+    fs.mkdirSync(path.join(root, ".codarch"));
+    // Un fichero que no es un reporte no vale como respaldo.
+    fs.writeFileSync(
+      path.join(root, ".codarch", "head-report.json"),
+      JSON.stringify({ source: "escritorio" })
+    );
+
+    expect(computeHeadReport(root)).toBeNull();
   });
 
   it("el reporte no depende de quién lo pidió primero", () => {

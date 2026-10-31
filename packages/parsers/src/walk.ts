@@ -1,14 +1,12 @@
 import ignore, { type Ignore } from "ignore";
+import { CODARCH_DIR } from "@codarch/schema";
 import { DEFAULT_EXTENSIONS } from "./extensions";
 import type { FileSystem } from "./fs";
 
 export { DEFAULT_EXTENSIONS };
 
 /** Patrones que no dependen del `.gitignore` del proyecto. */
-const ALWAYS_IGNORED = [".git", "node_modules", ".codarch"];
-
-/** La carpeta de estado, que un alcance mira pero en la que nunca entra. */
-const CODARCH_DIRECTORY = ".codarch";
+const ALWAYS_IGNORED = [".git", "node_modules", CODARCH_DIR];
 
 export interface WalkedFile {
   /** Ruta virtual absoluta: `/src/app/main.ts`. */
@@ -219,7 +217,7 @@ export function walkProjectDirectories(
           ? `/${entry.name}`
           : `${directory.absolutePath}/${entry.name}`;
 
-      if (entry.name === CODARCH_DIRECTORY) {
+      if (entry.name === CODARCH_DIR) {
         directories.push({ absolutePath, relativePath });
         continue;
       }

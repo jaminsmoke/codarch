@@ -45,6 +45,23 @@ export {
 } from "@codarch/versions";
 export { CcJsonError } from "./errors";
 export { parseCcJson2 as parseCcJson } from "./parse2";
+export {
+  CODARCH_DIR,
+  CODARCH_ENTRIES,
+  CODARCH_KNOWN,
+  HEAD_REPORT_FILE,
+  LINT_FILE,
+  LINT_RULES_FILE,
+  PARSE_CACHE_FILE,
+  PREFERENCES_FILE,
+  REPORT_FILE,
+  REST_FILE,
+  SCOPES_FILE,
+  SHOTS_DIR,
+  SNAPSHOT_FILE,
+  isCodarchEntry
+} from "./artifacts";
+export type { CodarchArtifact } from "./artifacts";
 export { pathById, walkFiles, walkTree } from "./tree";
 export type { CcStats, RankedFile } from "./stats";
 export type { RankedSymbol } from "./stats";

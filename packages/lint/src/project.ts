@@ -1,5 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
+import {
+  CODARCH_DIR,
+  LINT_RULES_FILE,
+  codarchDir,
+  codarchPath
+} from "@codarch/schema";
 import type { LintFormat } from "./config";
 import type { LintRule, LintSeverity, LintSystem } from "./format";
 import { defaultLintRunner, type LintProcessRunner } from "./run";
@@ -52,7 +58,7 @@ const OXLINT_CONFIGS = ["oxlint.json", ".oxlintrc.json", ".oxlintrc"];
 const SKIP_DIRS = new Set([
   "node_modules",
   ".git",
-  ".codarch",
+  CODARCH_DIR,
   "dist",
   "coverage",
   "build",
@@ -677,7 +683,7 @@ const RUFF_CATALOG_NOTE = "sus selectores de config, expandidos con el catálogo
  * el checksum. Se llavea por la versión de Ruff, así que actualizar la
  * herramienta la invalida sola.
  */
-const LINT_CACHE_FILE = "lint-cache.json";
+
 
 interface RuffCatalogCache {
   version: string;
@@ -700,7 +706,7 @@ async function readCommandLine(
 }
 
 function lintCachePath(root: string): string {
-  return path.join(root, ".codarch", LINT_CACHE_FILE);
+  return codarchPath(root, LINT_RULES_FILE);
 }
 
 /** El catálogo guardado para esa versión de Ruff, si lo hay. */
@@ -725,7 +731,7 @@ function writeRuffCatalog(
   version: string,
   catalog: readonly { code: string }[]
 ): void {
-  const directory = path.join(root, ".codarch");
+  const directory = codarchDir(root);
   try {
     if (!fs.existsSync(directory)) return;
     const file = lintCachePath(root);

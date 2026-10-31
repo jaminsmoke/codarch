@@ -75,10 +75,14 @@ La tabla completa de lo que escribe el producto queda así:
 
 ### 5. Un nombre, un sitio
 
-Cada artefacto declara su nombre **en el paquete que lo escribe** —`packages/lint` para el lint,
-`packages/schema` para los cc.json, `packages/metrics` para el reporte— y los consumidores importan la
-constante. Ningún consumidor repite la lista de nombres ni mantiene alias propios: si un artefacto
-cambia de nombre, se cambia en un sitio.
+Cada artefacto tenía su nombre **en el paquete que lo escribe** —`packages/lint` para el lint,
+`packages/schema` para los cc.json, `packages/metrics` para el reporte— y los consumidores importaban
+la constante. Ningún consumidor repetía la lista de nombres ni mantenía alias propios: si un artefacto
+cambiaba de nombre, se cambiaba en un sitio.
+
+El [ADR 0101](../0101-0110/0101-la-carpeta-es-del-producto.md) lo enmienda: los nombres viven en un
+**registro** de `packages/schema` —`CODARCH_ENTRIES`— y el paquete que escribe el artefacto lo
+importa. Un sitio y no uno por paquete, porque la lista también es la que decide qué se limpia.
 
 ### 6. Sin compatibilidad
 
@@ -101,5 +105,6 @@ de leerse a medias. La lectura de nombres viejos —que era la fuente de la dupl
 - ✅ El nombre del artefacto del lint y la regla escrita (ADR 0100).
 - ⬜ Los módulos que vengan después —historial de cambio, símbolos— adoptan `repmod` sin decidir otro
   sufijo.
+- ✅ Los nombres viven en un registro y la carpeta se limpia al analizar (ADR 0101).
 - ⬜ Si `report.json` y `head-report.json` acaban unificándose en un documento con `base` y `head`, el
   nombre se decide entonces y con otro ADR; hoy son dos sujetos distintos y así se leen.

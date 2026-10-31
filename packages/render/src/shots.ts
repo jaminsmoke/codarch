@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { SHOTS_DIR, codarchPath } from "@codarch/schema";
 
 /**
  * Las capturas del mapa, en dos ranuras que rotan (ADR 0091).
@@ -15,7 +16,7 @@ export const SHOT_SLOTS = 2;
 
 /** La carpeta de capturas de un repositorio: dentro de `.codarch/`, que no se versiona. */
 export function shotDirectory(root: string): string {
-  return path.join(root, ".codarch", "shots");
+  return codarchPath(root, SHOTS_DIR);
 }
 
 /** El nombre del fichero de una ranura, empezando en 1. */

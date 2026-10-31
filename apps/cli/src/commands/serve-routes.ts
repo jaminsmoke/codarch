@@ -13,13 +13,21 @@ import type { DiffReport } from "@codarch/metrics";
 import {
   ensureGitignoreEntry,
   headReportFor,
+  preferredReport,
   readFileDiff,
   readSourceFile,
   readSourceSnippet
 } from "@codarch/parsers";
-import { historyLocation, readHistoryIndex } from "@codarch/schema";
+import {
+  CODARCH_DIR,
+  REPORT_FILE,
+  codarchDir,
+  codarchPath,
+  historyLocation,
+  readHistoryIndex
+} from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
-import { LINT_ARTIFACT_FILE } from "@codarch/lint";
+import { LINT_FILE } from "@codarch/lint";
 import { chainsPayload } from "./chains-payload";
 import type { Live } from "./serve-live";
 
@@ -39,7 +47,7 @@ const MIME: Record<string, string> = {
 const IGNORED_BROWSE = new Set([
   ".git",
   "node_modules",
-  ".codarch",
+  CODARCH_DIR,
   "dist",
   "coverage",
   ".next",
@@ -288,8 +296,8 @@ function getReport(context: RouteContext): void {
  */
 function getChains(context: RouteContext): void {
   const root = context.live.current().root;
-  if (!fs.existsSync(path.join(root, ".codarch"))) {
-    ensureGitignoreEntry(root, ".codarch/");
+  if (!fs.existsSync(codarchDir(root))) {
+    ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
   }
   sendJson(
     context.response,
@@ -387,7 +395,7 @@ const GET_ROUTES: Record<string, Route> = {
   // El lint es un fichero aparte del snapshot (ADR 0094): se sirve el que hay,
   // y `serve` lo reescribe tras una pasada con cambios. Sin él, 204.
   "/data/lint.repmod.json": getOptionalJson((context) =>
-    readCodarchJson(context.live.current().root, LINT_ARTIFACT_FILE)
+    readCodarchJson(context.live.current().root, LINT_FILE)
   ),
   "/data/head-report.json": getHeadReport,
   "/data/report.json": getReport,
@@ -446,28 +454,28 @@ function originAllowed(
 }
 
 function readReport(root: string): unknown | null {
-  return readCodarchJson(root, "report.json");
+  return readCodarchJson(root, REPORT_FILE);
 }
 
 /**
  * Lo tocado desde el último commit, tal como lo sirve la app (ADR 0072).
  *
- * Lo calcula el servidor, que tiene git; el `.codarch/head-report.json` del
- * escritorio es el respaldo cuando el cálculo no es posible —un repo sin
- * commits, por ejemplo—. El escritorio manda el suyo desde su proceso de
- * análisis, y un test comprueba que las dos plataformas dicen lo mismo sobre
- * el mismo árbol.
+ * Lo calcula el servidor, que tiene git; el reporte guardado del repo es el
+ * respaldo cuando el cálculo no es posible —un repo sin commits, por ejemplo—,
+ * con la precedencia del módulo (ADR 0101): el del árbol de trabajo manda. El
+ * escritorio escribe el suyo y un test comprueba que las dos plataformas dicen
+ * lo mismo sobre el mismo árbol.
  */
 export function computeHeadReport(root: string): DiffReport | null {
   const warnings: string[] = [];
   const computed = headReportFor(root, warnings);
   for (const warning of warnings) console.error(`  ${warning}`);
-  return computed ?? (readCodarchJson(root, "head-report.json") as DiffReport | null);
+  return computed ?? preferredReport(root)?.report ?? null;
 }
 
 /** Un JSON de `.codarch/`, o `null` si falta o no se puede leer. */
 export function readCodarchJson(root: string, name: string): unknown | null {
-  const file = path.join(root, ".codarch", name);
+  const file = codarchPath(root, name);
   try {
     return JSON.parse(fs.readFileSync(file, "utf8")) as unknown;
   } catch (error) {

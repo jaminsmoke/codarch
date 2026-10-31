@@ -1,3 +1,5 @@
+import { HEAD_REPORT_FILE, REPORT_FILE } from "@codarch/schema/browser";
+
 /**
  * Qué reporte pide la app al cargarse desde `data/` (ADR 0075).
  *
@@ -6,10 +8,13 @@
  * distinto de su último commit: solo el reporte HEAD. Un artefacto estático
  * —el mapa de un PR— no tiene git: trae su `report.json`, que es el diff del
  * pull request, y es lo único que puede enseñar.
+ *
+ * Los dos nombres salen del registro de `.codarch/` (ADR 0101), que es el mismo
+ * fichero servido desde `data/`.
  */
 
-export const HEAD_REPORT_URL = "data/head-report.json";
-export const ARTIFACT_REPORT_URL = "data/report.json";
+export const HEAD_REPORT_URL = `data/${HEAD_REPORT_FILE}`;
+export const ARTIFACT_REPORT_URL = `data/${REPORT_FILE}`;
 
 export function servedReportUrl(hasServer: boolean): string {
   return hasServer ? HEAD_REPORT_URL : ARTIFACT_REPORT_URL;

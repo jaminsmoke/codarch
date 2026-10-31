@@ -7,6 +7,9 @@ import {
   walkSourceFiles
 } from "@codarch/parsers";
 import {
+  SCOPES_FILE,
+  SNAPSHOT_FILE,
+  codarchPath,
   parseCcJson,
   readHistoryIndex,
   type CcJson,
@@ -26,7 +29,7 @@ import {
  * alcance mayor que no controla.
  */
 
-export const SCOPES_FILE = "scopes.json";
+export { SCOPES_FILE };
 export const SCOPES_VERSION = 1;
 
 export interface ScopeEntry {
@@ -120,7 +123,7 @@ function readScope(root: string, scopePath: string): ScopeEntry | null {
 function readSnapshot(directory: string): CcJson | null {
   try {
     const raw = JSON.parse(
-      fs.readFileSync(path.join(directory, ".codarch", "snapshot.cc.json"), "utf8")
+      fs.readFileSync(codarchPath(directory, SNAPSHOT_FILE), "utf8")
     ) as unknown;
     return parseCcJson(raw);
   } catch {
@@ -232,8 +235,7 @@ export function scopeHasNewerFiles(root: string, scopePath: string): boolean {
 /** Cuándo se escribió el snapshot del hijo, o `null` si no se puede leer. */
 function snapshotWrittenAt(directory: string): number | null {
   try {
-    return fs.statSync(path.join(directory, ".codarch", "snapshot.cc.json"))
-      .mtimeMs;
+    return fs.statSync(codarchPath(directory, SNAPSHOT_FILE)).mtimeMs;
   } catch {
     return null;
   }

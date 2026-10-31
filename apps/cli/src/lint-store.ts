@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-  LINT_ARTIFACT_FILE,
+  LINT_FILE,
   readLintArtifact,
   runLint,
   type LintArtifact,
@@ -9,6 +9,7 @@ import {
   type LintToolRun
 } from "@codarch/lint";
 import { ensureGitignoreEntry } from "@codarch/parsers";
+import { CODARCH_DIR, codarchDir } from "@codarch/schema";
 import { planProjectLint, planSystems } from "./lint-plan";
 
 /**
@@ -19,7 +20,7 @@ import { planProjectLint, planSystems } from "./lint-plan";
  * hagan distinto.
  */
 
-export const LINT_FILE = LINT_ARTIFACT_FILE;
+export { LINT_FILE };
 
 /** El `lint.repmod.json` de una carpeta de salida. */
 export function lintPath(outDirectory: string): string {
@@ -49,7 +50,7 @@ function readArtifactAt(file: string): LintArtifact | null {
  */
 export function readProjectLint(
   root: string,
-  outDirectory = path.join(root, ".codarch")
+  outDirectory = codarchDir(root)
 ): LintArtifact | null {
   return readArtifactAt(path.join(outDirectory, LINT_FILE));
 }
@@ -64,7 +65,7 @@ export function readProjectLint(
  */
 export function readLintBeside(file: string): LintArtifact | null {
   const directory = path.dirname(path.resolve(file));
-  for (const base of [directory, path.join(directory, ".codarch")]) {
+  for (const base of [directory, codarchDir(directory)]) {
     const artifact = readArtifactAt(path.join(base, LINT_FILE));
     if (artifact) return artifact;
   }
@@ -75,17 +76,14 @@ export function readLintBeside(file: string): LintArtifact | null {
 export function writeLintArtifact(
   root: string,
   artifact: LintArtifact,
-  outDirectory = path.join(root, ".codarch")
+  outDirectory = codarchDir(root)
 ): string | null {
   const file = lintPath(outDirectory);
   try {
     // El estado es local: si `.codarch/` nace aquí, se ignora en el repo
     // (ADR 0050).
-    if (
-      outDirectory === path.join(root, ".codarch") &&
-      !fs.existsSync(outDirectory)
-    ) {
-      ensureGitignoreEntry(root, ".codarch/");
+    if (outDirectory === codarchDir(root) && !fs.existsSync(outDirectory)) {
+      ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
     }
     fs.mkdirSync(outDirectory, { recursive: true });
     fs.writeFileSync(file, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
@@ -135,7 +133,7 @@ export async function runProjectLint(
     ...(options.run ? { run: options.run } : {}),
     ...(options.tree ? { tree: options.tree } : {})
   });
-  const out = options.out ?? path.join(root, ".codarch");
+  const out = options.out ?? codarchDir(root);
   return {
     artifact: result.artifact,
     runs: result.runs,

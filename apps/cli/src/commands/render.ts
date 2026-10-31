@@ -1,8 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import { LINT_ARTIFACT_FILE, type LintArtifact } from "@codarch/lint";
+import { LINT_FILE, type LintArtifact } from "@codarch/lint";
 import type { CcJson } from "@codarch/schema";
-import { CcJsonError, parseCcJson, walkFiles } from "@codarch/schema";
+import {
+  CcJsonError,
+  SNAPSHOT_FILE,
+  parseCcJson,
+  walkFiles
+} from "@codarch/schema";
 import { formatBytes, readJsonFile } from "../io";
 import { readLintBeside } from "../lint-store";
 import { findWebRoot } from "../web-root";
@@ -56,7 +61,7 @@ export function publishSnapshot(
   const data = path.join(out, "data");
   fs.mkdirSync(data, { recursive: true });
   fs.writeFileSync(
-    path.join(data, "snapshot.cc.json"),
+    path.join(data, SNAPSHOT_FILE),
     `${JSON.stringify(cc, null, 2)}\n`,
     "utf8"
   );
@@ -64,7 +69,7 @@ export function publishSnapshot(
   // publicada lo carga igual que la que sirve `codarch serve`.
   if (lint) {
     fs.writeFileSync(
-      path.join(data, LINT_ARTIFACT_FILE),
+      path.join(data, LINT_FILE),
       `${JSON.stringify(lint, null, 2)}\n`,
       "utf8"
     );
@@ -137,7 +142,7 @@ export function runRender(options: RenderCommandOptions): number {
   lines.push(field("fichero", `${options.file} (${formatBytes(loaded.bytes)})`));
   lines.push(field("salida", out));
   lines.push(field("servir", `npx serve "${out}"`));
-  lines.push(field("snapshot", path.join(out, "data", "snapshot.cc.json")));
+  lines.push(field("snapshot", path.join(out, "data", SNAPSHOT_FILE)));
   lines.push(field("estructura", `${num(files)} ficheros`));
   if (cc.meta.projectName) {
     lines.push(field("proyecto", cc.meta.projectName));

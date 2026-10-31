@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { CODARCH_DIR, HISTORY_DIR } from "@codarch/schema";
 import { gitStatus } from "./git";
 
 /**
@@ -25,8 +26,8 @@ import { gitStatus } from "./git";
 const LIVE_IGNORED = new Set([
   ".git",
   "node_modules",
-  ".codarch",
-  ".codarch-history",
+  CODARCH_DIR,
+  HISTORY_DIR,
   "dist",
   "coverage",
   ".next",

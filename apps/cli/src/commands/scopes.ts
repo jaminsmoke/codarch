@@ -1,4 +1,5 @@
 import path from "node:path";
+import { codarchDir } from "@codarch/schema";
 import { loadProjectIgnore } from "../config";
 import { directoryProblem } from "../io";
 import {
@@ -49,7 +50,7 @@ export function runScopes(options: ScopesCommandOptions): number {
     return 1;
   }
 
-  const outDirectory = path.join(root, ".codarch");
+  const outDirectory = codarchDir(root);
   const rows = scopeRows(root, readScopeRegister(outDirectory), projectIgnore(root));
 
   if (options.json) {

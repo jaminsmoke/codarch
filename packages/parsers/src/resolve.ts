@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { CODARCH_DIR } from "@codarch/schema";
 import { isNodeBuiltin } from "./builtins";
 import type { FileSystem } from "./fs";
 import * as path from "./path";
@@ -21,7 +22,7 @@ const PACKAGE_MAIN_FIELDS = ["types", "module", "main"] as const;
 const WORKSPACE_SKIP_DIRS = new Set([
   ".git",
   "node_modules",
-  ".codarch",
+  CODARCH_DIR,
   "dist",
   "build",
   "coverage",

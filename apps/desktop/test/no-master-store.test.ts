@@ -20,7 +20,11 @@ describe("el estado no vive en la app", () => {
   );
 
   it("el proceso principal usa .codarch y no el perfil de la app", () => {
-    expect(main).toContain('CODARCH_DIR = ".codarch"');
+    // El nombre lo declara el registro de `@codarch/schema` (ADR 0101): el
+    // proceso principal lo importa en vez de llevar su propia copia.
+    expect(main).toContain("@codarch/schema");
+    expect(main).toMatch(/CODARCH_DIR/);
+    expect(main).not.toMatch(/CODARCH_DIR = "/);
     expect(main).not.toMatch(/getPath\(\s*["']userData/);
     expect(main).not.toMatch(/homedir\(/);
   });

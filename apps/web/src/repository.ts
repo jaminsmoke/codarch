@@ -1,3 +1,11 @@
+import {
+  CODARCH_DIR,
+  LINT_FILE,
+  REPORT_FILE,
+  REST_FILE,
+  SNAPSHOT_FILE
+} from "@codarch/schema/browser";
+
 export interface DirectoryHandleLike {
   name: string;
   getDirectoryHandle(
@@ -49,25 +57,26 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
   const root = await picker({ mode: "read" });
   let codarch: DirectoryHandleLike;
   try {
-    codarch = await root.getDirectoryHandle(".codarch");
+    codarch = await root.getDirectoryHandle(CODARCH_DIR);
   } catch {
     throw new Error(
       `No se encontró .codarch en "${root.name}". Para artefactos ejecuta "codarch analyze ."; para datos en vivo, "codarch serve ." en la raíz del repo.`
     );
   }
 
-  const snapshot = await readJson(codarch, "snapshot.cc.json", true);
-  const rest = await readJson(codarch, "rest.cc.json", false);
-  const lint = await readJson(codarch, "lint.repmod.json", false);
-  const report = await readJson(codarch, "report.json", false);
+  const snapshot = await readJson(codarch, SNAPSHOT_FILE, true);
+  const rest = await readJson(codarch, REST_FILE, false);
+  const lint = await readJson(codarch, LINT_FILE, false);
+  const report = await readJson(codarch, REPORT_FILE, false);
 
   return {
     snapshot,
     rest,
     lint,
     report,
-    label: `${root.name}/.codarch/snapshot.cc.json`,
-    reportLabel: report === null ? null : `${root.name}/.codarch/report.json`
+    label: `${root.name}/${CODARCH_DIR}/${SNAPSHOT_FILE}`,
+    reportLabel:
+      report === null ? null : `${root.name}/${CODARCH_DIR}/${REPORT_FILE}`
   };
 }
 
@@ -83,32 +92,24 @@ export async function readRepositoryFromFiles(
     path: (file.webkitRelativePath || file.name).replace(/\\/g, "/")
   }));
 
-  const snapshotEntry = entries.find(
-    (entry) =>
-      entry.path.endsWith("/.codarch/snapshot.cc.json") ||
-      entry.path === ".codarch/snapshot.cc.json"
-  );
+  /** El artefacto de `.codarch/`, esté en la raíz elegida o en una subcarpeta. */
+  const find = (name: string) => {
+    const suffix = `${CODARCH_DIR}/${name}`;
+    return entries.find(
+      (entry) => entry.path === suffix || entry.path.endsWith(`/${suffix}`)
+    );
+  };
+
+  const snapshotEntry = find(SNAPSHOT_FILE);
   if (!snapshotEntry) {
     throw new Error(
-      'No se encontró ".codarch/snapshot.cc.json" en la carpeta. Para artefactos ejecuta "codarch analyze ."; para datos en vivo, "codarch serve ." en la raíz del repo.'
+      `No se encontró "${CODARCH_DIR}/${SNAPSHOT_FILE}" en la carpeta. Para artefactos ejecuta "codarch analyze ."; para datos en vivo, "codarch serve ." en la raíz del repo.`
     );
   }
 
-  const restEntry = entries.find(
-    (entry) =>
-      entry.path.endsWith("/.codarch/rest.cc.json") ||
-      entry.path === ".codarch/rest.cc.json"
-  );
-  const lintEntry = entries.find(
-    (entry) =>
-      entry.path.endsWith("/.codarch/lint.repmod.json") ||
-      entry.path === ".codarch/lint.repmod.json"
-  );
-  const reportEntry = entries.find(
-    (entry) =>
-      entry.path.endsWith("/.codarch/report.json") ||
-      entry.path === ".codarch/report.json"
-  );
+  const restEntry = find(REST_FILE);
+  const lintEntry = find(LINT_FILE);
+  const reportEntry = find(REPORT_FILE);
 
   return {
     snapshot: await readFileJson(snapshotEntry.file),

@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  HISTORY_DIR,
+  SNAPSHOT_FILE,
+  codarchPath,
   loadChains,
   parseCcJson,
   readHistoryIndex,
@@ -79,7 +82,7 @@ function readCurrentSnapshot(
   root: string,
   last: { checksum: string } | undefined
 ): CcJson | null {
-  const current = path.join(root, ".codarch", "snapshot.cc.json");
+  const current = codarchPath(root, SNAPSHOT_FILE);
   try {
     return parseCcJson(
       JSON.parse(fs.readFileSync(current, "utf8")) as unknown
@@ -89,7 +92,7 @@ function readCurrentSnapshot(
   }
 
   if (!last) return null;
-  const history = path.join(root, ".codarch-history");
+  const history = path.join(root, HISTORY_DIR);
   try {
     const files = fs
       .readdirSync(history)

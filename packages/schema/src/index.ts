@@ -52,6 +52,24 @@ export {
   writeChainLedger
 } from "./chain-store";
 export type { ChainLedger, ChainsPayload } from "./chain-store";
+export {
+  CODARCH_DIR,
+  CODARCH_ENTRIES,
+  CODARCH_KNOWN,
+  HEAD_REPORT_FILE,
+  LINT_FILE,
+  LINT_RULES_FILE,
+  PARSE_CACHE_FILE,
+  PREFERENCES_FILE,
+  REPORT_FILE,
+  REST_FILE,
+  SCOPES_FILE,
+  SHOTS_DIR,
+  SNAPSHOT_FILE,
+  isCodarchEntry
+} from "./artifacts";
+export type { CodarchArtifact } from "./artifacts";
+export { codarchDir, codarchPath } from "./codarch-path";
 export { CcJsonError, parseCcJson } from "./parse";
 export { isLegacyCcJson, normalizeLegacyCcJson } from "./legacy";
 export {

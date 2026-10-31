@@ -319,3 +319,62 @@ lint:
     );
   });
 });
+
+describe("la carpeta del producto", () => {
+  it("borra lo que no reconoce y dice qué se llevó", async () => {
+    const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
+    const codarch = path.join(root, ".codarch");
+    fs.mkdirSync(path.join(codarch, "backup"), { recursive: true });
+    fs.writeFileSync(path.join(codarch, "backup", "viejo.json"), "{}");
+    fs.writeFileSync(path.join(codarch, "lint.json"), "{}");
+    fs.writeFileSync(path.join(codarch, "map.html"), "<html></html>");
+    // El estado local no se toca aunque esta pasada no lo escriba.
+    fs.writeFileSync(
+      path.join(codarch, "preferences.json"),
+      '{"color":"riesgo"}'
+    );
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const code = await runAnalyze({
+      root,
+      git: false,
+      noLint: true,
+      help: false
+    });
+
+    expect(code).toBe(0);
+    expect(fs.existsSync(path.join(codarch, "snapshot.cc.json"))).toBe(true);
+    expect(fs.existsSync(path.join(codarch, "lint.json"))).toBe(false);
+    expect(fs.existsSync(path.join(codarch, "map.html"))).toBe(false);
+    expect(fs.existsSync(path.join(codarch, "backup"))).toBe(false);
+    expect(
+      fs.readFileSync(path.join(codarch, "preferences.json"), "utf8")
+    ).toContain("riesgo");
+    // El aviso dice qué se borró, en orden: la carpeta no se escribe a mano.
+    expect(String(warn.mock.calls[0]?.[0] ?? "")).toContain(
+      "backup, lint.json, map.html"
+    );
+  });
+
+  it("no limpia una salida de --out ni crea el .codarch del repo", async () => {
+    const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
+    const out = tempOut();
+    fs.writeFileSync(path.join(out, "mio.json"), "{}");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    const code = await runAnalyze({
+      root,
+      out,
+      git: false,
+      noLint: true,
+      help: false
+    });
+
+    expect(code).toBe(0);
+    expect(fs.existsSync(path.join(out, "mio.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, ".codarch"))).toBe(false);
+    expect(warn).not.toHaveBeenCalled();
+  });
+});

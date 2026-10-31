@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { CcJson } from "@codarch/schema";
+import { REST_FILE, type CcJson } from "@codarch/schema";
 
 /**
  * El snapshot de lo que no es código, en su propio fichero (ADR 0093).
@@ -10,7 +10,7 @@ import type { CcJson } from "@codarch/schema";
  * diff, las reglas, la acción y el MCP— no lo lee.
  */
 
-export const REST_FILE = "rest.cc.json";
+export { REST_FILE };
 
 export function restSnapshotPath(outDirectory: string): string {
   return path.join(outDirectory, REST_FILE);

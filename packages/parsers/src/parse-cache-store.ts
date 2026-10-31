@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { PARSE_CACHE_FILE, codarchDir } from "@codarch/schema";
 import { PARSE_CACHE_FORMAT, type CachedParse, type ParseCache } from "./cache";
 import { NodeFileSystem } from "./node-fs";
 import { walkProjectDirectories } from "./walk";
@@ -21,7 +22,7 @@ import { walkProjectDirectories } from "./walk";
  * anterior, del 1, se ignora y se reparsea; cuesta una pasada y no cambia nada.
  */
 
-export const PARSE_CACHE_FILE = "parse-cache.json";
+export { PARSE_CACHE_FILE };
 
 /** Una caché más grande que esto no se lee: es estado roto, no caché. */
 const MAX_BYTES = 64 * 1024 * 1024;
@@ -155,7 +156,7 @@ export function loadScopeParseCaches(
   for (const scopePath of scopePaths) {
     const loaded = loadFile(
       cache,
-      parseCachePath(path.join(root, scopePath, ".codarch")),
+      parseCachePath(codarchDir(path.join(root, scopePath))),
       path.join(root, scopePath),
       `${scopePath}/`
     );

@@ -4,6 +4,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { MCP_VERSION } from "@codarch/versions";
+import { CODARCH_DIR, REPORT_FILE, SNAPSHOT_FILE } from "@codarch/schema";
 import {
   McpDataError,
   loadArchitectureStore,
@@ -92,8 +93,8 @@ Ejemplo de configuración:
   command: node
   args: ["/ruta/repo/apps/mcp/bin/codarch-mcp.mjs",
          "--root", "/ruta/repo",
-         "--snapshot", ".codarch/snapshot.cc.json",
-         "--report", ".codarch/report.json"]
+         "--snapshot", "${CODARCH_DIR}/${SNAPSHOT_FILE}",
+         "--report", "${CODARCH_DIR}/${REPORT_FILE}"]
 `;
 
 interface CliOptions {

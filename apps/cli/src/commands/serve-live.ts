@@ -18,7 +18,7 @@ import {
   type RepoAnalysis,
   type RepositoryWatcher
 } from "@codarch/parsers";
-import type { CcJson } from "@codarch/schema";
+import { codarchDir, type CcJson } from "@codarch/schema";
 import { createLintQueue } from "../lint-queue";
 import { readProjectLint, runProjectLint } from "../lint-store";
 import { VERSION } from "../version";
@@ -301,7 +301,7 @@ function storeParseCache(
   result: Extract<RepoAnalysis, { kind: "snapshot" }>
 ): void {
   try {
-    writeParseCachePayload(path.join(root, ".codarch"), result.parseCache);
+    writeParseCachePayload(codarchDir(root), result.parseCache);
   } catch (cause) {
     console.error(
       `  no se pudo guardar la caché de parseo: ${(cause as Error).message}`
@@ -322,7 +322,7 @@ function storeRest(
 ): void {
   if (!result.rest) return;
   try {
-    writeRestSnapshot(path.join(root, ".codarch"), result.rest);
+    writeRestSnapshot(codarchDir(root), result.rest);
   } catch (cause) {
     console.error(
       `  no se pudo guardar el resto: ${(cause as Error).message}`

@@ -1,4 +1,4 @@
-import path from "node:path";
+import { codarchDir } from "@codarch/schema";
 import { analyzeRepository, type AnalyzeOptions, type AnalyzeResult } from "./analyze";
 import { ParseCache } from "./cache";
 import { ChurnCache } from "./git";
@@ -111,7 +111,7 @@ export class AnalysisSession {
     try {
       // El estado vive en el `.codarch/` de la raíz (ADR 0050), que es donde lo
       // deja el análisis que escribió el snapshot que vamos a refrescar.
-      loadOwnParseCache(this.parse, this.root, path.join(this.root, ".codarch"));
+      loadOwnParseCache(this.parse, this.root, codarchDir(this.root));
     } catch {
       // Sin la caché propia se parsea otra vez: cuesta tiempo, no resultado.
     }

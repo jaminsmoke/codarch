@@ -8,10 +8,18 @@ import {
   loadOwnParseCache,
   loadScopeParseCaches,
   protectedRootReason,
+  sweepCodarch,
   writeParseCache,
   writeRestSnapshot
 } from "@codarch/parsers";
-import { CcJsonError, parseCcJson, saveHistory } from "@codarch/schema";
+import {
+  CODARCH_DIR,
+  CcJsonError,
+  SNAPSHOT_FILE,
+  codarchDir,
+  parseCcJson,
+  saveHistory
+} from "@codarch/schema";
 import type { CcJson } from "@codarch/schema";
 import {
   lintTotals,
@@ -113,9 +121,7 @@ export async function runAnalyze(
   }
 
   const rootPath = path.resolve(root);
-  const outDirectory = path.resolve(
-    options.out ?? path.join(rootPath, ".codarch")
-  );
+  const outDirectory = path.resolve(options.out ?? codarchDir(rootPath));
   const { cache, reused, scopePaths } = loadCaches(
     rootPath,
     outDirectory,
@@ -175,10 +181,29 @@ export async function runAnalyze(
     scopePaths,
     history: options.history === true
   });
+  // La carpeta es del producto: lo que no reconoce se va, con aviso (ADR 0101).
+  // Se hace al final, cuando ya está escrito todo lo de esta pasada, y solo si
+  // se escribe en el `.codarch/` del repo y no en una salida de `--out`.
+  const swept =
+    outDirectory === codarchDir(rootPath) ? sweepCodarch(rootPath) : [];
+  if (swept.length > 0) console.warn(sweptWarning(swept));
+
   console.log(lines.join("\n"));
   // Un mapa vacío no es un análisis correcto: se dice con código de error para
   // que un script no crea que ha mapeado un repo de Python.
   return result.files === 0 ? 1 : 0;
+}
+
+/**
+ * El aviso de la limpieza: qué se fue y por qué.
+ *
+ * Lleva los nombres porque el que lo lee tiene que poder recuperar lo que
+ * hubiera dentro: la carpeta no se escribe a mano.
+ */
+function sweptWarning(removed: readonly string[]): string {
+  const list = removed.join(", ");
+  const what = removed.length === 1 ? "entrada" : "entradas";
+  return `aviso: ${CODARCH_DIR}/ es del producto, no un cajón: se borraron ${removed.length} ${what} que no reconoce (${list})`;
 }
 
 /** La política del repo, más los `--ignore` puntuales de esta pasada. */
@@ -242,16 +267,13 @@ function writeSnapshot(
   rootPath: string,
   cc: CcJson
 ): string | null {
-  const snapshotPath = path.join(outDirectory, "snapshot.cc.json");
+  const snapshotPath = path.join(outDirectory, SNAPSHOT_FILE);
   try {
     // El estado es local: si `.codarch/` nace aquí, se ignora en el repo. Si
     // ya existía (o el usuario quitó la línea), no se toca el `.gitignore`
     // (ADR 0050).
-    if (
-      outDirectory === path.join(rootPath, ".codarch") &&
-      !fs.existsSync(outDirectory)
-    ) {
-      ensureGitignoreEntry(rootPath, ".codarch/");
+    if (outDirectory === codarchDir(rootPath) && !fs.existsSync(outDirectory)) {
+      ensureGitignoreEntry(rootPath, `${CODARCH_DIR}/`);
     }
     fs.mkdirSync(outDirectory, { recursive: true });
     fs.writeFileSync(snapshotPath, `${JSON.stringify(cc, null, 2)}\n`, "utf8");

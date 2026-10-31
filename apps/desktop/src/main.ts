@@ -17,15 +17,24 @@ import {
   readFileDiff,
   readSourceFile,
   readSourceSnippet,
+  sweepCodarch,
   watchRepository,
-  writeParseCachePayload
+  writeParseCachePayload,
+  writeStoredReport
 } from "@codarch/parsers";
 import type { ParseCachePayload, RepositoryWatcher } from "@codarch/parsers";
 import { repoAddons } from "@codarch/addons/node";
 import type { RepoAddons } from "@codarch/addons";
 import { checkSource } from "@codarch/versions";
 import {
+  CODARCH_DIR,
+  LINT_FILE,
+  REPORT_FILE,
+  REST_FILE,
+  SNAPSHOT_FILE,
   chainsPayload,
+  codarchDir,
+  codarchPath,
   historyLocation,
   readHistoryIndex
 } from "@codarch/schema";
@@ -124,15 +133,12 @@ function send(target: DesktopTarget): void {
  * Sin commits o con el export roto, `report` es `null` y no se manda nada: la
  * pestaña sigue mostrando lo que ya tuviera.
  */
-/** Dónde se guarda lo tocado desde el último commit (ADR 0072). */
-const HEAD_REPORT_FILE = "head-report.json";
-
 function sendHeadReport(root: string, report: unknown | null): void {
   if (!report) return;
-  // Se guarda en `.codarch/` para que la web lea lo mismo que el escritorio.
-  // Un fichero propio: `report.json` lo escribe también `codarch serve` y no
-  // debe cambiar por debajo de quien lo use (ADR 0072).
-  writeCodarchJson(root, HEAD_REPORT_FILE, report);
+  // Se guarda en su fichero de `.codarch/` para que la web lea lo mismo que el
+  // escritorio. Quién escribe cada reporte y cuál manda lo declara el módulo
+  // de `@codarch/parsers` (ADR 0101), no este fichero.
+  writeStoredReport(root, "worktree", report);
   send({ kind: "head", report, label: root });
 }
 
@@ -221,6 +227,7 @@ async function refreshFromDisk(
       return;
     }
     storeParseCache(root, outcome.parseCache);
+    sweep(root);
     // El checksum del resto es suyo (ADR 0093): un documento que cambia no
     // mueve el del código, así que este cambio también se avisa.
     const restChanged = storeRest(root, outcome.rest);
@@ -428,6 +435,7 @@ async function openTarget(target: string): Promise<void> {
     writeSnapshot(target, outcome.snapshot);
     storeRest(target, outcome.rest);
     storeParseCache(target, outcome.parseCache);
+    sweep(target);
     watchRoot(target);
     send({
       kind: "snapshot",
@@ -486,19 +494,25 @@ function isSnapshot(value: unknown): boolean {
   );
 }
 
-/** Carpeta local del repo donde el escritorio deja sus artefactos. */
-const CODARCH_DIR = ".codarch";
-
 /** Ruta del snapshot persistido de un repo, si existe. */
 function snapshotPath(root: string): string {
-  return path.join(root, CODARCH_DIR, "snapshot.cc.json");
+  return codarchPath(root, SNAPSHOT_FILE);
 }
 
-/** El mapa de lo que no es código, al lado del snapshot (ADR 0093). */
-const REST_FILE = "rest.cc.json";
-
-/** El artefacto del lint, del mismo `.codarch/` (ADR 0094). */
-const LINT_FILE = "lint.repmod.json";
+/**
+ * Deja `.codarch/` con lo que es suyo, como `codarch analyze` (ADR 0101).
+ *
+ * Lo que no reconoce se borra y se dice: la carpeta no es un cajón. Se llama
+ * después de escribir lo de la pasada, para no borrar lo que se acaba de
+ * guardar.
+ */
+function sweep(root: string): void {
+  const removed = sweepCodarch(root);
+  if (removed.length === 0) return;
+  console.error(
+    `aviso: ${CODARCH_DIR}/ es del producto, no un cajón: se borraron ${removed.length} entradas que no reconoce (${removed.join(", ")})`
+  );
+}
 
 /**
  * Lee el lint guardado, si lo hay.
@@ -508,7 +522,7 @@ const LINT_FILE = "lint.repmod.json";
  * no se prueban nombres anteriores.
  */
 function readPersistedLint(root: string): unknown | null {
-  return readJsonFile(path.join(root, CODARCH_DIR, LINT_FILE));
+  return readJsonFile(codarchPath(root, LINT_FILE));
 }
 
 /**
@@ -518,7 +532,7 @@ function readPersistedLint(root: string): unknown | null {
  * la app sigue con el del código.
  */
 function readPersistedRest(root: string): unknown | null {
-  const raw = readJsonFile(path.join(root, CODARCH_DIR, REST_FILE));
+  const raw = readJsonFile(codarchPath(root, REST_FILE));
   if (!isSnapshot(raw)) return null;
   const lenses = (raw as { lenses?: { rest?: unknown } }).lenses;
   return lenses?.rest ? raw : null;
@@ -531,7 +545,7 @@ function readPersistedRest(root: string): unknown | null {
  * de escribir el análisis no se serializa dos veces por el mismo camino.
  */
 function writeCodarchJson(root: string, name: string, value: unknown): boolean {
-  const directory = path.join(root, CODARCH_DIR);
+  const directory = codarchDir(root);
   const file = path.join(directory, name);
   const content = `${JSON.stringify(value, null, 2)}\n`;
   try {
@@ -555,7 +569,7 @@ function writeCodarchJson(root: string, name: string, value: unknown): boolean {
  */
 function storeParseCache(root: string, payload: ParseCachePayload): void {
   try {
-    writeParseCachePayload(path.join(root, CODARCH_DIR), payload);
+    writeParseCachePayload(codarchDir(root), payload);
   } catch (cause) {
     console.error(
       `no se pudo escribir la caché de parseo de ${root}: ${(cause as Error).message}`
@@ -571,7 +585,7 @@ function storeParseCache(root: string, payload: ParseCachePayload): void {
  */
 function storeRest(root: string, rest: unknown | null): boolean {
   if (!rest) return false;
-  const file = path.join(root, CODARCH_DIR, REST_FILE);
+  const file = codarchPath(root, REST_FILE);
   try {
     const content = `${JSON.stringify(rest, null, 2)}\n`;
     if (existsSync(file) && readFileSync(file, "utf8") === content) {
@@ -586,7 +600,7 @@ function storeRest(root: string, rest: unknown | null): boolean {
 
 /** Escribe el snapshot en `.codarch/` del repo. */
 function writeSnapshot(root: string, snapshot: unknown): boolean {
-  const written = writeCodarchJson(root, "snapshot.cc.json", snapshot);
+  const written = writeCodarchJson(root, SNAPSHOT_FILE, snapshot);
   const checksum = snapshotChecksum(snapshot);
   if (written && checksum !== null) {
     storedChecksums.set(root, checksum);
@@ -620,7 +634,7 @@ function persistedChecksum(root: string): string {
  * Si ya existía, o el usuario quitó la línea del `.gitignore`, no se toca.
  */
 function ensureStateIgnored(root: string): void {
-  if (!existsSync(path.join(root, CODARCH_DIR))) {
+  if (!existsSync(codarchDir(root))) {
     ensureGitignoreEntry(root, `${CODARCH_DIR}/`);
   }
 }
@@ -672,7 +686,7 @@ function persistProject(
     return false;
   }
   if (report !== null && report !== undefined) {
-    writeCodarchJson(root, "report.json", report);
+    writeCodarchJson(root, REPORT_FILE, report);
   }
   return true;
 }
@@ -698,7 +712,7 @@ function restoreProject(root: string): {
     snapshot,
     rest: readPersistedRest(root),
     lint: readPersistedLint(root),
-    report: readJsonFile(path.join(root, CODARCH_DIR, "report.json")),
+    report: readJsonFile(codarchPath(root, REPORT_FILE)),
     addons: repoAddons(root),
     preferences: readRepoPreferences(root)
   };

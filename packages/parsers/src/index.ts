@@ -107,6 +107,14 @@ export {
 } from "./rest-store";
 export type { RestWrite } from "./rest-store";
 export { ensureGitignoreEntry } from "./gitignore";
+export { sweepCodarch } from "./codarch-dir";
+export {
+  preferredReport,
+  readStoredReport,
+  reportFilePath,
+  writeStoredReport
+} from "./report-store";
+export type { StoredReport, StoredReportKind } from "./report-store";
 export {
   normalizeSourcePath,
   readSourceFile,

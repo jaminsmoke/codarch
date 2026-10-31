@@ -75,6 +75,12 @@ tree. `--no-lint` skips it.
 
 The **parse cache** is left in `.codarch/parse-cache.json` and the **list of nested scopes** in `.codarch/scopes.json`: they are derived, they can be deleted, and they save the analysis that contains this scope from parsing again what is already parsed ([`codarch scopes`](scopes.md)).
 
+The folder belongs to the product, not to your own work: when it finishes, `analyze` **removes from
+`.codarch/` whatever it does not recognise** —a `lint.json` from an earlier version, a static map, a
+stray folder— and names it in a warning. Local state (preferences, caches, chains, scopes and captures)
+is kept even when this pass did not write it. With `--out` nothing is cleaned: that folder was your
+choice.
+
 ![Output of `codarch analyze .` in the terminal](../../../images/cli-analyze.png)
 
 ## Examples

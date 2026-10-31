@@ -1,5 +1,5 @@
 import path from "node:path";
-import { CcJsonError, parseCcJson } from "@codarch/schema";
+import { CODARCH_DIR, CcJsonError, parseCcJson } from "@codarch/schema";
 import { RenderError } from "@codarch/render";
 import { captureMap } from "@codarch/render/node";
 import { formatBytes, readJsonFile } from "../io";
@@ -23,7 +23,7 @@ export interface ShotCommandOptions {
  */
 export function repositoryOf(file: string): string {
   const directory = path.dirname(path.resolve(file));
-  return path.basename(directory) === ".codarch"
+  return path.basename(directory) === CODARCH_DIR
     ? path.dirname(directory)
     : directory;
 }

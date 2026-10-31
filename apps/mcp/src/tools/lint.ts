@@ -5,8 +5,9 @@ import { readFileSync } from "node:fs";
 import type { LintFinding, LintReportInput, LintReportResult } from "./types";
 import { clampInteger, compareStrings, severityOrder } from "./helpers";
 import { dirname, join, relative, sep } from "node:path";
+import { codarchDir } from "@codarch/schema";
 import {
-  LINT_ARTIFACT_FILE,
+  LINT_FILE,
   lintRuleCounts,
   lintTotals,
   readLintArtifact,
@@ -139,9 +140,9 @@ function loadLintArtifact(
 ): { artifact: LintArtifact; file: string } | null {
   const beside = store.snapshotPath
     ? dirname(store.snapshotPath)
-    : join(store.root, ".codarch");
-  for (const base of [beside, join(beside, ".codarch")]) {
-    const file = join(base, LINT_ARTIFACT_FILE);
+    : codarchDir(store.root);
+  for (const base of [beside, codarchDir(beside)]) {
+    const file = join(base, LINT_FILE);
     try {
       const artifact = readLintArtifact(
         JSON.parse(readFileSync(file, "utf8")) as unknown

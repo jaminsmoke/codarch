@@ -1,3 +1,4 @@
+import { CODARCH_DIR, REPORT_FILE } from "@codarch/schema/browser";
 import { desktop } from "./bridge";
 import {
   clearLastRoot,
@@ -65,7 +66,7 @@ export function plataformaEscritorio(): Plataforma {
             report: restored.report,
             label: root,
             reportLabel: restored.report
-              ? `${root}/.codarch/report.json`
+              ? `${root}/${CODARCH_DIR}/${REPORT_FILE}`
               : null,
             addons: restored.addons.addons,
             preferences: restored.preferences ?? undefined

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  LINT_ARTIFACT_FILE,
+  LINT_FILE,
   LINT_ARTIFACT_VERSION,
   LintError,
   canonicalLintPath,
@@ -265,7 +265,7 @@ describe("el artefacto del lint", () => {
 
   it("se llama como un módulo del reporte, no como un cc.json", () => {
     // ADR 0100: `cc.json` es un formato que se abre fuera, y el lint no lo es.
-    expect(LINT_ARTIFACT_FILE).toBe("lint.repmod.json");
-    expect(LINT_ARTIFACT_FILE.endsWith(".cc.json")).toBe(false);
+    expect(LINT_FILE).toBe("lint.repmod.json");
+    expect(LINT_FILE.endsWith(".cc.json")).toBe(false);
   });
 });

@@ -75,6 +75,11 @@ no de lo que tengas instalado— y `serve` no la vuelve a medir mientras el arte
 
 La **caché de parseo** queda en `.codarch/parse-cache.json` y la **lista de alcances** anidados en `.codarch/scopes.json`: son derivadas, se pueden borrar, y sirven para que el análisis que contiene a este alcance no vuelva a parsear lo que ya está parseado ([`codarch scopes`](scopes.md)).
 
+La carpeta es del producto, no un cajón: al terminar, `analyze` **borra de `.codarch/` lo que no reconoce**
+—un `lint.json` de una versión anterior, un mapa estático, una carpeta suelta— y lo dice con sus nombres en
+un aviso. El estado local (preferencias, cachés, cadenas, alcances y capturas) se conserva aunque esta
+pasada no lo escriba. Con `--out` no se limpia nada: esa carpeta la elegiste tú.
+
 ![Salida de `codarch analyze .` en la terminal](../../images/cli-analyze.png)
 
 ## Ejemplos

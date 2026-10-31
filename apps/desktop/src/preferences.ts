@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { PREFERENCES_FILE, codarchPath } from "@codarch/schema";
 import { parsePreferences, type ViewPreferences } from "@codarch/ui/storage";
 
 /**
@@ -9,10 +10,10 @@ import { parsePreferences, type ViewPreferences } from "@codarch/ui/storage";
  * máquina guarda una copia en su `localStorage` como respaldo: si el repo no
  * se puede escribir, la app sigue recordando la vista.
  */
-export const PREFERENCES_FILE = "preferences.json";
+export { PREFERENCES_FILE };
 
 export function preferencesPath(root: string): string {
-  return path.join(root, ".codarch", PREFERENCES_FILE);
+  return codarchPath(root, PREFERENCES_FILE);
 }
 
 export function readRepoPreferences(root: string): ViewPreferences | null {

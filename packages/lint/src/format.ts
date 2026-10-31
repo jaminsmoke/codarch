@@ -1,4 +1,4 @@
-import { md5Hex, stableStringify } from "@codarch/schema/browser";
+import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
 
 /**
  * El artefacto del lint (ADR 0094).
@@ -23,13 +23,12 @@ import { md5Hex, stableStringify } from "@codarch/schema/browser";
 export const LINT_ARTIFACT_VERSION = "1.2";
 
 /**
- * El nombre del artefacto: un **módulo del reporte** (ADR 0100).
+ * El nombre del artefacto, que declara el registro de `.codarch/` (ADR 0101).
  *
- * `repmod` de *report module*: se lee junto al `report.json` y comparte su
- * árbol. No lleva `cc.json` porque no es un cc.json —el sufijo es del formato,
- * no de la propiedad— y no lleva un nombre llano porque no es estado local.
+ * `lint.repmod.json`: un **módulo del reporte** (ADR 0100). Se lee junto al
+ * `report.json` y comparte su árbol; no lleva `cc.json` porque no es un cc.json.
  */
-export const LINT_ARTIFACT_FILE = "lint.repmod.json";
+export { LINT_FILE };
 
 /** Una regla activa de un sistema de lint, con la severidad que le da su config. */
 export interface LintRule {

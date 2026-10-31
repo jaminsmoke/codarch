@@ -1,11 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  CODARCH_DIR,
+  SNAPSHOT_FILE,
   parseCcJson,
   walkFiles,
   type CcJson,
   type CcNode
 } from "@codarch/schema";
+import { readStoredReport } from "@codarch/parsers";
 import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
@@ -619,18 +622,19 @@ export function loadArchitectureStore(
   const root = path.resolve(options.root ?? process.cwd());
   const snapshotPath = path.resolve(
     root,
-    options.snapshot ?? ".codarch/snapshot.cc.json"
+    options.snapshot ?? `${CODARCH_DIR}/${SNAPSHOT_FILE}`
   );
   const snapshot = loadSnapshot(snapshotPath);
-  const report = loadReport(root, options.report, ".codarch/report.json", "reporte");
-  // El reporte de HEAD es el que escribe el escritorio y el que sirve `serve`
-  // en `/data/head-report.json` (ADR 0072). Si está, manda sobre `report.json`.
-  const headReport = loadReport(
-    root,
-    options.headReport,
-    ".codarch/head-report.json",
-    "reporte HEAD"
-  );
+  // Los dos reportes de `.codarch/`, con sus nombres y su precedencia en un solo
+  // módulo (ADR 0101). Una ruta explícita manda sobre el que haya guardado.
+  const report =
+    options.report === undefined
+      ? readStoredReport(root, "artifact")
+      : explicitReport(root, options.report, "reporte");
+  const headReport =
+    options.headReport === undefined
+      ? readStoredReport(root, "worktree")
+      : explicitReport(root, options.headReport, "reporte HEAD");
 
   return new ArchitectureStore(snapshot, {
     root,
@@ -667,22 +671,20 @@ interface LoadedReport {
 }
 
 /**
- * El reporte de un momento, si lo hay.
+ * El reporte que se pidió por ruta.
  *
- * `null` lo apaga; una ruta lo pide y, si no está, es un error en vez de un «no
- * hay»; sin opción se busca el fichero de siempre.
+ * `null` lo apaga; una ruta que no está es un error en vez de un «no hay»: el
+ * que la pidió sabe dónde debería estar.
  */
-function loadReport(
+function explicitReport(
   root: string,
-  option: string | null | undefined,
-  fallback: string,
+  option: string | null,
   label: string
 ): LoadedReport | null {
   if (option === null) return null;
 
-  const file = path.resolve(root, option ?? fallback);
+  const file = path.resolve(root, option);
   if (!fs.existsSync(file)) {
-    if (option === undefined) return null;
     throw new McpDataError(`no encuentro el ${label} ${file}`);
   }
 

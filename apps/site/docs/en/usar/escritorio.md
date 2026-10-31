@@ -80,11 +80,14 @@ The repo state is saved in its `.codarch/` folder, not in the app. What CodArch 
 | `preferences.json` | the view preferences |
 | `parse-cache.json` | the parse cache of the last pass |
 | `lint.repmod.json` | the measured lint, with the tree it measured |
+| `lint-cache.json` | lint rules already resolved, so they are not loaded again |
 | `scopes.json` | the `.codarch/` folders seen below this root |
+| `shots/` | the map captures, in their two slots |
 
 That is everything CodArch writes there, and nothing else: the folder belongs to the product, not to
-your own work. Anything else that shows up —a static map, a hand-made capture, a script— is a leftover
-and gets deleted. History snapshots do not go here but in `.codarch-history/`, at the repo root.
+your own work. Anything else that shows up —a static map, a hand-made capture, a script— is a leftover,
+and every analysis **deletes it** and names it in the console. Local state (preferences, caches, chains,
+scopes and captures) is left alone even when that pass did not write it. History snapshots do not go here but in `.codarch-history/`, at the repo root.
 Neither does a static map: [`codarch render`](cli/render.md) copies the whole web app to the folder
 you give it, with the snapshot in `data/snapshot.cc.json`.
 
