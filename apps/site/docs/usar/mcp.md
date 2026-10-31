@@ -140,6 +140,9 @@ Cada carpeta declara `files` (todos sus descendientes), `childFolders`, `metrics
 `metrics.maxComplexity`, `metrics.risk` y, si hay reporte, `changes` con añadidos, cambiados,
 eliminados, hotspots y violaciones. Los hijos que no caben en `limit` se resumen en `truncated`.
 
+La respuesta trae dos identidades: `checksum`, que depende del código, y `historyChecksum`, que depende
+del historial (vacío si el snapshot se midió sin git). El calor puede cambiar sin que cambie el primero.
+
 ### `find_hotspots`
 
 Ranking de ficheros por riesgo o por una métrica del snapshot.

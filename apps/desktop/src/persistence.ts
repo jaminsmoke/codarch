@@ -19,7 +19,11 @@ import {
 } from "@codarch/schema";
 import type { ViewPreferences } from "@codarch/ui/storage";
 import { readRepoPreferences } from "./preferences";
-import { sameSnapshot, snapshotChecksum } from "./snapshot-state";
+import {
+  sameSnapshot,
+  snapshotChecksum,
+  snapshotHistoryChecksum
+} from "./snapshot-state";
 
 /**
  * Lo que el escritorio guarda en el `.codarch/` de un repo (ADR 0048).
@@ -122,6 +126,8 @@ function writeCodarchJson(root: string, name: string, value: unknown): boolean {
  * lo reescribe.
  */
 const storedChecksums = new Map<string, string>();
+/** El historial que hay en ese snapshot, para no confundir dos calores. */
+const storedHistoryChecksums = new Map<string, string>();
 
 export function persistedChecksum(root: string): string {
   const known = storedChecksums.get(root);
@@ -134,12 +140,30 @@ export function persistedChecksum(root: string): string {
   return checksum;
 }
 
+/**
+ * El `historyChecksum` que ya está en `.codarch/snapshot.cc.json`, en memoria.
+ *
+ * Se lee y se actualiza junto al del código: el calor que la app enseña sale
+ * de los dos (ADR 0103).
+ */
+export function persistedHistoryChecksum(root: string): string {
+  const known = storedHistoryChecksums.get(root);
+  if (known !== undefined) return known;
+  const stored = readPersistedSnapshot(root) as {
+    meta?: { historyChecksum?: string };
+  } | null;
+  const checksum = stored?.meta?.historyChecksum ?? "";
+  storedHistoryChecksums.set(root, checksum);
+  return checksum;
+}
+
 /** Escribe el snapshot en `.codarch/` del repo. */
 export function writeSnapshot(root: string, snapshot: unknown): boolean {
   const written = writeCodarchJson(root, SNAPSHOT_FILE, snapshot);
   const checksum = snapshotChecksum(snapshot);
   if (written && checksum !== null) {
     storedChecksums.set(root, checksum);
+    storedHistoryChecksums.set(root, snapshotHistoryChecksum(snapshot) ?? "");
   }
   return written;
 }
@@ -217,7 +241,11 @@ export function persistProject(
   // serializar: el renderer manda el proyecto al abrir, y el live lo escribe
   // aquí antes de avisar. El reporte, si viene, se escribe igual.
   if (
-    !sameSnapshot(snapshot, persistedChecksum(root)) &&
+    !sameSnapshot(
+      snapshot,
+      persistedChecksum(root),
+      persistedHistoryChecksum(root)
+    ) &&
     !writeSnapshot(root, snapshot)
   ) {
     return false;

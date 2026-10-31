@@ -114,6 +114,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
       title: options.title || project,
       commit: cc.meta.commitHash || "",
       checksum: cc.meta.checksum || "",
+      historyChecksum: cc.meta.historyChecksum || "",
       apiVersion: cc.meta.apiVersion,
       rootName
     },

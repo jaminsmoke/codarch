@@ -36,6 +36,7 @@ describe("loadArchitectureStore", () => {
     const store = loadArchitectureStore({ root });
     expect(store.report).not.toBeNull();
     expect(store.summary().reportLoaded).toBe(true);
+    expect(store.summary().historyChecksum).toBe("history-1");
     expect(store.files).toHaveLength(5);
   });
 

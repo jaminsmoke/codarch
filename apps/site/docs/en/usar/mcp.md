@@ -141,6 +141,10 @@ Each folder declares `files` (all its descendants), `childFolders`, `metrics.siz
 removed, hotspots and violations. Children that do not fit in `limit` are summarised in
 `truncated`.
 
+The response carries two identities: `checksum`, which depends on code, and `historyChecksum`, which
+depends on history (empty if the snapshot was measured without git). Heat can change without the former
+changing.
+
 ### `find_hotspots`
 
 Ranking of files by risk or by a snapshot metric.

@@ -119,6 +119,7 @@ export class ArchitectureStore {
     return {
       projectName: this.snapshot.meta.projectName ?? "",
       checksum: this.snapshot.meta.checksum ?? "",
+      historyChecksum: this.snapshot.meta.historyChecksum ?? "",
       commitHash: this.snapshot.meta.commitHash ?? "",
       apiVersion: this.snapshot.meta.apiVersion,
       files: this.files.length,

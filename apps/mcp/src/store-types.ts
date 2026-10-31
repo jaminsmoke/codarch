@@ -101,7 +101,10 @@ export interface LoadStoreOptions {
 
 export interface StoreSummary {
   projectName: string;
+  /** Checksum del código (ADR 0103). */
   checksum: string;
+  /** Checksum del historial: el calor puede cambiar sin tocar el código (ADR 0103). */
+  historyChecksum: string;
   commitHash: string;
   apiVersion: string;
   files: number;

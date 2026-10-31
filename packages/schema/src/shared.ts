@@ -74,6 +74,8 @@ export {
   topByMetric
 } from "./stats";
 export { md5Hex, sha256Hex, stableStringify } from "./hash";
+export { snapshotRelation } from "./snapshot-identity";
+export type { SnapshotIdentity, SnapshotRelation } from "./snapshot-identity";
 export {
   ID_LENGTH,
   canonicalPath,

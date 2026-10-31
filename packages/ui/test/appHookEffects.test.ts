@@ -22,7 +22,8 @@ import { useCodarchApp } from "../src/useCodarchApp";
 /** Un snapshot de código con los ficheros y métricas que se digan. */
 function snapshot(
   checksum: string,
-  files: Array<{ path: string; metrics: Record<string, number> }>
+  files: Array<{ path: string; metrics: Record<string, number> }>,
+  historyChecksum?: string
 ): CcJson {
   const root: CcNode = {
     id: folderId(""),
@@ -61,7 +62,12 @@ function snapshot(
   }
 
   return parseCcJson({
-    meta: { projectName: "demo", apiVersion: CC_JSON_VERSION, checksum },
+    meta: {
+      projectName: "demo",
+      apiVersion: CC_JSON_VERSION,
+      checksum,
+      ...(historyChecksum ? { historyChecksum } : {})
+    },
     files: [root],
     lenses: { metrics: { attributes } }
   });
@@ -276,15 +282,44 @@ describe("el refresco del live", () => {
     expect(result.current.state.colorMode).toBe("loc");
   });
 
-  it("con el mismo árbol no hay nada que avisar", () => {
+  it("avisa cuando el mismo árbol trae otro historial", () => {
     const { plataforma: platform } = plataforma();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
-      result.current.actions.loadSnapshot(snapshot("sum-1", FILES), "demo");
+      result.current.actions.loadSnapshot(
+        snapshot("sum-1", FILES, "hist-1"),
+        "demo"
+      );
     });
     act(() => {
-      result.current.actions.loadSnapshot(snapshot("sum-1", FILES), "demo", true);
+      result.current.actions.loadSnapshot(
+        snapshot("sum-1", FILES, "hist-2"),
+        "demo",
+        true
+      );
+    });
+
+    // El código es el mismo, pero el calor no: hay algo nuevo que contar.
+    expect(result.current.state.refreshedAt).not.toBeNull();
+  });
+
+  it("con el mismo árbol y el mismo historial no hay nada que avisar", () => {
+    const { plataforma: platform } = plataforma();
+    const { result } = renderHook(() => useCodarchApp(platform));
+
+    act(() => {
+      result.current.actions.loadSnapshot(
+        snapshot("sum-1", FILES, "hist-1"),
+        "demo"
+      );
+    });
+    act(() => {
+      result.current.actions.loadSnapshot(
+        snapshot("sum-1", FILES, "hist-1"),
+        "demo",
+        true
+      );
     });
 
     expect(result.current.state.refreshedAt).toBeNull();

@@ -8,6 +8,7 @@ import { sendHeadReport } from "./head-report";
 import {
   isDirectory,
   persistedChecksum,
+  persistedHistoryChecksum,
   readPersistedLint,
   storeParseCache,
   storeRest,
@@ -15,7 +16,7 @@ import {
   writeSnapshot
 } from "./persistence";
 import type { DesktopTarget } from "./preload";
-import { snapshotChecksum } from "./snapshot-state";
+import { snapshotChecksum, snapshotHistoryChecksum } from "./snapshot-state";
 
 /**
  * El repo vivo: se vigila y, cuando cambia, se reanaliza solo (ADR 0050).
@@ -101,7 +102,14 @@ export function createLive(options: LiveOptions): Live {
         // mueve el del código, así que este cambio también se avisa.
         const restChanged = storeRest(root, outcome.rest);
         const checksum = snapshotChecksum(outcome.snapshot);
-        if (checksum !== null && persistedChecksum(root) === checksum) {
+        const historyChecksum = snapshotHistoryChecksum(outcome.snapshot) ?? "";
+        // Mismo código **y** mismo historial: si cambió el calor, hay que
+        // escribir el snapshot y avisar, o la app sigue con el viejo (ADR 0103).
+        if (
+          checksum !== null &&
+          persistedChecksum(root) === checksum &&
+          persistedHistoryChecksum(root) === historyChecksum
+        ) {
           if (!restChanged) return;
           options.send({
             kind: "snapshot",

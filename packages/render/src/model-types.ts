@@ -37,6 +37,8 @@ export interface RenderMeta {
   title: string;
   commit: string;
   checksum: string;
+  /** El checksum del historial; vacío cuando el snapshot no lo trae (ADR 0103). */
+  historyChecksum: string;
   apiVersion: string;
   rootName: string;
 }

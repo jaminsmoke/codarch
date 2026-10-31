@@ -49,7 +49,7 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "Mapa de arquitectura",
       description:
-        "Devuelve un árbol compacto de carpetas y ficheros con tamaño, complejidad máxima, riesgo compuesto y cambios del report. Usa depth para limitar niveles y limit para hijos por carpeta. Las rutas son relativas al proyecto. Incluye el resumen de símbolos: cuántos hay y cuáles son las funciones más complejas del repo.",
+        "Devuelve un árbol compacto de carpetas y ficheros con tamaño, complejidad máxima, riesgo compuesto y cambios del report. Usa depth para limitar niveles y limit para hijos por carpeta. Las rutas son relativas al proyecto. Incluye el resumen de símbolos: cuántos hay y cuáles son las funciones más complejas del repo. Devuelve dos identidades: checksum, que depende del código, y historyChecksum, que depende del historial; el calor puede cambiar sin que cambie el primero.",
       inputSchema: {
         folder: z
           .string()
@@ -217,7 +217,7 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "Explicar módulo",
       description:
-        "Ficha de un fichero o carpeta: métricas, riesgo, aristas de entrada/salida, ciclo, cambios del reporte y violaciones. Para una carpeta agrega sus ficheros y muestra los de mayor riesgo. Para un fichero, lista también sus símbolos (funciones, clases, tipos) con su complejidad, de la más compleja a la más simple.",
+        "Ficha de un fichero o carpeta: métricas, riesgo, aristas de entrada/salida, ciclo, cambios del reporte y violaciones. Para una carpeta agrega sus ficheros y muestra los de mayor riesgo. Para un fichero, lista también sus símbolos (funciones, clases, tipos) con su complejidad, de la más compleja a la más simple. Trae checksum e historyChecksum: el primero es del código y el segundo del historial.",
       inputSchema: {
         path: z
           .string()

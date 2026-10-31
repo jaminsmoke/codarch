@@ -79,6 +79,7 @@ const model: RenderModel = {
     title: "demo",
     commit: "",
     checksum: "abc",
+    historyChecksum: "",
     apiVersion: "cc.json 2.x",
     rootName: ""
   },

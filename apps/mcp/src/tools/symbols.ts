@@ -55,6 +55,7 @@ export function explainModule(
   const base = {
     projectName: store.snapshot.meta.projectName ?? "",
     checksum: store.snapshot.meta.checksum ?? "",
+    historyChecksum: store.snapshot.meta.historyChecksum ?? "",
     sizeMetric: store.sizeMetric,
     violations: [] as StatusViolation[],
     metrics: {} as Record<string, number>,

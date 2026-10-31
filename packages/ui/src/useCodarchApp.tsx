@@ -127,6 +127,8 @@ export function useCodarchApp(
   const preferencesRef = useRef<ViewPreferences | null | undefined>(undefined);
   /** El checksum del snapshot que hay en pantalla: distingue refresco de apertura. */
   const checksumRef = useRef<string | null>(null);
+  /** El checksum del historial de ese snapshot: el calor cambia con él (ADR 0103). */
+  const historyChecksumRef = useRef<string | null>(null);
   if (preferencesRef.current === undefined) {
     preferencesRef.current = plataforma.leerPreferencias();
   }
@@ -138,6 +140,7 @@ export function useCodarchApp(
     plataforma,
     preferencesRef,
     checksumRef,
+    historyChecksumRef,
     tabRef,
     selectedPathRef,
     mapRef,

@@ -24,6 +24,7 @@ export function getArchitectureMap(
   return {
     projectName: store.snapshot.meta.projectName ?? "",
     checksum: store.snapshot.meta.checksum ?? "",
+    historyChecksum: store.snapshot.meta.historyChecksum ?? "",
     commitHash: store.snapshot.meta.commitHash ?? "",
     apiVersion: store.snapshot.meta.apiVersion,
     scope: folder.path,

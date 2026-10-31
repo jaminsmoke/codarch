@@ -63,7 +63,10 @@ function snapshotLineOf(source: string, meta: RenderMeta | undefined): string {
   if (!meta) return source;
   const checksum = meta.checksum ? ` · ${meta.checksum.slice(0, 8)}` : "";
   const commit = meta.commit ? ` · ${meta.commit.slice(0, 8)}` : "";
-  return `${source}${checksum}${commit}`;
+  // El calor sin historial es el de las fechas del snapshot, no el de los
+  // commits (ADR 0103): la línea lo dice en vez de dejar creer otra cosa.
+  const history = meta.historyChecksum ? "" : " · sin historial";
+  return `${source}${checksum}${commit}${history}`;
 }
 
 /** Lo que dice cada estado de vigilancia, en la banda del proyecto. */

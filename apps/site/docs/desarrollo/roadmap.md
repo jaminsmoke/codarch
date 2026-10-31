@@ -214,7 +214,7 @@ flowchart TD
 | M71 | La duplicación, en el diff | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M72 | El checksum es del código | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M73 | El navegador lee el mismo alcance | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
-| M74 | La app compara código e historial | sin empezar | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
+| M74 | La app compara código e historial | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 
 ## Cómo se lee esto
 

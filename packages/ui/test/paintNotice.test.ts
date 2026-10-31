@@ -73,7 +73,8 @@ describe("el aviso del color elegido", () => {
 function banda(
   colorMode: string,
   migration: CcMigrationLens | null,
-  metricKeys: string[] | null = ["rloc"]
+  metricKeys: string[] | null = ["rloc"],
+  meta: Record<string, string> = {}
 ): string {
   const app = {
     view: {
@@ -81,7 +82,7 @@ function banda(
         metricKeys === null
           ? null
           : {
-              meta: {},
+              meta,
               metrics: metricKeys.map((key) => ({ key, title: key }))
             }
     },
@@ -116,5 +117,14 @@ describe("la cabecera", () => {
     // La banda siempre dice «sin vigilancia»: lo que no puede salir es el aviso.
     expect(banda("risk", null)).not.toContain("paint-notice");
     expect(banda("structure", null)).not.toContain("paint-notice");
+  });
+
+  it("dice que el snapshot no trae historial", () => {
+    expect(banda("risk", null)).toContain("sin historial");
+  });
+
+  it("no lo dice cuando el snapshot trae su historial", () => {
+    const html = banda("risk", null, ["rloc"], { historyChecksum: "hist1" });
+    expect(html).not.toContain("sin historial");
   });
 });

@@ -87,7 +87,10 @@ export interface MapNode {
 
 export interface ArchitectureMap {
   projectName: string;
+  /** Checksum del código (ADR 0103). */
   checksum: string;
+  /** Checksum del historial: cambia sin que cambie el código (ADR 0103). */
+  historyChecksum: string;
   commitHash: string;
   apiVersion: string;
   scope: string;
@@ -356,7 +359,10 @@ export interface ExplainModuleResult {
   path: string;
   name: string;
   projectName: string;
+  /** Checksum del código (ADR 0103). */
   checksum: string;
+  /** Checksum del historial: cambia sin que cambie el código (ADR 0103). */
+  historyChecksum: string;
   id?: string;
   files: number;
   sizeMetric: string | null;

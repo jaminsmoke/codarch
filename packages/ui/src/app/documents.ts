@@ -2,6 +2,7 @@ import { useCallback, type MutableRefObject } from "react";
 import {
   getStats,
   parseCcJson,
+  snapshotRelation,
   type CcJson
 } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
@@ -49,6 +50,8 @@ export interface DocumentDeps extends DocumentSetters {
   preferencesRef: MutableRefObject<ViewPreferences | null | undefined>;
   /** El checksum del snapshot que hay en pantalla: distingue refresco de apertura. */
   checksumRef: MutableRefObject<string | null>;
+  /** El checksum del historial de ese snapshot: el calor puede cambiar solo (ADR 0103). */
+  historyChecksumRef: MutableRefObject<string | null>;
   /** La pestaña en la que está el usuario, para no moverla sin motivo. */
   tabRef: MutableRefObject<InspectorTab>;
   selectedPathRef: MutableRefObject<string | null>;
@@ -74,14 +77,16 @@ export interface DocumentDeps extends DocumentSetters {
  * junto para que esa igualdad se vea, en vez de repartida por el hook.
  *
  * Un refresco del live entra con `preserveView`: mismo proyecto con datos
- * nuevos, así que se avisa en la cabecera y no se mueve la vista. Si el
- * checksum no cambió, no hay nada que avisar.
+ * nuevos, así que se avisa en la cabecera y no se mueve la vista. Es refresco
+ * si cambió el código o el historial: el calor es parte de los datos, y sin
+ * su checksum un commit nuevo no avisaría de nada (ADR 0103).
  */
 export function useDocuments(deps: DocumentDeps) {
   const {
     plataforma,
     preferencesRef,
     checksumRef,
+    historyChecksumRef,
     tabRef,
     selectedPathRef,
     cc,
@@ -129,12 +134,26 @@ export function useDocuments(deps: DocumentDeps) {
         );
 
         // Un refresco es el mismo proyecto con datos nuevos: se avisa en la
-        // cabecera y no se toca la vista. Si el checksum es el mismo, no hay
-        // nada nuevo que contar.
+        // cabecera y no se toca la vista. Si el código y el historial son los
+        // mismos, no hay nada nuevo que contar; si solo cambió el historial,
+        // los números de calor se refrescan igual (ADR 0103).
         const checksum = parsed.meta.checksum ?? null;
+        const historyChecksum = parsed.meta.historyChecksum ?? null;
         const anterior = checksumRef.current;
+        const anteriorHistory = historyChecksumRef.current;
         checksumRef.current = checksum;
-        if (preserveView && anterior && checksum !== anterior) {
+        historyChecksumRef.current = historyChecksum;
+        if (
+          preserveView &&
+          anterior &&
+          snapshotRelation(
+            { checksum: anterior, historyChecksum: anteriorHistory ?? undefined },
+            {
+              checksum: checksum ?? undefined,
+              historyChecksum: historyChecksum ?? undefined
+            }
+          ) !== "same"
+        ) {
           setRefreshedAt(Date.now());
         }
 
@@ -180,6 +199,7 @@ export function useDocuments(deps: DocumentDeps) {
     },
     [
       checksumRef,
+      historyChecksumRef,
       preferencesRef,
       selectedPathRef,
       setAreaMetric,

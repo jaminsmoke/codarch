@@ -7,6 +7,7 @@ export const SNAPSHOT: CcJson = {
     projectName: "Acme",
     apiVersion: CC_JSON_VERSION,
     checksum: "checksum-head",
+    historyChecksum: "history-1",
     commitHash: "head-commit"
   },
   files: [

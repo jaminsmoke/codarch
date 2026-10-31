@@ -139,7 +139,7 @@ conozca se rompe.
 
 ## Hoja de ruta
 
-**Estado:** abierta. M72 y M73 cerradas; M74 ajusta la comparación en la app.
+**Estado:** cerrada. M72, M73 y M74 cerradas.
 
 ### M72 — El checksum es del código
 
@@ -171,10 +171,15 @@ configuración más y las reglas las aplica el analizador.
 
 ### M74 — La app compara código e historial
 
-- ⬜ La app y el live comparan `{ checksum, historyChecksum }`: mismo código con más calor refresca el
+- ✅ La app y el live comparan `{ checksum, historyChecksum }`: mismo código con más calor refresca el
   calor sin resetear la vista; sin historial se dice «sin historial», no «otro árbol».
-- ⬜ `lint.meta.tree` se compara con `meta.checksum`, que ya es el del código.
-- ⬜ El MCP expone los dos hashes y qué significa cada uno.
-- ⬜ Tests de la app, del live y de las consultas del MCP.
+- ✅ `lint.meta.tree` se compara con `meta.checksum`, que ya es el del código.
+- ✅ El MCP expone los dos hashes y qué significa cada uno.
+- ✅ Tests de la app, del live y de las consultas del MCP.
+
+La comparación vive en un solo sitio: `snapshotRelation` (schema) dice `same`, `heat` o `tree`. La app
+la usa para decidir si avisa de un refresco; el escritorio, para decidir si reescribe el snapshot. La
+banda del proyecto añade «sin historial» cuando `meta.historyChecksum` no está, y `get_architecture_map`
+y `explain_module` devuelven los dos hashes junto a `stats`.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
