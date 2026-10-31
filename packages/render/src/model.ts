@@ -15,14 +15,19 @@ import {
   riskBreakdown,
   type RiskPart
 } from "@codarch/metrics/browser";
-import type { LintArtifact } from "@codarch/lint/browser";
+import { lintFileCounts, type LintArtifact } from "@codarch/lint/browser";
 
-export type Lens = "structure" | "risk" | "metric" | "kind";
+export type Lens = "structure" | "risk" | "metric" | "kind" | "lint";
 
 export interface RenderOptions {
   /** Métrica que decide el área. Por defecto `rloc` o la de mayor cobertura. */
   areaMetric?: string;
-  /** `risk`, `structure`, `kind` o el nombre de una métrica. */
+  /**
+   * `risk`, `structure`, `kind`, `lint` o el nombre de una métrica.
+   *
+   * `lint` pide el artefacto: sin él no hay deuda que pintar y es un error, no
+   * un mapa en blanco (ADR 0094).
+   */
   color?: string;
   /** Título alternativo para la cabecera. */
   title?: string;
@@ -151,6 +156,14 @@ export interface RenderModel {
   defaultSelection: number | null;
   initialLens: Lens;
   initialMetric: string | null;
+  /**
+   * La deuda de lint más alta del mapa, para la escala de su lente.
+   *
+   * 0 sin artefacto o cuando ningún fichero tiene hallazgos. Vive aquí porque
+   * la necesitan el mapa de la app, la leyenda y el PNG, y ninguna de las tres
+   * puede recalcularla a su manera (ADR 0094).
+   */
+  lintMax: number;
   warnings: string[];
 }
 
@@ -348,7 +361,9 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     warnings,
     restKinds: cc.lenses?.rest?.nodes ?? {},
     // La deuda del lint por ruta; sin artefacto, ninguna.
-    lintByPath: options.lint ? lintScores(options.lint.files) : {}
+    lintByPath: options.lint
+      ? lintScores(lintFileCounts(options.lint.files))
+      : {}
   });
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
 
@@ -367,6 +382,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
 
   const totalArea = files.reduce((sum, file) => sum + file.actualArea, 0);
   const hotspotCount = files.filter((file) => file.risk >= 0.66).length;
+  const lintMax = files.reduce((max, file) => Math.max(max, file.lint), 0);
 
   const { initialLens, initialMetric } = resolveLens(coverage, options);
   const defaultSelection = pickDefaultSelection(files, initialLens, initialMetric, metrics);
@@ -397,6 +413,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     defaultSelection,
     initialLens,
     initialMetric,
+    lintMax,
     warnings
   };
 }
@@ -691,6 +708,17 @@ function resolveLens(
   // y del tipo del resto, que el modelo ya lleva (ADR 0093).
   if (options.color === "structure" || options.color === "kind") {
     return { initialLens: options.color, initialMetric: null };
+  }
+
+  // La lente del lint no lee el snapshot: lee el artefacto, que va aparte
+  // (ADR 0094). Sin artefacto no hay nada que pintar y se dice.
+  if (options.color === "lint") {
+    if (!options.lint) {
+      throw new RenderError(
+        "la lente del lint necesita el artefacto del proyecto: ejecuta codarch analyze"
+      );
+    }
+    return { initialLens: "lint", initialMetric: null };
   }
 
   if (options.color && options.color !== "risk") {

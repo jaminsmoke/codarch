@@ -131,6 +131,53 @@ describe("buildRenderModel", () => {
     expect(file!.risk).toBeLessThan(before!.risk);
   });
 
+  it("la deuda de cada fichero sale de sus mensajes, no de sus cuentas", () => {
+    const artifact = createLintArtifact({
+      tools: ["eslint"],
+      files: [
+        {
+          path: "src/only/b.ts",
+          messages: [{ rule: "no-any", severity: "error", message: "un `any`" }]
+        }
+      ]
+    });
+    // Un artefacto de fuera con la cuenta declarada inflada: el mapa no la lee.
+    const tampered = structuredClone(artifact);
+    const entry = tampered.files["src/only/b.ts"];
+    if (entry) entry.errors = 9;
+
+    const result = model({ lint: tampered });
+    expect(result.files.find((file) => file.name === "b.ts")?.lint).toBe(1);
+  });
+
+  it("la lente del lint abre con su deuda y su escala es el máximo del mapa", () => {
+    const result = model({
+      color: "lint",
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        files: [
+          {
+            path: "src/only/b.ts",
+            messages: [
+              { rule: "no-any", severity: "error", message: "un `any`" },
+              { rule: "no-any", severity: "warn", message: "otro" }
+            ]
+          }
+        ]
+      })
+    });
+
+    expect(result.initialLens).toBe("lint");
+    expect(result.initialMetric).toBeNull();
+    // Un error y un aviso: 1 + ¼.
+    expect(result.lintMax).toBe(1.25);
+    expect(result.files.find((file) => file.name === "a.ts")?.lint).toBe(0);
+  });
+
+  it("la lente del lint sin artefacto es un error, no un mapa limpio", () => {
+    expect(() => model({ color: "lint" })).toThrow(RenderError);
+  });
+
   it("calcula secciones estables ordenadas por área", () => {
     const result = model();
 

@@ -11,6 +11,11 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-10-29
 
+**Enmienda ([ADR 0096](0096-el-lint-es-del-proyecto.md)):** el bloque `lint:` de `.codarch.yml` pasa a ser un
+override. La fuente es el lint que **tiene** el proyecto: se detecta su configuración y su binario, y se
+ejecuta con los del repo. El artefacto sube a 1.1 con `meta.systems` y se llama `.codarch/lint.cc.json`;
+`.codarch/lint.json` se sigue leyendo.
+
 ## Contexto
 
 El panel derecho tiene tres entradas —**Fichero**, **Carpeta** y **Cambios**— y el mapa pinta el
@@ -179,8 +184,9 @@ Fase **M65 — El lint, en el mapa**.
   desglose; falta el MCP.
 - ✅ Las fichas de fichero, carpeta y proyecto con la agregación compartida del lint
   ([ADR 0095](0095-la-ficha-del-proyecto.md)).
+- ✅ La lente **Linter**, su leyenda y el aviso sin artefacto (ADR 0098), con el lint medido en el
+  propio análisis ([ADR 0099](0099-el-lint-se-mide-al-analizar.md)).
 - ⬜ El punto del lint en la barra.
-- ⬜ La lente **Linter**, su leyenda y el aviso sin artefacto.
 - ⬜ Otras herramientas por lenguaje: ruff, checkstyle, `go vet` y los analizadores de .NET.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

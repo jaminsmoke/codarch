@@ -3,6 +3,7 @@ import path from "node:path";
 import type { CcJson, CcRestKind } from "@codarch/schema/browser";
 import type { LintArtifact } from "@codarch/lint/browser";
 import {
+  debtColor,
   fileFill,
   KIND_COLOR,
   KIND_LABEL,
@@ -155,6 +156,16 @@ function legendOf(model: RenderModel): LegendEntry[] {
       { label: "riesgo bajo", color: riskColor(0) },
       { label: "riesgo medio", color: riskColor(0.5) },
       { label: "riesgo alto", color: riskColor(1) }
+    ];
+  }
+
+  if (model.initialLens === "lint") {
+    return [
+      { label: "sin hallazgos", color: debtColor(0, model.lintMax) },
+      {
+        label: `deuda ${model.lintMax}`,
+        color: debtColor(model.lintMax, model.lintMax)
+      }
     ];
   }
 

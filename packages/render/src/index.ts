@@ -16,11 +16,13 @@ export { layoutMap, VIEW_HEIGHT, VIEW_WIDTH } from "./layout";
 export type { PlacedNode } from "./layout";
 export {
   riskColor,
+  debtColor,
   metricColor,
   kindColor,
   inkFor,
   KIND_COLOR,
   KIND_LABEL,
   RISK_GRADIENT,
-  METRIC_GRADIENT
+  METRIC_GRADIENT,
+  LINT_GRADIENT
 } from "./color";

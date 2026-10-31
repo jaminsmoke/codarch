@@ -48,11 +48,29 @@ const METRIC_STOPS: readonly Stop[] = [
   [1, "#355b6b"]
 ];
 
+/**
+ * La escala de la deuda de lint: limpio → aviso → error.
+ *
+ * No arranca en el papel a propósito: en un repo sin hallazgos la lente tiene
+ * que verse como una lente —todos los bloques en el tono de «limpio»—, no como
+ * un mapa sin pintar (ADR 0094).
+ */
+const LINT_STOPS: readonly Stop[] = [
+  [0, "#9fb8ae"],
+  [0.35, "#d9c07a"],
+  [0.7, "#d68a54"],
+  [1, "#a42e2c"]
+];
+
 export const RISK_GRADIENT =
   "linear-gradient(90deg, #ebe7df 0%, #e9cd98 35%, #d68a54 65%, #a42e2c 100%)";
 
 export const METRIC_GRADIENT =
   "linear-gradient(90deg, #ebe7df 0%, #b9c9cf 50%, #355b6b 100%)";
+
+/** La barra de la leyenda del lint, con los mismos tramos que `debtColor`. */
+export const LINT_GRADIENT =
+  "linear-gradient(90deg, #9fb8ae 0%, #d9c07a 35%, #d68a54 70%, #a42e2c 100%)";
 
 function clamp01(value: number): number {
   if (!Number.isFinite(value)) return 0;
@@ -99,6 +117,19 @@ export function riskColor(risk: number): string {
   return ramp(RISK_STOPS, risk);
 }
 
+/**
+ * El color de la deuda de lint de un fichero, en su escala propia.
+ *
+ * La deuda ya viene ponderada (`errores + ¼ avisos`) y la escala es el máximo
+ * del mapa, no el p95: aquí se compara un fichero con lo peor que hay, que es
+ * lo que se viene a ver en la lente (ADR 0094). El extremo limpio es el verde
+ * apagado de `LINT_STOPS`, así que un mapa sin hallazgos se ve pintado, no
+ * vacío (ADR 0099).
+ */
+export function debtColor(value: number, max: number): string {
+  return ramp(LINT_STOPS, max > 0 ? value / max : 0);
+}
+
 export function metricColor(value: number | null, metric: RenderMetric): string {
   if (value === null) return METRIC_STOPS[0]![1];
   let t: number;
@@ -128,9 +159,12 @@ export function colorForFile(
   risk: number,
   section: RenderSection | undefined,
   value: number | null,
-  metric: RenderMetric | undefined
+  metric: RenderMetric | undefined,
+  lintMax = 0
 ): string {
   if (lens === "structure") return section?.color ?? "#ddd8cf";
+  // En la lente del lint, `value` es la deuda del fichero, no una métrica.
+  if (lens === "lint") return debtColor(value ?? 0, lintMax);
   if (lens === "risk" || !metric) return riskColor(risk);
   return metricColor(value, metric);
 }
@@ -150,12 +184,15 @@ export function fileFill(
 ): string {
   // El mapa del resto no mide ficheros: su color es el tipo (ADR 0093).
   if (model.initialLens === "kind") return kindColor(file.kind ?? "other");
+  // La deuda no es una métrica del snapshot: vive en el fichero del modelo.
+  if (model.initialLens === "lint") return debtColor(file.lint, model.lintMax);
   const value = metricIndex >= 0 ? file.values[metricIndex] ?? null : null;
   return colorForFile(
     model.initialLens,
     file.risk,
     model.sections[file.section],
     value,
-    metric
+    metric,
+    model.lintMax
   );
 }

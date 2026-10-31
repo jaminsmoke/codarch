@@ -15,6 +15,7 @@ export { layoutMap, VIEW_HEIGHT, VIEW_WIDTH } from "./layout";
 export type { PlacedNode } from "./layout";
 export {
   colorForFile,
+  debtColor,
   inkFor,
   kindColor,
   KIND_LABEL,
@@ -22,6 +23,7 @@ export {
   riskColor,
   sectionColor,
   KIND_COLOR,
+  LINT_GRADIENT,
   METRIC_GRADIENT,
   RISK_GRADIENT
 } from "./color";
