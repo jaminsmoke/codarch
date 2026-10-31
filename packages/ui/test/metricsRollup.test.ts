@@ -107,6 +107,7 @@ const model: RenderModel = {
     measured: false,
     nodes: {},
     pairsByNode: {},
+    list: [],
     pairs: 0,
     duplicatedLines: 0,
     repeatedLines: 0
@@ -177,6 +178,7 @@ function projectMarkup(artifact: LintArtifact | null): string {
       metricTitle: (key: string) => (key === "loc" ? "Líneas" : key),
       colorMode: "",
       onColorMode: () => {},
+      onSelectPath: () => {},
       onSelectFolder: () => {}
     })
   );
@@ -371,6 +373,15 @@ describe("la duplicación en proyecto y carpeta", () => {
           }
         ]
       },
+      list: [
+        {
+          from: "packages/ui/src/panel.ts",
+          to: "apps/web/src/main.ts",
+          lines: 20,
+          similarity: 72,
+          status: "diverging" as const
+        }
+      ],
       pairs: 1,
       duplicatedLines: 50,
       repeatedLines: 4
@@ -385,6 +396,7 @@ describe("la duplicación en proyecto y carpeta", () => {
         metricTitle: (key: string) => key,
         colorMode: "duplicatedLines",
         onColorMode: () => {},
+        onSelectPath: () => {},
         onSelectFolder: () => {}
       })
     );
@@ -414,6 +426,51 @@ describe("la duplicación en proyecto y carpeta", () => {
     // 30 sobre 60 de rloc, no 30 sobre 160.
     expect(markup).toContain("50%");
     expect(markup).toContain("de 60 rloc");
+  });
+
+  it("el proyecto lista los pares con sus dos extremos y su filtro", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ProjectPanel, {
+        model: duplicated,
+        lint: null,
+        metricTitle: (key: string) => key,
+        colorMode: "duplicatedLines",
+        onColorMode: () => {},
+        onSelectPath: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+
+    // La lista no repite la cifra: dice qué dos ficheros y cuánto comparten.
+    expect(markup).toContain("duplication-list");
+    expect(markup).toContain("packages/ui/src/panel.ts");
+    expect(markup).toContain("apps/web/src/main.ts");
+    expect(markup).toContain("72%");
+    expect(markup).toContain("20 líneas");
+    // El filtro lleva su cuenta por estado antes de filtrar.
+    expect(markup).toContain("Copias");
+    expect(markup).toContain("Divergentes");
+    expect(markup).toContain("Todos");
+  });
+
+  it("la ficha avisa de la divergencia y nombra al otro lado", () => {
+    const panel = duplicated.files.find(
+      (entry) => entry.path === "packages/ui/src/panel.ts"
+    );
+    if (!panel) throw new Error("falta el fichero del fixture");
+
+    const markup = renderToStaticMarkup(
+      createElement(DuplicationSection, {
+        id: "file",
+        model: duplicated,
+        files: [panel],
+        file: panel,
+        onSelectPath: () => {}
+      })
+    );
+
+    expect(markup).toContain("Comparte el 72 % con");
+    expect(markup).toContain("se están separando");
   });
 
   it("la ficha del fichero enseña su proporción y sus pares", () => {
@@ -473,6 +530,7 @@ describe("la tinta de la tabla en carpeta y proyecto", () => {
         metricTitle: (key: string) => key,
         colorMode: "",
         onColorMode: () => {},
+        onSelectPath: () => {},
         onSelectFolder: () => {}
       })
     );
@@ -509,6 +567,7 @@ describe("la tinta de la tabla en carpeta y proyecto", () => {
         metricTitle: (key: string) => key,
         colorMode: "",
         onColorMode: () => {},
+        onSelectPath: () => {},
         onSelectFolder: () => {}
       })
     );

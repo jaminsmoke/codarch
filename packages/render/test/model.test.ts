@@ -48,6 +48,34 @@ function withDuplication() {
   return parseCcJson(copy);
 }
 
+/** Varios pares, con un extremo que el mapa no tiene y un empate a similitud. */
+function withPairs() {
+  const copy = structuredClone(fixture) as {
+    lenses: { duplication?: unknown };
+  };
+  copy.lenses.duplication = {
+    nodes: {
+      a: { duplicatedLines: 40, repeatedLines: 0 },
+      b: { duplicatedLines: 24, repeatedLines: 0 },
+      readme: { duplicatedLines: 5, repeatedLines: 0 }
+    },
+    pairs: [
+      { fromId: "b", toId: "readme", lines: 24, similarity: 60, status: "diverging" },
+      { fromId: "a", toId: "readme", lines: 5, similarity: 100, status: "copy" },
+      { fromId: "a", toId: "zzz", lines: 10, similarity: 100, status: "copy" },
+      { fromId: "a", toId: "b", lines: 20, similarity: 100, status: "copy" }
+    ],
+    summary: {
+      pairs: 4,
+      copies: 3,
+      duplicatedLines: 49,
+      repeatedLines: 0,
+      ratio: 31
+    }
+  };
+  return parseCcJson(copy);
+}
+
 describe("buildRenderModel", () => {
   it("usa rloc como área y deja un mínimo visible a los ficheros sin métrica", () => {
     const result = model();
@@ -267,11 +295,36 @@ describe("buildRenderModel", () => {
       status: "copy"
     });
     expect(result.duplication.pairsByNode.b?.[0]?.path).toBe("src/only/a.ts");
+    // La lista lleva los dos extremos con las rutas del mapa (M70).
+    expect(result.duplication.list).toEqual([
+      {
+        from: "src/only/a.ts",
+        to: "src/only/b.ts",
+        lines: 20,
+        similarity: 100,
+        status: "copy"
+      }
+    ]);
+    expect(result.duplication.pairs).toBe(1);
     expect(result.initialMetric).toBe("duplicatedLines");
     // La escala es la del mapa: mínimo y p95 de la métrica.
     expect(metric?.min).toBe(0);
     expect(metric?.max).toBe(20);
     expect(metric?.actualMax).toBe(30);
+  });
+
+  it("ordena los pares por similitud, líneas y rutas y cae el que no tiene dos extremos", () => {
+    const result = buildRenderModel(withPairs());
+
+    expect(
+      result.duplication.list.map((pair) => `${pair.from}->${pair.to}`)
+    ).toEqual([
+      "src/only/a.ts->src/only/b.ts",
+      "src/only/a.ts->README.md",
+      "src/only/b.ts->README.md"
+    ]);
+    // El par con un extremo fuera del mapa no se cuenta: no se puede abrir.
+    expect(result.duplication.pairs).toBe(3);
   });
 
   it("un snapshot sin la lente está sin medir, no a cero", () => {

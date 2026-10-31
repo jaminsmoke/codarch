@@ -2,6 +2,7 @@ import type { CcJson } from "@codarch/schema/browser";
 import type {
   RenderDuplication,
   RenderDuplicationPair,
+  RenderDuplicationPairRow,
   RenderFile
 } from "./model-types";
 
@@ -20,6 +21,7 @@ export function emptyDuplication(): RenderDuplication {
     measured: false,
     nodes: {},
     pairsByNode: {},
+    list: [],
     pairs: 0,
     duplicatedLines: 0,
     repeatedLines: 0
@@ -55,10 +57,18 @@ export function collectDuplication(
   }
 
   const pairsByNode: Record<string, RenderDuplicationPair[]> = {};
+  const list: RenderDuplication["list"] = [];
   for (const pair of lens.pairs) {
     const from = paths.get(pair.fromId);
     const to = paths.get(pair.toId);
     if (from === undefined || to === undefined) continue;
+    list.push({
+      from,
+      to,
+      lines: pair.lines,
+      similarity: pair.similarity,
+      status: pair.status
+    });
     addPair(pairsByNode, pair.fromId, {
       path: to,
       lines: pair.lines,
@@ -73,13 +83,17 @@ export function collectDuplication(
     });
   }
 
-  for (const list of Object.values(pairsByNode)) list.sort(comparePairs);
+  list.sort(comparePairs);
+  for (const nodePairs of Object.values(pairsByNode)) {
+    nodePairs.sort(compareNodePairs);
+  }
 
   return {
     measured: true,
     nodes,
     pairsByNode,
-    pairs: lens.pairs.length,
+    list,
+    pairs: list.length,
     duplicatedLines,
     repeatedLines
   };
@@ -95,14 +109,31 @@ function addPair(
   else pairsByNode[id] = [pair];
 }
 
-/** El par más parecido primero; la ruta desempata para que sea determinista. */
+/** El par más parecido primero; las líneas y las dos rutas desempatan (M70). */
 function comparePairs(
+  left: RenderDuplicationPairRow,
+  right: RenderDuplicationPairRow
+): number {
+  return (
+    right.similarity - left.similarity ||
+    right.lines - left.lines ||
+    comparePaths(left.from, right.from) ||
+    comparePaths(left.to, right.to)
+  );
+}
+
+/** El mismo orden desde un fichero: la ruta del otro lado es la que desempata. */
+function compareNodePairs(
   left: RenderDuplicationPair,
   right: RenderDuplicationPair
 ): number {
   return (
     right.similarity - left.similarity ||
     right.lines - left.lines ||
-    (left.path < right.path ? -1 : left.path > right.path ? 1 : 0)
+    comparePaths(left.path, right.path)
   );
+}
+
+function comparePaths(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
 }

@@ -1,4 +1,8 @@
-import type { RenderFile, RenderModel } from "@codarch/render/browser";
+import type {
+  RenderDuplicationPairRow,
+  RenderFile,
+  RenderModel
+} from "@codarch/render/browser";
 
 /**
  * La duplicación de un subárbol (ADR 0102).
@@ -23,6 +27,46 @@ export interface DuplicationRollup {
   files: number;
   /** Ficheros del subárbol. */
   total: number;
+}
+
+/** El filtro de la lista de pares (M70). */
+export type DuplicationStatusFilter = "all" | "copy" | "diverging";
+
+export interface DuplicationPairScope {
+  /** Los pares del subárbol que pasan el filtro, en el orden del modelo. */
+  rows: RenderDuplicationPairRow[];
+  /** Cuántos pares hay de cada estado antes de filtrar. */
+  counts: Record<DuplicationStatusFilter, number>;
+}
+
+/**
+ * Los pares de un subárbol, con su filtro por estado (M70).
+ *
+ * Un par cuenta en el subárbol solo si sus **dos** extremos están dentro: el que
+ * cruza la frontera es del padre, y contarlo en los dos lados sumaría las
+ * mismas líneas dos veces. El orden es el del modelo, que ya es determinista.
+ */
+export function duplicationPairs(
+  model: RenderModel,
+  files: readonly RenderFile[],
+  status: DuplicationStatusFilter = "all"
+): DuplicationPairScope {
+  const inside = new Set(files.map((file) => file.path));
+  const counts: Record<DuplicationStatusFilter, number> = {
+    all: 0,
+    copy: 0,
+    diverging: 0
+  };
+  const rows: RenderDuplicationPairRow[] = [];
+
+  for (const pair of model.duplication.list) {
+    if (!inside.has(pair.from) || !inside.has(pair.to)) continue;
+    counts.all += 1;
+    counts[pair.status] += 1;
+    if (status === "all" || pair.status === status) rows.push(pair);
+  }
+
+  return { rows, counts };
 }
 
 /** El `rloc` de un fichero, aunque el área del mapa sea otra métrica. */

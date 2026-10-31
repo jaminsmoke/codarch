@@ -28,6 +28,7 @@ export type {
   RenderDuplication,
   RenderDuplicationNode,
   RenderDuplicationPair,
+  RenderDuplicationPairRow,
   RenderFile,
   RenderMeta,
   RenderMetric,

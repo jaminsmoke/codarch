@@ -5,14 +5,16 @@ import {
 } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { duplicationRollup } from "../duplication";
+import { DuplicationPairs } from "./DuplicationPairs";
 
 /**
- * La duplicación del fichero, la carpeta o el proyecto (ADR 0102, M69).
+ * La duplicación del fichero, la carpeta o el proyecto (ADR 0102, M69 y M70).
  *
  * Enseña las líneas y la proporción sobre el `rloc` del sujeto, no un
  * porcentaje sumado: el porcentaje se calcula una vez, con el total del
- * subárbol. En el fichero, además, sus pares: con quién comparte y cuánto se
- * parece, que es lo que convierte una cifra en una tarea.
+ * subárbol. En el fichero, además, sus pares y el aviso de la copia que se está
+ * separando; en la carpeta y el proyecto, la lista de pares con su filtro, que
+ * es lo que convierte una cifra en una tarea.
  */
 
 /** Cuántos pares enseña la ficha antes de recortar. */
@@ -59,6 +61,9 @@ export function DuplicationSection({
   const duplicateOf = file
     ? model.duplication.nodes[file.nodeId]?.duplicateOf ?? null
     : null;
+  // El par que más se parece de los que ya se están separando: es el que pide
+  // una decisión, y la ficha lo dice con nombre en vez de solo un porcentaje.
+  const diverging = pairs.find((pair) => pair.status === "diverging") ?? null;
   const shown = pairs.slice(0, PAIR_ROWS);
 
   return (
@@ -98,6 +103,13 @@ export function DuplicationSection({
         </p>
       ) : null}
 
+      {diverging ? (
+        <p className="duplication-divergence">
+          Comparte el {diverging.similarity} % con{" "}
+          <code>{diverging.path}</code>: las dos copias se están separando.
+        </p>
+      ) : null}
+
       {pairs.length > 0 ? (
         <div className="duplication-pairs">
           <div className="rollup-head">Comparte con</div>
@@ -130,6 +142,14 @@ export function DuplicationSection({
           ) : null}
         </div>
       ) : null}
+
+      {file ? null : (
+        <DuplicationPairs
+          model={model}
+          files={files}
+          onSelectPath={onSelectPath}
+        />
+      )}
     </CollapsibleSection>
   );
 }

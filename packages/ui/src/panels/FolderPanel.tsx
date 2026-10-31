@@ -91,7 +91,12 @@ export function FolderPanel({
       ) : null}
 
       {model ? (
-        <DuplicationSection id="folder" model={model} files={subtree} />
+        <DuplicationSection
+          id="folder"
+          model={model}
+          files={subtree}
+          onSelectPath={onSelectPath}
+        />
       ) : null}
 
       {model ? (

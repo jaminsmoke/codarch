@@ -119,6 +119,7 @@ export function InspectorDock({
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
+            onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
           />
         ) : (

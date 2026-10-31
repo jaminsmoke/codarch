@@ -94,6 +94,21 @@ export interface RenderDuplicationPair {
   status: "copy" | "diverging";
 }
 
+/**
+ * Un par de la lente con sus dos extremos, tal como lo lee la lista (M70).
+ *
+ * `from` y `to` son las rutas del mapa, con la raíz quitada como el resto del
+ * modelo, y se conservan en el orden del snapshot: el canónico primero.
+ */
+export interface RenderDuplicationPairRow {
+  from: string;
+  to: string;
+  lines: number;
+  /** 0..100: ventanas compartidas sobre el mínimo de los dos. */
+  similarity: number;
+  status: "copy" | "diverging";
+}
+
 /** La lente de duplicación cruzada con el mapa (ADR 0102). */
 export interface RenderDuplication {
   /** Un snapshot sin lente está sin medir, que no es lo mismo que cero. */
@@ -102,6 +117,15 @@ export interface RenderDuplication {
   nodes: Record<string, RenderDuplicationNode>;
   /** Los pares de cada fichero, por id de nodo y ya ordenados. */
   pairsByNode: Record<string, RenderDuplicationPair[]>;
+  /**
+   * Todos los pares con sus dos extremos, ordenados una vez (M70).
+   *
+   * La lista de la ficha de carpeta y proyecto sale de aquí; los pares que
+   * apuntan a un fichero que el mapa no tiene se caen, igual que en
+   * `pairsByNode`.
+   */
+  list: RenderDuplicationPairRow[];
+  /** Pares del mapa, ya sin los que no tienen los dos extremos. */
   pairs: number;
   duplicatedLines: number;
   repeatedLines: number;

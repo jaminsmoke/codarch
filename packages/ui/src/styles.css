@@ -4575,3 +4575,93 @@ code {
 .duplication-diverging .duplication-pair-meta {
   color: var(--rust);
 }
+
+/* La lista de pares (M70): el filtro por estado y los dos extremos del par. */
+.duplication-list-block {
+  margin-top: 10px;
+}
+
+.duplication-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.duplication-filter {
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 9px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.duplication-filter[aria-pressed="true"] {
+  border-color: var(--ink-soft);
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.duplication-filter:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.duplication-list {
+  display: grid;
+  gap: 1px;
+  margin-top: 6px;
+}
+
+.duplication-pair-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 3px 4px;
+  font-size: 10px;
+}
+
+.duplication-pair-row:hover {
+  background: var(--line);
+}
+
+.duplication-ends {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.duplication-end {
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.duplication-end:hover {
+  text-decoration: underline;
+}
+
+.duplication-arrow {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.duplication-divergence {
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--rust);
+}

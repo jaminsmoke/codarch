@@ -1,6 +1,7 @@
 export type {
   EdgePair,
   Lens,
+  RenderDuplicationPairRow,
   RenderFile,
   RenderMeta,
   RenderMetric,

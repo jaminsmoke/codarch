@@ -27,6 +27,7 @@ export function ProjectPanel({
   metricTitle,
   colorMode,
   onColorMode,
+  onSelectPath,
   onSelectFolder
 }: {
   model: RenderModel | null;
@@ -34,6 +35,8 @@ export function ProjectPanel({
   metricTitle: (key: string) => string;
   colorMode: string;
   onColorMode: (mode: string) => void;
+  /** Abre la ficha de un fichero de la lista de pares (M70). */
+  onSelectPath: (path: string) => void;
   onSelectFolder: (path: string) => void;
 }) {
   if (!model) return <EmptyProject />;
@@ -66,7 +69,12 @@ export function ProjectPanel({
         onSelectFolder={onSelectFolder}
       />
 
-      <DuplicationSection id="project" model={model} files={model.files} />
+      <DuplicationSection
+        id="project"
+        model={model}
+        files={model.files}
+        onSelectPath={onSelectPath}
+      />
 
       <LintRulesSection
         id="project-rules"
