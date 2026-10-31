@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -13,7 +12,6 @@ import Settings from "./Settings";
 import WebTopbar from "./WebTopbar";
 import {
   AppShell,
-  buildSearch,
   historyFileName,
   localStore,
   parseSourceRequest,
@@ -38,11 +36,12 @@ import {
   loadServedProject,
   runBoot,
   useServerSession,
-  watchState,
+  useWatchSync,
   type SessionHandlers
 } from "./session";
 import { selectRoot, setWatch as setServerWatch } from "./server-control";
 import { plataformaWeb } from "./plataforma";
+import { useApplyUrlOnce, useSyncUrl } from "./urlView";
 import { WEB_VERSION } from "@codarch/versions";
 
 export default function App() {
@@ -104,11 +103,7 @@ export default function App() {
   const analysisRef = useRef<AnalysisHandle | null>(null);
   /** Se pone a `true` al cancelar: corta la lectura de ficheros. */
   const cancelRef = useRef<{ aborted: boolean } | null>(null);
-  // La cabecera dice si el repo se vigila (ADR 0050): la web lo sabe por el
-  // servidor; el escritorio dirá «sin vigilancia» hasta M34.
-  useEffect(() => {
-    setWatch(watchState(serverMode));
-  }, [serverMode, setWatch]);
+  useWatchSync(serverMode, setWatch);
   const inputRef = useRef<HTMLInputElement>(null);
   const reportInputRef = useRef<HTMLInputElement>(null);
   const repositoryInputRef = useRef<HTMLInputElement>(null);
@@ -198,44 +193,16 @@ export default function App() {
     handlers: sessionHandlers
   });
 
-  /** La URL decide la vista una sola vez, cuando ya hay modelo. */
-  const [urlApplied, setUrlApplied] = useState(false);
+  const urlApplied = useApplyUrlOnce({
+    view,
+    stats,
+    urlView: urlRequest.view,
+    applyView
+  });
 
-  useEffect(() => {
-    if (urlApplied || !view.model || !stats) return;
-    applyView(urlRequest.view);
-    // El flag es del arranque: la URL se aplica una sola vez.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- aplicar la URL es un efecto externo
-    setUrlApplied(true);
-  }, [urlApplied, view.model, stats, applyView, urlRequest]);
-
-  // La URL refleja la vista actual: el enlace se puede compartir tal cual.
-  useEffect(() => {
-    if (!urlApplied || !view.model || typeof window === "undefined") return;
-    const file = selectedIndex === null ? undefined : view.model.files[selectedIndex];
-    const search = buildSearch(
-      {
-        areaMetric,
-        colorMode,
-        focusPath,
-        filePath: file?.path ?? null,
-        folderPath: selectedFolder,
-        openFilePath: openFile,
-        tab,
-        symbolName: chain?.name ?? null,
-        showLabels
-      },
-      { snapshotUrl: sourceUrl, reportUrl }
-    );
-    if (search === window.location.search) return;
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${search}${window.location.hash}`
-    );
-  }, [
+  useSyncUrl({
     urlApplied,
-    view.model,
+    view,
     areaMetric,
     colorMode,
     focusPath,
@@ -247,7 +214,7 @@ export default function App() {
     showLabels,
     sourceUrl,
     reportUrl
-  ]);
+  });
 
   /** Las preferencias guardadas, para los ajustes. */
   const savedProjectLabel = useMemo(() => {

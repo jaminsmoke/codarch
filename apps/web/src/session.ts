@@ -362,3 +362,16 @@ export function useServerSession(options: ServerSessionOptions): void {
     });
   }, [mode, snapshot, rest, lint, report]);
 }
+
+/**
+ * La cabecera dice si el repo se vigila (ADR 0050): la web lo sabe por el
+ * servidor; el escritorio dirá «sin vigilancia» hasta M34.
+ */
+export function useWatchSync(
+  serverMode: WebServerMode,
+  setWatch: (state: "live" | "paused" | "none") => void
+): void {
+  useEffect(() => {
+    setWatch(watchState(serverMode));
+  }, [serverMode, setWatch]);
+}
