@@ -15,7 +15,7 @@ import {
   type CcJson,
   type CcNode
 } from "@codarch/schema/browser";
-import type { Plataforma } from "../src/platform";
+import type { Platform } from "../src/platform";
 import type { SavedProject } from "../src/storage";
 import { useCodarchApp } from "../src/useCodarchApp";
 
@@ -84,27 +84,27 @@ const FILES = [
   }
 ];
 
-/** Una plataforma que apunta lo que le piden, sin nada opcional. */
-function plataforma(extra: Partial<Plataforma> = {}) {
+/** Una platform que apunta lo que le piden, sin nada opcional. */
+function makePlatform(extra: Partial<Platform> = {}) {
   const escritos: SavedProject[] = [];
-  const base: Plataforma = {
-    leerPreferencias: () => null,
-    escribirPreferencias: () => {},
-    leerProyecto: () => null,
-    escribirProyecto: (project) => {
+  const base: Platform = {
+    readPreferences: () => null,
+    writePreferences: () => {},
+    readProject: () => null,
+    writeProject: (project) => {
       escritos.push(project);
       return true;
     },
-    borrarProyecto: () => {},
+    clearProject: () => {},
     plugins: { read: () => [], write: () => {} },
     ...extra
   };
-  return { plataforma: base, escritos };
+  return { platform: base, escritos };
 }
 
 describe("la carga de documentos", () => {
   it("abre un snapshot, decide su vista y deja de cargar", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     expect(result.current.state.loading).toBe(true);
@@ -126,7 +126,7 @@ describe("la carga de documentos", () => {
   });
 
   it("un fichero que no es un snapshot se dice y no deja el mapa a medias", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     let ok = true;
@@ -141,11 +141,11 @@ describe("la carga de documentos", () => {
   });
 
   it("abrir un proyecto lo guarda y tira el reporte anterior", () => {
-    const { plataforma: platform, escritos } = plataforma();
+    const { platform, escritos } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
-      result.current.actions.abrirSnapshot(snapshot("sum-1", FILES), "demo");
+      result.current.actions.openSnapshot(snapshot("sum-1", FILES), "demo");
     });
 
     expect(escritos).toHaveLength(1);
@@ -188,7 +188,7 @@ function lintArtifact() {
 
 describe("el lint y el resto del proyecto", () => {
   it("el lint cargado añade su lente al selector de color", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -209,7 +209,7 @@ describe("el lint y el resto del proyecto", () => {
   });
 
   it("el mapa del resto se abre por bytes y vuelve al código con otro proyecto", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -234,7 +234,7 @@ describe("el lint y el resto del proyecto", () => {
 
 describe("una vista pedida (un enlace o un addon)", () => {
   it("aplica lo que el mapa tiene e ignora lo que no", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -264,7 +264,7 @@ describe("una vista pedida (un enlace o un addon)", () => {
 
 describe("el refresco del live", () => {
   it("avisa cuando llega otro árbol y no mueve la vista", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -282,8 +282,8 @@ describe("el refresco del live", () => {
     expect(result.current.state.colorMode).toBe("loc");
   });
 
-  it("avisa cuando el mismo árbol trae otro historial", () => {
-    const { plataforma: platform } = plataforma();
+  it("avisa cuando el mismo árbol trae otro history", () => {
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -304,8 +304,8 @@ describe("el refresco del live", () => {
     expect(result.current.state.refreshedAt).not.toBeNull();
   });
 
-  it("con el mismo árbol y el mismo historial no hay nada que avisar", () => {
-    const { plataforma: platform } = plataforma();
+  it("con el mismo árbol y el mismo history no hay nada que avisar", () => {
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -326,7 +326,7 @@ describe("el refresco del live", () => {
   });
 
   it("abrir otro proyecto respeta el área de las preferencias y no es un refresco", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -347,7 +347,7 @@ describe("el refresco del live", () => {
 
 describe("los atajos", () => {
   it("`/` lleva el foco al buscador", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
     const input = document.createElement("input");
     document.body.append(input);
@@ -360,7 +360,7 @@ describe("los atajos", () => {
   });
 
   it("`Ctrl+,` abre los ajustes", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     fireEvent.keyDown(window, { key: ",", ctrlKey: true });
@@ -369,7 +369,7 @@ describe("los atajos", () => {
   });
 
   it("`Escape` suelta la búsqueda, el foco y la selección", () => {
-    const { plataforma: platform } = plataforma();
+    const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));
 
     act(() => {
@@ -390,8 +390,8 @@ describe("los atajos", () => {
 
 describe("el proyecto guardado", () => {
   it("se restaura al montar, con su rótulo", async () => {
-    const { plataforma: platform } = plataforma({
-      restaurarProyecto: async () => ({
+    const { platform } = makePlatform({
+      restoreProject: async () => ({
         snapshot: snapshot("sum-1", FILES),
         report: null,
         label: "guardado",
@@ -409,14 +409,14 @@ describe("el proyecto guardado", () => {
 
   it("un proyecto que ya no se puede abrir se borra", async () => {
     const borrados: number[] = [];
-    const { plataforma: platform } = plataforma({
-      restaurarProyecto: async () => ({
+    const { platform } = makePlatform({
+      restoreProject: async () => ({
         snapshot: { roto: true },
         report: null,
         label: "viejo",
         reportLabel: null
       }),
-      borrarProyecto: () => borrados.push(1)
+      clearProject: () => borrados.push(1)
     });
     const { result } = renderHook(() => useCodarchApp(platform));
 

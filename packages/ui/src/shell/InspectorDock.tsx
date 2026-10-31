@@ -95,8 +95,8 @@ export function InspectorDock({
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}
-            onLoadCode={actions.leerCodigo}
-            onOpenEditor={actions.abrirEnEditor}
+            onLoadCode={actions.readCode}
+            onOpenEditor={actions.openInEditor}
             onSelectPath={selectInPlace}
             onColorMode={actions.setColorMode}
           />

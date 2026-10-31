@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo } from "react";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import { AppShell, OpenMenu, useCodarchApp, useTema } from "@codarch/ui";
 import { desktop } from "./bridge";
-import { plataformaEscritorio } from "./plataforma";
+import { desktopPlatform } from "./plataforma";
 import type { CodarchDesktop } from "../preload";
 import { documentTitle } from "../title";
 import Settings from "./Settings";
 
 export default function App() {
-  const plataforma = useMemo(() => plataformaEscritorio(), []);
-  const app = useCodarchApp(plataforma);
+  const platform = useMemo(() => desktopPlatform(), []);
+  const app = useCodarchApp(platform);
   // El tema es de la máquina y lo comparten todos los ajustes (ADR 0084).
   const { tema, setTema } = useTema();
   const {
@@ -76,7 +76,7 @@ export default function App() {
   /**
    * Lo que llega del menú nativo o de "abrir con" con el sistema.
    *
-   * El proceso principal ya hizo el trabajo (analizar o leer): aquí solo se
+   * El proceso principal ya hizo el trabajo (analyze o leer): aquí solo se
    * pinta el resultado.
    */
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function App() {
           setAddons([]);
           // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):
           // esto solo recuerda cuál es el último repo.
-          void plataforma.escribirProyecto({
+          void platform.writeProject({
             snapshot: target.snapshot,
             report: null,
             label: target.label,
@@ -128,7 +128,7 @@ export default function App() {
     loadReport,
     loadRest,
     loadSnapshot,
-    plataforma,
+    platform,
     resetReport,
     setAddons,
     setError
@@ -174,7 +174,7 @@ export default function App() {
           model={view.model}
           savedProject={cc ? { label: source } : null}
           onClearProject={() => {
-            plataforma.borrarProyecto();
+            platform.clearProject();
             setSettingsOpen(false);
           }}
           projectNote={

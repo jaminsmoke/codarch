@@ -1,36 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { platformBridges } from "../src/app/bridges";
-import type { Plataforma } from "../src/platform";
+import type { Platform } from "../src/platform";
 
-/** Una plataforma con lo que se diga y nada más. */
-function plataforma(extra: Partial<Plataforma> = {}): Plataforma {
-  return extra as Plataforma;
+/** Una platform con lo que se diga y nada más. */
+function makePlatform(extra: Partial<Platform> = {}): Platform {
+  return extra as Platform;
 }
 
 describe("las puertas de la plataforma", () => {
   it("lo que la plataforma no tiene se contesta con su ausencia", async () => {
-    const bridges = platformBridges(plataforma());
+    const bridges = platformBridges(makePlatform());
 
     await expect(bridges.loadHistory()).resolves.toBeNull();
     await expect(bridges.loadHeat()).resolves.toBeNull();
     await expect(bridges.loadDiff("src/a.ts")).resolves.toBeNull();
     await expect(
-      bridges.leerCodigo({ path: "src/a.ts", start: 1, end: 2 })
+      bridges.readCode({ path: "src/a.ts", start: 1, end: 2 })
     ).resolves.toBeNull();
     await expect(
-      bridges.abrirEnEditor({ path: "src/a.ts", line: 1 })
+      bridges.openInEditor({ path: "src/a.ts", line: 1 })
     ).resolves.toBe(false);
   });
 
   it("pasa la petición tal cual a la plataforma que sí la tiene", async () => {
     const pedidas: string[] = [];
     const bridges = platformBridges(
-      plataforma({
+      makePlatform({
         diff: async (path) => {
           pedidas.push(path);
           return { path, lines: [] } as never;
         },
-        abrirEnEditor: async (request) => {
+        openInEditor: async (request) => {
           pedidas.push(`${request.path}:${request.line}`);
           return true;
         }
@@ -42,7 +42,7 @@ describe("las puertas de la plataforma", () => {
       lines: []
     });
     await expect(
-      bridges.abrirEnEditor({ path: "src/a.ts", line: 7 })
+      bridges.openInEditor({ path: "src/a.ts", line: 7 })
     ).resolves.toBe(true);
     expect(pedidas).toEqual(["lib/c.ts", "src/a.ts:7"]);
   });

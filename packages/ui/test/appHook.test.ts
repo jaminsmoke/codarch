@@ -1,17 +1,17 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { Plataforma } from "../src/platform";
+import type { Platform } from "../src/platform";
 import { useCodarchApp } from "../src/useCodarchApp";
 
-/** Una plataforma sin nada opcional: lo mínimo que la app pide al arrancar. */
-function plataforma(): Plataforma {
+/** Una platform sin nada opcional: lo mínimo que la app pide al arrancar. */
+function makePlatform(): Platform {
   return {
-    leerPreferencias: () => null,
-    escribirPreferencias: () => {},
-    leerProyecto: () => null,
-    escribirProyecto: () => true,
-    borrarProyecto: () => {},
+    readPreferences: () => null,
+    writePreferences: () => {},
+    readProject: () => null,
+    writeProject: () => true,
+    clearProject: () => {},
     plugins: { read: () => [], write: () => {} }
   };
 }
@@ -24,7 +24,7 @@ function plataforma(): Plataforma {
  * derivadas— y que sin snapshot la app contesta valores vacíos y no revienta.
  */
 function App() {
-  const app = useCodarchApp(plataforma());
+  const app = useCodarchApp(makePlatform());
   return createElement(
     "p",
     null,
@@ -43,7 +43,7 @@ function App() {
         typeof app.actions.selectIndex,
         typeof app.actions.setMap,
         typeof app.applyView,
-        typeof app.actions.abrirSnapshot
+        typeof app.actions.openSnapshot
       ],
       bridges: [
         typeof app.loadHistory,

@@ -9,7 +9,7 @@ import { useRestoreSelection, useSelection } from "./app/useSelection";
 import { useViewOptions } from "./app/viewOptions";
 import { usePluginBindings } from "./app/pluginBindings";
 import { platformBridges } from "./app/bridges";
-import type { Plataforma } from "./platform";
+import type { Platform } from "./platform";
 import type { ViewPreferences } from "./storage";
 import type { InspectorTab } from "./viewState";
 import type {
@@ -50,7 +50,7 @@ export type {
  * prueban— sin montar la app.
  */
 export function useCodarchApp(
-  plataforma: Plataforma,
+  platform: Platform,
   options: CodarchAppOptions = {}
 ): CodarchApp {
   const [cc, setCc] = useState<CcJson | null>(null);
@@ -77,7 +77,7 @@ export function useCodarchApp(
    */
   const mapRef = useRef<MapId>(map);
   useSyncRef(mapRef, map);
-  const [source, setSource] = useState(options.sourceInicial ?? "sin proyecto");
+  const [source, setSource] = useState(options.initialSource ?? "sin proyecto");
   const [areaMetric, setAreaMetric] = useState<string | null>(null);
   const [colorMode, setColorMode] = useState("risk");
   const [query, setQuery] = useState("");
@@ -113,7 +113,7 @@ export function useCodarchApp(
   const [watch, setWatch] = useState<WatchState>("none");
   const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
 
-  const plugins = usePlugins(plataforma.plugins);
+  const plugins = usePlugins(platform.plugins);
   const { zoom, center, setZoom, setCenter, zoomAt, panMap, fitMap } = useMapCamera();
 
   // `loadReport` se crea una vez: el ref le deja saber en qué pestaña está el
@@ -127,14 +127,14 @@ export function useCodarchApp(
   /** El checksum del historial de ese snapshot: el calor cambia con él (ADR 0103). */
   const historyChecksumRef = useRef<string | null>(null);
   if (preferencesRef.current === undefined) {
-    preferencesRef.current = plataforma.leerPreferencias();
+    preferencesRef.current = platform.readPreferences();
   }
   const selectedPathRef = useRef<string | null>(null);
   /** El buscador de la barra lateral: lo enfoca la tecla `/`. */
   const searchRef = useRef<HTMLInputElement | null>(null);
 
   const documents = useDocuments({
-    plataforma,
+    platform,
     preferencesRef,
     checksumRef,
     historyChecksumRef,
@@ -172,8 +172,8 @@ export function useCodarchApp(
     loadLint,
     loadReport,
     resetReport,
-    abrirSnapshot,
-    abrirReporte
+    openSnapshot,
+    openReport
   } = documents;
 
   usePreferencesSync({
@@ -183,7 +183,7 @@ export function useCodarchApp(
     areaMetric: map === "rest" ? null : areaMetric,
     colorMode,
     showLabels,
-    plataforma,
+    platform,
     preferencesRef
   });
 
@@ -213,7 +213,7 @@ export function useCodarchApp(
     setFocusPath,
     setQuery,
     setChain,
-    chains: plataforma.cadenas ?? null
+    chains: platform.chains ?? null
   });
   const {
     selectIndex,
@@ -316,13 +316,13 @@ export function useCodarchApp(
   });
 
   /** Las puertas opcionales de la plataforma, con las que faltan apagadas. */
-  const bridges = useMemo(() => platformBridges(plataforma), [plataforma]);
+  const bridges = useMemo(() => platformBridges(platform), [platform]);
 
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });
 
   useRestoreProject({
-    plataforma,
+    platform,
     loadSnapshot,
     loadRest,
     loadLint,
@@ -333,7 +333,7 @@ export function useCodarchApp(
 
   // No hay un efecto que reescriba el proyecto cuando cambia `cc` a propósito:
   // cada camino que carga un snapshot ya lo guarda donde toca —«Abrir cc.json»,
-  // soltar un fichero, cargar por URL y analizar una carpeta—, y el refresco del
+  // soltar un fichero, cargar por URL y analyze una carpeta—, y el refresco del
   // live lo escribe el proceso que analiza. Reescribirlo aquí mandaba el
   // snapshot entero por IPC en cada guardado para dejar el disco igual que ya
   // estaba, y convertir una foto del historial en «proyecto» rompía la
@@ -380,13 +380,13 @@ export function useCodarchApp(
     analyzeFolder: documents.analyzeFolder,
     openSnapshotFile: documents.openSnapshotFile,
     openReportFile: documents.openReportFile,
-    abrirSnapshot,
-    abrirReporte,
+    openSnapshot,
+    openReport,
     selectIndex,
     selectFolder,
     openSymbolChain,
-    leerCodigo: bridges.leerCodigo,
-    abrirEnEditor: bridges.abrirEnEditor,
+    readCode: bridges.readCode,
+    openInEditor: bridges.openInEditor,
     zoomAt,
     panMap,
     fitMap,

@@ -36,7 +36,7 @@ export function MapStage({
           <FileCodeView
             key={state.openFile}
             path={state.openFile}
-            load={actions.leerCodigo}
+            load={actions.readCode}
             onClose={closeFile}
           />
         ) : state.pluginView && activePluginView ? (

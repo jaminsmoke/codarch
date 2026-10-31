@@ -1,6 +1,6 @@
 import { useEffect, useRef, type MutableRefObject } from "react";
 import type { CcJson } from "@codarch/schema/browser";
-import type { Plataforma } from "../platform";
+import type { Platform } from "../platform";
 import type { ViewPreferences } from "../storage";
 
 /**
@@ -17,14 +17,14 @@ export function usePreferencesSync({
   areaMetric,
   colorMode,
   showLabels,
-  plataforma,
+  platform,
   preferencesRef
 }: {
   cc: CcJson | null;
   areaMetric: string | null;
   colorMode: string;
   showLabels: boolean;
-  plataforma: Plataforma;
+  platform: Platform;
   preferencesRef: MutableRefObject<ViewPreferences | null | undefined>;
 }): void {
   /** Las preferencias que ya se escribieron, para no reescribirlas sin motivo. */
@@ -37,6 +37,6 @@ export function usePreferencesSync({
     const clave = JSON.stringify(preferences);
     if (clave === written.current) return;
     written.current = clave;
-    plataforma.escribirPreferencias(preferences);
-  }, [cc, areaMetric, colorMode, showLabels, plataforma, preferencesRef]);
+    platform.writePreferences(preferences);
+  }, [cc, areaMetric, colorMode, showLabels, platform, preferencesRef]);
 }

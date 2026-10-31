@@ -121,23 +121,23 @@ export interface CodarchAppActions {
   selectFolder: (path: string | null) => void;
   openSymbolChain: (name: string, path: string) => Promise<void>;
   /** Lee el código real de un símbolo, si la plataforma puede (ADR 0067). */
-  leerCodigo: (request: CodeRequest) => Promise<CodeSnippet | null>;
+  readCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** Abre un fichero en el editor del usuario (ADR 0068). */
-  abrirEnEditor: (request: EditorRequest) => Promise<boolean>;
+  openInEditor: (request: EditorRequest) => Promise<boolean>;
   /**
    * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
    *
    * Es el paso común de «Abrir cc.json», soltar un fichero y cargar por URL:
    * una sola escritura del proyecto y el reporte anterior fuera.
    */
-  abrirSnapshot: (
+  openSnapshot: (
     raw: unknown,
     label: string,
     rest?: unknown,
     lint?: unknown
   ) => boolean;
   /** Carga un reporte y lo guarda en el proyecto actual. */
-  abrirReporte: (raw: unknown, label: string) => boolean;
+  openReport: (raw: unknown, label: string) => boolean;
   zoomAt: (factor: number, at?: { x: number; y: number }) => void;
   panMap: (dx: number, dy: number) => void;
   fitMap: () => void;
@@ -221,7 +221,7 @@ export interface CodarchApp {
 
 export interface CodarchAppOptions {
   /** La etiqueta inicial de la fuente (antes de cargar nada). */
-  sourceInicial?: string;
+  initialSource?: string;
 }
 
 /** Una opción de un selector de los ajustes. */

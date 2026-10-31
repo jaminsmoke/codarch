@@ -57,7 +57,7 @@ async function openPickedFile(): Promise<void> {
 }
 
 const actions = {
-  analizarCarpeta: () => void openPickedFolder(),
+  analyzeFolder: () => void openPickedFolder(),
   abrirFichero: () => void openPickedFile(),
   abrirAjustes: openSettings,
   abrirDocumentacion: openDocs

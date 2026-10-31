@@ -4,7 +4,7 @@ import { menuTemplate, type MenuActions } from "../src/menu-template";
 
 function actions(): MenuActions {
   return {
-    analizarCarpeta: vi.fn<() => void>(),
+    analyzeFolder: vi.fn<() => void>(),
     abrirFichero: vi.fn<() => void>(),
     abrirAjustes: vi.fn<() => void>(),
     abrirDocumentacion: vi.fn<() => void>()
@@ -43,7 +43,7 @@ describe("el menú nativo", () => {
 
   it("cada entrada llama a su acción", () => {
     const spy = actions() as MenuActions & {
-      analizarCarpeta: ReturnType<typeof vi.fn>;
+      analyzeFolder: ReturnType<typeof vi.fn>;
       abrirFichero: ReturnType<typeof vi.fn>;
       abrirAjustes: ReturnType<typeof vi.fn>;
       abrirDocumentacion: ReturnType<typeof vi.fn>;
@@ -55,7 +55,7 @@ describe("el menú nativo", () => {
     click(archivo, "Ajustes…");
     click(submenu(menuTemplate(spy, "linux"), "&Ayuda"), "Documentación");
 
-    expect(spy.analizarCarpeta).toHaveBeenCalledOnce();
+    expect(spy.analyzeFolder).toHaveBeenCalledOnce();
     expect(spy.abrirFichero).toHaveBeenCalledOnce();
     expect(spy.abrirAjustes).toHaveBeenCalledOnce();
     expect(spy.abrirDocumentacion).toHaveBeenCalledOnce();

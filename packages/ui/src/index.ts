@@ -9,7 +9,7 @@
 export { readMigration, readReport } from "./data";
 export { AppShell, type AppShellProps } from "./AppShell";
 export type {
-  Plataforma,
+  Platform,
   CodeRequest,
   CodeSnippet,
   EditorRequest,

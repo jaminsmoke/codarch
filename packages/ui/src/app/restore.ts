@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { RepoAddon } from "@codarch/addons";
 import type { CodarchAppState, CodarchAppActions } from "./types";
-import type { Plataforma } from "../platform";
+import type { Platform } from "../platform";
 
 /**
  * El último proyecto, al montar.
@@ -14,7 +14,7 @@ import type { Plataforma } from "../platform";
  */
 
 export interface RestoreProjectDeps {
-  plataforma: Plataforma;
+  platform: Platform;
   loadSnapshot: CodarchAppActions["loadSnapshot"];
   loadRest: CodarchAppActions["loadRest"];
   loadLint: CodarchAppActions["loadLint"];
@@ -25,7 +25,7 @@ export interface RestoreProjectDeps {
 
 export function useRestoreProject(deps: RestoreProjectDeps): void {
   const {
-    plataforma,
+    platform,
     loadSnapshot,
     loadRest,
     loadLint,
@@ -35,10 +35,10 @@ export function useRestoreProject(deps: RestoreProjectDeps): void {
   } = deps;
 
   useEffect(() => {
-    if (!plataforma.restaurarProyecto) return;
+    if (!platform.restoreProject) return;
     let cancelled = false;
     void (async () => {
-      const saved = await plataforma.restaurarProyecto?.();
+      const saved = await platform.restoreProject?.();
       if (cancelled) return;
       if (saved && loadSnapshot(saved.snapshot, saved.label, false, saved.preferences)) {
         setAddons((saved.addons ?? []) as RepoAddon[]);
@@ -51,13 +51,13 @@ export function useRestoreProject(deps: RestoreProjectDeps): void {
         }
         return;
       }
-      if (saved) plataforma.borrarProyecto();
+      if (saved) platform.clearProject();
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadSnapshot, loadRest, loadLint, loadReport, plataforma, setAddons, setLoading]);
+  }, [loadSnapshot, loadRest, loadLint, loadReport, platform, setAddons, setLoading]);
 }
 
 /** El estado del mapa activo, que se corrige cuando su snapshot deja de estar. */

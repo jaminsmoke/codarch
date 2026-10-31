@@ -4,7 +4,7 @@ import {
   type CodeSnippet,
   type EditorRequest,
   type FileDiffView,
-  type Plataforma,
+  type Platform,
   type SavedProject
 } from "@codarch/ui";
 import { sourceFromMemory } from "./analysis/reader";
@@ -35,16 +35,16 @@ function vscodeUri(root: string, path: string, line: number): string {
   return `${prefix}${encodeURI(full)}:${line}`;
 }
 
-export function plataformaWeb(): Plataforma {
+export function platformWeb(): Platform {
   return {
-    leerPreferencias: () => readPreferences(),
-    escribirPreferencias: (prefs) => writePreferences(prefs),
-    leerProyecto: () => readProject(),
-    escribirProyecto: (project) => writeProject(project as SavedProject),
-    borrarProyecto: () => clearProject(),
-    cadenas: async (symbol) =>
+    readPreferences: () => readPreferences(),
+    writePreferences: (prefs) => writePreferences(prefs),
+    readProject: () => readProject(),
+    writeProject: (project) => writeProject(project as SavedProject),
+    clearProject: () => clearProject(),
+    chains: async (symbol) =>
       fetchJson(`data/chains.json?symbol=${encodeURIComponent(symbol)}`),
-    codigo: async (request) => {
+    code: async (request) => {
       const whole = request.whole === true;
       const remote = await fetchJson(
         `api/source?path=${encodeURIComponent(request.path)}&start=${request.start}&end=${request.end}` +
@@ -71,7 +71,7 @@ export function plataformaWeb(): Plataforma {
       const rows = (raw as { rows?: unknown }).rows;
       return Array.isArray(rows) ? (raw as FileDiffView) : null;
     },
-    abrirEnEditor: async (request: EditorRequest) => {
+    openInEditor: async (request: EditorRequest) => {
       const raw = await fetchJson("data/meta.json");
       const root =
         raw && typeof raw === "object"
@@ -81,8 +81,8 @@ export function plataformaWeb(): Plataforma {
       window.location.href = vscodeUri(root, request.path, request.line);
       return true;
     },
-    historial: async () => historyEntries(await fetchJson("data/history.json")),
-    calor: async () => symbolHeat(await fetchJson("data/chains.json")),
+    history: async () => historyEntries(await fetchJson("data/history.json")),
+    heat: async () => symbolHeat(await fetchJson("data/chains.json")),
     plugins: {
       read: () => readEnabledPlugins(),
       write: (names) => writeEnabledPlugins(names)

@@ -11,7 +11,7 @@ import type { MenuItemConstructorOptions } from "electron";
 
 export interface MenuActions {
   /** «Analizar carpeta…»: abre el diálogo y analiza lo elegido. */
-  analizarCarpeta(): void;
+  analyzeFolder(): void;
   /** «Abrir cc.json…»: abre el diálogo y pinta lo elegido. */
   abrirFichero(): void;
   abrirAjustes(): void;
@@ -52,7 +52,7 @@ export function menuTemplate(
       {
         label: "Analizar carpeta…",
         accelerator: "CmdOrCtrl+O",
-        click: () => actions.analizarCarpeta()
+        click: () => actions.analyzeFolder()
       },
       {
         // Sin `accelerator`: Electron pinta «Ctrl+Comma» en Linux y Windows,

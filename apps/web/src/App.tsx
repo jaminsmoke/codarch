@@ -40,13 +40,13 @@ import {
   type SessionHandlers
 } from "./session";
 import { selectRoot, setWatch as setServerWatch } from "./server-control";
-import { plataformaWeb } from "./plataforma";
+import { platformWeb } from "./plataforma";
 import { useApplyUrlOnce, useSyncUrl } from "./urlView";
 import { WEB_VERSION } from "@codarch/versions";
 
 export default function App() {
-  const plataforma = useMemo(() => plataformaWeb(), []);
-  const app = useCodarchApp(plataforma, { sourceInicial: "sin proyecto" });
+  const platform = useMemo(() => platformWeb(), []);
+  const app = useCodarchApp(platform, { initialSource: "sin proyecto" });
   // El tema es de la máquina y lo comparten todos los ajustes (ADR 0084).
   const { tema, setTema } = useTema();
   const {
@@ -68,8 +68,8 @@ export default function App() {
     loadLint,
     loadReport,
     resetReport,
-    abrirSnapshot,
-    abrirReporte,
+    openSnapshot,
+    openReport,
     setAreaMetric,
     setColorMode,
     setSettingsOpen,
@@ -241,7 +241,7 @@ export default function App() {
       manualLoadRef.current = true;
       try {
         const raw = JSON.parse(await file.text()) as unknown;
-        if (abrirSnapshot(raw, file.name)) {
+        if (openSnapshot(raw, file.name)) {
           setServerMode("local");
           setSourceUrl(null);
           setReportUrl(null);
@@ -250,7 +250,7 @@ export default function App() {
         setError(`JSON inválido en ${file.name}: ${(cause as Error).message}`);
       }
     },
-    [abrirSnapshot, setError]
+    [openSnapshot, setError]
   );
 
   const onFile = useCallback(
@@ -278,21 +278,21 @@ export default function App() {
       event.target.value = "";
       if (!file) return;
       try {
-        abrirReporte(JSON.parse(await file.text()) as unknown, file.name);
+        openReport(JSON.parse(await file.text()) as unknown, file.name);
       } catch (cause) {
         setReportError(
           `JSON inválido en ${file.name}: ${(cause as Error).message}`
         );
       }
     },
-    [abrirReporte, setReportError]
+    [openReport, setReportError]
   );
 
   /** Deja en el mapa lo que trajo una carpeta con `.codarch/`. */
   const showArtifacts = useCallback(
     (artifacts: RepositoryArtifacts) => {
       if (
-        !abrirSnapshot(
+        !openSnapshot(
           artifacts.snapshot,
           artifacts.label,
           artifacts.rest ?? null,
@@ -304,10 +304,10 @@ export default function App() {
       setSourceUrl(null);
       setReportUrl(null);
       if (artifacts.report !== null) {
-        abrirReporte(artifacts.report, artifacts.reportLabel ?? "report.json");
+        openReport(artifacts.report, artifacts.reportLabel ?? "report.json");
       }
     },
-    [abrirSnapshot, abrirReporte]
+    [openSnapshot, openReport]
   );
 
   const closeOpenMenu = useCallback(() => {

@@ -8,7 +8,7 @@ import {
 import type { DiffReport } from "@codarch/metrics/browser";
 import { readLintArtifact, type LintArtifact } from "@codarch/lint/browser";
 import type { RepoAddon } from "@codarch/addons";
-import type { Plataforma } from "../platform";
+import type { Platform } from "../platform";
 import type { ViewPreferences } from "../storage";
 import type { InspectorTab } from "../viewState";
 import { readMigration, readReport } from "../data";
@@ -46,7 +46,7 @@ export interface DocumentSetters {
 }
 
 export interface DocumentDeps extends DocumentSetters {
-  plataforma: Plataforma;
+  platform: Platform;
   preferencesRef: MutableRefObject<ViewPreferences | null | undefined>;
   /** El checksum del snapshot que hay en pantalla: distingue refresco de apertura. */
   checksumRef: MutableRefObject<string | null>;
@@ -72,18 +72,18 @@ export interface DocumentDeps extends DocumentSetters {
  * Abrir, cargar y guardar documentos: el snapshot, su reporte y el proyecto.
  *
  * Un snapshot entra por cuatro puertas —«Abrir cc.json», soltar un fichero,
- * una URL y analizar una carpeta— y las cuatro hacen lo mismo: parsearlo,
+ * una URL y analyze una carpeta— y las cuatro hacen lo mismo: parsearlo,
  * decidir con qué vista se abre y dejarlo guardado como proyecto. Está aquí
  * junto para que esa igualdad se vea, en vez de repartida por el hook.
  *
  * Un refresco del live entra con `preserveView`: mismo proyecto con datos
  * nuevos, así que se avisa en la cabecera y no se mueve la vista. Es refresco
- * si cambió el código o el historial: el calor es parte de los datos, y sin
+ * si cambió el código o el history: el calor es parte de los datos, y sin
  * su checksum un commit nuevo no avisaría de nada (ADR 0103).
  */
 export function useDocuments(deps: DocumentDeps) {
   const {
-    plataforma,
+    platform,
     preferencesRef,
     checksumRef,
     historyChecksumRef,
@@ -136,7 +136,7 @@ export function useDocuments(deps: DocumentDeps) {
         // Un refresco es el mismo proyecto con datos nuevos: se avisa en la
         // cabecera y no se toca la vista. Si el código y el historial son los
         // mismos, no hay nada nuevo que contar; si solo cambió el historial,
-        // los números de calor se refrescan igual (ADR 0103).
+        // los números de heat se refrescan igual (ADR 0103).
         const checksum = parsed.meta.checksum ?? null;
         const historyChecksum = parsed.meta.historyChecksum ?? null;
         const anterior = checksumRef.current;
@@ -299,7 +299,7 @@ export function useDocuments(deps: DocumentDeps) {
    * Es el paso que comparten «Abrir cc.json», soltar un fichero y cargar por
    * URL: una sola escritura y el reporte anterior fuera.
    */
-  const abrirSnapshot = useCallback(
+  const openSnapshot = useCallback(
     (raw: unknown, label: string, rest?: unknown, lint?: unknown): boolean => {
       if (!loadSnapshot(raw, label)) return false;
       setAddons([]);
@@ -309,7 +309,7 @@ export function useDocuments(deps: DocumentDeps) {
       // El lint es otro artefacto del mismo repo (ADR 0094): viaja junto al
       // proyecto, y un fichero que no se entiende deja el lint sin medir.
       loadLint(lint ?? null);
-      void plataforma.escribirProyecto({
+      void platform.writeProject({
         snapshot: raw,
         ...(rest !== undefined ? { rest } : {}),
         ...(lint !== undefined ? { lint } : {}),
@@ -321,19 +321,19 @@ export function useDocuments(deps: DocumentDeps) {
       resetReport();
       return true;
     },
-    [loadLint, loadRest, loadSnapshot, plataforma, resetReport, setAddons, setRest]
+    [loadLint, loadRest, loadSnapshot, platform, resetReport, setAddons, setRest]
   );
 
   /** Carga un reporte y lo guarda en el proyecto actual. */
-  const abrirReporte = useCallback(
+  const openReport = useCallback(
     (raw: unknown, label: string): boolean => {
       if (!loadReport(raw, label)) return false;
-      const saved = plataforma.leerProyecto();
+      const saved = platform.readProject();
       if (saved) {
         // Si lo que se ve es el proyecto guardado (o su refresco del live), el
         // snapshot de la vista manda; una foto del historial no lo pisa.
         const snapshot = cc && source === saved.label ? cc : saved.snapshot;
-        void plataforma.escribirProyecto({
+        void platform.writeProject({
           ...saved,
           snapshot,
           report: raw,
@@ -342,26 +342,26 @@ export function useDocuments(deps: DocumentDeps) {
       }
       return true;
     },
-    [cc, loadReport, plataforma, source]
+    [cc, loadReport, platform, source]
   );
 
   const analyzeFolder = useCallback(async () => {
-    const { elegirCarpeta, analizar } = plataforma;
-    if (!elegirCarpeta || !analizar) return;
-    const root = await elegirCarpeta();
+    const { pickFolder, analyze } = platform;
+    if (!pickFolder || !analyze) return;
+    const root = await pickFolder();
     if (!root) return;
     setLoading(true);
     setError(null);
     setProgress(`Analizando ${root}...`);
     try {
-      const result = await analizar(root);
+      const result = await analyze(root);
       if (loadSnapshot(result.snapshot, root, false, result.preferences)) {
         // El análisis trae el resto de la misma pasada (ADR 0093).
         if (result.rest !== undefined) loadRest(result.rest);
         // Analizar no linta (ADR 0094): se enseña el artefacto que ya había.
         loadLint(result.lint ?? null);
         setAddons(result.addons.addons);
-        void plataforma.escribirProyecto({
+        void platform.writeProject({
           snapshot: result.snapshot,
           ...(result.lint !== undefined ? { lint: result.lint } : {}),
           report: null,
@@ -381,7 +381,7 @@ export function useDocuments(deps: DocumentDeps) {
     loadLint,
     loadRest,
     loadSnapshot,
-    plataforma,
+    platform,
     resetReport,
     setAddons,
     setError,
@@ -390,32 +390,32 @@ export function useDocuments(deps: DocumentDeps) {
   ]);
 
   const openSnapshotFile = useCallback(async () => {
-    const { elegirFichero, leerJson } = plataforma;
-    if (!elegirFichero || !leerJson) return;
-    const file = await elegirFichero();
+    const { pickFile, readJson } = platform;
+    if (!pickFile || !readJson) return;
+    const file = await pickFile();
     if (!file) return;
     setLoading(true);
     setError(null);
     try {
-      abrirSnapshot(await leerJson(file), file);
+      openSnapshot(await readJson(file), file);
     } catch (cause) {
       setError((cause as Error).message);
     } finally {
       setLoading(false);
     }
-  }, [abrirSnapshot, plataforma, setError, setLoading]);
+  }, [openSnapshot, platform, setError, setLoading]);
 
   const openReportFile = useCallback(async () => {
-    const { elegirFichero, leerJson } = plataforma;
-    if (!elegirFichero || !leerJson) return;
-    const file = await elegirFichero();
+    const { pickFile, readJson } = platform;
+    if (!pickFile || !readJson) return;
+    const file = await pickFile();
     if (!file) return;
     try {
-      abrirReporte(await leerJson(file), file);
+      openReport(await readJson(file), file);
     } catch (cause) {
       setError((cause as Error).message);
     }
-  }, [abrirReporte, plataforma, setError]);
+  }, [openReport, platform, setError]);
 
   return {
     loadSnapshot,
@@ -423,8 +423,8 @@ export function useDocuments(deps: DocumentDeps) {
     loadLint,
     loadReport,
     resetReport,
-    abrirSnapshot,
-    abrirReporte,
+    openSnapshot,
+    openReport,
     analyzeFolder,
     openSnapshotFile,
     openReportFile
