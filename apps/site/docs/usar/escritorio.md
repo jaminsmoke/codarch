@@ -76,12 +76,17 @@ El estado del repo se guarda en su carpeta `.codarch/`, no en la app. Lo que esc
 | `report.json` | el reporte de un diff, solo si se ha cargado uno |
 | `chains.json` | el libro de cadenas de símbolos |
 | `preferences.json` | las preferencias de la vista |
+| `parse-cache.json` | la caché de parseo de la última pasada |
+| `lint.cc.json` | el lint medido, con el árbol que midió |
+| `scopes.json` | los `.codarch/` que se vieron por debajo de esta raíz |
 
-Las fotos del historial no van aquí, sino en `.codarch-history/`, en la raíz del repo. Un mapa
-estático tampoco: [`codarch render`](cli/render.md) copia la webapp entera a la carpeta que le digas,
-con el snapshot en `data/snapshot.cc.json`.
+Eso es todo lo que CodArch escribe ahí, y nada más: la carpeta es del producto, no un sitio donde
+dejarlo tuyo. Si aparece cualquier otra cosa —un mapa estático, una captura hecha a mano, un script—
+es un resto de trabajo y se borra. Las fotos del historial no van aquí, sino en `.codarch-history/`, en
+la raíz del repo. Un mapa estático tampoco: [`codarch render`](cli/render.md) copia la webapp entera a
+la carpeta que le digas, con el snapshot en `data/snapshot.cc.json`.
 
-![`ls -la .codarch/` en un terminal del repo de ejemplo, con snapshot.cc.json, head-report.json, chains.json y preferences.json; el map.html que también aparece es un resto de esa copia de trabajo y CodArch no lo escribe](../images/escritorio-codarch-carpeta.png)
+![`ls -la .codarch/` en un terminal del repo de ejemplo, con snapshot.cc.json, head-report.json, chains.json y preferences.json; el map.html que asoma es un resto de aquella copia de trabajo, de cuando la carpeta no era solo del producto](../images/escritorio-codarch-carpeta.png)
 
 ## Ajustes › General
 

@@ -78,12 +78,17 @@ The repo state is saved in its `.codarch/` folder, not in the app. What CodArch 
 | `report.json` | a diff report, only if one was loaded |
 | `chains.json` | the symbol chain ledger |
 | `preferences.json` | the view preferences |
+| `parse-cache.json` | the parse cache of the last pass |
+| `lint.cc.json` | the measured lint, with the tree it measured |
+| `scopes.json` | the `.codarch/` folders seen below this root |
 
-History snapshots do not go here but in `.codarch-history/`, at the repo root. Neither does a static
-map: [`codarch render`](cli/render.md) copies the whole web app to the folder you give it, with the
-snapshot in `data/snapshot.cc.json`.
+That is everything CodArch writes there, and nothing else: the folder belongs to the product, not to
+your own work. Anything else that shows up —a static map, a hand-made capture, a script— is a leftover
+and gets deleted. History snapshots do not go here but in `.codarch-history/`, at the repo root.
+Neither does a static map: [`codarch render`](cli/render.md) copies the whole web app to the folder
+you give it, with the snapshot in `data/snapshot.cc.json`.
 
-![`ls -la .codarch/` in a terminal of the example repo, with snapshot.cc.json, head-report.json, chains.json and preferences.json; the map.html also shown is a leftover in that working copy and CodArch does not write it](../../images/escritorio-codarch-carpeta.png)
+![`ls -la .codarch/` in a terminal of the example repo, with snapshot.cc.json, head-report.json, chains.json and preferences.json; the map.html peeking out is a leftover from that working copy, from before the folder belonged only to the product](../../images/escritorio-codarch-carpeta.png)
 
 ## Ajustes › General
 
