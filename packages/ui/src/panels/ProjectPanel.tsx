@@ -5,6 +5,7 @@ import {
 } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { LintRulesSection } from "../LintRules";
+import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -64,6 +65,8 @@ export function ProjectPanel({
         onColorMode={onColorMode}
         onSelectFolder={onSelectFolder}
       />
+
+      <DuplicationSection id="project" model={model} files={model.files} />
 
       <LintRulesSection
         id="project-rules"

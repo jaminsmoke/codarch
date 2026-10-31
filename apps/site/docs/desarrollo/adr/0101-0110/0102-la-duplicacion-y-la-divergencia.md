@@ -214,12 +214,18 @@ siendo `rloc`; la duplicación es un color y una ficha, no una tercera dimensió
 
 ### M69 — La duplicación, en el mapa
 
-- ⬜ Un color más en el dock y en la leyenda: `duplicatedLines` sobre la escala del mapa, con su aviso
+- ✅ Un color más en el dock y en la leyenda: `duplicatedLines` sobre la escala del mapa, con su aviso
   cuando no hay lente.
-- ⬜ La ficha del fichero gana **Duplicación**: líneas, proporción sobre `rloc` y sus pares.
-- ⬜ La hoja de la carpeta y la del proyecto suman líneas y dividen por su `rloc`; el porcentaje nunca
+- ✅ La ficha del fichero gana **Duplicación**: líneas, proporción sobre `rloc` y sus pares.
+- ✅ La hoja de la carpeta y la del proyecto suman líneas y dividen por su `rloc`; el porcentaje nunca
   se suma.
-- ⬜ La captura (`codarch shot`) pinta el color nuevo con la misma escala que la app.
+- ✅ La captura (`codarch shot`) pinta el color nuevo con la misma escala que la app.
+
+La lente se cruza con el modelo en `model-duplication`, no en cada ficha: el fichero recibe sus líneas,
+la proporción y los pares ya resueltos, y las tres hojas leen lo mismo. `duplicatedLines` entra en las
+métricas curadas para que la tabla del fichero la enseñe aunque el mapa se pinte por otra. El color se
+acepta aunque falte la lente —como el lint— para que un enlace no caiga en silencio al riesgo: la banda
+dice «sin duplicación medida» y el mapa sigue siendo legible.
 
 ### M70 — La divergencia, con nombre
 

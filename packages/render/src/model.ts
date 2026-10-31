@@ -7,6 +7,7 @@ import {
   lintScores
 } from "@codarch/metrics/browser";
 import { lintFileCounts } from "@codarch/lint/browser";
+import { collectDuplication } from "./model-duplication";
 import { applyRisk, collectFiles, warnAboutArea } from "./model-files";
 import { collectDependency } from "./model-dependencies";
 import { pickDefaultSelection, resolveLens } from "./model-lens";
@@ -24,6 +25,9 @@ import type { RenderModel, RenderOptions } from "./model-types";
 export type {
   EdgePair,
   Lens,
+  RenderDuplication,
+  RenderDuplicationNode,
+  RenderDuplicationPair,
   RenderFile,
   RenderMeta,
   RenderMetric,
@@ -85,6 +89,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
       : {}
   });
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
+  const duplication = collectDuplication(cc, files, prefix);
 
   warnAboutArea(files, areaMetric, options, warnings);
   applyRisk(files, options.lint != null);
@@ -133,6 +138,7 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     defaultSelection,
     initialLens,
     initialMetric,
+    duplication,
     lintMax,
     warnings
   };

@@ -13,6 +13,41 @@ function model(options: RenderOptions = {}) {
   return buildRenderModel(parseCcJson(fixture), options);
 }
 
+/** El fixture con una lente de duplicación: dos ficheros y un par literal. */
+function withDuplication() {
+  const copy = structuredClone(fixture) as {
+    lenses: {
+      metrics: { attributes: Record<string, Record<string, number>> };
+      duplication?: unknown;
+    };
+  };
+  const a = copy.lenses.metrics.attributes.a;
+  const b = copy.lenses.metrics.attributes.b;
+  const readme = copy.lenses.metrics.attributes.readme;
+  if (a) a.duplicatedLines = 30;
+  if (b) b.duplicatedLines = 20;
+  // El análisis escribe la métrica en todos los ficheros, también en los que no
+  // duplican: el mínimo de la escala es cero.
+  if (readme) readme.duplicatedLines = 0;
+  copy.lenses.duplication = {
+    nodes: {
+      a: { duplicatedLines: 30, repeatedLines: 4 },
+      b: { duplicatedLines: 20, repeatedLines: 0 }
+    },
+    pairs: [
+      { fromId: "a", toId: "b", lines: 20, similarity: 100, status: "copy" }
+    ],
+    summary: {
+      pairs: 1,
+      copies: 0,
+      duplicatedLines: 50,
+      repeatedLines: 4,
+      ratio: 31
+    }
+  };
+  return parseCcJson(copy);
+}
+
 describe("buildRenderModel", () => {
   it("usa rloc como área y deja un mínimo visible a los ficheros sin métrica", () => {
     const result = model();
@@ -211,6 +246,38 @@ describe("buildRenderModel", () => {
     expect(Math.max(...result.files.map((file) => file.risk))).toBeGreaterThan(
       0.9
     );
+  });
+
+  it("lleva la duplicación a cada fichero y a su color", () => {
+    const result = buildRenderModel(withDuplication(), {
+      color: "duplicatedLines"
+    });
+    const metric = result.metrics.find(
+      (entry) => entry.key === "duplicatedLines"
+    );
+
+    expect(result.duplication.measured).toBe(true);
+    expect(result.duplication.nodes.a?.duplicatedLines).toBe(30);
+    expect(result.duplication.nodes.a?.repeatedLines).toBe(4);
+    // El par se lee desde los dos lados y la ruta ya no lleva la raíz del mapa.
+    expect(result.duplication.pairsByNode.a?.[0]).toEqual({
+      path: "src/only/b.ts",
+      lines: 20,
+      similarity: 100,
+      status: "copy"
+    });
+    expect(result.duplication.pairsByNode.b?.[0]?.path).toBe("src/only/a.ts");
+    expect(result.initialMetric).toBe("duplicatedLines");
+    // La escala es la del mapa: mínimo y p95 de la métrica.
+    expect(metric?.min).toBe(0);
+    expect(metric?.max).toBe(20);
+    expect(metric?.actualMax).toBe(30);
+  });
+
+  it("un snapshot sin la lente está sin medir, no a cero", () => {
+    const result = model();
+    expect(result.duplication.measured).toBe(false);
+    expect(result.duplication.nodes).toEqual({});
   });
 
   it("es determinista", () => {

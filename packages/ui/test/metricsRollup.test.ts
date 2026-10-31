@@ -8,6 +8,7 @@ import type {
   RenderModel,
   TreeNode
 } from "@codarch/render/browser";
+import { DuplicationSection } from "../src/panels/DuplicationSection";
 import { FolderPanel } from "../src/panels/FolderPanel";
 import { ProjectPanel } from "../src/panels/ProjectPanel";
 
@@ -102,6 +103,14 @@ const model: RenderModel = {
   defaultSelection: null,
   initialLens: "risk",
   initialMetric: null,
+  duplication: {
+    measured: false,
+    nodes: {},
+    pairsByNode: {},
+    pairs: 0,
+    duplicatedLines: 0,
+    repeatedLines: 0
+  },
   lintMax: 0,
   warnings: []
 };
@@ -324,6 +333,119 @@ describe("la ficha de carpeta", () => {
     expect(markup).toContain("60");
     expect(markup).toContain("Lint por carpeta");
     expect(markup).toContain("ui/");
+  });
+});
+
+describe("la duplicación en proyecto y carpeta", () => {
+  const duplicated = {
+    ...model,
+    duplication: {
+      measured: true,
+      nodes: {
+        "packages/ui/src/panel.ts": {
+          duplicatedLines: 30,
+          repeatedLines: 4,
+          duplicateOf: null
+        },
+        "apps/web/src/main.ts": {
+          duplicatedLines: 20,
+          repeatedLines: 0,
+          duplicateOf: null
+        }
+      },
+      pairsByNode: {
+        "packages/ui/src/panel.ts": [
+          {
+            path: "apps/web/src/main.ts",
+            lines: 20,
+            similarity: 72,
+            status: "diverging" as const
+          }
+        ],
+        "apps/web/src/main.ts": [
+          {
+            path: "packages/ui/src/panel.ts",
+            lines: 20,
+            similarity: 72,
+            status: "diverging" as const
+          }
+        ]
+      },
+      pairs: 1,
+      duplicatedLines: 50,
+      repeatedLines: 4
+    }
+  };
+
+  it("el proyecto suma líneas y divide una vez por su rloc", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ProjectPanel, {
+        model: duplicated,
+        lint: null,
+        metricTitle: (key: string) => key,
+        colorMode: "duplicatedLines",
+        onColorMode: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+
+    expect(markup).toContain("Duplicación");
+    expect(markup).toContain("50");
+    // 50 líneas duplicadas sobre 160 de rloc: un solo porcentaje, no una suma.
+    expect(markup).toContain("31%");
+    expect(markup).toContain("de 160 rloc");
+  });
+
+  it("la carpeta cuenta solo su subárbol y no hereda el porcentaje del padre", () => {
+    const markup = renderToStaticMarkup(
+      createElement(FolderPanel, {
+        folder: packages,
+        model: duplicated,
+        lint: null,
+        metricTitle: (key: string) => key,
+        colorMode: "duplicatedLines",
+        onColorMode: () => {},
+        onSelectPath: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+
+    expect(markup).toContain("30");
+    // 30 sobre 60 de rloc, no 30 sobre 160.
+    expect(markup).toContain("50%");
+    expect(markup).toContain("de 60 rloc");
+  });
+
+  it("la ficha del fichero enseña su proporción y sus pares", () => {
+    const panel = duplicated.files.find(
+      (entry) => entry.path === "packages/ui/src/panel.ts"
+    );
+    if (!panel) throw new Error("falta el fichero del fixture");
+
+    const markup = renderToStaticMarkup(
+      createElement(DuplicationSection, {
+        id: "file",
+        model: duplicated,
+        files: [panel],
+        file: panel,
+        onSelectPath: () => {}
+      })
+    );
+
+    // 30 líneas duplicadas sobre sus 50 de rloc.
+    expect(markup).toContain("30");
+    expect(markup).toContain("60%");
+    expect(markup).toContain("de 50 rloc");
+    // El par dice con quién comparte, cuánto y cuántas líneas.
+    expect(markup).toContain("apps/web/src/main.ts");
+    expect(markup).toContain("72%");
+    expect(markup).toContain("20 líneas");
+  });
+
+  it("sin lente dice que está sin medir", () => {
+    const markup = projectMarkup(null);
+    expect(markup).toContain("sin medir");
+    expect(markup).toContain("no trae la lente de duplicación");
   });
 });
 

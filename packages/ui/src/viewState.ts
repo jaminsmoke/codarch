@@ -205,6 +205,10 @@ export function viewStateFromSaved(state: AddonViewState): ViewState {
  * repo y llega por su cuenta (ADR 0094). Se acepta siempre para que un enlace
  * o una vista guardada con la lente del lint no caigan al riesgo al abrir; si
  * el artefacto no está, la banda del proyecto lo dice en vez de fingir ceros.
+ *
+ * La duplicación sigue la misma regla (ADR 0102): un snapshot anterior a la
+ * lente se abre con el color pedido y el aviso de «sin duplicación medida», en
+ * vez de cambiar en silencio a otro color.
  */
 export function isColorModeAvailable(
   colorMode: string,
@@ -216,6 +220,9 @@ export function isColorModeAvailable(
     colorMode === "structure" ||
     colorMode === "lint"
   ) {
+    return true;
+  }
+  if (colorMode === "duplicatedLines" || colorMode === "repeatedLines") {
     return true;
   }
   if (colorMode === "status") return Boolean(migration);

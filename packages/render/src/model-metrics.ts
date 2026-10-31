@@ -45,6 +45,8 @@ const CURATED_METRICS = [
   "dependencyLevel",
   "migrationDebt",
   "ffiCrossings",
+  "duplicatedLines",
+  "repeatedLines",
   "number_of_commits",
   "number_of_authors",
   "incoming_dependencies",

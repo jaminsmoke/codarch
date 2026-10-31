@@ -13,6 +13,7 @@ import {
 } from "../folder";
 import { withinFolder } from "../lintRollup";
 import { LintRulesSection } from "../LintRules";
+import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -87,6 +88,10 @@ export function FolderPanel({
           onColorMode={onColorMode}
           onSelectFolder={onSelectFolder}
         />
+      ) : null}
+
+      {model ? (
+        <DuplicationSection id="folder" model={model} files={subtree} />
       ) : null}
 
       {model ? (

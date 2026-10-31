@@ -4503,3 +4503,75 @@ code {
     opacity: 1;
   }
 }
+
+/* La duplicación de la ficha (ADR 0102): líneas, proporción y pares. */
+.duplication-figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.duplication-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 9px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.duplication-figure .mono {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.duplication-copy {
+  margin: 7px 0 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.duplication-pairs {
+  display: grid;
+  gap: 1px;
+  margin-top: 8px;
+}
+
+.duplication-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+  padding: 3px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.duplication-pair:hover {
+  background: var(--line);
+}
+
+.duplication-pair-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duplication-pair-meta {
+  font-size: 9.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.duplication-diverging .duplication-pair-meta {
+  color: var(--rust);
+}

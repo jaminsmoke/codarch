@@ -74,7 +74,8 @@ function banda(
   colorMode: string,
   migration: CcMigrationLens | null,
   metricKeys: string[] | null = ["rloc"],
-  meta: Record<string, string> = {}
+  meta: Record<string, string> = {},
+  hasDuplication = false
 ): string {
   const app = {
     view: {
@@ -83,7 +84,8 @@ function banda(
           ? null
           : {
               meta,
-              metrics: metricKeys.map((key) => ({ key, title: key }))
+              metrics: metricKeys.map((key) => ({ key, title: key })),
+              duplication: { measured: hasDuplication }
             }
     },
     migration,
@@ -117,6 +119,16 @@ describe("la cabecera", () => {
     // La banda siempre dice «sin vigilancia»: lo que no puede salir es el aviso.
     expect(banda("risk", null)).not.toContain("paint-notice");
     expect(banda("structure", null)).not.toContain("paint-notice");
+  });
+
+  it("avisa cuando el color es la duplicación y no hay lente", () => {
+    expect(banda("duplicatedLines", null)).toContain("sin duplicación medida");
+  });
+
+  it("calla cuando la lente de duplicación está", () => {
+    expect(
+      banda("duplicatedLines", null, ["rloc", "duplicatedLines"], {}, true)
+    ).not.toContain("sin duplicación medida");
   });
 
   it("dice que el snapshot no trae historial", () => {

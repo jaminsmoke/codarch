@@ -209,7 +209,7 @@ flowchart TD
 | M66 | El proyecto tiene su ficha | en curso | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
 | M67 | El lint es del proyecto | en curso | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
 | M68 | La duplicación, medida | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
-| M69 | La duplicación, en el mapa | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
+| M69 | La duplicación, en el mapa | cerrada | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M70 | La divergencia, con nombre | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M71 | La duplicación, en el diff | sin empezar | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |
 | M72 | El checksum es del código | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |

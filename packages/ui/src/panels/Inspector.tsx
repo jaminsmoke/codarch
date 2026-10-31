@@ -23,6 +23,7 @@ import {
   SymbolsSection
 } from "./InspectorSections";
 import type { CodeTarget } from "./CodePeek";
+import { DuplicationSection } from "./DuplicationSection";
 
 /**
  * La ficha: métricas, reglas, símbolos, superficie, dependencias, miembros y la
@@ -147,6 +148,15 @@ export function Inspector({
         showRisk={showCode}
         onColorMode={onColorMode}
       />
+      {showCode && model ? (
+        <DuplicationSection
+          id="file"
+          model={model}
+          files={[file]}
+          file={file}
+          onSelectPath={onSelectPath}
+        />
+      ) : null}
       {showCode ? (
         <>
           <RulesSection

@@ -131,6 +131,43 @@ export function Legend({
     );
   }
 
+  // La duplicación se lee como una métrica, pero la leyenda dice además
+  // cuántos ficheros comparten código y cuántos pares hay: es la cifra que el
+  // degradado no cuenta (ADR 0102).
+  if (
+    (colorMode === "duplicatedLines" || colorMode === "repeatedLines") &&
+    model
+  ) {
+    if (!model.duplication.measured) return null;
+    const metric = model.metrics.find((entry) => entry.key === colorMode);
+    if (!metric) return null;
+    const repeated = colorMode === "repeatedLines";
+    const withDuplication = model.files.filter((file) => {
+      const node = model.duplication.nodes[file.nodeId];
+      return repeated ? node?.repeatedLines : node?.duplicatedLines;
+    }).length;
+    return (
+      <section className="panel-block">
+        <div className="eyebrow">Leyenda · duplicación</div>
+        <div className="gradient metric" />
+        <div className="gradient-labels">
+          <span>{formatCompact(metric.min)}</span>
+          <span>{formatCompact(metric.max)}</span>
+        </div>
+        <div className="muted tiny">
+          {withDuplication === 0
+            ? `ningún fichero con líneas ${repeated ? "repetidas" : "compartidas"}`
+            : `${formatCompact(withDuplication)} de ${formatCompact(
+                model.fileCount
+              )} ficheros con líneas ${repeated ? "repetidas" : "compartidas"}`}
+          {repeated ? null : (
+            <>{" · "}{formatCompact(model.duplication.pairs)} pares</>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   const metric = model?.metrics.find((entry) => entry.key === colorMode);
   if (!metric) return null;
 

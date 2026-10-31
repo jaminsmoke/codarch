@@ -34,6 +34,48 @@ function withFirstName(name: string) {
   return parseCcJson(copy);
 }
 
+/** El fixture con duplicación medida: dos ficheros y un par literal. */
+function duplicatedFixture() {
+  const copy = structuredClone(fixtureJson) as {
+    lenses: {
+      metrics: {
+        attributes: Record<string, Record<string, number>>;
+        attributeDescriptors: Record<string, unknown>;
+        attributeTypes: Record<string, string>;
+      };
+      duplication?: unknown;
+    };
+  };
+  const a = copy.lenses.metrics.attributes.a;
+  const b = copy.lenses.metrics.attributes.b;
+  const readme = copy.lenses.metrics.attributes.readme;
+  if (a) a.duplicatedLines = 30;
+  if (b) b.duplicatedLines = 20;
+  if (readme) readme.duplicatedLines = 0;
+  copy.lenses.metrics.attributeDescriptors.duplicatedLines = {
+    title: "Líneas duplicadas",
+    direction: -1
+  };
+  copy.lenses.metrics.attributeTypes.duplicatedLines = "absolute";
+  copy.lenses.duplication = {
+    nodes: {
+      a: { duplicatedLines: 30, repeatedLines: 0 },
+      b: { duplicatedLines: 20, repeatedLines: 0 }
+    },
+    pairs: [
+      { fromId: "a", toId: "b", lines: 20, similarity: 100, status: "copy" }
+    ],
+    summary: {
+      pairs: 1,
+      copies: 0,
+      duplicatedLines: 50,
+      repeatedLines: 0,
+      ratio: 31
+    }
+  };
+  return parseCcJson(copy);
+}
+
 const temporaries: string[] = [];
 
 function tempRoot(): string {
@@ -150,6 +192,21 @@ describe("la captura del mapa", () => {
     ]);
     expect(shot.summary.cells[0]?.path).toBe("src/only/a.ts");
     expect(fs.existsSync(shot.file)).toBe(true);
+  });
+
+  it("pinta la duplicación con la misma escala que el mapa", () => {
+    const shot = captureMap(duplicatedFixture(), tempRoot(), {
+      color: "duplicatedLines"
+    });
+
+    expect(shot.summary.color).toBe("duplicatedLines");
+    expect(shot.summary.legend.map((entry) => entry.label)).toEqual([
+      "Líneas duplicadas 0",
+      // La escala del mapa usa el p95 (20), no el máximo real (30).
+      "Líneas duplicadas 20"
+    ]);
+    const a = shot.summary.cells.find((cell) => cell.path === "src/only/a.ts");
+    expect(a?.value).toBe(30);
   });
 
   it("acepta el calor como alias de la métrica de commits", () => {

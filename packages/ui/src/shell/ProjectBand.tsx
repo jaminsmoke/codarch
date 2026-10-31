@@ -19,7 +19,8 @@ export function ProjectBand({ app }: { app: CodarchApp }) {
     state.colorMode,
     view.model?.metrics ?? null,
     migration,
-    state.lint !== null
+    state.lint !== null,
+    view.model?.duplication.measured ?? false
   );
 
   return (

@@ -77,6 +77,36 @@ export type RiskParts = Record<
   RiskPart
 >;
 
+/** La duplicación de un fichero, tal como la lee su ficha (ADR 0102). */
+export interface RenderDuplicationNode {
+  duplicatedLines: number;
+  repeatedLines: number;
+  /** Ruta del gemelo canónico, si el fichero entero es idéntico a otro. */
+  duplicateOf: string | null;
+}
+
+/** Un par de ficheros que comparten bloques, desde el lado de un fichero. */
+export interface RenderDuplicationPair {
+  path: string;
+  lines: number;
+  /** 0..100: ventanas compartidas sobre el mínimo de los dos. */
+  similarity: number;
+  status: "copy" | "diverging";
+}
+
+/** La lente de duplicación cruzada con el mapa (ADR 0102). */
+export interface RenderDuplication {
+  /** Un snapshot sin lente está sin medir, que no es lo mismo que cero. */
+  measured: boolean;
+  /** Por id de nodo, como la lente. */
+  nodes: Record<string, RenderDuplicationNode>;
+  /** Los pares de cada fichero, por id de nodo y ya ordenados. */
+  pairsByNode: Record<string, RenderDuplicationPair[]>;
+  pairs: number;
+  duplicatedLines: number;
+  repeatedLines: number;
+}
+
 export interface RenderSection {
   key: string;
   label: string;
@@ -135,6 +165,8 @@ export interface RenderModel {
   defaultSelection: number | null;
   initialLens: Lens;
   initialMetric: string | null;
+  /** Lo copiado, entre ficheros y dentro de uno (ADR 0102). */
+  duplication: RenderDuplication;
   /**
    * La deuda de lint más alta del mapa, para la escala de su lente.
    *
