@@ -5,9 +5,9 @@ import { menuTemplate, type MenuActions } from "../src/menu-template";
 function actions(): MenuActions {
   return {
     analyzeFolder: vi.fn<() => void>(),
-    abrirFichero: vi.fn<() => void>(),
-    abrirAjustes: vi.fn<() => void>(),
-    abrirDocumentacion: vi.fn<() => void>()
+    openFile: vi.fn<() => void>(),
+    openSettings: vi.fn<() => void>(),
+    openDocs: vi.fn<() => void>()
   };
 }
 
@@ -44,9 +44,9 @@ describe("el menú nativo", () => {
   it("cada entrada llama a su acción", () => {
     const spy = actions() as MenuActions & {
       analyzeFolder: ReturnType<typeof vi.fn>;
-      abrirFichero: ReturnType<typeof vi.fn>;
-      abrirAjustes: ReturnType<typeof vi.fn>;
-      abrirDocumentacion: ReturnType<typeof vi.fn>;
+      openFile: ReturnType<typeof vi.fn>;
+      openSettings: ReturnType<typeof vi.fn>;
+      openDocs: ReturnType<typeof vi.fn>;
     };
     const archivo = submenu(menuTemplate(spy, "linux"), "&Archivo");
 
@@ -56,9 +56,9 @@ describe("el menú nativo", () => {
     click(submenu(menuTemplate(spy, "linux"), "&Ayuda"), "Documentación");
 
     expect(spy.analyzeFolder).toHaveBeenCalledOnce();
-    expect(spy.abrirFichero).toHaveBeenCalledOnce();
-    expect(spy.abrirAjustes).toHaveBeenCalledOnce();
-    expect(spy.abrirDocumentacion).toHaveBeenCalledOnce();
+    expect(spy.openFile).toHaveBeenCalledOnce();
+    expect(spy.openSettings).toHaveBeenCalledOnce();
+    expect(spy.openDocs).toHaveBeenCalledOnce();
   });
 
   it("los atajos son los que dice la documentación", () => {

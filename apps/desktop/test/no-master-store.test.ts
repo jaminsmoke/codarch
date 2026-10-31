@@ -30,8 +30,8 @@ describe("el estado no vive en la app", () => {
     expect(source("targets.ts")).toContain(
       "Un fichero suelto no es un repo"
     );
-    const plataforma = source("renderer/plataforma.ts");
-    expect(plataforma).toContain("persistProject");
-    expect(plataforma).not.toContain("codarch.project.v1");
+    const platform = source("renderer/platform.ts");
+    expect(platform).toContain("persistProject");
+    expect(platform).not.toContain("codarch.project.v1");
   });
 });

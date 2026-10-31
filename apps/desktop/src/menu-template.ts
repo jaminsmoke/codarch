@@ -13,9 +13,9 @@ export interface MenuActions {
   /** «Analizar carpeta…»: abre el diálogo y analiza lo elegido. */
   analyzeFolder(): void;
   /** «Abrir cc.json…»: abre el diálogo y pinta lo elegido. */
-  abrirFichero(): void;
-  abrirAjustes(): void;
-  abrirDocumentacion(): void;
+  openFile(): void;
+  openSettings(): void;
+  openDocs(): void;
 }
 
 /** La plantilla, por plataforma: macOS tiene su menú de aplicación. */
@@ -58,12 +58,12 @@ export function menuTemplate(
         // Sin `accelerator`: Electron pinta «Ctrl+Comma» en Linux y Windows,
         // que no es lo que dice la tecla. El atajo lo atiende la UI.
         label: "Ajustes…",
-        click: () => actions.abrirAjustes()
+        click: () => actions.openSettings()
       },
       {
         label: "Abrir cc.json…",
         accelerator: "CmdOrCtrl+Shift+O",
-        click: () => actions.abrirFichero()
+        click: () => actions.openFile()
       },
       { type: "separator" },
       isMac
@@ -105,7 +105,7 @@ export function menuTemplate(
     submenu: [
       {
         label: "Documentación",
-        click: () => actions.abrirDocumentacion()
+        click: () => actions.openDocs()
       }
     ]
   });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import { AppShell, OpenMenu, useCodarchApp, useTheme } from "@codarch/ui";
 import { desktop } from "./bridge";
-import { desktopPlatform } from "./plataforma";
+import { desktopPlatform } from "./platform";
 import type { CodarchDesktop } from "../preload";
 import { documentTitle } from "../title";
 import Settings from "./Settings";

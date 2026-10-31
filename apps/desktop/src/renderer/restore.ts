@@ -5,16 +5,16 @@ import type { SavedProject } from "@codarch/ui";
  *
  * Todo entra inyectado para poder probar la migración sin Electron.
  */
-export interface RestauracionDeps {
+export interface RestoreDeps {
   /** El proyecto que guardaba la versión anterior en `localStorage`. */
-  leerLegado: () => SavedProject | null;
+  readLegacy: () => SavedProject | null;
   /** Lo escribe en `.codarch/` del repo; `false` si no se pudo. */
-  persistir: (project: SavedProject) => Promise<boolean>;
-  leerUltimaRaiz: () => string | null;
-  escribirUltimaRaiz: (root: string) => void;
-  olvidarLegado: () => void;
+  persist: (project: SavedProject) => Promise<boolean>;
+  readLastRoot: () => string | null;
+  writeLastRoot: (root: string) => void;
+  clearLegacy: () => void;
   /** Lee `.codarch/` de un repo: snapshot, reporte y addons. */
-  restaurar: (root: string) => Promise<SavedProject | null>;
+  restore: (root: string) => Promise<SavedProject | null>;
 }
 
 /**
@@ -25,17 +25,17 @@ export interface RestauracionDeps {
  * se movió, no hay permisos), se devuelve tal cual: nada se pierde y se
  * reintenta en el siguiente arranque.
  */
-export async function restaurarSesion(
-  deps: RestauracionDeps
+export async function restoreSession(
+  deps: RestoreDeps
 ): Promise<SavedProject | null> {
-  const legado = deps.leerLegado();
-  if (legado) {
-    if (!(await deps.persistir(legado))) return legado;
-    deps.escribirUltimaRaiz(legado.label);
-    deps.olvidarLegado();
+  const legacy = deps.readLegacy();
+  if (legacy) {
+    if (!(await deps.persist(legacy))) return legacy;
+    deps.writeLastRoot(legacy.label);
+    deps.clearLegacy();
   }
 
-  const root = deps.leerUltimaRaiz();
+  const root = deps.readLastRoot();
   if (!root) return null;
-  return deps.restaurar(root);
+  return deps.restore(root);
 }

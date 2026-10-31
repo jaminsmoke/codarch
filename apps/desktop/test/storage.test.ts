@@ -44,9 +44,9 @@ describe("almacenamiento del escritorio", () => {
       })
     );
 
-    const legado = readLegacyProject(storage);
-    expect(legado?.label).toBe("/repos/viejo");
-    expect(legado?.addons).toEqual([]);
+    const legacy = readLegacyProject(storage);
+    expect(legacy?.label).toBe("/repos/viejo");
+    expect(legacy?.addons).toEqual([]);
 
     clearLegacyProject(storage);
     expect(readLegacyProject(storage)).toBeNull();

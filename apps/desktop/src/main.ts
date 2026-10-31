@@ -58,9 +58,9 @@ async function openPickedFile(): Promise<void> {
 
 const actions = {
   analyzeFolder: () => void openPickedFolder(),
-  abrirFichero: () => void openPickedFile(),
-  abrirAjustes: openSettings,
-  abrirDocumentacion: openDocs
+  openFile: () => void openPickedFile(),
+  openSettings: openSettings,
+  openDocs: openDocs
 };
 
 /** La ruta con la que se lanzó la app, si la hay. */

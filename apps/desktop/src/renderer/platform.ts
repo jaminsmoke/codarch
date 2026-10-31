@@ -11,7 +11,7 @@ import {
   writeLastRoot,
   writePreferences
 } from "./storage";
-import { restaurarSesion } from "./restore";
+import { restoreSession } from "./restore";
 import {
   historyEntries,
   symbolHeat,
@@ -30,7 +30,7 @@ import {
  */
 export function desktopPlatform(): Platform {
   /** El proyecto de esta sesión, para no volver a leer el disco sin motivo. */
-  let actual: SavedProject | null = null;
+  let current: SavedProject | null = null;
 
   return {
     analyze: async (root) => desktop().analyze(root),
@@ -41,22 +41,22 @@ export function desktopPlatform(): Platform {
     writePreferences: (prefs) => {
       // El repo manda; la copia local es el respaldo si no se puede escribir.
       writePreferences(prefs);
-      if (actual) void desktop().persistPreferences(actual.label, prefs);
+      if (current) void desktop().persistPreferences(current.label, prefs);
     },
-    readProject: () => actual,
+    readProject: () => current,
     restoreProject: async () => {
-      actual = await restaurarSesion({
-        leerLegado: readLegacyProject,
-        persistir: (project) =>
+      current = await restoreSession({
+        readLegacy: readLegacyProject,
+        persist: (project) =>
           desktop().persistProject(
             project.label,
             project.snapshot,
             project.report
           ),
-        leerUltimaRaiz: readLastRoot,
-        escribirUltimaRaiz: writeLastRoot,
-        olvidarLegado: clearLegacyProject,
-        restaurar: async (root) => {
+        readLastRoot: readLastRoot,
+        writeLastRoot: writeLastRoot,
+        clearLegacy: clearLegacyProject,
+        restore: async (root) => {
           const restored = await desktop().restoreProject(root);
           if (!restored) return null;
           return {
@@ -73,7 +73,7 @@ export function desktopPlatform(): Platform {
           };
         }
       });
-      return actual;
+      return current;
     },
     writeProject: async (project) => {
       const saved = await desktop().persistProject(
@@ -82,17 +82,17 @@ export function desktopPlatform(): Platform {
         project.report
       );
       if (saved) {
-        actual = project;
+        current = project;
         writeLastRoot(project.label);
       } else {
         // Un fichero suelto no es un proyecto: no hay nada que recordar.
-        actual = null;
+        current = null;
       }
       return saved;
     },
     clearProject: () => {
-      // Olvidar es dejar de restaurar: `.codarch/` del repo no se toca.
-      actual = null;
+      // Olvidar es dejar de recordar: `.codarch/` del repo no se toca.
+      current = null;
       clearLegacyProject();
       clearLastRoot();
     },
