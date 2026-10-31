@@ -651,7 +651,7 @@ describe("el lint del proyecto", () => {
   });
 
   /** Un repo temporal con su snapshot y, si toca, su artefacto de lint. */
-  function lintStore(artifact: unknown = ARTIFACT, name = "lint.cc.json"): ArchitectureStore {
+  function lintStore(artifact: unknown = ARTIFACT, name = "lint.repmod.json"): ArchitectureStore {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-mcp-lint-"));
     roots.push(root);
     const directory = path.join(root, ".codarch");
@@ -675,7 +675,7 @@ describe("el lint del proyecto", () => {
     const report = getLintReport(lintStore());
 
     expect(report.available).toBe(true);
-    expect(report.file).toBe(".codarch/lint.cc.json");
+    expect(report.file).toBe(".codarch/lint.repmod.json");
     expect(report.tools).toEqual(["eslint", "ruff"]);
     expect(report.systems).toEqual([
       {
@@ -767,8 +767,10 @@ describe("el lint del proyecto", () => {
     expect(report.total).toBe(3);
   });
 
-  it("lee el nombre anterior y, sin artefacto, dice que no se midió", () => {
-    expect(getLintReport(lintStore(ARTIFACT, "lint.json")).available).toBe(true);
+  it("sin artefacto dice que no se midió, y el nombre anterior no cuenta", () => {
+    expect(getLintReport(lintStore(ARTIFACT, "lint.json")).available).toBe(
+      false
+    );
 
     const missing = getLintReport(lintStore(null));
     expect(missing.available).toBe(false);

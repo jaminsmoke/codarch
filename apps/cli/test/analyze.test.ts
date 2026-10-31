@@ -271,7 +271,7 @@ lint:
 
     expect(code).toBe(0);
     const artifact = JSON.parse(
-      fs.readFileSync(path.join(root, ".codarch", "lint.cc.json"), "utf8")
+      fs.readFileSync(path.join(root, ".codarch", "lint.repmod.json"), "utf8")
     ) as { schemaVersion: string; meta: { tree: string }; summary: object };
     expect(artifact.schemaVersion).toBe("1.2");
     expect(artifact.meta.tree).toBe(
@@ -301,7 +301,7 @@ lint:
 
     expect(code).toBe(0);
     expect(called).toBe(false);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(
       false
     );
   });
@@ -314,7 +314,7 @@ lint:
 
     const text = log.mock.calls.map((call) => call.map(String).join(" ")).join("\n");
     expect(text).toContain("el proyecto no declara lint");
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(
       false
     );
   });

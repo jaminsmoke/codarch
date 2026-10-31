@@ -59,7 +59,7 @@ describe("el arranque de la web", () => {
     fakeFetch({
       "data/meta.json": { watch: false, rootPath: "/repo" },
       "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] },
-      "data/lint.cc.json": lintArtifact
+      "data/lint.repmod.json": lintArtifact
     });
     const { handlers: h, calls } = handlers();
 

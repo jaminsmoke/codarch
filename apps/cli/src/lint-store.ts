@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   LINT_ARTIFACT_FILE,
-  LINT_ARTIFACT_FILE_LEGACY,
   readLintArtifact,
   runLint,
   type LintArtifact,
@@ -22,7 +21,7 @@ import { planProjectLint, planSystems } from "./lint-plan";
 
 export const LINT_FILE = LINT_ARTIFACT_FILE;
 
-/** El `lint.cc.json` de una carpeta de salida. */
+/** El `lint.repmod.json` de una carpeta de salida. */
 export function lintPath(outDirectory: string): string {
   return path.join(outDirectory, LINT_FILE);
 }
@@ -45,35 +44,29 @@ function readArtifactAt(file: string): LintArtifact | null {
 /**
  * El lint guardado en el `.codarch/` de un repo, si lo hay (ADR 0094).
  *
- * Se lee el `lint.cc.json` primero y el nombre anterior después; un artefacto
+ * Un solo nombre (ADR 0100): no se prueban nombres anteriores. Un artefacto
  * que no se entiende es como no tenerlo.
  */
 export function readProjectLint(
   root: string,
   outDirectory = path.join(root, ".codarch")
 ): LintArtifact | null {
-  for (const name of [LINT_FILE, LINT_ARTIFACT_FILE_LEGACY]) {
-    const artifact = readArtifactAt(path.join(outDirectory, name));
-    if (artifact) return artifact;
-  }
-  return null;
+  return readArtifactAt(path.join(outDirectory, LINT_FILE));
 }
 
 /**
  * El lint que vive al lado de un `cc.json`, si lo hay (ADR 0094).
  *
- * Un `.codarch/snapshot.cc.json` tiene su `.codarch/lint.cc.json` al lado. Un
+ * Un `.codarch/snapshot.cc.json` tiene su `.codarch/lint.repmod.json` al lado. Un
  * `cc.json` en la raíz del repo lo tiene en `.codarch/`, que es donde lo deja
- * `codarch lint`. Se sigue leyendo `lint.json`, el nombre anterior, para los
- * repos que ya lo tienen. Un artefacto que no se entiende se ignora.
+ * `codarch lint`. Un solo nombre (ADR 0100); un artefacto que no se entiende se
+ * ignora.
  */
 export function readLintBeside(file: string): LintArtifact | null {
   const directory = path.dirname(path.resolve(file));
   for (const base of [directory, path.join(directory, ".codarch")]) {
-    for (const name of [LINT_FILE, LINT_ARTIFACT_FILE_LEGACY]) {
-      const artifact = readArtifactAt(path.join(base, name));
-      if (artifact) return artifact;
-    }
+    const artifact = readArtifactAt(path.join(base, LINT_FILE));
+    if (artifact) return artifact;
   }
   return null;
 }
@@ -108,7 +101,7 @@ export interface ProjectLint {
   /** `null` si ninguna herramienta midió: entonces no hay artefacto nuevo. */
   artifact: LintArtifact | null;
   runs: LintToolRun[];
-  /** El `lint.cc.json` escrito, o `null` si no se escribió. */
+  /** El `lint.repmod.json` escrito, o `null` si no se escribió. */
   path: string | null;
 }
 

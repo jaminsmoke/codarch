@@ -176,7 +176,7 @@ warning.
 
 ![The Proyecto sheet: its metrics with lint and lint per folder, and Reglas with the repo's systems —eslint with its configuration and active rules, oxlint with no config—](../../images/webapp-inspector-proyecto.png)
 
-Without `.codarch/lint.cc.json` there are no zeros: the lint block says **sin medir** (unmeasured) and
+Without `.codarch/lint.repmod.json` there are no zeros: the lint block says **sin medir** (unmeasured) and
 what it will weigh once [`codarch analyze`](cli/analyze.md) runs, which measures it with the project's
 linter.
 

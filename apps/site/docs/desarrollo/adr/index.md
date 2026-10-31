@@ -120,6 +120,7 @@ flowchart TD
 | [0097](0091-0100/0097-la-hoja-del-proyecto-como-la-del-fichero.md) | La hoja del proyecto como la del fichero | 2026-10-30 | aceptado | M66 |
 | [0098](0091-0100/0098-el-lint-dice-que-arbol-midio.md) | El lint dice qué árbol midió | 2026-10-31 | aceptado | M65 · M67 |
 | [0099](0091-0100/0099-el-lint-se-mide-al-analizar.md) | El lint se mide al analizar | 2026-10-31 | aceptado | M65 · M67 |
+| [0100](0091-0100/0100-los-nombres-de-los-artefactos.md) | Los nombres de los artefactos de `.codarch/` | 2026-10-31 | aceptado | M65 · M67 |
 
 ## Las carpetas
 
@@ -134,6 +135,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0061-0070**: 0061, 0062, 0063, 0064, 0065, 0066, 0067, 0068, 0069, 0070, 0071
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
 - **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088, 0089, 0090
-- **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097
+- **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).

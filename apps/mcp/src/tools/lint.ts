@@ -7,7 +7,6 @@ import { clampInteger, compareStrings, severityOrder } from "./helpers";
 import { dirname, join, relative, sep } from "node:path";
 import {
   LINT_ARTIFACT_FILE,
-  LINT_ARTIFACT_FILE_LEGACY,
   lintRuleCounts,
   lintTotals,
   readLintArtifact,
@@ -45,7 +44,7 @@ export function getLintReport(
       rules: [],
       findings: [],
       reason:
-        "no hay lint medido en este repositorio; ejecuta codarch analyze para dejar .codarch/lint.cc.json"
+        "no hay lint medido en este repositorio; ejecuta codarch analyze para dejar .codarch/lint.repmod.json"
     };
   }
 
@@ -130,7 +129,11 @@ function lintSummaryOf(artifact: LintArtifact): LintSummary {
   };
 }
 
-/** El artefacto del lint, con la ruta de la que salió: al lado del snapshot. */
+/**
+ * El artefacto del lint, con la ruta de la que salió: al lado del snapshot.
+ *
+ * Un solo nombre (ADR 0100). Un artefacto ilegible es como no tenerlo.
+ */
 function loadLintArtifact(
   store: ArchitectureStore
 ): { artifact: LintArtifact; file: string } | null {
@@ -138,16 +141,14 @@ function loadLintArtifact(
     ? dirname(store.snapshotPath)
     : join(store.root, ".codarch");
   for (const base of [beside, join(beside, ".codarch")]) {
-    for (const name of [LINT_ARTIFACT_FILE, LINT_ARTIFACT_FILE_LEGACY]) {
-      const file = join(base, name);
-      try {
-        const artifact = readLintArtifact(
-          JSON.parse(readFileSync(file, "utf8")) as unknown
-        );
-        if (artifact) return { artifact, file };
-      } catch {
-        // Se prueba el siguiente nombre; un artefacto ilegible es como no tenerlo.
-      }
+    const file = join(base, LINT_ARTIFACT_FILE);
+    try {
+      const artifact = readLintArtifact(
+        JSON.parse(readFileSync(file, "utf8")) as unknown
+      );
+      if (artifact) return { artifact, file };
+    } catch {
+      // Sin artefacto legible no hay medida; se sigue con el siguiente sitio.
     }
   }
   return null;

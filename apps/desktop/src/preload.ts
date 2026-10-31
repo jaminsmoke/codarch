@@ -17,7 +17,7 @@ export type DesktopTarget =
       snapshot: unknown;
       /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
       rest: unknown | null;
-      /** El `.codarch/lint.cc.json` del repo, si existe (ADR 0094). */
+      /** El `.codarch/lint.repmod.json` del repo, si existe (ADR 0094). */
       lint: unknown | null;
       label: string;
       /**

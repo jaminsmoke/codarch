@@ -1,6 +1,6 @@
 ---
 title: "codarch lint"
-description: "Reads the lint the project already has —its configuration and its tool— and writes the .codarch/lint.cc.json artifact."
+description: "Reads the lint the project already has —its configuration and its tool— and writes the .codarch/lint.repmod.json artifact."
 section: usar
 sidebar:
   label: "lint"
@@ -69,7 +69,7 @@ codarch lint [path] [options]
 
 ## Output
 
-It writes `lint.cc.json` in the output directory. If it creates `.codarch/` at the root, it adds `.codarch/` to `.gitignore`; if the directory already existed, it is left alone. A repo that already had `.codarch/lint.json` is still read: the old name is never written again.
+It writes `lint.repmod.json` in the output directory. If it creates `.codarch/` at the root, it adds `.codarch/` to `.gitignore`; if the directory already existed, it is left alone. A `.codarch/lint.json` or `lint.cc.json` from an earlier version is not read: the sheet says “unmeasured” until it is analysed again.
 
 ```json
 {

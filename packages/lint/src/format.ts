@@ -23,15 +23,13 @@ import { md5Hex, stableStringify } from "@codarch/schema/browser";
 export const LINT_ARTIFACT_VERSION = "1.2";
 
 /**
- * El nombre del artefacto, en la familia de `cc.json` y `rest.cc.json`.
+ * El nombre del artefacto: un **módulo del reporte** (ADR 0100).
  *
- * Se llama `lint.cc.json` y no `lint.json` para que se lea de un vistazo que es
- * un artefacto del producto y no el fichero de cualquier herramienta.
+ * `repmod` de *report module*: se lee junto al `report.json` y comparte su
+ * árbol. No lleva `cc.json` porque no es un cc.json —el sufijo es del formato,
+ * no de la propiedad— y no lleva un nombre llano porque no es estado local.
  */
-export const LINT_ARTIFACT_FILE = "lint.cc.json";
-
-/** El nombre anterior (ADR 0094): se lee y no se escribe. */
-export const LINT_ARTIFACT_FILE_LEGACY = "lint.json";
+export const LINT_ARTIFACT_FILE = "lint.repmod.json";
 
 /** Una regla activa de un sistema de lint, con la severidad que le da su config. */
 export interface LintRule {
@@ -126,8 +124,8 @@ export interface LintArtifact {
 /**
  * Un artefacto leído de disco, o `null` si no es uno.
  *
- * El lector es de la app y por eso no lanza: un `lint.json` viejo, de otra
- * versión o escrito a mano no puede tumbar el mapa. Se comprueba la forma
+ * El lector es de la app y por eso no lanza: un artefacto de otra versión o
+ * escrito a mano no puede tumbar el mapa. Se comprueba la forma
  * entera y se devuelve una copia con los campos conocidos, para que quien lo
  * consuma no tenga que volver a mirar si lo que tiene delante es un objeto.
  */

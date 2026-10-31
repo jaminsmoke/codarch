@@ -1,6 +1,6 @@
 ---
 title: "codarch lint"
-description: "Lee el lint que el proyecto ya tiene —su configuración y su herramienta— y escribe el artefacto .codarch/lint.cc.json."
+description: "Lee el lint que el proyecto ya tiene —su configuración y su herramienta— y escribe el artefacto .codarch/lint.repmod.json."
 section: usar
 sidebar:
   label: "lint"
@@ -69,7 +69,7 @@ codarch lint [ruta] [opciones]
 
 ## Salida
 
-Escribe `lint.cc.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore`; si la carpeta ya existía, no lo toca. Un repo que ya tenía `.codarch/lint.json` se sigue leyendo: el nombre viejo no se vuelve a escribir.
+Escribe `lint.repmod.json` en la carpeta de salida. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore`; si la carpeta ya existía, no lo toca. Un `.codarch/lint.json` o `lint.cc.json` de una versión anterior no se lee: la hoja dirá «sin medir» hasta que se vuelva a analizar.
 
 ```json
 {

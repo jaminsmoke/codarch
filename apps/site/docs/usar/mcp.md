@@ -10,7 +10,7 @@ sidebar:
 CodArch expone su modelo a agentes mediante un servidor **MCP local y por stdio**. Todo lo que
 devuelve es lectura del snapshot, salvo `map_screenshot`, que además deja un PNG en el repo.
 No analiza código dentro de MCP: lee un snapshot `cc.json` ya generado y, si existen, el
-`report.json` del diff y el `lint.cc.json` del lint. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
+`report.json` del diff y el `lint.repmod.json` del lint. Así el agente ve los mismos hechos que el CLI, el mapa y el comentario del PR.
 
 El servidor **no es un subcomando** de `codarch`: es un binario aparte, `codarch-mcp`, que el agente
 arranca por stdio.
@@ -195,7 +195,7 @@ El lint que el proyecto tiene: los sistemas detectados, sus reglas activas y sus
 | `severity` | `all` \| `error` \| `warn` \| `info` | `all` | Severidad de los hallazgos |
 | `limit` | 1–200 | 20 | Hallazgos listados |
 
-Lee el `.codarch/lint.cc.json` que dejan `codarch lint` y `serve`, al lado del snapshot; no lanza
+Lee el `.codarch/lint.repmod.json` que dejan `codarch lint` y `serve`, al lado del snapshot; no lanza
 herramientas. Devuelve `systems` (nombre, configuración, reglas activas con su severidad y la nota
 de por qué no se midió o no se pudieron enumerar), `tools` (las que midieron), `summary`, `files` y
 `total` del ámbito, `rules` con la cuenta de cada regla y `findings` con fichero, regla, severidad,

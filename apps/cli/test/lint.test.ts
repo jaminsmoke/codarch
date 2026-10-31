@@ -81,7 +81,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    const file = path.join(root, ".codarch", "lint.cc.json");
+    const file = path.join(root, ".codarch", "lint.repmod.json");
     const artifact = readArtifact(file);
     expect(artifact.meta.tools).toEqual(["eslint", "oxlint"]);
     expect(artifact.summary).toMatchObject({ errors: 1, warnings: 1 });
@@ -162,7 +162,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(1);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(true);
   });
 
   it("una herramienta caída no impide escribir lo que sí se midió", async () => {
@@ -176,7 +176,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.repmod.json"));
     expect(artifact.meta.tools).toEqual(["eslint"]);
   });
 
@@ -193,7 +193,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(1);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(false);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(false);
   });
 
   it("--out escribe el artefacto donde se pide", async () => {
@@ -209,7 +209,7 @@ describe("codarch lint", () => {
     });
 
     expect(code).toBe(0);
-    expect(fs.existsSync(path.join(out, "lint.cc.json"))).toBe(true);
+    expect(fs.existsSync(path.join(out, "lint.repmod.json"))).toBe(true);
   });
 
   it("un repo sin lint no se inventa: recomienda el mínimo", async () => {
@@ -243,7 +243,7 @@ describe("la pasada que comparten lint y serve", () => {
     const result = await runProjectLint(root, { run: runner(root) });
 
     expect(result?.artifact?.meta.tools).toEqual(["eslint", "oxlint"]);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(true);
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(true);
   });
 
   it("un repo sin herramientas no tiene pasada de lint", async () => {
@@ -265,7 +265,7 @@ describe("la pasada que comparten lint y serve", () => {
       summary: { files: 0, errors: 0, warnings: 0, messages: 0, measured: 4 }
     };
     const root = tempRepo({
-      ".codarch/lint.cc.json": JSON.stringify(artifact)
+      ".codarch/lint.repmod.json": JSON.stringify(artifact)
     });
     const legacy = tempRepo({
       ".codarch/lint.json": JSON.stringify({
@@ -278,9 +278,8 @@ describe("la pasada que comparten lint y serve", () => {
 
     expect(readProjectLint(root)?.meta.tree).toBe("107a6ce8");
     expect(readProjectLint(root)?.summary.measured).toBe(4);
-    // El nombre anterior se sigue leyendo, sin árbol ni cobertura.
-    expect(readProjectLint(legacy)?.meta.tree).toBeUndefined();
-    expect(readProjectLint(legacy)?.summary.measured).toBeUndefined();
+    // Un solo nombre (ADR 0100): el artefacto viejo no se lee a medias.
+    expect(readProjectLint(legacy)).toBeNull();
     expect(readProjectLint(tempRepo({}))).toBeNull();
   });
 });
@@ -312,7 +311,7 @@ describe("codarch lint con el lint del proyecto", () => {
     });
 
     expect(code).toBe(0);
-    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.repmod.json"));
     expect(artifact.meta.tools).toEqual(["eslint"]);
     expect(artifact.meta.systems).toEqual([
       {
@@ -336,7 +335,7 @@ describe("codarch lint con el lint del proyecto", () => {
     expect(code).toBe(1);
     expect(error.mock.calls.join("\n")).toMatch(/declara lint/);
     expect(error.mock.calls.join("\n")).toMatch(/eslint · eslint.config.js/);
-    expect(fs.existsSync(path.join(root, ".codarch", "lint.cc.json"))).toBe(
+    expect(fs.existsSync(path.join(root, ".codarch", "lint.repmod.json"))).toBe(
       false
     );
   });
@@ -368,7 +367,7 @@ describe("codarch lint con el lint del proyecto", () => {
     });
 
     expect(code).toBe(0);
-    const artifact = readArtifact(path.join(root, ".codarch", "lint.cc.json"));
+    const artifact = readArtifact(path.join(root, ".codarch", "lint.repmod.json"));
     expect(artifact.meta.systems).toEqual([
       { name: "eslint", config: null },
       { name: "oxlint", config: null }

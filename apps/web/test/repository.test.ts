@@ -51,7 +51,7 @@ describe("readRepositoryFromFiles", () => {
     const artifacts = await readRepositoryFromFiles([
       file("repo/.codarch/snapshot.cc.json", '{"meta":{"apiVersion":"2.0"}}'),
       file(
-        "repo/.codarch/lint.cc.json",
+        "repo/.codarch/lint.repmod.json",
         '{"schemaVersion":"1.0","meta":{"checksum":"abc","tools":[]},"files":{},"summary":{"files":0,"errors":0,"warnings":0,"messages":0}}'
       )
     ]);
@@ -64,7 +64,7 @@ describe("readRepositoryFromFiles", () => {
     });
   });
 
-  it("sigue leyendo el lint.json con el nombre anterior", async () => {
+  it("no lee un lint con el nombre anterior (ADR 0100)", async () => {
     const artifacts = await readRepositoryFromFiles([
       file("repo/.codarch/snapshot.cc.json", '{"meta":{"apiVersion":"2.0"}}'),
       file(
@@ -73,7 +73,7 @@ describe("readRepositoryFromFiles", () => {
       )
     ]);
 
-    expect(artifacts.lint).toMatchObject({ schemaVersion: "1.0" });
+    expect(artifacts.lint).toBeNull();
   });
 
   it("sin lint en la carpeta, el proyecto se queda sin medir", async () => {

@@ -105,7 +105,7 @@ export function startLive(
   /**
    * El lint de la pasada, en sus propios procesos (ADR 0094).
    *
-   * Se lanza cuando el análisis dice que hay cambios: escribir `lint.cc.json`
+   * Se lanza cuando el análisis dice que hay cambios: escribir `lint.repmod.json`
    * también despierta al vigilante, y lintar antes de saber si la pasada trae
    * algo nuevo se llamaba a sí mismo sin parar. Si falla, no se toca el
    * artefacto: se sigue sirviendo el anterior y se dice. Una pasada en curso no

@@ -68,7 +68,7 @@ codarch analyze [path] [options]
 Writes `snapshot.cc.json` to the output folder and, next to it, `rest.cc.json`: the map of what is not code —documents, configuration and assets— in its own snapshot with its own checksum, so changing a `.md` does not move the code one. If it creates `.codarch/` at the root, it adds `.codarch/` to `.gitignore` (an existing folder is left alone). Prints a summary: root, both snapshot paths and sizes, lint (with its coverage), files, folders, edges, cycles, imports (external, builtins, type-only, unresolved), migration, parse cache, nested scopes and time.
 
 If the project has lint —its config and its tool, as in [`codarch lint`](lint.md)—, `analyze` runs it and
-also writes `.codarch/lint.cc.json`, signed with the checksum of the snapshot it has just written. It is
+also writes `.codarch/lint.repmod.json`, signed with the checksum of the snapshot it has just written. It is
 one more lens of the analysis: it does not go into `cc.json` —the checksum depends on the code, not on
 what you have installed— and `serve` does not measure it again while the artifact belongs to that same
 tree. `--no-lint` skips it.

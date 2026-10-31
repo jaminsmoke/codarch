@@ -28,7 +28,7 @@ codarch serve [path] [options]
 
 ## Output
 
-Prints the URL and keeps running until Ctrl+C. Besides the app it exposes data under `/data/` (`snapshot.cc.json`, `rest.cc.json`, `lint.cc.json`, `meta.json`, `report.json`, `head-report.json`, `history.json`, …). The rest —documents, configuration and assets— comes from the same pass as the code and is stored in `.codarch/rest.cc.json`. Lint is a separate file: whatever exists is served, and it is only measured again when the served tree does not match the artifact's —which [`codarch analyze`](analyze.md) signs—, using the lint it detects in the repo; if the repo has no lint there is no artifact and the app stays unmeasured. Without a path it analyses the current folder.
+Prints the URL and keeps running until Ctrl+C. Besides the app it exposes data under `/data/` (`snapshot.cc.json`, `rest.cc.json`, `lint.repmod.json`, `meta.json`, `report.json`, `head-report.json`, `history.json`, …). The rest —documents, configuration and assets— comes from the same pass as the code and is stored in `.codarch/rest.cc.json`. Lint is a separate file: whatever exists is served, and it is only measured again when the served tree does not match the artifact's —which [`codarch analyze`](analyze.md) signs—, using the lint it detects in the repo; if the repo has no lint there is no artifact and the app stays unmeasured. Without a path it analyses the current folder.
 
 ## Examples
 

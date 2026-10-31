@@ -79,7 +79,7 @@ The repo state is saved in its `.codarch/` folder, not in the app. What CodArch 
 | `chains.json` | the symbol chain ledger |
 | `preferences.json` | the view preferences |
 | `parse-cache.json` | the parse cache of the last pass |
-| `lint.cc.json` | the measured lint, with the tree it measured |
+| `lint.repmod.json` | the measured lint, with the tree it measured |
 | `scopes.json` | the `.codarch/` folders seen below this root |
 
 That is everything CodArch writes there, and nothing else: the folder belongs to the product, not to

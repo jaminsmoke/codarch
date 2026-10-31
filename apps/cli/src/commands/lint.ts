@@ -51,7 +51,7 @@ function filesWithFindings(value: number): string {
 
 /**
  * `codarch lint`: corre las herramientas que declara el repo y escribe
- * `.codarch/lint.cc.json` (ADR 0094).
+ * `.codarch/lint.repmod.json` (ADR 0094).
  *
  * Falla blando: una herramienta que no está o revienta se avisa y las demás
  * miden. El artefacto se escribe con lo que sí midió; si no midió ninguna, no

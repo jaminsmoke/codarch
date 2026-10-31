@@ -185,7 +185,7 @@ export function createServer(store: ArchitectureStore): McpServer {
     {
       title: "Lint del proyecto",
       description:
-        "El lint que el proyecto tiene: los sistemas detectados con su configuración, sus reglas activas y su nota, el resumen de hallazgos y los mensajes con su fichero, regla, severidad y posición. Lee el .codarch/lint.cc.json que dejan codarch analyze y serve; no lanza herramientas. Sin artefacto devuelve available: false con el motivo: el lint no está limpio, está sin medir. Filtra por carpeta o fichero, por regla y por severidad.",
+        "El lint que el proyecto tiene: los sistemas detectados con su configuración, sus reglas activas y su nota, el resumen de hallazgos y los mensajes con su fichero, regla, severidad y posición. Lee el .codarch/lint.repmod.json que dejan codarch analyze y serve; no lanza herramientas. Sin artefacto devuelve available: false con el motivo: el lint no está limpio, está sin medir. Filtra por carpeta o fichero, por regla y por severidad.",
       inputSchema: {
         path: z
           .string()

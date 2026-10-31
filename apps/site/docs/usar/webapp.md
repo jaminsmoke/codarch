@@ -169,7 +169,7 @@ que leen el CLI y el MCP, y un `info` cuenta como hallazgo aunque no sea error n
 
 ![La hoja Proyecto: sus métricas con el lint y el lint por carpeta, y Reglas con los sistemas del repo —eslint con su configuración y sus reglas activas, oxlint sin config—](../images/webapp-inspector-proyecto.png)
 
-Sin `.codarch/lint.cc.json` no hay ceros: el bloque de lint dice **sin medir** y lo que pesará cuando se
+Sin `.codarch/lint.repmod.json` no hay ceros: el bloque de lint dice **sin medir** y lo que pesará cuando se
 ejecute [`codarch analyze`](cli/analyze.md), que lo mide con el linter del proyecto.
 
 No hay un «riesgo del proyecto»: el riesgo está normalizado por el p95 del proyecto y es de cada

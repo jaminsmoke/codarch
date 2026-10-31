@@ -196,7 +196,7 @@ The lint the project actually has: detected systems, their active rules and thei
 | `severity` | `all` \| `error` \| `warn` \| `info` | `all` | Finding severity |
 | `limit` | 1–200 | 20 | Listed findings |
 
-It reads the `.codarch/lint.cc.json` left by `codarch lint` and `serve`, next to the snapshot; it
+It reads the `.codarch/lint.repmod.json` left by `codarch lint` and `serve`, next to the snapshot; it
 does not run tools. It returns `systems` (name, configuration, active rules with their severity and
 the note saying why it was not measured or its rules could not be enumerated), `tools` (the ones
 that measured), `summary`, the scope's `files` and `total`, `rules` with each rule's count and

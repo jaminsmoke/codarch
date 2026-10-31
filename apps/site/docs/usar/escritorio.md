@@ -77,7 +77,7 @@ El estado del repo se guarda en su carpeta `.codarch/`, no en la app. Lo que esc
 | `chains.json` | el libro de cadenas de símbolos |
 | `preferences.json` | las preferencias de la vista |
 | `parse-cache.json` | la caché de parseo de la última pasada |
-| `lint.cc.json` | el lint medido, con el árbol que midió |
+| `lint.repmod.json` | el lint medido, con el árbol que midió |
 | `scopes.json` | los `.codarch/` que se vieron por debajo de esta raíz |
 
 Eso es todo lo que CodArch escribe ahí, y nada más: la carpeta es del producto, no un sitio donde

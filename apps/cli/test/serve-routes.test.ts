@@ -102,11 +102,11 @@ describe("las rutas del servidor", () => {
     const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
     const base = await serve(root);
 
-    const sinLint = await fetch(`${base}/data/lint.cc.json`);
+    const sinLint = await fetch(`${base}/data/lint.repmod.json`);
     expect(sinLint.status).toBe(204);
 
     fs.writeFileSync(
-      path.join(root, ".codarch", "lint.cc.json"),
+      path.join(root, ".codarch", "lint.repmod.json"),
       JSON.stringify({
         schemaVersion: "1.0",
         meta: { checksum: "abc", tools: ["eslint"] },
@@ -115,7 +115,7 @@ describe("las rutas del servidor", () => {
       })
     );
 
-    const served = await fetch(`${base}/data/lint.cc.json`);
+    const served = await fetch(`${base}/data/lint.repmod.json`);
     expect(served.status).toBe(200);
     expect(await served.json()).toMatchObject({
       schemaVersion: "1.0",
@@ -123,7 +123,7 @@ describe("las rutas del servidor", () => {
     });
   });
 
-  it("sigue sirviendo el lint.json con el nombre anterior", async () => {
+  it("no sirve un lint con el nombre anterior (ADR 0100)", async () => {
     const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
     fs.mkdirSync(path.join(root, ".codarch"), { recursive: true });
     fs.writeFileSync(
@@ -137,11 +137,8 @@ describe("las rutas del servidor", () => {
     );
     const base = await serve(root);
 
-    const served = await fetch(`${base}/data/lint.cc.json`);
-    expect(served.status).toBe(200);
-    expect(await served.json()).toMatchObject({
-      summary: { errors: 1, warnings: 2 }
-    });
+    // Un solo nombre: el artefacto viejo no se lee a medias.
+    expect((await fetch(`${base}/data/lint.repmod.json`)).status).toBe(204);
   });
 
   it("da código por ruta y se queja si falta", async () => {

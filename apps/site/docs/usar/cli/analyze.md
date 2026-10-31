@@ -68,7 +68,7 @@ codarch analyze [ruta] [opciones]
 Escribe `snapshot.cc.json` en la carpeta de salida y, a su lado, `rest.cc.json`: el mapa de lo que no es código —documentos, configuración y assets— en su propio snapshot y con su propio checksum, así que cambiar un `.md` no mueve el del código. Si crea `.codarch/` en la raíz, añade `.codarch/` al `.gitignore` (si la carpeta ya existía, no lo toca). Imprime un resumen: raíz, ruta y tamaño de los dos snapshots, el lint (con su cobertura), ficheros, carpetas, aristas, ciclos, imports (externos, builtins, type-only, sin resolver), migración, caché de parseo, alcances anidados y tiempo.
 
 Si el proyecto tiene lint —su configuración y su herramienta, como en [`codarch lint`](lint.md)—,
-`analyze` lo ejecuta y escribe también `.codarch/lint.cc.json`, firmado con el checksum del snapshot que
+`analyze` lo ejecuta y escribe también `.codarch/lint.repmod.json`, firmado con el checksum del snapshot que
 acaba de escribir. Es una lente más del análisis: no entra en `cc.json` —el checksum depende del código,
 no de lo que tengas instalado— y `serve` no la vuelve a medir mientras el artefacto sea de ese mismo
 árbol. `--no-lint` se la salta.

@@ -95,7 +95,7 @@ export function lintScore(errors: number, warnings: number): number {
 }
 
 /**
- * La deuda por ruta, a partir de los ficheros de un `lint.json`.
+ * La deuda por ruta, a partir de los ficheros de un `lint.repmod.json`.
  *
  * Es la forma estructural del artefacto, no su tipo: `@codarch/metrics` no
  * necesita depender de `@codarch/lint` para multiplicar por 0,25.
