@@ -8,6 +8,7 @@ import {
   fileId,
   folderId,
   parseCcJson,
+  type CcDuplicationLens,
   type CcJson,
   type CcNode
 } from "@codarch/schema";
@@ -25,7 +26,8 @@ function tempDir(): string {
 function snapshot(
   projectName: string,
   files: Array<{ path: string; metrics: Record<string, number> }>,
-  edges: Array<{ from: string; to: string; cyclic?: boolean }>
+  edges: Array<{ from: string; to: string; cyclic?: boolean }>,
+  duplication?: CcDuplicationLens
 ): CcJson {
   const root: CcNode = {
     id: folderId(""),
@@ -75,7 +77,8 @@ function snapshot(
           attributes: { weight: 1, typeOnly: 0 },
           isCyclic: edge.cyclic === true
         }))
-      }
+      },
+      ...(duplication ? { duplication } : {})
     }
   });
 }
@@ -459,6 +462,86 @@ describe("el informe del diff", () => {
       text.indexOf("Hotspots (maxComplexity):")
     );
     expect(text.endsWith("\n")).toBe(true);
+  });
+
+  it("cuenta la duplicación y nombra los pares que cambian", () => {
+    const lens = (
+      pairs: CcDuplicationLens["pairs"],
+      duplicatedLines: number
+    ): CcDuplicationLens => ({
+      nodes: {},
+      pairs,
+      summary: {
+        pairs: pairs.length,
+        copies: 0,
+        duplicatedLines,
+        repeatedLines: 0,
+        ratio: 10
+      }
+    });
+    const files = [
+      { path: "a.ts", metrics: { rloc: 5 } },
+      { path: "b.ts", metrics: { rloc: 5 } },
+      { path: "c.ts", metrics: { rloc: 5 } }
+    ];
+    const before = snapshot(
+      "proj",
+      files,
+      [],
+      lens(
+        [
+          {
+            fromId: fileId("b.ts"),
+            toId: fileId("c.ts"),
+            lines: 20,
+            similarity: 90,
+            status: "diverging"
+          }
+        ],
+        20
+      )
+    );
+    const after = snapshot(
+      "proj",
+      files,
+      [],
+      lens(
+        [
+          {
+            fromId: fileId("a.ts"),
+            toId: fileId("b.ts"),
+            lines: 12,
+            similarity: 100,
+            status: "copy"
+          },
+          {
+            fromId: fileId("b.ts"),
+            toId: fileId("c.ts"),
+            lines: 30,
+            similarity: 66,
+            status: "diverging"
+          }
+        ],
+        50
+      )
+    );
+
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    compareSnapshots(before, after, {
+      baseLabel: "base.cc.json",
+      headLabel: "head.cc.json",
+      title: "diff",
+      failOn: "none",
+      top: 5
+    });
+
+    const text = String(log.mock.calls[0]?.[0]);
+    expect(text).toMatch(
+      /^\s+duplicación\s+50 líneas \(\+30\) · 1 par nuevo · 1 se separa$/m
+    );
+    expect(text).toContain("  Duplicación (20 → 50 líneas):");
+    expect(text).toContain("+ a.ts ↔ b.ts  copia · 12 líneas");
+    expect(text).toContain("~ b.ts ↔ c.ts  90% → 66% · 30 líneas (+10)");
   });
 
   it("sin fail-on pasa, dice que no hay ciclos y no escribe reporte", () => {

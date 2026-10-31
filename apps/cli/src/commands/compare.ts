@@ -127,6 +127,7 @@ function renderReport(
     ...cycleLines(report),
     ...symbolLines(report),
     ...hotspotLines(report),
+    ...duplicationLines(report),
     ...violationLines(report),
     ""
   ];
@@ -167,6 +168,7 @@ function summaryLines(
       )} · ~${signed(summary.changedRloc)} en ficheros cambiados`
     ),
     field("símbolos", symbolsText(report)),
+    field("duplicación", duplicationText(report)),
     field(
       "ciclos",
       `${signed(summary.introducedCycles)} nuevos · ${signed(
@@ -245,6 +247,99 @@ function symbolDetail(symbol: NonNullable<DiffReport["symbols"]>["files"][number
     return `complejidad ${signed(symbol.complexityDelta)}`;
   }
   return symbol.status === "added" ? "nuevo" : "eliminado";
+}
+
+/**
+ * Lo copiado, en una línea: el total con su delta y los pares que importan.
+ *
+ * Un solo lado medido no es un cero: se dice cuál falta y no se compara.
+ */
+function duplicationText(report: DiffReport): string {
+  const duplication = report.duplication;
+  if (!duplication) return "sin lente de duplicación";
+  if (duplication.lines.delta === null) {
+    return duplication.base ? "sin medir en el head" : "sin medir en la base";
+  }
+
+  const parts = [
+    `${num(duplication.lines.head ?? 0)} líneas (${signed(
+      duplication.lines.delta
+    )})`
+  ];
+  if (duplication.counts.added > 0) {
+    parts.push(
+      countText(duplication.counts.added, "par nuevo", "pares nuevos")
+    );
+  }
+  if (duplication.counts.diverging > 0) {
+    parts.push(
+      countText(duplication.counts.diverging, "se separa", "se separan")
+    );
+  }
+  if (duplication.counts.removed > 0) {
+    parts.push(
+      countText(duplication.counts.removed, "desaparece", "desaparecen")
+    );
+  }
+  return parts.join(" · ");
+}
+
+/** Los pares que aparecen o se separan, con el total del cambio. */
+function duplicationLines(report: DiffReport): string[] {
+  const duplication = report.duplication;
+  if (!duplication || duplication.lines.delta === null) return [];
+
+  const rows = [
+    ...duplication.added.map((pair) => ({ pair, kind: "added" as const })),
+    ...duplication.diverging.map((pair) => ({
+      pair,
+      kind: "diverging" as const
+    }))
+  ];
+  const total =
+    duplication.counts.added +
+    duplication.counts.diverging +
+    duplication.counts.removed;
+  if (total === 0) return [];
+
+  const lines = [
+    "",
+    `  Duplicación (${num(duplication.lines.base ?? 0)} → ${num(
+      duplication.lines.head ?? 0
+    )} líneas):`
+  ];
+  for (const { pair, kind } of rows.slice(0, SHOWN)) {
+    const label =
+      kind === "added"
+        ? `+ ${pair.from} ↔ ${pair.to}  ${
+            pair.similarity === 100 ? "copia" : `${pair.similarity}%`
+          } · ${num(pair.lines)} líneas`
+        : `~ ${pair.from} ↔ ${pair.to}  ${
+            pair.previousSimilarity ?? pair.similarity
+          }% → ${pair.similarity}% · ${num(pair.lines)} líneas (${signed(
+            pair.linesDelta ?? 0
+          )})`;
+    lines.push(`    ${label}`);
+  }
+  if (duplication.counts.removed > 0) {
+    lines.push(
+      `    ${num(duplication.counts.removed)} pares dejan de compartir bloques`
+    );
+  }
+  // Los que no caben en la lista: solo los que tenían fila propia.
+  const unshown = Math.max(
+    0,
+    duplication.counts.added +
+      duplication.counts.diverging -
+      Math.min(rows.length, SHOWN)
+  );
+  if (unshown > 0) lines.push(`    … y ${num(unshown)} más`);
+  return lines;
+}
+
+/** El número con su palabra: uno no va en plural. */
+function countText(count: number, one: string, many: string): string {
+  return `${num(count)} ${count === 1 ? one : many}`;
 }
 
 function hotspotLines(report: DiffReport): string[] {
