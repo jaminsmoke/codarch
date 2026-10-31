@@ -1,37 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getStats, symbolsOf, type CcJson } from "@codarch/schema/browser";
+import type { CcJson } from "@codarch/schema/browser";
 import type { RepoAddon } from "@codarch/addons";
-import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
-import type { PluginContext, PluginView } from "@codarch/plugin-api";
-import { buildRenderModel } from "@codarch/render/browser";
+import type { SymbolChain } from "@codarch/schema/browser";
 import { usePlugins } from "./plugins";
-import { CHURN_METRIC } from "./labels";
-import { findFolder } from "./tree";
-import { mapColorFor, metricIndexOf } from "./map";
-import { orderedMetrics } from "./metrics";
-import { readMigration } from "./data";
-import { DEFAULT_DETAIL_OPTIONS, pruneTree, type DetailResult } from "./detail";
-import { planSnapshotView } from "./app/snapshotView";
+import { metricCoverage, planMapSwitch } from "./app/snapshotView";
+import { planViewState } from "./app/applyView";
+import { useDerivedMap } from "./app/derived";
+import { useRestoreProject, useExistingMap } from "./app/restore";
+import { useRestoreSelection, useSelection } from "./app/useSelection";
+import { useViewOptions } from "./app/viewOptions";
+import { usePluginBindings } from "./app/pluginBindings";
+import { platformBridges } from "./app/bridges";
+import type { Plataforma } from "./platform";
+import type { ViewPreferences } from "./storage";
+import type { InspectorTab, ViewState as AppViewState } from "./viewState";
 import type {
-  Plataforma,
-  CodeRequest,
-  CodeSnippet,
-  EditorRequest,
-  FileDiffView
-} from "./platform";
-import { localStore, type ViewPreferences } from "./storage";
-import {
-  isColorModeAvailable,
-  type InspectorTab,
-  type ViewState as AppViewState
-} from "./viewState";
-import type {
-  AppView,
   CodarchApp,
   CodarchAppActions,
   CodarchAppOptions,
   CodarchAppState,
-  CodarchOption,
   MapId,
   WatchState
 } from "./app/types";
@@ -52,13 +39,14 @@ export type {
 } from "./app/types";
 
 /**
- * El estado y las acciones de la app, en un solo hook.
+ * El estado y las acciones de la app.
  *
- * Lo que tiene una responsabilidad propia vive en `app/`: los tipos, la cámara
- * del mapa, los documentos que se abren y se guardan, las preferencias y los
- * atajos. Aquí queda lo que es de la app entera —qué se deriva del snapshot,
- * qué está seleccionado, qué vistas traen los plugins— y el pegamento entre
- * esas piezas.
+ * El hook es el pegamento: guarda el estado, encadena las piezas y devuelve lo
+ * que la interfaz pinta. Lo que tiene una regla propia vive fuera, en `app/`:
+ * la cámara, los documentos, las preferencias, los atajos, lo que se deriva del
+ * snapshot, la selección, las opciones de los selectores, el contexto de los
+ * plugins y el arranque del último proyecto. Cada una se lee —y sus reglas se
+ * prueban— sin montar la app.
  */
 export function useCodarchApp(
   plataforma: Plataforma,
@@ -199,237 +187,85 @@ export function useCodarchApp(
     preferencesRef
   });
 
-  /** El snapshot que se está mirando: el código o el resto. */
-  const activeCc = map === "rest" && rest ? rest : cc;
+  /** El snapshot que se mira, sus cuentas, su modelo, su detalle y su foco. */
+  const { activeCc, stats, migration, hasChurn, view, detail } = useDerivedMap({
+    cc,
+    rest,
+    lint,
+    map,
+    areaMetric,
+    colorMode,
+    focusPath
+  });
 
-  const stats = useMemo(() => (activeCc ? getStats(activeCc) : null), [activeCc]);
-  const migration = useMemo(() => readMigration(activeCc), [activeCc]);
-  const hasChurn = useMemo(
-    () =>
-      stats
-        ? stats.metricCoverage.some((entry) => entry.name === CHURN_METRIC)
-        : false,
-    [stats]
-  );
+  /** Qué está elegido, qué se abre y qué hoja lo lee (ADR 0092, ADR 0087). */
+  const selection = useSelection({
+    model: view.model,
+    activeCc,
+    migration,
+    selectedIndex,
+    selectedFolder,
+    selectedPathRef,
+    setSelectedIndex,
+    setSelectedFolder,
+    setTab,
+    setOpenFile,
+    setFocusPath,
+    setQuery,
+    setChain,
+    chains: plataforma.cadenas ?? null
+  });
+  const {
+    selectIndex,
+    restoreIndex,
+    selectFolder,
+    openSymbolChain,
+    selectedFile,
+    selectedFolderNode,
+    selectedMigration,
+    selectedSymbols,
+    selectedStructure,
+    selectPath,
+    openFileAt,
+    closeFile,
+    clearSelection
+  } = selection;
 
-  const view = useMemo<AppView>(() => {
-    if (!activeCc || !areaMetric) return { model: null, error: null };
-    try {
-      return {
-        model: buildRenderModel(activeCc, {
-          areaMetric,
-          color: colorMode === "status" ? "risk" : colorMode,
-          title: activeCc.meta.projectName,
-          // El lint es del repo de código (ADR 0094): el mapa del resto no
-          // tiene errores ni avisos que contar.
-          lint: map === "code" ? lint : null
-        }),
-        error: null
-      };
-    } catch (cause) {
-      return { model: null, error: (cause as Error).message };
-    }
-  }, [activeCc, areaMetric, colorMode, lint, map]);
-
-  const detail = useMemo<DetailResult | null>(() => {
-    if (!view.model) return null;
-    const folder = focusPath ? findFolder(view.model.roots, focusPath) : null;
-    const roots = folder ? [folder] : view.model.roots;
-    const total = folder ? folder.fileCount : view.model.fileCount;
-    return pruneTree(roots, DEFAULT_DETAIL_OPTIONS, total);
-  }, [view.model, focusPath]);
-
-  const selectIndex = useCallback(
-    (index: number | null) => {
-      setSelectedIndex(index);
-      const file = index === null ? undefined : view.model?.files[index];
-      selectedPathRef.current = file?.path ?? null;
-      // Un fichero y una carpeta no pueden estar seleccionados a la vez, y la
-      // hoja de la carpeta no se queda abierta hablando de un fichero.
-      if (index !== null) {
-        setSelectedFolder(null);
-        setTab((current) =>
-          current === "folder" || current === "project" ? "file" : current
-        );
-      }
-    },
-    [view.model]
-  );
-
-  /**
-   * Selecciona una carpeta: la ficha pasa a hablar de ella (ADR 0092).
-   *
-   * No mueve el mapa: la selección y el foco son cosas distintas. Una ruta que
-   * ya no existe en el árbol se ignora en silencio, como en `applyView`.
-   */
-  const selectFolder = useCallback(
-    (path: string | null) => {
-      if (path !== null && !findFolder(view.model?.roots ?? [], path)) return;
-      setSelectedFolder(path);
-      if (path !== null) {
-        selectedPathRef.current = null;
-        setSelectedIndex(null);
-        // El clic en una carpeta abre su hoja: es la razón de tener entrada
-        // propia en la barra de actividad (ADR 0092).
-        setTab("folder");
-      }
-    },
-    [view.model]
-  );
-
-  const openSymbolChain = useCallback(
-    async (name: string, path: string) => {
-      const file = view.model?.files.find((item) => item.path === path);
-      if (file) selectIndex(file.index);
-
-      if (!plataforma.cadenas) return;
-      const raw = await plataforma.cadenas(name);
-      const chains =
-        raw && typeof raw === "object"
-          ? (raw as { chains?: unknown }).chains
-          : null;
-      if (!Array.isArray(chains) || chains.length === 0) {
-        setChain(null);
-        return;
-      }
-      setChain((chains as SymbolChain[])[0] ?? null);
-    },
-    [view.model, selectIndex, plataforma]
-  );
+  useRestoreSelection({
+    model: view.model,
+    selectedFolder,
+    selectedPathRef,
+    restoreIndex,
+    setSelectedFolder,
+    setTab
+  });
 
   // Derivado del modelo: es lo mismo en la web y en el escritorio (ADR 0049).
-  const metricOptions = useMemo(
-    () =>
-      stats ? orderedMetrics(stats.metricCoverage.map((entry) => entry.name)) : [],
-    [stats]
-  );
-
   const descriptors = activeCc?.lenses?.metrics?.attributeDescriptors as
     | Record<string, { title?: string }>
     | undefined;
 
-  const metricTitle = useCallback(
-    (key: string): string => descriptors?.[key]?.title ?? key,
-    [descriptors]
-  );
+  /** Las métricas que se ofrecen, sus títulos y los colores que se pueden pintar. */
+  const { metricOptions, metricTitle, areaOptions, colorOptions } =
+    useViewOptions({ stats, descriptors, map, lint, hasChurn, migration });
 
-  const areaOptions = useMemo<CodarchOption[]>(
-    () => metricOptions.map((key) => ({ value: key, label: metricTitle(key) })),
-    [metricOptions, metricTitle]
-  );
-
-  const colorOptions = useMemo<CodarchOption[]>(() => {
-    // El resto no tiene riesgo, estructura ni migración: se pinta por tipo, y
-    // el tamaño queda como un color más si se quiere.
-    const options: CodarchOption[] = [];
-    if (map === "code") {
-      options.push({ value: "risk", label: "Riesgo" });
-      options.push({ value: "structure", label: "Estructura" });
-      if (hasChurn) options.push({ value: "churn", label: "Calor (commits)" });
-      if (migration) {
-        options.push({ value: "status", label: "Estado de migración" });
-      }
-    } else {
-      options.push({ value: "kind", label: "Tipo" });
-    }
-    for (const option of areaOptions) options.push(option);
-    return options;
-  }, [hasChurn, migration, areaOptions, map]);
-
-  const selectedFile =
-    view.model && selectedIndex !== null
-      ? view.model.files[selectedIndex] ?? null
-      : null;
-  const selectedFolderNode =
-    view.model && selectedFolder
-      ? findFolder(view.model.roots, selectedFolder)
-      : null;
-  const selectedMigration = selectedFile
-    ? migration?.nodes[selectedFile.nodeId] ?? null
-    : null;
-  /** Los símbolos del fichero elegido, del más complejo al más simple. */
-  const selectedSymbols = useMemo(
-    () =>
-      selectedFile && activeCc ? symbolsOf(activeCc, selectedFile.nodeId) : [],
-    [activeCc, selectedFile]
-  );
-  const selectedStructure = useMemo(
-    () =>
-      selectedFile && activeCc
-        ? activeCc.lenses?.structure?.nodes[selectedFile.nodeId] ?? null
-        : null,
-    [activeCc, selectedFile]
-  );
-
-  /** Las vistas que aportan los plugins activados. */
-  const pluginViews = useMemo(() => {
-    const views: PluginView[] = [];
-    for (const descriptor of plugins.descriptors) {
-      if (!plugins.enabled.includes(descriptor.manifest.name)) continue;
-      const module = plugins.moduleOf(descriptor.manifest.name);
-      for (const view of module?.views ?? []) views.push(view);
-    }
-    return views;
-  }, [plugins]);
-
-  /** La vista que está abierta, si la hay. */
-  const activePluginView =
-    pluginViews.find((view) => view.id === pluginView) ?? null;
-
-  /** Lo que recibe el plugin: el modelo, lo que puede pedir y el color. */
-  const pluginContext = useMemo<PluginContext>(
-    () => ({
-      model: view.model,
-      selection: selectedFile?.path ?? null,
-      actions: {
-        select: (path: string) => {
-          const index = view.model?.files.findIndex(
-            (file) => file.path === path
-          );
-          if (index !== undefined && index >= 0) selectIndex(index);
-        },
-        focus: (path: string) => setFocusPath(path),
-        setTab: (tab: InspectorTab) => setTab(tab)
-      },
-      preferences: { areaMetric, colorMode },
-      colorFor: (index: number) => {
-        const file = view.model?.files[index];
-        if (!file || !view.model) return "#d5d2ca";
-        return mapColorFor(
-          file,
-          colorMode,
-          view.model,
-          migration,
-          metricIndexOf(view.model)
-        );
-      },
-      url: {
-        read: () => ({
-          areaMetric,
-          colorMode,
-          focusPath,
-          filePath: selectedFile?.path ?? null,
-          tab
-        }),
-        write: (state) => {
-          if (state.areaMetric !== undefined) setAreaMetric(state.areaMetric);
-          if (state.colorMode !== undefined) setColorMode(state.colorMode);
-          if (state.focusPath !== undefined) setFocusPath(state.focusPath);
-        }
-      },
-      storage: localStore()
-    }),
-    [
-      view.model,
-      selectedFile,
-      areaMetric,
-      colorMode,
-      focusPath,
-      tab,
-      selectIndex,
-      migration
-    ]
-  );
+  /** Las vistas de los plugins activados y lo que reciben al dibujar. */
+  const { pluginViews, activePluginView, pluginContext } = usePluginBindings({
+    plugins,
+    pluginView,
+    model: view.model,
+    selectedFile,
+    areaMetric,
+    colorMode,
+    focusPath,
+    tab,
+    migration,
+    select: selectIndex,
+    setFocusPath,
+    setTab,
+    setAreaMetric,
+    setColorMode
+  });
 
   const matches = useMemo(() => {
     if (!view.model || query.trim() === "") return view.model?.fileCount ?? 0;
@@ -445,38 +281,6 @@ export function useCodarchApp(
     [addons]
   );
 
-  /** Selecciona un fichero por su ruta y vuelve a la pestaña del fichero. */
-  const selectPath = useCallback(
-    (path: string) => {
-      const index =
-        view.model?.files.findIndex((candidate) => candidate.path === path) ??
-        -1;
-      if (index >= 0) {
-        selectIndex(index);
-        setTab("file");
-      }
-    },
-    [selectIndex, view.model]
-  );
-
-  /**
-   * Abre un fichero en el escenario y lo deja seleccionado en la ficha.
-   *
-   * El mapa se sustituye por su código, no se añade una pestaña (ADR 0087).
-   * Se vuelve con la ruta, con `Esc` o abriendo otra carpeta.
-   */
-  const openFileAt = useCallback(
-    (path: string) => {
-      const index = view.model?.files.findIndex((file) => file.path === path);
-      if (index !== undefined && index >= 0) selectIndex(index);
-      setOpenFile(path);
-      setTab("file");
-    },
-    [selectIndex, view.model]
-  );
-
-  const closeFile = useCallback(() => setOpenFile(null), []);
-
   /**
    * Cambia de mapa: el del código o el del resto (ADR 0093).
    *
@@ -487,8 +291,14 @@ export function useCodarchApp(
    */
   const changeMap = useCallback(
     (next: MapId) => {
-      if (next === map) return;
-      if (next === "rest" && !rest) return;
+      const plan = planMapSwitch({
+        next,
+        current: map,
+        cc,
+        rest,
+        preferences: preferencesRef.current
+      });
+      if (plan.kind !== "switch") return;
       setPluginView(null);
       setSelectedIndex(null);
       setSelectedFolder(null);
@@ -496,17 +306,9 @@ export function useCodarchApp(
       setOpenFile(null);
       setChain(null);
       selectedPathRef.current = null;
-      setMapView(next);
-      if (next === "rest") {
-        setAreaMetric("bytes");
-        setColorMode("kind");
-        return;
-      }
-      const plan = cc
-        ? planSnapshotView(cc, getStats(cc), preferencesRef.current)
-        : null;
-      setAreaMetric(plan?.areaMetric ?? null);
-      setColorMode(plan?.colorMode ?? "risk");
+      setMapView(plan.map);
+      setAreaMetric(plan.areaMetric);
+      setColorMode(plan.colorMode);
     },
     [
       map,
@@ -525,60 +327,32 @@ export function useCodarchApp(
     ]
   );
 
-  // Si el resto desaparece (otro proyecto, un refresco sin él), no se puede
-  // seguir en un mapa que ya no existe.
-  /* eslint-disable react-hooks/set-state-in-effect -- el mapa activo se corrige cuando su snapshot deja de estar */
-  useEffect(() => {
-    if (map === "rest" && !rest) changeMap("code");
-  }, [map, rest, changeMap]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  useExistingMap({ map, rest, changeMap });
 
   /**
    * Aplica un estado de vista al mapa.
    *
    * Lo usan la URL de la web y las vistas guardadas de un addon (ADR 0029):
-   * las dos hablan el mismo dialecto. Lo que no encaja con el snapshot
-   * (métrica que no está, carpeta o fichero que ya no existen) se ignora en
-   * silencio: es una pista, no un contrato.
+   * las dos hablan el mismo dialecto. El plan dice qué encaja con este mapa y
+   * qué se ignora en silencio; aquí solo se obedece.
    */
   const applyView = useCallback(
     (wanted: AppViewState) => {
       if (!view.model || !stats) return;
-      const coverage = new Set(stats.metricCoverage.map((entry) => entry.name));
-      if (wanted.areaMetric && coverage.has(wanted.areaMetric)) {
-        setAreaMetric(wanted.areaMetric);
-      }
-      if (
-        wanted.colorMode &&
-        isColorModeAvailable(wanted.colorMode, coverage, migration)
-      ) {
-        setColorMode(wanted.colorMode);
-      }
-      if (wanted.focusPath && findFolder(view.model.roots, wanted.focusPath)) {
-        setFocusPath(wanted.focusPath);
-      }
-      // La carpeta primero: si el enlace trae las dos selecciones, manda el
-      // fichero, que es la clave que llevan los enlaces de siempre.
-      if (wanted.folderPath) selectFolder(wanted.folderPath);
-      if (wanted.filePath) {
-        const index = view.model.files.findIndex(
-          (file) => file.path === wanted.filePath
-        );
-        if (index >= 0) selectIndex(index);
-      }
-      // `code` manda sobre `file`: el enlace dice qué fichero se ve abierto.
-      if (
-        wanted.openFilePath &&
-        view.model.files.some((file) => file.path === wanted.openFilePath)
-      ) {
-        openFileAt(wanted.openFilePath);
-      }
-      if (wanted.tab) setTab(wanted.tab);
-      if (wanted.showLabels !== null) setShowLabels(wanted.showLabels);
-      // El símbolo se abre después, cuando ya se puede pedir su cadena.
-      if (wanted.symbolName) {
-        void openSymbolChain(wanted.symbolName, wanted.filePath ?? "");
-      }
+      const plan = planViewState(wanted, {
+        model: view.model,
+        coverage: metricCoverage(stats),
+        migration
+      });
+      if (plan.areaMetric !== null) setAreaMetric(plan.areaMetric);
+      if (plan.colorMode !== null) setColorMode(plan.colorMode);
+      if (plan.focusPath !== null) setFocusPath(plan.focusPath);
+      if (plan.folderPath !== null) selectFolder(plan.folderPath);
+      if (plan.fileIndex !== null) selectIndex(plan.fileIndex);
+      if (plan.openFilePath !== null) openFileAt(plan.openFilePath);
+      if (plan.tab !== null) setTab(plan.tab);
+      if (plan.showLabels !== null) setShowLabels(plan.showLabels);
+      if (plan.symbol) void openSymbolChain(plan.symbol.name, plan.symbol.path);
     },
     [
       view.model,
@@ -591,99 +365,21 @@ export function useCodarchApp(
     ]
   );
 
-  const loadHistory = useCallback(
-    async (): Promise<HistoryEntry[] | null> =>
-      plataforma.historial ? plataforma.historial() : null,
-    [plataforma]
-  );
-
-  const loadHeat = useCallback(
-    async (): Promise<SymbolHeat[] | null> =>
-      plataforma.calor ? plataforma.calor() : null,
-    [plataforma]
-  );
-
-  const loadDiff = useCallback(
-    async (path: string): Promise<FileDiffView | null> =>
-      plataforma.diff ? plataforma.diff(path) : null,
-    [plataforma]
-  );
-
-  const leerCodigo = useCallback(
-    async (request: CodeRequest): Promise<CodeSnippet | null> =>
-      plataforma.codigo ? plataforma.codigo(request) : null,
-    [plataforma]
-  );
-
-  const abrirEnEditor = useCallback(
-    async (request: EditorRequest): Promise<boolean> =>
-      plataforma.abrirEnEditor ? plataforma.abrirEnEditor(request) : false,
-    [plataforma]
-  );
-
-  // Al cambiar de métrica se conserva el fichero elegido si sigue existiendo.
-  /* eslint-disable react-hooks/set-state-in-effect -- la selección se deriva del modelo; el efecto la mantiene al cambiar de métrica */
-  useEffect(() => {
-    const files = view.model?.files;
-    if (!files) {
-      selectIndex(null);
-      return;
-    }
-    // Una carpeta seleccionada no se cambia por el fichero por defecto al
-    // cambiar de métrica (ADR 0092); solo cae si el refresco se la llevó.
-    if (selectedFolder) {
-      if (findFolder(view.model?.roots ?? [], selectedFolder)) return;
-      setSelectedFolder(null);
-    }
-    const wanted = selectedPathRef.current;
-    if (wanted) {
-      const index = files.findIndex((file) => file.path === wanted);
-      if (index >= 0) {
-        selectIndex(index);
-        return;
-      }
-    }
-    selectIndex(view.model?.defaultSelection ?? null);
-  }, [view.model, selectedFolder, selectIndex]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  /** Las puertas opcionales de la plataforma, con las que faltan apagadas. */
+  const bridges = useMemo(() => platformBridges(plataforma), [plataforma]);
 
   const openSettings = useCallback(() => setSettingsOpen(true), []);
-  const clearSelection = useCallback(() => {
-    setFocusPath(null);
-    setOpenFile(null);
-    selectedPathRef.current = null;
-    setSelectedIndex(null);
-    setSelectedFolder(null);
-    setQuery("");
-  }, [setFocusPath, setOpenFile, setQuery, setSelectedIndex]);
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });
 
-  // Restaurar el último proyecto al montar. Solo si la plataforma guarda en
-  // disco: la web lleva su propio arranque (servidor, URL, demo).
-  useEffect(() => {
-    if (!plataforma.restaurarProyecto) return;
-    let cancelled = false;
-    void (async () => {
-      const saved = await plataforma.restaurarProyecto?.();
-      if (cancelled) return;
-      if (saved && loadSnapshot(saved.snapshot, saved.label, false, saved.preferences)) {
-        setAddons((saved.addons ?? []) as RepoAddon[]);
-        // El proyecto guardado puede traer su resto (ADR 0093).
-        if (saved.rest) loadRest(saved.rest);
-        // Y su lint (ADR 0094); sin él, el proyecto está sin medir.
-        loadLint(saved.lint ?? null);
-        if (saved.report) {
-          loadReport(saved.report, saved.reportLabel ?? "report.json", false);
-        }
-        return;
-      }
-      if (saved) plataforma.borrarProyecto();
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [loadSnapshot, loadRest, loadLint, loadReport, plataforma]);
+  useRestoreProject({
+    plataforma,
+    loadSnapshot,
+    loadRest,
+    loadLint,
+    loadReport,
+    setAddons,
+    setLoading
+  });
 
   // No hay un efecto que reescriba el proyecto cuando cambia `cc` a propósito:
   // cada camino que carga un snapshot ya lo guarda donde toca —«Abrir cc.json»,
@@ -739,8 +435,8 @@ export function useCodarchApp(
     selectIndex,
     selectFolder,
     openSymbolChain,
-    leerCodigo,
-    abrirEnEditor,
+    leerCodigo: bridges.leerCodigo,
+    abrirEnEditor: bridges.abrirEnEditor,
     zoomAt,
     panMap,
     fitMap,
@@ -798,9 +494,8 @@ export function useCodarchApp(
     closeFile,
     addonsWithViews,
     applyView,
-    loadHistory,
-    loadHeat,
-    loadDiff
+    loadHistory: bridges.loadHistory,
+    loadHeat: bridges.loadHeat,
+    loadDiff: bridges.loadDiff
   };
 }
-

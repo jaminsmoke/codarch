@@ -1,5 +1,5 @@
 import type { CcJson, CcMigrationLens, CcStats } from "@codarch/schema/browser";
-import { defaultMetric } from "@codarch/schema/browser";
+import { defaultMetric, getStats } from "@codarch/schema/browser";
 import type { ViewPreferences } from "../storage";
 import { isColorModeAvailable } from "../viewState";
 import { readMigration } from "../data";
@@ -109,4 +109,49 @@ export function keepColor(
   migration: CcMigrationLens | null
 ): string {
   return isColorModeAvailable(current, coverage, migration) ? current : "risk";
+}
+
+/** Lo que un cambio de mapa puede hacer (ADR 0093). */
+export type MapSwitch =
+  /** Ya se está en ese mapa: no hay nada que hacer. */
+  | { kind: "same" }
+  /** No hay mapa del resto que abrir: no se puede ir. */
+  | { kind: "blocked" }
+  /** Se cambia de mapa, con el área y el color de ese mapa. */
+  | {
+      kind: "switch";
+      map: "code" | "rest";
+      areaMetric: string | null;
+      colorMode: string;
+    };
+
+/**
+ * Qué área y qué color toca al cambiar de mapa.
+ *
+ * Es un cambio de modelo, no de vista: el resto se mide en bytes y se pinta por
+ * tipo, y al volver al código se recuperan el área y el color que pedían las
+ * preferencias de este repo. Sin resto cargado, a `rest` no se puede ir, y sin
+ * snapshot del código no hay preferencia que recuperar.
+ */
+export function planMapSwitch(input: {
+  next: "code" | "rest";
+  current: "code" | "rest";
+  cc: CcJson | null;
+  rest: CcJson | null;
+  preferences: ViewPreferences | null | undefined;
+}): MapSwitch {
+  if (input.next === input.current) return { kind: "same" };
+  if (input.next === "rest") {
+    if (!input.rest) return { kind: "blocked" };
+    return { kind: "switch", map: "rest", areaMetric: "bytes", colorMode: "kind" };
+  }
+  const plan = input.cc
+    ? planSnapshotView(input.cc, getStats(input.cc), input.preferences)
+    : null;
+  return {
+    kind: "switch",
+    map: "code",
+    areaMetric: plan?.areaMetric ?? null,
+    colorMode: plan?.colorMode ?? "risk"
+  };
 }

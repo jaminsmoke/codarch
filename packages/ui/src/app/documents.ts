@@ -235,7 +235,7 @@ export function useDocuments(deps: DocumentDeps) {
   /**
    * Carga el artefacto del lint (ADR 0094).
    *
-   * No lanza: un `lint.json` de otra versión o escrito a mano no puede tumbar
+   * No lanza: un `lint.cc.json` de otra versión o escrito a mano no puede tumbar
    * el mapa. `null` quita el lint y lo deja «sin medir», que no es lo mismo que
    * un artefacto sin mensajes.
    */
