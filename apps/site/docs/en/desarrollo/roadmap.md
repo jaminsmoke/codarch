@@ -26,12 +26,7 @@ Today CodArch has:
 - **Desktop app**: Electron with its own interface, native analysis with git, system menu and
   unsigned installers.
 
-Phases M0-M22 are closed. M23 is in progress, M24 not started, M25 closed, M26 closed, M27 closed,
-M28 closed, M29 closed, M30 closed, M31 in progress, M32 closed, M33 closed, M34 in progress, M35
-closed, M36 closed, M37 closed, M38 closed, M39 closed, M40 closed, M41 closed, M42 closed, M43
-closed, M44 closed, M45 closed, M46 closed, M47 closed, M48 closed, M49 in progress, M50 closed,
-M51 closed, M52 not started, M53 closed, M54 closed, M55 closed, M56 closed, M57 closed, M58 closed,
-M59 closed, M60 closed, M61 closed, M62 closed and M63, M64 and M65 in progress.
+Phases M0–M62 are closed (M24 discarded). M63–M66 are open. M68–M75 are closed.
 
 ## The phases
 
