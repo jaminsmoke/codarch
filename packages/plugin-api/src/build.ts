@@ -1,6 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
-import { findRepoConfig } from "@codarch/schema";
+// Solo los nombres, no la entrada raíz del schema: este módulo lo carga el
+// propio `vite.config.ts` con el Node del sistema, que resuelve los imports
+// relativos de TypeScript pidiendo la extensión. `artifacts.ts` es un fichero
+// suelto y carga; `index.ts` arrastra el paquete y no.
+import { CONFIG_FILE_NAMES } from "@codarch/schema/artifacts";
 import { parse as parseYaml } from "yaml";
 import type { Plugin } from "vite";
 import type { PluginManifest } from "./index";
@@ -25,6 +29,21 @@ const PLUGIN_NAME = /^[a-z0-9][a-z0-9-]*$/;
 export interface PluginBuildOptions {
   /** La raíz del repo. */
   root: string;
+}
+
+/**
+ * La configuración del repo, o `null` si no tiene ninguna.
+ *
+ * La misma búsqueda que `findRepoConfig` de `@codarch/schema`, escrita aquí
+ * porque importar la entrada raíz del schema no se puede cargar desde el
+ * `vite.config.ts` (ver la nota del import).
+ */
+function findRepoConfig(root: string): string | null {
+  for (const name of CONFIG_FILE_NAMES) {
+    const file = path.join(root, name);
+    if (fs.existsSync(file)) return file;
+  }
+  return null;
 }
 
 /** Los plugins que el repo declara compilados (`.codarch.yml` o `.yaml`). */
