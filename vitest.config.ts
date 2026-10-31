@@ -25,6 +25,10 @@ export default defineConfig({
       "plugins/*/test/**/*.test.ts",
       "apps/*/test/**/*.test.ts"
     ],
-    environment: "node"
+    environment: "node",
+    // Los tests de verdad —un repo en un directorio temporal, `git` de por
+    // medio, un análisis completo— rozan los cinco segundos cuando la máquina
+    // está cargada. El límite es para lo que se cuelga, no para lo que trabaja.
+    testTimeout: 30_000
   }
 });
