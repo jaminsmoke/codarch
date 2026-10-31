@@ -1,0 +1,28 @@
+{
+  "summary": {
+    "area": "size",
+    "color": "risk",
+    "width": 800,
+    "height": 600,
+    "legend": [
+      {
+        "label": "bajo"
+      },
+      {
+        "label": "alto"
+      }
+    ],
+    "cells": [
+      {
+        "path": "src/a.ts",
+        "area": 1200,
+        "value": 3.5
+      },
+      {
+        "path": "src/b.ts",
+        "area": 800,
+        "value": 1
+      }
+    ]
+  }
+}

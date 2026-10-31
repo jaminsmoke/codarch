@@ -1,0 +1,212 @@
+{
+  "summary": {
+    "addedFiles": 2,
+    "removedFiles": 1,
+    "changedFiles": 3,
+    "addedEdges": 4,
+    "removedEdges": 1
+  },
+  "hotspotMetric": "risk",
+  "rules": {
+    "configured": true,
+    "summary": {
+      "introduced": 2,
+      "existing": 1
+    },
+    "violations": {
+      "introduced": [
+        {
+          "severity": "error",
+          "rule": "no-cycles",
+          "message": "ciclo A->B",
+          "source": "config"
+        },
+        {
+          "severity": "warn",
+          "rule": "layer",
+          "message": "capa rota",
+          "source": "profile"
+        },
+        {
+          "severity": "info",
+          "rule": "addon-rule",
+          "message": "aviso\ncon `ticks`",
+          "source": "addon:lint"
+        }
+      ]
+    }
+  },
+  "cycles": {
+    "introduced": [
+      {
+        "nodes": [
+          {
+            "path": "src/a.ts"
+          },
+          {
+            "path": "src/b.ts"
+          },
+          {
+            "path": "src/a.ts"
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "path": "x"
+          },
+          {
+            "path": "y"
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "path": "1"
+          },
+          {
+            "path": "2"
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "path": "3"
+          },
+          {
+            "path": "4"
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "path": "5"
+          },
+          {
+            "path": "6"
+          }
+        ]
+      },
+      {
+        "nodes": [
+          {
+            "path": "7"
+          },
+          {
+            "path": "8"
+          }
+        ]
+      }
+    ]
+  },
+  "hotspots": [
+    {
+      "path": "src/hot.ts",
+      "metric": "risk",
+      "base": 1,
+      "head": 5,
+      "delta": 4
+    },
+    {
+      "path": "src/warm.ts",
+      "metric": "risk",
+      "base": 2,
+      "head": 3,
+      "delta": 1
+    }
+  ],
+  "migration": {
+    "debt": {
+      "head": 10,
+      "delta": 2
+    },
+    "crossings": {
+      "head": 3
+    },
+    "files": {
+      "increased": [
+        {
+          "path": "legacy/a.ts",
+          "base": 1,
+          "head": 4,
+          "delta": 3
+        }
+      ],
+      "decreased": [
+        {
+          "path": "legacy/b.ts",
+          "base": 5,
+          "head": 2,
+          "delta": -3
+        }
+      ]
+    }
+  },
+  "symbols": {
+    "summary": {
+      "added": 1,
+      "removed": 1,
+      "changed": 1
+    },
+    "files": [
+      {
+        "path": "src/sym.ts",
+        "symbols": [
+          {
+            "name": "foo",
+            "status": "changed",
+            "complexityDelta": 3
+          },
+          {
+            "name": "bar",
+            "status": "added"
+          },
+          {
+            "name": "baz",
+            "status": "removed"
+          }
+        ]
+      }
+    ]
+  },
+  "duplication": {
+    "base": true,
+    "lines": {
+      "head": 1200,
+      "delta": 40
+    },
+    "counts": {
+      "added": 1,
+      "diverging": 1,
+      "removed": 0
+    },
+    "added": [
+      {
+        "from": "a.ts",
+        "to": "b.ts",
+        "similarity": 100,
+        "lines": 20
+      }
+    ],
+    "diverging": [
+      {
+        "from": "c.ts",
+        "to": "d.ts",
+        "previousSimilarity": 95,
+        "similarity": 80,
+        "lines": 30,
+        "linesDelta": -5
+      }
+    ]
+  },
+  "base": {
+    "checksum": "base-rich"
+  },
+  "head": {
+    "checksum": "head-rich"
+  }
+}

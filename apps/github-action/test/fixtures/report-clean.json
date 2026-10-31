@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "addedFiles": 0,
+    "removedFiles": 0,
+    "changedFiles": 0,
+    "addedEdges": 0,
+    "removedEdges": 0
+  },
+  "rules": {
+    "configured": false
+  },
+  "cycles": {
+    "introduced": []
+  },
+  "hotspots": [],
+  "base": {
+    "checksum": "base-aaa"
+  },
+  "head": {
+    "checksum": "head-bbb"
+  }
+}

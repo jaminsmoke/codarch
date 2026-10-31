@@ -250,7 +250,7 @@ export function parseColor(
 }
 
 /** Un color de caja con la selección ya mezclada ✓. */
-function colorOf(box: DrawnBox, selected: string | null): [number, number, number] {
+export function colorOf(box: DrawnBox, selected: string | null): [number, number, number] {
   const color = parseColor(box.color);
   if (box.path !== selected) return color;
   const highlight = parseColor(SELECTION_COLOR);
@@ -259,6 +259,49 @@ function colorOf(box: DrawnBox, selected: string | null): [number, number, numbe
     color[1] + (highlight[1] - color[1]) * SELECTION_MIX,
     color[2] + (highlight[2] - color[2]) * SELECTION_MIX
   ];
+}
+
+/** Posición, tamaño y color de una instancia (sin tocar el búfer). */
+export function instanceLayout(
+  box: DrawnBox,
+  selected: string | null
+): {
+  x: number;
+  y: number;
+  z: number;
+  width: number;
+  height: number;
+  depth: number;
+  color: [number, number, number];
+} {
+  const height = Math.max(1, box.height);
+  return {
+    x: box.x + box.width / 2,
+    y: box.y + height / 2,
+    z: box.z + box.depth / 2,
+    width: Math.max(1, box.width - 1),
+    height,
+    depth: Math.max(1, box.depth - 1),
+    color: colorOf(box, selected)
+  };
+}
+
+
+
+/**
+ * La resolución del lienzo: sigue al DPR con techo de 2× y de megapíxeles.
+ *
+ * Pure: sin DOM ni WebGL. El resize solo aplica el resultado al canvas.
+ */
+export function canvasPixelScale(
+  width: number,
+  height: number,
+  devicePixelRatio: number,
+  maxPixels: number = MAX_PIXELS
+): number {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const pixels = width * height * dpr * dpr;
+  return pixels > maxPixels ? dpr * Math.sqrt(maxPixels / pixels) : dpr;
 }
 
 /** Monta la escena en un canvas ✓. */
@@ -443,17 +486,16 @@ export function mountScene(
     const base = slot * STRIDE;
     // Un mínimo de un píxel de mundo para que una caja fina no desaparezca y
     // para que su base quede en el suelo aunque su altura sea casi cero.
-    const height = Math.max(1, box.height);
-    data[base] = box.x + box.width / 2;
-    data[base + 1] = box.y + height / 2;
-    data[base + 2] = box.z + box.depth / 2;
-    data[base + 3] = Math.max(1, box.width - 1);
-    data[base + 4] = height;
-    data[base + 5] = Math.max(1, box.depth - 1);
-    const color = colorOf(box, selected);
-    data[base + 6] = color[0];
-    data[base + 7] = color[1];
-    data[base + 8] = color[2];
+    const layout = instanceLayout(box, selected);
+    data[base] = layout.x;
+    data[base + 1] = layout.y;
+    data[base + 2] = layout.z;
+    data[base + 3] = layout.width;
+    data[base + 4] = layout.height;
+    data[base + 5] = layout.depth;
+    data[base + 6] = layout.color[0];
+    data[base + 7] = layout.color[1];
+    data[base + 8] = layout.color[2];
   };
 
   /** Rehace las instancias con las cajas que se ven ✓. */
@@ -559,9 +601,12 @@ export function mountScene(
     const height = canvas.clientHeight || 1;
     // La resolución sigue al DPR, con dos topes: 2× y ocho megapíxeles. Una
     // pantalla 4K a 2× serían 33 Mpx de relleno para un mapa de cajas.
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const pixels = width * height * dpr * dpr;
-    const scale = pixels > MAX_PIXELS ? dpr * Math.sqrt(MAX_PIXELS / pixels) : dpr;
+    const scale = canvasPixelScale(
+      width,
+      height,
+      window.devicePixelRatio || 1,
+      MAX_PIXELS
+    );
     const nextWidth = Math.max(1, Math.round(width * scale));
     const nextHeight = Math.max(1, Math.round(height * scale));
     if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
