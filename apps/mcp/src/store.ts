@@ -12,6 +12,7 @@ import {
   describeMetrics,
   rankByRisk
 } from "./store-files";
+import { readProjectLint } from "./store-lint";
 import { buildFolders } from "./store-folders";
 import { buildEdges, indexEdges } from "./store-edges";
 import { markCycles } from "./store-cycles";
@@ -93,7 +94,8 @@ export class ArchitectureStore {
     this.complexityKeys = describeMetrics(cc);
     this.sizeMetric = this.complexityKeys.sizeMetric;
 
-    this.files = buildFiles(cc, this.complexityKeys);
+    const lint = readProjectLint(this.root, this.snapshotPath);
+    this.files = buildFiles(cc, this.complexityKeys, lint?.artifact ?? null);
     for (const file of this.files) {
       this.filesById.set(file.id, file);
       if (this.filesByPath.has(file.path)) {

@@ -3,8 +3,10 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
+  lintScores,
   riskScores
 } from "@codarch/metrics";
+import { lintFileCounts, type LintArtifact } from "@codarch/lint/browser";
 import { compareStrings, metricValue } from "./store-shared";
 import type { StoreFile } from "./store-types";
 
@@ -34,7 +36,11 @@ export function describeMetrics(cc: CcJson): StoreMetrics {
   };
 }
 
-export function buildFiles(cc: CcJson, keys: StoreMetrics): StoreFile[] {
+export function buildFiles(
+  cc: CcJson,
+  keys: StoreMetrics,
+  lint: LintArtifact | null = null
+): StoreFile[] {
   const attributes = cc.lenses?.metrics?.attributes ?? {};
   const files: StoreFile[] = [];
   const stripRootName = cc.files.length === 1;
@@ -66,12 +72,16 @@ export function buildFiles(cc: CcJson, keys: StoreMetrics): StoreFile[] {
   }
   files.sort((left, right) => compareStrings(left.path, right.path));
 
+  // Con artefacto, la cuarta señal entra aunque la deuda sea cero (ADR 0094).
+  const lintByPath = lint ? lintScores(lintFileCounts(lint.files)) : null;
   const scores = riskScores(
     files.map((file) => ({
       complexity: file.complexity,
       churn: file.churn,
-      size: file.size
-    }))
+      size: file.size,
+      ...(lintByPath ? { lint: lintByPath[file.path] ?? 0 } : {})
+    })),
+    { lint: lintByPath !== null }
   );
   for (const [index, file] of files.entries()) {
     file.risk = scores[index] ?? 0;

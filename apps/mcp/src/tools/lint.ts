@@ -1,21 +1,18 @@
 // El informe del lint: el artefacto medido, sus totales y los hallazgos
 // filtrados por ruta, regla y severidad.
 
-import { readFileSync } from "node:fs";
 import type { LintFinding, LintReportInput, LintReportResult } from "./types";
 import { clampInteger, compareStrings, severityOrder } from "./helpers";
-import { dirname, join, relative, sep } from "node:path";
-import { codarchDir } from "@codarch/schema";
+import { relative, sep } from "node:path";
 import {
-  LINT_FILE,
   lintRuleCounts,
   lintTotals,
-  readLintArtifact,
   type LintArtifact,
   type LintSeverity,
   type LintSummary
 } from "@codarch/lint/browser";
 import { ArchitectureStore } from "../store";
+import { readProjectLint } from "../store-lint";
 
 export function getLintReport(
   store: ArchitectureStore,
@@ -138,21 +135,7 @@ function lintSummaryOf(artifact: LintArtifact): LintSummary {
 export function loadLintArtifact(
   store: ArchitectureStore
 ): { artifact: LintArtifact; file: string } | null {
-  const beside = store.snapshotPath
-    ? dirname(store.snapshotPath)
-    : codarchDir(store.root);
-  for (const base of [beside, codarchDir(beside)]) {
-    const file = join(base, LINT_FILE);
-    try {
-      const artifact = readLintArtifact(
-        JSON.parse(readFileSync(file, "utf8")) as unknown
-      );
-      if (artifact) return { artifact, file };
-    } catch {
-      // Sin artefacto legible no hay medida; se sigue con el siguiente sitio.
-    }
-  }
-  return null;
+  return readProjectLint(store.root, store.snapshotPath);
 }
 
 /** Una ruta absoluta del lint, relativa al proyecto y con `/`. */

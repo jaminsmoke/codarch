@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createLintArtifact } from "@codarch/lint";
+import { lintScore, riskScores } from "@codarch/metrics";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   ArchitectureStore,
@@ -215,4 +216,31 @@ describe("el lint del proyecto", () => {
     expect(missing.total).toBe(0);
     expect(missing.reason).toContain("codarch analyze");
   });
+
+  it("el riesgo cuenta el lint cuando hay artefacto", () => {
+    const withLint = lintStore();
+    const without = lintStore(null);
+    // a.ts sigue en 1 (tope), pero el resto se renormaliza al entrar la cuarta señal.
+    expect(withLint.files.map((file) => file.risk)).not.toEqual(
+      without.files.map((file) => file.risk)
+    );
+
+    const lintByPath: Record<string, number> = {
+      "src/a.ts": lintScore(1, 1),
+      "src/domain/c.ts": lintScore(0, 1)
+    };
+    const expected = riskScores(
+      without.files.map((file) => ({
+        complexity: file.complexity,
+        churn: file.churn,
+        size: file.size,
+        lint: lintByPath[file.path] ?? 0
+      })),
+      { lint: true }
+    );
+    for (const [index, file] of without.files.entries()) {
+      expect(withLint.filesByPath.get(file.path)?.risk).toBe(expected[index]);
+    }
+  });
+
 });
