@@ -165,10 +165,10 @@ Fase **M76 — Las reglas del resto**.
 
 - ✅ Las cuatro reglas puras sobre el árbol del resto, con tests y un caso de determinismo por regla.
   `docsFindings` en `@codarch/lint`, con `readFrontmatter` y `matchesGlob`.
-- 🟡 La lectura de enlaces y frontmatter sobre lo que el recorrido ya guarda: el frontmatter ya se
-  lee; los enlaces los lee el recorrido y todavía no se los pasa.
-- ⬜ `.codarch/lint-rest.repmod.json`, escrito por `analyze` y `serve`, con `meta.tree` del resto y su
-  nombre en el registro.
+- ✅ La lectura de enlaces y frontmatter sobre lo que el recorrido ya guarda: `RestFile` lleva las
+  claves del frontmatter, leídas al medir el documento, y los enlaces ya eran suyos.
+- ✅ `.codarch/lint-rest.repmod.json`, escrito por `analyze` y `serve`, con `meta.tree` del resto y su
+  nombre en el registro (`buildRestLint`, `writeRestLint`).
 - ⬜ `docs:` en `.codarch.yml`, con entradas, gemelas, frontmatter y severidades, validado al leer.
 - ⬜ La sección **Reglas** en las tres hojas del resto y el punto de la barra.
 - ⬜ La línea del enlace, si el mapa del resto llega a guardarla.

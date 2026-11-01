@@ -67,6 +67,7 @@ La tabla completa de lo que escribe el producto queda así:
 | `rest.cc.json` | cc.json 2.x | sí |
 | `report.json` | reporte | sí |
 | `lint.repmod.json` | módulo del reporte | con el reporte |
+| `lint-rest.repmod.json` | módulo del resto | con el resto ([ADR 0105](../0101-0110/0105-las-reglas-de-doc-y-config.md)) |
 | `head-report.json` | reporte | sí |
 | `chains.json` | estado local | no |
 | `scopes.json` | estado local | no |
