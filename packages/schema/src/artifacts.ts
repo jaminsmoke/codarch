@@ -38,6 +38,8 @@ export const CODARCH_ENTRIES = {
   headReport: "head-report.json",
   /** La deuda que midió el proyecto (ADR 0099). */
   lint: "lint.repmod.json",
+  /** Las reglas de documentos y configuración (ADR 0105). */
+  restLint: "lint-rest.repmod.json",
   /** Las reglas del lint ya resueltas, para no volver a cargarlas. */
   lintRules: "lint-cache.json",
   /** El libro mayor de cadenas de símbolos. */
@@ -60,6 +62,7 @@ export const REST_FILE = CODARCH_ENTRIES.rest;
 export const REPORT_FILE = CODARCH_ENTRIES.report;
 export const HEAD_REPORT_FILE = CODARCH_ENTRIES.headReport;
 export const LINT_FILE = CODARCH_ENTRIES.lint;
+export const REST_LINT_FILE = CODARCH_ENTRIES.restLint;
 export const LINT_RULES_FILE = CODARCH_ENTRIES.lintRules;
 export const CHAINS_FILE = CODARCH_ENTRIES.chains;
 export const SCOPES_FILE = CODARCH_ENTRIES.scopes;

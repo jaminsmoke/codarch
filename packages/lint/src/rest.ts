@@ -71,13 +71,16 @@ export interface DocsRulesConfig {
  * Un fichero del resto tal y como lo dejó el recorrido.
  *
  * `links` son los destinos tal cual se escriben —lo que devuelve la lectura de
- * enlaces de un documento— y `text` solo se usa para el frontmatter: un fichero
- * sin texto no se juzga.
+ * enlaces de un documento—, `frontmatter` es lo que el recorrido ya leyó al
+ * medirlo y `text` permite leerlo aquí cuando no venga hecho. Sin ninguna de las
+ * dos cosas no se juzga el frontmatter: no es lo mismo «no se leyó» que «no
+ * tiene».
  */
 export interface DocsRulesFile {
   path: string;
   kind: CcRestKind;
   links?: readonly string[];
+  frontmatter?: FrontmatterHead;
   text?: string;
 }
 
@@ -150,10 +153,10 @@ export function docsFindings(input: {
     if (pattern === "") continue;
     for (const file of files) {
       if (!matchesGlob(pattern, file.path)) continue;
-      const text = file.text;
-      if (text === undefined) continue;
-
-      const head = readFrontmatter(text);
+      const head =
+        file.frontmatter ??
+        (file.text === undefined ? null : readFrontmatter(file.text));
+      if (head === null) continue;
       if (head.status === "missing") {
         add(file.path, {
           rule: DOC_RULES.frontmatter,

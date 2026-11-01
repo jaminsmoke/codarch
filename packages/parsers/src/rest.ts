@@ -12,6 +12,7 @@ import {
   type CcRestLens,
   type CcRestNode
 } from "@codarch/schema/browser";
+import { readFrontmatter, type FrontmatterHead } from "@codarch/lint/browser";
 import type { FileSystem } from "./fs";
 import {
   addFileNode,
@@ -185,6 +186,13 @@ export interface RestFile {
   loc?: number;
   /** Los destinos que enlaza un documento, tal y como se escriben. */
   linkTargets?: readonly string[];
+  /**
+   * Las claves de su frontmatter, para las reglas del resto (ADR 0105).
+   *
+   * Se lee aquí, que el documento ya está en memoria para contar líneas y
+   * enlaces: las reglas no vuelven a abrir el fichero ni necesitan su texto.
+   */
+  frontmatter?: FrontmatterHead;
 }
 
 export interface RestInput {
@@ -252,6 +260,7 @@ export function measureRestFile(
   if (kind === "doc" && /\.mdx?$/i.test(file.relativePath)) {
     const targets = linkTargets(source);
     if (targets.length > 0) measured.linkTargets = targets;
+    measured.frontmatter = readFrontmatter(source);
   }
   return measured;
 }

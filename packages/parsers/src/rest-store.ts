@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { REST_FILE, type CcJson } from "@codarch/schema";
+import type { LintArtifact } from "@codarch/lint/browser";
+import { REST_FILE, REST_LINT_FILE, type CcJson } from "@codarch/schema";
 
 /**
  * El snapshot de lo que no es código, en su propio fichero (ADR 0093).
@@ -10,7 +11,7 @@ import { REST_FILE, type CcJson } from "@codarch/schema";
  * diff, las reglas, la acción y el MCP— no lo lee.
  */
 
-export { REST_FILE };
+export { REST_FILE, REST_LINT_FILE };
 
 export function restSnapshotPath(outDirectory: string): string {
   return path.join(outDirectory, REST_FILE);
@@ -40,6 +41,36 @@ export function writeRestSnapshot(
 
   fs.mkdirSync(outDirectory, { recursive: true });
   fs.writeFileSync(file, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  return { path: file, written: true };
+}
+
+export function restLintPath(outDirectory: string): string {
+  return path.join(outDirectory, REST_LINT_FILE);
+}
+
+/** Lo que se escribió del lint del resto: dónde quedó y si cambió de verdad. */
+export interface RestLintWrite {
+  path: string;
+  written: boolean;
+}
+
+/**
+ * Escribe las reglas del resto, o las salta si el de disco ya es el mismo.
+ *
+ * El corte va por checksum, como el resto y el snapshot: guardar código no
+ * reescribe un artefacto de documentos que no ha cambiado.
+ */
+export function writeRestLint(
+  outDirectory: string,
+  artifact: LintArtifact
+): RestLintWrite {
+  const file = restLintPath(outDirectory);
+  if (readChecksum(file) === artifact.meta.checksum) {
+    return { path: file, written: false };
+  }
+
+  fs.mkdirSync(outDirectory, { recursive: true });
+  fs.writeFileSync(file, `${JSON.stringify(artifact, null, 2)}\n`, "utf8");
   return { path: file, written: true };
 }
 

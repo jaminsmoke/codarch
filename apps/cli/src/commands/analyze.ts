@@ -10,6 +10,7 @@ import {
   protectedRootReason,
   sweepCodarch,
   writeParseCache,
+  writeRestLint,
   writeRestSnapshot
 } from "@codarch/parsers";
 import {
@@ -152,6 +153,12 @@ export async function runAnalyze(
   const restPath = result.rest ? writeRest(outDirectory, result.rest) : null;
   if (result.rest && restPath === null) return 1;
 
+  // Las reglas del resto, con el checksum del resto como procedencia (ADR 0105).
+  const restLintPath = result.restLint
+    ? writeRestRules(outDirectory, result.restLint)
+    : null;
+  if (result.restLint && restLintPath === null) return 1;
+
   // El lint, en la misma pasada y firmado con el árbol que se acaba de medir.
   const lint = options.noLint
     ? ({ kind: "skipped" } as const)
@@ -283,6 +290,21 @@ function writeRest(outDirectory: string, rest: CcJson): string | null {
   } catch (error) {
     console.error(
       `no se pudo escribir el resto en ${outDirectory}: ${(error as Error).message}`
+    );
+    return null;
+  }
+}
+
+/** Escribe las reglas del resto, o devuelve `null` y deja el error dicho. */
+function writeRestRules(
+  outDirectory: string,
+  artifact: LintArtifact
+): string | null {
+  try {
+    return writeRestLint(outDirectory, artifact).path;
+  } catch (error) {
+    console.error(
+      `no se pudo escribir el lint del resto en ${outDirectory}: ${(error as Error).message}`
     );
     return null;
   }

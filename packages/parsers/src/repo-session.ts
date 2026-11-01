@@ -1,3 +1,4 @@
+import type { LintArtifact } from "@codarch/lint/browser";
 import { loadProjectIgnore, type DiffReport } from "@codarch/metrics";
 import type { CcJson } from "@codarch/schema";
 import { compareWorkingTreeWithHead } from "./head-diff";
@@ -42,6 +43,8 @@ export type RepoAnalysis =
        * aparte porque tiene su propio checksum: no se mezcla con el código.
        */
       rest: CcJson | null;
+      /** Las reglas del resto (ADR 0105), con el checksum del resto. */
+      restLint: LintArtifact | null;
       files: number;
       /** Ficheros del resto que entraron en su snapshot. */
       restFiles: number;
@@ -86,6 +89,7 @@ export function analyzeRepo(
     kind: "snapshot",
     snapshot: result.snapshot,
     rest: result.rest,
+    restLint: result.restLint,
     files: result.files,
     restFiles: result.restFiles,
     edges: result.edges,

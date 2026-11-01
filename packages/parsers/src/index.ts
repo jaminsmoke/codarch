@@ -100,12 +100,16 @@ export {
   measureRestFile
 } from "./rest";
 export type { RestFile, RestInput } from "./rest";
+export { buildRestLint } from "./rest-lint";
 export {
   REST_FILE,
+  REST_LINT_FILE,
+  restLintPath,
   restSnapshotPath,
+  writeRestLint,
   writeRestSnapshot
 } from "./rest-store";
-export type { RestWrite } from "./rest-store";
+export type { RestLintWrite, RestWrite } from "./rest-store";
 export { STATE_IGNORE_ENTRY, ensureGitignoreEntry, ensureStateIgnored } from "./gitignore";
 export { sweepCodarch } from "./codarch-dir";
 export {

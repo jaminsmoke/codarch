@@ -14,6 +14,7 @@ import {
   analyzeRepo,
   watchRepository,
   writeParseCachePayload,
+  writeRestLint,
   writeRestSnapshot,
   type RepoAnalysis,
   type RepositoryWatcher
@@ -323,6 +324,8 @@ function storeRest(
   if (!result.rest) return;
   try {
     writeRestSnapshot(codarchDir(root), result.rest);
+    // Las reglas del resto, con el checksum del resto (ADR 0105).
+    if (result.restLint) writeRestLint(codarchDir(root), result.restLint);
   } catch (cause) {
     console.error(
       `  no se pudo guardar el resto: ${(cause as Error).message}`

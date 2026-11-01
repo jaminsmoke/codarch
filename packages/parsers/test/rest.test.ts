@@ -68,7 +68,10 @@ describe("measureRestFile", () => {
       relativePath: "README.md",
       kind: "doc",
       bytes: 14,
-      loc: 3
+      loc: 3,
+      // El frontmatter se lee aquí, que el documento ya está en memoria: las
+      // reglas del resto no lo vuelven a abrir (ADR 0105).
+      frontmatter: { status: "missing", keys: [] }
     });
 
     // Sin `stat` en memoria, un binario pesa 0: no se lee para adivinarlo.

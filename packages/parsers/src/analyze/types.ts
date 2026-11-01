@@ -1,3 +1,4 @@
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { CcDuplicationSummary, CcJson, CcMigrationSummary } from "@codarch/schema/browser";
 import type { ParseCache } from "../cache";
 import type { FileSystem } from "../fs";
@@ -128,6 +129,13 @@ export interface AnalyzeCoreResult {
    * Es un cc.json aparte: su checksum no tiene nada que ver con el del código.
    */
   rest: CcJson | null;
+  /**
+   * Las reglas del resto (ADR 0105), o `null` si el resto no se midió.
+   *
+   * Lleva el checksum del resto como `meta.tree`: son reglas de documentos y su
+   * procedencia es el árbol de documentos, no el del código.
+   */
+  restLint: LintArtifact | null;
   /** Ficheros del resto que entraron en su snapshot. */
   restFiles: number;
   durationMs: number;

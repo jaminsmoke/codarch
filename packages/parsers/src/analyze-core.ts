@@ -20,6 +20,7 @@ import { extensionsFor } from "./parsers";
 import * as path from "./path";
 import { ImportResolver } from "./resolve";
 import { buildRestSnapshot, measureRestFile } from "./rest";
+import { buildRestLint } from "./rest-lint";
 import { buildSnapshot } from "./snapshot";
 import { walkCodeAndRest, type WalkedFile } from "./walk";
 
@@ -137,6 +138,12 @@ export function analyzeFiles(
           commitHash: options.commitHash
         });
 
+  // Las reglas del resto salen de la misma pasada y se firman con el checksum
+  // del resto: dicen sobre qué documentos se midieron (ADR 0105).
+  const restLint = rest
+    ? buildRestLint({ files: state.restFiles, tree: rest.meta.checksum ?? "" })
+    : null;
+
   let folders = 0;
   walkTree(snapshot.files, (entry) => {
     if (entry.node.type === "Folder" && entry.depth > 0) folders++;
@@ -167,6 +174,7 @@ export function analyzeFiles(
     churn: churnResult,
     cache: { hits: state.cacheHits, misses: state.cacheMisses },
     rest,
+    restLint,
     restFiles: state.restFiles.length,
     durationMs: Date.now() - started
   };
