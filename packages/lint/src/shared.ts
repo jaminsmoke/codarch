@@ -26,6 +26,22 @@ export type {
 export { MINIMAL_LINT, adviceForExtensions, extensionOf } from "./advice";
 export type { LintAdvice } from "./advice";
 export {
+  DOC_RULES,
+  DOC_RULE_SEVERITY,
+  docsFindings,
+  matchesGlob,
+  readFrontmatter,
+  resolveLink
+} from "./rest";
+export type {
+  DocRule,
+  DocsFrontmatterRule,
+  DocsRulesConfig,
+  DocsRulesFile,
+  DocsTwinPair,
+  FrontmatterHead
+} from "./rest";
+export {
   lintFileCounts,
   lintRuleCounts,
   lintRules,

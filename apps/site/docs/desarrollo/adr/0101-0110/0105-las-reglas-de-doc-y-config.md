@@ -163,8 +163,10 @@ una lente `rest.links` que no existe todavía. Queda abierto, no fingido con un 
 
 Fase **M76 — Las reglas del resto**.
 
-- ⬜ Las cuatro reglas puras sobre el árbol del resto, con tests y un caso de determinismo por regla.
-- ⬜ La lectura de enlaces y frontmatter sobre lo que el recorrido ya guarda.
+- ✅ Las cuatro reglas puras sobre el árbol del resto, con tests y un caso de determinismo por regla.
+  `docsFindings` en `@codarch/lint`, con `readFrontmatter` y `matchesGlob`.
+- 🟡 La lectura de enlaces y frontmatter sobre lo que el recorrido ya guarda: el frontmatter ya se
+  lee; los enlaces los lee el recorrido y todavía no se los pasa.
 - ⬜ `.codarch/lint-rest.repmod.json`, escrito por `analyze` y `serve`, con `meta.tree` del resto y su
   nombre en el registro.
 - ⬜ `docs:` en `.codarch.yml`, con entradas, gemelas, frontmatter y severidades, validado al leer.
