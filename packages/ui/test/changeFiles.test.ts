@@ -9,6 +9,8 @@ import {
   formatDelta,
   pickChange,
   rowTitle,
+  changeCountFor,
+  scopeChangeFiles,
   type ChangeFileGroup,
   type ChangeFileRow,
   type ChangeStatus
@@ -293,5 +295,41 @@ describe("la lista de ficheros del cambio", () => {
 
     expect(firstRow(groups, "added").delta).toBe(0);
     expect(formatDelta(firstRow(groups, "added").delta)).toBe("±0");
+  });
+});
+
+describe("el cambio acotado a una carpeta (ADR 0092)", () => {
+  const files = reportFiles({
+    added: [file("src/a.ts"), file("lib/b.ts")],
+    changed: [changed("src/deep/c.ts", [["rloc", 10, 12]])],
+    removed: [file("src/viejo.ts")]
+  });
+
+  it("filtra los tres grupos por ruta", () => {
+    const scoped = scopeChangeFiles(files, "src");
+
+    expect(scoped.added.map((entry) => entry.path)).toEqual(["src/a.ts"]);
+    expect(scoped.changed.map((entry) => entry.path)).toEqual(["src/deep/c.ts"]);
+    expect(scoped.removed.map((entry) => entry.path)).toEqual(["src/viejo.ts"]);
+  });
+
+  it("no confunde una carpeta con otra que empieza igual", () => {
+    const scoped = scopeChangeFiles(
+      reportFiles({ added: [file("src2/a.ts"), file("src/a.ts")] }),
+      "src"
+    );
+
+    expect(scoped.added.map((entry) => entry.path)).toEqual(["src/a.ts"]);
+  });
+
+  it("sin carpeta es el proyecto entero, sin copiar nada", () => {
+    expect(scopeChangeFiles(files, null)).toBe(files);
+    expect(scopeChangeFiles(files, "")).toBe(files);
+  });
+
+  it("cuenta lo que cabe en la carpeta", () => {
+    expect(changeCountFor(files, "src")).toBe(3);
+    expect(changeCountFor(files, "lib")).toBe(1);
+    expect(changeCountFor(files, "docs")).toBe(0);
   });
 });

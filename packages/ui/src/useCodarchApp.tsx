@@ -96,6 +96,8 @@ export function useCodarchApp(
   const [reportSource, setReportSource] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [tab, setTab] = useState<InspectorTab>("file");
+  /** La carpeta a la que está acotada Cambios, si se abrió desde su ficha. */
+  const [changesScope, setChangesScope] = useState<string | null>(null);
   const [focusPath, setFocusPath] = useState<string | null>(null);
   /**
    * El fichero abierto en el escenario, en lugar del mapa (ADR 0087).
@@ -162,6 +164,7 @@ export function useCodarchApp(
     setReportSource,
     setReportError,
     setTab,
+    setChangesScope,
     setAddons,
     setProgress,
     setRefreshedAt
@@ -339,6 +342,17 @@ export function useCodarchApp(
   // estaba, y convertir una foto del historial en «proyecto» rompía la
   // vigilancia del repo (ADR 0048, ADR 0056).
 
+  /**
+   * Acota Cambios a una carpeta: el enlace de la ficha de carpeta no duplica
+   * la lista, filtra la que ya hay (ADR 0092).
+   */
+  const scopeChanges = useCallback((folder: string | null) => {
+    setChangesScope(folder);
+    setTab("changes");
+  }, []);
+
+  const clearChangesScope = useCallback(() => setChangesScope(null), []);
+
   const state: CodarchAppState = {
     cc,
     rest,
@@ -356,6 +370,7 @@ export function useCodarchApp(
     reportSource,
     reportError,
     tab,
+    changesScope,
     focusPath,
     openFile,
     progress,
@@ -395,6 +410,8 @@ export function useCodarchApp(
     setQuery,
     setFocusPath,
     setTab,
+    scopeChanges,
+    clearChangesScope,
     setSettingsOpen,
     setZoom,
     setCenter,

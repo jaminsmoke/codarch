@@ -1,4 +1,5 @@
 import type { ChangedFile, DiffFile, DiffReport, MetricChange } from "@codarch/metrics/browser";
+import { withinLintFolder } from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 
 /**
@@ -246,6 +247,38 @@ export function changeFileGroups(
       rest: Math.max(0, rows.length - limit)
     };
   });
+}
+
+/**
+ * Los ficheros del cambio que cuelgan de una carpeta (ADR 0092).
+ *
+ * La ficha de carpeta enlaza a Cambios acotado a ella: se filtra el mismo
+ * reporte por ruta, sin tocar el diff ni el reporte guardado. `null` o `""`
+ * son el proyecto entero, y la carpeta se compara como en el lint (`src`
+ * incluye `src/a.ts`, no `src2/a.ts`).
+ */
+export function scopeChangeFiles(
+  files: DiffReport["files"],
+  folder: string | null
+): DiffReport["files"] {
+  if (!folder) return files;
+  const keep = <T extends { path: string }>(list: readonly T[]): T[] =>
+    list.filter((file) => withinLintFolder(folder, file.path));
+
+  return {
+    added: keep(files.added),
+    changed: keep(files.changed),
+    removed: keep(files.removed)
+  };
+}
+
+/** Cuántos ficheros del cambio caen en una carpeta. */
+export function changeCountFor(
+  files: DiffReport["files"],
+  folder: string | null
+): number {
+  const scoped = scopeChangeFiles(files, folder);
+  return scoped.added.length + scoped.changed.length + scoped.removed.length;
 }
 
 /** El reparto de la cabecera: `3 nuevos · 12 modificados · 1 eliminado`. */

@@ -23,6 +23,37 @@
   white-space: nowrap;
 }
 
+/* El filtro de la ficha de carpeta: la pestaña dice a qué está acotada y cómo
+   volver al cambio entero (ADR 0092). */
+.change-scope {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: rgba(47, 111, 237, 0.08);
+}
+
+.change-scope code {
+  font: 9.5px/1.35 var(--mono);
+  color: var(--ink);
+}
+
+.change-scope-clear {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cobalt);
+  font: 9.5px/1.35 var(--mono);
+  cursor: pointer;
+}
+
+.change-scope-clear:hover {
+  text-decoration: underline;
+}
+
 .change-rows {
   display: grid;
   /* Una sola columna que puede encogerse. Sin el `minmax(0, 1fr)` la columna

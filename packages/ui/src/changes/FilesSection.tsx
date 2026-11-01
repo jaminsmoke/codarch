@@ -1,7 +1,11 @@
 import { useState } from "react";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { FileDiffView } from "../platform";
-import { changeFileGroups, filesSummary } from "../changeFiles";
+import {
+  changeFileGroups,
+  filesSummary,
+  scopeChangeFiles
+} from "../changeFiles";
 import { CollapsibleSection, GroupHead } from "../CollapsibleSection";
 import { FileChangeRow } from "./FileEntry";
 
@@ -14,11 +18,17 @@ import { FileChangeRow } from "./FileEntry";
 export function FilesSection({
   report,
   loadDiff,
-  onSelectPath
+  onSelectPath,
+  folder = null,
+  onClearScope
 }: {
   report: DiffReport;
   loadDiff?: (path: string) => Promise<FileDiffView | null>;
   onSelectPath: (path: string) => void;
+  /** La carpeta a la que se acota la lista, si se abrió desde su ficha (ADR 0092). */
+  folder?: string | null;
+  /** Quita el filtro y vuelve al cambio entero. */
+  onClearScope?: () => void;
 }) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
   const toggle = (path: string): void => {
@@ -30,7 +40,11 @@ export function FilesSection({
     });
   };
 
-  const groups = changeFileGroups(report.files, undefined, report.symbols);
+  const groups = changeFileGroups(
+    scopeChangeFiles(report.files, folder),
+    undefined,
+    report.symbols
+  );
   const total = groups.reduce((sum, group) => sum + group.count, 0);
 
   return (
@@ -41,6 +55,21 @@ export function FilesSection({
       count={total || undefined}
       summary={filesSummary(groups)}
     >
+      {folder ? (
+        <div className="change-scope">
+          <span className="muted tiny">
+            Solo <code>{folder}</code>
+          </span>
+          <button
+            type="button"
+            className="change-scope-clear"
+            title="Quitar el filtro y ver todos los ficheros del cambio"
+            onClick={onClearScope}
+          >
+            Ver todo
+          </button>
+        </div>
+      ) : null}
       {total === 0 ? (
         <p className="muted small">Sin ficheros tocados.</p>
       ) : (

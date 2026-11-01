@@ -40,6 +40,7 @@ export interface DocumentSetters {
   setReportSource: (source: string | null) => void;
   setReportError: (message: string | null) => void;
   setTab: (tab: InspectorTab) => void;
+  setChangesScope: (path: string | null) => void;
   setAddons: (addons: RepoAddon[]) => void;
   setProgress: (message: string | null) => void;
   setRefreshedAt: (at: number | null) => void;
@@ -111,6 +112,7 @@ export function useDocuments(deps: DocumentDeps) {
     setReportSource,
     setReportError,
     setTab,
+    setChangesScope,
     setAddons,
     setProgress,
     setRefreshedAt
@@ -290,8 +292,10 @@ export function useDocuments(deps: DocumentDeps) {
     setReport(null);
     setReportSource(null);
     setReportError(null);
+    // Sin reporte no hay cambio que acotar: el filtro de carpeta se va con él.
+    setChangesScope(null);
     setTab("file");
-  }, [setReport, setReportError, setReportSource, setTab]);
+  }, [setChangesScope, setReport, setReportError, setReportSource, setTab]);
 
   /**
    * Carga un snapshot y lo guarda como el proyecto actual.

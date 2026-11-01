@@ -122,11 +122,13 @@ export function InspectorDock({
             folder={selectedFolderNode}
             model={view.model}
             lint={state.lint}
+            changes={report?.files ?? null}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
+            onScopeChanges={actions.scopeChanges}
           />
         ) : state.tab === "project" ? (
           <ProjectPanel
@@ -142,6 +144,8 @@ export function InspectorDock({
           <ChangesPanel
             report={report}
             model={view.model}
+            scope={state.changesScope}
+            onClearScope={actions.clearChangesScope}
             source={state.reportSource}
             error={state.reportError}
             onLoad={onLoadReport}

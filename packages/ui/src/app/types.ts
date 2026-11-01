@@ -61,6 +61,11 @@ export interface CodarchAppState {
   reportSource: string | null;
   reportError: string | null;
   tab: InspectorTab;
+  /**
+   * La carpeta a la que está acotada la pestaña de cambios, si se abrió desde
+   * su ficha (ADR 0092). `null` es el cambio entero.
+   */
+  changesScope: string | null;
   focusPath: string | null;
   /** El fichero cuyo código ocupa el escenario, si hay uno abierto. */
   openFile: string | null;
@@ -146,6 +151,10 @@ export interface CodarchAppActions {
   setQuery: (query: string) => void;
   setFocusPath: (path: string | null) => void;
   setTab: (tab: InspectorTab) => void;
+  /** Acota Cambios a una carpeta y abre la pestaña (ADR 0092). */
+  scopeChanges: (folder: string | null) => void;
+  /** Quita el filtro de la pestaña de cambios. */
+  clearChangesScope: () => void;
   setSettingsOpen: (open: boolean) => void;
   setZoom: (zoom: number) => void;
   setCenter: (center: { x: number; y: number }) => void;

@@ -144,9 +144,11 @@ deja de decir qué hay abierto en el panel.
 - ✅ La agregación compartida, con sus tests ([ADR 0095](0095-la-ficha-del-proyecto.md)).
 - ✅ La ficha: cabecera, contenido y **Métricas** con la complejidad máxima y el riesgo máximo, cada
   uno con su fichero.
-- ⬜ Frontera y ciclos dentro y a través.
+- ✅ Frontera y ciclos dentro y a través, con el fichero de fuera y su cuenta (2026-11-01). Los
+  ciclos se cuentan por **arista de cierre**, que es lo único que el mapa guarda.
 - ✗ Reglas agrupadas por regla: **cancelada** (2026-10-31). La ficha de código no tiene sección Reglas; el lint se lee por hallazgos y las reglas de arquitectura, cuando se fijen, serán una subsección de Reglas en doc y config ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)).
-- ⬜ Los cambios acotados: el enlace de la ficha filtra la pestaña.
+- ✅ Los cambios acotados: el enlace de la ficha filtra la pestaña, con «Ver todo» para volver al
+  cambio entero (2026-11-01).
 - ✅ El MCP usa la agregación compartida en vez de su copia.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

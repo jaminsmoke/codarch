@@ -269,6 +269,53 @@
   --section-tint: var(--violet);
 }
 
+/* La frontera de una carpeta: lo que entra y lo que sale (ADR 0092). */
+.section-boundary {
+  --section-tint: var(--cobalt);
+}
+
+/* La línea de cambios de la ficha de carpeta: una sola, no una lista. */
+.folder-changes {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 5px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 10.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.folder-changes:hover {
+  background: rgba(47, 111, 237, 0.06);
+}
+
+.folder-changes-count {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.folder-changes-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-changes-open {
+  color: var(--muted);
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+
+.folder-changes:hover .folder-changes-open {
+  color: var(--cobalt);
+}
+
 /* Ficheros lleva los tres estados dentro: el color vive en la fila, no en el
    punto de la sección (ADR 0070). */
 .section-files {

@@ -32,6 +32,14 @@ interface ChangesPanelProps {
   loadHistory?: () => Promise<HistoryEntry[] | null>;
   /** Abrir una foto del histórico. */
   onOpenHistory?: (entry: HistoryEntry) => void;
+  /**
+   * La carpeta a la que está acotada la pestaña (ADR 0092).
+   *
+   * Se llega aquí desde la ficha de carpeta; `null` es el cambio entero.
+   */
+  scope?: string | null;
+  /** Quita el filtro: el cambio entero pasa a ser el sujeto. */
+  onClearScope?: () => void;
 }
 
 /**
@@ -62,7 +70,9 @@ export default function ChangesPanel({
   onSelectPath,
   loadDiff,
   loadHistory,
-  onOpenHistory
+  onOpenHistory,
+  scope = null,
+  onClearScope
 }: ChangesPanelProps) {
   if (!report) {
     return (
@@ -84,6 +94,8 @@ export default function ChangesPanel({
         report={report}
         loadDiff={loadDiff}
         onSelectPath={onSelectPath}
+        folder={scope}
+        onClearScope={onClearScope}
       />
       <DebtSection report={report} onSelectPath={onSelectPath} />
       <DuplicationChangesSection

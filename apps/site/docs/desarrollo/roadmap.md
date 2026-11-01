@@ -25,7 +25,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M62 están cerradas (M24 descartada). M63–M64 están abiertas. M65 y M66–M75 están cerradas.
+Las fases M0–M62 están cerradas (M24 descartada). M63 y M65–M75 están cerradas. M64 está abierta.
 
 ## Las fases
 
@@ -202,7 +202,7 @@ flowchart TD
 | M60 | El inspector con barra de actividad | cerrada | [ADR 0079](adr/0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
 | M61 | Java, Python, Go y C# | cerrada | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
 | M62 | El mapa, en una captura | cerrada | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
-| M63 | La carpeta tiene su ficha | en curso | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
+| M63 | La carpeta tiene su ficha | cerrada | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
 | M64 | El mapa de lo que no es código | en curso | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
 | M65 | El lint, en el mapa | cerrada | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 | M66 | El proyecto tiene su ficha | cerrada | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
