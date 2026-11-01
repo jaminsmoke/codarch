@@ -83,6 +83,22 @@ export function withinLintFolder(folder: string, path: string): boolean {
  * dos hojas de la misma app enseñarían cifras distintas. Contando de una fuente,
  * Métricas y Reglas leen el mismo número por construcción (ADR 0096).
  */
+/**
+ * La peor severidad con hallazgos en unos totales, o `null` si está limpio.
+ *
+ * Orden: error, aviso, info. Un ámbito sin medir no llega aquí: `lintTotals`
+ * ya devolvió `null`. Sirve al punto de la barra (ADR 0094): el color dice la
+ * peor severidad presente, no la deuda ponderada.
+ */
+export function worstLintSeverity(
+  totals: Pick<LintTotals, "errors" | "warnings" | "info">
+): LintSeverity | null {
+  if (totals.errors > 0) return "error";
+  if (totals.warnings > 0) return "warn";
+  if (totals.info > 0) return "info";
+  return null;
+}
+
 export function lintTotals(
   artifact: LintArtifact | null,
   folder = ""

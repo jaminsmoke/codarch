@@ -4,7 +4,8 @@ import {
   lintRuleCounts,
   lintRules,
   lintTotals,
-  withinLintFolder
+  withinLintFolder,
+  worstLintSeverity
 } from "../src/rollup";
 
 function artifact(
@@ -123,4 +124,12 @@ describe("el contador de lint compartido", () => {
       { rule: "b", errors: 0, warnings: 1, findings: 1 }
     ]);
   });
+
+  it("la peor severidad: error, aviso, info; limpio es null", () => {
+    expect(worstLintSeverity({ errors: 1, warnings: 9, info: 9 })).toBe("error");
+    expect(worstLintSeverity({ errors: 0, warnings: 1, info: 9 })).toBe("warn");
+    expect(worstLintSeverity({ errors: 0, warnings: 0, info: 1 })).toBe("info");
+    expect(worstLintSeverity({ errors: 0, warnings: 0, info: 0 })).toBeNull();
+  });
+
 });

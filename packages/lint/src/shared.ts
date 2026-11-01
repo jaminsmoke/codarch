@@ -30,6 +30,7 @@ export {
   lintRuleCounts,
   lintRules,
   lintTotals,
-  withinLintFolder
+  withinLintFolder,
+  worstLintSeverity
 } from "./rollup";
 export type { LintFileCount, LintRuleCount, LintTotals } from "./rollup";
