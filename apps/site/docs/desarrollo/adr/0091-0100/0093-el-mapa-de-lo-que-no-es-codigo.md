@@ -173,6 +173,6 @@ Fase **M64 — El mapa de lo que no es código**.
   (2026-10-31). El fichero del resto ya se lee con la ficha comçn —métricas sin riesgo y sus enlaces—,
   y una hoja propia era un malentendido: no hay símbolos, miembros ni código que enseñar. Lo que falta
   de verdad está en las fichas que ya existen.
-- ⬜ Las reglas de doc y config, en su ADR: enlaces rotos, huérfanos, frontmatter y la gemela declarada. La sección **Reglas** vive solo aquí, no en la vista de código; las violaciones de arquitectura serán una subsección cuando se fijen ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)).
+- 🟡 Las reglas de doc y config: decididas en el [ADR 0105](../0101-0110/0105-las-reglas-de-doc-y-config.md) —enlaces rotos, huérfanos, frontmatter y la gemela declarada— y pendientes de implementar en la fase M76. La sección **Reglas** vive solo aquí, no en la vista de código; las violaciones de arquitectura serán una subsección cuando se fijen ([ADR 0104](../0101-0110/0104-el-lint-se-lee-por-hallazgos.md)).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
