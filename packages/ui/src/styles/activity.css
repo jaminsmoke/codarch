@@ -386,3 +386,15 @@
   white-space: nowrap;
 }
 
+
+/* El punto de lint reusa la posición del de Cambios y el color de severidad
+   (ADR 0094); nunca --rust, que es solo para cambios sin commitear. */
+.inspector-dot.lint-dot-error {
+  background: var(--debt);
+}
+.inspector-dot.lint-dot-warn {
+  background: var(--ochre);
+}
+.inspector-dot.lint-dot-info {
+  background: var(--cobalt);
+}

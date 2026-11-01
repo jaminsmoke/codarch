@@ -5,7 +5,12 @@ import { Inspector } from "../panels";
 import { FolderPanel } from "../panels/FolderPanel";
 import { ProjectPanel } from "../panels/ProjectPanel";
 import ChangesPanel, { reportHasChanges } from "../ChangesPanel";
-import { InspectorBar, inspectorLabel } from "../InspectorBar";
+import {
+  InspectorBar,
+  inspectorLabel,
+  type InspectorLintMarks
+} from "../InspectorBar";
+import { lintBarMark, lintTotals } from "../lintRollup";
 import { toggleInspector, type InspectorTab } from "../viewState";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
@@ -68,6 +73,18 @@ export function InspectorDock({
     if (index >= 0) actions.selectIndex(index);
     closeFile();
   };
+
+  const lintMarks: InspectorLintMarks = {};
+  const fileMark = selectedFile
+    ? lintBarMark(lintTotals(state.lint, selectedFile.path))
+    : null;
+  if (fileMark) lintMarks.file = fileMark;
+  const folderMark = selectedFolderNode
+    ? lintBarMark(lintTotals(state.lint, selectedFolderNode.path))
+    : null;
+  if (folderMark) lintMarks.folder = folderMark;
+  const projectMark = lintBarMark(lintTotals(state.lint, ""));
+  if (projectMark) lintMarks.project = projectMark;
 
   return (
     <div className={`inspector-dock${inspectorClosed ? " is-folded" : ""}`}>
@@ -141,6 +158,7 @@ export function InspectorDock({
       <InspectorBar
         active={state.tab}
         alert={Boolean(report && reportHasChanges(report))}
+        lintMarks={lintMarks}
         closed={inspectorClosed}
         panelId={inspectorId}
         onSelect={selectInspectorTab}

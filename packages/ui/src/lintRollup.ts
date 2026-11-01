@@ -15,6 +15,7 @@ import {
   lintRules,
   lintTotals as sharedTotals,
   withinLintFolder,
+  worstLintSeverity,
   type LintRuleCount,
   type LintSeverity,
   type LintTotals as SharedTotals
@@ -56,6 +57,26 @@ export function severityCount(
 }
 
 /** Si una ruta del artefacto cuelga de una carpeta; `""` es todo. */
+
+/**
+ * La marca del punto de lint en la barra (ADR 0094).
+ *
+ * `null` si no se midió o el ámbito está limpio. Si hay hallazgos, la severidad
+ * es la peor presente y la etiqueta cuenta solo esa severidad, en español, para
+ * el `aria-label` del botón («3 errores de lint»).
+ */
+export function lintBarMark(
+  totals: SharedTotals | null
+): { severity: LintSeverity; label: string } | null {
+  if (!totals) return null;
+  const severity = worstLintSeverity(totals);
+  if (!severity) return null;
+  return {
+    severity,
+    label: `${severityText(severityCount(totals, severity), severity)} de lint`
+  };
+}
+
 export const withinFolder = withinLintFolder;
 
 /**

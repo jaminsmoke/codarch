@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LintArtifact, LintMessage } from "@codarch/lint/browser";
-import { lintTotals, withinFolder } from "../src/lintRollup";
+import { lintBarMark, lintTotals, withinFolder } from "../src/lintRollup";
 
 /** Un mensaje de relleno con la severidad pedida. */
 function messages(errors: number, warnings: number): LintMessage[] {
@@ -95,6 +95,30 @@ describe("la deuda de lint de una carpeta", () => {
       findings: 0,
       files: 0,
       score: 0
+    });
+  });
+});
+
+
+describe("lintBarMark", () => {
+  it("sin medir o limpio no marca; la peor severidad pone la etiqueta", () => {
+    expect(lintBarMark(null)).toBeNull();
+    expect(lintBarMark(lintTotals(artifact({}), ""))).toBeNull();
+    const dirty = lintTotals(
+      artifact({ "a.ts": { errors: 2, warnings: 1 } }),
+      "a.ts"
+    );
+    expect(lintBarMark(dirty)).toEqual({
+      severity: "error",
+      label: "2 errores de lint"
+    });
+    const warns = lintTotals(
+      artifact({ "b.ts": { errors: 0, warnings: 1 } }),
+      "b.ts"
+    );
+    expect(lintBarMark(warns)).toEqual({
+      severity: "warn",
+      label: "1 aviso de lint"
     });
   });
 });

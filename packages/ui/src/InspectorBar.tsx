@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { LintSeverity } from "@codarch/lint/browser";
 import type { InspectorTab } from "./viewState";
 
 /**
@@ -20,6 +21,18 @@ interface InspectorSection {
   hint: string;
   icon: ReactNode;
 }
+
+/** El punto de lint de una entrada de código (ADR 0094). */
+export type InspectorLintMark = {
+  severity: LintSeverity;
+  /** Cuenta de esa severidad, ya en español («3 errores de lint»). */
+  label: string;
+};
+
+/** Las entradas que pueden llevar punto de lint: nunca Cambios. */
+export type InspectorLintMarks = Partial<
+  Record<"file" | "folder" | "project", InspectorLintMark>
+>;
 
 /** El marco de todos los iconos: mismo tamaño, mismo trazo, mismo encuadre. */
 function Icon({ children }: { children: ReactNode }) {
@@ -120,6 +133,7 @@ export function inspectorLabel(tab: InspectorTab): string {
 export function InspectorBar({
   active,
   alert,
+  lintMarks,
   closed = false,
   panelId,
   onSelect
@@ -127,6 +141,13 @@ export function InspectorBar({
   active: InspectorTab;
   /** Hay cambios sin commitear: el punto va sobre el icono de Cambios. */
   alert: boolean;
+  /**
+   * Punto de lint por entrada de código (ADR 0094).
+   *
+   * Solo Fichero, Carpeta y Proyecto; Cambios no absorbe lint. El punto reusa
+   * `.lint-dot-*` y anuncia la cuenta en el botón, no en el punto.
+   */
+  lintMarks?: InspectorLintMarks;
   /** La hoja está plegada: la entrada activa es la que la vuelve a abrir. */
   closed?: boolean;
   /** La hoja que las entradas abren y pliegan. */
@@ -141,9 +162,14 @@ export function InspectorBar({
         // el dock de herramientas (ADR 0079 · ADR 0083).
         const visible = current && !closed;
         const marked = alert && section.id === "changes";
-        const name = marked
-          ? `${section.label}, con cambios sin commitear`
-          : section.label;
+        const lintMark =
+          section.id === "changes" ? undefined : lintMarks?.[section.id];
+        let name = section.label;
+        if (marked) name = `${section.label}, con cambios sin commitear`;
+        else if (lintMark) name = `${section.label}, ${lintMark.label}`;
+        const title = lintMark
+          ? `${section.label} · ${section.hint} · ${lintMark.label}`
+          : `${section.label} · ${section.hint}`;
         return (
           <button
             key={section.id}
@@ -155,11 +181,17 @@ export function InspectorBar({
             aria-label={
               current ? `${name}, ${closed ? "mostrar" : "ocultar"}` : name
             }
-            title={`${section.label} · ${section.hint}`}
+            title={title}
             onClick={() => onSelect(section.id)}
           >
             {section.icon}
             {marked ? <i className="inspector-dot" aria-hidden="true" /> : null}
+            {lintMark ? (
+              <i
+                className={`inspector-dot lint-dot-${lintMark.severity}`}
+                aria-hidden="true"
+              />
+            ) : null}
           </button>
         );
       })}
