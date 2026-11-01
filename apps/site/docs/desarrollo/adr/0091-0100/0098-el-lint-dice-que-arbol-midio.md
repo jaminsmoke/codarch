@@ -94,7 +94,7 @@ Fases **M65 — El lint, en el mapa** y **M67 — El lint es del proyecto**.
 - ✅ La lente del lint: color por deuda, escala del mapa, leyenda y aviso sin artefacto.
 - ✅ Una sola lista de colores en el dock y en Ajustes.
 - ✅ La cuenta por fichero y los totales del CLI y del MCP salen de los mensajes.
-- ⬜ El punto del lint en la barra (ADR 0094).
+- ✅ El punto del lint en la barra (ADR 0094).
 - ⬜ Otras herramientas por lenguaje (ADR 0094).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

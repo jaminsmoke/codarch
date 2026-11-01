@@ -26,7 +26,7 @@ Today CodArch has:
 - **Desktop app**: Electron with its own interface, native analysis with git, system menu and
   unsigned installers.
 
-Phases M0–M62 are closed (M24 discarded). M63–M65 are open. M66–M75 are closed.
+Phases M0–M62 are closed (M24 discarded). M63–M64 are open. M65 and M66–M75 are closed.
 
 ## The phases
 
@@ -183,7 +183,7 @@ flowchart TD
 | M62 | The map, in a capture | closed | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
 | M63 | The folder has its ficha | in progress | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
 | M64 | The map of what is not code | in progress | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
-| M65 | Lint, on the map | in progress | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
+| M65 | Lint, on the map | closed | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 | M66 | The project has its ficha | closed | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
 | M67 | Lint belongs to the project | closed | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
 | M68 | Duplication, measured | closed | [ADR 0102](adr/0101-0110/0102-la-duplicacion-y-la-divergencia.md#hoja-de-ruta) |

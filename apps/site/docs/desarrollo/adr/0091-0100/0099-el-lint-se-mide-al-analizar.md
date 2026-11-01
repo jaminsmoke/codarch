@@ -74,7 +74,7 @@ Fases **M65 — El lint, en el mapa** y **M67 — El lint es del proyecto**.
 - ✅ `serve` y el live no remiden un artefacto que ya es del árbol servido.
 - ✅ La lente del lint en **COLOR**, con su escala propia, su leyenda y el PNG.
 - ✅ Sin botón propio en la hoja: las lentes se eligen en **COLOR**.
-- ⬜ El punto del lint en la barra (ADR 0094).
+- ✅ El punto del lint en la barra (ADR 0094).
 - ⬜ El lint incremental del live: medir solo lo que cambió.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
