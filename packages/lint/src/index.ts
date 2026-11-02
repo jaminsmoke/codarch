@@ -9,7 +9,7 @@ export {
   normalizeRuffJson
 } from "./normalize";
 export type { NormalizeLintOptions } from "./normalize";
-export { LINT_FORMATS, loadLintConfig, parseLintConfig } from "./config";
+export { LINT_FORMATS, loadDocsConfig, loadLintConfig, parseLintConfig } from "./config";
 export type { LintFormat, LintTool } from "./config";
 export { defaultLintRunner, runLint } from "./run";
 export type {

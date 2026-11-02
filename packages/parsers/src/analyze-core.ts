@@ -141,7 +141,11 @@ export function analyzeFiles(
   // Las reglas del resto salen de la misma pasada y se firman con el checksum
   // del resto: dicen sobre qué documentos se midieron (ADR 0105).
   const restLint = rest
-    ? buildRestLint({ files: state.restFiles, tree: rest.meta.checksum ?? "" })
+    ? buildRestLint({
+        files: state.restFiles,
+        tree: rest.meta.checksum ?? "",
+        ...(options.docs ? { config: options.docs } : {})
+      })
     : null;
 
   let folders = 0;

@@ -50,3 +50,4 @@ export {
   worstLintSeverity
 } from "./rollup";
 export type { LintFileCount, LintRuleCount, LintTotals } from "./rollup";
+export { parseDocsConfig, parseDocsYaml } from "./docs-config";

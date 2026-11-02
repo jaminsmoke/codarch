@@ -45,4 +45,20 @@ describe("el lint del resto (ADR 0105)", () => {
   it("sin árbol medido no se inventa procedencia", () => {
     expect(buildRestLint({ files }).meta.tree).toBeUndefined();
   });
+
+  it("aplica el bloque docs: entradas apagan huérfanos que no encajan", () => {
+    const without = buildRestLint({ files });
+    // Sin entradas, el README huérfano no se marca: la regla está apagada.
+    expect(without.files["README.md"]).toBeUndefined();
+
+    const withEntries = buildRestLint({
+      files,
+      config: { entries: ["README.md"] }
+    });
+    // Con entradas, docs/a.md queda huérfano (nadie le enlaza y no es entrada).
+    expect(withEntries.files["docs/a.md"]?.messages.some((m) => m.rule === "doc/orphan")).toBe(
+      true
+    );
+    expect(withEntries.files["README.md"]).toBeUndefined();
+  });
 });

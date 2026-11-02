@@ -1,4 +1,4 @@
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { DocsRulesConfig, LintArtifact } from "@codarch/lint/browser";
 import type { CcDuplicationSummary, CcJson, CcMigrationSummary } from "@codarch/schema/browser";
 import type { ParseCache } from "../cache";
 import type { FileSystem } from "../fs";
@@ -75,6 +75,13 @@ export interface AnalyzeCoreOptions {
    * no va a usar.
    */
   rest?: boolean;
+  /**
+   * El bloque `docs:` de `.codarch.yml` (ADR 0105).
+   *
+   * Vacío o ausente apaga las reglas configurables. Quién analiza pasa lo que
+   * ya validó al leer el YAML; el núcleo no vuelve a leer disco.
+   */
+  docs?: DocsRulesConfig;
   /**
    * Avisa del progreso fichero a fichero.
    *

@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import { parse } from "yaml";
 import { LintError } from "./format";
+import { parseDocsConfig } from "./docs-config";
+import type { DocsRulesConfig } from "./rest";
 
 /**
  * El bloque `lint:` de `.codarch.yml` (ADR 0094).
@@ -121,4 +123,25 @@ function text(value: unknown): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+
+/** Lee el `.codarch.yml` de una ruta y devuelve su bloque `docs:` (ADR 0105). */
+export function loadDocsConfig(file: string): DocsRulesConfig {
+  let textValue: string;
+  try {
+    textValue = fs.readFileSync(file, "utf8");
+  } catch (cause) {
+    throw new LintError(`no se pudo leer ${file}: ${(cause as Error).message}`);
+  }
+
+  let document: unknown;
+  try {
+    document = parse(textValue);
+  } catch (cause) {
+    throw new LintError(
+      `configuración inválida en ${file}: ${(cause as Error).message}`
+    );
+  }
+  return parseDocsConfig(document);
 }

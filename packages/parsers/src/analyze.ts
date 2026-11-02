@@ -1,4 +1,6 @@
 import { basename } from "node:path";
+import { loadDocsConfig, type DocsRulesConfig } from "@codarch/lint";
+import { findProjectConfig } from "@codarch/metrics";
 import { analyzeFiles, type AnalyzeCoreResult } from "./analyze-core";
 import type { ParseCache } from "./cache";
 import type { FileSystem } from "./fs";
@@ -26,6 +28,14 @@ export interface AnalyzeOptions {
    * Por defecto, `true`.
    */
   rest?: boolean;
+  /**
+   * El bloque `docs:` ya validado (ADR 0105).
+   *
+   * Si no se pasa, se lee del `.codarch.yml` de la raíz. Un bloque inválido
+   * hace fallar el análisis; sin bloque, las reglas configurables quedan
+   * apagadas.
+   */
+  docs?: DocsRulesConfig;
   /**
    * Puerto de ficheros. Por defecto, el disco; el navegador usa el fichero en
    * memoria con los ficheros que ha elegido el usuario.
@@ -78,6 +88,13 @@ export function analyzeRepository(
   // El commit viaja en el snapshot: `inspect` lo enseña y el historial lo apunta.
   const commitHash = useGit ? (gitHead(rootInput) ?? undefined) : undefined;
 
+  const docs =
+    options.docs ??
+    (() => {
+      const file = findProjectConfig(rootInput);
+      return file ? loadDocsConfig(file) : undefined;
+    })();
+
   const result = analyzeFiles({
     fileSystem,
     root: options.root ?? "/",
@@ -86,6 +103,7 @@ export function analyzeRepository(
     ignore: options.ignore,
     extensions: options.extensions,
     rest: options.rest,
+    docs,
     parsers: [
       new TypeScriptParser(),
       new JavaParser(),

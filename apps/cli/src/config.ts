@@ -1,5 +1,10 @@
 import path from "node:path";
-import { loadLintConfig, type LintTool } from "@codarch/lint";
+import {
+  loadDocsConfig,
+  loadLintConfig,
+  type DocsRulesConfig,
+  type LintTool
+} from "@codarch/lint";
 import { findProjectConfig, loadIgnoreConfig } from "@codarch/metrics";
 
 /** El `.codarch.yml` de una raíz de análisis, si existe. */
@@ -39,4 +44,22 @@ export function loadProjectLintTools(
     ? path.resolve(options.config)
     : defaultConfigPath(root);
   return file ? loadLintConfig(file) : [];
+}
+
+
+/**
+ * El bloque `docs:` del proyecto (ADR 0105).
+ *
+ * Sin configuración no hay reglas configurables. Un bloque mal formado sí es
+ * un error, y lo dice `loadDocsConfig`.
+ */
+export function loadProjectDocsConfig(
+  root: string,
+  options: { config?: string; noConfig?: boolean } = {}
+): DocsRulesConfig {
+  if (options.noConfig) return {};
+  const file = options.config
+    ? path.resolve(options.config)
+    : defaultConfigPath(root);
+  return file ? loadDocsConfig(file) : {};
 }

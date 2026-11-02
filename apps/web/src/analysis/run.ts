@@ -8,6 +8,7 @@ import {
   analyzeFiles,
   type SourceParser
 } from "@codarch/parsers/browser";
+import { parseDocsYaml } from "@codarch/lint/browser";
 import { parseIgnoreYaml } from "@codarch/metrics/browser";
 
 /**
@@ -102,11 +103,13 @@ export async function runAnalysis(
       /^\/?\.codarch\.ya?ml$/.test(file)
     );
     const ignore = config ? parseIgnoreYaml(config[1]) : [];
+    const docs = config ? parseDocsYaml(config[1]) : undefined;
     const result = analyzeFiles({
       fileSystem: new MemoryFileSystem(request.files),
       root: "/",
       projectName: request.projectName,
       ignore,
+      docs,
       parsers,
       onProgress: (progress) => report({ type: "progress-file", ...progress })
     });
