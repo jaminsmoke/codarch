@@ -19,6 +19,8 @@ export type DesktopTarget =
       rest: unknown | null;
       /** El `.codarch/lint.repmod.json` del repo, si existe (ADR 0094). */
       lint: unknown | null;
+      /** El `.codarch/lint-rest.repmod.json`, si existe (ADR 0105). */
+      restLint: unknown | null;
       label: string;
       /**
        * Es el mismo repo que ya estaba abierto y solo cambió en disco (live).
@@ -39,6 +41,8 @@ export interface DesktopAnalysis {
    * el artefacto que dejó `codarch analyze` (ADR 0099).
    */
   lint: unknown | null;
+  /** Las reglas del resto de la pasada, si se midieron (ADR 0105). */
+  restLint: unknown | null;
   files: number;
   edges: number;
   warnings: string[];
@@ -59,6 +63,8 @@ export interface DesktopRestore {
   rest: unknown | null;
   /** El lint del repo, si `codarch analyze` o `codarch lint` lo midieron. */
   lint: unknown | null;
+  /** Las reglas del resto, si `codarch analyze` las midió (ADR 0105). */
+  restLint: unknown | null;
   report: unknown | null;
   /** Los addons que el repo declara, con sus vistas guardadas (ADR 0029). */
   addons: RepoAddons;

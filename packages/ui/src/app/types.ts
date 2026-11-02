@@ -46,6 +46,14 @@ export interface CodarchAppState {
    * solo mensaje— también es un artefacto.
    */
   lint: LintArtifact | null;
+  /**
+   * Las reglas del resto, si el proyecto las midió (ADR 0105).
+   *
+   * Mismo vocabulario que el lint, artefacto propio (`lint-rest.repmod.json`)
+   * y checksum del resto. `null` es «sin medir»; solo se lee en el mapa del
+   * resto.
+   */
+  restLint: LintArtifact | null;
   /** El mapa que ocupa el escenario. */
   map: MapId;
   source: string;
@@ -115,6 +123,12 @@ export interface CodarchAppActions {
    * puede tumbar el mapa.
    */
   loadLint: (raw: unknown) => boolean;
+  /**
+   * Carga las reglas del resto, o las quita con `null` (ADR 0105).
+   *
+   * Un artefacto que no se entiende se descarta: es opcional y no tumba el mapa.
+   */
+  loadRestLint: (raw: unknown) => boolean;
   /** Cambia de mapa; sin resto cargado, a `rest` no se puede ir. */
   setMap: (map: MapId) => void;
   resetReport: () => void;
@@ -139,7 +153,8 @@ export interface CodarchAppActions {
     raw: unknown,
     label: string,
     rest?: unknown,
-    lint?: unknown
+    lint?: unknown,
+    restLint?: unknown
   ) => boolean;
   /** Carga un reporte y lo guarda en el proyecto actual. */
   openReport: (raw: unknown, label: string) => boolean;

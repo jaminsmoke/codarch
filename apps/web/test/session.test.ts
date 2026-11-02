@@ -23,6 +23,7 @@ function handlers(overrides: Partial<SessionHandlers> = {}): {
   handlers: SessionHandlers;
   calls: {
     lint: unknown[];
+    restLint: unknown[];
     snapshot: { label: string; preserveView?: boolean }[];
     report: string[];
     resetReport: number;
@@ -32,6 +33,7 @@ function handlers(overrides: Partial<SessionHandlers> = {}): {
 } {
   const calls = {
     lint: [] as unknown[],
+    restLint: [] as unknown[],
     snapshot: [] as { label: string; preserveView?: boolean }[],
     report: [] as string[],
     resetReport: 0,
@@ -46,6 +48,10 @@ function handlers(overrides: Partial<SessionHandlers> = {}): {
     rest: () => true,
     lint: (raw) => {
       calls.lint.push(raw);
+      return true;
+    },
+    restLint: (raw) => {
+      calls.restLint.push(raw);
       return true;
     },
     report: (_raw, label) => {
@@ -100,6 +106,7 @@ describe("el arranque de la web", () => {
     });
 
     expect(calls.lint).toEqual([lintArtifact]);
+    expect(calls.restLint).toEqual([null]);
   });
 
   it("sin lint en el servidor, el mapa se queda sin medir", async () => {
@@ -117,6 +124,7 @@ describe("el arranque de la web", () => {
     });
 
     expect(calls.lint).toEqual([null]);
+    expect(calls.restLint).toEqual([null]);
   });
 
   it("una URL que no carga no cambia el modo del mapa", async () => {
@@ -140,7 +148,7 @@ describe("el arranque de la web", () => {
     expect(calls.mode).toEqual([]);
   });
 
-  it("el proyecto guardado trae su lint", async () => {
+  it("el proyecto guardado trae su lint y sus reglas del resto", async () => {
     const map = new Map<string, string>();
     const storage = {
       getItem: (key: string) => map.get(key) ?? null,
@@ -157,6 +165,7 @@ describe("el arranque de la web", () => {
       {
         snapshot: { meta: { checksum: "abc" }, files: [] },
         lint: lintArtifact,
+        restLint: lintArtifact,
         report: null,
         label: "repo/.codarch/snapshot.cc.json",
         reportLabel: null
@@ -174,6 +183,7 @@ describe("el arranque de la web", () => {
     });
 
     expect(calls.lint).toEqual([lintArtifact]);
+    expect(calls.restLint).toEqual([lintArtifact]);
   });
 });
 
@@ -184,12 +194,13 @@ describe("el arranque de la web", () => {
  * no puede quedarse una versión para cada uno.
  */
 describe("loadServedProject", () => {
-  it("deja snapshot, resto, lint, reporte HEAD y addons", async () => {
+  it("deja snapshot, resto, lint, reglas del resto, reporte HEAD y addons", async () => {
     fakeFetch({
       "data/meta.json": { watch: true, rootPath: "/repo", version: "0.3.0" },
       "data/snapshot.cc.json": { meta: { checksum: "abc" }, files: [] },
       "data/rest.cc.json": { meta: { checksum: "def" }, files: [] },
       "data/lint.repmod.json": lintArtifact,
+      "data/lint-rest.repmod.json": lintArtifact,
       "data/head-report.json": { added: 0, removed: 0, files: [] }
     });
     const { handlers: h, calls } = handlers();
@@ -200,6 +211,7 @@ describe("loadServedProject", () => {
       { label: "servidor local", preserveView: false }
     ]);
     expect(calls.lint).toEqual([lintArtifact]);
+    expect(calls.restLint).toEqual([lintArtifact]);
     expect(calls.report).toEqual(["HEAD"]);
     expect(calls.resetReport).toBe(0);
     expect(calls.mode).toEqual(["live"]);

@@ -24,6 +24,7 @@ export interface DocumentSetters {
   setCc: (cc: CcJson | null) => void;
   setRest: (rest: CcJson | null) => void;
   setLint: (lint: LintArtifact | null) => void;
+  setRestLint: (lint: LintArtifact | null) => void;
   setMap: (map: "code" | "rest") => void;
   setSource: (source: string) => void;
   setAreaMetric: (value: string | null | ((current: string | null) => string | null)) => void;
@@ -96,6 +97,7 @@ export function useDocuments(deps: DocumentDeps) {
     setCc,
     setRest,
     setLint,
+    setRestLint,
     setMap,
     setSource,
     setAreaMetric,
@@ -176,10 +178,12 @@ export function useDocuments(deps: DocumentDeps) {
         }
         if (!preserveView) {
           // Otro proyecto, otro resto: el mapa vuelve al código hasta que el
-          // nuevo traiga su `rest.cc.json` (ADR 0093). El lint es del repo que
-          // se abre; si el nuevo no lo trae, se queda sin medir (ADR 0094).
+          // nuevo traiga su `rest.cc.json` (ADR 0093). El lint y las reglas del
+          // resto son del repo que se abre; si el nuevo no los trae, quedan sin
+          // medir (ADR 0094 · ADR 0105).
           setRest(null);
           setLint(null);
+          setRestLint(null);
           setMap("code");
           setQuery("");
           selectedPathRef.current = null;
@@ -208,6 +212,7 @@ export function useDocuments(deps: DocumentDeps) {
       setCc,
       setRest,
       setLint,
+      setRestLint,
       setMap,
       mapRef,
       setColorMode,
@@ -270,6 +275,21 @@ export function useDocuments(deps: DocumentDeps) {
     [setLint]
   );
 
+  /**
+   * Carga las reglas del resto (ADR 0105).
+   *
+   * Misma forma que el lint: un artefacto que no se entiende deja las reglas
+   * sin medir. Solo se enseñan en el mapa del resto.
+   */
+  const loadRestLint = useCallback(
+    (raw: unknown): boolean => {
+      const parsed = readLintArtifact(raw);
+      setRestLint(parsed);
+      return parsed !== null;
+    },
+    [setRestLint]
+  );
+
   const loadReport = useCallback(
     (raw: unknown, label: string, focus = true): boolean => {
       const next = readReport(raw);
@@ -304,7 +324,13 @@ export function useDocuments(deps: DocumentDeps) {
    * URL: una sola escritura y el reporte anterior fuera.
    */
   const openSnapshot = useCallback(
-    (raw: unknown, label: string, rest?: unknown, lint?: unknown): boolean => {
+    (
+      raw: unknown,
+      label: string,
+      rest?: unknown,
+      lint?: unknown,
+      restLint?: unknown
+    ): boolean => {
       if (!loadSnapshot(raw, label)) return false;
       setAddons([]);
       // El resto viaja con su snapshot: los dos salen de la misma pasada y se
@@ -313,10 +339,13 @@ export function useDocuments(deps: DocumentDeps) {
       // El lint es otro artefacto del mismo repo (ADR 0094): viaja junto al
       // proyecto, y un fichero que no se entiende deja el lint sin medir.
       loadLint(lint ?? null);
+      // Las reglas del resto viajan con él (ADR 0105).
+      loadRestLint(restLint ?? null);
       void platform.writeProject({
         snapshot: raw,
         ...(rest !== undefined ? { rest } : {}),
         ...(lint !== undefined ? { lint } : {}),
+        ...(restLint !== undefined ? { restLint } : {}),
         report: null,
         label,
         reportLabel: null,
@@ -325,7 +354,16 @@ export function useDocuments(deps: DocumentDeps) {
       resetReport();
       return true;
     },
-    [loadLint, loadRest, loadSnapshot, platform, resetReport, setAddons, setRest]
+    [
+      loadLint,
+      loadRest,
+      loadRestLint,
+      loadSnapshot,
+      platform,
+      resetReport,
+      setAddons,
+      setRest
+    ]
   );
 
   /** Carga un reporte y lo guarda en el proyecto actual. */
@@ -362,12 +400,16 @@ export function useDocuments(deps: DocumentDeps) {
       if (loadSnapshot(result.snapshot, root, false, result.preferences)) {
         // El análisis trae el resto de la misma pasada (ADR 0093).
         if (result.rest !== undefined) loadRest(result.rest);
-        // Analizar no linta (ADR 0094): se enseña el artefacto que ya había.
+        // Analizar no linta el código (ADR 0094): se enseña el que ya había.
         loadLint(result.lint ?? null);
+        // Las reglas del resto sí salen de esta pasada (ADR 0105).
+        loadRestLint(result.restLint ?? null);
         setAddons(result.addons.addons);
         void platform.writeProject({
           snapshot: result.snapshot,
+          ...(result.rest !== undefined ? { rest: result.rest } : {}),
           ...(result.lint !== undefined ? { lint: result.lint } : {}),
+          ...(result.restLint !== undefined ? { restLint: result.restLint } : {}),
           report: null,
           label: root,
           reportLabel: null,
@@ -384,6 +426,7 @@ export function useDocuments(deps: DocumentDeps) {
   }, [
     loadLint,
     loadRest,
+    loadRestLint,
     loadSnapshot,
     platform,
     resetReport,
@@ -425,6 +468,7 @@ export function useDocuments(deps: DocumentDeps) {
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     resetReport,
     openSnapshot,

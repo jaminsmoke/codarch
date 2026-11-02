@@ -6,9 +6,11 @@ import {
   isSnapshot,
   readPersistedLint,
   readPersistedRest,
+  readPersistedRestLint,
   readPersistedSnapshot,
   storeParseCache,
   storeRest,
+  storeRestLint,
   sweepState,
   writeSnapshot
 } from "./persistence";
@@ -64,6 +66,7 @@ export function createTargets(options: TargetOptions): Targets {
       snapshot: stored,
       rest: readPersistedRest(root),
       lint: readPersistedLint(root),
+      restLint: readPersistedRestLint(root),
       label: root
     });
   };
@@ -125,6 +128,7 @@ export function createTargets(options: TargetOptions): Targets {
         ensureStateIgnored(target);
         writeSnapshot(target, outcome.snapshot);
         storeRest(target, outcome.rest);
+        storeRestLint(target, outcome.restLint);
         storeParseCache(target, outcome.parseCache);
         sweepState(target);
         options.watch(target);
@@ -133,6 +137,7 @@ export function createTargets(options: TargetOptions): Targets {
           snapshot: outcome.snapshot,
           rest: outcome.rest,
           lint: readPersistedLint(target),
+          restLint: outcome.restLint,
           label: target
         });
         headReport(target, outcome.headReport);
@@ -160,6 +165,7 @@ export function createTargets(options: TargetOptions): Targets {
           snapshot: raw,
           rest: null,
           lint: null,
+          restLint: null,
           label: target
         });
         return;

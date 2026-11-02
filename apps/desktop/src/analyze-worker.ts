@@ -65,6 +65,7 @@ export function analyze(request: AnalyzeRequest): AnalyzeResponse {
       kind: "snapshot",
       snapshot: result.snapshot,
       rest: result.rest,
+      restLint: result.restLint,
       files: result.files,
       edges: result.edges,
       warnings: [...warnings, ...result.warnings],

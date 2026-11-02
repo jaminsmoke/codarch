@@ -74,16 +74,21 @@ export function InspectorDock({
     closeFile();
   };
 
+  // En el mapa del resto el punto lee las reglas (ADR 0105); en el del código,
+  // el lint. Sin medir o limpio: sin punto.
+  const rulesMode = state.map === "rest";
+  const sectionLint = rulesMode ? state.restLint : state.lint;
+  const markKind = rulesMode ? "reglas" : "lint";
   const lintMarks: InspectorLintMarks = {};
   const fileMark = selectedFile
-    ? lintBarMark(lintTotals(state.lint, selectedFile.path))
+    ? lintBarMark(lintTotals(sectionLint, selectedFile.path), markKind)
     : null;
   if (fileMark) lintMarks.file = fileMark;
   const folderMark = selectedFolderNode
-    ? lintBarMark(lintTotals(state.lint, selectedFolderNode.path))
+    ? lintBarMark(lintTotals(sectionLint, selectedFolderNode.path), markKind)
     : null;
   if (folderMark) lintMarks.folder = folderMark;
-  const projectMark = lintBarMark(lintTotals(state.lint, ""));
+  const projectMark = lintBarMark(lintTotals(sectionLint, ""), markKind);
   if (projectMark) lintMarks.project = projectMark;
 
   return (
@@ -106,9 +111,10 @@ export function InspectorDock({
             symbols={selectedSymbols}
             structure={selectedStructure}
             chain={state.chain}
-            lint={state.lint}
+            lint={sectionLint}
             migration={migration}
             showCode={state.map === "code"}
+            rulesMode={rulesMode}
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}
@@ -121,7 +127,8 @@ export function InspectorDock({
           <FolderPanel
             folder={selectedFolderNode}
             model={view.model}
-            lint={state.lint}
+            lint={sectionLint}
+            rulesMode={rulesMode}
             changes={report?.files ?? null}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
@@ -133,7 +140,8 @@ export function InspectorDock({
         ) : state.tab === "project" ? (
           <ProjectPanel
             model={view.model}
-            lint={state.lint}
+            lint={sectionLint}
+            rulesMode={rulesMode}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}

@@ -63,6 +63,7 @@ export function desktopPlatform(): Platform {
             snapshot: restored.snapshot,
             rest: restored.rest ?? undefined,
             lint: restored.lint ?? undefined,
+            restLint: restored.restLint ?? undefined,
             report: restored.report,
             label: root,
             reportLabel: restored.report

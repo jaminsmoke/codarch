@@ -9,8 +9,8 @@ import type { Platform } from "../platform";
  * Solo lo hace la plataforma que guarda en disco: el escritorio abre donde se
  * quedó y la web lleva su propio arranque —servidor, URL, demo—. Si el proyecto
  * guardado ya no se puede abrir, se borra en vez de dejar un error en pantalla.
- * El proyecto puede traer su mapa del resto (ADR 0093), su lint (ADR 0094) y su
- * reporte.
+ * El proyecto puede traer su mapa del resto (ADR 0093), su lint (ADR 0094),
+ * sus reglas del resto (ADR 0105) y su reporte.
  */
 
 export interface RestoreProjectDeps {
@@ -18,6 +18,7 @@ export interface RestoreProjectDeps {
   loadSnapshot: CodarchAppActions["loadSnapshot"];
   loadRest: CodarchAppActions["loadRest"];
   loadLint: CodarchAppActions["loadLint"];
+  loadRestLint: CodarchAppActions["loadRestLint"];
   loadReport: CodarchAppActions["loadReport"];
   setAddons: (addons: RepoAddon[]) => void;
   setLoading: (loading: boolean) => void;
@@ -29,6 +30,7 @@ export function useRestoreProject(deps: RestoreProjectDeps): void {
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     setAddons,
     setLoading
@@ -46,6 +48,8 @@ export function useRestoreProject(deps: RestoreProjectDeps): void {
         if (saved.rest) loadRest(saved.rest);
         // Y su lint (ADR 0094); sin él, el proyecto está sin medir.
         loadLint(saved.lint ?? null);
+        // Las reglas del resto (ADR 0105).
+        loadRestLint(saved.restLint ?? null);
         if (saved.report) {
           loadReport(saved.report, saved.reportLabel ?? "report.json", false);
         }
@@ -57,7 +61,16 @@ export function useRestoreProject(deps: RestoreProjectDeps): void {
     return () => {
       cancelled = true;
     };
-  }, [loadSnapshot, loadRest, loadLint, loadReport, platform, setAddons, setLoading]);
+  }, [
+    loadSnapshot,
+    loadRest,
+    loadLint,
+    loadRestLint,
+    loadReport,
+    platform,
+    setAddons,
+    setLoading
+  ]);
 }
 
 /** El estado del mapa activo, que se corrige cuando su snapshot deja de estar. */

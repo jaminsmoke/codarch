@@ -12,6 +12,7 @@ import {
   readPersistedLint,
   storeParseCache,
   storeRest,
+  storeRestLint,
   sweepState,
   writeSnapshot
 } from "./persistence";
@@ -101,6 +102,7 @@ export function createLive(options: LiveOptions): Live {
         // El checksum del resto es suyo (ADR 0093): un documento que cambia no
         // mueve el del código, así que este cambio también se avisa.
         const restChanged = storeRest(root, outcome.rest);
+        const restLintChanged = storeRestLint(root, outcome.restLint);
         const checksum = snapshotChecksum(outcome.snapshot);
         const historyChecksum = snapshotHistoryChecksum(outcome.snapshot) ?? "";
         // Mismo código **y** mismo historial: si cambió el calor, hay que
@@ -110,12 +112,13 @@ export function createLive(options: LiveOptions): Live {
           persistedChecksum(root) === checksum &&
           persistedHistoryChecksum(root) === historyChecksum
         ) {
-          if (!restChanged) return;
+          if (!restChanged && !restLintChanged) return;
           options.send({
             kind: "snapshot",
             snapshot: outcome.snapshot,
             rest: outcome.rest,
             lint: readPersistedLint(root),
+            restLint: outcome.restLint,
             label: root,
             refresh: true
           });
@@ -129,6 +132,7 @@ export function createLive(options: LiveOptions): Live {
           snapshot: outcome.snapshot,
           rest: outcome.rest,
           lint: readPersistedLint(root),
+          restLint: outcome.restLint,
           label: root,
           refresh: true
         });

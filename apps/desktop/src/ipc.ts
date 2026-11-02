@@ -24,6 +24,7 @@ import {
   restoreProject,
   storeParseCache,
   storeRest,
+  storeRestLint,
   sweepState,
   writeSnapshot
 } from "./persistence";
@@ -105,6 +106,7 @@ export function registerIpcHandlers({ live }: IpcOptions): void {
     ensureStateIgnored(root);
     writeSnapshot(root, outcome.snapshot);
     storeRest(root, outcome.rest);
+    storeRestLint(root, outcome.restLint);
     storeParseCache(root, outcome.parseCache);
     sweepState(root);
     live.watch(root);
@@ -112,6 +114,7 @@ export function registerIpcHandlers({ live }: IpcOptions): void {
       snapshot: outcome.snapshot,
       rest: outcome.rest,
       lint: readPersistedLint(root),
+      restLint: outcome.restLint,
       files: outcome.files,
       edges: outcome.edges,
       warnings: outcome.warnings,

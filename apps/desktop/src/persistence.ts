@@ -13,6 +13,7 @@ import {
   LINT_FILE,
   REPORT_FILE,
   REST_FILE,
+  REST_LINT_FILE,
   SNAPSHOT_FILE,
   codarchDir,
   codarchPath
@@ -76,6 +77,16 @@ function readJsonFile(file: string): unknown | null {
  */
 export function readPersistedLint(root: string): unknown | null {
   return readJsonFile(codarchPath(root, LINT_FILE));
+}
+
+/**
+ * Lee las reglas del resto guardadas, si las hay (ADR 0105).
+ *
+ * Misma lectura cruda que el lint: el renderer valida con el lector de
+ * `@codarch/lint` y un fichero que no entiende deja las reglas sin medir.
+ */
+export function readPersistedRestLint(root: string): unknown | null {
+  return readJsonFile(codarchPath(root, REST_LINT_FILE));
 }
 
 /**
@@ -190,6 +201,24 @@ export function storeRest(root: string, rest: unknown | null): boolean {
 }
 
 /**
+ * Escribe las reglas del resto y dice si el fichero cambió de verdad (ADR 0105).
+ */
+export function storeRestLint(root: string, restLint: unknown | null): boolean {
+  if (!restLint) return false;
+  const file = codarchPath(root, REST_LINT_FILE);
+  try {
+    const content = `${JSON.stringify(restLint, null, 2)}\n`;
+    if (existsSync(file) && readFileSync(file, "utf8") === content) {
+      return false;
+    }
+    return writeCodarchJson(root, REST_LINT_FILE, restLint);
+  } catch (cause) {
+    console.error(`no se pudo escribir ${file}: ${(cause as Error).message}`);
+    return false;
+  }
+}
+
+/**
  * Guarda la caché de parseo que dejó el análisis (ADR 0089).
  *
  * El `utilityProcess` que analiza no escribe en `.codarch/` (ADR 0050): calcula
@@ -260,6 +289,8 @@ export interface RestoredProject {
   snapshot: unknown;
   rest: unknown | null;
   lint: unknown | null;
+  /** Las reglas del resto, si el repo las midió (ADR 0105). */
+  restLint: unknown | null;
   report: unknown | null;
   addons: RepoAddons;
   preferences: ViewPreferences | null;
@@ -279,6 +310,7 @@ export function restoreProject(root: string): RestoredProject | null {
     snapshot,
     rest: readPersistedRest(root),
     lint: readPersistedLint(root),
+    restLint: readPersistedRestLint(root),
     report: readJsonFile(codarchPath(root, REPORT_FILE)),
     addons: repoAddons(root),
     preferences: readRepoPreferences(root)

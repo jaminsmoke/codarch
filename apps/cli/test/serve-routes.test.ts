@@ -98,6 +98,31 @@ describe("las rutas del servidor", () => {
     );
   });
 
+  it("sirve las reglas del resto de la misma pasada y contesta 204 si no hay", async () => {
+    const root = tempRepo({
+      "src/a.ts": "export const a = 1;\n",
+      "README.md": "# Hola\n"
+    });
+    const base = await serve(root);
+
+    const served = await fetch(`${base}/data/lint-rest.repmod.json`);
+    expect(served.status).toBe(200);
+    const body = (await served.json()) as {
+      schemaVersion?: string;
+      meta?: { tools?: string[] };
+    };
+    expect(body.schemaVersion).toBeTruthy();
+    expect(Array.isArray(body.meta?.tools)).toBe(true);
+    expect(
+      fs.existsSync(path.join(root, ".codarch", "lint-rest.repmod.json"))
+    ).toBe(true);
+
+    fs.unlinkSync(path.join(root, ".codarch", "lint-rest.repmod.json"));
+    expect((await fetch(`${base}/data/lint-rest.repmod.json`)).status).toBe(
+      204
+    );
+  });
+
   it("sirve el lint guardado y contesta 204 si no hay", async () => {
     const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
     const base = await serve(root);

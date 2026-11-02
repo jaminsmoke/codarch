@@ -9,9 +9,11 @@ import {
   persistedChecksum,
   readPersistedLint,
   readPersistedRest,
+  readPersistedRestLint,
   readPersistedSnapshot,
   restoreProject,
   storeRest,
+  storeRestLint,
   sweepState,
   writeSnapshot
 } from "../src/persistence";
@@ -102,6 +104,16 @@ describe("lo que el escritorio guarda en .codarch/", () => {
       JSON.stringify({ schemaVersion: "1.2" })
     );
     expect(readPersistedLint(root)).toEqual({ schemaVersion: "1.2" });
+  });
+
+  it("las reglas del resto se leen y se guardan como el lint", () => {
+    const root = tempRepo();
+    expect(readPersistedRestLint(root)).toBeNull();
+    storeRestLint(root, { schemaVersion: "1.2", meta: { tools: ["codarch"] } } as never);
+    expect(readPersistedRestLint(root)).toEqual({
+      schemaVersion: "1.2",
+      meta: { tools: ["codarch"] }
+    });
   });
 
   it("restaura el proyecto con sus addons y sin snapshot no hay nada", () => {

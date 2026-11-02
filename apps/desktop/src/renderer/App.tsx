@@ -25,6 +25,7 @@ export default function App() {
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     resetReport,
     analyzeFolder,
@@ -45,9 +46,7 @@ export default function App() {
     return desktop().onOpenSettings(() => setSettingsOpen(true));
   }, [setSettingsOpen]);
 
-  // El título dice el proyecto abierto, no «CodArch» a secas. Se pone también
-  // en el documento porque hay gestores de ventanas en Linux que prefieren
-  // ese título al que fija el proceso principal.
+  // El título del documento: gestores de ventanas en Linux lo prefieren.
   useEffect(() => {
     document.title = cc
       ? documentTitle(source, cc.meta.projectName ?? null)
@@ -84,22 +83,22 @@ export default function App() {
     if (!api?.onTarget) return;
     return api.onTarget((target) => {
       if (target.kind === "snapshot") {
-        // Un refresco es el mismo repo que cambió en disco (live): se mantiene
-        // la vista y lo que se estaba mirando (área, color, foco, reporte).
-        if (target.refresh) {
-          loadSnapshot(target.snapshot, target.label, true);
+        // Refresco live: misma vista; el resto, el lint y las reglas llegan
+        // con el snapshot (ADR 0093, ADR 0105).
+        const paint = (refresh: boolean) => {
+          if (!loadSnapshot(target.snapshot, target.label, refresh)) return false;
           loadRest(target.rest ?? null);
           loadLint(target.lint ?? null);
+          loadRestLint(target.restLint ?? null);
+          return true;
+        };
+        if (target.refresh) {
+          paint(true);
           return;
         }
-        if (loadSnapshot(target.snapshot, target.label)) {
-          // El resto llega con el snapshot, de la misma pasada (ADR 0093).
-          loadRest(target.rest ?? null);
-          // El lint es un fichero aparte que el proceso principal ya leyó.
-          loadLint(target.lint ?? null);
+        if (paint(false)) {
           setAddons([]);
-          // El proceso principal ya lo escribió en `.codarch/` (ADR 0048):
-          // esto solo recuerda cuál es el último repo.
+          // El proceso principal ya lo escribió (ADR 0048): solo se recuerda.
           void platform.writeProject({
             snapshot: target.snapshot,
             report: null,
@@ -127,6 +126,7 @@ export default function App() {
     loadLint,
     loadReport,
     loadRest,
+    loadRestLint,
     loadSnapshot,
     platform,
     resetReport,

@@ -44,6 +44,7 @@ function snapshotOutcome(
     kind: "snapshot",
     snapshot: cc(checksum) as never,
     rest: rest as never,
+    restLint: null,
     files: 1,
     edges: 0,
     warnings: [],

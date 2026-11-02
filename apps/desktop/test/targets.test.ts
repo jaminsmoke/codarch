@@ -26,6 +26,7 @@ function snapshotOutcome(checksum: string): AnalyzeOutcome {
     kind: "snapshot",
     snapshot: cc(checksum) as never,
     rest: null,
+    restLint: null,
     files: 1,
     edges: 0,
     warnings: [],
@@ -152,6 +153,7 @@ describe("abrir un fichero", () => {
       snapshot: cc("c1"),
       rest: null,
       lint: null,
+      restLint: null,
       label: file
     });
     expect(options.stopWatching).toHaveBeenCalled();

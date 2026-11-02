@@ -24,6 +24,7 @@ import { MetricsRollup } from "./MetricsRollup";
 export function ProjectPanel({
   model,
   lint,
+  rulesMode = false,
   metricTitle,
   colorMode,
   onColorMode,
@@ -31,7 +32,10 @@ export function ProjectPanel({
   onSelectFolder
 }: {
   model: RenderModel | null;
+  /** El lint del código, o las reglas del resto en ese mapa (ADR 0105). */
   lint: LintArtifact | null;
+  /** En el resto: sección Reglas y sin bloque de lint en métricas. */
+  rulesMode?: boolean;
   metricTitle: (key: string) => string;
   colorMode: string;
   onColorMode: (mode: string) => void;
@@ -61,7 +65,7 @@ export function ProjectPanel({
         model={model}
         files={model.files}
         folders={folders}
-        lint={lint}
+        lint={rulesMode ? null : lint}
         folder=""
         metricTitle={metricTitle}
         colorMode={colorMode}
@@ -80,9 +84,15 @@ export function ProjectPanel({
         id="project-lint"
         artifact={lint}
         folder=""
-        advice={adviceForExtensions(
-          model.files.map((file) => extensionOf(file.name))
-        )}
+        advice={
+          rulesMode
+            ? []
+            : adviceForExtensions(
+                model.files.map((file) => extensionOf(file.name))
+              )
+        }
+        title={rulesMode ? "Reglas" : "Lint"}
+        kind={rulesMode ? "rules" : "lint"}
       />
     </section>
   );

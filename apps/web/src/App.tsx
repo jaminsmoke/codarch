@@ -66,6 +66,7 @@ export default function App() {
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     resetReport,
     openSnapshot,
@@ -156,6 +157,7 @@ export default function App() {
       snapshot: loadSnapshot,
       rest: loadRest,
       lint: loadLint,
+      restLint: loadRestLint,
       report: loadReport,
       resetReport,
       addons: loadAddons,
@@ -172,6 +174,7 @@ export default function App() {
       loadSnapshot,
       loadRest,
       loadLint,
+      loadRestLint,
       loadReport,
       resetReport,
       loadAddons,
@@ -296,7 +299,8 @@ export default function App() {
           artifacts.snapshot,
           artifacts.label,
           artifacts.rest ?? null,
-          artifacts.lint ?? null
+          artifacts.lint ?? null,
+          artifacts.restLint ?? null
         )
       )
         return;
@@ -394,6 +398,7 @@ export default function App() {
         // El análisis en el navegador mide también lo que no es código: los
         // dos mapas salen de la misma pasada (ADR 0093).
         loadRest(result.rest ?? null);
+        loadRestLint(result.restLint ?? null);
         setServerMode("local");
         setSourceUrl(null);
         setReportUrl(null);
@@ -414,6 +419,7 @@ export default function App() {
     closeOpenMenu,
     loadSnapshot,
     loadRest,
+    loadRestLint,
     resetReport,
     setError,
     setLoading,

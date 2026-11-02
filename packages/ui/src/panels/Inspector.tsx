@@ -52,6 +52,7 @@ export function Inspector({
   lint,
   migration,
   showCode = true,
+  rulesMode = false,
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
@@ -78,6 +79,11 @@ export function Inspector({
    * miembros ni cadena, y su ficha no finge que los tenga (ADR 0093).
    */
   showCode?: boolean;
+  /**
+   * En el mapa del resto la sección se llama Reglas y no pesa en el riesgo
+   * (ADR 0105).
+   */
+  rulesMode?: boolean;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -157,15 +163,17 @@ export function Inspector({
           onSelectPath={onSelectPath}
         />
       ) : null}
+      <LintSection
+        id="file-lint"
+        artifact={lint}
+        folder={file.path}
+        filePath={file.path}
+        risk={rulesMode ? undefined : file.riskParts}
+        title={rulesMode ? "Reglas" : "Lint"}
+        kind={rulesMode ? "rules" : "lint"}
+      />
       {showCode ? (
         <>
-          <LintSection
-            id="file-lint"
-            artifact={lint}
-            folder={file.path}
-            filePath={file.path}
-            risk={file.riskParts}
-          />
           <SymbolsSection
             file={file}
             symbols={symbols}

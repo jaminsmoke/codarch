@@ -13,6 +13,8 @@ export interface BrowserAnalysis {
   snapshot: unknown;
   /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
   rest: unknown;
+  /** Las reglas del resto de la misma pasada (ADR 0105). */
+  restLint: unknown;
   files: number;
   edges: number;
   warnings: string[];
@@ -82,6 +84,7 @@ export function analyzeInBrowser(
         resolve({
           snapshot: message.snapshot,
           rest: message.rest,
+          restLint: message.restLint,
           files: message.files,
           edges: message.edges,
           warnings: message.warnings,

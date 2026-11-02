@@ -1,5 +1,6 @@
 import type { CcJson } from "@codarch/schema";
 import type { DiffReport } from "@codarch/metrics";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { ParseCachePayload } from "@codarch/parsers";
 
 /**
@@ -33,6 +34,8 @@ export type AnalyzeOutcome =
       snapshot: CcJson;
       /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
       rest: CcJson | null;
+      /** Las reglas del resto de la misma pasada (ADR 0105). */
+      restLint: LintArtifact | null;
       files: number;
       edges: number;
       warnings: string[];

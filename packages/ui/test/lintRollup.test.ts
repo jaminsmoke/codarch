@@ -108,6 +108,10 @@ describe("lintBarMark", () => {
       artifact({ "a.ts": { errors: 2, warnings: 1 } }),
       "a.ts"
     );
+    expect(lintBarMark(dirty, "reglas")).toEqual({
+      severity: "error",
+      label: "2 errores de reglas"
+    });
     expect(lintBarMark(dirty)).toEqual({
       severity: "error",
       label: "2 errores de lint"

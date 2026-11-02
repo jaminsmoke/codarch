@@ -30,6 +30,7 @@ describe("readRepositoryFromFiles", () => {
     expect(artifacts.report).toBeNull();
     expect(artifacts.reportLabel).toBeNull();
     expect(artifacts.rest).toBeNull();
+    expect(artifacts.restLint).toBeNull();
   });
 
   it("trae el mapa del resto cuando el repo lo tiene", async () => {
@@ -44,6 +45,21 @@ describe("readRepositoryFromFiles", () => {
     expect(artifacts.rest).toEqual({
       meta: { apiVersion: "2.0" },
       lenses: { rest: { nodes: {} } }
+    });
+  });
+
+  it("trae las reglas del resto cuando el repo las midió", async () => {
+    const artifacts = await readRepositoryFromFiles([
+      file("repo/.codarch/snapshot.cc.json", '{"meta":{"apiVersion":"2.0"}}'),
+      file(
+        "repo/.codarch/lint-rest.repmod.json",
+        '{"schemaVersion":"1.2","meta":{"checksum":"rest-1","tools":["codarch"]},"files":[]}'
+      )
+    ]);
+    expect(artifacts.restLint).toEqual({
+      schemaVersion: "1.2",
+      meta: { checksum: "rest-1", tools: ["codarch"] },
+      files: []
     });
   });
 

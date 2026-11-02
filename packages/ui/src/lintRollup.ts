@@ -66,14 +66,21 @@ export function severityCount(
  * el `aria-label` del botón («3 errores de lint»).
  */
 export function lintBarMark(
-  totals: SharedTotals | null
+  totals: SharedTotals | null,
+  /**
+   * Qué cuenta el punto: el lint del código o las reglas del resto (ADR 0105).
+   *
+   * La etiqueta va en español y solo nombra la peor severidad («3 errores de
+   * reglas»).
+   */
+  kind: "lint" | "reglas" = "lint"
 ): { severity: LintSeverity; label: string } | null {
   if (!totals) return null;
   const severity = worstLintSeverity(totals);
   if (!severity) return null;
   return {
     severity,
-    label: `${severityText(severityCount(totals, severity), severity)} de lint`
+    label: `${severityText(severityCount(totals, severity), severity)} de ${kind}`
   };
 }
 

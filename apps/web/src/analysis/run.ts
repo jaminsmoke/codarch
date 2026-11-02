@@ -38,6 +38,8 @@ export type AnalyzeResponse =
       snapshot: unknown;
       /** El mapa de lo que no es código, de la misma pasada (ADR 0093). */
       rest: unknown;
+      /** Las reglas del resto de la misma pasada (ADR 0105). */
+      restLint: unknown;
       files: number;
       edges: number;
       warnings: string[];
@@ -118,6 +120,7 @@ export async function runAnalysis(
       type: "done",
       snapshot: result.snapshot,
       rest: result.rest,
+      restLint: result.restLint,
       files: result.files,
       edges: result.edges,
       warnings: result.warnings,

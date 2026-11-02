@@ -10,6 +10,13 @@ export interface AnalysisResult {
   rest?: unknown;
   /** El `.codarch/lint.repmod.json` que ya había, si lo hay: analizar no linta (ADR 0094). */
   lint?: unknown;
+  /**
+   * Las reglas del resto de la misma pasada (ADR 0105).
+   *
+   * En el escritorio se leen de `.codarch/lint-rest.repmod.json` tras escribirlas;
+   * en el navegador vienen del `analyzeFiles` de esa pasada.
+   */
+  restLint?: unknown;
   files: number;
   edges: number;
   warnings: string[];

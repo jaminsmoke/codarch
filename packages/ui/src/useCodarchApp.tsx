@@ -69,6 +69,13 @@ export function useCodarchApp(
    * siguiente.
    */
   const [lint, setLint] = useState<CodarchAppState["lint"]>(null);
+  /**
+   * Las reglas del resto (ADR 0105).
+   *
+   * `null` es «sin medir»; se leen solo en el mapa del resto, con la sección
+   * Reglas y el punto de la barra.
+   */
+  const [restLint, setRestLint] = useState<CodarchAppState["restLint"]>(null);
   const [map, setMapView] = useState<MapId>("code");
   /**
    * El mapa de ahora, para las piezas que no pueden volver a crearse al
@@ -148,6 +155,7 @@ export function useCodarchApp(
     setCc,
     setRest,
     setLint,
+    setRestLint,
     setMap: setMapView,
     setSource,
     setAreaMetric,
@@ -173,6 +181,7 @@ export function useCodarchApp(
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     resetReport,
     openSnapshot,
@@ -195,6 +204,7 @@ export function useCodarchApp(
     cc,
     rest,
     lint,
+    restLint,
     map,
     areaMetric,
     colorMode,
@@ -329,6 +339,7 @@ export function useCodarchApp(
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     loadReport,
     setAddons,
     setLoading
@@ -357,6 +368,7 @@ export function useCodarchApp(
     cc,
     rest,
     lint,
+    restLint,
     map,
     source,
     areaMetric,
@@ -389,6 +401,7 @@ export function useCodarchApp(
     loadSnapshot,
     loadRest,
     loadLint,
+    loadRestLint,
     setMap: changeMap,
     loadReport,
     resetReport,

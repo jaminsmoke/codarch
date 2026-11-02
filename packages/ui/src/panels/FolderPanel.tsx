@@ -43,6 +43,7 @@ export function FolderPanel({
   folder,
   model,
   lint,
+  rulesMode = false,
   changes,
   metricTitle,
   colorMode,
@@ -53,8 +54,10 @@ export function FolderPanel({
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
-  /** El lint del proyecto, para la deuda del subárbol (ADR 0094). */
+  /** El lint del código, o las reglas del resto en ese mapa (ADR 0094 · ADR 0105). */
   lint: LintArtifact | null;
+  /** En el resto: sección Reglas y sin bloque de lint en métricas (ADR 0105). */
+  rulesMode?: boolean;
   /** Los ficheros del cambio, para contar los de esta carpeta (ADR 0092). */
   changes: DiffReport["files"] | null;
   /** Cómo se llama cada métrica en el snapshot. */
@@ -100,7 +103,7 @@ export function FolderPanel({
           model={model}
           files={subtree}
           folders={childFolderNodes(folder)}
-          lint={lint}
+          lint={rulesMode ? null : lint}
           folder={folder.path}
           metricTitle={metricTitle}
           colorMode={colorMode}
@@ -219,9 +222,15 @@ export function FolderPanel({
           id="folder-lint"
           artifact={lint}
           folder={folder.path}
-          advice={adviceForExtensions(
-            subtree.map((file) => extensionOf(file.name))
-          )}
+          advice={
+            rulesMode
+              ? []
+              : adviceForExtensions(
+                  subtree.map((file) => extensionOf(file.name))
+                )
+          }
+          title={rulesMode ? "Reglas" : "Lint"}
+          kind={rulesMode ? "rules" : "lint"}
         />
       ) : null}
 

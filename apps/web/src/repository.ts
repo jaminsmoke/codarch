@@ -3,6 +3,7 @@ import {
   LINT_FILE,
   REPORT_FILE,
   REST_FILE,
+  REST_LINT_FILE,
   SNAPSHOT_FILE
 } from "@codarch/schema/browser";
 
@@ -36,6 +37,8 @@ export interface RepositoryArtifacts {
   rest: unknown | null;
   /** El lint del repo, si se ejecutó `codarch lint` (ADR 0094). */
   lint: unknown | null;
+  /** Las reglas del resto, si `codarch analyze` las midió (ADR 0105). */
+  restLint: unknown | null;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -67,12 +70,14 @@ export async function readRepositoryFromPicker(): Promise<RepositoryArtifacts> {
   const snapshot = await readJson(codarch, SNAPSHOT_FILE, true);
   const rest = await readJson(codarch, REST_FILE, false);
   const lint = await readJson(codarch, LINT_FILE, false);
+  const restLint = await readJson(codarch, REST_LINT_FILE, false);
   const report = await readJson(codarch, REPORT_FILE, false);
 
   return {
     snapshot,
     rest,
     lint,
+    restLint,
     report,
     label: `${root.name}/${CODARCH_DIR}/${SNAPSHOT_FILE}`,
     reportLabel:
@@ -109,12 +114,14 @@ export async function readRepositoryFromFiles(
 
   const restEntry = find(REST_FILE);
   const lintEntry = find(LINT_FILE);
+  const restLintEntry = find(REST_LINT_FILE);
   const reportEntry = find(REPORT_FILE);
 
   return {
     snapshot: await readFileJson(snapshotEntry.file),
     rest: restEntry ? await readFileJson(restEntry.file) : null,
     lint: lintEntry ? await readFileJson(lintEntry.file) : null,
+    restLint: restLintEntry ? await readFileJson(restLintEntry.file) : null,
     report: reportEntry ? await readFileJson(reportEntry.file) : null,
     label: snapshotEntry.path,
     reportLabel: reportEntry?.path ?? null

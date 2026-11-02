@@ -233,7 +233,24 @@ function RulesWithFindings({
 }
 
 /** Lo que hay que hacer cuando no se midió, con el mínimo por lenguaje. */
-function NotMeasured({ advice }: { advice: readonly LintAdvice[] }) {
+function NotMeasured({
+  advice,
+  kind
+}: {
+  advice: readonly LintAdvice[];
+  kind: "lint" | "rules";
+}) {
+  if (kind === "rules") {
+    return (
+      <div className="lint-advice">
+        <p className="muted small">
+          Las reglas del resto no se midieron. Ejecuta{" "}
+          <code>codarch analyze</code> —las mide en la misma pasada que el mapa
+          del resto—.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="lint-advice">
       <p className="muted small">
@@ -262,11 +279,12 @@ function NotMeasured({ advice }: { advice: readonly LintAdvice[] }) {
 }
 
 /**
- * La sección **Lint** de las fichas de código: fichero, carpeta y proyecto.
+ * La sección **Lint** de las fichas de código, o **Reglas** en el mapa del
+ * resto (ADR 0104 · ADR 0105).
  *
- * El fichero pasa `filePath` y su `risk`; carpeta y proyecto, solo el ámbito.
- * El catálogo de reglas activas no se enseña en ninguna de las tres: es
- * configuración y vive fuera de la vista de código (ADR 0104).
+ * El fichero pasa `filePath` y, en código, su `risk`; carpeta y proyecto, solo
+ * el ámbito. El catálogo de reglas activas no se enseña: es configuración.
+ * En el resto no hay peso en el riesgo: las reglas no lo miran.
  */
 export function LintSection({
   id,
@@ -274,7 +292,9 @@ export function LintSection({
   folder,
   advice = [],
   filePath,
-  risk
+  risk,
+  title = "Lint",
+  kind = "lint"
 }: {
   id: string;
   artifact: LintArtifact | null;
@@ -282,8 +302,12 @@ export function LintSection({
   advice?: readonly LintAdvice[];
   /** El fichero, cuando la ficha es de uno: enseña sus mensajes. */
   filePath?: string;
-  /** La composición del riesgo, cuando la ficha es de un fichero. */
+  /** La composición del riesgo, cuando la ficha es de un fichero de código. */
   risk?: RiskParts;
+  /** «Lint» en el código; «Reglas» en el mapa del resto (ADR 0105). */
+  title?: string;
+  /** `rules` omite el peso en el riesgo y cambia el texto sin medir. */
+  kind?: "lint" | "rules";
 }) {
   const totals = artifact ? lintTotals(artifact, folder) : null;
   const findings = totals?.findings ?? 0;
@@ -292,21 +316,21 @@ export function LintSection({
     ? "sin medir"
     : findings === 0
       ? "sin hallazgos"
-      : risk && risk.lint.weight > 0
+      : kind === "lint" && risk && risk.lint.weight > 0
         ? `${formatWeight(risk.lint.weight)} del riesgo`
         : plural(rules, "regla con hallazgos", "reglas con hallazgos");
 
   return (
     <CollapsibleSection
       id={id}
-      title="Lint"
+      title={title}
       className="section-lint"
       count={findings}
       summary={summary}
     >
       {artifact && totals ? (
         <>
-          {risk ? <RiskLine risk={risk} /> : null}
+          {kind === "lint" && risk ? <RiskLine risk={risk} /> : null}
           {filePath ? (
             <FileFindings artifact={artifact} path={filePath} />
           ) : (
@@ -314,7 +338,7 @@ export function LintSection({
           )}
         </>
       ) : (
-        <NotMeasured advice={advice} />
+        <NotMeasured advice={advice} kind={kind} />
       )}
     </CollapsibleSection>
   );

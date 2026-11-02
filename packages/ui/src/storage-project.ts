@@ -12,6 +12,13 @@ export interface SavedProject {
    * no tiene un `.codarch/` donde dejarlo.
    */
   lint?: unknown;
+  /**
+   * Las reglas del resto, si el proyecto las traía (ADR 0105).
+   *
+   * En el escritorio viven en `.codarch/lint-rest.repmod.json`; la web las guarda
+   * aquí junto al resto.
+   */
+  restLint?: unknown;
   report: unknown | null;
   label: string;
   reportLabel: string | null;
@@ -52,6 +59,10 @@ export function parseSavedProject(value: unknown): SavedProject | null {
   // El lint también: un proyecto sin él no está roto, está sin medir.
   if (typeof parsed.lint === "object" && parsed.lint !== null) {
     project.lint = parsed.lint;
+  }
+  // Las reglas del resto: opcional, como el lint (ADR 0105).
+  if (typeof parsed.restLint === "object" && parsed.restLint !== null) {
+    project.restLint = parsed.restLint;
   }
   return project;
 }

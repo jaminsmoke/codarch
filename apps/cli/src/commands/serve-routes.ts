@@ -21,6 +21,7 @@ import {
 import {
   CODARCH_DIR,
   REPORT_FILE,
+  REST_LINT_FILE,
   codarchPath,
   historyLocation,
   readHistoryIndex
@@ -393,6 +394,10 @@ const GET_ROUTES: Record<string, Route> = {
   // y `serve` lo reescribe tras una pasada con cambios. Sin él, 204.
   "/data/lint.repmod.json": getOptionalJson((context) =>
     readCodarchJson(context.live.current().root, LINT_FILE)
+  ),
+  // Las reglas del resto: mismo mapa, otro artefacto (ADR 0105). Sin él, 204.
+  "/data/lint-rest.repmod.json": getOptionalJson((context) =>
+    readCodarchJson(context.live.current().root, REST_LINT_FILE)
   ),
   "/data/head-report.json": getHeadReport,
   "/data/report.json": getReport,
