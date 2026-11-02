@@ -161,7 +161,7 @@ una lente `rest.links` que no existe todavía. Queda abierto, no fingido con un 
 
 ## Hoja de ruta
 
-Fase **M76 — Las reglas del resto**.
+Fase **M76 — Las reglas del resto** · **cerrada**.
 
 - ✅ Las cuatro reglas puras sobre el árbol del resto, con tests y un caso de determinismo por regla.
   `docsFindings` en `@codarch/lint`, con `readFrontmatter` y `matchesGlob`.
@@ -169,8 +169,11 @@ Fase **M76 — Las reglas del resto**.
   claves del frontmatter, leídas al medir el documento, y los enlaces ya eran suyos.
 - ✅ `.codarch/lint-rest.repmod.json`, escrito por `analyze` y `serve`, con `meta.tree` del resto y su
   nombre en el registro (`buildRestLint`, `writeRestLint`).
-- ⬜ `docs:` en `.codarch.yml`, con entradas, gemelas, frontmatter y severidades, validado al leer.
-- ⬜ La sección **Reglas** en las tres hojas del resto y el punto de la barra.
-- ⬜ La línea del enlace, si el mapa del resto llega a guardarla.
+- ✅ `docs:` en `.codarch.yml`, con entradas, gemelas, frontmatter y severidades, validado al leer y
+  pasado a `buildRestLint`.
+- ✅ La sección **Reglas** en las tres hojas del resto y el punto de la barra (peor severidad, sin
+  punto si está limpio o sin medir).
+- ⏸️ La línea del enlace: queda fuera de v1. El snapshot guarda aristas, no la línea; fingir
+  `line: 1` mentiría. Si el mapa del resto llega a guardar la lente `rest.links`, se reabre.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

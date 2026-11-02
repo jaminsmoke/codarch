@@ -26,7 +26,7 @@ Today CodArch has:
 - **Desktop app**: Electron with its own interface, native analysis with git, system menu and
   unsigned installers.
 
-Phases M0–M64 are closed (M24 discarded). M65–M75 are closed. M76 is open.
+Phases M0–M64 are closed (M24 discarded). M65–M76 are closed.
 
 ## The phases
 
@@ -213,7 +213,7 @@ flowchart TD
 | M73 | The browser reads the same scope | closed | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M74 | The app compares code and history | closed | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M75 | Lint is read by findings | closed | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
-| M76 | The rules of the rest | in progress | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
+| M76 | The rules of the rest | closed | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
 
 ## How to read this
 
