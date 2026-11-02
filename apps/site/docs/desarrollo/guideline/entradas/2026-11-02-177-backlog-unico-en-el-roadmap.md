@@ -2,7 +2,7 @@
 title: "Backlog único en el roadmap; casillas abiertas fuera de los ADR"
 date: "2026-11-02"
 category: "docs"
-verdict: "hecho"
+verdict: "arreglo"
 ---
 
 **Qué era**: varias hojas de ruta de ADR y el checklist del diseño del mapa

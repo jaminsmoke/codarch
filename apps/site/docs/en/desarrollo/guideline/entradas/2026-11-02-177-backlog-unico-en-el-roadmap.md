@@ -2,7 +2,7 @@
 title: "Single backlog on the roadmap; open checkboxes out of ADRs"
 date: "2026-11-02"
 category: "docs"
-verdict: "done"
+verdict: "arreglo"
 ---
 
 **What it was**: several ADR roadmaps and the map design checklist held `- [ ]`
