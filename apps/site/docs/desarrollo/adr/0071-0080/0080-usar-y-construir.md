@@ -62,7 +62,7 @@ instalar.
 - [x] Roadmap, modelo, diseño del mapa y migración pasan a «Cómo se construye».
 - [x] Primeros pasos, webapp, escritorio, GitHub Action y preguntas frecuentes, con su gemela.
 - [x] Portada y README con las tres vías de instalación.
-- [ ] Instalación, una página por comando del CLI y actualizaciones.
-- [ ] Las capturas marcadas como pendientes en las páginas de uso.
+- [x] Instalación, una página por comando del CLI y actualizaciones (evidencia: `docs/usar/instalacion.md`, `docs/usar/actualizaciones.md`, `docs/usar/cli/*` y `apps/site/test/sidebar.test.ts`; commits `381805a` / `ab8a85c` / `f4a8a0e`).
+- [x] ~~Las capturas marcadas como pendientes en las páginas de uso.~~ **Obsoleto** (2026-11-02): ya no quedan marcadores de captura pendiente en `docs/usar/`; lo que sigue abierto es rehacer capturas del marco y del dock ([ADR 0082](../0081-0090/0082-el-marco-de-la-app.md), [ADR 0083](../0081-0090/0083-el-dock-de-herramientas.md)).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

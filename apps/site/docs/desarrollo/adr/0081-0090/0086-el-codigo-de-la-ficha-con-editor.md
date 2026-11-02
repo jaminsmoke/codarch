@@ -93,6 +93,6 @@ arranque, con una gramática de 190 kB; `content-visibility: auto` baja el layou
 - [x] Prototipo con CodeMirror 6: 17 ms de montaje, 172 nodos, 16 líneas pintadas.
 - [x] Cambiar la ficha al editor, de solo lectura y en su propio trozo, y retirar Prism.
 - [x] Ver el fichero entero en el escenario con esta base ([ADR 0087](0087-el-fichero-entero-en-el-escenario.md)).
-- [ ] Comprobar el trozo diferido en el escritorio empaquetado.
+- [x] Comprobar el trozo diferido en el escritorio empaquetado (evidencia 2026-11-02: `npm run package:dir --workspace @codarch/desktop`; el asar incluye el chunk `CodeEditor-CQTiFMcc.js` con import relativo desde el índice; Vite `base: './'`).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

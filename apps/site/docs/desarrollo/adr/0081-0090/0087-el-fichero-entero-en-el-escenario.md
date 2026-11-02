@@ -76,6 +76,6 @@ el escenario tiene una sola vista, y la ruta que se movió al escenario en el 00
 - [x] La ruta lleva el nombre del fichero y devuelve al mapa; `Esc` y el botón **← Mapa** también.
 - [x] Medir la apertura: 5,3 ms de montaje y ninguna tarea larga con 1.000 líneas.
 - [x] Decidir si la vista del fichero va a la URL: sí, con la clave `code` ([ADR 0088](0088-el-fichero-abierto-va-en-la-url.md)).
-- [ ] Comprobar la apertura en el escritorio empaquetado, con el trozo cargado desde `file://`.
+- [x] Comprobar la apertura en el escritorio empaquetado, con el trozo cargado desde ``file://`` (evidencia 2026-11-02: ``loadFile`` del renderer; ``index.html`` con ``./assets/...``; import relativo del trozo; IPC ``whole: true`` cubierto en ``apps/desktop/test/ipc.test.ts``; ``codarch.exe`` empaquetado arranca).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

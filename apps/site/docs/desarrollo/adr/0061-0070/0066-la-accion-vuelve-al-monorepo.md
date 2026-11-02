@@ -76,7 +76,7 @@ repo dedicado.
 - [x] Fuera `sync:action` y la copia pública generada.
 - [x] README, workflow de release y documentación apuntan a la subruta.
 - [x] El repo `codarch-action` queda archivado con un aviso.
-- [ ] Actualizar `codarch-action-smoke` a la subruta.
+- [x] Actualizar `codarch-action-smoke` a la subruta (evidencia 2026-11-02: el workflow usa `jaminsmoke/codarch/apps/github-action@v1`; ver también la entrada 48 de la guía).
 - [ ] Añadir `action.yml` raíz si se quiere Marketplace.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
