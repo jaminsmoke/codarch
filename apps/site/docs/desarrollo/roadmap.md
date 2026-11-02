@@ -218,12 +218,56 @@ flowchart TD
 | M75 | El lint se lee por hallazgos | cerrada | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
 | M76 | Las reglas del resto | cerrada | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
 
+## Backlog
+
+Ítems abiertos que no son fase todavía. Viven aquí (no como casillas sueltas en cada ADR)
+hasta que nazca su fase. Cada línea enlaza la decisión donde se decidió.
+
+### Live e índice
+
+- Decidir si la caché de parseo se comparte entre el análisis del escritorio y `serve` — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+- Medir si el churn al añadir o borrar un fichero puede pedir solo los caminos nuevos — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+- Red de seguridad del vigilante ante desbordes de avisos (p. ej. Windows) — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+
+### Ficha, reglas y pestañas
+
+- Reglas que tocan un **símbolo** (no solo el fichero), cuando el reporte sepa la línea — [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta)
+- Enseñar la evolución del fichero en Lentes cuando el historial tenga más de una foto — [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta)
+- Filtrar Reglas por severidad u origen y buscar por nombre — [ADR 0058](adr/0051-0060/0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta)
+- Catálogo de reglas configuradas que no se violan — [ADR 0058](adr/0051-0060/0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta)
+- Recordar la última sección abierta de la ficha al cambiar de celda — [ADR 0059](adr/0051-0060/0059-tres-pestanas.md#hoja-de-ruta)
+- Agrupar imports bajo un pliegue si la tabla de métricas crece — [ADR 0060](adr/0051-0060/0060-la-ficha-se-lee-en-una-tabla.md#hoja-de-ruta)
+- Atajo para plegar o desplegar todas las secciones — [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta)
+- Filtrar símbolos por nombre en ficheros con lista enorme — [ADR 0062](adr/0061-0070/0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta)
+- Distinguir el valor de una variable (texto, número, objeto) en la fila — [ADR 0063](adr/0061-0070/0063-todos-los-simbolos.md#hoja-de-ruta)
+- Espacios de nombres y código suelto, solo si aparecen en un repo real — [ADR 0064](adr/0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta)
+- Claves de objetos, como detalle de una variable — [ADR 0064](adr/0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta)
+- Elegir el editor (VS Code, Cursor, otro) en los ajustes — [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta)
+- Enseñar el tipo de arista (import normal, type-only, dinámico) — [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta)
+
+### Acción y Marketplace
+
+- Añadir `action.yml` en la raíz del monorepo si se quiere GitHub Marketplace — [ADR 0066](adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta)
+
+### Documentación (capturas)
+
+- Rehacer las capturas de la webapp y de primeros pasos con el marco nuevo — [ADR 0082](adr/0081-0090/0082-el-marco-de-la-app.md#hoja-de-ruta)
+- Rehacer las capturas del engranaje y del rail/dock — [ADR 0083](adr/0081-0090/0083-el-dock-de-herramientas.md#hoja-de-ruta)
+
+### Diseño del mapa
+
+- Checklist de la captura del mapa (carpetas, rojo dominante, hallazgos sin zoom, selección sin color, blanco y negro) — [diseño del mapa](design/map.md#checklist-de-la-captura)
+
+### Resto / docs
+
+- Lente `rest.links` con la línea del enlace (queda fuera de v1 de M76; reabrir solo si el snapshot del resto guarda la lente) — [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta)
+
 ## Cómo se lee esto
 
 - Una fase **nace en la hoja de ruta de su decisión** (`## Hoja de ruta` del ADR); aquí solo se le
   añade la línea.
 - Una decisión que crece **agranda su hoja de ruta** y deja lo hecho en la **guía**, no en este
   fichero.
-- Las ideas que todavía **no son fase** viven en la [guía](/desarrollo/guia/), por orden
-  cronológico.
+- Las ideas que todavía **no son fase** viven en el [backlog](#backlog) de este fichero (con
+  enlace al ADR) o en la [guía](/desarrollo/guia/), por orden cronológico.
 - El índice de las **decisiones** —con su fecha y su estado— está en [`docs/adr/index.md`](adr/index.md).

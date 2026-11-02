@@ -108,9 +108,10 @@ reglas. Todo sale del snapshot que ya existía.
 - [x] Color de estado solo cuando menos es mejor; riesgo con 40 y 70.
 - [x] Cada fila pinta el mapa y la activa queda marcada.
 - [x] Deuda y cruces como métricas curadas del modelo, con su p95.
-- [ ] Agrupar imports bajo un pliegue si la tabla crece con métricas nuevas.
 
 Llevar esta tabla a **Cambios** y a la ficha del símbolo es la M49
 ([ADR 0061](../0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta)).
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

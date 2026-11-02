@@ -88,9 +88,7 @@ riesgo es presentación; las reglas se leen del reporte que ya existe.
 - [x] Deuda, cruces y aristas FFI por fichero desde la lente de migración.
 - [x] `tab=lenses` en la URL y en las vistas guardadas de los addons.
 - [x] Tests del desglose, del cruce de reglas y de los cruces FFI.
-- [ ] Llevar las reglas que tocan un **símbolo** (no solo el fichero), cuando el
-  reporte sepa la línea.
-- [ ] Enseñar la evolución del fichero en la misma pestaña cuando el historial
-  tenga más de una foto.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

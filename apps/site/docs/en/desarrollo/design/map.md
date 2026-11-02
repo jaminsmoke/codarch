@@ -177,11 +177,8 @@ a finding into an actionable image.
 
 ## Screenshot checklist
 
-- [ ] Folders can be told apart without reading the legend.
-- [ ] There is one dominant red, not twenty.
-- [ ] The three findings are readable without zooming.
-- [ ] The selected node and its edges are understood without colour.
-- [ ] The screenshot works in black and white (contrast, not just hue).
+Open capture criteria live in the [roadmap backlog](/desarrollo/roadmap/#backlog)
+(folders without the legend, dominant red, findings without zoom, selection without colour, black and white).
 
 ## Open questions
 

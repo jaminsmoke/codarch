@@ -132,10 +132,11 @@ aditivos); la cadena de un símbolo sigue emparejando por cuerpo; y el orden de
 - [x] La ficha agrupa por tipo y el resumen plegado enseña el reparto.
 - [x] La vida del símbolo es una sección plegable, como Métricas y Símbolos.
 - [x] Colores propios para `enum` y `variable` y títulos largos con elipsis.
-- [ ] Distinguir el valor de una variable (texto, número, objeto) en la fila.
 
 El filtro por nombre es uno solo y vive en el [ADR 0062](0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta);
 los alias de importación ya los guarda la M44 y los espacios de nombres siguen en el
 [ADR 0064](0064-la-ficha-no-esconde-nada.md#hoja-de-ruta).
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

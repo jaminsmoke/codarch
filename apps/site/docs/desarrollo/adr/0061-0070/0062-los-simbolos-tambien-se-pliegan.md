@@ -86,9 +86,10 @@ orden de `symbolsOf`. Solo cambia lo que la ficha enseña y cómo se pliega.
 - [x] Cuenta en el título y resumen de complejidad máxima al cerrar.
 - [x] Tooltip con la línea y nota con el orden y la acción.
 - [x] Estado plegado recordado en el almacenamiento local.
-- [ ] Un filtro por nombre si un fichero trae una lista enorme.
 
 Agrupar por tipo ya está hecho en la M43, y llevar la tabla y los pliegues a la vida del símbolo y a
 la ficha del reporte es la M49 ([ADR 0061](0061-el-marco-del-proyecto.md#hoja-de-ruta)).
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

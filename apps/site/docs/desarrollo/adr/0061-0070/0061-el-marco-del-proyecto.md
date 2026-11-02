@@ -121,7 +121,6 @@ modelo de métricas. Todo es lectura y disposición.
   `aria-expanded` / `aria-controls`.
 - [x] **Métricas** es la primera sección plegable y recuerda su estado en el
   almacenamiento local.
-- [ ] Un atajo para plegar o desplegar todas las secciones.
 
 ### M49 — El lenguaje de la ficha, en todo el reporte
 
@@ -145,6 +144,8 @@ secciones plegables se quedaron en el **Fichero**, y eran tres items sueltos en 
 - [x] La tabla de métricas de **Cambios** va de **base → head**, con los totales en el reporte (M52). Es
   la decisión del [ADR 0071](0071-la-tabla-de-cambios-va-de-base-a-head.md), y se hace en la M52: no es
   la tabla de la ficha, que mide un fichero y no un cambio.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
 

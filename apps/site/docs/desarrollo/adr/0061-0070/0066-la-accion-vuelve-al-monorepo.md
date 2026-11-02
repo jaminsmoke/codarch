@@ -77,6 +77,7 @@ repo dedicado.
 - [x] README, workflow de release y documentación apuntan a la subruta.
 - [x] El repo `codarch-action` queda archivado con un aviso.
 - [x] Actualizar `codarch-action-smoke` a la subruta (evidencia 2026-11-02: el workflow usa `jaminsmoke/codarch/apps/github-action@v1`; ver también la entrada 48 de la guía).
-- [ ] Añadir `action.yml` raíz si se quiere Marketplace.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

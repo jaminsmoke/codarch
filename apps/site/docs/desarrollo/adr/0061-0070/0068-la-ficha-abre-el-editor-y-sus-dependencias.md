@@ -89,7 +89,7 @@ alfabéticamente.
 - [x] Botón **Editor** y **Copiar ruta** en el bloque de código.
 - [x] **Dependencias** con Importa y Lo usan, clicables.
 - [x] Las dependencias salen del grafo existente, sin tocar el snapshot.
-- [ ] Elegir el editor (VS Code, Cursor, otro) en los ajustes.
-- [ ] Enseñar el tipo de arista (import normal, type-only, dinámico).
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

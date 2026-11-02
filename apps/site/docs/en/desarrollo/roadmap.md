@@ -215,11 +215,56 @@ flowchart TD
 | M75 | Lint is read by findings | closed | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
 | M76 | The rules of the rest | closed | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
 
+## Backlog
+
+Open items that are not a phase yet. They live here (not as loose checkboxes in each ADR)
+until their phase is born. Each line links the decision where it was decided.
+
+### Live and index
+
+- Decide whether the parse cache is shared between desktop analysis and `serve` — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+- Measure whether churn on add/delete can request only the new paths — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+- Watcher safety net when the OS drops events (e.g. Windows overflows) — [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta)
+
+### Card, rules and tabs
+
+- Rules that touch a **symbol** (not only the file), when the report knows the line — [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta)
+- Show file evolution in Lenses when history has more than one snapshot — [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta)
+- Filter Rules by severity or origin and search by name — [ADR 0058](adr/0051-0060/0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta)
+- Catalog of configured rules that are not violated — [ADR 0058](adr/0051-0060/0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta)
+- Remember the card's last open section when changing cell — [ADR 0059](adr/0051-0060/0059-tres-pestanas.md#hoja-de-ruta)
+- Fold imports if the metrics table grows — [ADR 0060](adr/0051-0060/0060-la-ficha-se-lee-en-una-tabla.md#hoja-de-ruta)
+- Shortcut to fold or unfold every section — [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta)
+- Filter symbols by name in files with a huge list — [ADR 0062](adr/0061-0070/0062-los-simbolos-tambien-se-pliegan.md#hoja-de-ruta)
+- Distinguish a variable's value (text, number, object) in the row — [ADR 0063](adr/0061-0070/0063-todos-los-simbolos.md#hoja-de-ruta)
+- Namespaces and loose code, only if they show up in a real repo — [ADR 0064](adr/0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta)
+- Object keys, as detail of a variable — [ADR 0064](adr/0061-0070/0064-la-ficha-no-esconde-nada.md#hoja-de-ruta)
+- Choose the editor (VS Code, Cursor, other) in settings — [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta)
+- Show the edge type (plain import, type-only, dynamic) — [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta)
+
+### Action and Marketplace
+
+- Add a root `action.yml` in the monorepo if GitHub Marketplace is wanted — [ADR 0066](adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta)
+
+### Docs (screenshots)
+
+- Redo webapp and first-steps screenshots with the new frame — [ADR 0082](adr/0081-0090/0082-el-marco-de-la-app.md#hoja-de-ruta)
+- Redo screenshots that show the gear and the rail/dock — [ADR 0083](adr/0081-0090/0083-el-dock-de-herramientas.md#hoja-de-ruta)
+
+### Map design
+
+- Map capture checklist (folders, dominant red, findings without zoom, selection without color, black and white) — [map design](design/map.md#screenshot-checklist)
+
+### Rest / docs
+
+- `rest.links` lens with the link's line (out of M76 v1; reopen only if the rest snapshot stores the lens) — [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta)
+
 ## How to read this
 
 - A phase **is born in the roadmap of its decision** (`## Roadmap` in the ADR); here only its line is
   added.
 - A decision that grows **grows its roadmap** and leaves what is done in the **guide**, not in this
   file.
-- Ideas that are **not a phase yet** live in the [guide](/desarrollo/guia/), in chronological order.
+- Ideas that are **not a phase yet** live in this file's [backlog](#backlog) (with the ADR link)
+  or in the [guide](/desarrollo/guia/), in chronological order.
 - The index of **decisions** —with their date and status— is in [`docs/adr/index.md`](adr/index.md).

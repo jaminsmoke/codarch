@@ -179,11 +179,8 @@ colocan dentro y las aristas que suben se dibujan en rojo. Es determinista, se l
 
 ## Checklist de la captura
 
-- [ ] Se distinguen las carpetas sin leer la leyenda.
-- [ ] Hay un rojo dominante y no veinte.
-- [ ] Los tres hallazgos se leen sin zoom.
-- [ ] El nodo seleccionado y sus aristas se entienden sin color.
-- [ ] La captura funciona en blanco y negro (contraste, no solo tono).
+Los criterios abiertos de la captura viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog)
+(carpetas sin leyenda, rojo dominante, hallazgos sin zoom, selección sin color, blanco y negro).
 
 ## Preguntas abiertas
 

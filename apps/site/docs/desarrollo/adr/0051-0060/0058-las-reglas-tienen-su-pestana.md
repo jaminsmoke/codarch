@@ -82,8 +82,7 @@ el `report.json` que ya existe; sin reporte dice que falta y ofrece cargarlo.
 - [x] `tab=rules` en la URL y en las vistas guardadas de los addons.
 - [x] Hacer de **Lentes** una subsección de Reglas, con el fichero seleccionado
   como contexto ([ADR 0059](0059-tres-pestanas.md)).
-- [ ] Filtrar por severidad u origen y buscar una regla por nombre.
-- [ ] Enseñar también las reglas configuradas que no se violan: hoy el reporte
-  solo lleva violaciones y haría falta el catálogo.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

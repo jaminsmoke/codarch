@@ -173,7 +173,6 @@ Fase **M76 — Las reglas del resto** · **cerrada**.
   pasado a `buildRestLint`.
 - ✅ La sección **Reglas** en las tres hojas del resto y el punto de la barra (peor severidad, sin
   punto si está limpio o sin medir).
-- ⏸️ La línea del enlace: queda fuera de v1. El snapshot guarda aristas, no la línea; fingir
-  `line: 1` mentiría. Si el mapa del resto llega a guardar la lente `rest.links`, se reabre.
+- ⏸️ La línea del enlace: fuera de v1. Vive en el [backlog del roadmap](/desarrollo/roadmap/#backlog) (lente `rest.links`); se reabre solo si el snapshot del resto la guarda.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

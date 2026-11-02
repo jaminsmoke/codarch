@@ -159,11 +159,7 @@ Medido con este repo (298 ficheros analizados, 263 commits):
 - [x] Vigilancia con dos handles por repo: el árbol recursivo y `.git`; chokidar de reserva.
 - [x] El pulso decide: `git status` con git y versiones sin git; un aviso no analiza por sí solo.
 - [x] Medido en la app real: guardado ~450 ms (era 2,8 s), alta con churn ~3 s en frío.
-- [ ] Decidir si la caché se comparte entre el análisis del escritorio y `serve` (hoy cada proceso
-  tiene la suya).
-- [ ] El churn al añadir o borrar un fichero rehace `git log` entero (480 ms); medir si compensa pedir
-  solo los caminos nuevos.
-- [ ] Repaso del vigilante cuando el sistema pierda avisos (desbordes de Windows): hoy no hay red de
-  seguridad además del evento.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

@@ -86,10 +86,10 @@ pestaña sigue leyendo lo que ya existe.
 - [x] PR se llama Cambios, en la UI, en la URL y en el código.
 - [x] `tab=changes` canónico y alias `lenses`/`pr` al leer.
 - [x] Vistas de addon y API de plugins con los nombres nuevos.
-- [ ] Hacer que la parte del fichero recuerde su última sección abierta al
-  cambiar de celda (hoy vuelve arriba).
 
 Lo que es de las reglas —el catálogo de las que no se violan y el filtro por severidad— vive solo en
 el [ADR 0058](0058-las-reglas-tienen-su-pestana.md#hoja-de-ruta).
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

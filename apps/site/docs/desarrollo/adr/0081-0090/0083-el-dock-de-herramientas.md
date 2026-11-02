@@ -84,6 +84,7 @@ Tres cosas se juntaban mal en el lado izquierdo de la app:
 - [x] El icono del mapa pliega la hoja y el estado se recuerda entre visitas.
 - [x] El engranaje de Ajustes, al pie de la barra, fuera de la cabecera.
 - [x] La hoja se pliega con el fundido del inspector y el mapa recupera el ancho de una vez.
-- [ ] Rehacer las capturas que enseñan el engranaje en la cabecera y el raíl.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

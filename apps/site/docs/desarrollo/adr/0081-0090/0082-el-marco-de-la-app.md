@@ -83,6 +83,7 @@ De paso, los colores del armazón estaban escritos a mano en cada regla (`#f3f6f
 - [x] Los colores del marco en cuatro tokens; la cabecera tira de ellos.
 - [x] El tema —claro, oscuro, el del sistema— en Ajustes → General, anotado en la guía como idea
       ([ADR 0084](0084-el-tema-de-la-app.md)).
-- [ ] Rehacer las capturas de la webapp y de primeros pasos que enseñan el inspector.
+
+Los ítems abiertos de esta decisión viven en el [backlog del roadmap](/desarrollo/roadmap/#backlog).
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
