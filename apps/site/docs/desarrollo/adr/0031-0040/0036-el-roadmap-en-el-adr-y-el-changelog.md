@@ -95,15 +95,8 @@ página del ADR; el ADR muestra su hoja de ruta en el cuerpo. No hay texto copia
 **Estado:** descartada (2026-10-31). El volumen llegó —554 documentos, 848 KB de ADR y 937 KB de
 guía— pero la consulta no: Pagefind indexa el sitio en el build y el markdown sigue siendo la fuente.
 Una base solo añadiría un artefacto que regenerar para responder lo que la búsqueda ya responde. Se
-reabre si el MCP necesita consultar en vez de leer; los pasos quedan como registro de qué haría falta.
+reabre si el MCP necesita consultar en vez de leer.
 
-- [ ] **M24.1** Elegir el motor: `node:sqlite` con FTS5, sin dependencia nativa, o una alternativa
-  que no rompa `npm ci`.
-- [ ] **M24.2** Un script `docs:db` que lea `docs/**/*.md` y escriba `.codarch/docs.db`, ignorado en
-  git y reconstruible.
-- [ ] **M24.3** El esquema: ruta, tipo (ADR, changelog, guía, producto), número, título, fecha,
-  estado, encabezados, texto y enlaces; FTS5 sobre título y texto.
-- [ ] **M24.4** Usarlo para buscar desde el sitio o el MCP cuando el volumen lo pida; el markdown
-  sigue siendo la fuente.
-- [ ] **M24.5** Un test que genere la base dos veces y compruebe que sale igual, sin rutas absolutas ni
-  timestamps.
+**Archivado.** La checklist M24.1–M24.5 (motor SQLite/FTS5, script `docs:db`, esquema, búsqueda desde
+el sitio o el MCP, test de determinismo) queda fuera del roadmap activo: era el plan de una fase
+descartada, no trabajo abierto.

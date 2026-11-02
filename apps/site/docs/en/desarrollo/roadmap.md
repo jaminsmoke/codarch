@@ -26,7 +26,7 @@ Today CodArch has:
 - **Desktop app**: Electron with its own interface, native analysis with git, system menu and
   unsigned installers.
 
-Phases M0–M62 are closed (M24 discarded). M63–M64 are open. M65 and M66–M75 are closed.
+Phases M0–M64 are closed (M24 discarded). M65–M75 are closed. M76 is open.
 
 ## The phases
 
@@ -99,9 +99,21 @@ flowchart TD
   end
   subgraph rest["What is not code"]
     M64["M64 · The map of what is not code"]
+    M64 --> M76["M76 · The rules of the rest"]
   end
   subgraph lint["Lint"]
     M65["M65 · Lint, on the map"]
+    M67["M67 · Lint belongs to the project"]
+    M65 --> M75["M75 · Lint is read by findings"]
+  end
+  subgraph project["The project"]
+    M66["M66 · The project has its ficha"]
+  end
+  subgraph duplication["Duplication"]
+    M68["M68 · Duplication, measured"]
+    M69["M69 · Duplication, on the map"]
+    M70["M70 · Divergence, with a name"]
+    M71["M71 · Duplication, in the diff"]
   end
   M3 --> M4
   M7 --> M8
@@ -113,6 +125,13 @@ flowchart TD
   M1 -.-> M63
   M1 -.-> M64
   M1 -.-> M65
+  M65 -.-> M66
+  M66 -.-> M67
+  M1 -.-> M68
+  M68 -.-> M69
+  M69 -.-> M70
+  M70 -.-> M71
+  M2 -.-> M71
 ```
 
 | Phase | What | Status | Decision |
@@ -141,18 +160,18 @@ flowchart TD
 | M20 | The guide, in HTML | closed | [ADR 0031](adr/0031-0040/0031-los-documentos.md) |
 | M21 | Versions and updates | closed | [ADR 0032](adr/0031-0040/0032-las-versiones-y-las-actualizaciones.md) |
 | M22 | The repo, with its papers | closed | [ADR 0033](adr/0031-0040/0033-abrir-el-repo.md) |
-| M23 | The project website | in progress | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta) |
-| M24 | The SQLite index of the documents | not started | [ADR 0036](adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
+| M23 | The project website | closed | [ADR 0034](adr/0031-0040/0034-la-web-del-proyecto.md#hoja-de-ruta) |
+| M24 | The SQLite index of the documents | discarded | [ADR 0036](adr/0031-0040/0036-el-roadmap-en-el-adr-y-el-changelog.md#hoja-de-ruta) |
 | M25 | Delivery is automated | closed | [ADR 0042](adr/0041-0050/0042-la-entrega-se-automatiza.md#hoja-de-ruta) |
 | M26 | Shared UI | closed | [ADR 0043](adr/0041-0050/0043-la-ui-compartida.md#hoja-de-ruta) |
 | M27 | The web app in Docker | closed | [ADR 0044](adr/0041-0050/0044-la-web-en-docker.md#hoja-de-ruta) |
 | M28 | The desktop installs and updates | closed | [ADR 0045](adr/0041-0050/0045-el-escritorio-se-instala-y-se-actualiza.md#hoja-de-ruta) |
 | M29 | Documents with Starlight | closed | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M30 | The changelog is the guide | closed | [ADR 0047](adr/0041-0050/0047-el-changelog-es-la-guia.md#hoja-de-ruta) |
-| M31 | The site in two languages | in progress | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
+| M31 | The site in two languages | closed | [ADR 0046](adr/0041-0050/0046-los-documentos-con-starlight.md#hoja-de-ruta) |
 | M32 | The desktop persists in `.codarch/` | closed | [ADR 0048](adr/0041-0050/0048-el-escritorio-persiste-en-codarch.md#hoja-de-ruta) |
 | M33 | Shared orchestration | closed | [ADR 0049](adr/0041-0050/0049-la-orquestacion-se-comparte.md#hoja-de-ruta) |
-| M34 | The state lives in the repository | in progress | [ADR 0050](adr/0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
+| M34 | The state lives in the repository | closed | [ADR 0050](adr/0041-0050/0050-el-repositorio-guarda-su-estado.md#hoja-de-ruta) |
 | M35 | The second lint net | closed | [ADR 0054](adr/0051-0060/0054-el-lint-por-app.md#hoja-de-ruta) |
 | M36 | Live does not re-analyse | closed | [ADR 0056](adr/0051-0060/0056-el-live-no-repite-el-analisis.md#hoja-de-ruta) |
 | M37 | The file card talks about its lenses | closed | [ADR 0057](adr/0051-0060/0057-la-ficha-del-fichero-habla-de-sus-lentes.md#hoja-de-ruta) |
@@ -167,10 +186,10 @@ flowchart TD
 | M46 | The action returns to the monorepo | closed | [ADR 0066](adr/0061-0070/0066-la-accion-vuelve-al-monorepo.md#hoja-de-ruta) |
 | M47 | The card shows the code | closed | [ADR 0067](adr/0061-0070/0067-la-ficha-ensena-el-codigo.md#hoja-de-ruta) |
 | M48 | The card opens the editor and its dependencies | closed | [ADR 0068](adr/0061-0070/0068-la-ficha-abre-el-editor-y-sus-dependencias.md#hoja-de-ruta) |
-| M49 | The card's language, across the report | in progress | [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
+| M49 | The card's language, across the report | closed | [ADR 0061](adr/0061-0070/0061-el-marco-del-proyecto.md#hoja-de-ruta) |
 | M50 | Two tabs: the file and the change | closed | [ADR 0069](adr/0061-0070/0069-dos-pestanas.md#hoja-de-ruta) |
 | M51 | The files of the change, in one list | closed | [ADR 0070](adr/0061-0070/0070-los-ficheros-del-cambio-en-una-lista.md#hoja-de-ruta) |
-| M52 | The change table goes from base to head | not started | [ADR 0071](adr/0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
+| M52 | The change table goes from base to head | closed | [ADR 0071](adr/0061-0070/0071-la-tabla-de-cambios-va-de-base-a-head.md#hoja-de-ruta) |
 | M53 | Changes since the last commit | closed | [ADR 0072](adr/0071-0080/0072-cambios-desde-el-ultimo-commit.md#hoja-de-ruta) |
 | M54 | One single interface | closed | [ADR 0073](adr/0071-0080/0073-una-sola-interfaz.md#hoja-de-ruta) |
 | M55 | One single analysis session | closed | [ADR 0074](adr/0071-0080/0074-una-sola-sesion.md#hoja-de-ruta) |
@@ -181,8 +200,8 @@ flowchart TD
 | M60 | The inspector with an activity bar | closed | [ADR 0079](adr/0071-0080/0079-el-inspector-con-barra-de-actividad.md#hoja-de-ruta) |
 | M61 | Java, Python, Go and C# | closed | [ADR 0090](adr/0081-0090/0090-mas-lenguajes-que-ts-y-js.md#hoja-de-ruta) |
 | M62 | The map, in a capture | closed | [ADR 0091](adr/0091-0100/0091-el-mapa-en-una-captura.md#hoja-de-ruta) |
-| M63 | The folder has its ficha | in progress | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
-| M64 | The map of what is not code | in progress | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
+| M63 | The folder has its ficha | closed | [ADR 0092](adr/0091-0100/0092-la-carpeta-tiene-su-ficha.md#hoja-de-ruta) |
+| M64 | The map of what is not code | closed | [ADR 0093](adr/0091-0100/0093-el-mapa-de-lo-que-no-es-codigo.md#hoja-de-ruta) |
 | M65 | Lint, on the map | closed | [ADR 0094](adr/0091-0100/0094-el-lint-en-el-mapa.md#hoja-de-ruta) |
 | M66 | The project has its ficha | closed | [ADR 0095](adr/0091-0100/0095-la-ficha-del-proyecto.md#hoja-de-ruta) |
 | M67 | Lint belongs to the project | closed | [ADR 0096](adr/0091-0100/0096-el-lint-es-del-proyecto.md#hoja-de-ruta) |
@@ -194,6 +213,7 @@ flowchart TD
 | M73 | The browser reads the same scope | closed | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M74 | The app compares code and history | closed | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M75 | Lint is read by findings | closed | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
+| M76 | The rules of the rest | in progress | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
 
 ## How to read this
 
