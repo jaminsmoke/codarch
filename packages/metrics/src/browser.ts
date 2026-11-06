@@ -12,6 +12,8 @@ export {
   COMPLEXITY_METRIC_CANDIDATES,
   LINT_WARNING_WEIGHT,
   RISK_GAMMA,
+  RISK_LINT_ALPHA,
+  RISK_LINT_DSAT,
   RISK_WEIGHTS,
   RISK_WEIGHTS_WITH_LINT,
   firstMetric,
@@ -22,9 +24,20 @@ export {
 } from "./risk";
 export type {
   RiskBreakdown,
+  RiskConfidence,
+  RiskContribution,
+  RiskContributions,
+  RiskLintApplicability,
+  RiskLintAssessment,
+  RiskLintCoverage,
+  RiskLintCoverageInput,
+  RiskLintInput,
   RiskOptions,
   RiskPart,
-  RiskSignals
+  RiskLintCounts,
+  RiskLintReason,
+  RiskSignals,
+  RiskStatus
 } from "./risk";
 export type {
   ChangedFile,
