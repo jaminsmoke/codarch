@@ -1,5 +1,11 @@
 import type { CcRestKind } from "@codarch/schema/browser";
-import type { LintFileResult, LintMessage, LintSeverity } from "./format";
+import {
+  LintError,
+  canonicalLintPath,
+  type LintFileResult,
+  type LintMessage,
+  type LintSeverity
+} from "./format";
 
 /**
  * Las reglas del resto (ADR 0105).
@@ -308,7 +314,16 @@ export function resolveLink(fromPath: string, target: string): string | null {
     }
     parts.push(segment);
   }
-  return join(parts.join("/"));
+  const relative = join(parts.join("/"));
+  if (relative === "") return null;
+  // El destino queda en la misma forma que la ruta del fichero: NFC, `/`,
+  // sin `./`. Si no es una ruta del repo, el enlace no se puede comprobar.
+  try {
+    return canonicalLintPath(relative);
+  } catch (error) {
+    if (error instanceof LintError) return null;
+    throw error;
+  }
 }
 
 /**
@@ -351,11 +366,20 @@ function globToRegExp(pattern: string): RegExp | null {
   return new RegExp(`${source}$`);
 }
 
-/** Una ruta relativa con `/`, sin `./` ni barras repetidas. */
+/**
+ * La misma canonización que el artefacto: NFC por segmento, `/`, sin `./`
+ * ni barras repetidas, sin pasar a minúsculas.
+ *
+ * Una ruta que el artefacto rechazaría —absoluta, vacía o con `..`— no entra
+ * en las reglas del resto: se descarta, no tumba la pasada.
+ */
 function normalizePath(input: string): string {
-  const posix = input.trim().replace(/\\/g, "/").replace(/\/{2,}/g, "/");
-  const withoutDot = posix.startsWith("./") ? posix.slice(2) : posix;
-  return join(withoutDot);
+  try {
+    return canonicalLintPath(input);
+  } catch (error) {
+    if (error instanceof LintError) return "";
+    throw error;
+  }
 }
 
 /** Una ruta ya en forma: sin barras al principio ni al final. */

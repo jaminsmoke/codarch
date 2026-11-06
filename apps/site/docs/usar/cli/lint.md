@@ -100,7 +100,9 @@ Escribe `lint.repmod.json` en la carpeta de salida. Si crea `.codarch/` en la ra
 
 `meta.systems` dice qué lint **tiene** el proyecto —con su configuración y sus reglas activas— y `meta.tools` cuáles midieron de verdad. Un artefacto `1.0` se sigue leyendo: sus herramientas pasan a ser los sistemas, sin configuración.
 
-`summary.measured` es lo que separa «medido y limpio» de «no se midió»: cuenta los ficheros que la herramienta miró, **incluidos los limpios**, que no aparecen en `files`. `meta.tree` es el checksum del snapshot que se midió; lo rellena quien analiza —`codarch analyze` y, en el live, `serve`—. Este comando suelto no analiza el repo, así que por sí solo no escribe `tree`: la app no puede comparar y no lo finge.
+`summary.measured` es lo que separa «medido y limpio» de «no se midió»: cuenta los ficheros que la herramienta miró, **incluidos los limpios**, que no aparecen en `files`. Es una cifra **global** de la pasada, no de una carpeta, y al leer no se recalcula: los limpios no están en los mensajes. `meta.tree` es el checksum del snapshot que se midió; lo rellena quien analiza —`codarch analyze` y, en el live, `serve`—. Este comando suelto no analiza el repo, así que por sí solo no escribe `tree`: la app no puede comparar y no lo finge.
+
+`summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` y los `errors` y `warnings` de cada fichero se **regeneran al leer** desde los mensajes. `summary.files` son los ficheros con algún hallazgo. Un `info` cuenta como mensaje y como fichero, y no como error ni aviso. Las rutas se canonizan al leer —NFC por segmento, con `/`, sin `./` ni barras repetidas— y no se pasan a minúsculas: `Src/Foo.ts` y `src/foo.ts` siguen siendo distintos. Si dos claves distintas caen en la misma ruta, no se funden en silencio: la lectura lo deja en `diagnostics`. El esquema sigue en 1.2. Los nombres siguen siendo `lint.repmod.json` y `lint-rest.repmod.json`.
 
 Ficheros por ruta relativa, mensajes ordenados por línea y columna, y un checksum que no cambia si la salida de las herramientas no cambia. **Un artefacto sin mensajes es un repo medido y limpio**; que no haya artefacto significa que nadie midió, que es otra cosa.
 
@@ -142,5 +144,5 @@ codarch lint . --no-detect --config .codarch.yml
 | `1` | Configuración inválida, ninguna herramienta midió (incluido «el proyecto no tiene lint»), no se pudo escribir el artefacto, o `--fail-on` encontró lo que buscaba. |
 
 :::note[Para saber más]
-Las decisiones detrás de esta página: [ADR 0096 — El lint es del proyecto](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — El lint se mide al analizar](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md) y [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md). La app enseña los sistemas y sus reglas en **Reglas**, en las hojas de proyecto, carpeta y fichero.
+Las decisiones detrás de esta página: [ADR 0096 — El lint es del proyecto](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — El lint se mide al analizar](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md), [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md) y [ADR 0106 — Las cuentas y las rutas del lint salen de los mensajes](../desarrollo/adr/0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md). La app enseña los sistemas y sus reglas en **Reglas**, en las hojas de proyecto, carpeta y fichero.
 :::

@@ -165,6 +165,22 @@ describe("las reglas del resto", () => {
     expect(messagesOf(left, "docs/a.md")).toEqual([]);
     expect(messagesOf(left, "docs/c.md")[0]?.rule).toBe(DOC_RULES.brokenLink);
   });
+
+  it("canoniza las rutas como el artefacto: NFC, barras y sin punto", () => {
+    const nfd = "docs/Cafe\u0301.md";
+    const nfc = "docs/Caf\u00e9.md";
+    const result = docsFindings({
+      files: [
+        doc("./docs/anexo.md", { links: ["Cafe\u0301.md"] }),
+        doc("docs\\Cafe\u0301.md"),
+        doc("../fuera.md")
+      ]
+    });
+
+    expect(result.map((file) => file.path)).toEqual([nfc, "docs/anexo.md"]);
+    expect(messagesOf(result, "docs/anexo.md")).toEqual([]);
+    expect(nfd.normalize("NFC")).toBe(nfc);
+  });
 });
 
 describe("la lectura del frontmatter", () => {

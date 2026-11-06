@@ -1,4 +1,5 @@
 import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
+import { lintFileCounts, lintTotals } from "./rollup";
 
 /**
  * El artefacto del lint (ADR 0094).
@@ -19,6 +20,10 @@ import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
  * 1.2 (ADR 0098) añade la procedencia de la medida: `meta.tree`, el checksum
  * del árbol que se midió, y `summary.measured`, cuántos ficheros llegaron a
  * mirarse. Sin ellos, «0 hallazgos» y «no se miró nada» eran el mismo fichero.
+ *
+ * Sigue en 1.2 (ADR 0106). No hay 1.3: las cuentas heredadas se regeneran al
+ * leer desde los mensajes y las rutas se canonizan. `diagnostics` es un aviso
+ * de lectura, no un campo obligatorio del fichero. El nombre no cambia.
  */
 export const LINT_ARTIFACT_VERSION = "1.2";
 
@@ -69,9 +74,17 @@ export interface LintMessage {
   message: string;
 }
 
-/** Lo que el lint dice de un fichero. */
+/**
+ * Lo que el lint dice de un fichero.
+ *
+ * `errors` y `warnings` son cuentas heredadas (artefactos 1.0–1.2). Al leer se
+ * regeneran desde `messages` (ADR 0106): un número declarado que no cuadra no
+ * manda. Un `info` no suma a ninguna de las dos; sigue siendo un mensaje.
+ */
 export interface LintFile {
+  /** Mensajes con severidad `error`. Derivado de `messages` al leer. */
   errors: number;
+  /** Mensajes con severidad `warn`. Derivado de `messages` al leer. */
   warnings: number;
   messages: LintMessage[];
 }
@@ -83,17 +96,32 @@ export interface LintFileResult {
 }
 
 export interface LintSummary {
-  /** Ficheros con al menos un mensaje. */
+  /**
+   * Ficheros con al menos un mensaje, de cualquier severidad.
+   *
+   * Al leer sale de los mensajes, no del número declarado. Un fichero solo con
+   * `info` cuenta. Un fichero sin mensajes no: los limpios no están en `files`.
+   */
   files: number;
+  /** Mensajes `error`. Derivado de los mensajes al leer. */
   errors: number;
+  /** Mensajes `warn`. Derivado de los mensajes al leer. Un `info` no cuenta. */
   warnings: number;
+  /**
+   * Todos los mensajes: errores, avisos e info.
+   *
+   * Es el nombre heredado de lo que `lintTotals` llama `findings`. Al leer se
+   * regenera; no es una cuarta severidad.
+   */
   messages: number;
   /**
-   * Ficheros que la herramienta llegó a mirar, con o sin hallazgos.
+   * Ficheros que la pasada llegó a mirar, con o sin hallazgos.
    *
-   * Es lo que distingue «medido y limpio» de «no se midió»: un artefacto con
-   * 494 medidos y 0 hallazgos dice que el repo está limpio. Falta en los
-   * artefactos 1.1 y anteriores, donde esa cifra no se guardaba.
+   * Es una cifra **global** de la pasada, no de una carpeta y no de los
+   * mensajes: los limpios no están en `files`, así que no se puede reconstruir.
+   * Al leer se conserva tal cual. Es lo que distingue «medido y limpio» de
+   * «no se midió». Falta en los artefactos 1.1 y anteriores. La cobertura no
+   * forma parte del contrato de cuentas (ADR 0106).
    */
   measured?: number;
 }
@@ -101,7 +129,14 @@ export interface LintSummary {
 export interface LintArtifact {
   schemaVersion: typeof LINT_ARTIFACT_VERSION;
   meta: {
-    /** MD5 canónico de `tools` + `systems` + `files`. */
+    /**
+     * MD5 de `tools` + `systems` + `files` tal y como los escribió quien
+     * creó el artefacto.
+     *
+     * `readLintArtifact` no lo recalcula. Si al leer se canonizan rutas o se
+     * regeneran cuentas, este checksum sigue siendo el del fichero original y
+     * puede no coincidir con el objeto devuelto.
+     */
     checksum: string;
     /** Nombres de las herramientas que midieron, ordenados y sin repetir. */
     tools: string[];
@@ -115,9 +150,37 @@ export interface LintArtifact {
      */
     tree?: string;
   };
-  /** Por ruta relativa con `/`; los ficheros limpios no aparecen. */
+  /**
+   * Por ruta canónica (`/`, NFC por segmento). Los ficheros limpios no aparecen.
+   *
+   * La ruta de cada mensaje es esta clave: al leer se canoniza, así que el
+   * mensaje queda bajo la ruta canónica y no bajo la clave cruda.
+   */
   files: Record<string, LintFile>;
   summary: LintSummary;
+  /**
+   * Avisos de lectura. No son del esquema 1.0–1.2: `createLintArtifact` no
+   * los escribe y un lector viejo los ignora. Al leer, si dos claves distintas
+   * caen en la misma ruta, se anota aquí en vez de fundirlas en silencio. Si
+   * el artefacto ya traía avisos bien formados, se conservan: así
+   * `read(serialize(read(x)))` sigue siendo `read(x)`.
+   */
+  diagnostics?: readonly LintPathCollision[];
+}
+
+/**
+ * Dos claves crudas distintas que, al canonizar, son la misma ruta.
+ *
+ * Los mensajes de todas se conservan, en el orden de las claves, bajo `path`,
+ * sin deduplicar. La cuenta sale de esa lista. No es un fallo de lectura: el
+ * artefacto se entiende, y el aviso dice que no había una sola clave.
+ */
+export interface LintPathCollision {
+  kind: "path-collision";
+  /** Ruta canónica en la que chocaron las claves. */
+  path: string;
+  /** Claves crudas, en el orden del artefacto. */
+  keys: readonly string[];
 }
 
 /**
@@ -127,6 +190,14 @@ export interface LintArtifact {
  * escrito a mano no puede tumbar el mapa. Se comprueba la forma
  * entera y se devuelve una copia con los campos conocidos, para que quien lo
  * consuma no tenga que volver a mirar si lo que tiene delante es un objeto.
+ *
+ * Los mensajes son la única fuente de las cuentas. `errors`, `warnings` y el
+ * `summary` heredado se vuelven a calcular aquí; `summary.measured` no, porque
+ * es la cobertura global de la pasada. Las claves de fichero —la ruta de cada
+ * mensaje— se canonizan. Una ruta absoluta o con `..` invalida el artefacto
+ * (el lector sigue sin lanzar). Dos claves que caen en la misma ruta no se
+ * funden en silencio: quedan en `diagnostics`. Leer dos veces el resultado da
+ * lo mismo.
  */
 export function readLintArtifact(input: unknown): LintArtifact | null {
   if (!isRecord(input)) return null;
@@ -147,12 +218,8 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
 
   const files = input.files;
   if (!isRecord(files)) return null;
-  const parsedFiles: Record<string, LintFile> = {};
-  for (const [file, value] of Object.entries(files)) {
-    const parsed = readLintFile(value);
-    if (!parsed) return null;
-    parsedFiles[file] = parsed;
-  }
+  const parsedFiles = readLintFiles(files);
+  if (!parsedFiles) return null;
 
   const summary = input.summary;
   if (
@@ -167,6 +234,12 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
   if (summary.measured !== undefined && !isCount(summary.measured)) return null;
   if (meta.tree !== undefined && !isText(meta.tree)) return null;
 
+  const regenerated = withRegeneratedCounts(parsedFiles.files);
+  const diagnostics = combineDiagnostics(
+    readStoredDiagnostics(input.diagnostics),
+    parsedFiles.collisions
+  );
+
   return {
     schemaVersion: LINT_ARTIFACT_VERSION,
     meta: {
@@ -175,15 +248,66 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
       systems,
       ...(meta.tree === undefined ? {} : { tree: meta.tree })
     },
-    files: parsedFiles,
-    summary: {
-      files: summary.files,
-      errors: summary.errors,
-      warnings: summary.warnings,
-      messages: summary.messages,
-      ...(summary.measured === undefined ? {} : { measured: summary.measured })
-    }
+    files: regenerated,
+    summary: summaryFromMessages(
+      regenerated,
+      summary.measured === undefined ? undefined : summary.measured
+    ),
+    ...(diagnostics.length > 0 ? { diagnostics } : {})
   };
+}
+
+/**
+ * Los ficheros del artefacto, con las cuentas todavía sin regenerar.
+ *
+ * La clave cruda se canoniza: es la ruta del mensaje. Una ruta que no es del
+ * repo invalida el artefacto entero, sin lanzar. Si dos claves distintas caen
+ * en la misma ruta, sus mensajes se concatenan en el orden de las claves —no
+ * se deduplican— y la colisión se devuelve aparte para avisarla.
+ */
+function readLintFiles(files: Record<string, unknown>): {
+  files: Record<string, LintFile>;
+  collisions: LintPathCollision[];
+} | null {
+  const groups = new Map<string, { keys: string[]; messages: LintMessage[] }>();
+  for (const [rawKey, value] of Object.entries(files)) {
+    let path: string;
+    try {
+      path = canonicalLintPath(rawKey);
+    } catch (error) {
+      if (error instanceof LintError) return null;
+      throw error;
+    }
+    const parsed = readLintFile(value);
+    if (!parsed) return null;
+    const group = groups.get(path);
+    if (group) {
+      group.keys.push(rawKey);
+      appendMessages(group.messages, parsed.messages);
+    } else {
+      groups.set(path, { keys: [rawKey], messages: parsed.messages.slice() });
+    }
+  }
+
+  const collisions: LintPathCollision[] = [];
+  const parsedFiles = emptyFiles();
+  for (const path of [...groups.keys()].sort(compareStrings)) {
+    const group = groups.get(path);
+    if (!group) continue;
+    if (new Set(group.keys).size > 1) {
+      collisions.push({
+        kind: "path-collision",
+        path,
+        keys: [...group.keys]
+      });
+    }
+    parsedFiles[path] = {
+      errors: 0,
+      warnings: 0,
+      messages: group.messages
+    };
+  }
+  return { files: parsedFiles, collisions };
 }
 
 function readLintFile(value: unknown): LintFile | null {
@@ -224,12 +348,15 @@ export class LintError extends Error {
 }
 
 /**
- * Una ruta del artefacto: relativa, con `/` y sin segmentos que se salgan.
+ * Una ruta del artefacto: relativa, con `/`, NFC por segmento y sin salirse.
  *
  * Las herramientas dan rutas absolutas (ESLint) o relativas (oxlint), y el
- * artefacto no puede llevar ni la raíz de tu máquina ni `..`. Si una ruta no
- * encaja, es un error del llamador: se dice en vez de escribir un fichero con
- * rutas que no significan lo mismo en otra máquina.
+ * artefacto no puede llevar ni la raíz de tu máquina ni `..`. Cada segmento
+ * se normaliza a NFC, igual que el nombre de un nodo (`normalizeName`): así
+ * `Cafe\u0301` y `Café` son el mismo fichero. No se pasa a minúsculas: la
+ * comparación es la de la cadena canónica, y `Foo.ts` no es `foo.ts`. Si una
+ * ruta no encaja, es un error del llamador: se dice en vez de escribir un
+ * fichero con rutas que no significan lo mismo en otra máquina.
  */
 export function canonicalLintPath(input: string): string {
   const posix = input.trim().replace(/\\/g, "/").replace(/\/{2,}/g, "/");
@@ -237,7 +364,10 @@ export function canonicalLintPath(input: string): string {
   if (text === "" || text.startsWith("/") || /^[A-Za-z]:/.test(text)) {
     throw new LintError(`la ruta del lint tiene que ser relativa: "${input}"`);
   }
-  const segments = text.split("/").filter((segment) => segment !== ".");
+  const segments = text
+    .split("/")
+    .map((segment) => segment.normalize("NFC"))
+    .filter((segment) => segment !== "" && segment !== ".");
   if (segments.length === 0 || segments.some((segment) => segment === "..")) {
     throw new LintError(`la ruta del lint se sale del repo: "${input}"`);
   }
@@ -247,8 +377,11 @@ export function canonicalLintPath(input: string): string {
 /**
  * Construye el artefacto a partir de lo que devolvieron los normalizadores.
  *
- * - Las rutas se canonizan y los ficheros con la misma ruta se funden: dos
- *   herramientas pueden hablar del mismo fichero.
+ * - Las rutas se canonizan (NFC por segmento, sin cambiar mayúsculas) y los
+ *   ficheros con la misma ruta se funden: dos herramientas pueden hablar del
+ *   mismo fichero. Fundir aquí es el contrato de escritura, con los mensajes
+ *   repetidos contados una vez y sin `diagnostics`. Al leer, dos claves crudas
+ *   que caen en la misma ruta no se funden en silencio: se avisa.
  * - Los mensajes idénticos se cuentan una vez. ESLint y oxlint se solapan en
  *   reglas a propósito, y sumar dos veces el mismo aviso inflaría el mapa.
  * - Todo se ordena: ficheros por ruta y mensajes por línea, columna, regla y
@@ -273,7 +406,7 @@ export function createLintArtifact(input: {
     byPath.set(path, messages);
   }
 
-  const files: Record<string, LintFile> = {};
+  const files = emptyFiles();
   for (const path of [...byPath.keys()].sort(compareStrings)) {
     const messages = dedupe(byPath.get(path) ?? []).sort(compareMessages);
     if (messages.length === 0) continue;
@@ -429,6 +562,139 @@ function dedupe(messages: readonly LintMessage[]): LintMessage[] {
     unique.push(message);
   }
   return unique;
+}
+
+/**
+ * Avisos de colisión ya guardados en un artefacto leído.
+ *
+ * Una forma que no se entiende se ignora: no es un campo del esquema y no
+ * puede tumbar un artefacto por lo demás válido. Una ruta que no se puede
+ * canonizar tampoco se conserva.
+ */
+function readStoredDiagnostics(value: unknown): LintPathCollision[] {
+  if (!Array.isArray(value)) return [];
+  const diagnostics: LintPathCollision[] = [];
+  for (const item of value) {
+    const parsed = readPathCollision(item);
+    if (parsed) diagnostics.push(parsed);
+  }
+  return diagnostics;
+}
+
+function readPathCollision(value: unknown): LintPathCollision | null {
+  if (!isRecord(value) || value.kind !== "path-collision") return null;
+  if (typeof value.path !== "string" || !Array.isArray(value.keys)) return null;
+  if (value.keys.length < 2 || !value.keys.every(isRawKey)) return null;
+  const keys = value.keys.filter(isRawKey);
+  if (new Set(keys).size !== keys.length) return null;
+  let path: string;
+  try {
+    path = canonicalLintPath(value.path);
+    for (const key of keys) {
+      if (canonicalLintPath(key) !== path) return null;
+    }
+  } catch (error) {
+    if (error instanceof LintError) return null;
+    throw error;
+  }
+  return { kind: "path-collision", path, keys };
+}
+
+/**
+ * Los avisos de esta lectura más los que el artefacto ya traía.
+ *
+ * Se agrupan por ruta canónica. Las claves no se repiten y el orden de la
+ * primera vez que aparecieron se conserva, para que serializar y volver a
+ * leer no reordene el aviso.
+ */
+function combineDiagnostics(
+  stored: readonly LintPathCollision[],
+  fresh: readonly LintPathCollision[]
+): LintPathCollision[] {
+  const byPath = new Map<string, { keys: string[]; seen: Set<string> }>();
+  const order: string[] = [];
+  for (const item of [...stored, ...fresh]) {
+    const group = byPath.get(item.path);
+    if (!group) {
+      byPath.set(item.path, { keys: item.keys.slice(), seen: new Set(item.keys) });
+      order.push(item.path);
+      continue;
+    }
+    for (const key of item.keys) {
+      if (group.seen.has(key)) continue;
+      group.seen.add(key);
+      group.keys.push(key);
+    }
+  }
+  return order.sort(compareStrings).map((path) => ({
+    kind: "path-collision" as const,
+    path,
+    keys: byPath.get(path)?.keys ?? []
+  }));
+}
+
+function appendMessages(target: LintMessage[], source: readonly LintMessage[]): void {
+  for (const message of source) target.push(message);
+}
+
+/** Un mapa de ficheros sin prototipo: `__proto__` es una ruta, no el prototipo. */
+function emptyFiles(): Record<string, LintFile> {
+  return Object.create(null) as Record<string, LintFile>;
+}
+
+function isRawKey(value: unknown): value is string {
+  return typeof value === "string" && value !== "";
+}
+
+/**
+ * Cuentas de cada fichero, tomadas de sus mensajes.
+ *
+ * Los limpios —cero mensajes— salen del mapa: `summary.files` es «con
+ * hallazgos» y un fichero sin mensajes no lo es, aunque declarara errores.
+ * El orden de las claves es el de la ruta, para que la lectura sea estable.
+ */
+function withRegeneratedCounts(
+  files: Readonly<Record<string, LintFile>>
+): Record<string, LintFile> {
+  const kept = emptyFiles();
+  for (const path of Object.keys(files).sort(compareStrings)) {
+    const file = files[path];
+    if (!file || file.messages.length === 0) continue;
+    kept[path] = { errors: 0, warnings: 0, messages: file.messages };
+  }
+  const counts = lintFileCounts(kept);
+  for (const [path, file] of Object.entries(kept)) {
+    const count = counts[path];
+    file.errors = count?.errors ?? 0;
+    file.warnings = count?.warnings ?? 0;
+  }
+  return kept;
+}
+
+/**
+ * El `summary` heredado, contado con la misma agregación que la app.
+ *
+ * `messages` es `findings` (errores + avisos + info). `files` son los que
+ * tienen algún mensaje. `measured`, si viene, se copia: es global y no sale
+ * de los mensajes.
+ */
+function summaryFromMessages(
+  files: Record<string, LintFile>,
+  measured: number | undefined
+): LintSummary {
+  const totals = lintTotals({
+    schemaVersion: LINT_ARTIFACT_VERSION,
+    meta: { checksum: "", tools: [], systems: [] },
+    files,
+    summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+  });
+  return {
+    files: totals?.files ?? 0,
+    errors: totals?.errors ?? 0,
+    warnings: totals?.warnings ?? 0,
+    messages: totals?.findings ?? 0,
+    ...(measured === undefined ? {} : { measured })
+  };
 }
 
 function summarize(

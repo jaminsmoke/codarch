@@ -18,6 +18,7 @@ export type {
   LintFile,
   LintFileResult,
   LintMessage,
+  LintPathCollision,
   LintRule,
   LintSeverity,
   LintSummary,
