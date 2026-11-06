@@ -118,7 +118,7 @@ Un número que no se sabe es `null`, nunca `0`. El `0` solo aparece cuando una e
 
 `fresh` es ortogonal al estado. `true` si `meta.tree` es el checksum del snapshot (`cc.json` en código, `rest.cc.json` en documentos). `false` si los dos existen y no coinciden. `null` si no se puede comparar, y entonces entra `freshness-unverified`. Un árbol viejo no borra un `partial`.
 
-Limpio de verdad solo si `complete` y `fresh === true` y `findings === 0` y `eligible > 0`. `complete` con `fresh === null` es «sin hallazgos, no verificado».
+Limpio de verdad solo si `complete` y `fresh === true` y `findings === 0` y `eligible > 0`. `fresh === null` se lee «frescura sin verificar»: no hubo comparación, y el motivo es `freshness-unverified`. `fresh === false` se lee «resultado de otro árbol / desactualizado». No son la misma frase.
 
 ## Estados
 
@@ -231,7 +231,7 @@ Todas las herramientas aplicables terminaron y el universo se conoce. En documen
 }
 ```
 
-Eso, con `eligible > 0`, es limpio y al día. Si `fresh` es `null`, es «sin hallazgos, no verificado».
+Eso, con `eligible > 0` y `fresh === true`, es limpio y al día. Si `fresh` es `null`, la frase es «frescura sin verificar». Si es `false`, «resultado de otro árbol / desactualizado».
 
 ## Códigos
 

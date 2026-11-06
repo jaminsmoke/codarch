@@ -102,7 +102,7 @@ describe("codarch lint", () => {
       .join("\n");
     // Con la cobertura: «1 con hallazgos» de un total medido (ADR 0098).
     expect(text).toContain(
-      "1 fichero con hallazgos de 1 medidos · 1 error · 1 aviso"
+      "1 fichero con hallazgos de 1 medidos · 1 error · 1 aviso · cobertura parcial · frescura sin verificar"
     );
     // La segunda herramienta no encontró nada: la frase no cambia de sentido.
     expect(text).toContain("0 ficheros con hallazgos · 0 mensajes");
@@ -145,7 +145,7 @@ describe("codarch lint", () => {
       .join("\n");
     // Las tres cuentas, como en la app: la de info no se queda fuera.
     expect(text).toContain(
-      "1 fichero con hallazgos de 1 medidos · 0 errores · 0 avisos · 1 info"
+      "1 fichero con hallazgos de 1 medidos · 0 errores · 0 avisos · 1 info · cobertura parcial · frescura sin verificar"
     );
   });
 
