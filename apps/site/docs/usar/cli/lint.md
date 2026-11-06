@@ -73,7 +73,8 @@ Escribe `lint.repmod.json` en la carpeta de salida. Si crea `.codarch/` en la ra
 
 ```json
 {
-  "schemaVersion": "1.2",
+  "schemaVersion": "1.3",
+  "domain": "code",
   "meta": {
     "checksum": "…",
     "tools": ["eslint"],
@@ -94,17 +95,26 @@ Escribe `lint.repmod.json` en la carpeta de salida. Si crea `.codarch/` en la ra
       ]
     }
   },
+  "coverage": {
+    "tools": {
+      "eslint": {
+        "outcome": "enumerated",
+        "measuredPaths": ["src/a.ts"],
+        "eligiblePaths": null
+      }
+    }
+  },
   "summary": { "files": 1, "errors": 0, "warnings": 1, "messages": 1, "measured": 1 }
 }
 ```
 
-`meta.systems` dice qué lint **tiene** el proyecto —con su configuración y sus reglas activas— y `meta.tools` cuáles midieron de verdad. Un artefacto `1.0` se sigue leyendo: sus herramientas pasan a ser los sistemas, sin configuración.
+`meta.systems` dice qué lint **tiene** el proyecto —con su configuración y sus reglas activas— y `meta.tools` cuáles midieron de verdad. Un artefacto `1.0`–`1.2` se sigue leyendo: la cobertura queda en `unknown` con `legacy-global`, y no se inventa `measured`.
 
-`summary.measured` es lo que separa «medido y limpio» de «no se midió»: cuenta los ficheros que la herramienta miró, **incluidos los limpios**, que no aparecen en `files`. Es una cifra **global** de la pasada, no de una carpeta, y al leer no se recalcula: los limpios no están en los mensajes. `meta.tree` es el checksum del snapshot que se midió; lo rellena quien analiza —`codarch analyze` y, en el live, `serve`—. Este comando suelto no analiza el repo, así que por sí solo no escribe `tree`: la app no puede comparar y no lo finge.
+`summary.measured` es cuántos ficheros **derivó la cobertura**, limpios incluidos, que no aparecen en `files`. Es una cifra **global** de la pasada. Solo se escribe si se puede derivar: un cero que no sale de una enumeración válida no se pone. ESLint y Checkstyle saben a quién miraron y no el universo (`eligiblePaths: null`), así que el código no queda `complete`. `meta.tree` es el checksum del snapshot que se midió; lo rellena quien analiza —`codarch analyze` y, en el live, `serve`—. Este comando suelto no analiza el repo, así que por sí solo no escribe `tree`: la app no puede comparar y no lo finge.
 
-`summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` y los `errors` y `warnings` de cada fichero se **regeneran al leer** desde los mensajes. `summary.files` son los ficheros con algún hallazgo. Un `info` cuenta como mensaje y como fichero, y no como error ni aviso. Las rutas se canonizan al leer —NFC por segmento, con `/`, sin `./` ni barras repetidas— y no se pasan a minúsculas: `Src/Foo.ts` y `src/foo.ts` siguen siendo distintos. Si dos claves distintas caen en la misma ruta, no se funden en silencio: la lectura lo deja en `diagnostics`. El esquema sigue en 1.2. Los nombres siguen siendo `lint.repmod.json` y `lint-rest.repmod.json`.
+`summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` y los `errors` y `warnings` de cada fichero se **regeneran al leer** desde los mensajes. `summary.files` son los ficheros con algún hallazgo. Un `info` cuenta como mensaje y como fichero, y no como error ni aviso. Las rutas se canonizan al leer —NFC por segmento, con `/`, sin `./` ni barras repetidas— y no se pasan a minúsculas. Si dos claves distintas caen en la misma ruta, no se funden en silencio: la lectura lo deja en `diagnostics`. El esquema es **1.3**. Los nombres siguen siendo `lint.repmod.json` y `lint-rest.repmod.json`.
 
-Ficheros por ruta relativa, mensajes ordenados por línea y columna, y un checksum que no cambia si la salida de las herramientas no cambia. **Un artefacto sin mensajes es un repo medido y limpio**; que no haya artefacto significa que nadie midió, que es otra cosa.
+Ficheros por ruta relativa, mensajes ordenados por línea y columna, y un checksum que no cambia si la salida de las herramientas no cambia. **Cero hallazgos no es «limpio»**: hace falta cobertura `complete`, árbol al día y algo que medir. Que no haya artefacto significa que nadie midió.
 
 El resumen cuenta la raíz, la fuente, el artefacto, lo que hizo cada herramienta y cada sistema con su configuración. Los **ficheros con hallazgos** son los que tienen algún mensaje, y se enseñan **de los medidos** —`3 ficheros con hallazgos de 494 medidos`—: eso es lo que distingue un repo limpio de uno sin medir. El recuento de reglas y hallazgos es el mismo que leen la app y el MCP, y `--fail-on` decide con esa misma cuenta, no con el resumen que declare el fichero.
 
@@ -144,5 +154,5 @@ codarch lint . --no-detect --config .codarch.yml
 | `1` | Configuración inválida, ninguna herramienta midió (incluido «el proyecto no tiene lint»), no se pudo escribir el artefacto, o `--fail-on` encontró lo que buscaba. |
 
 :::note[Para saber más]
-Las decisiones detrás de esta página: [ADR 0096 — El lint es del proyecto](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — El lint se mide al analizar](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md), [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md) y [ADR 0106 — Las cuentas y las rutas del lint salen de los mensajes](../desarrollo/adr/0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md). La app enseña los sistemas y sus reglas en **Reglas**, en las hojas de proyecto, carpeta y fichero.
+Las decisiones detrás de esta página: [ADR 0096 — El lint es del proyecto](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — El lint se mide al analizar](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md), [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md) y [ADR 0106 — Las cuentas y las rutas del lint salen de los mensajes](../desarrollo/adr/0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md). El contrato 1.3, con un ejemplo por estado, está en [el artefacto 1.3](../desarrollo/lint-1.3.md). La app enseña los sistemas y sus reglas en **Reglas**, en las hojas de proyecto, carpeta y fichero.
 :::
