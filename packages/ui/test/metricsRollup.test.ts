@@ -204,7 +204,8 @@ describe("la ficha del proyecto", () => {
     expect(markup).toContain("5 avisos");
     expect(markup).toContain("0 info");
     expect(markup).toContain("3 ficheros con hallazgos");
-    expect(markup).toContain("La pasada midió 4 ficheros.");
+    expect(markup).toContain("La pasada miró 4 ficheros en total.");
+    expect(markup).not.toContain("Medido y limpio");
     expect(markup).not.toContain("de 4 medidos");
     expect(markup).not.toContain("Hallazgos por regla");
     expect(markup).not.toContain("reglas con hallazgos");
@@ -287,10 +288,9 @@ describe("la ficha del proyecto", () => {
     });
 
     expect(markup).toContain('collapsible-count">0');
-    expect(markup).toContain(
-      "Medido y limpio: 4 ficheros mirados, ninguno con hallazgos."
-    );
-    expect(markup.match(/Medido y limpio/g)).toHaveLength(1);
+    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+    expect(markup).toContain("La pasada miró 4 ficheros en total.");
+    expect(markup).not.toContain("Medido y limpio");
     expect(markup).not.toContain("Configuración ·");
     expect(markup).not.toContain("regla activa");
     expect(markup).not.toContain("eslint.config.js");
@@ -361,7 +361,7 @@ describe("la ficha de carpeta", () => {
     expect(markup).not.toContain("apps/web/src/main.ts");
     expect(markup).not.toContain("de 4 medidos");
     expect(markup).not.toContain("Medido y limpio");
-    expect(markup).toContain("no es la cobertura de este ámbito");
+    expect(markup).toContain("La pasada miró 4 ficheros en total.");
   });
 
   it("la carpeta casa rutas NFC y no se lleva el prefijo de al lado", () => {
@@ -405,6 +405,7 @@ describe("la ficha de carpeta", () => {
     expect(markup).not.toContain("9 errores");
     expect(markup).not.toContain("de 80 medidos");
     expect(markup).not.toContain("Medido y limpio");
+    expect(markup).toContain("La pasada miró 80 ficheros en total.");
     expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
   });
 });
