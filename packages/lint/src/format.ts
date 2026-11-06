@@ -1,4 +1,5 @@
 import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
+import type { LintCoverage, LintDomain } from "./health";
 import { lintFileCounts, lintTotals } from "./rollup";
 
 /**
@@ -26,6 +27,12 @@ import { lintFileCounts, lintTotals } from "./rollup";
  * de lectura, no un campo obligatorio del fichero. El nombre no cambia.
  */
 export const LINT_ARTIFACT_VERSION = "1.2";
+
+/**
+ * Versiones que el lector acepta. `1.3` es el contrato de cobertura; 1.0–1.2
+ * se siguen leyendo y, al interpretarlos, quedan en `unknown` (ADR 0107).
+ */
+export type LintArtifactVersion = "1.0" | "1.1" | "1.2" | "1.3";
 
 /**
  * El nombre del artefacto, que declara el registro de `.codarch/` (ADR 0101).
@@ -127,7 +134,12 @@ export interface LintSummary {
 }
 
 export interface LintArtifact {
-  schemaVersion: typeof LINT_ARTIFACT_VERSION;
+  schemaVersion: LintArtifactVersion;
+  /**
+   * `code` es el lint del repo; `docs` es el del resto. Ausente en 1.0–1.2:
+   * entonces el dominio se toma como código al interpretar la cobertura.
+   */
+  domain?: LintDomain;
   meta: {
     /**
      * MD5 de `tools` + `systems` + `files` tal y como los escribió quien
@@ -158,6 +170,11 @@ export interface LintArtifact {
    */
   files: Record<string, LintFile>;
   summary: LintSummary;
+  /**
+   * Cobertura por herramienta (contrato 1.3). Ausente en 1.0–1.2: no se
+   * inventa. `files` sigue siendo solo hallazgos.
+   */
+  coverage?: LintCoverage;
   /**
    * Avisos de lectura. No son del esquema 1.0–1.2: `createLintArtifact` no
    * los escribe y un lector viejo los ignora. Al leer, si dos claves distintas
