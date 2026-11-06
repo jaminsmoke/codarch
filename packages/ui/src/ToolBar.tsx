@@ -121,7 +121,7 @@ export function ToolBar({
   open,
   settingsOpen,
   map,
-  restAvailable,
+  docsAvailable,
   panelId,
   onSelectMap,
   onOpenSettings
@@ -130,10 +130,15 @@ export function ToolBar({
   open: boolean;
   /** El diálogo de Ajustes está abierto. */
   settingsOpen: boolean;
-  /** El mapa que ocupa el escenario. */
+  /** El mapa que ocupa el escenario, o la hoja Docs y config si está abierta. */
   map: MapId;
-  /** ¿Hay `rest.cc.json` que enseñar? Sin él, su botón no lleva a ninguna parte. */
-  restAvailable: boolean;
+  /**
+   * Hay mapa del resto o un catálogo de lint.
+   *
+   * No es lo mismo que `rest.cc.json`: el catálogo de código abre esta hoja
+   * aunque no haya mapa del resto.
+   */
+  docsAvailable: boolean;
   /** La hoja que abre y cierra el mapa activo. */
   panelId: string;
   /** Cambia de mapa; pulsar el activo pliega la hoja. */
@@ -144,7 +149,7 @@ export function ToolBar({
     <nav className="tool-bar" aria-label="Herramientas">
       {TOOL_ENTRIES.map((entry) => {
         const active = map === entry.id;
-        const disabled = entry.id === "rest" && !restAvailable;
+        const disabled = entry.id === "rest" && !docsAvailable;
         return (
           <button
             key={entry.id}
@@ -154,14 +159,14 @@ export function ToolBar({
             aria-controls={panelId}
             aria-label={
               disabled
-                ? `${entry.label}, sin resto que enseñar`
+                ? `${entry.label}, sin mapa del resto ni catálogo de lint`
                 : active
                   ? `${entry.label}, ${open ? "ocultar" : "mostrar"}`
                   : `${entry.label}, ver`
             }
             title={
               disabled
-                ? `${entry.label} · ejecuta codarch analyze para tener este mapa`
+                ? `${entry.label} · no hay mapa del resto ni catálogo de lint`
                 : `${entry.label} · ${entry.hint}`
             }
             disabled={disabled}

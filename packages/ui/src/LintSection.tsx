@@ -19,9 +19,9 @@ import {
  * ámbito. No enseña el catálogo de reglas activas ni los sistemas: eso es
  * configuración y vive en la hoja de docs y config.
  *
- * Sin artefacto no se enseñan ceros: se dice que no se midió. La cobertura por
- * carpeta o fichero no está en el artefacto; cuando se cita `measured`, se
- * dice que es de la pasada entera.
+ * Sin artefacto no se enseñan ceros: se dice que no se midió. Cero hallazgos
+ * no es un ámbito limpio: no hay dato de cobertura completa. `measured`, si
+ * viene, se cita como el total de la pasada.
  */
 
 /** Cuántos mensajes de un fichero se listan antes de cortar. */
@@ -70,53 +70,43 @@ function countsSummary(totals: LintTotals): string {
 }
 
 /**
- * Qué se puede decir de la cobertura sin inventarla.
+ * Cero hallazgos no es un ámbito sano.
  *
- * `summary.measured` es de la pasada entera. El proyecto puede decir «medido
- * y limpio» solo con artefacto, cero hallazgos y esa cifra. Carpeta y fichero
- * no la presentan como suya.
+ * No hay un `scopeHealth` que pruebe cobertura completa y frescura. Con
+ * artefacto y cero mensajes se dice que no se observaron hallazgos y que la
+ * cobertura no está verificada, en los tres ámbitos. `summary.measured`, si
+ * viene, es de la pasada entera y se nombra así; un cero también.
  */
+const UNOBSERVED = "Sin hallazgos observados; cobertura no verificada";
+
+function globalMeasured(measured: number | undefined): string {
+  if (measured === undefined) return "";
+  return ` La pasada miró ${formatCompact(measured)} ficheros en total.`;
+}
+
 function scopeNote(
   artifact: LintArtifact,
   folder: string,
   filePath: string | undefined,
   totals: LintTotals
 ): string {
-  const measured = artifact.summary.measured;
-  const pass =
-    measured === undefined
-      ? "Esta pasada no trae cuántos ficheros se midieron."
-      : `La pasada entera midió ${formatCompact(measured)} ficheros; no es la cobertura de este ámbito.`;
-
+  const measured = globalMeasured(artifact.summary.measured);
+  if (totals.findings === 0) return `${UNOBSERVED}.${measured}`;
   if (filePath) {
-    if (totals.findings === 0) {
-      return `Sin hallazgos en lo que el artefacto lista para este fichero. ${pass}`;
-    }
-    return "Estas cuentas salen de los mensajes de este fichero.";
+    return `Estas cuentas salen de los mensajes de este fichero.${measured}`;
   }
-
   if (folder === "") {
-    if (totals.findings === 0) {
-      return measured === undefined
-        ? `Sin hallazgos en los ficheros que lista el artefacto. ${pass}`
-        : `Medido y limpio: ${formatCompact(measured)} ficheros mirados, ninguno con hallazgos.`;
-    }
     const files = plural(totals.files, "fichero con hallazgos", "ficheros con hallazgos");
-    return measured === undefined
-      ? `${files}.`
-      : `${files}. La pasada midió ${formatCompact(measured)} ficheros.`;
+    return `${files}.${measured}`;
   }
-
-  if (totals.findings === 0) {
-    return `Sin hallazgos en los ficheros que el artefacto lista en este subárbol. ${pass}`;
-  }
-  return `Estas cuentas salen de los mensajes del artefacto en este subárbol. ${pass}`;
+  return `Estas cuentas salen de los mensajes del artefacto en este subárbol.${measured}`;
 }
 
 /** Dónde está un mensaje, visible: línea o línea:columna. */
 function messageWhere(line: number | undefined, column: number | undefined): string {
-  if (!line) return "sin línea";
-  return column ? `${line}:${column}` : String(line);
+  if (line == null) return "sin línea";
+  if (column == null) return String(line);
+  return `${line}:${column}`;
 }
 
 /** Los mensajes de un fichero, con su regla y su posición. */
@@ -289,9 +279,9 @@ export function LintSection({
   const summary = !totals
     ? "sin medir"
     : findings === 0
-      ? !filePath && folder === "" && artifact?.summary.measured !== undefined
-        ? "medido y limpio"
-        : "sin hallazgos en el artefacto"
+      ? stale
+        ? "puede estar desfasado"
+        : "cobertura no verificada"
       : countsSummary(totals);
 
   return (
@@ -314,9 +304,8 @@ export function LintSection({
           </div>
           {stale ? (
             <p className="muted tiny lint-stale">
-              Este lint es de otro árbol: se midió antes del último análisis. Se
-              vuelve a medir al guardar con el live; si no, con{" "}
-              <code>codarch analyze</code>.
+              Este lint es de otro árbol: lo que se enseña es de una pasada
+              anterior y puede estar desfasado. No es un ámbito limpio.
             </p>
           ) : null}
           {findings > 0 && filePath ? (

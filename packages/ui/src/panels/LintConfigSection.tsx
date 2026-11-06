@@ -1,6 +1,16 @@
 import type { LintArtifact } from "@codarch/lint/browser";
+import type { RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
-import { readLintConfig, type LintConfigView } from "../lintConfig";
+import { docsConfigAccess, readLintConfig, type LintConfigView } from "../lintConfig";
+import { RestKinds } from "./RestKinds";
+
+/** El dominio del catálogo: código y resto no se mezclan. */
+export type LintConfigDomain = "code" | "docs";
+
+const DOMAIN_TITLE: Record<LintConfigDomain, string> = {
+  code: "Lint del código",
+  docs: "Reglas del resto"
+};
 
 /**
  * La configuración del lint, en la hoja de docs y config.
@@ -16,7 +26,7 @@ function ConfigBody({ config }: { config: LintConfigView }) {
   return (
     <div className="lint-config-view">
       <p className="muted tiny lint-config-lead">
-        Configuración del proyecto. No son hallazgos.
+        Configuración. No son hallazgos.
       </p>
       <p className="muted tiny lint-config-tools">
         Herramientas que midieron: {tools}
@@ -60,8 +70,13 @@ function ConfigBody({ config }: { config: LintConfigView }) {
 }
 
 export function LintConfigSection({
+  id,
+  domain,
   artifact
 }: {
+  /** Identificador único: puede haber un catálogo por dominio. */
+  id: string;
+  domain: LintConfigDomain;
   artifact: LintArtifact | null;
 }) {
   const config = readLintConfig(artifact);
@@ -75,9 +90,9 @@ export function LintConfigSection({
 
   return (
     <CollapsibleSection
-      id="rail-lint-config"
-      title="Configuración del lint"
-      className="panel-block section-lint-config"
+      id={id}
+      title={DOMAIN_TITLE[domain]}
+      className={`panel-block section-lint-config section-lint-config-${domain}`}
       count={config?.systems.length ?? 0}
       summary={summary}
     >
@@ -90,5 +105,44 @@ export function LintConfigSection({
         </p>
       )}
     </CollapsibleSection>
+  );
+}
+
+/**
+ * La hoja Docs y config: estratos del resto si hay snapshot, y los catálogos
+ * que existan, cada uno en su dominio.
+ *
+ * Sin snapshot del resto no se pintan estratos ni se finge un mapa.
+ */
+export function DocsToolSheet({
+  hasRest,
+  restModel,
+  codeLint,
+  docsLint
+}: {
+  hasRest: boolean;
+  restModel: RenderModel | null;
+  codeLint: LintArtifact | null;
+  docsLint: LintArtifact | null;
+}) {
+  const access = docsConfigAccess({ rest: hasRest, codeLint, docsLint });
+  return (
+    <>
+      {hasRest ? <RestKinds model={restModel} /> : null}
+      {access.code ? (
+        <LintConfigSection
+          id="rail-lint-config-code"
+          domain="code"
+          artifact={codeLint}
+        />
+      ) : null}
+      {access.docs ? (
+        <LintConfigSection
+          id="rail-lint-config-docs"
+          domain="docs"
+          artifact={docsLint}
+        />
+      ) : null}
+    </>
   );
 }
