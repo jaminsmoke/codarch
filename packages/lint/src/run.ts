@@ -8,6 +8,12 @@ import {
   type LintSystem
 } from "./format";
 import {
+  adoptEnumeration,
+  coverageFromEnumeration,
+  type Reason,
+  type ToolCoverage
+} from "./health";
+import {
   normalizeBiomeJson,
   normalizeCheckstyleXml,
   normalizeDotnetText,
@@ -98,7 +104,14 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
           tools: measured.map((result) => result.run.name),
           ...(options.systems ? { systems: options.systems } : {}),
           ...(options.tree ? { tree: options.tree } : {}),
-          files: measured.flatMap((result) => result.files)
+          files: measured.flatMap((result) => result.files),
+          // También las que fallaron: si no, un éxito y un fallo parecerían
+          // una medida completa. `meta.tools` sigue siendo solo las que midieron.
+          coverage: {
+            tools: Object.fromEntries(
+              results.map((result) => [result.run.name, result.coverage])
+            )
+          }
         });
 
   return {
@@ -110,6 +123,7 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
 interface ToolResult {
   run: LintToolRun;
   files: LintFileResult[];
+  coverage: ToolCoverage;
 }
 
 async function runTool(
@@ -120,7 +134,8 @@ async function runTool(
 ): Promise<ToolResult> {
   const failed = (error: string, code?: number): ToolResult => ({
     run: { name: tool.name, ok: false, ...(code !== undefined ? { code } : {}), files: 0, messages: 0, error },
-    files: []
+    files: [],
+    coverage: coverageFromEnumeration({ ok: false, reason: failureReason(error) })
   });
 
   let output: LintProcessOutput;
@@ -141,6 +156,12 @@ async function runTool(
     return failed(hint ? `${reason} (${hint})` : reason, output.code);
   }
 
+  const enumerates = tool.format === "eslint-json" || tool.format === "checkstyle-xml";
+  const enumeration = adoptEnumeration(enumerates ? tool.format : tool.name, {
+    ok: true,
+    paths: files.map((file) => file.path)
+  });
+
   return {
     run: {
       name: tool.name,
@@ -149,8 +170,14 @@ async function runTool(
       files: files.filter((file) => file.messages.length > 0).length,
       messages: files.reduce((total, file) => total + file.messages.length, 0)
     },
-    files
+    files,
+    coverage: coverageFromEnumeration(enumeration, null)
   };
+}
+
+function failureReason(error: string): Reason {
+  const missing = /enoent|not found|no se encontró|no se encontro/i.test(error);
+  return { code: missing ? "tool-missing" : "tool-failed", text: error };
 }
 
 /** El dialecto que declaró la herramienta, aplicado a lo que escribió. */

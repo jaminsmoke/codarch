@@ -67,6 +67,7 @@ describe("la sidebar de los documentos", () => {
       "desarrollo/model",
       "desarrollo/design/map",
       "desarrollo/migration",
+      "desarrollo/lint-1.3",
       "Decisiones (ADR)",
       "La guía"
     ]);

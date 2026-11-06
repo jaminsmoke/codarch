@@ -73,7 +73,8 @@ It writes `lint.repmod.json` in the output directory. If it creates `.codarch/` 
 
 ```json
 {
-  "schemaVersion": "1.2",
+  "schemaVersion": "1.3",
+  "domain": "code",
   "meta": {
     "checksum": "…",
     "tools": ["eslint"],
@@ -94,17 +95,26 @@ It writes `lint.repmod.json` in the output directory. If it creates `.codarch/` 
       ]
     }
   },
+  "coverage": {
+    "tools": {
+      "eslint": {
+        "outcome": "enumerated",
+        "measuredPaths": ["src/a.ts"],
+        "eligiblePaths": null
+      }
+    }
+  },
   "summary": { "files": 1, "errors": 0, "warnings": 1, "messages": 1, "measured": 1 }
 }
 ```
 
-`meta.systems` says which lint the project **has** —with its configuration and active rules— and `meta.tools` which ones actually measured. A `1.0` artifact is still read: its tools become the systems, with no configuration.
+`meta.systems` says which lint the project **has** —with its configuration and active rules— and `meta.tools` which ones actually measured. A `1.0`–`1.2` artifact is still read: coverage becomes `unknown` with `legacy-global`, and `measured` is not invented.
 
-`summary.measured` is what separates “measured and clean” from “not measured”: it counts the files the tool looked at, **clean ones included**, which do not appear in `files`. It is a **global** figure for the pass, not for a folder, and reading does not recompute it: clean files are not in the messages. `meta.tree` is the checksum of the snapshot that was measured; whoever analyses fills it —`codarch analyze` and, in live, `serve`—. This standalone command does not analyse the repo, so on its own it writes no `tree`: the app cannot compare and does not pretend to.
+`summary.measured` is how many files **coverage derived**, clean ones included, which do not appear in `files`. It is a **global** figure for the pass. It is written only when it can be derived: a zero that does not come from a valid enumeration is not stored. ESLint and Checkstyle know who they looked at and not the universe (`eligiblePaths: null`), so code is never `complete`. `meta.tree` is the checksum of the snapshot that was measured; whoever analyses fills it —`codarch analyze` and, in live, `serve`—. This standalone command does not analyse the repo, so on its own it writes no `tree`: the app cannot compare and does not pretend to.
 
-`summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` and each file's `errors` and `warnings` are **regenerated on read** from the messages. `summary.files` is the number of files with at least one finding. An `info` counts as a message and as a file, and not as an error or a warning. Paths are canonicalized on read —NFC per segment, with `/`, without `./` or repeated slashes— and are not lowercased: `Src/Foo.ts` and `src/foo.ts` stay different. If two distinct keys fall on the same path, they are not merged silently: the read records it in `diagnostics`. The schema stays at 1.2. The names stay `lint.repmod.json` and `lint-rest.repmod.json`.
+`summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` and each file's `errors` and `warnings` are **regenerated on read** from the messages. `summary.files` is the number of files with at least one finding. An `info` counts as a message and as a file, and not as an error or a warning. Paths are canonicalized on read —NFC per segment, with `/`, without `./` or repeated slashes— and are not lowercased. If two distinct keys fall on the same path, they are not merged silently: the read records it in `diagnostics`. The schema is **1.3**. The names stay `lint.repmod.json` and `lint-rest.repmod.json`.
 
-Files by relative path, messages sorted by line and column, and a checksum that does not change when the tools' output does not change. **An artifact with no messages is a measured, clean repo**; no artifact means nobody measured, which is something else.
+Files by relative path, messages sorted by line and column, and a checksum that does not change when the tools' output does not change. **Zero findings is not “clean”**: that needs `complete` coverage, a fresh tree, and something eligible to measure. No artifact means nobody measured.
 
 The summary shows the root, the source, the artifact, what each tool did and each system with its configuration. The **files with findings** are those with at least one message, and they are shown **out of those measured** —`3 files with findings out of 494 measured`—: that is what tells a clean repo from an unmeasured one. The rule and finding count is the same one the app and the MCP read, and `--fail-on` decides with that same count, not with the summary the file declares.
 
@@ -144,5 +154,5 @@ codarch lint . --no-detect --config .codarch.yml
 | `1` | Invalid configuration, no tool measured (including «the project has no lint»), the artifact could not be written, or `--fail-on` found what it looked for. |
 
 :::note[To learn more]
-The decisions behind this page: [ADR 0096 — The lint belongs to the project](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — Lint is measured while analysing](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md), [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md) and [ADR 0106 — Counts and paths come from the messages](../desarrollo/adr/0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md). The app shows the systems and their rules under **Reglas**, in the project, folder and file sheets.
+The decisions behind this page: [ADR 0096 — The lint belongs to the project](../desarrollo/adr/0091-0100/0096-el-lint-es-del-proyecto.md), [ADR 0099 — Lint is measured while analysing](../desarrollo/adr/0091-0100/0099-el-lint-se-mide-al-analizar.md), [ADR 0094 — El lint, en el mapa](../desarrollo/adr/0091-0100/0094-el-lint-en-el-mapa.md) and [ADR 0106 — Counts and paths come from the messages](../desarrollo/adr/0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md). The 1.3 contract, with one example per state, is in [artifact 1.3](../desarrollo/lint-1.3.md). The app shows the systems and their rules under **Reglas**, in the project, folder and file sheets.
 :::

@@ -15,6 +15,7 @@ export {
 } from "./format";
 export type {
   LintArtifact,
+  LintArtifactVersion,
   LintFile,
   LintFileResult,
   LintMessage,
@@ -24,6 +25,32 @@ export type {
   LintSummary,
   LintSystem
 } from "./format";
+export {
+  REASON_CODES,
+  adoptEnumeration,
+  coverageFromEnumeration,
+  isCurrentClean,
+  lintConfig,
+  scopeHealth,
+  scopeHealthNote,
+  summaryFromHealth
+} from "./health";
+export type {
+  AdapterEnumeration,
+  AffectedFile,
+  CoverageHealth,
+  CoverageState,
+  HealthScope,
+  HealthSnapshot,
+  LintCounts,
+  LintCoverage,
+  LintDomain,
+  Reason,
+  ReasonCode,
+  ScopeHealth,
+  ToolCoverage,
+  ToolHealth
+} from "./health";
 export { MINIMAL_LINT, adviceForExtensions, extensionOf } from "./advice";
 export type { LintAdvice } from "./advice";
 export {

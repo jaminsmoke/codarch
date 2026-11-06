@@ -49,10 +49,13 @@ describe("el artefacto del lint", () => {
       files: 2,
       errors: 2,
       warnings: 1,
-      messages: 4,
-      // Lo canónico: `./src/a.ts` y `src/a.ts` son el mismo fichero medido.
-      measured: 2
+      messages: 4
     });
+    // Sin enumeración no se inventa `measured`. `./src/a.ts` y `src/a.ts` sí
+    // son el mismo fichero en `files`.
+    expect(artifact.summary.measured).toBeUndefined();
+    expect(artifact.domain).toBe("code");
+    expect(artifact.coverage?.tools.eslint?.outcome).toBe("unknown");
     expect(artifact.files["src/a.ts"]?.errors).toBe(1);
     expect(artifact.files["src/a.ts"]?.warnings).toBe(0);
     expect(artifact.files["src/a.ts"]?.messages).toHaveLength(2);
@@ -117,9 +120,9 @@ describe("el artefacto del lint", () => {
       files: 0,
       errors: 0,
       warnings: 0,
-      messages: 0,
-      measured: 0
+      messages: 0
     });
+    expect(artifact.summary.measured).toBeUndefined();
     expect(artifact.meta.checksum).toMatch(/^[0-9a-f]{32}$/);
   });
 
@@ -154,7 +157,23 @@ describe("el artefacto del lint", () => {
           { name: "oxlint", config: null }
         ]
       },
+      domain: "code",
       files: {},
+      coverage: {
+        legacy: true,
+        tools: {
+          eslint: {
+            outcome: "unknown",
+            eligiblePaths: null,
+            reasons: [{ code: "legacy-global" }]
+          },
+          oxlint: {
+            outcome: "unknown",
+            eligiblePaths: null,
+            reasons: [{ code: "legacy-global" }]
+          }
+        }
+      },
       summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
     });
   });
@@ -207,10 +226,19 @@ describe("el artefacto del lint", () => {
       tools: ["eslint"],
       tree: "0c74d0ac80a995135ecff96096be41a5",
       files: [
-        // Un fichero limpio: no aparece en `files`, pero se midió.
+        // Un fichero limpio: no aparece en `files`, pero la enumeración lo midió.
         file("src/a.ts", []),
         file("src/b.ts", [message()])
-      ]
+      ],
+      coverage: {
+        tools: {
+          eslint: {
+            outcome: "enumerated",
+            measuredPaths: ["src/a.ts", "src/b.ts"],
+            eligiblePaths: null
+          }
+        }
+      }
     });
 
     expect(artifact.meta.tree).toBe("0c74d0ac80a995135ecff96096be41a5");
@@ -409,9 +437,10 @@ describe("el artefacto del lint", () => {
       files: 2,
       errors: 1,
       warnings: 2,
-      messages: 4,
-      measured: 8
+      messages: 4
     });
+    expect(read?.coverage?.legacy).toBe(true);
+    expect(read?.summary.measured).toBeUndefined();
     expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
   });
 
@@ -541,14 +570,15 @@ describe("el artefacto del lint", () => {
     const read = readLintArtifact(raw);
     expect(read?.files["src/a.ts"]).toMatchObject({ errors: 0, warnings: 1 });
     expect(read?.files["src/a.ts"]?.messages).toHaveLength(1);
-    // `measured` es la cobertura global: no se reconstruye desde los mensajes.
+    // Un 1.2 no deriva `measured`: el 12 declarado no se convierte en cobertura.
     expect(read?.summary).toEqual({
       files: 1,
       errors: 0,
       warnings: 1,
-      messages: 1,
-      measured: 12
+      messages: 1
     });
+    expect(read?.coverage?.legacy).toBe(true);
+    expect(read?.summary.measured).toBeUndefined();
     expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
   });
 

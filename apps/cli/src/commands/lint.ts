@@ -3,6 +3,8 @@ import path from "node:path";
 import {
   LintError,
   lintTotals,
+  scopeHealth,
+  scopeHealthNote,
   runLint,
   type LintArtifact,
   type LintProcessRunner,
@@ -172,14 +174,19 @@ function lineOfArtifact(
     findings: 0,
     files: 0
   };
-  const measured = artifact.summary.measured;
+  // `--fail-on` sigue mirando estas cuentas, no la cobertura. La línea dice
+  // cuántos se midieron solo cuando la cobertura lo deriva.
+  const health = scopeHealth(artifact, { kind: "project", path: "" });
+  const measured = health.coverage.measured;
+  const note = scopeHealthNote(health);
   const counts = [
-    measured === undefined
+    measured === null
       ? filesWithFindings(totals.files)
       : `${filesWithFindings(totals.files)} de ${num(measured)} medidos`,
     tally(totals.errors, "error", "errores"),
     tally(totals.warnings, "aviso", "avisos"),
-    ...(totals.info > 0 ? [tally(totals.info, "info", "info")] : [])
+    ...(totals.info > 0 ? [tally(totals.info, "info", "info")] : []),
+    ...(note ? [note] : [])
   ].join(" · ");
   lines.push(field("artefacto", `${file} (${formatBytes(bytes)}) · ${counts}`));
   lines.push(

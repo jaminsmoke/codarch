@@ -5,8 +5,11 @@ import type { LintFinding, LintReportInput, LintReportResult } from "./types";
 import { clampInteger, compareStrings, severityOrder } from "./helpers";
 import { relative, sep } from "node:path";
 import {
+  lintConfig,
   lintRuleCounts,
   lintTotals,
+  scopeHealth,
+  type HealthScope,
   type LintArtifact,
   type LintSeverity,
   type LintSummary
@@ -36,6 +39,9 @@ export function getLintReport(
       tools: [],
       systems: [],
       summary: empty,
+      config: null,
+      health: null,
+      affectedFiles: [],
       scope,
       files: 0,
       total: 0,
@@ -87,6 +93,11 @@ export function getLintReport(
       compareStrings(left.message, right.message)
   );
 
+  const health = scopeHealth(artifact, healthScope(isFile, scope), {
+    treeHash: store.snapshot.meta.checksum ?? null,
+    paths: store.files.map((entry) => entry.path)
+  });
+
   return {
     available: true,
     file: projectPath(store.root, file),
@@ -97,15 +108,23 @@ export function getLintReport(
         ? { rules: system.rules.map((rule) => ({ ...rule })) }
         : {})
     })),
-    // Los totales salen de los mensajes, como en el CLI y en la app (ADR 0097);
-    // la cobertura es la que declaró la pasada (ADR 0098).
+    // El resumen global sigue siendo el de siempre: cuentas de mensajes y,
+    // si se puede derivar, `measured`. No es la salud del ámbito filtrado.
     summary: lintSummaryOf(artifact),
+    config: lintConfig(artifact),
+    health,
+    affectedFiles: health.affectedFiles,
     scope,
     files,
     total: findings.length,
     rules,
     findings: findings.slice(0, limit)
   };
+}
+
+function healthScope(isFile: boolean, path: string): HealthScope {
+  if (path === "") return { kind: "project", path: "" };
+  return { kind: isFile ? "file" : "folder", path };
 }
 
 /**

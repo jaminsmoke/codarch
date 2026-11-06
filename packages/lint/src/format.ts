@@ -1,5 +1,13 @@
 import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
-import { lintFileCounts, lintTotals } from "./rollup";
+import {
+  scopeHealth,
+  summaryFromHealth,
+  type LintCoverage,
+  type LintDomain,
+  type Reason,
+  type ToolCoverage
+} from "./health";
+import { lintFileCounts } from "./rollup";
 
 /**
  * El artefacto del lint (ADR 0094).
@@ -21,11 +29,19 @@ import { lintFileCounts, lintTotals } from "./rollup";
  * del árbol que se midió, y `summary.measured`, cuántos ficheros llegaron a
  * mirarse. Sin ellos, «0 hallazgos» y «no se miró nada» eran el mismo fichero.
  *
- * Sigue en 1.2 (ADR 0106). No hay 1.3: las cuentas heredadas se regeneran al
- * leer desde los mensajes y las rutas se canonizan. `diagnostics` es un aviso
- * de lectura, no un campo obligatorio del fichero. El nombre no cambia.
+ * 1.3 añade `domain` y `coverage`. 1.0–1.2 se siguen leyendo: al interpretarlos
+ * la cobertura es `unknown` con `legacy-global`, y `summary.measured` solo se
+ * emite si la cobertura nueva lo puede derivar. Las cuentas heredadas se
+ * regeneran desde los mensajes y las rutas se canonizan (ADR 0106). El nombre
+ * del fichero no cambia.
  */
-export const LINT_ARTIFACT_VERSION = "1.2";
+export const LINT_ARTIFACT_VERSION = "1.3";
+
+/**
+ * Versiones que el lector acepta. `1.3` es el contrato de cobertura; 1.0–1.2
+ * se siguen leyendo y, al interpretarlos, quedan en `unknown` (ADR 0107).
+ */
+export type LintArtifactVersion = "1.0" | "1.1" | "1.2" | "1.3";
 
 /**
  * El nombre del artefacto, que declara el registro de `.codarch/` (ADR 0101).
@@ -127,11 +143,17 @@ export interface LintSummary {
 }
 
 export interface LintArtifact {
-  schemaVersion: typeof LINT_ARTIFACT_VERSION;
+  schemaVersion: LintArtifactVersion;
+  /**
+   * `code` es el lint del repo; `docs` es el del resto. Ausente en 1.0–1.2:
+   * entonces el dominio se toma como código al interpretar la cobertura.
+   */
+  domain?: LintDomain;
   meta: {
     /**
-     * MD5 de `tools` + `systems` + `files` tal y como los escribió quien
-     * creó el artefacto.
+     * MD5 de `domain` + `tools` + `systems` + `files` + `coverage`, tal y como
+     * los escribió quien creó el artefacto 1.3. En 1.0–1.2 era `tools` +
+     * `systems` + `files`.
      *
      * `readLintArtifact` no lo recalcula. Si al leer se canonizan rutas o se
      * regeneran cuentas, este checksum sigue siendo el del fichero original y
@@ -158,6 +180,11 @@ export interface LintArtifact {
    */
   files: Record<string, LintFile>;
   summary: LintSummary;
+  /**
+   * Cobertura por herramienta (contrato 1.3). Ausente en 1.0–1.2: no se
+   * inventa. `files` sigue siendo solo hallazgos.
+   */
+  coverage?: LintCoverage;
   /**
    * Avisos de lectura. No son del esquema 1.0–1.2: `createLintArtifact` no
    * los escribe y un lector viejo los ignora. Al leer, si dos claves distintas
@@ -192,26 +219,28 @@ export interface LintPathCollision {
  * consuma no tenga que volver a mirar si lo que tiene delante es un objeto.
  *
  * Los mensajes son la única fuente de las cuentas. `errors`, `warnings` y el
- * `summary` heredado se vuelven a calcular aquí; `summary.measured` no, porque
- * es la cobertura global de la pasada. Las claves de fichero —la ruta de cada
- * mensaje— se canonizan. Una ruta absoluta o con `..` invalida el artefacto
- * (el lector sigue sin lanzar). Dos claves que caen en la misma ruta no se
- * funden en silencio: quedan en `diagnostics`. Leer dos veces el resultado da
- * lo mismo.
+ * `summary` heredado se vuelven a calcular aquí. `summary.measured` solo se
+ * rellena cuando la cobertura lo deriva; un 1.0–1.2 no lo deriva (`unknown`).
+ * Las claves de fichero —la ruta de cada mensaje— se canonizan. Una ruta
+ * absoluta o con `..` invalida el artefacto (el lector sigue sin lanzar). Dos
+ * claves que caen en la misma ruta no se funden en silencio: quedan en
+ * `diagnostics`. Leer dos veces el resultado da lo mismo.
  */
 export function readLintArtifact(input: unknown): LintArtifact | null {
   if (!isRecord(input)) return null;
   // Un artefacto 1.0 es anterior a los sistemas (ADR 0096): se lee y se sube,
   // con los nombres de las herramientas como únicos sistemas conocidos.
-  const legacy = input.schemaVersion === "1.0";
-  if (input.schemaVersion !== "1.0" && input.schemaVersion !== "1.1" && input.schemaVersion !== LINT_ARTIFACT_VERSION) {
+  const version = input.schemaVersion;
+  const legacy = version === "1.0" || version === "1.1" || version === "1.2";
+  if (version !== "1.0" && version !== "1.1" && version !== "1.2" && version !== "1.3") {
     return null;
   }
+  const preSystems = version === "1.0";
 
   const meta = input.meta;
   if (!isRecord(meta) || typeof meta.checksum !== "string") return null;
   if (!Array.isArray(meta.tools) || !meta.tools.every(isText)) return null;
-  const systems = legacy
+  const systems = preSystems
     ? [...new Set(meta.tools)].sort().map((name) => ({ name, config: null }))
     : readSystems(meta.systems);
   if (systems === null) return null;
@@ -239,9 +268,13 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
     readStoredDiagnostics(input.diagnostics),
     parsedFiles.collisions
   );
+  const domain = legacy ? "code" : readDomain(input.domain);
+  const coverage = legacy ? legacyCoverage(meta.tools) : readCoverage(input.coverage);
+  if (!domain || !coverage) return null;
 
-  return {
+  const draft: LintArtifact = {
     schemaVersion: LINT_ARTIFACT_VERSION,
+    domain,
     meta: {
       checksum: meta.checksum,
       tools: [...meta.tools],
@@ -249,11 +282,14 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
       ...(meta.tree === undefined ? {} : { tree: meta.tree })
     },
     files: regenerated,
-    summary: summaryFromMessages(
-      regenerated,
-      summary.measured === undefined ? undefined : summary.measured
-    ),
+    coverage,
+    summary: { files: 0, errors: 0, warnings: 0, messages: 0 },
     ...(diagnostics.length > 0 ? { diagnostics } : {})
+  };
+
+  return {
+    ...draft,
+    summary: summaryFromHealth(scopeHealth(draft, { kind: "project", path: "" }))
   };
 }
 
@@ -393,7 +429,14 @@ export function createLintArtifact(input: {
   systems?: readonly LintSystem[];
   /** El checksum del snapshot medido, cuando se sabe (ADR 0098). */
   tree?: string;
+  /** `code` por defecto. El resto pasa `docs`. */
+  domain?: LintDomain;
   files: readonly LintFileResult[];
+  /**
+   * Cobertura por herramienta. Sin ella, cada herramienta queda en `unknown`:
+   * no se inventa `measured` a partir de los ficheros con hallazgos.
+   */
+  coverage?: LintCoverage;
 }): LintArtifact {
   const byPath = new Map<string, LintMessage[]>();
 
@@ -423,20 +466,33 @@ export function createLintArtifact(input: {
   const systems = canonicalSystems(
     input.systems ?? tools.map((name) => ({ name, config: null }))
   );
+  const domain = input.domain ?? "code";
+  const coverage = input.coverage
+    ? normalizeCoverage(input.coverage)
+    : unknownCoverage(tools);
 
-  return {
+  const draft: LintArtifact = {
     schemaVersion: LINT_ARTIFACT_VERSION,
+    domain,
     meta: {
-      checksum: md5Hex(stableStringify({ tools, systems, files })),
+      checksum: "",
       tools,
       systems,
       ...(input.tree ? { tree: input.tree } : {})
     },
     files,
-    // Los ficheros limpios no entran en `files`, pero sí se contaron: es la
-    // cobertura de la medida, y va antes de fundirlos por ruta para no contar
-    // dos veces el mismo fichero cuando lo miran dos herramientas.
-    summary: summarize(files, byPath.size)
+    coverage,
+    summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+  };
+
+  return {
+    ...draft,
+    meta: {
+      ...draft.meta,
+      checksum: md5Hex(stableStringify({ domain, tools, systems, files, coverage }))
+    },
+    // `measured` solo si la cobertura lo deriva. Los limpios no están en `files`.
+    summary: summaryFromHealth(scopeHealth(draft, { kind: "project", path: "" }))
   };
 }
 
@@ -671,51 +727,129 @@ function withRegeneratedCounts(
   return kept;
 }
 
-/**
- * El `summary` heredado, contado con la misma agregación que la app.
- *
- * `messages` es `findings` (errores + avisos + info). `files` son los que
- * tienen algún mensaje. `measured`, si viene, se copia: es global y no sale
- * de los mensajes.
- */
-function summaryFromMessages(
-  files: Record<string, LintFile>,
-  measured: number | undefined
-): LintSummary {
-  const totals = lintTotals({
-    schemaVersion: LINT_ARTIFACT_VERSION,
-    meta: { checksum: "", tools: [], systems: [] },
-    files,
-    summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
-  });
-  return {
-    files: totals?.files ?? 0,
-    errors: totals?.errors ?? 0,
-    warnings: totals?.warnings ?? 0,
-    messages: totals?.findings ?? 0,
-    ...(measured === undefined ? {} : { measured })
-  };
+function readDomain(value: unknown): LintDomain | null {
+  if (value === undefined) return "code";
+  return value === "code" || value === "docs" ? value : null;
 }
 
-function summarize(
-  files: Record<string, LintFile>,
-  measured: number
-): LintSummary {
-  let errors = 0;
-  let warnings = 0;
-  let messages = 0;
-  for (const file of Object.values(files)) {
-    errors += file.errors;
-    warnings += file.warnings;
-    messages += file.messages.length;
+function legacyCoverage(tools: readonly string[]): LintCoverage {
+  const coverage: LintCoverage = { legacy: true, tools: {} };
+  for (const name of [...tools].sort(compareStrings)) {
+    coverage.tools[name] = {
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [{ code: "legacy-global" }]
+    };
   }
-  return {
-    files: Object.keys(files).length,
-    errors,
-    warnings,
-    messages,
-    measured
-  };
+  return coverage;
+}
+
+function unknownCoverage(tools: readonly string[]): LintCoverage {
+  const coverage: LintCoverage = { tools: {} };
+  for (const name of tools) {
+    coverage.tools[name] = {
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [{ code: "unknown-eligibility" }]
+    };
+  }
+  return coverage;
+}
+
+function normalizeCoverage(coverage: LintCoverage): LintCoverage {
+  const tools: Record<string, ToolCoverage> = {};
+  for (const name of Object.keys(coverage.tools).sort(compareStrings)) {
+    const tool = coverage.tools[name];
+    if (!tool) continue;
+    tools[name] = tool.outcome === "enumerated"
+      ? {
+          outcome: "enumerated",
+          measuredPaths: uniquePaths(tool.measuredPaths),
+          eligiblePaths: tool.eligiblePaths === null ? null : uniquePaths(tool.eligiblePaths)
+        }
+      : { outcome: tool.outcome, eligiblePaths: null, reasons: [...tool.reasons] };
+  }
+  return { tools, ...(coverage.legacy ? { legacy: true } : {}) };
+}
+
+function readCoverage(value: unknown): LintCoverage | null {
+  if (!isRecord(value) || !isRecord(value.tools)) return null;
+  const tools: Record<string, ToolCoverage> = {};
+  for (const [name, raw] of Object.entries(value.tools)) {
+    const tool = readToolCoverage(raw);
+    if (!tool) return null;
+    tools[name] = tool;
+  }
+  let normalized: LintCoverage;
+  try {
+    normalized = normalizeCoverage({
+      tools,
+      ...(value.legacy === true ? { legacy: true } : {})
+    });
+  } catch (error) {
+    if (error instanceof LintError) return null;
+    throw error;
+  }
+  return normalized;
+}
+
+function readToolCoverage(value: unknown): ToolCoverage | null {
+  if (!isRecord(value)) return null;
+  if (value.outcome === "enumerated") {
+    if (!Array.isArray(value.measuredPaths) || !value.measuredPaths.every(isPathText)) {
+      return null;
+    }
+    if (value.eligiblePaths !== null && (
+      !Array.isArray(value.eligiblePaths) || !value.eligiblePaths.every(isPathText)
+    )) {
+      return null;
+    }
+    return {
+      outcome: "enumerated",
+      measuredPaths: value.measuredPaths,
+      eligiblePaths: value.eligiblePaths === null ? null : value.eligiblePaths
+    };
+  }
+  if (value.outcome !== "unknown" && value.outcome !== "failed" && value.outcome !== "missing") {
+    return null;
+  }
+  if (value.eligiblePaths !== null) return null;
+  const reasons = readReasons(value.reasons);
+  if (!reasons) return null;
+  return { outcome: value.outcome, eligiblePaths: null, reasons };
+}
+
+function readReasons(value: unknown): Reason[] | null {
+  if (!Array.isArray(value)) return null;
+  const reasons: Reason[] = [];
+  for (const item of value) {
+    if (!isRecord(item) || !isReasonCode(item.code)) return null;
+    if (item.text !== undefined && !isText(item.text)) return null;
+    reasons.push(item.text === undefined ? { code: item.code } : { code: item.code, text: item.text });
+  }
+  return reasons;
+}
+
+function isReasonCode(value: unknown): value is Reason["code"] {
+  return (
+    value === "legacy-global" ||
+    value === "tool-failed" ||
+    value === "tool-missing" ||
+    value === "unknown-eligibility" ||
+    value === "unknown-paths" ||
+    value === "not-eligible" ||
+    value === "not-found" ||
+    value === "no-eligible" ||
+    value === "freshness-unverified"
+  );
+}
+
+function isPathText(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function uniquePaths(paths: readonly string[]): string[] {
+  return [...new Set(paths.map((path) => canonicalLintPath(path)))].sort(compareStrings);
 }
 
 function compareMessages(left: LintMessage, right: LintMessage): number {

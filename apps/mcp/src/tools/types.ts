@@ -4,10 +4,12 @@
 import type { LayerConfig, RuleConfigEntry } from "@codarch/metrics";
 import type { RepoAddon } from "@codarch/addons";
 import type {
+  AffectedFile,
   LintSeverity,
   LintSummary,
   LintSystem,
-  LintTotals
+  LintTotals,
+  ScopeHealth
 } from "@codarch/lint/browser";
 import {
   CcMigrationLanguage,
@@ -460,6 +462,8 @@ export interface ExplainModuleResult {
       };
   /** Totales de lint del ámbito; `null` si no se ha medido. */
   lint: LintTotals | null;
+  /** Salud del mismo ámbito. `null` si no hay artefacto. */
+  scopeHealth: ScopeHealth | null;
   violations: StatusViolation[];
 }
 
@@ -504,6 +508,15 @@ export interface LintReportResult {
   /** Los sistemas que el proyecto declara, con su config, sus reglas y su nota. */
   systems: LintSystem[];
   summary: LintSummary;
+  /**
+   * La config que ya está en `meta`, derivada. `null` si no hay artefacto.
+   * No es un campo nuevo del fichero.
+   */
+  config: { tools: string[]; systems: LintSystem[] } | null;
+  /** Salud del ámbito pedido. `null` si no hay artefacto: no es un cero. */
+  health: ScopeHealth | null;
+  /** Ficheros con hallazgos en ese ámbito, con sus cuentas. */
+  affectedFiles: AffectedFile[];
   /** La carpeta o el fichero pedido; vacío es todo el proyecto. */
   scope: string;
   /** Ficheros con hallazgos dentro del ámbito y los filtros. */

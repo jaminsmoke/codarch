@@ -5,7 +5,7 @@ import { chainsPayload } from "@codarch/schema";
 import { edgeViews, aggregateEdgeViews, sortMetrics } from "./scope";
 import { clampInteger, compareStrings } from "./helpers";
 import { symbolsOf } from "@codarch/schema";
-import { lintTotals } from "@codarch/lint/browser";
+import { lintTotals, scopeHealth, type HealthSnapshot } from "@codarch/lint/browser";
 import { loadLintArtifact } from "./lint";
 import {
   ArchitectureStore,
@@ -131,6 +131,9 @@ export function explainModule(
               "no hay report.json cargado; no sé si este fichero cambió en el PR"
           },
       lint: lintTotals(lintArtifact, file.path),
+      scopeHealth: lintArtifact
+        ? scopeHealth(lintArtifact, { kind: "file", path: file.path }, lintSnapshot(store))
+        : null,
       violations: store.violationsForPaths([file.path], 10)
     };
   }
@@ -198,10 +201,25 @@ export function explainModule(
             "no hay report.json cargado; no sé qué cambió bajo esta carpeta"
         },
     lint: lintTotals(lintArtifact, folder.path),
+    scopeHealth: lintArtifact
+      ? scopeHealth(
+          lintArtifact,
+          { kind: "folder", path: folder.path },
+          lintSnapshot(store)
+        )
+      : null,
     violations: store.violationsForPaths(
       folderFiles.map((file) => file.path),
       10
     )
+  };
+}
+
+/** El árbol del código, para saber si el lint está al día y si un fichero existe. */
+function lintSnapshot(store: ArchitectureStore): HealthSnapshot {
+  return {
+    treeHash: store.snapshot.meta.checksum ?? null,
+    paths: store.files.map((file) => file.path)
   };
 }
 
