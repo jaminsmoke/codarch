@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { createLintArtifact } from "@codarch/lint";
+import { createLintArtifact, readLintArtifact } from "@codarch/lint";
 import { RISK_GAMMA } from "@codarch/metrics";
 import { parseCcJson } from "@codarch/schema";
 import { buildRenderModel, RenderError, type RenderOptions } from "../src/index";
@@ -211,6 +211,26 @@ describe("buildRenderModel", () => {
 
     const result = model({ lint: tampered });
     expect(result.files.find((file) => file.name === "b.ts")?.lint).toBe(1);
+  });
+
+  it("pinta la deuda en la ruta canónica, no en la clave cruda", () => {
+    const lint = readLintArtifact({
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        ".\\src\\only\\b.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [{ rule: "no-any", severity: "error", message: "un any" }]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    });
+
+    expect(lint?.files["src/only/b.ts"]?.errors).toBe(1);
+    const result = model({ lint: lint ?? undefined });
+    expect(result.files.find((file) => file.name === "b.ts")?.lint).toBe(1);
+    expect(result.files.find((file) => file.name === "a.ts")?.lint).toBe(0);
   });
 
   it("la lente del lint abre con su deuda y su escala es el máximo del mapa", () => {

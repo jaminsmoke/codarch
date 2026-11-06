@@ -77,6 +77,55 @@ describe("el lint del proyecto", () => {
     return loadArchitectureStore({ root });
   }
 
+  it("ve los hallazgos en la ruta canónica", () => {
+    const nfd = "src/Cafe\u0301.ts";
+    const nfc = "src/Caf\u00e9.ts";
+    const store = lintStore({
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "./src/a.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [
+            { rule: "no-console", severity: "warn", line: 3, message: "no console" }
+          ]
+        },
+        [nfd]: {
+          errors: 0,
+          warnings: 0,
+          messages: [{ rule: "no-var", severity: "info", message: "cafe" }]
+        },
+        "src/A.ts": {
+          errors: 1,
+          warnings: 0,
+          messages: [{ rule: "no-var", severity: "error", message: "mayuscula" }]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    });
+
+    const report = getLintReport(store);
+    expect(report.findings.map((finding) => finding.path).sort()).toEqual(
+      [nfc, "src/A.ts", "src/a.ts"].sort()
+    );
+    expect(
+      report.findings.every(
+        (finding) =>
+          finding.path === finding.path.normalize("NFC") &&
+          !finding.path.includes("\\") &&
+          !finding.path.startsWith("./")
+      )
+    ).toBe(true);
+    // `./src/a.ts` es `src/a.ts`. `src/A.ts` es otro fichero.
+    expect(explainModule(store, { path: "src/a.ts" }).lint).toMatchObject({
+      errors: 0,
+      warnings: 1,
+      findings: 1,
+      files: 1
+    });
+  });
+
   it("explain_module trae lint del ámbito; null si no se midió", () => {
     const withLint = lintStore();
     const file = explainModule(withLint, { path: "src/a.ts" });

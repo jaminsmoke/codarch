@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { REST_LINT_FILE } from "@codarch/schema/browser";
 import {
   LINT_FILE,
   LINT_ARTIFACT_VERSION,
   LintError,
   canonicalLintPath,
   createLintArtifact,
+  lintTotals,
   readLintArtifact,
   type LintFileResult,
   type LintMessage
@@ -130,6 +132,8 @@ describe("el artefacto del lint", () => {
     expect(readLintArtifact(JSON.parse(JSON.stringify(written)))).toEqual(
       written
     );
+    // Un aviso mal formado no es del esquema: no invalida el artefacto.
+    expect(readLintArtifact({ ...written, diagnostics: "no" })).toEqual(written);
   });
 
   it("un artefacto 1.0 se lee y sus herramientas pasan a sistemas sin config", () => {
@@ -257,10 +261,181 @@ describe("el artefacto del lint", () => {
   it("canoniza rutas y rechaza las que no son del repo", () => {
     expect(canonicalLintPath(".\\src\\a.ts")).toBe("src/a.ts");
     expect(canonicalLintPath("./src//a.ts")).toBe("src/a.ts");
+    expect(canonicalLintPath("src/./a.ts/")).toBe("src/a.ts");
+    expect(canonicalLintPath("Src/Foo.ts")).toBe("Src/Foo.ts");
+    const nfd = "src/Cafe\u0301.ts";
+    const nfc = "src/Caf\u00e9.ts";
+    expect(nfd).not.toBe(nfc);
+    expect(canonicalLintPath(nfd)).toBe(nfc);
     expect(() => canonicalLintPath("/etc/passwd")).toThrow(LintError);
     expect(() => canonicalLintPath("C:\\repo\\a.ts")).toThrow(LintError);
     expect(() => canonicalLintPath("../a.ts")).toThrow(LintError);
+    expect(() => canonicalLintPath("src/../a.ts")).toThrow(LintError);
     expect(() => canonicalLintPath("")).toThrow(LintError);
+  });
+
+  it("al leer, una ruta NFD es la NFC y lintTotals la encuentra ahí", () => {
+    const nfd = "src/Cafe\u0301.ts";
+    const nfc = "src/Caf\u00e9.ts";
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        [nfd]: {
+          errors: 9,
+          warnings: 9,
+          messages: [message()]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    };
+
+    const read = readLintArtifact(raw);
+    expect(Object.keys(read?.files ?? {})).toEqual([nfc]);
+    expect(read?.files[nfd]).toBeUndefined();
+    expect(read?.diagnostics).toBeUndefined();
+    expect(read?.files[nfc]).toMatchObject({ errors: 0, warnings: 1 });
+    expect(lintTotals(read)).toEqual({
+      errors: 0,
+      warnings: 1,
+      info: 0,
+      findings: 1,
+      files: 1
+    });
+    expect(lintTotals(read, nfc)?.warnings).toBe(1);
+    expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
+  });
+
+  it("canoniza barras, ./ y // al leer, y conserva las mayúsculas", () => {
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        ".\\src\\\\b.ts": {
+          errors: 0,
+          warnings: 1,
+          messages: [message({ message: "barra" })]
+        },
+        "Src/Foo.ts": {
+          errors: 1,
+          warnings: 0,
+          messages: [message({ severity: "error", message: "mayuscula" })]
+        },
+        "src/foo.ts": {
+          errors: 0,
+          warnings: 1,
+          messages: [message({ message: "minuscula" })]
+        }
+      },
+      summary: { files: 3, errors: 1, warnings: 2, messages: 3 }
+    };
+
+    const read = readLintArtifact(raw);
+    expect(Object.keys(read?.files ?? {})).toEqual([
+      "Src/Foo.ts",
+      "src/b.ts",
+      "src/foo.ts"
+    ]);
+    expect(read?.diagnostics).toBeUndefined();
+    expect(lintTotals(read, "Src/Foo.ts")?.errors).toBe(1);
+    expect(lintTotals(read, "src/foo.ts")?.errors).toBe(0);
+    expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
+  });
+
+  it("avisa si dos claves distintas caen en la misma ruta y no las funde en silencio", () => {
+    const nfd = "src/Cafe\u0301.ts";
+    const nfc = "src/Caf\u00e9.ts";
+    const written = createLintArtifact({
+      tools: ["eslint"],
+      files: [
+        file(nfd, [message({ message: "uno" })]),
+        file(nfc, [message({ message: "dos", severity: "error" })])
+      ]
+    });
+    // Al escribir, la misma ruta es un fichero: se funde y no hay aviso.
+    expect(Object.keys(written.files)).toEqual([nfc]);
+    expect(written.files[nfc]?.messages).toHaveLength(2);
+    expect(written.diagnostics).toBeUndefined();
+
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "./src/a.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [message({ message: "punto" })]
+        },
+        "src//a.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [message({ message: "barra", severity: "error" })]
+        },
+        [nfd]: {
+          errors: 9,
+          warnings: 9,
+          messages: [message({ message: "nfd" })]
+        },
+        [nfc]: {
+          errors: 9,
+          warnings: 9,
+          messages: [message({ message: "nfc", severity: "info" })]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9, measured: 8 }
+    };
+
+    const read = readLintArtifact(raw);
+    expect(read?.diagnostics).toEqual([
+      {
+        kind: "path-collision",
+        path: nfc,
+        keys: [nfd, nfc]
+      },
+      {
+        kind: "path-collision",
+        path: "src/a.ts",
+        keys: ["./src/a.ts", "src//a.ts"]
+      }
+    ]);
+    expect(Object.keys(read?.files ?? {})).toEqual([nfc, "src/a.ts"]);
+    expect(read?.files["src/a.ts"]?.messages.map((entry) => entry.message)).toEqual([
+      "punto",
+      "barra"
+    ]);
+    expect(read?.files["src/a.ts"]).toMatchObject({ errors: 1, warnings: 1 });
+    expect(read?.files[nfc]?.messages).toHaveLength(2);
+    expect(read?.summary).toEqual({
+      files: 2,
+      errors: 1,
+      warnings: 2,
+      messages: 4,
+      measured: 8
+    });
+    expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
+  });
+
+  it("una ruta absoluta o con .. no es un artefacto, y el lector no lanza", () => {
+    const base = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      summary: { files: 1, errors: 0, warnings: 1, messages: 1 }
+    };
+    const fileBody = {
+      errors: 0,
+      warnings: 1,
+      messages: [message()]
+    };
+
+    expect(
+      readLintArtifact({ ...base, files: { "../a.ts": fileBody } })
+    ).toBeNull();
+    expect(
+      readLintArtifact({ ...base, files: { "/etc/passwd": fileBody } })
+    ).toBeNull();
+    expect(
+      readLintArtifact({ ...base, files: { "C:/repo/a.ts": fileBody } })
+    ).toBeNull();
   });
 
   it("regenera las cuentas desde los mensajes cuando el resumen declara 9/9", () => {
@@ -374,6 +549,7 @@ describe("el artefacto del lint", () => {
   it("se llama como un módulo del reporte, no como un cc.json", () => {
     // ADR 0100: `cc.json` es un formato que se abre fuera, y el lint no lo es.
     expect(LINT_FILE).toBe("lint.repmod.json");
+    expect(REST_LINT_FILE).toBe("lint-rest.repmod.json");
     expect(LINT_FILE.endsWith(".cc.json")).toBe(false);
   });
 });
