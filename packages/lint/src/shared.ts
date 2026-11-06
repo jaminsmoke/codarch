@@ -73,6 +73,7 @@ export {
   lintFileCounts,
   lintRuleCounts,
   lintRules,
+  lintScopePath,
   lintTotals,
   withinLintFolder,
   worstLintSeverity

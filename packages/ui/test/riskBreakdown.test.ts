@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { RenderFile } from "@codarch/render/browser";
-import { RiskBreakdown, riskNote } from "../src/FileSections";
+import { FORMULA_WEIGHT_LABEL, RiskBreakdown, riskNote } from "../src/FileSections";
 
 /** Las cuatro partes con los pesos dados; valor, p95 y parte no importan aquí. */
 function parts(
@@ -24,21 +24,24 @@ function parts(
 }
 
 describe("la nota del riesgo", () => {
-  it("con lint medido, dice los cuatro pesos", () => {
+  it("con lint medido, nombra los cuatro pesos de la fórmula", () => {
     const note = riskNote(parts([0.4, 0.256, 0.144, 0.2]), true, []);
 
     expect(note).toBe(
-      "complejidad 40 % · churn 25,6 % · tamaño 14,4 % · lint 20 %, normalizado por el p95 de cada señal."
+      `${FORMULA_WEIGHT_LABEL}: complejidad 40 % · churn 25,6 % · tamaño 14,4 % · lint 20 %. Normalizado por el p95 de cada señal.`
     );
+    expect(note).not.toContain("del riesgo");
   });
 
-  it("sin artefacto, dice que el lint no se midió y lo que pesará", () => {
+  it("sin artefacto, dice que el lint no se midió y no promete un 20 %", () => {
     const note = riskNote(parts([0.5, 0.32, 0.18, 0]), false, []);
 
+    expect(note).toContain(FORMULA_WEIGHT_LABEL);
     expect(note).toContain("Complejidad 50 % · churn 32 % · tamaño 18 %");
     expect(note).toContain("El lint no se midió");
-    expect(note).toContain("20 %");
-    expect(note).toContain("40 % · 25,6 % · 14,4 %");
+    expect(note).not.toContain("20 %");
+    expect(note).not.toContain("40 %");
+    expect(note).not.toContain("del riesgo");
   });
 
   it("si falta churn con lint medido, lo dice y no inventa un peso", () => {
@@ -69,11 +72,15 @@ describe("las barras del riesgo", () => {
     expect(markup).toContain("El lint no se midió");
   });
 
-  it("con artefacto, la fila del lint lleva su 20 %", () => {
+  it("con artefacto, el 20 % es peso de la fórmula, no del riesgo", () => {
     const markup = html([0.4, 0.256, 0.144, 0.2]);
 
     expect(markup).not.toContain("sin medir");
+    expect(markup).toContain(FORMULA_WEIGHT_LABEL);
     expect(markup).toContain("20 %");
     expect(markup).toContain("lint 20 %");
+    expect(markup).not.toContain("% del riesgo");
+    expect(markup).not.toContain("del riesgo total");
+    expect(markup).not.toContain("le dará un 20");
   });
 });

@@ -82,6 +82,10 @@ describe("el contador de lint compartido", () => {
   it("acota por carpeta y cuenta la barra", () => {
     expect(withinLintFolder("src", "src/a.ts")).toBe(true);
     expect(withinLintFolder("src", "src2/a.ts")).toBe(false);
+    const composed = "caf\u00e9";
+    const decomposed = "cafe\u0301";
+    expect(withinLintFolder(decomposed, `${composed}/a.ts`)).toBe(true);
+    expect(withinLintFolder(composed, `${decomposed}2/a.ts`)).toBe(false);
     expect(lintTotals(lint, "src/domain")).toEqual({
       errors: 0,
       warnings: 0,

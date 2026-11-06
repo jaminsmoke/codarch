@@ -3,6 +3,7 @@ import type { CodarchApp, MapId } from "../app/types";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { ToolBar, toolLabel } from "../ToolBar";
 import { HeatList, LanguageSample, Legend, RestKinds } from "../panels";
+import { LintConfigSection } from "../panels/LintConfigSection";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
@@ -65,7 +66,10 @@ export function ToolDock({ app }: { app: CodarchApp }) {
         {state.map === "code" ? (
           <LanguageSample model={app.view.model} migration={app.migration} />
         ) : (
-          <RestKinds model={app.view.model} />
+          <>
+            <RestKinds model={app.view.model} />
+            <LintConfigSection artifact={state.lint} />
+          </>
         )}
 
         <Legend
