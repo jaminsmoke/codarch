@@ -1,6 +1,15 @@
-import { RISK_WEIGHTS_WITH_LINT } from "@codarch/metrics/browser";
 import { formatCompact } from "@codarch/render/browser";
 import type { RenderFile } from "@codarch/render/browser";
+
+/**
+ * Cómo se llama el peso de una señal, de forma provisional.
+ *
+ * Maths está revisando el modelo aditivo y cómo se atribuye cada factor.
+ * El número es el peso que la fórmula asigna, no la aportación al riesgo.
+ * No copiar esta cadena a otras vistas: cuando la revisión cierre, se cambia
+ * aquí.
+ */
+export const FORMULA_WEIGHT_LABEL = "peso de la fórmula";
 
 /**
  * El desglose del riesgo del fichero, dentro de Métricas.
@@ -33,11 +42,11 @@ function formatWeight(weight: number): string {
 /**
  * El porqué del riesgo, en palabras.
  *
- * Los pesos se leen del propio modelo: con lint son otros, y no conviene
- * repetirlos aquí. Sin artefacto, se dice que el lint no se midió y lo que
- * pesará cuando lo haya, para que el 20 % no aparezca de la nada. Si falta
- * alguna de las otras señales, se dice cuál: su peso se reparte entre las
- * demás, y un snapshot sin ninguna no trae riesgo que explicar.
+ * Los pesos se leen del propio modelo y se nombran como peso de la fórmula.
+ * Sin artefacto, se dice que el lint no se midió, sin anunciar un porcentaje
+ * futuro. Si falta alguna de las otras señales, se dice cuál: su peso se
+ * reparte entre las demás, y un snapshot sin ninguna no trae riesgo que
+ * explicar.
  */
 export function riskNote(
   parts: RenderFile["riskParts"],
@@ -61,12 +70,7 @@ export function riskNote(
             parts.churn.weight
           )} · tamaño ${formatWeight(parts.size.weight)}`
         : `Sin ${names}, el peso se reparte entre las demás señales`;
-    const lint = RISK_WEIGHTS_WITH_LINT;
-    return `${three}. El lint no se midió: con artefacto pesa ${formatWeight(
-      lint.lint
-    )} y los demás bajan a ${formatWeight(lint.complexity)} · ${formatWeight(
-      lint.churn
-    )} · ${formatWeight(lint.size)}.`;
+    return `${FORMULA_WEIGHT_LABEL}: ${three}. El lint no se midió.`;
   }
   if (missing.length > 0) {
     return `Sin ${names}: su peso se reparte entre las demás señales.`;
@@ -74,7 +78,7 @@ export function riskNote(
   const weights = SIGNALS.map(
     (signal) => `${SIGNAL_LABEL[signal].toLowerCase()} ${formatWeight(parts[signal].weight)}`
   ).join(" · ");
-  return `${weights}, normalizado por el p95 de cada señal.`;
+  return `${FORMULA_WEIGHT_LABEL}: ${weights}. Normalizado por el p95 de cada señal.`;
 }
 
 /**
@@ -95,6 +99,7 @@ export function RiskBreakdown({ file }: { file: RenderFile }) {
   return (
     <div className="risk-breakdown">
       <div className="risk-head">De dónde sale el riesgo</div>
+      <p className="muted tiny risk-weight-label">{FORMULA_WEIGHT_LABEL}</p>
       <div className="risk-bars">
         {SIGNALS.map((signal) => {
           const part = parts[signal];
@@ -105,10 +110,10 @@ export function RiskBreakdown({ file }: { file: RenderFile }) {
               className={unmeasured ? "risk-bar-row unmeasured" : "risk-bar-row"}
               title={
                 unmeasured
-                  ? "El lint no se midió: ejecuta `codarch lint` y el riesgo le dará un 20 %"
+                  ? "El lint no se midió."
                   : `${formatCompact(part.value)} de p95 ${formatCompact(
                       part.p95
-                    )} · peso ${formatWeight(part.weight)}`
+                    )} · ${FORMULA_WEIGHT_LABEL} ${formatWeight(part.weight)}`
               }
             >
               <span>{SIGNAL_LABEL[signal]}</span>

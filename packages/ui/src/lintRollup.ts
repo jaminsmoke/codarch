@@ -13,9 +13,11 @@
 
 import {
   lintRules,
+  lintScopePath,
   lintTotals as sharedTotals,
   withinLintFolder,
   worstLintSeverity,
+  type LintArtifact,
   type LintRuleCount,
   type LintSeverity,
   type LintTotals as SharedTotals
@@ -105,3 +107,62 @@ export function lintTotals(
 }
 
 export { lintRules };
+
+/** Un fichero con mensajes en el ámbito, contados desde esos mensajes. */
+export interface LintAffectedFile {
+  path: string;
+  errors: number;
+  warnings: number;
+  info: number;
+}
+
+/**
+ * El artefacto se midió contra otro árbol que el mapa que se está mirando.
+ *
+ * Sin `meta.tree` no se puede saber: `codarch lint` suelto no lo escribe.
+ */
+export function lintTreeIsStale(
+  artifact: LintArtifact | null,
+  checksum: string | undefined
+): boolean {
+  return Boolean(
+    artifact?.meta.tree && checksum && artifact.meta.tree !== checksum
+  );
+}
+
+/**
+ * Los ficheros con hallazgos en el ámbito.
+ *
+ * Cada cuenta sale de `files[].messages`. No se leen `errors` ni `warnings`
+ * del fichero, ni `summary`, ni una lista de cobertura: un fichero sin
+ * mensajes no entra. El filtro es `withinFolder`, que normaliza las dos
+ * rutas a NFC.
+ */
+export function affectedLintFiles(
+  artifact: LintArtifact | null,
+  folder = ""
+): LintAffectedFile[] {
+  if (!artifact) return [];
+
+  const rows: LintAffectedFile[] = [];
+  for (const [path, file] of Object.entries(artifact.files)) {
+    if (!withinFolder(folder, path)) continue;
+    let errors = 0;
+    let warnings = 0;
+    let info = 0;
+    for (const message of file.messages) {
+      if (message.severity === "error") errors += 1;
+      else if (message.severity === "warn") warnings += 1;
+      else info += 1;
+    }
+    if (errors + warnings + info === 0) continue;
+    rows.push({ path, errors, warnings, info });
+  }
+
+  rows.sort((left, right) => {
+    const a = lintScopePath(left.path);
+    const b = lintScopePath(right.path);
+    return a < b ? -1 : a > b ? 1 : 0;
+  });
+  return rows;
+}
