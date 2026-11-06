@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createLintArtifact, lintRiskView, scopeHealth } from "@codarch/lint";
-import { aggregateFolder, riskBreakdown } from "@codarch/metrics";
+import { aggregateFolder, riskBreakdown, type RiskBreakdown } from "@codarch/metrics";
 import { parseCcJson, type CcJson } from "@codarch/schema";
 import { buildRenderModel } from "../src/index";
 
@@ -275,4 +275,95 @@ describe("el riesgo lee scopeHealth por fichero", () => {
     expect(folder(plain.files).riskOwner).not.toBe("dirty.ts");
     expect(folder(model.files).risk).toBeGreaterThan(folder(plain.files).risk);
   });
+
+  it("guarda el desglose del motor, con frescura y cobertura", () => {
+    const plain = buildRenderModel(cc);
+    for (const file of plain.files) {
+      expect(file.riskBreakdown).not.toBeNull();
+      expectConsistent(file.riskBreakdown!);
+      expect(file.risk).toBe(file.riskBreakdown!.risk);
+      expect(file.riskParts).toBe(file.riskBreakdown!.parts);
+      expect(file.riskBreakdown!.lint.normalized).toBeNull();
+      expect(file.riskBreakdown!.lint.fresh).toBeNull();
+    }
+
+    const unknown = buildRenderModel(cc, {
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        tree: TREE,
+        files: [{ path: "dirty.ts", messages: errors(4) }]
+      })
+    });
+    const unknownDirty = fileNamed(unknown, "dirty.ts");
+    expect(unknownDirty.riskBreakdown?.lint.coverage).toBe("unknown");
+    expect(unknownDirty.riskBreakdown?.lint.fresh).toBe(true);
+    expect(unknownDirty.riskBreakdown?.lint.confidence).toBe("observedMinimum");
+    expectConsistent(unknownDirty.riskBreakdown!);
+
+    const partialArtifact = createLintArtifact({
+      tools: ["eslint", "checkstyle"],
+      tree: TREE,
+      files: [{ path: "dirty.ts", messages: errors(2) }],
+      coverage: {
+        tools: {
+          eslint: {
+            outcome: "enumerated",
+            measuredPaths: ["dirty.ts", "leader.ts"],
+            eligiblePaths: ["dirty.ts", "leader.ts", "anchor.ts", "peer.ts"]
+          },
+          checkstyle: {
+            outcome: "enumerated",
+            measuredPaths: ["leader.ts"],
+            eligiblePaths: ["dirty.ts", "leader.ts", "anchor.ts", "peer.ts"]
+          }
+        }
+      }
+    });
+    const partial = buildRenderModel(cc, { lint: partialArtifact });
+    const partialDirty = fileNamed(partial, "dirty.ts");
+    const partialHealth = scopeHealth(partialArtifact, { kind: "file", path: "dirty.ts" }, {
+      treeHash: TREE,
+      paths: partial.files.map((file) => file.path)
+    });
+    expect(partialHealth.coverage.state).toBe("partial");
+    expect(partialDirty.riskBreakdown?.lint.coverage).toBe("partial");
+    expect(partialDirty.riskBreakdown?.lint.fresh).toBe(true);
+    expectConsistent(partialDirty.riskBreakdown!);
+
+    const stale = buildRenderModel(cc, {
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        tree: "otro-arbol",
+        files: [{ path: "dirty.ts", messages: errors(4) }]
+      })
+    });
+    const unverified = buildRenderModel(cc, {
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        files: [{ path: "dirty.ts", messages: errors(4) }]
+      })
+    });
+    expect(fileNamed(stale, "dirty.ts").riskBreakdown?.lint.fresh).toBe(false);
+    expect(fileNamed(stale, "dirty.ts").riskBreakdown?.lint.normalized).toBeNull();
+    expect(fileNamed(unverified, "dirty.ts").riskBreakdown?.lint.fresh).toBeNull();
+    expect(fileNamed(unverified, "dirty.ts").riskBreakdown?.lint.normalized).toBeNull();
+    expect(fileNamed(stale, "dirty.ts").risk).toBeCloseTo(fileNamed(plain, "dirty.ts").risk);
+    expect(fileNamed(unverified, "dirty.ts").risk).toBeCloseTo(fileNamed(plain, "dirty.ts").risk);
+    for (const file of [...stale.files, ...unverified.files, ...unknown.files, ...partial.files]) {
+      expect(file.riskBreakdown).not.toBeNull();
+    }
+  });
 });
+
+function expectConsistent(entry: RiskBreakdown): void {
+  expect(entry.risk).toBeGreaterThanOrEqual(0);
+  expect(entry.risk).toBeLessThanOrEqual(1);
+  expect(entry.score).toBeGreaterThanOrEqual(0);
+  expect(entry.score).toBeLessThanOrEqual(100);
+  expect(entry.score).toBeCloseTo(100 * entry.risk);
+  const points = (["complexity", "churn", "size", "lint"] as const).reduce((sum, signal) => {
+    const value = entry.contributions[signal].points;
+    return sum + (value ?? 0);
+  }, 0);
+  expect(points).toBeCloseTo(entry.score);
+}

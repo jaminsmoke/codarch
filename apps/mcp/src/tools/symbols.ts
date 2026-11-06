@@ -81,6 +81,7 @@ export function explainModule(
       files: 1,
       metrics: sortMetrics(file.metrics),
       risk: file.risk,
+      riskBreakdown: file.riskBreakdown,
       complexity: file.complexity,
       symbols: symbolsOf(store.snapshot, file.id)
         .slice(0, limit)
@@ -159,12 +160,18 @@ export function explainModule(
     .map((file) => ({
       path: file.path,
       risk: file.risk,
-      size: file.size
+      size: file.size,
+      riskBreakdown: file.riskBreakdown
     }));
+  const owner = [...folderFiles].sort(
+    (left, right) =>
+      right.risk - left.risk || compareStrings(left.path, right.path)
+  )[0];
 
   return {
     ...base,
     kind: "folder",
+    riskBreakdown: owner?.riskBreakdown ?? null,
     files: folder.files.length,
     metrics: {
       size: folder.size,

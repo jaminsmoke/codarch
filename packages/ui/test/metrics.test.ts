@@ -59,6 +59,7 @@ function file(values: Array<number | null>, risk = 0.65): RenderFile {
       size: part(1300, 499, 0.18),
       lint: part(0, 0, 0)
     },
+    riskBreakdown: null,
     complexity: 15,
     churn: 11,
     lint: 0,

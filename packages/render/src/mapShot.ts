@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { CcJson, CcRestKind } from "@codarch/schema/browser";
 import type { LintArtifact } from "@codarch/lint/browser";
+import type { RiskBreakdown } from "@codarch/metrics/browser";
 import {
   debtColor,
   fileFill,
@@ -54,6 +55,8 @@ export interface ShotCell {
   /** Valor de la métrica de color, si el color es una métrica. */
   value: number | null;
   fill: string;
+  /** El desglose del motor para esa celda. `null` si el snapshot no tiene métricas. */
+  riskBreakdown: RiskBreakdown | null;
 }
 
 export interface ShotSummary {
@@ -195,7 +198,8 @@ function cellsOf(model: RenderModel): ShotCell[] {
       path: file.path,
       area: file.actualArea,
       value: metricIndex >= 0 ? file.values[metricIndex] ?? null : null,
-      fill: fileFill(model, file, metricIndex, metric)
+      fill: fileFill(model, file, metricIndex, metric),
+      riskBreakdown: file.riskBreakdown
     }));
 }
 

@@ -66,6 +66,7 @@ export function collectFiles(
       actualArea: rawArea ?? 0,
       risk: 0,
       riskParts: NO_RISK_PARTS,
+      riskBreakdown: null,
       complexity: valueOf(values, context.complexityKey) ?? 0,
       churn: valueOf(values, context.churnKey) ?? 0,
       // La lente de deuda la rellena el modelo desde scopeHealth. Sin artefacto, cero.
@@ -107,8 +108,10 @@ export function warnAboutArea(
  */
 export function applyRisk(
   files: RenderFile[],
-  lintViews: ReadonlyMap<string, RiskLintInput> | null
+  lintViews: ReadonlyMap<string, RiskLintInput> | null,
+  hasMetrics: boolean
 ): void {
+  if (!hasMetrics) return;
   const risks = riskBreakdown(
     files.map((file) => {
       const lintView = lintViews?.get(file.path);
@@ -126,5 +129,6 @@ export function applyRisk(
     if (!breakdown) continue;
     file.risk = breakdown.risk;
     file.riskParts = breakdown.parts;
+    file.riskBreakdown = breakdown;
   }
 }

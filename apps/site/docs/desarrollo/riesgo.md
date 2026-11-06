@@ -68,3 +68,7 @@ Cada señal tiene `points`, `percent` y `weight`.
 - `weight` es el peso nominal (0,50, 0,32, 0,18, y 0,2 para el lint cuando hay nL). No es la parte renormalizada ni el porcentaje.
 
 `points` null significa que la señal no entra. No es un cero.
+
+## Dónde vive
+
+El objeto es el que devuelve `riskBreakdown` en `@codarch/metrics` (`packages/metrics/src/risk.ts`). El modelo de render lo guarda en `riskBreakdown` de cada fichero, y de ahí pasa a la ficha. No se escribe en `cc.json`. El MCP y la captura lo copian solo en su salida. Si el snapshot no trae métricas, el campo es `null`: la ficha no lo recalcula.

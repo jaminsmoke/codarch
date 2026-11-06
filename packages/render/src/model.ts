@@ -97,7 +97,13 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
   warnAboutArea(files, areaMetric, options, warnings);
   // Cada fichero lleva su scopeHealth. Sin artefacto no hay vista: no se
   // rellena la deuda con cero ni se usa la salud del proyecto.
-  applyRisk(files, lintViewsFor(files, options.lint ?? null, lintSnapshot(cc, files)));
+  const hasMetrics =
+    complexityKey !== null || churnKey !== null || areaMetric !== null;
+  applyRisk(
+    files,
+    lintViewsFor(files, options.lint ?? null, lintSnapshot(cc, files)),
+    hasMetrics
+  );
 
   const sections = buildSections(files);
 

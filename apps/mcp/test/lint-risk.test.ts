@@ -43,6 +43,9 @@ describe("el MCP pasa scopeHealth por fichero al riesgo", () => {
     );
     for (const [index, file] of files.entries()) {
       expect(file.risk).toBe(base[index]?.risk);
+      expect(file.riskBreakdown).not.toBeNull();
+      expect(file.risk).toBe(file.riskBreakdown!.risk);
+      expect(file.riskBreakdown!.score).toBeCloseTo(100 * file.risk);
       expect(file.risk).toBeGreaterThanOrEqual(0);
       expect(file.risk).toBeLessThanOrEqual(1);
     }

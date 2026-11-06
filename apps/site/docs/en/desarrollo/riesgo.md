@@ -68,3 +68,7 @@ Each signal has `points`, `percent` and `weight`.
 - `weight` is the nominal weight (0.50, 0.32, 0.18, and 0.2 for lint when nL exists). It is not the renormalized share or the percentage.
 
 `points` null means the signal does not count. It is not a zero.
+
+## Where it lives
+
+The object is what `riskBreakdown` returns in `@codarch/metrics` (`packages/metrics/src/risk.ts`). The render model stores it on each file as `riskBreakdown`, and the card reads that. It is not written to `cc.json`. MCP and the screenshot copy it only into their output. When the snapshot has no metrics, the field is `null`: the card does not recompute it.

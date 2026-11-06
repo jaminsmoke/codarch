@@ -3,7 +3,7 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
-  riskScores
+  riskBreakdown
 } from "@codarch/metrics";
 import { lintRiskView, scopeHealth, type LintArtifact } from "@codarch/lint/browser";
 import { compareStrings, metricValue } from "./store-shared";
@@ -61,6 +61,7 @@ export function buildFiles(
         name: entry.node.name,
         metrics,
         risk: 0,
+        riskBreakdown: null,
         complexity,
         churn,
         size,
@@ -73,11 +74,15 @@ export function buildFiles(
 
   // Cada fichero mira su scopeHealth. Sin artefacto no hay vista: un fichero
   // sin hallazgos no se convierte en deuda cero (ADR 0108).
+  const hasMetrics =
+    keys.complexityKey !== null || keys.churnKey !== null || keys.sizeMetric !== null;
+  if (!hasMetrics) return files;
+
   const snapshot = {
     treeHash: cc.meta.checksum ? cc.meta.checksum : null,
     paths: files.map((file) => file.path)
   };
-  const scores = riskScores(
+  const breakdowns = riskBreakdown(
     files.map((file) => {
       const signals = {
         complexity: file.complexity,
@@ -94,7 +99,10 @@ export function buildFiles(
     })
   );
   for (const [index, file] of files.entries()) {
-    file.risk = scores[index] ?? 0;
+    const breakdown = breakdowns[index];
+    if (!breakdown) continue;
+    file.risk = breakdown.risk;
+    file.riskBreakdown = breakdown;
   }
   return files;
 }

@@ -1,5 +1,5 @@
 import type { LintArtifact } from "@codarch/lint/browser";
-import type { RiskPart } from "@codarch/metrics/browser";
+import type { RiskBreakdown, RiskPart } from "@codarch/metrics/browser";
 import type { CcRestKind } from "@codarch/schema/browser";
 
 /**
@@ -57,6 +57,13 @@ export interface RenderFile {
   risk: number;
   /** Las señales del riesgo, con su peso y su parte (ADR 0057, ADR 0094). */
   riskParts: RiskParts;
+  /**
+   * El desglose que devolvió `riskBreakdown` para este fichero.
+   *
+   * Es el objeto del motor, no una copia calculada aquí. `null` solo cuando
+   * el snapshot no trae métricas: no se escribe en `cc.json`.
+   */
+  riskBreakdown: RiskBreakdown | null;
   complexity: number;
   churn: number;
   /** Deuda del lint ya ponderada (`errors + ¼ avisos`); 0 sin artefacto. */
