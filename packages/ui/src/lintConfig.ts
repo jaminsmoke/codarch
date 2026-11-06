@@ -1,13 +1,10 @@
-import type { LintArtifact, LintRule } from "@codarch/lint/browser";
+import { lintConfig, type LintArtifact, type LintRule } from "@codarch/lint/browser";
 
 /**
- * La configuración del lint, leída del artefacto.
+ * La configuración del lint, leída con `lintConfig` del contrato.
  *
- * Es el único sitio de la UI que toca `meta.systems` y `meta.tools`. Cuando el
- * contrato cambie, se adapta aquí: las vistas no leen esos campos. No es un
- * DTO nuevo; es una lectura interna de lo que el artefacto ya trae.
- *
- * No incluye hallazgos. Un sistema y sus reglas activas son configuración.
+ * La UI no toca `meta.systems` ni `meta.tools`. No es un DTO nuevo.
+ * No incluye hallazgos.
  */
 
 export interface LintConfigRule {
@@ -31,9 +28,10 @@ export interface LintConfigView {
 /** La config del artefacto, o `null` si no hay artefacto. */
 export function readLintConfig(artifact: LintArtifact | null): LintConfigView | null {
   if (!artifact) return null;
+  const config = lintConfig(artifact);
   return {
-    tools: [...artifact.meta.tools],
-    systems: artifact.meta.systems.map((system) => ({
+    tools: config.tools,
+    systems: config.systems.map((system) => ({
       name: system.name,
       config: system.config,
       rules: (system.rules ?? []).map((rule) => ({

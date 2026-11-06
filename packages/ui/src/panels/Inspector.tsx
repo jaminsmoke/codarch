@@ -10,7 +10,7 @@ import type {
 } from "@codarch/schema/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "../platform";
 import { LintSection } from "../LintSection";
-import { lintTreeIsStale } from "../lintRollup";
+import { healthSnapshot } from "../lintHealth";
 import { ffiEdgesForFile } from "../lenses";
 import { maxComplexity, relatedFiles, type CodeState } from "../inspector";
 import {
@@ -171,7 +171,7 @@ export function Inspector({
         filePath={file.path}
         title={rulesMode ? "Reglas" : "Lint"}
         kind={rulesMode ? "rules" : "lint"}
-        stale={lintTreeIsStale(lint, model?.meta.checksum)}
+        snapshot={healthSnapshot(model)}
       />
       {showCode ? (
         <>

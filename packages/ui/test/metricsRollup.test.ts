@@ -203,9 +203,11 @@ describe("la ficha del proyecto", () => {
     expect(markup).toContain("3 errores");
     expect(markup).toContain("5 avisos");
     expect(markup).toContain("0 info");
-    expect(markup).toContain("3 ficheros con hallazgos");
-    expect(markup).toContain("La pasada miró 4 ficheros en total.");
+    expect(markup).toContain(">3 ficheros<");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).not.toContain("La pasada miró");
     expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
     expect(markup).not.toContain("de 4 medidos");
     expect(markup).not.toContain("Hallazgos por regla");
     expect(markup).not.toContain("reglas con hallazgos");
@@ -224,7 +226,7 @@ describe("la ficha del proyecto", () => {
       meta: { ...lint.meta, tree: "otro-arbol" }
     });
 
-    expect(markup).toContain("Este lint es de otro árbol");
+    expect(markup).toContain("Este análisis es de otro árbol");
   });
 
   it("no avisa cuando el lint es del árbol que se está mirando", () => {
@@ -233,14 +235,14 @@ describe("la ficha del proyecto", () => {
       meta: { ...lint.meta, tree: "abc" }
     });
 
-    expect(markup).not.toContain("Este lint es de otro árbol");
+    expect(markup).not.toContain("Este análisis es de otro árbol");
   });
 
   it("sin artefacto dice «sin medir» y no inventa la tabla", () => {
     const markup = projectMarkup(null);
 
-    expect(markup).toContain("sin medir");
-    expect(markup).toContain("El lint no se midió");
+    expect(markup).toContain("Sin medir");
+    expect(markup).toContain("codarch analyze");
     expect(markup).not.toContain("Lint por carpeta");
   });
 
@@ -288,9 +290,11 @@ describe("la ficha del proyecto", () => {
     });
 
     expect(markup).toContain('collapsible-count">0');
-    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-    expect(markup).toContain("La pasada miró 4 ficheros en total.");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).toContain("anterior a la cobertura");
+    expect(markup).not.toContain("La pasada miró");
     expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
     expect(markup).not.toContain("Configuración ·");
     expect(markup).not.toContain("regla activa");
     expect(markup).not.toContain("eslint.config.js");
@@ -300,7 +304,7 @@ describe("la ficha del proyecto", () => {
     const markup = projectMarkup(null);
 
     expect(markup).toContain("Sin medir");
-    expect(markup).toContain("El lint no se midió");
+    expect(markup).toContain("codarch analyze");
     expect(markup).not.toContain("Mínimo recomendable");
     expect(markup).not.toContain("ESLint + typescript-eslint");
   });
@@ -320,7 +324,7 @@ describe("la ficha del proyecto", () => {
     );
     const lintAt = markup.indexOf("section-lint");
     expect(lintAt).toBeGreaterThan(0);
-    expect(markup.slice(0, lintAt)).not.toContain("El lint no se midió");
+    expect(markup.slice(0, lintAt)).not.toContain("Sin medir");
     expect(markup.slice(lintAt)).not.toContain("sin medir");
     expect(markup.slice(lintAt)).toContain("3 errores");
     expect(markup).toContain(">Reglas<");
@@ -361,7 +365,8 @@ describe("la ficha de carpeta", () => {
     expect(markup).not.toContain("apps/web/src/main.ts");
     expect(markup).not.toContain("de 4 medidos");
     expect(markup).not.toContain("Medido y limpio");
-    expect(markup).toContain("La pasada miró 4 ficheros en total.");
+    expect(markup).not.toContain("Limpio y al día");
+    expect(markup).toContain("Cobertura no verificada");
   });
 
   it("la carpeta casa rutas NFC y no se lleva el prefijo de al lado", () => {
@@ -405,7 +410,9 @@ describe("la ficha de carpeta", () => {
     expect(markup).not.toContain("9 errores");
     expect(markup).not.toContain("de 80 medidos");
     expect(markup).not.toContain("Medido y limpio");
-    expect(markup).toContain("La pasada miró 80 ficheros en total.");
+    expect(markup).not.toContain("Limpio y al día");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).toContain("se muestran los hallazgos observados");
     expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
   });
 });

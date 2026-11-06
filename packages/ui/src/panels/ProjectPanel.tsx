@@ -1,7 +1,7 @@
 import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { LintSection } from "../LintSection";
-import { lintTreeIsStale } from "../lintRollup";
+import { healthSnapshot } from "../lintHealth";
 import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
 
@@ -82,7 +82,7 @@ export function ProjectPanel({
         folder=""
         title={rulesMode ? "Reglas" : "Lint"}
         kind={rulesMode ? "rules" : "lint"}
-        stale={lintTreeIsStale(lint, model.meta.checksum)}
+        snapshot={healthSnapshot(model)}
         onSelectPath={onSelectPath}
       />
     </section>

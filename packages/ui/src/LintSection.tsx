@@ -1,14 +1,9 @@
-import type { LintArtifact, LintSeverity } from "@codarch/lint/browser";
+import type { LintArtifact, LintMessage, LintSeverity } from "@codarch/lint/browser";
+import type { HealthScope, HealthSnapshot } from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
-import {
-  SEVERITIES,
-  affectedLintFiles,
-  lintTotals,
-  severityCount,
-  severityText,
-  type LintTotals
-} from "./lintRollup";
+import { healthCopy, healthOf, healthSummary } from "./lintHealth";
+import { SEVERITIES, severityCount, severityText } from "./lintRollup";
 
 /**
  * El lint de una ficha (ADR 0104).
@@ -63,43 +58,14 @@ function SeverityCounts({
   );
 }
 
-function countsSummary(totals: LintTotals): string {
+function countsSummary(totals: {
+  errors: number;
+  warnings: number;
+  info: number;
+}): string {
   return SEVERITIES.map((severity) =>
     severityText(severityCount(totals, severity), severity)
   ).join(" · ");
-}
-
-/**
- * Cero hallazgos no es un ámbito sano.
- *
- * No hay un `scopeHealth` que pruebe cobertura completa y frescura. Con
- * artefacto y cero mensajes se dice que no se observaron hallazgos y que la
- * cobertura no está verificada, en los tres ámbitos. `summary.measured`, si
- * viene, es de la pasada entera y se nombra así; un cero también.
- */
-const UNOBSERVED = "Sin hallazgos observados; cobertura no verificada";
-
-function globalMeasured(measured: number | undefined): string {
-  if (measured === undefined) return "";
-  return ` La pasada miró ${formatCompact(measured)} ficheros en total.`;
-}
-
-function scopeNote(
-  artifact: LintArtifact,
-  folder: string,
-  filePath: string | undefined,
-  totals: LintTotals
-): string {
-  const measured = globalMeasured(artifact.summary.measured);
-  if (totals.findings === 0) return `${UNOBSERVED}.${measured}`;
-  if (filePath) {
-    return `Estas cuentas salen de los mensajes de este fichero.${measured}`;
-  }
-  if (folder === "") {
-    const files = plural(totals.files, "fichero con hallazgos", "ficheros con hallazgos");
-    return `${files}.${measured}`;
-  }
-  return `Estas cuentas salen de los mensajes del artefacto en este subárbol.${measured}`;
 }
 
 /** Dónde está un mensaje, visible: línea o línea:columna. */
@@ -110,14 +76,7 @@ function messageWhere(line: number | undefined, column: number | undefined): str
 }
 
 /** Los mensajes de un fichero, con su regla y su posición. */
-function FileFindings({
-  artifact,
-  path
-}: {
-  artifact: LintArtifact;
-  path: string;
-}) {
-  const messages = artifact.files[path]?.messages ?? [];
+function FileFindings({ messages }: { messages: readonly LintMessage[] }) {
   if (messages.length === 0) return null;
 
   const shown = messages.slice(0, FINDING_ROWS);
@@ -161,15 +120,15 @@ function FileFindings({
 
 /** Los ficheros del ámbito que el artefacto lista con mensajes. */
 function AffectedFiles({
-  artifact,
-  folder,
+  files,
   onSelectPath
 }: {
-  artifact: LintArtifact;
-  folder: string;
+  files: ReadonlyArray<{
+    path: string;
+    counts: { errors: number; warnings: number; info: number };
+  }>;
   onSelectPath?: (path: string) => void;
 }) {
-  const files = affectedLintFiles(artifact, folder);
   if (files.length === 0) return null;
 
   return (
@@ -185,14 +144,14 @@ function AffectedFiles({
       >
         {files.map((file) => {
           const spoken = SEVERITIES.map((severity) =>
-            severityText(severityCount(file, severity), severity)
+            severityText(severityCount(file.counts, severity), severity)
           ).join(" · ");
           const body = (
             <>
               <span className="mono lint-file-path" title={file.path}>
                 {file.path}
               </span>
-              <SeverityCounts counts={file} />
+              <SeverityCounts counts={file.counts} />
             </>
           );
           if (!onSelectPath) {
@@ -220,25 +179,27 @@ function AffectedFiles({
 }
 
 /** Lo que hay que decir cuando no se midió. Sin consejo de configuración. */
-function NotMeasured({ kind }: { kind: "lint" | "rules" }) {
-  if (kind === "rules") {
-    return (
-      <div className="lint-advice">
-        <p className="muted small">
-          Sin medir. Las reglas del resto no se midieron. Ejecuta{" "}
-          <code>codarch analyze</code> —las mide en la misma pasada que el mapa
-          del resto—.
-        </p>
-      </div>
-    );
-  }
+function NotMeasured({
+  kind,
+  detail
+}: {
+  kind: "lint" | "rules";
+  detail: string;
+}) {
   return (
     <div className="lint-advice">
-      <p className="muted small">
-        Sin medir. El lint no se midió. Ejecuta <code>codarch analyze</code>{" "}
-        —lo mide con el linter que el repo ya tiene, en la misma pasada que el
-        resto de lentes— o <code>codarch lint</code> para medirlo suelto.
-      </p>
+      <p className="muted small">{detail}</p>
+      {kind === "rules" ? (
+        <p className="muted small">
+          Ejecuta <code>codarch analyze</code> —mide las reglas del resto en la
+          misma pasada que el mapa—.
+        </p>
+      ) : (
+        <p className="muted small">
+          Ejecuta <code>codarch analyze</code> —lo mide con el linter que el
+          repo ya tiene— o <code>codarch lint</code> para medirlo suelto.
+        </p>
+      )}
     </div>
   );
 }
@@ -255,9 +216,9 @@ export function LintSection({
   artifact,
   folder,
   filePath,
+  snapshot,
   title = "Lint",
   kind = "lint",
-  stale = false,
   onSelectPath
 }: {
   id: string;
@@ -265,24 +226,25 @@ export function LintSection({
   folder: string;
   /** El fichero, cuando la ficha es de uno: enseña sus mensajes. */
   filePath?: string;
+  /** El árbol del mapa, para `fresh`. Sin él la actualidad no se verifica. */
+  snapshot?: HealthSnapshot;
   /** «Lint» en el código; «Reglas» en el mapa del resto (ADR 0105). */
   title?: string;
   /** `rules` cambia el texto sin medir. */
   kind?: "lint" | "rules";
-  /** El artefacto es de otro árbol que el mapa que se está mirando. */
-  stale?: boolean;
   /** Abre la ficha de un fichero de la lista. */
   onSelectPath?: (path: string) => void;
 }) {
-  const totals = artifact ? lintTotals(artifact, filePath ?? folder) : null;
-  const findings = totals?.findings ?? 0;
-  const summary = !totals
-    ? "sin medir"
-    : findings === 0
-      ? stale
-        ? "puede estar desfasado"
-        : "cobertura no verificada"
-      : countsSummary(totals);
+  const scope: HealthScope = filePath
+    ? { kind: "file", path: filePath }
+    : folder === ""
+      ? { kind: "project", path: "" }
+      : { kind: "folder", path: folder };
+  const health = healthOf(artifact, scope, snapshot);
+  const findings = health.counts.findings;
+  const headline = healthSummary(health);
+  const summary = headline || countsSummary(health.counts);
+  const showCounts = health.coverage.state !== "unmeasured" || findings > 0;
 
   return (
     <CollapsibleSection
@@ -292,36 +254,28 @@ export function LintSection({
       count={findings}
       summary={summary}
     >
-      {artifact && totals ? (
-        <>
-          <div className="lint-health">
-            <p className="lint-health-counts">
-              <SeverityCounts counts={totals} />
-            </p>
-            <p className="muted tiny lint-scope-note">
-              {scopeNote(artifact, folder, filePath, totals)}
-            </p>
-          </div>
-          {stale ? (
-            <p className="muted tiny lint-stale">
-              Este lint es de otro árbol: lo que se enseña es de una pasada
-              anterior y puede estar desfasado. No es un ámbito limpio.
-            </p>
-          ) : null}
-          {findings > 0 && filePath ? (
-            <FileFindings artifact={artifact} path={filePath} />
-          ) : null}
-          {findings > 0 && !filePath ? (
-            <AffectedFiles
-              artifact={artifact}
-              folder={folder}
-              onSelectPath={onSelectPath}
-            />
-          ) : null}
-        </>
+      {showCounts ? (
+        <div className="lint-health">
+          <p className="lint-health-counts">
+            <SeverityCounts counts={health.counts} />
+          </p>
+          <p className="muted tiny lint-scope-note">{healthCopy(health)}</p>
+        </div>
       ) : (
-        <NotMeasured kind={kind} />
+        <NotMeasured kind={kind} detail={healthCopy(health)} />
       )}
+      {health.fresh === false ? (
+        <p className="muted tiny lint-stale">
+          Este análisis es de otro árbol: los hallazgos se conservan y pueden
+          estar desfasados.
+        </p>
+      ) : null}
+      {findings > 0 && scope.kind === "file" ? (
+        <FileFindings messages={health.messages} />
+      ) : null}
+      {findings > 0 && scope.kind !== "file" ? (
+        <AffectedFiles files={health.affectedFiles} onSelectPath={onSelectPath} />
+      ) : null}
     </CollapsibleSection>
   );
 }

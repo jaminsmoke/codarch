@@ -69,7 +69,6 @@ const section = (options: {
   artifact: LintArtifact | null;
   folder: string;
   filePath?: string;
-  stale?: boolean;
   onSelectPath?: (path: string) => void;
 }): string =>
   renderToStaticMarkup(
@@ -78,7 +77,6 @@ const section = (options: {
       artifact: options.artifact,
       folder: options.folder,
       filePath: options.filePath,
-      stale: options.stale,
       onSelectPath: options.onSelectPath
     })
   );
@@ -152,8 +150,9 @@ describe("la sección Lint de la vista de código", () => {
     expect(folder).not.toContain("Hallazgos por regla");
     expect(folder).not.toContain("reglas con hallazgos");
     expect(folder).not.toContain("de 3 medidos");
-    expect(folder).toContain("La pasada miró 3 ficheros en total.");
+    expect(folder).toContain("Cobertura no verificada");
     expect(folder).not.toContain("Medido y limpio");
+    expect(folder).not.toContain("Limpio y al día");
     expect(project).toContain("apps/web/src/a.ts");
     expect(project).not.toContain("eslint.config.js");
     expect(project).not.toContain("reglas activas");
@@ -179,7 +178,7 @@ describe("la sección Lint de la vista de código", () => {
     const markup = section({ artifact: null, folder: "" });
 
     expect(markup).toContain("Sin medir");
-    expect(markup).toContain("El lint no se midió");
+    expect(markup).toContain("codarch analyze");
     expect(markup).toContain("codarch analyze");
     expect(markup).toContain("codarch lint");
     expect(markup).not.toContain("Mínimo recomendable");
@@ -193,9 +192,11 @@ describe("la sección Lint de la vista de código", () => {
     };
     const markup = section({ artifact: clean, folder: "" });
 
-    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-    expect(markup).toContain("La pasada miró 3 ficheros en total.");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).toContain("anterior a la cobertura");
+    expect(markup).not.toContain("La pasada miró");
     expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
   });
 
   it("una carpeta limpia no hereda el medido global como si fuera suyo", () => {
@@ -208,9 +209,10 @@ describe("la sección Lint de la vista de código", () => {
 
     expect(markup).not.toContain("Medido y limpio");
     expect(markup).not.toContain("de 9 medidos");
-    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-    expect(markup).toContain("La pasada miró 9 ficheros en total.");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).not.toContain("La pasada miró");
     expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
   });
 
   it("una línea 0 se ve; sin línea, no se inventa", () => {
@@ -233,63 +235,6 @@ describe("la sección Lint de la vista de código", () => {
     });
     expect(markup).toContain("0:2");
     expect(markup).not.toContain("sin línea");
-  });
-});
-
-describe("ningún ámbito se da por limpio", () => {
-  const empty = (measured: number | undefined): LintArtifact => ({
-    ...artifact,
-    files: {},
-    summary: {
-      files: 0,
-      errors: 0,
-      warnings: 0,
-      messages: 0,
-      ...(measured === undefined ? {} : { measured })
-    }
-  });
-
-  it("proyecto, carpeta y fichero dicen cobertura no verificada", () => {
-    const clean = empty(4);
-    for (const markup of [
-      section({ artifact: clean, folder: "" }),
-      section({ artifact: clean, folder: "packages/ui" }),
-      section({ artifact: clean, folder: "src/a.ts", filePath: "src/a.ts" })
-    ]) {
-      expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-      expect(markup).toContain("La pasada miró 4 ficheros en total.");
-      expect(markup).not.toContain("Medido y limpio");
-      expect(markup).not.toContain("medido y limpio");
-    }
-  });
-
-  it("measured 0 no es un ámbito sano", () => {
-    const markup = section({ artifact: empty(0), folder: "" });
-    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-    expect(markup).toContain("La pasada miró 0 ficheros en total.");
-    expect(markup).not.toContain("Medido y limpio");
-  });
-
-  it("un árbol viejo conserva los hallazgos y no se llama limpio", () => {
-    const markup = section({
-      artifact,
-      folder: "apps/web/src/a.ts",
-      filePath: "apps/web/src/a.ts",
-      stale: true
-    });
-    expect(markup).toContain("Unexpected console");
-    expect(markup).toContain("7:4");
-    expect(markup).toContain("puede estar desfasado");
-    expect(markup).not.toContain("Medido y limpio");
-    expect(markup).not.toContain("cobertura no verificada");
-  });
-
-  it("un árbol viejo sin mensajes tampoco es limpio", () => {
-    const markup = section({ artifact: empty(2), folder: "", stale: true });
-    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
-    expect(markup).toContain("puede estar desfasado");
-    expect(markup).toContain("No es un ámbito limpio.");
-    expect(markup).not.toContain("Medido y limpio");
   });
 });
 

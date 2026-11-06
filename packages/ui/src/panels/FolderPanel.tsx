@@ -17,7 +17,8 @@ import {
   folderContent,
   folderDepth
 } from "../folder";
-import { lintTreeIsStale, withinFolder } from "../lintRollup";
+import { healthSnapshot } from "../lintHealth";
+import { withinFolder } from "../lintRollup";
 import { LintSection } from "../LintSection";
 import { DuplicationSection } from "./DuplicationSection";
 import { MetricsRollup } from "./MetricsRollup";
@@ -220,7 +221,7 @@ export function FolderPanel({
           folder={folder.path}
           title={rulesMode ? "Reglas" : "Lint"}
           kind={rulesMode ? "rules" : "lint"}
-          stale={lintTreeIsStale(lint, model.meta.checksum)}
+          snapshot={healthSnapshot(model)}
           onSelectPath={onSelectPath}
         />
       ) : null}
