@@ -10,6 +10,7 @@ import type {
 } from "@codarch/schema/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "../platform";
 import { LintSection } from "../LintSection";
+import { healthSnapshot } from "../lintHealth";
 import { ffiEdgesForFile } from "../lenses";
 import { maxComplexity, relatedFiles, type CodeState } from "../inspector";
 import {
@@ -168,9 +169,9 @@ export function Inspector({
         artifact={lint}
         folder={file.path}
         filePath={file.path}
-        risk={rulesMode ? undefined : file.riskParts}
         title={rulesMode ? "Reglas" : "Lint"}
         kind={rulesMode ? "rules" : "lint"}
+        snapshot={healthSnapshot(model)}
       />
       {showCode ? (
         <>

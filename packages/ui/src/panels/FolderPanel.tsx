@@ -1,8 +1,4 @@
-import {
-  adviceForExtensions,
-  extensionOf,
-  type LintArtifact
-} from "@codarch/lint/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import {
@@ -21,6 +17,7 @@ import {
   folderContent,
   folderDepth
 } from "../folder";
+import { healthSnapshot } from "../lintHealth";
 import { withinFolder } from "../lintRollup";
 import { LintSection } from "../LintSection";
 import { DuplicationSection } from "./DuplicationSection";
@@ -222,15 +219,10 @@ export function FolderPanel({
           id="folder-lint"
           artifact={lint}
           folder={folder.path}
-          advice={
-            rulesMode
-              ? []
-              : adviceForExtensions(
-                  subtree.map((file) => extensionOf(file.name))
-                )
-          }
           title={rulesMode ? "Reglas" : "Lint"}
           kind={rulesMode ? "rules" : "lint"}
+          snapshot={healthSnapshot(model)}
+          onSelectPath={onSelectPath}
         />
       ) : null}
 
