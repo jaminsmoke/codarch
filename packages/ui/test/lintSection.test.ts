@@ -2,9 +2,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { LintArtifact } from "@codarch/lint/browser";
-import type { RiskParts } from "@codarch/render/browser";
 import { LintSection } from "../src/LintSection";
-import { lintRules } from "../src/lintRollup";
+import { affectedLintFiles, lintRules } from "../src/lintRollup";
 
 const artifact: LintArtifact = {
   schemaVersion: "1.2",
@@ -32,7 +31,8 @@ const artifact: LintArtifact = {
           rule: "no-console",
           severity: "error",
           message: "Unexpected console",
-          line: 7
+          line: 7,
+          column: 4
         },
         { rule: "security/detect-eval", severity: "info", message: "eval" }
       ]
@@ -65,21 +65,12 @@ const artifact: LintArtifact = {
   summary: { files: 3, errors: 3, warnings: 1, messages: 5, measured: 3 }
 };
 
-/** La composición del riesgo, con el peso del lint que pida el caso. */
-function risk(weight: number): RiskParts {
-  return {
-    complexity: { value: 0, p95: 0, norm: 0, weight: 0, share: 0 },
-    churn: { value: 0, p95: 0, norm: 0, weight: 0, share: 0 },
-    size: { value: 0, p95: 0, norm: 0, weight: 0, share: 0 },
-    lint: { value: 3, p95: 10, norm: 0.3, weight, share: 0.3 }
-  };
-}
-
 const section = (options: {
   artifact: LintArtifact | null;
   folder: string;
   filePath?: string;
-  risk?: RiskParts;
+  stale?: boolean;
+  onSelectPath?: (path: string) => void;
 }): string =>
   renderToStaticMarkup(
     createElement(LintSection, {
@@ -87,7 +78,8 @@ const section = (options: {
       artifact: options.artifact,
       folder: options.folder,
       filePath: options.filePath,
-      risk: options.risk
+      stale: options.stale,
+      onSelectPath: options.onSelectPath
     })
   );
 
@@ -127,70 +119,73 @@ describe("las reglas con hallazgos por ámbito", () => {
 });
 
 describe("la sección Lint de la vista de código", () => {
-  it("en un fichero enseña los mensajes, no el catálogo de reglas", () => {
+  it("en un fichero enseña línea:columna, la regla y las tres cuentas", () => {
     const markup = section({
       artifact,
       folder: "apps/web/src/a.ts",
-      filePath: "apps/web/src/a.ts",
-      risk: risk(0.2)
+      filePath: "apps/web/src/a.ts"
     });
 
     expect(markup).toContain(">Lint<");
     expect(markup).toContain("Unexpected console");
     expect(markup).toContain("Unexpected var");
-    expect(markup).toContain("lint-message");
-    // El catálogo de sistemas y reglas activas ya no vive aquí.
+    expect(markup).toContain("no-console");
+    expect(markup).toContain("lint-message-line");
+    expect(markup).toContain("7:4");
+    expect(markup).toContain("1 error");
+    expect(markup).toContain("1 aviso");
+    expect(markup).toContain("1 info");
+    expect(markup).not.toContain("del riesgo");
+    expect(markup).not.toContain("Las cuentas están en Métricas.");
     expect(markup).not.toContain("eslint.config.js");
     expect(markup).not.toContain("reglas activas");
+    expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
   });
 
-  it("dice cuánto pesa en el riesgo y de dónde sale", () => {
-    const markup = section({
-      artifact,
-      folder: "apps/web/src/a.ts",
-      filePath: "apps/web/src/a.ts",
-      risk: risk(0.2)
-    });
-
-    expect(markup).toContain("20 %");
-    expect(markup).toContain("del riesgo total");
-    expect(markup).toContain("errores + ¼ avisos");
-    // Las cuentas ya están en Métricas: Lint no las repite.
-    expect(markup).toContain("Las cuentas están en Métricas.");
-  });
-
-  it("sin lint medido no inventa un 0 %: dice que no suma", () => {
-    const markup = section({
-      artifact,
-      folder: "apps/web/src/a.ts",
-      filePath: "apps/web/src/a.ts",
-      risk: risk(0)
-    });
-
-    expect(markup).toContain("sin medir");
-    expect(markup).toContain("El lint no se midió: no suma al riesgo.");
-  });
-
-  it("carpeta y proyecto agrupan los hallazgos por regla", () => {
+  it("carpeta y proyecto listan ficheros, no reglas", () => {
     const folder = section({ artifact, folder: "packages/ui" });
     const project = section({ artifact, folder: "" });
 
-    expect(folder).toContain("Hallazgos por regla");
-    expect(folder).toContain("no-console");
+    expect(folder).toContain("Ficheros con hallazgos");
+    expect(folder).toContain("packages/ui/src/b.ts");
+    expect(folder).not.toContain("packages/ui2/src/c.ts");
+    expect(folder).not.toContain("Hallazgos por regla");
+    expect(folder).not.toContain("reglas con hallazgos");
+    expect(folder).not.toContain("de 3 medidos");
+    expect(folder).toContain("La pasada miró 3 ficheros en total.");
+    expect(folder).not.toContain("Medido y limpio");
+    expect(project).toContain("apps/web/src/a.ts");
     expect(project).not.toContain("eslint.config.js");
     expect(project).not.toContain("reglas activas");
+    expect(project.match(/class="lint-health"/g)).toHaveLength(1);
+  });
+
+  it("un fichero de la lista es un botón si hay navegación", () => {
+    const markup = section({
+      artifact,
+      folder: "packages/ui",
+      onSelectPath: () => {}
+    });
+    const list = markup.slice(markup.indexOf("lint-file-list"));
+    expect(list).toContain("<button");
+    expect(list).toContain("packages/ui/src/b.ts");
+
+    const plain = section({ artifact, folder: "packages/ui" });
+    const plainList = plain.slice(plain.indexOf("lint-file-list"));
+    expect(plainList).not.toContain("<button");
   });
 
   it("sin artefacto no hay ceros: se dice que no se midió", () => {
     const markup = section({ artifact: null, folder: "" });
 
+    expect(markup).toContain("Sin medir");
     expect(markup).toContain("El lint no se midió");
-    // El camino normal es el análisis, que lo mide con el resto de lentes.
     expect(markup).toContain("codarch analyze");
     expect(markup).toContain("codarch lint");
+    expect(markup).not.toContain("Mínimo recomendable");
   });
 
-  it("un proyecto medido sin hallazgos dice cuántos ficheros se miraron", () => {
+  it("un proyecto medido sin hallazgos dice que se miró", () => {
     const clean: LintArtifact = {
       ...artifact,
       files: {},
@@ -198,8 +193,129 @@ describe("la sección Lint de la vista de código", () => {
     };
     const markup = section({ artifact: clean, folder: "" });
 
-    expect(markup).toContain(
-      "Sin hallazgos en el proyecto: se midieron 3 ficheros."
-    );
+    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+    expect(markup).toContain("La pasada miró 3 ficheros en total.");
+    expect(markup).not.toContain("Medido y limpio");
+  });
+
+  it("una carpeta limpia no hereda el medido global como si fuera suyo", () => {
+    const clean: LintArtifact = {
+      ...artifact,
+      files: {},
+      summary: { files: 0, errors: 0, warnings: 0, messages: 0, measured: 9 }
+    };
+    const markup = section({ artifact: clean, folder: "packages/ui" });
+
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("de 9 medidos");
+    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+    expect(markup).toContain("La pasada miró 9 ficheros en total.");
+    expect(markup).not.toContain("Medido y limpio");
+  });
+
+  it("una línea 0 se ve; sin línea, no se inventa", () => {
+    const withZero: LintArtifact = {
+      ...artifact,
+      files: {
+        "src/z.ts": {
+          errors: 1,
+          warnings: 0,
+          messages: [
+            { rule: "no-var", severity: "error", message: "var", line: 0, column: 2 }
+          ]
+        }
+      }
+    };
+    const markup = section({
+      artifact: withZero,
+      folder: "src/z.ts",
+      filePath: "src/z.ts"
+    });
+    expect(markup).toContain("0:2");
+    expect(markup).not.toContain("sin línea");
+  });
+});
+
+describe("ningún ámbito se da por limpio", () => {
+  const empty = (measured: number | undefined): LintArtifact => ({
+    ...artifact,
+    files: {},
+    summary: {
+      files: 0,
+      errors: 0,
+      warnings: 0,
+      messages: 0,
+      ...(measured === undefined ? {} : { measured })
+    }
+  });
+
+  it("proyecto, carpeta y fichero dicen cobertura no verificada", () => {
+    const clean = empty(4);
+    for (const markup of [
+      section({ artifact: clean, folder: "" }),
+      section({ artifact: clean, folder: "packages/ui" }),
+      section({ artifact: clean, folder: "src/a.ts", filePath: "src/a.ts" })
+    ]) {
+      expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+      expect(markup).toContain("La pasada miró 4 ficheros en total.");
+      expect(markup).not.toContain("Medido y limpio");
+      expect(markup).not.toContain("medido y limpio");
+    }
+  });
+
+  it("measured 0 no es un ámbito sano", () => {
+    const markup = section({ artifact: empty(0), folder: "" });
+    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+    expect(markup).toContain("La pasada miró 0 ficheros en total.");
+    expect(markup).not.toContain("Medido y limpio");
+  });
+
+  it("un árbol viejo conserva los hallazgos y no se llama limpio", () => {
+    const markup = section({
+      artifact,
+      folder: "apps/web/src/a.ts",
+      filePath: "apps/web/src/a.ts",
+      stale: true
+    });
+    expect(markup).toContain("Unexpected console");
+    expect(markup).toContain("7:4");
+    expect(markup).toContain("puede estar desfasado");
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("cobertura no verificada");
+  });
+
+  it("un árbol viejo sin mensajes tampoco es limpio", () => {
+    const markup = section({ artifact: empty(2), folder: "", stale: true });
+    expect(markup).toContain("Sin hallazgos observados; cobertura no verificada.");
+    expect(markup).toContain("puede estar desfasado");
+    expect(markup).toContain("No es un ámbito limpio.");
+    expect(markup).not.toContain("Medido y limpio");
+  });
+});
+
+describe("los ficheros afectados salen de los mensajes", () => {
+  it("ignora las cuentas declaradas y summary, y normaliza el ámbito", () => {
+    const composed = "caf\u00e9";
+    const decomposed = "cafe\u0301";
+    const drifted: LintArtifact = {
+      ...artifact,
+      files: {
+        [`${composed}/a.ts`]: {
+          errors: 9,
+          warnings: 9,
+          messages: [{ rule: "no-var", severity: "warn", message: "var" }]
+        },
+        [`${composed}2/b.ts`]: {
+          errors: 1,
+          warnings: 0,
+          messages: [{ rule: "no-console", severity: "error", message: "console" }]
+        }
+      },
+      summary: { files: 2, errors: 9, warnings: 9, messages: 2, measured: 40 }
+    };
+
+    expect(affectedLintFiles(drifted, decomposed)).toEqual([
+      { path: `${composed}/a.ts`, errors: 0, warnings: 1, info: 0 }
+    ]);
   });
 });
