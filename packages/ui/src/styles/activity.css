@@ -254,11 +254,23 @@
 
 .risk-bar-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px 40px 30px;
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 54px 36px 28px 36px;
+  gap: 6px;
   align-items: center;
   font-size: 10.5px;
   color: var(--ink-soft);
+}
+
+.risk-bar-head {
+  font: 8.5px/1.2 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.risk-score {
+  margin: 2px 0 0;
+  font-size: 13px;
 }
 
 /* La fila del lint sin artefacto: no hay barra, pero el sitio está. */
@@ -287,6 +299,11 @@
   height: 4px;
   background: var(--line);
   overflow: hidden;
+}
+
+.risk-bar.is-absent {
+  background: transparent;
+  border: 1px dashed var(--line);
 }
 
 .risk-bar i {

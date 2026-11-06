@@ -153,6 +153,7 @@ export function Inspector({
         colorMode={colorMode}
         metricTitle={metricTitle}
         showRisk={showCode}
+        breakdown={null}
         onColorMode={onColorMode}
       />
       {showCode && model ? (

@@ -1,86 +1,168 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { RenderFile } from "@codarch/render/browser";
-import { FORMULA_WEIGHT_LABEL, RiskBreakdown, riskNote } from "../src/FileSections";
+import { riskBreakdown, type RiskBreakdown, type RiskLintInput } from "@codarch/metrics/browser";
+import { RiskBreakdown as RiskView } from "../src/FileSections";
 
-/** Las cuatro partes con los pesos dados; valor, p95 y parte no importan aquí. */
-function parts(
-  weights: [number, number, number, number]
-): RenderFile["riskParts"] {
-  const part = (weight: number) => ({
-    value: 0,
-    p95: 0,
-    norm: 0,
-    weight,
-    share: 0
-  });
-  return {
-    complexity: part(weights[0]),
-    churn: part(weights[1]),
-    size: part(weights[2]),
-    lint: part(weights[3])
-  };
+function view(lintView?: RiskLintInput | null): RiskBreakdown {
+  const [entry] = riskBreakdown([
+    {
+      complexity: 8,
+      churn: 3,
+      size: 40,
+      ...(lintView === undefined ? {} : { lintView })
+    }
+  ]);
+  if (!entry) throw new Error("el motor no devolvió desglose");
+  return entry;
 }
 
-describe("la nota del riesgo", () => {
-  it("con lint medido, nombra los cuatro pesos de la fórmula", () => {
-    const note = riskNote(parts([0.4, 0.256, 0.144, 0.2]), true, []);
-
-    expect(note).toBe(
-      `${FORMULA_WEIGHT_LABEL}: complejidad 40 % · churn 25,6 % · tamaño 14,4 % · lint 20 %. Normalizado por el p95 de cada señal.`
-    );
-    expect(note).not.toContain("del riesgo");
-  });
-
-  it("sin artefacto, dice que el lint no se midió y no promete un 20 %", () => {
-    const note = riskNote(parts([0.5, 0.32, 0.18, 0]), false, []);
-
-    expect(note).toContain(FORMULA_WEIGHT_LABEL);
-    expect(note).toContain("Complejidad 50 % · churn 32 % · tamaño 18 %");
-    expect(note).toContain("El lint no se midió");
-    expect(note).not.toContain("20 %");
-    expect(note).not.toContain("40 %");
-    expect(note).not.toContain("del riesgo");
-  });
-
-  it("si falta churn con lint medido, lo dice y no inventa un peso", () => {
-    const note = riskNote(parts([0.4, 0, 0.144, 0.2]), true, ["churn"]);
-
-    expect(note).toBe("Sin churn: su peso se reparte entre las demás señales.");
-  });
-
-  it("sin señales del snapshot, no hay riesgo que repartir", () => {
-    expect(
-      riskNote(parts([0, 0, 0, 0]), false, ["complexity", "churn", "size"])
-    ).toBe("Este snapshot no trae las señales del riesgo, y el lint no se midió.");
-  });
-});
-
-/** El HTML del desglose para las partes dadas. */
-function html(weights: [number, number, number, number]): string {
-  const file = { riskParts: parts(weights) } as RenderFile;
-  return renderToStaticMarkup(createElement(RiskBreakdown, { file }));
+function html(breakdown: RiskBreakdown | null): string {
+  return renderToStaticMarkup(createElement(RiskView, { breakdown }));
 }
 
-describe("las barras del riesgo", () => {
-  it("siempre enseñan la fila del lint; sin artefacto dice «sin medir»", () => {
-    const markup = html([0.5, 0.32, 0.18, 0]);
+function pointsSum(breakdown: RiskBreakdown): number {
+  return (["complexity", "churn", "size", "lint"] as const).reduce((sum, signal) => {
+    const points = breakdown.contributions[signal].points;
+    return points === null ? sum : sum + points;
+  }, 0);
+}
 
-    expect(markup).toContain("Lint");
-    expect(markup).toContain("sin medir");
-    expect(markup).toContain("El lint no se midió");
+describe("el índice que entrega el motor", () => {
+  it("los puntos no nulos suman el índice", () => {
+    const breakdown = view({
+      fresh: true,
+      coverage: { state: "unknown", eligible: null, measured: 1 },
+      counts: { errors: 4, warnings: 0, info: 1, findings: 5 }
+    });
+
+    expect(pointsSum(breakdown)).toBeCloseTo(breakdown.score, 5);
+    expect(breakdown.risk).toBeGreaterThanOrEqual(0);
+    expect(breakdown.risk).toBeLessThanOrEqual(1);
+    expect(breakdown.score).toBeCloseTo(breakdown.risk * 100, 5);
   });
 
-  it("con artefacto, el 20 % es peso de la fórmula, no del riesgo", () => {
-    const markup = html([0.4, 0.256, 0.144, 0.2]);
+  it("sin lint el término no es un cero ni una barra limpia", () => {
+    const breakdown = view(null);
+    const markup = html(breakdown);
 
-    expect(markup).not.toContain("sin medir");
-    expect(markup).toContain(FORMULA_WEIGHT_LABEL);
-    expect(markup).toContain("20 %");
-    expect(markup).toContain("lint 20 %");
-    expect(markup).not.toContain("% del riesgo");
-    expect(markup).not.toContain("del riesgo total");
-    expect(markup).not.toContain("le dará un 20");
+    expect(breakdown.lint.normalized).toBeNull();
+    expect(breakdown.lint.debt).toBeNull();
+    expect(breakdown.contributions.lint.points).toBeNull();
+    expect(markup).toContain("Sin penalización en el índice");
+    expect(markup).toContain('aria-label="sin porcentaje"');
+    expect(markup).not.toContain("Limpio");
+    expect(markup).not.toContain("peso % del riesgo");
+    expect(markup).not.toContain("probabilidad");
+  });
+
+  it("fresco y desconocido con mensajes enseña la penalización observada", () => {
+    const breakdown = view({
+      fresh: true,
+      coverage: {
+        state: "unknown",
+        eligible: null,
+        measured: 1,
+        reasons: [{ code: "unknown-eligibility" }]
+      },
+      counts: { errors: 2, warnings: 0, info: 0, findings: 2 }
+    });
+    const markup = html(breakdown);
+
+    expect(breakdown.lint.fresh).toBe(true);
+    expect(breakdown.lint.coverage).toBe("unknown");
+    expect(breakdown.lint.normalized).not.toBeNull();
+    expect(breakdown.lint.clean).toBe(false);
+    expect(markup).toContain("Penalización observada");
+    expect(markup).toContain("Cobertura desconocida");
+    expect(markup).toContain("Frescura: al día");
+    expect(markup).not.toContain("Ámbito limpio");
+  });
+
+  it("un árbol viejo o sin frescura no penaliza", () => {
+    const stale = view({
+      fresh: false,
+      coverage: { state: "partial", eligible: null, measured: 1 },
+      counts: { errors: 4, warnings: 0, info: 0, findings: 4 }
+    });
+    const unknownFresh = view({
+      fresh: null,
+      coverage: { state: "unknown", eligible: null, measured: null },
+      counts: { errors: 1, warnings: 0, info: 0, findings: 1 }
+    });
+
+    expect(stale.lint.normalized).toBeNull();
+    expect(stale.lint.applied).toBeNull();
+    expect(unknownFresh.lint.normalized).toBeNull();
+    expect(html(stale)).toContain("no penaliza");
+    expect(html(stale)).toContain("de otro árbol");
+    expect(html(unknownFresh)).toContain("no verificada");
+    expect(html(unknownFresh)).toContain("Sin penalización");
+    expect(html(stale)).not.toContain("Penalización observada");
+  });
+
+  it("la saturación se dice y marca α y el tope como provisionales", () => {
+    const [entry] = riskBreakdown([
+      {
+        complexity: 10,
+        churn: 10,
+        size: 10,
+        lintView: {
+          fresh: true,
+          coverage: { state: "unknown", eligible: null, measured: 1 },
+          counts: { errors: 40, warnings: 0, info: 0, findings: 40 }
+        }
+      }
+    ]);
+    if (!entry) throw new Error("sin desglose");
+    const markup = html(entry);
+
+    expect(entry.lint.clipped).not.toBeNull();
+    expect(entry.lint.clipped ?? 0).toBeGreaterThan(0);
+    expect(markup).toContain("Saturación");
+    expect(markup).toContain("provisionales");
+    expect(pointsSum(entry)).toBeCloseTo(entry.score, 5);
+  });
+
+  it("no aplicable y no encontrado no se pintan como cero", () => {
+    const na = view({
+      fresh: true,
+      applicability: "na",
+      reason: "fuera",
+      coverage: {
+        state: "unmeasured",
+        eligible: 0,
+        measured: 0,
+        reasons: [{ code: "no-eligible" }]
+      },
+      counts: { errors: 0, warnings: 0, info: 0, findings: 0 }
+    });
+    const missing = view({
+      fresh: true,
+      applicability: "not-found",
+      coverage: {
+        state: "unknown",
+        eligible: null,
+        measured: null,
+        reasons: [{ code: "not-found" }]
+      },
+      counts: { errors: 0, warnings: 0, info: 0, findings: 0 }
+    });
+
+    expect(na.lint.applicability).toBe("na");
+    expect(na.lint.normalized).toBeNull();
+    expect(missing.lint.applicability).toBe("not-found");
+    expect(missing.lint.normalized).toBeNull();
+    expect(html(na)).toContain("No aplicable");
+    expect(html(missing)).toContain("No está en el árbol");
+    expect(html(na)).not.toContain("Penalización observada");
+    expect(html(missing)).not.toContain("0 puntos del índice");
+  });
+
+  it("sin desglose no recalcula ni finge un índice", () => {
+    const markup = html(null);
+    expect(markup).toContain("no trae el desglose");
+    expect(markup).toContain("No se recalcula");
+    expect(markup).not.toContain("puntos del índice");
   });
 });
