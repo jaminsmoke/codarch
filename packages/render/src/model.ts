@@ -4,9 +4,15 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
-  lintScores
+  lintScore,
+  type RiskLintInput
 } from "@codarch/metrics/browser";
-import { lintFileCounts } from "@codarch/lint/browser";
+import {
+  lintRiskView,
+  scopeHealth,
+  type HealthSnapshot,
+  type LintArtifact
+} from "@codarch/lint/browser";
 import { collectDuplication } from "./model-duplication";
 import { applyRisk, collectFiles, warnAboutArea } from "./model-files";
 import { collectDependency } from "./model-dependencies";
@@ -83,17 +89,21 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     churnKey,
     prefix,
     warnings,
-    restKinds: cc.lenses?.rest?.nodes ?? {},
-    // La deuda del lint por ruta; sin artefacto, ninguna.
-    lintByPath: options.lint
-      ? lintScores(lintFileCounts(options.lint.files))
-      : {}
+    restKinds: cc.lenses?.rest?.nodes ?? {}
   });
   const fileIndexById = new Map(files.map((file) => [file.nodeId, file.index]));
   const duplication = collectDuplication(cc, files, prefix);
 
   warnAboutArea(files, areaMetric, options, warnings);
-  applyRisk(files, options.lint != null);
+  // Cada fichero lleva su scopeHealth. Sin artefacto no hay vista: no se
+  // rellena la deuda con cero ni se usa la salud del proyecto.
+  const hasMetrics =
+    complexityKey !== null || churnKey !== null || areaMetric !== null;
+  applyRisk(
+    files,
+    lintViewsFor(files, options.lint ?? null, lintSnapshot(cc, files)),
+    hasMetrics
+  );
 
   const sections = buildSections(files);
 
@@ -143,4 +153,32 @@ export function buildRenderModel(cc: CcJson, options: RenderOptions = {}): Rende
     lintMax,
     warnings
   };
+}
+
+/** El checksum del snapshot y las rutas que el mapa ya recorrió. */
+function lintSnapshot(cc: CcJson, files: readonly { path: string }[]): HealthSnapshot {
+  const tree = cc.meta.checksum;
+  return {
+    treeHash: tree ? tree : null,
+    paths: files.map((file) => file.path)
+  };
+}
+
+/**
+ * Una vista por fichero del mapa. La deuda de la lente sale de las mismas
+ * cuentas; el riesgo recibe la vista, no ese número.
+ */
+function lintViewsFor(
+  files: { path: string; lint: number }[],
+  artifact: LintArtifact | null,
+  snapshot: HealthSnapshot
+): Map<string, RiskLintInput> | null {
+  if (!artifact) return null;
+  const views = new Map<string, RiskLintInput>();
+  for (const file of files) {
+    const health = scopeHealth(artifact, { kind: "file", path: file.path }, snapshot);
+    views.set(file.path, lintRiskView(health));
+    file.lint = lintScore(health.counts.errors, health.counts.warnings);
+  }
+  return views;
 }

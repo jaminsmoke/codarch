@@ -1,7 +1,7 @@
 // Las entradas y salidas de las herramientas del MCP. Un solo sitio para
 // saber qué pide cada una y qué devuelve, sin abrir su implementación.
 
-import type { LayerConfig, RuleConfigEntry } from "@codarch/metrics";
+import type { LayerConfig, RiskBreakdown, RuleConfigEntry } from "@codarch/metrics";
 import type { RepoAddon } from "@codarch/addons";
 import type {
   AffectedFile,
@@ -428,6 +428,11 @@ export interface ExplainModuleResult {
   sizeMetric: string | null;
   metrics: Record<string, number>;
   risk: number;
+  /**
+   * Desglose del motor. En un fichero, el suyo. En una carpeta, el del
+   * fichero con más riesgo. `null` si no hay métricas.
+   */
+  riskBreakdown: RiskBreakdown | null;
   complexity: number;
   riskRank?: number;
   cycle?:
@@ -444,7 +449,12 @@ export interface ExplainModuleResult {
     truncated: number;
   };
   childFolders?: string[];
-  topFiles?: Array<{ path: string; risk: number; size: number }>;
+  topFiles?: Array<{
+    path: string;
+    risk: number;
+    size: number;
+    riskBreakdown: RiskBreakdown | null;
+  }>;
   /** Los símbolos del fichero, de la función más compleja a la más simple. */
   symbols?: SymbolView[];
   diff:

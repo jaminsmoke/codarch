@@ -33,6 +33,7 @@ function file(path: string, complexity: number, loc: number): RenderFile {
       size: zeroPart(),
       lint: zeroPart()
     },
+    riskBreakdown: null,
     complexity,
     churn: 0,
     lint: 0,

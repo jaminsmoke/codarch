@@ -118,7 +118,7 @@ A number that is not known is `null`, never `0`. `0` appears only when a valid e
 
 `fresh` is orthogonal to the state. `true` when `meta.tree` is the snapshot checksum (`cc.json` for code, `rest.cc.json` for documents). `false` when both exist and differ. `null` when they cannot be compared, and then `freshness-unverified` is added. A stale tree does not erase `partial`.
 
-Actually clean only if `complete` and `fresh === true` and `findings === 0` and `eligible > 0`. `complete` with `fresh === null` is “no findings, not verified”.
+Actually clean only if `complete` and `fresh === true` and `findings === 0` and `eligible > 0`. `fresh === null` reads “freshness not verified”: there was no comparison, and the reason is `freshness-unverified`. `fresh === false` reads “result from another tree / out of date”. They are not the same phrase.
 
 ## States
 
@@ -231,7 +231,7 @@ Every applicable tool finished and the universe is known. For documents, `eligib
 }
 ```
 
-That, with `eligible > 0`, is clean and current. If `fresh` is `null`, it is “no findings, not verified”.
+That, with `eligible > 0` and `fresh === true`, is clean and current. If `fresh` is `null`, the phrase is “freshness not verified”. If it is `false`, “result from another tree / out of date”.
 
 ## Codes
 
@@ -252,3 +252,7 @@ That, with `eligible > 0`, is clean and current. If `fresh` is `null`, it is “
 ## Documents
 
 Rest coverage is **per document, not per rule**. A document is in `eligiblePaths` and `measuredPaths` even when one rule could not read the frontmatter. Missing or unread frontmatter is not an exhaustive review of the text: it is a finding of that rule, and the document still counts as measured. A config file or an asset is not included: nobody judged them.
+
+## Risk
+
+The index does not read the whole artifact. It reads each file's `scopeHealth` and adds a term before gamma. The formula and the cases —`fresh` true, false and null, unknown universe, not applicable, not found— are in [risk](riesgo.md).

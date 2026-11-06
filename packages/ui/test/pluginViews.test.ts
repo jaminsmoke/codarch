@@ -69,6 +69,7 @@ function file(path: string, index: number): RenderFile {
       size: { value: 0, p95: 0, norm: 0, weight: 0, share: 0 },
       lint: { value: 0, p95: 0, norm: 0, weight: 0, share: 0 }
     },
+    riskBreakdown: null,
     complexity: 1,
     churn: 0,
     lint: 0,

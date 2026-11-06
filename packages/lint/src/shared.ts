@@ -31,6 +31,7 @@ export {
   coverageFromEnumeration,
   isCurrentClean,
   lintConfig,
+  lintRiskView,
   scopeHealth,
   scopeHealthNote,
   summaryFromHealth
@@ -42,6 +43,7 @@ export type {
   CoverageState,
   HealthScope,
   HealthSnapshot,
+  LintApplicability,
   LintCounts,
   LintCoverage,
   LintDomain,

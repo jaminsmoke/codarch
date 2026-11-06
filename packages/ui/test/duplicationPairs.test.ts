@@ -19,6 +19,7 @@ function file(path: string): RenderFile {
     actualArea: 1,
     risk: 0,
     riskParts: { complexity: zero, churn: zero, size: zero, lint: zero },
+    riskBreakdown: null,
     complexity: 0,
     churn: 0,
     lint: 0,
