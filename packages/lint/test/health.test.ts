@@ -5,6 +5,7 @@ import {
   coverageFromEnumeration,
   isCurrentClean,
   scopeHealth,
+  scopeHealthNote,
   type LintCoverage,
   type ToolCoverage
 } from "../src/health";
@@ -405,6 +406,83 @@ describe("scopeHealth", () => {
     expect(health.coverage.state).toBe("unknown");
     expect(health.coverage.measured).toBeNull();
     expect(health.counts.warnings).toBe(1);
+    expect(scopeHealthNote(health)).toBe(
+      "universo no verificado · frescura sin verificar"
+    );
+  });
+
+  it("complete exige que cada herramienta cubra su universo, no la unión", () => {
+    const health = scopeHealth(
+      withCoverage(
+        {
+          eslint: enumerated(["src/a.ts", "src/b.ts"], ["src/a.ts", "src/b.ts"]),
+          checkstyle: enumerated(["src/a.ts"], ["src/a.ts", "src/b.ts"])
+        },
+        {},
+        { meta: { checksum: "abc", tools: ["eslint", "checkstyle"], systems: [], tree: "tree-1" } }
+      ),
+      project,
+      { treeHash: "tree-1", paths: ["src/a.ts", "src/b.ts"] }
+    );
+
+    expect(health.coverage.state).toBe("partial");
+    expect(health.coverage.byTool.checkstyle?.state).toBe("partial");
+    expect(isCurrentClean(health)).toBe(false);
+  });
+
+  it("el aviso de universo desconocido no depende de que haya hallazgos", () => {
+    const withFindings = scopeHealth(
+      withCoverage(
+        { eslint: enumerated(["src/a.ts"], null) },
+        { "src/a.ts": { errors: 1, warnings: 0, messages: [message({ severity: "error" })] } }
+      ),
+      project
+    );
+    expect(withFindings.coverage.state).toBe("unknown");
+    expect(scopeHealthNote(withFindings)).toBe(
+      "universo no verificado · frescura sin verificar"
+    );
+
+    const clean = scopeHealth(
+      withCoverage({ eslint: enumerated(["src/a.ts"], null) }, {}),
+      project
+    );
+    expect(scopeHealthNote(clean)).toBe(
+      "medidos, sin hallazgos, universo no verificado · frescura sin verificar"
+    );
+  });
+
+  it("fresh null y fresh false no comparten frase", () => {
+    const docs = withCoverage(
+      { codarch: enumerated(["README.md"], ["README.md"]) },
+      {},
+      {
+        domain: "docs",
+        meta: { checksum: "abc", tools: ["codarch"], systems: [], tree: "rest-1" }
+      }
+    );
+
+    const unverified = scopeHealth(docs, project);
+    const stale = scopeHealth(docs, project, {
+      treeHash: "otro-arbol",
+      paths: ["README.md"]
+    });
+    const current = scopeHealth(docs, project, {
+      treeHash: "rest-1",
+      paths: ["README.md"]
+    });
+
+    expect(unverified.fresh).toBeNull();
+    expect(unverified.coverage.reasons.map((item) => item.code)).toContain(
+      "freshness-unverified"
+    );
+    expect(scopeHealthNote(unverified)).toBe("frescura sin verificar");
+    expect(stale.fresh).toBe(false);
+    expect(stale.coverage.state).toBe("complete");
+    expect(scopeHealthNote(stale)).toBe("resultado de otro árbol / desactualizado");
+    expect(isCurrentClean(stale)).toBe(false);
+    expect(scopeHealthNote(current)).toBe("limpio y al día");
+    expect(isCurrentClean(current)).toBe(true);
   });
 });
 

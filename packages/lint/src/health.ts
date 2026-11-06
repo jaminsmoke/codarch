@@ -192,7 +192,7 @@ export function lintConfig(artifact: LintArtifact): {
 
 /**
  * Limpio de verdad: medida completa, árbol al día, cero hallazgos y algo que
- * medir. `complete` con frescura `null` no lo es: es «sin hallazgos, no verificado».
+ * medir. `fresh === null` no es lo mismo que `fresh === false`.
  */
 export function isCurrentClean(health: ScopeHealth): boolean {
   return (
@@ -206,31 +206,38 @@ export function isCurrentClean(health: ScopeHealth): boolean {
 /**
  * Frase corta para el CLI. La UI traduce los códigos; aquí solo está el
  * texto que el contrato nombra para no dejar el estado en un número.
+ *
+ * `fresh === null` es «frescura sin verificar» (no hubo comparación).
+ * `fresh === false` es «resultado de otro árbol / desactualizado».
  */
 export function scopeHealthNote(health: ScopeHealth): string | null {
   if (isCurrentClean(health)) return "limpio y al día";
+  const coverage = coverageNote(health);
+  const fresh = freshnessNote(health.fresh);
+  if (coverage && fresh) return `${coverage} · ${fresh}`;
+  return coverage ?? fresh;
+}
+
+function coverageNote(health: ScopeHealth): string | null {
   const codes = new Set(health.coverage.reasons.map((item) => item.code));
-  if (
-    health.coverage.state === "complete" &&
-    health.fresh !== true &&
-    health.counts.findings === 0 &&
-    (health.coverage.eligible ?? 0) > 0
-  ) {
-    return "sin hallazgos, no verificado";
-  }
-  if (
-    health.coverage.state === "unknown" &&
-    health.coverage.measured !== null &&
-    health.counts.findings === 0
-  ) {
-    return "medidos, sin hallazgos, universo no verificado";
-  }
   if (codes.has("legacy-global")) return "cobertura heredada";
+  if (health.coverage.state === "unknown") {
+    if (health.counts.findings === 0 && health.coverage.measured !== null) {
+      return "medidos, sin hallazgos, universo no verificado";
+    }
+    return "universo no verificado";
+  }
   if (codes.has("no-eligible")) return "nada que medir";
   if (codes.has("not-eligible")) return "fuera de lo medible";
   if (codes.has("not-found")) return "no está en el árbol";
   if (health.coverage.state === "partial") return "cobertura parcial";
   if (health.coverage.state === "unmeasured") return "sin medir";
+  return null;
+}
+
+function freshnessNote(fresh: boolean | null): string | null {
+  if (fresh === null) return "frescura sin verificar";
+  if (fresh === false) return "resultado de otro árbol / desactualizado";
   return null;
 }
 
@@ -447,7 +454,7 @@ function specialScope(
         reasons: [reason("unknown-paths")]
       };
     }
-  if (fileReason) {
+    if (fileReason) {
       return {
         state: "unmeasured",
         eligible: fileReason === "not-eligible" ? 0 : null,
@@ -621,7 +628,9 @@ function aggregate(artifact: LintArtifact, scope: HealthScope): CoverageHealth {
       if (inScope(scope, path)) measuredPaths.add(path);
     }
   }
-  const covered = [...eligiblePaths].every((path) => measuredPaths.has(path));
+  // Cada herramienta tiene que cubrir su propio universo. Que otra haya
+  // medido el mismo fichero no cierra la que no lo miró.
+  const covered = eachToolCoversOwnEligible(tools, scope);
   return {
     state: covered ? "complete" : "partial",
     eligible: eligiblePaths.size,
@@ -629,6 +638,20 @@ function aggregate(artifact: LintArtifact, scope: HealthScope): CoverageHealth {
     byTool,
     reasons: covered ? [] : collectReasons(names.map((name) => byTool[name]))
   };
+}
+
+function eachToolCoversOwnEligible(
+  tools: Record<string, ToolCoverage>,
+  scope: HealthScope
+): boolean {
+  for (const tool of Object.values(tools)) {
+    if (tool.outcome !== "enumerated" || tool.eligiblePaths === null) return false;
+    const measured = new Set(tool.measuredPaths);
+    for (const path of tool.eligiblePaths) {
+      if (inScope(scope, path) && !measured.has(path)) return false;
+    }
+  }
+  return true;
 }
 
 function unionMeasured(
