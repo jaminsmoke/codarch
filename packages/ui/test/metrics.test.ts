@@ -383,6 +383,6 @@ describe("las filas de la ficha del fichero", () => {
     );
 
     expect(rows[1]?.description).toBe("Líneas con al menos un token");
-    expect(rows[0]?.description).toContain("Combinación");
+    expect(rows[0]?.description).toContain("Riesgo histórico");
   });
 });
