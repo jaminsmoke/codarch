@@ -126,6 +126,7 @@ flowchart TD
 | [0103](0101-0110/0103-el-checksum-es-del-codigo.md) | El checksum es del código | 2026-10-31 | aceptado | M72–M74 |
 | [0104](0101-0110/0104-el-lint-se-lee-por-hallazgos.md) | El lint se lee por hallazgos; las reglas son de doc y config | 2026-10-31 | aceptado | M75 |
 | [0105](0101-0110/0105-las-reglas-de-doc-y-config.md) | Las reglas de doc y config | 2026-11-01 | aceptado | M76 |
+| [0106](0101-0110/0106-las-cuentas-y-las-rutas-del-lint.md) | Las cuentas y las rutas del lint salen de los mensajes | 2026-11-06 | aceptado | se aplica al leer |
 
 ## Las carpetas
 
@@ -141,6 +142,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0071-0080**: 0072, 0073, 0074, 0075, 0076, 0077, 0078, 0079, 0080
 - **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088, 0089, 0090
 - **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100
-- **0101-0110**: 0101, 0102, 0103, 0104, 0105
+- **0101-0110**: 0101, 0102, 0103, 0104, 0105, 0106
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
