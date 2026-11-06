@@ -30,10 +30,10 @@ export interface LintFileCount {
  * Las cuentas por fichero, tomadas de los mensajes.
  *
  * Es la misma fuente que `lintTotals` y `lintRules`: el riesgo de un fichero y
- * los totales de la hoja no pueden leer cifras distintas. Los campos `errors`
- * y `warnings` del artefacto son un resumen que se puede desincronizar con sus
- * mensajes —lo trae así una herramienta de fuera—, y entonces el mapa y la
- * ficha dirían números diferentes.
+ * los totales de la hoja no pueden leer cifras distintas. `readLintArtifact`
+ * ya reescribe `errors` y `warnings` desde los mensajes (ADR 0106); aquí se
+ * vuelve a contar para un artefacto que no pasó por el lector y para que el
+ * mapa no dependa del resumen declarado.
  */
 export function lintFileCounts(
   files: Readonly<Record<string, LintFile>>

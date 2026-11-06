@@ -263,6 +263,114 @@ describe("el artefacto del lint", () => {
     expect(() => canonicalLintPath("")).toThrow(LintError);
   });
 
+  it("regenera las cuentas desde los mensajes cuando el resumen declara 9/9", () => {
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "src/a.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [message()]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9, measured: 12 }
+    };
+
+    const read = readLintArtifact(raw);
+    expect(read?.files["src/a.ts"]).toMatchObject({ errors: 0, warnings: 1 });
+    expect(read?.files["src/a.ts"]?.messages).toHaveLength(1);
+    // `measured` es la cobertura global: no se reconstruye desde los mensajes.
+    expect(read?.summary).toEqual({
+      files: 1,
+      errors: 0,
+      warnings: 1,
+      messages: 1,
+      measured: 12
+    });
+    expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
+  });
+
+  it("un info es hallazgo y fichero, y no es error ni aviso", () => {
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "src/b.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [message({ severity: "info", rule: "no-console" })]
+        },
+        "src/a.ts": { errors: 4, warnings: 4, messages: [] }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    };
+
+    const read = readLintArtifact(raw);
+    // Sin mensajes no hay hallazgo: la clave declarada no se conserva.
+    expect(read?.files["src/a.ts"]).toBeUndefined();
+    expect(Object.keys(read?.files ?? {})).toEqual(["src/b.ts"]);
+    expect(read?.files["src/b.ts"]).toMatchObject({ errors: 0, warnings: 0 });
+    expect(read?.summary).toEqual({
+      files: 1,
+      errors: 0,
+      warnings: 0,
+      messages: 1
+    });
+    expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
+  });
+
+  it("un 1.0 y un 1.1 con cuentas desviadas se leen y la segunda lectura no cambia", () => {
+    const files = {
+      "src/a.ts": {
+        errors: 9,
+        warnings: 9,
+        messages: [message()]
+      }
+    };
+    const legacy = {
+      schemaVersion: "1.0",
+      meta: { checksum: "abc", tools: ["oxlint", "eslint"] },
+      files,
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    };
+    const previous = {
+      schemaVersion: "1.1",
+      meta: {
+        checksum: "abc",
+        tools: ["eslint"],
+        systems: [{ name: "eslint", config: null }]
+      },
+      files,
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    };
+
+    const readLegacy = readLintArtifact(legacy);
+    const readPrevious = readLintArtifact(previous);
+    expect(readLegacy?.schemaVersion).toBe(LINT_ARTIFACT_VERSION);
+    expect(readLegacy?.summary).toEqual({
+      files: 1,
+      errors: 0,
+      warnings: 1,
+      messages: 1
+    });
+    expect(readLegacy?.summary.measured).toBeUndefined();
+    expect(readLegacy?.meta.systems.map((system) => system.name)).toEqual([
+      "eslint",
+      "oxlint"
+    ]);
+    expect(readLegacy?.meta.checksum).toBe("abc");
+    expect(readPrevious?.summary.measured).toBeUndefined();
+    expect(readPrevious?.meta.tree).toBeUndefined();
+    expect(readPrevious?.files["src/a.ts"]?.warnings).toBe(1);
+    expect(readLintArtifact(JSON.parse(JSON.stringify(readLegacy)))).toEqual(
+      readLegacy
+    );
+    expect(readLintArtifact(JSON.parse(JSON.stringify(readPrevious)))).toEqual(
+      readPrevious
+    );
+  });
+
   it("se llama como un módulo del reporte, no como un cc.json", () => {
     // ADR 0100: `cc.json` es un formato que se abre fuera, y el lint no lo es.
     expect(LINT_FILE).toBe("lint.repmod.json");

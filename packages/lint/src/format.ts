@@ -1,4 +1,5 @@
 import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
+import { lintFileCounts, lintTotals } from "./rollup";
 
 /**
  * El artefacto del lint (ADR 0094).
@@ -19,6 +20,10 @@ import { LINT_FILE, md5Hex, stableStringify } from "@codarch/schema/browser";
  * 1.2 (ADR 0098) añade la procedencia de la medida: `meta.tree`, el checksum
  * del árbol que se midió, y `summary.measured`, cuántos ficheros llegaron a
  * mirarse. Sin ellos, «0 hallazgos» y «no se miró nada» eran el mismo fichero.
+ *
+ * Sigue en 1.2 (ADR 0106). No hay 1.3: las cuentas heredadas (`errors`,
+ * `warnings`, `summary.files`, `summary.messages`) se regeneran al leer desde
+ * los mensajes. El fichero no cambia de nombre.
  */
 export const LINT_ARTIFACT_VERSION = "1.2";
 
@@ -69,9 +74,17 @@ export interface LintMessage {
   message: string;
 }
 
-/** Lo que el lint dice de un fichero. */
+/**
+ * Lo que el lint dice de un fichero.
+ *
+ * `errors` y `warnings` son cuentas heredadas (artefactos 1.0–1.2). Al leer se
+ * regeneran desde `messages` (ADR 0106): un número declarado que no cuadra no
+ * manda. Un `info` no suma a ninguna de las dos; sigue siendo un mensaje.
+ */
 export interface LintFile {
+  /** Mensajes con severidad `error`. Derivado de `messages` al leer. */
   errors: number;
+  /** Mensajes con severidad `warn`. Derivado de `messages` al leer. */
   warnings: number;
   messages: LintMessage[];
 }
@@ -83,17 +96,32 @@ export interface LintFileResult {
 }
 
 export interface LintSummary {
-  /** Ficheros con al menos un mensaje. */
+  /**
+   * Ficheros con al menos un mensaje, de cualquier severidad.
+   *
+   * Al leer sale de los mensajes, no del número declarado. Un fichero solo con
+   * `info` cuenta. Un fichero sin mensajes no: los limpios no están en `files`.
+   */
   files: number;
+  /** Mensajes `error`. Derivado de los mensajes al leer. */
   errors: number;
+  /** Mensajes `warn`. Derivado de los mensajes al leer. Un `info` no cuenta. */
   warnings: number;
+  /**
+   * Todos los mensajes: errores, avisos e info.
+   *
+   * Es el nombre heredado de lo que `lintTotals` llama `findings`. Al leer se
+   * regenera; no es una cuarta severidad.
+   */
   messages: number;
   /**
-   * Ficheros que la herramienta llegó a mirar, con o sin hallazgos.
+   * Ficheros que la pasada llegó a mirar, con o sin hallazgos.
    *
-   * Es lo que distingue «medido y limpio» de «no se midió»: un artefacto con
-   * 494 medidos y 0 hallazgos dice que el repo está limpio. Falta en los
-   * artefactos 1.1 y anteriores, donde esa cifra no se guardaba.
+   * Es una cifra **global** de la pasada, no de una carpeta y no de los
+   * mensajes: los limpios no están en `files`, así que no se puede reconstruir.
+   * Al leer se conserva tal cual. Es lo que distingue «medido y limpio» de
+   * «no se midió». Falta en los artefactos 1.1 y anteriores. La cobertura no
+   * forma parte del contrato de cuentas (ADR 0106).
    */
   measured?: number;
 }
@@ -127,6 +155,10 @@ export interface LintArtifact {
  * escrito a mano no puede tumbar el mapa. Se comprueba la forma
  * entera y se devuelve una copia con los campos conocidos, para que quien lo
  * consuma no tenga que volver a mirar si lo que tiene delante es un objeto.
+ *
+ * Los mensajes son la única fuente de las cuentas. `errors`, `warnings` y el
+ * `summary` heredado se vuelven a calcular aquí; `summary.measured` no, porque
+ * es la cobertura global de la pasada. Leer dos veces el resultado da lo mismo.
  */
 export function readLintArtifact(input: unknown): LintArtifact | null {
   if (!isRecord(input)) return null;
@@ -147,12 +179,8 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
 
   const files = input.files;
   if (!isRecord(files)) return null;
-  const parsedFiles: Record<string, LintFile> = {};
-  for (const [file, value] of Object.entries(files)) {
-    const parsed = readLintFile(value);
-    if (!parsed) return null;
-    parsedFiles[file] = parsed;
-  }
+  const parsedFiles = readLintFiles(files);
+  if (!parsedFiles) return null;
 
   const summary = input.summary;
   if (
@@ -167,6 +195,8 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
   if (summary.measured !== undefined && !isCount(summary.measured)) return null;
   if (meta.tree !== undefined && !isText(meta.tree)) return null;
 
+  const regenerated = withRegeneratedCounts(parsedFiles);
+
   return {
     schemaVersion: LINT_ARTIFACT_VERSION,
     meta: {
@@ -175,15 +205,29 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
       systems,
       ...(meta.tree === undefined ? {} : { tree: meta.tree })
     },
-    files: parsedFiles,
-    summary: {
-      files: summary.files,
-      errors: summary.errors,
-      warnings: summary.warnings,
-      messages: summary.messages,
-      ...(summary.measured === undefined ? {} : { measured: summary.measured })
-    }
+    files: regenerated,
+    summary: summaryFromMessages(
+      regenerated,
+      summary.measured === undefined ? undefined : summary.measured
+    )
   };
+}
+
+/**
+ * Los ficheros del artefacto, con las cuentas todavía sin regenerar.
+ *
+ * Un fichero sin la forma heredada (`errors`, `warnings`, `messages`) invalida
+ * el artefacto entero: esos campos siguen siendo obligatorios en 1.0–1.2,
+ * aunque el número que traigan se tire al regenerar.
+ */
+function readLintFiles(files: Record<string, unknown>): Record<string, LintFile> | null {
+  const parsedFiles: Record<string, LintFile> = {};
+  for (const [file, value] of Object.entries(files)) {
+    const parsed = readLintFile(value);
+    if (!parsed) return null;
+    parsedFiles[file] = parsed;
+  }
+  return parsedFiles;
 }
 
 function readLintFile(value: unknown): LintFile | null {
@@ -429,6 +473,57 @@ function dedupe(messages: readonly LintMessage[]): LintMessage[] {
     unique.push(message);
   }
   return unique;
+}
+
+/**
+ * Cuentas de cada fichero, tomadas de sus mensajes.
+ *
+ * Los limpios —cero mensajes— salen del mapa: `summary.files` es «con
+ * hallazgos» y un fichero sin mensajes no lo es, aunque declarara errores.
+ * El orden de las claves es el de la ruta, para que la lectura sea estable.
+ */
+function withRegeneratedCounts(
+  files: Readonly<Record<string, LintFile>>
+): Record<string, LintFile> {
+  const kept: Record<string, LintFile> = {};
+  for (const path of Object.keys(files).sort(compareStrings)) {
+    const file = files[path];
+    if (!file || file.messages.length === 0) continue;
+    kept[path] = { errors: 0, warnings: 0, messages: file.messages };
+  }
+  const counts = lintFileCounts(kept);
+  for (const [path, file] of Object.entries(kept)) {
+    const count = counts[path];
+    file.errors = count?.errors ?? 0;
+    file.warnings = count?.warnings ?? 0;
+  }
+  return kept;
+}
+
+/**
+ * El `summary` heredado, contado con la misma agregación que la app.
+ *
+ * `messages` es `findings` (errores + avisos + info). `files` son los que
+ * tienen algún mensaje. `measured`, si viene, se copia: es global y no sale
+ * de los mensajes.
+ */
+function summaryFromMessages(
+  files: Record<string, LintFile>,
+  measured: number | undefined
+): LintSummary {
+  const totals = lintTotals({
+    schemaVersion: LINT_ARTIFACT_VERSION,
+    meta: { checksum: "", tools: [], systems: [] },
+    files,
+    summary: { files: 0, errors: 0, warnings: 0, messages: 0 }
+  });
+  return {
+    files: totals?.files ?? 0,
+    errors: totals?.errors ?? 0,
+    warnings: totals?.warnings ?? 0,
+    messages: totals?.findings ?? 0,
+    ...(measured === undefined ? {} : { measured })
+  };
 }
 
 function summarize(
