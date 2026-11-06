@@ -415,6 +415,92 @@ describe("el artefacto del lint", () => {
     expect(readLintArtifact(JSON.parse(JSON.stringify(read)))).toEqual(read);
   });
 
+  it("una ruta __proto__ sigue siendo un fichero con hallazgos", () => {
+    const written = createLintArtifact({
+      tools: ["eslint"],
+      files: [file("__proto__", [message()])]
+    });
+    expect(Object.hasOwn(written.files, "__proto__")).toBe(true);
+    expect(written.files["__proto__"]).toMatchObject({ errors: 0, warnings: 1 });
+    expect(written.summary).toMatchObject({ files: 1, warnings: 1, messages: 1 });
+
+    const raw = {
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        ["__proto__"]: {
+          errors: 9,
+          warnings: 9,
+          messages: [message()]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    };
+    const read = readLintArtifact(raw);
+    expect(Object.hasOwn(read?.files ?? {}, "__proto__")).toBe(true);
+    expect(read?.files["__proto__"]).toMatchObject({ errors: 0, warnings: 1 });
+    expect(read?.summary).toMatchObject({ files: 1, warnings: 1, messages: 1 });
+  });
+
+  it("une los mensajes de una colisión sin depender del spread", () => {
+    const first = Array.from({ length: 40 }, (_, index) =>
+      message({ message: `a-${index}`, line: index + 1 })
+    );
+    const second = Array.from({ length: 40 }, (_, index) =>
+      message({ message: `b-${index}`, line: index + 1, severity: "error" })
+    );
+    const read = readLintArtifact({
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "./src/a.ts": { errors: 0, warnings: 40, messages: first },
+        "src/a.ts": { errors: 40, warnings: 0, messages: second }
+      },
+      summary: { files: 2, errors: 40, warnings: 40, messages: 80 }
+    });
+
+    expect(read?.files["src/a.ts"]?.messages).toHaveLength(80);
+    expect(read?.summary.messages).toBe(80);
+    expect(read?.diagnostics?.[0]?.keys).toEqual(["./src/a.ts", "src/a.ts"]);
+  });
+
+  it("un aviso de colisión cuyas claves no canonizan a la ruta no se conserva", () => {
+    const written = createLintArtifact({
+      tools: ["eslint"],
+      files: [file("src/a.ts", [message()])]
+    });
+    const forged = readLintArtifact({
+      ...written,
+      diagnostics: [
+        { kind: "path-collision", path: "src/a.ts", keys: ["src/a.ts", "src/a.ts"] },
+        { kind: "path-collision", path: "src/a.ts", keys: ["src/b.ts", "src/a.ts"] },
+        {
+          kind: "path-collision",
+          path: "src/a.ts",
+          keys: ["./src/a.ts", "src/a.ts"]
+        }
+      ]
+    });
+
+    expect(forged?.diagnostics).toEqual([
+      { kind: "path-collision", path: "src/a.ts", keys: ["./src/a.ts", "src/a.ts"] }
+    ]);
+  });
+
+  it("el checksum leído es el del fichero, aunque las cuentas se regeneren", () => {
+    const read = readLintArtifact({
+      schemaVersion: "1.2",
+      meta: { checksum: "del-escritor", tools: ["eslint"], systems: [] },
+      files: {
+        "src/a.ts": { errors: 9, warnings: 9, messages: [message()] }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    });
+
+    expect(read?.meta.checksum).toBe("del-escritor");
+    expect(read?.summary.warnings).toBe(1);
+  });
+
   it("una ruta absoluta o con .. no es un artefacto, y el lector no lanza", () => {
     const base = {
       schemaVersion: "1.2",

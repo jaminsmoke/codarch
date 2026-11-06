@@ -129,7 +129,14 @@ export interface LintSummary {
 export interface LintArtifact {
   schemaVersion: typeof LINT_ARTIFACT_VERSION;
   meta: {
-    /** MD5 canónico de `tools` + `systems` + `files`. */
+    /**
+     * MD5 de `tools` + `systems` + `files` tal y como los escribió quien
+     * creó el artefacto.
+     *
+     * `readLintArtifact` no lo recalcula. Si al leer se canonizan rutas o se
+     * regeneran cuentas, este checksum sigue siendo el del fichero original y
+     * puede no coincidir con el objeto devuelto.
+     */
     checksum: string;
     /** Nombres de las herramientas que midieron, ordenados y sin repetir. */
     tools: string[];
@@ -276,14 +283,14 @@ function readLintFiles(files: Record<string, unknown>): {
     const group = groups.get(path);
     if (group) {
       group.keys.push(rawKey);
-      group.messages.push(...parsed.messages);
+      appendMessages(group.messages, parsed.messages);
     } else {
-      groups.set(path, { keys: [rawKey], messages: [...parsed.messages] });
+      groups.set(path, { keys: [rawKey], messages: parsed.messages.slice() });
     }
   }
 
   const collisions: LintPathCollision[] = [];
-  const parsedFiles: Record<string, LintFile> = {};
+  const parsedFiles = emptyFiles();
   for (const path of [...groups.keys()].sort(compareStrings)) {
     const group = groups.get(path);
     if (!group) continue;
@@ -399,7 +406,7 @@ export function createLintArtifact(input: {
     byPath.set(path, messages);
   }
 
-  const files: Record<string, LintFile> = {};
+  const files = emptyFiles();
   for (const path of [...byPath.keys()].sort(compareStrings)) {
     const messages = dedupe(byPath.get(path) ?? []).sort(compareMessages);
     if (messages.length === 0) continue;
@@ -578,14 +585,19 @@ function readPathCollision(value: unknown): LintPathCollision | null {
   if (!isRecord(value) || value.kind !== "path-collision") return null;
   if (typeof value.path !== "string" || !Array.isArray(value.keys)) return null;
   if (value.keys.length < 2 || !value.keys.every(isRawKey)) return null;
+  const keys = value.keys.filter(isRawKey);
+  if (new Set(keys).size !== keys.length) return null;
   let path: string;
   try {
     path = canonicalLintPath(value.path);
+    for (const key of keys) {
+      if (canonicalLintPath(key) !== path) return null;
+    }
   } catch (error) {
     if (error instanceof LintError) return null;
     throw error;
   }
-  return { kind: "path-collision", path, keys: value.keys.filter(isRawKey) };
+  return { kind: "path-collision", path, keys };
 }
 
 /**
@@ -599,24 +611,35 @@ function combineDiagnostics(
   stored: readonly LintPathCollision[],
   fresh: readonly LintPathCollision[]
 ): LintPathCollision[] {
-  const byPath = new Map<string, string[]>();
+  const byPath = new Map<string, { keys: string[]; seen: Set<string> }>();
   const order: string[] = [];
   for (const item of [...stored, ...fresh]) {
-    const keys = byPath.get(item.path);
-    if (!keys) {
-      byPath.set(item.path, [...item.keys]);
+    const group = byPath.get(item.path);
+    if (!group) {
+      byPath.set(item.path, { keys: item.keys.slice(), seen: new Set(item.keys) });
       order.push(item.path);
       continue;
     }
     for (const key of item.keys) {
-      if (!keys.includes(key)) keys.push(key);
+      if (group.seen.has(key)) continue;
+      group.seen.add(key);
+      group.keys.push(key);
     }
   }
   return order.sort(compareStrings).map((path) => ({
     kind: "path-collision" as const,
     path,
-    keys: byPath.get(path) ?? []
+    keys: byPath.get(path)?.keys ?? []
   }));
+}
+
+function appendMessages(target: LintMessage[], source: readonly LintMessage[]): void {
+  for (const message of source) target.push(message);
+}
+
+/** Un mapa de ficheros sin prototipo: `__proto__` es una ruta, no el prototipo. */
+function emptyFiles(): Record<string, LintFile> {
+  return Object.create(null) as Record<string, LintFile>;
 }
 
 function isRawKey(value: unknown): value is string {
@@ -633,7 +656,7 @@ function isRawKey(value: unknown): value is string {
 function withRegeneratedCounts(
   files: Readonly<Record<string, LintFile>>
 ): Record<string, LintFile> {
-  const kept: Record<string, LintFile> = {};
+  const kept = emptyFiles();
   for (const path of Object.keys(files).sort(compareStrings)) {
     const file = files[path];
     if (!file || file.messages.length === 0) continue;

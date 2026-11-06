@@ -38,7 +38,7 @@ export interface LintFileCount {
 export function lintFileCounts(
   files: Readonly<Record<string, LintFile>>
 ): Record<string, LintFileCount> {
-  const counts: Record<string, LintFileCount> = {};
+  const counts: Record<string, LintFileCount> = Object.create(null);
   for (const [path, file] of Object.entries(files)) {
     let errors = 0;
     let warnings = 0;
