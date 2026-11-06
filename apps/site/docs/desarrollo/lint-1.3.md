@@ -252,3 +252,7 @@ Eso, con `eligible > 0` y `fresh === true`, es limpio y al día. Si `fresh` es `
 ## Documentos
 
 La cobertura del resto es **por documento, no por regla**. Un documento entra en `eligiblePaths` y en `measuredPaths` aunque una regla no haya podido leer el frontmatter. Que el frontmatter falte o no se lea no es una revisión exhaustiva del texto: es un hallazgo de esa regla, y el documento sigue contando como medido. Una configuración o un asset no entra: nadie los juzgó.
+
+## El riesgo
+
+El índice no lee el artefacto entero. Lee `scopeHealth` de cada fichero y suma un término antes de gamma. La fórmula y los casos —`fresh` true, false y null, universo desconocido, no aplicable, no encontrado— están en [el riesgo](riesgo.md).

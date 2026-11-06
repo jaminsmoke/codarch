@@ -241,6 +241,54 @@ function freshnessNote(fresh: boolean | null): string | null {
   return null;
 }
 
+/** Cómo entra un ámbito en el riesgo. `na` y `not-found` no se colapsan. */
+export type LintApplicability = "applicable" | "na" | "not-found";
+
+/**
+ * La observación que el riesgo lee de un `scopeHealth` de fichero.
+ *
+ * Copia los campos; no calcula el índice. `not-found` gana a `na`. Un
+ * universo vacío (`eligible === 0`) o un motivo `not-eligible` /
+ * `no-eligible` es no aplicable. El resto es aplicable, aunque la
+ * cobertura sea desconocida: el cero no se inventa aquí.
+ */
+export function lintRiskView(health: ScopeHealth): {
+  fresh: boolean | null;
+  counts: LintCounts;
+  coverage: {
+    state: CoverageState;
+    eligible: number | null;
+    measured: number | null;
+    reasons: Reason[];
+  };
+  applicability: LintApplicability;
+  reason: string | null;
+} {
+  const codes = health.coverage.reasons.map((item) => item.code);
+  let applicability: LintApplicability = "applicable";
+  if (codes.includes("not-found")) applicability = "not-found";
+  else if (
+    codes.includes("not-eligible") ||
+    codes.includes("no-eligible") ||
+    health.coverage.eligible === 0
+  ) {
+    applicability = "na";
+  }
+  const first = health.coverage.reasons[0];
+  return {
+    fresh: health.fresh,
+    counts: { ...health.counts },
+    coverage: {
+      state: health.coverage.state,
+      eligible: health.coverage.eligible,
+      measured: health.coverage.measured,
+      reasons: health.coverage.reasons.map((item) => ({ ...item }))
+    },
+    applicability,
+    reason: first?.text ?? first?.code ?? null
+  };
+}
+
 /** El `summary` heredado, el mismo que el ámbito de proyecto. */
 export function summaryFromHealth(health: ScopeHealth): LintSummary {
   return {

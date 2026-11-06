@@ -16,6 +16,10 @@ override. La fuente es el lint que **tiene** el proyecto: se detecta su configur
 ejecuta con los del repo. El artefacto sube a 1.1 con `meta.systems` y se llama `.codarch/lint.cc.json`;
 `.codarch/lint.json` se sigue leyendo.
 
+**Enmienda ([ADR 0108](../0101-0110/0108-el-lint-suma-al-riesgo.md)):** el lint ya no reescala la base al 20 %.
+Suma un término antes de gamma, solo con la deuda fresca de cada fichero. Los pesos 0,40 · 0,256 · 0,144 · 0,20
+quedan como metadato de la ficha; el índice no los usa.
+
 ## Contexto
 
 El panel derecho tiene tres entradas —**Fichero**, **Carpeta** y **Cambios**— y el mapa pinta el

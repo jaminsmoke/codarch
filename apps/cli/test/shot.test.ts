@@ -21,7 +21,7 @@ afterEach(() => {
 });
 
 const snapshot = {
-  meta: { projectName: "capturas", apiVersion: "2.1" },
+  meta: { projectName: "capturas", apiVersion: "2.1", checksum: "shot-tree" },
   files: [
     {
       id: "root",
@@ -29,7 +29,8 @@ const snapshot = {
       type: "Folder",
       children: [
         { id: "a", name: "a.ts", type: "File" },
-        { id: "b", name: "b.ts", type: "File" }
+        { id: "b", name: "b.ts", type: "File" },
+        { id: "c", name: "c.ts", type: "File" }
       ]
     }
   ],
@@ -37,7 +38,10 @@ const snapshot = {
     metrics: {
       attributes: {
         a: { rloc: 100, complexity: 10, number_of_commits: 5 },
-        b: { rloc: 50, complexity: 5, number_of_commits: 3 }
+        // b queda por debajo del p95. Con dos ficheros el p95 es el menor,
+        // los dos saturan a 1 y el término aditivo no puede cambiar el color.
+        b: { rloc: 20, complexity: 2, number_of_commits: 1 },
+        c: { rloc: 80, complexity: 8, number_of_commits: 4 }
       }
     }
   }
@@ -45,14 +49,17 @@ const snapshot = {
 
 const dirty = createLintArtifact({
   tools: ["eslint"],
+  // El mismo checksum que el snapshot. Sin él, fresh es null y el PNG no cambia.
+  // Hacen falta hallazgos de sobra: tres errores se quedan en la misma banda de color.
+  tree: "shot-tree",
   files: [
     {
       path: "b.ts",
-      messages: [
-        { rule: "no-any", severity: "error", message: "un `any`" },
-        { rule: "no-any", severity: "error", message: "otro `any`" },
-        { rule: "no-any", severity: "error", message: "y otro" }
-      ]
+      messages: Array.from({ length: 40 }, (_, index) => ({
+        rule: "no-any",
+        severity: "error" as const,
+        message: `un any ${index}`
+      }))
     }
   ]
 });

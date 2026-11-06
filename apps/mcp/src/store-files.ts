@@ -3,10 +3,9 @@ import {
   CHURN_METRIC_CANDIDATES,
   COMPLEXITY_METRIC_CANDIDATES,
   firstMetric,
-  lintScores,
   riskScores
 } from "@codarch/metrics";
-import { lintFileCounts, type LintArtifact } from "@codarch/lint/browser";
+import { lintRiskView, scopeHealth, type LintArtifact } from "@codarch/lint/browser";
 import { compareStrings, metricValue } from "./store-shared";
 import type { StoreFile } from "./store-types";
 
@@ -72,16 +71,27 @@ export function buildFiles(
   }
   files.sort((left, right) => compareStrings(left.path, right.path));
 
-  // Con artefacto, la cuarta señal entra aunque la deuda sea cero (ADR 0094).
-  const lintByPath = lint ? lintScores(lintFileCounts(lint.files)) : null;
+  // Cada fichero mira su scopeHealth. Sin artefacto no hay vista: un fichero
+  // sin hallazgos no se convierte en deuda cero (ADR 0108).
+  const snapshot = {
+    treeHash: cc.meta.checksum ? cc.meta.checksum : null,
+    paths: files.map((file) => file.path)
+  };
   const scores = riskScores(
-    files.map((file) => ({
-      complexity: file.complexity,
-      churn: file.churn,
-      size: file.size,
-      ...(lintByPath ? { lint: lintByPath[file.path] ?? 0 } : {})
-    })),
-    { lint: lintByPath !== null }
+    files.map((file) => {
+      const signals = {
+        complexity: file.complexity,
+        churn: file.churn,
+        size: file.size
+      };
+      if (!lint) return signals;
+      return {
+        ...signals,
+        lintView: lintRiskView(
+          scopeHealth(lint, { kind: "file", path: file.path }, snapshot)
+        )
+      };
+    })
   );
   for (const [index, file] of files.entries()) {
     file.risk = scores[index] ?? 0;

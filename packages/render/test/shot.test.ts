@@ -132,11 +132,13 @@ describe("la captura del mapa", () => {
       severity: "error" as const,
       message: `un \`any\` numero ${index}`
     }));
+    const tree = "0123456789abcdef0123456789abcdef";
     const withLint = renderMapPng(
       buildRenderModel(fixture, {
         color: "risk",
         lint: createLintArtifact({
           tools: ["eslint"],
+          tree,
           files: [{ path: "src/only/b.ts", messages: errors }]
         })
       }),
@@ -144,19 +146,33 @@ describe("la captura del mapa", () => {
       200
     );
 
+    // Deuda fresca del mismo árbol: el color del riesgo cambia.
     expect(withLint.equals(plain)).toBe(false);
-    // Un artefacto sin hallazgos también cambia el mapa: el lint entra con su
-    // 20 % y a cero, así que el riesgo baja (ADR 0094).
+    // Sin árbol no hay comparación. La misma deuda no mueve un píxel.
     expect(
       renderMapPng(
         buildRenderModel(fixture, {
           color: "risk",
-          lint: createLintArtifact({ tools: ["eslint"], files: [] })
+          lint: createLintArtifact({
+            tools: ["eslint"],
+            files: [{ path: "src/only/b.ts", messages: errors }]
+          })
         }),
         200,
         200
       ).equals(plain)
-    ).toBe(false);
+    ).toBe(true);
+    // Cero hallazgos no reescala la base: el mapa queda como sin lint.
+    expect(
+      renderMapPng(
+        buildRenderModel(fixture, {
+          color: "risk",
+          lint: createLintArtifact({ tools: ["eslint"], tree, files: [] })
+        }),
+        200,
+        200
+      ).equals(plain)
+    ).toBe(true);
   });
 
   it("pinta distinto según el color pedido", () => {

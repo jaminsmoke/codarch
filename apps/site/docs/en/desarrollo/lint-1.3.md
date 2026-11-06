@@ -252,3 +252,7 @@ That, with `eligible > 0` and `fresh === true`, is clean and current. If `fresh`
 ## Documents
 
 Rest coverage is **per document, not per rule**. A document is in `eligiblePaths` and `measuredPaths` even when one rule could not read the frontmatter. Missing or unread frontmatter is not an exhaustive review of the text: it is a finding of that rule, and the document still counts as measured. A config file or an asset is not included: nobody judged them.
+
+## Risk
+
+The index does not read the whole artifact. It reads each file's `scopeHealth` and adds a term before gamma. The formula and the cases —`fresh` true, false and null, unknown universe, not applicable, not found— are in [risk](riesgo.md).

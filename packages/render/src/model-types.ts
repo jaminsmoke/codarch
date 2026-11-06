@@ -24,10 +24,10 @@ export interface RenderOptions {
   /** Título alternativo para la cabecera. */
   title?: string;
   /**
-   * El lint del proyecto, si lo hay (ADR 0094).
+   * El lint del proyecto, si lo hay (ADR 0094, ADR 0108).
    *
-   * Con él, el riesgo gana su cuarta señal; sin él, la cuenta es la de
-   * siempre. Las rutas del artefacto son las del repo, como las del snapshot.
+   * El riesgo lee `scopeHealth` de cada fichero. Sin artefacto, la cuenta es
+   * la de la base. Las rutas del artefacto son las del repo, como las del snapshot.
    */
   lint?: LintArtifact | null;
 }
