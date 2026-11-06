@@ -32,6 +32,7 @@ export {
   isCurrentClean,
   lintConfig,
   scopeHealth,
+  scopeHealthNote,
   summaryFromHealth
 } from "./health";
 export type {

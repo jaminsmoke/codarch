@@ -277,7 +277,9 @@ describe("la pasada que comparten lint y serve", () => {
     });
 
     expect(readProjectLint(root)?.meta.tree).toBe("107a6ce8");
-    expect(readProjectLint(root)?.summary.measured).toBe(4);
+    // Un 1.2 no deriva la cobertura: el `measured` declarado no se hereda.
+    expect(readProjectLint(root)?.summary.measured).toBeUndefined();
+    expect(readProjectLint(root)?.coverage?.legacy).toBe(true);
     // Un solo nombre (ADR 0100): el artefacto viejo no se lee a medias.
     expect(readProjectLint(legacy)).toBeNull();
     expect(readProjectLint(tempRepo({}))).toBeNull();

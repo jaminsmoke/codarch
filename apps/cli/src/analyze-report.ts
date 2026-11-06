@@ -40,8 +40,13 @@ export type LintLine =
         info: number;
         files: number;
       } | null;
-      /** Ficheros que el lint miró, si la herramienta lo dijo (ADR 0098). */
+      /**
+       * Ficheros que la cobertura deriva. Ausente si el número no se sabe:
+       * no es un cero.
+       */
       measured?: number;
+      /** Frase del contrato (`universo no verificado`, `cobertura parcial`…). */
+      note?: string;
     };
 
 /** Lo que el resumen cuenta, ya medido y sin nada que hacer. */
@@ -170,7 +175,8 @@ function lintLines(lint: LintLine): string[] {
     }`,
     tally(errors, "error", "errores"),
     tally(warnings, "aviso", "avisos"),
-    ...(info > 0 ? [tally(info, "info", "info")] : [])
+    ...(info > 0 ? [tally(info, "info", "info")] : []),
+    ...(lint.note ? [lint.note] : [])
   ].join(" · ");
   return [field("lint", `${lint.path} (${formatBytes(lint.bytes)}) · ${counts}`)];
 }

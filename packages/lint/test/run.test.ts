@@ -77,8 +77,42 @@ describe("runLint", () => {
       errors: 2,
       warnings: 1,
       messages: 3,
-      // Dos ficheros vistos entre las dos herramientas (ADR 0098).
-      measured: 2
+      // Solo ESLint enumera. oxlint guarda el hallazgo y no aporta medidos.
+      measured: 1
+    });
+    expect(result.artifact?.coverage?.tools.eslint).toMatchObject({
+      outcome: "enumerated",
+      eligiblePaths: null
+    });
+    expect(result.artifact?.coverage?.tools.oxlint?.outcome).toBe("unknown");
+  });
+
+  it("ESLint guarda el fichero limpio en la cobertura y no en files", async () => {
+    const result = await runLint({
+      root,
+      tools: [eslint],
+      run: runner({
+        [eslint.command]: {
+          stdout: JSON.stringify([
+            { filePath: "/repo/src/a.ts", messages: [] },
+            {
+              filePath: "/repo/src/b.ts",
+              messages: [
+                { ruleId: "no-var", severity: 2, message: "Unexpected var", line: 1, column: 1 }
+              ]
+            }
+          ]),
+          code: 1
+        }
+      })
+    });
+
+    expect(Object.keys(result.artifact?.files ?? {})).toEqual(["src/b.ts"]);
+    expect(result.artifact?.summary.measured).toBe(2);
+    expect(result.artifact?.coverage?.tools.eslint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: null
     });
   });
 
@@ -100,6 +134,10 @@ describe("runLint", () => {
       error: "no se encontró oxlint"
     });
     expect(result.artifact?.meta.tools).toEqual(["eslint"]);
+    expect(result.artifact?.coverage?.tools.oxlint).toMatchObject({
+      outcome: "missing"
+    });
+    expect(result.artifact?.coverage?.tools.eslint?.outcome).toBe("enumerated");
   });
 
   it("un JSON ilegible no entra en el artefacto, pero el código de salida se cuenta", async () => {
@@ -205,9 +243,11 @@ describe("runLint", () => {
       files: 2,
       errors: 2,
       warnings: 0,
-      messages: 2,
-      measured: 2
+      messages: 2
     });
+    expect(result.artifact?.summary.measured).toBeUndefined();
+    expect(result.artifact?.coverage?.tools.biome?.outcome).toBe("unknown");
+    expect(result.artifact?.coverage?.tools.ruff?.outcome).toBe("unknown");
   });
 
   it("lee el XML de Checkstyle", async () => {
@@ -236,6 +276,11 @@ describe("runLint", () => {
     expect(result.artifact?.files["src/A.java"]?.messages).toEqual([
       { rule: "LineLength", severity: "error", line: 2, column: 1, message: "Mal formato." }
     ]);
+    expect(result.artifact?.coverage?.tools.checkstyle).toMatchObject({
+      outcome: "enumerated",
+      measuredPaths: ["src/A.java"],
+      eligiblePaths: null
+    });
     expect(result.artifact?.summary).toEqual({
       files: 1,
       errors: 1,

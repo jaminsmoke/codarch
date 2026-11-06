@@ -203,6 +203,37 @@ export function isCurrentClean(health: ScopeHealth): boolean {
   );
 }
 
+/**
+ * Frase corta para el CLI. La UI traduce los códigos; aquí solo está el
+ * texto que el contrato nombra para no dejar el estado en un número.
+ */
+export function scopeHealthNote(health: ScopeHealth): string | null {
+  if (isCurrentClean(health)) return "limpio y al día";
+  const codes = new Set(health.coverage.reasons.map((item) => item.code));
+  if (
+    health.coverage.state === "complete" &&
+    health.fresh !== true &&
+    health.counts.findings === 0 &&
+    (health.coverage.eligible ?? 0) > 0
+  ) {
+    return "sin hallazgos, no verificado";
+  }
+  if (
+    health.coverage.state === "unknown" &&
+    health.coverage.measured !== null &&
+    health.counts.findings === 0
+  ) {
+    return "medidos, sin hallazgos, universo no verificado";
+  }
+  if (codes.has("legacy-global")) return "cobertura heredada";
+  if (codes.has("no-eligible")) return "nada que medir";
+  if (codes.has("not-eligible")) return "fuera de lo medible";
+  if (codes.has("not-found")) return "no está en el árbol";
+  if (health.coverage.state === "partial") return "cobertura parcial";
+  if (health.coverage.state === "unmeasured") return "sin medir";
+  return null;
+}
+
 /** El `summary` heredado, el mismo que el ámbito de proyecto. */
 export function summaryFromHealth(health: ScopeHealth): LintSummary {
   return {
@@ -646,31 +677,41 @@ function toolHealthMap(
 }
 
 function toolHealth(tool: ToolCoverage, scope: HealthScope): ToolHealth {
-  if (tool.outcome === "failed") {
-    return {
-      state: "unmeasured",
-      eligible: null,
-      measured: null,
-      reasons: tool.reasons.length > 0 ? tool.reasons : [reason("tool-failed")]
-    };
+  switch (tool.outcome) {
+    case "failed":
+      return {
+        state: "unmeasured",
+        eligible: null,
+        measured: null,
+        reasons: tool.reasons.length > 0 ? tool.reasons : [reason("tool-failed")]
+      };
+    case "missing":
+      return {
+        state: "unmeasured",
+        eligible: null,
+        measured: null,
+        reasons: tool.reasons.length > 0 ? tool.reasons : [reason("tool-missing")]
+      };
+    case "unknown":
+      return {
+        state: "unknown",
+        eligible: null,
+        measured: null,
+        reasons: tool.reasons.length > 0 ? tool.reasons : [reason("unknown-eligibility")]
+      };
+    case "enumerated":
+      return enumeratedHealth(tool, scope);
+    default: {
+      const unreachable: never = tool;
+      return unreachable;
+    }
   }
-  if (tool.outcome === "missing") {
-    return {
-      state: "unmeasured",
-      eligible: null,
-      measured: null,
-      reasons: tool.reasons.length > 0 ? tool.reasons : [reason("tool-missing")]
-    };
-  }
-  if (tool.outcome === "unknown") {
-    return {
-      state: "unknown",
-      eligible: null,
-      measured: null,
-      reasons: tool.reasons.length > 0 ? tool.reasons : [reason("unknown-eligibility")]
-    };
-  }
+}
 
+function enumeratedHealth(
+  tool: Extract<ToolCoverage, { outcome: "enumerated" }>,
+  scope: HealthScope
+): ToolHealth {
   const measuredSet = new Set<string>();
   for (const path of tool.measuredPaths) {
     if (inScope(scope, path)) measuredSet.add(path);
@@ -697,7 +738,8 @@ function toolHealth(tool: ToolCoverage, scope: HealthScope): ToolHealth {
       reasons: [reason("no-eligible")]
     };
   }
-  const covered = [...eligibleIn].every((path) => new Set(tool.measuredPaths).has(path));
+  const measuredPaths = new Set(tool.measuredPaths);
+  const covered = [...eligibleIn].every((path) => measuredPaths.has(path));
   return {
     state: covered ? "complete" : "partial",
     eligible,

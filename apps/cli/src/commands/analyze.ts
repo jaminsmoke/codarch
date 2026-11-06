@@ -24,6 +24,8 @@ import {
 import type { CcJson } from "@codarch/schema";
 import {
   lintTotals,
+  scopeHealth,
+  scopeHealthNote,
   type LintArtifact,
   type LintProcessRunner
 } from "@codarch/lint";
@@ -447,7 +449,8 @@ function restFacts(
 function lintFacts(lint: LintMeasure): LintLine {
   if (lint.kind !== "measured") return lint;
   const totals = lintTotals(lint.artifact);
-  const measured = lint.artifact.summary.measured;
+  const health = scopeHealth(lint.artifact, { kind: "project", path: "" });
+  const note = scopeHealthNote(health);
   return {
     kind: "measured",
     path: lint.path,
@@ -460,7 +463,8 @@ function lintFacts(lint: LintMeasure): LintLine {
           files: totals.files
         }
       : null,
-    ...(measured === undefined ? {} : { measured })
+    ...(health.coverage.measured === null ? {} : { measured: health.coverage.measured }),
+    ...(note ? { note } : {})
   };
 }
 

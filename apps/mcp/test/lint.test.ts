@@ -155,7 +155,15 @@ describe("el lint del proyecto", () => {
 
     const without = lintStore(null);
     expect(explainModule(without, { path: "src/a.ts" }).lint).toBeNull();
+    expect(explainModule(without, { path: "src/a.ts" }).scopeHealth).toBeNull();
     expect(explainModule(without, { path: "src" }).lint).toBeNull();
+    expect(file.scopeHealth?.counts).toMatchObject({
+      errors: 1,
+      warnings: 1,
+      findings: 2,
+      filesWithFindings: 1
+    });
+    expect(file.scopeHealth?.messages).toHaveLength(2);
   });
 
   it("lee los sistemas, sus reglas activas y los hallazgos", () => {
@@ -184,9 +192,19 @@ describe("el lint del proyecto", () => {
       files: 2,
       errors: 1,
       warnings: 2,
-      messages: 3,
-      measured: 2
+      messages: 3
     });
+    expect(report.config?.tools).toEqual(["eslint", "ruff"]);
+    expect(report.health?.counts).toMatchObject({
+      errors: 1,
+      warnings: 2,
+      findings: 3,
+      filesWithFindings: 2
+    });
+    expect(report.affectedFiles.map((file) => file.path)).toEqual([
+      "src/a.ts",
+      "src/domain/c.ts"
+    ]);
     expect(report.scope).toBe("");
     expect(report.total).toBe(3);
     expect(report.files).toBe(2);
@@ -233,8 +251,21 @@ describe("el lint del proyecto", () => {
       errors: 99,
       warnings: 0,
       messages: 99,
-      // La cobertura sí se conserva: no se puede recontar desde los mensajes.
-      measured: 2
+      measured: 99
+    };
+    broken.coverage = {
+      tools: {
+        eslint: {
+          outcome: "enumerated",
+          measuredPaths: ["src/a.ts", "src/domain/c.ts"],
+          eligiblePaths: null
+        },
+        ruff: {
+          outcome: "unknown",
+          eligiblePaths: null,
+          reasons: [{ code: "unknown-eligibility" }]
+        }
+      }
     };
 
     const report = getLintReport(lintStore(broken));
@@ -243,8 +274,10 @@ describe("el lint del proyecto", () => {
       errors: 1,
       warnings: 2,
       messages: 3,
+      // Sale de la enumeración de ESLint, no del 99 declarado.
       measured: 2
     });
+    expect(report.health?.coverage.state).toBe("partial");
   });
 
   it("recorta los hallazgos sin perder el total", () => {
