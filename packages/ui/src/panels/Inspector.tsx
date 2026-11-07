@@ -51,6 +51,7 @@ export function Inspector({
   structure,
   chain,
   lint,
+  docsLint,
   migration,
   showCode = true,
   rulesMode = false,
@@ -73,6 +74,11 @@ export function Inspector({
   chain: SymbolChain | null;
   /** El lint del proyecto, que se lee por hallazgos (ADR 0104). */
   lint: LintArtifact | null;
+  /**
+   * El lint de documentos. Si viene —aunque sea `null`—, la ficha de código
+   * junta los dos orígenes. En el mapa del resto no se pintan hallazgos.
+   */
+  docsLint?: LintArtifact | null;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
   /**
@@ -165,15 +171,18 @@ export function Inspector({
           onSelectPath={onSelectPath}
         />
       ) : null}
-      <LintSection
-        id="file-lint"
-        artifact={lint}
-        folder={file.path}
-        filePath={file.path}
-        title={rulesMode ? "Reglas" : "Lint"}
-        kind={rulesMode ? "rules" : "lint"}
-        snapshot={healthSnapshot(model)}
-      />
+      {rulesMode ? null : (
+        <LintSection
+          id="file-lint"
+          artifact={lint}
+          artifacts={docsLint !== undefined ? [lint, docsLint] : undefined}
+          folder={file.path}
+          filePath={file.path}
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
+        />
+      )}
       {showCode ? (
         <>
           <SymbolsSection

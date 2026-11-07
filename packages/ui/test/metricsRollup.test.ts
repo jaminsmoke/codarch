@@ -323,12 +323,11 @@ describe("la ficha del proyecto", () => {
         onSelectFolder: () => {}
       })
     );
-    const lintAt = markup.indexOf("section-lint");
-    expect(lintAt).toBeGreaterThan(0);
-    expect(markup.slice(0, lintAt)).not.toContain("Sin medir");
-    expect(markup.slice(lintAt)).not.toContain("sin medir");
-    expect(markup.slice(lintAt)).toContain("3 errores");
-    expect(markup).toContain(">Reglas<");
+    expect(markup).not.toContain("section-lint");
+    expect(markup).not.toContain(">Reglas<");
+    expect(markup).not.toContain("3 errores");
+    expect(markup).not.toContain("Unexpected console");
+    expect(markup).not.toContain("Sin medir");
   });
 });
 

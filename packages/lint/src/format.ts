@@ -833,6 +833,7 @@ function readReasons(value: unknown): Reason[] | null {
 function isReasonCode(value: unknown): value is Reason["code"] {
   return (
     value === "legacy-global" ||
+    value === "legacy-version" ||
     value === "tool-failed" ||
     value === "tool-missing" ||
     value === "unknown-eligibility" ||

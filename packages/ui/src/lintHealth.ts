@@ -23,6 +23,7 @@ import { formatCompact, type RenderModel } from "@codarch/render/browser";
 const REASON_TEXT: Record<ReasonCode, string> = {
   "legacy-global":
     "El artefacto es anterior a la cobertura por herramienta: no se sabe qué se midió.",
+  "legacy-version": "Medido con una versión anterior.",
   "tool-failed": "Una herramienta falló y no llegó a medir.",
   "tool-missing": "Falta una herramienta declarada: no se midió.",
   "unknown-eligibility": "No se sabe qué ficheros eran elegibles.",

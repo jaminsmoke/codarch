@@ -91,6 +91,11 @@ describe("la configuración del lint", () => {
             { id: "eqeqeq", severity: "error" },
             { id: "no-var", severity: "warn" }
           ],
+          activeRules: [
+            { id: "eqeqeq", severity: "error" },
+            { id: "no-var", severity: "warn" }
+          ],
+          countState: "known-complete",
           note: "resuelto con --print-config"
         }
       ]
@@ -129,6 +134,7 @@ describe("la configuración del lint", () => {
     expect(config).not.toContain("1 error");
     expect(config).not.toContain("src/a.ts");
     expect(config).not.toContain("Unexpected console");
+    expect(config).not.toContain("collapsible-count");
 
     expect(findings).toContain("src/a.ts");
     expect(findings).toContain("1 error");
@@ -264,5 +270,68 @@ describe("la entrada Docs y config", () => {
     expect(markup).not.toContain("lint-count-error");
     expect(markup).not.toContain("1 error");
     expect(markup).not.toContain("Medido y limpio");
+  });
+
+  it("oxlint sin enumerar no se pinta como cero reglas, y los hallazgos no entran", () => {
+    const oxlint: LintArtifact = {
+      schemaVersion: "1.3",
+      domain: "code",
+      meta: {
+        checksum: "abc",
+        tools: ["oxlint"],
+        systems: [
+          {
+            name: "oxlint",
+            config: null,
+            note: "corre sus correcciones por defecto; no se enumeran"
+          }
+        ]
+      },
+      files: {
+        "src/a.ts": {
+          errors: 1,
+          warnings: 0,
+          messages: [
+            { rule: "no-var", severity: "error", message: "Unexpected var", line: 4 }
+          ]
+        }
+      },
+      summary: { files: 1, errors: 1, warnings: 0, messages: 1 }
+    };
+    const docs: LintArtifact = {
+      schemaVersion: "1.3",
+      domain: "docs",
+      meta: {
+        checksum: "def",
+        tools: ["codarch"],
+        systems: [{ name: "codarch", config: null }]
+      },
+      files: {
+        "docs/nota.md": {
+          errors: 1,
+          warnings: 0,
+          messages: [
+            {
+              rule: "doc/broken-link",
+              severity: "error",
+              message: "el enlace no llega"
+            }
+          ]
+        }
+      },
+      summary: { files: 1, errors: 1, warnings: 0, messages: 1 }
+    };
+    const markup = sheet({ rest: true, codeLint: oxlint, docsLint: docs });
+
+    expect(markup).toContain("No se sabe cuántas reglas hay activas.");
+    expect(markup).toContain("no se enumeran");
+    expect(markup).not.toContain("0 reglas");
+    expect(markup).toContain("doc/broken-link");
+    expect(markup).toContain("doc/orphan");
+    expect(markup).not.toContain("el enlace no llega");
+    expect(markup).not.toContain("docs/nota.md");
+    expect(markup).not.toContain("Unexpected var");
+    expect(markup).not.toContain("src/a.ts");
+    expect(markup).not.toContain("collapsible-count");
   });
 });

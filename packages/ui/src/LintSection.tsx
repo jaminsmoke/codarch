@@ -1,5 +1,16 @@
-import type { LintArtifact, LintMessage, LintSeverity } from "@codarch/lint/browser";
+import type {
+  LintArtifact,
+  LintDomain,
+  LintMessage,
+  LintSeverity,
+  ScopeHealth
+} from "@codarch/lint/browser";
 import type { HealthScope, HealthSnapshot } from "@codarch/lint/browser";
+import {
+  scopeHealthMerged,
+  type MergedScopeHealth,
+  type ScopedFinding
+} from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
 import { healthCopy, healthOf, healthSummary } from "./lintHealth";
@@ -68,6 +79,50 @@ function countsSummary(totals: {
   ).join(" · ");
 }
 
+function mergedAsScope(health: MergedScopeHealth): ScopeHealth {
+  return {
+    domain: "code",
+    scope: health.scope,
+    coverage: health.coverage,
+    fresh: health.fresh,
+    counts: health.counts,
+    affectedFiles: [],
+    messages: []
+  };
+}
+
+function domainLabel(domain: LintDomain): string {
+  switch (domain) {
+    case "code":
+      return "código";
+    case "docs":
+      return "documentos";
+    default: {
+      const unexpected: never = domain;
+      return unexpected;
+    }
+  }
+}
+
+function mapLabel(map: ScopedFinding["anchor"]["map"]): string {
+  switch (map) {
+    case "code":
+      return "mapa de código";
+    case "rest":
+      return "mapa de documentos";
+    default: {
+      const unexpected: never = map;
+      return unexpected;
+    }
+  }
+}
+
+function originLabel(finding: { domain: LintDomain; tool: string; inferred: boolean }): string {
+  return `${domainLabel(finding.domain)} · ${finding.tool}${
+    finding.inferred ? " · inferida" : ""
+  }`;
+}
+
 /** Dónde está un mensaje, visible: línea o línea:columna. */
 function messageWhere(line: number | undefined, column: number | undefined): string {
   if (line == null) return "sin línea";
@@ -112,6 +167,48 @@ function FileFindings({ messages }: { messages: readonly LintMessage[] }) {
       {messages.length > shown.length ? (
         <p className="muted tiny">
           y {plural(messages.length - shown.length, "hallazgo", "hallazgos")} más.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Los mensajes combinados: cada uno dice su dominio, su herramienta y su mapa. */
+function MergedFindings({ findings }: { findings: readonly ScopedFinding[] }) {
+  if (findings.length === 0) return null;
+  const shown = findings.slice(0, FINDING_ROWS);
+  return (
+    <div className="lint-findings">
+      <GroupHead
+        label="Hallazgos"
+        summary={plural(findings.length, "hallazgo", "hallazgos")}
+      />
+      <div className="lint-message-list" role="group" aria-label="Hallazgos de lint">
+        {shown.map((finding, index) => {
+          const where = messageWhere(finding.line, finding.column);
+          const origin = originLabel(finding);
+          return (
+            <div
+              key={`${finding.domain}-${finding.path}-${finding.ruleId}-${finding.line ?? 0}-${index}`}
+              className="lint-message"
+              data-lint-map={finding.anchor.map}
+              data-lint-path={finding.anchor.path}
+              title={`${origin} · ${finding.ruleId} · ${where} · ${mapLabel(finding.anchor.map)} · ${finding.message}`}
+            >
+              <SeverityDot severity={finding.severity} />
+              <span className="lint-message-origin">{origin}</span>
+              <span className="lint-message-rule" title={finding.ruleId}>
+                {finding.ruleId}
+              </span>
+              <span className="mono lint-message-line">{where}</span>
+              <span className="lint-message-text">{finding.message}</span>
+            </div>
+          );
+        })}
+      </div>
+      {findings.length > shown.length ? (
+        <p className="muted tiny">
+          y {plural(findings.length - shown.length, "hallazgo", "hallazgos")} más.
         </p>
       ) : null}
     </div>
@@ -178,6 +275,68 @@ function AffectedFiles({
   );
 }
 
+/** Ficheros del ámbito combinado: dominio, herramienta y el mapa del nodo. */
+function MergedAffected({
+  files,
+  onSelectPath
+}: {
+  files: MergedScopeHealth["affectedFiles"];
+  onSelectPath?: (path: string) => void;
+}) {
+  if (files.length === 0) return null;
+  return (
+    <div className="lint-findings">
+      <GroupHead
+        label="Ficheros con hallazgos"
+        summary={plural(files.length, "fichero", "ficheros")}
+      />
+      <div className="lint-file-list" role="group" aria-label="Ficheros con hallazgos">
+        {files.map((file) => {
+          const origin = originLabel(file);
+          const spoken = `${origin} · ${mapLabel(file.anchor.map)} · ${SEVERITIES.map(
+            (severity) => severityText(severityCount(file.counts, severity), severity)
+          ).join(" · ")}`;
+          const body = (
+            <>
+              <span className="mono lint-file-path" title={file.path}>
+                {file.path}
+              </span>
+              <span className="lint-message-origin">{origin}</span>
+              <SeverityCounts counts={file.counts} />
+            </>
+          );
+          if (!onSelectPath) {
+            return (
+              <div
+                key={`${file.domain}-${file.path}-${file.tool}`}
+                className="lint-file-row"
+                data-lint-map={file.anchor.map}
+                data-lint-path={file.anchor.path}
+                title={spoken}
+              >
+                {body}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={`${file.domain}-${file.path}-${file.tool}`}
+              type="button"
+              className="lint-file-row"
+              data-lint-map={file.anchor.map}
+              data-lint-path={file.anchor.path}
+              title={`${file.path} · ${spoken}`}
+              onClick={() => onSelectPath(file.path)}
+            >
+              {body}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /** Lo que hay que decir cuando no se midió. Sin consejo de configuración. */
 function NotMeasured({
   kind,
@@ -214,6 +373,7 @@ function NotMeasured({
 export function LintSection({
   id,
   artifact,
+  artifacts,
   folder,
   filePath,
   snapshot,
@@ -223,6 +383,11 @@ export function LintSection({
 }: {
   id: string;
   artifact: LintArtifact | null;
+  /**
+   * Los dos orígenes, cuando la vista de código los junta. Si viene, la
+   * sección lee `scopeHealthMerged` y no vuelve a sumar por su cuenta.
+   */
+  artifacts?: readonly (LintArtifact | null)[];
   folder: string;
   /** El fichero, cuando la ficha es de uno: enseña sus mensajes. */
   filePath?: string;
@@ -240,9 +405,10 @@ export function LintSection({
     : folder === ""
       ? { kind: "project", path: "" }
       : { kind: "folder", path: folder };
-  const health = healthOf(artifact, scope, snapshot);
+  const merged = artifacts ? scopeHealthMerged(artifacts, scope, snapshot) : null;
+  const health = merged ? mergedAsScope(merged) : healthOf(artifact, scope, snapshot);
   const findings = health.counts.findings;
-  const headline = healthSummary(health);
+  const headline = merged?.clean ? "limpio y al día" : healthSummary(health);
   const summary = headline || countsSummary(health.counts);
   const showCounts = health.coverage.state !== "unmeasured" || findings > 0;
 
@@ -259,7 +425,9 @@ export function LintSection({
           <p className="lint-health-counts">
             <SeverityCounts counts={health.counts} />
           </p>
-          <p className="muted tiny lint-scope-note">{healthCopy(health)}</p>
+          <p className="muted tiny lint-scope-note">
+            {merged?.clean ? "Limpio y al día." : healthCopy(health)}
+          </p>
         </div>
       ) : (
         <NotMeasured kind={kind} detail={healthCopy(health)} />
@@ -271,10 +439,18 @@ export function LintSection({
         </p>
       ) : null}
       {findings > 0 && scope.kind === "file" ? (
-        <FileFindings messages={health.messages} />
+        merged ? (
+          <MergedFindings findings={merged.findings} />
+        ) : (
+          <FileFindings messages={health.messages} />
+        )
       ) : null}
       {findings > 0 && scope.kind !== "file" ? (
-        <AffectedFiles files={health.affectedFiles} onSelectPath={onSelectPath} />
+        merged ? (
+          <MergedAffected files={merged.affectedFiles} onSelectPath={onSelectPath} />
+        ) : (
+          <AffectedFiles files={health.affectedFiles} onSelectPath={onSelectPath} />
+        )
       ) : null}
     </CollapsibleSection>
   );

@@ -40,6 +40,7 @@ export function FolderPanel({
   folder,
   model,
   lint,
+  docsLint,
   rulesMode = false,
   changes,
   metricTitle,
@@ -53,6 +54,8 @@ export function FolderPanel({
   model: RenderModel | null;
   /** El lint del código, o las reglas del resto en ese mapa (ADR 0094 · ADR 0105). */
   lint: LintArtifact | null;
+  /** El lint de documentos, para juntarlo en la vista de código. */
+  docsLint?: LintArtifact | null;
   /** En el resto: sección Reglas y sin bloque de lint en métricas (ADR 0105). */
   rulesMode?: boolean;
   /** Los ficheros del cambio, para contar los de esta carpeta (ADR 0092). */
@@ -214,13 +217,14 @@ export function FolderPanel({
         </CollapsibleSection>
       ) : null}
 
-      {model ? (
+      {model && !rulesMode ? (
         <LintSection
           id="folder-lint"
           artifact={lint}
+          artifacts={docsLint !== undefined ? [lint, docsLint] : undefined}
           folder={folder.path}
-          title={rulesMode ? "Reglas" : "Lint"}
-          kind={rulesMode ? "rules" : "lint"}
+          title="Lint"
+          kind="lint"
           snapshot={healthSnapshot(model)}
           onSelectPath={onSelectPath}
         />

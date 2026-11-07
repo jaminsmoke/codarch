@@ -51,16 +51,24 @@ function ConfigBody({ config }: { config: LintConfigView }) {
               {system.note ? (
                 <p className="muted tiny lint-system-note">{system.note}</p>
               ) : null}
-              {system.rules.length > 0 ? (
+              {system.countState === "unknown" ? (
+                <p className="muted tiny lint-rule-count">
+                  No se sabe cuántas reglas hay activas.
+                </p>
+              ) : system.activeRules.length > 0 ? (
                 <ul className="lint-config-rules">
-                  {system.rules.map((rule) => (
+                  {system.activeRules.map((rule) => (
                     <li key={rule.id} className="lint-config-rule">
                       <span className="lint-config-id">{rule.id}</span>
                       <span className="lint-config-sev">{rule.severity}</span>
                     </li>
                   ))}
                 </ul>
-              ) : null}
+              ) : (
+                <p className="muted tiny lint-rule-count">
+                  La configuración no activa ninguna regla.
+                </p>
+              )}
             </li>
           ))}
         </ul>
@@ -82,18 +90,18 @@ export function LintConfigSection({
   const config = readLintConfig(artifact);
   const summary = !config
     ? "sin artefacto"
-    : config.systems.length === 0
-      ? "sin sistemas"
-      : `${config.systems.length} ${
-          config.systems.length === 1 ? "sistema" : "sistemas"
-        }`;
+    : config.tools.length > 0
+      ? config.tools.join(" · ")
+      : config.systems.length > 0
+        ? "catálogo"
+        : "sin sistemas";
 
   return (
     <CollapsibleSection
       id={id}
       title={DOMAIN_TITLE[domain]}
       className={`panel-block section-lint-config section-lint-config-${domain}`}
-      count={config?.systems.length ?? 0}
+      count={undefined}
       summary={summary}
     >
       {config ? (

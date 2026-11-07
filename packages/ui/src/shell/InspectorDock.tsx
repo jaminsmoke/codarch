@@ -10,7 +10,9 @@ import {
   inspectorLabel,
   type InspectorLintMarks
 } from "../InspectorBar";
-import { lintBarMark, lintTotals } from "../lintRollup";
+import { scopeHealthMerged } from "@codarch/lint/browser";
+import { healthSnapshot } from "../lintHealth";
+import { lintBarMark } from "../lintRollup";
 import { toggleInspector, type InspectorTab } from "../viewState";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
@@ -74,21 +76,36 @@ export function InspectorDock({
     closeFile();
   };
 
-  // En el mapa del resto el punto lee las reglas (ADR 0105); en el del código,
-  // el lint. Sin medir o limpio: sin punto.
+  // En Código el punto junta los dos orígenes. En Docs y config no hay
+  // hallazgos: el catálogo vive en la hoja de herramientas.
   const rulesMode = state.map === "rest";
-  const sectionLint = rulesMode ? state.restLint : state.lint;
-  const markKind = rulesMode ? "reglas" : "lint";
+  const sectionLint = state.lint;
+  const docsLint = rulesMode ? undefined : state.restLint;
+  const snapshot = healthSnapshot(view.model);
+  const markOf = (kind: "file" | "folder" | "project", path: string) => {
+    if (rulesMode) return null;
+    const health = scopeHealthMerged(
+      [state.lint, state.restLint],
+      { kind, path },
+      snapshot
+    );
+    if (health.counts.findings === 0) return null;
+    return lintBarMark({
+      errors: health.counts.errors,
+      warnings: health.counts.warnings,
+      info: health.counts.info,
+      findings: health.counts.findings,
+      files: health.counts.filesWithFindings
+    });
+  };
   const lintMarks: InspectorLintMarks = {};
-  const fileMark = selectedFile
-    ? lintBarMark(lintTotals(sectionLint, selectedFile.path), markKind)
-    : null;
+  const fileMark = selectedFile ? markOf("file", selectedFile.path) : null;
   if (fileMark) lintMarks.file = fileMark;
   const folderMark = selectedFolderNode
-    ? lintBarMark(lintTotals(sectionLint, selectedFolderNode.path), markKind)
+    ? markOf("folder", selectedFolderNode.path)
     : null;
   if (folderMark) lintMarks.folder = folderMark;
-  const projectMark = lintBarMark(lintTotals(sectionLint, ""), markKind);
+  const projectMark = markOf("project", "");
   if (projectMark) lintMarks.project = projectMark;
 
   return (
@@ -112,6 +129,7 @@ export function InspectorDock({
             structure={selectedStructure}
             chain={state.chain}
             lint={sectionLint}
+            docsLint={docsLint}
             migration={migration}
             showCode={state.map === "code"}
             rulesMode={rulesMode}
@@ -128,6 +146,7 @@ export function InspectorDock({
             folder={selectedFolderNode}
             model={view.model}
             lint={sectionLint}
+            docsLint={docsLint}
             rulesMode={rulesMode}
             changes={report?.files ?? null}
             metricTitle={metricTitle}
@@ -141,6 +160,7 @@ export function InspectorDock({
           <ProjectPanel
             model={view.model}
             lint={sectionLint}
+            docsLint={docsLint}
             rulesMode={rulesMode}
             metricTitle={metricTitle}
             colorMode={state.colorMode}

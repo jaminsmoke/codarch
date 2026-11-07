@@ -116,7 +116,7 @@ argumento al arrancar (ver [Escritorio](escritorio.md#elige-la-carpeta-del-repos
 ## Inspector › Fichero
 
 El inspector es el panel de la derecha y tiene cuatro entradas en su barra de actividad: **Fichero**,**Carpeta**, **Proyecto** y **Cambios**. Al pulsar un fichero, **Fichero** muestra sus métricas, sus
-símbolos, sus dependencias entrantes y salientes y, en **Reglas**, sus reglas de lint con hallazgos. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
+símbolos, sus dependencias entrantes y salientes y el **lint**: la salud y los hallazgos de código y de documentos que caen en esa ruta. Cada hallazgo dice de qué dominio y de qué herramienta sale. Al pulsar una carpeta, **Carpeta** muestra cuántos ficheros
 tiene, en qué nivel está y qué parte de su área ocupa cada hijo, en el mismo orden que el mapa;
 seleccionar un fichero vuelve a **Fichero**.
 
@@ -130,8 +130,7 @@ selecciona —si es un fichero, pasa a **Fichero**—. Su sección **Métricas**
 carpetas, líneas, la complejidad máxima con el fichero que la tiene y la deuda de lint— y termina con
 **Lint por carpeta**, una fila por carpeta hija que abre su ficha. La tabla es la del fichero, con el
 mismo marco de sección y la misma tinta: el rojo de la deuda y el ocre del aviso salen del peor fichero
-del subárbol, y el icono de la fila dice cuál. **Reglas** añade las reglas de lint
-con hallazgos en la carpeta. La frontera de dependencias y los ciclos siguen en la hoja de ruta de esta
+del subárbol, y el icono de la fila dice cuál. El **lint** de la carpeta añade los hallazgos de código y de documentos cuya ruta cuelga de ella. La frontera de dependencias y los ciclos siguen en la hoja de ruta de esta
 fase.
 
 ![La hoja Carpeta abierta sobre packages/ui: su ruta, su recuento y el contenido de la carpeta con la parte del área de cada hijo](../images/webapp-inspector-carpeta.png)
@@ -154,20 +153,9 @@ de dar la cifra por buena.
 
 ![La sección Métricas de la hoja Proyecto: una fila por métrica con su cobertura y su valor, la complejidad más alta con su fichero y el lint con sus tres cuentas y su desglose por carpeta](../images/webapp-inspector-metricas.png)
 
-**Reglas** enseña el detalle del lint que el proyecto ya tiene: los sistemas detectados —con su
-configuración y sus reglas activas— y las reglas con hallazgos, ordenadas por lo que pesan. Cada
-sistema lleva su filete —verde si midió—, la píldora de su estado y su configuración en palabras
-(«396 reglas activas · 372 como error · 24 como aviso»): una regla activa está **configurada** así, no
-ha saltado, y por eso esa línea no lleva la tinta de la deuda. Los hallazgos van en tabla, con las columnas **Err.**,
-**Avis.** e **Info**: cada número lleva la tinta de lo que mide —el rojo de la deuda, el ocre del
-aviso— y un cero se lee como raya, no como hueco. Los totales de errores, avisos e info son de
-Métricas: aquí se cuentan las reglas que los producen, y cuando no hay ninguno la tabla lo dice con la
-cobertura («Sin hallazgos en el proyecto: se midieron 496 ficheros»). En las fichas de carpeta y de
-fichero se ven las de su ámbito, sin repetir los sistemas. El número de la cabecera cuenta las **reglas activas** en
-el proyecto —no los hallazgos— y las reglas con hallazgos en carpeta y fichero; es el mismo recuento
-que leen el CLI y el MCP, y un `info` cuenta como hallazgo aunque no sea error ni aviso.
+**Docs y config** enseña el catálogo, no los hallazgos. Cada dominio lista sus sistemas: la configuración y las reglas activas cuando se conocen. Si no se pudieron enumerar —oxlint sin config, por ejemplo— se dice que no se sabe cuántas hay; no se pinta un cero. Una regla activa está **configurada**, no ha saltado, y por eso no lleva la tinta de la deuda. Los hallazgos de los dos dominios se leen en la vista de código, en **Fichero**, **Carpeta** y **Proyecto**, filtrados por la selección. Un artefacto anterior a la cobertura por herramienta dice que está medido con una versión anterior: no es un ámbito limpio.
 
-![La hoja Proyecto: sus métricas con el lint y el lint por carpeta, y Reglas con los sistemas del repo —eslint con su configuración y sus reglas activas, oxlint sin config—](../images/webapp-inspector-proyecto.png)
+![La hoja Proyecto: sus métricas con el lint y el lint por carpeta, y el catálogo de sistemas del repo —eslint con su configuración y sus reglas activas, oxlint sin config—](../images/webapp-inspector-proyecto.png)
 
 Sin `.codarch/lint.repmod.json` no hay ceros: el bloque de lint dice **sin medir** y lo que pesará cuando se
 ejecute [`codarch analyze`](cli/analyze.md), que lo mide con el linter del proyecto.

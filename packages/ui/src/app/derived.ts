@@ -62,7 +62,8 @@ export function useDerivedMap(input: DerivedMapInput) {
               ? "risk"
               : colorMode,
           title: activeCc.meta.projectName,
-          // El lint es del código; las reglas, del resto (ADR 0094, ADR 0105).
+          // En el mapa de código esto es solo el artefacto de código: el
+          // riesgo no suma los documentos. La ficha los junta aparte.
           lint: activeLint
         }),
         error: null

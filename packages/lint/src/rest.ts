@@ -4,6 +4,7 @@ import {
   canonicalLintPath,
   type LintFileResult,
   type LintMessage,
+  type LintRule,
   type LintSeverity
 } from "./format";
 
@@ -33,6 +34,50 @@ export const DOC_RULES = {
 } as const;
 
 export type DocRule = (typeof DOC_RULES)[keyof typeof DOC_RULES];
+
+/**
+ * Las reglas del sistema `codarch`, tomadas del productor y no de los
+ * hallazgos.
+ *
+ * Sin configuración solo aplica el enlace roto: huérfanos, frontmatter y
+ * gemelas se apagan cuando su lista está vacía. La severidad sale de
+ * `DOC_RULE_SEVERITY` o de la que ponga el bloque `docs:`.
+ */
+export function codarchActiveRules(config?: DocsRulesConfig): LintRule[] {
+  const severityOf = (rule: DocRule): LintSeverity =>
+    config?.severity?.[rule] ?? DOC_RULE_SEVERITY[rule];
+  const rules: LintRule[] = [
+    { id: DOC_RULES.brokenLink, severity: severityOf(DOC_RULES.brokenLink) }
+  ];
+  if ((config?.entries?.length ?? 0) > 0) {
+    rules.push({ id: DOC_RULES.orphan, severity: severityOf(DOC_RULES.orphan) });
+  }
+  if ((config?.frontmatter?.length ?? 0) > 0) {
+    rules.push({
+      id: DOC_RULES.frontmatter,
+      severity: severityOf(DOC_RULES.frontmatter)
+    });
+  }
+  if ((config?.twins?.length ?? 0) > 0) {
+    rules.push({
+      id: DOC_RULES.twinMissing,
+      severity: severityOf(DOC_RULES.twinMissing)
+    });
+  }
+  return rules;
+}
+
+/**
+ * El catálogo entero del productor.
+ *
+ * Un artefacto ya escrito puede no traer `rules` en el sistema `codarch`.
+ * Quien lo enseña usa esta lista, no los mensajes que haya en `files`.
+ */
+export function codarchRuleCatalog(): LintRule[] {
+  return (Object.keys(DOC_RULE_SEVERITY) as DocRule[])
+    .map((id) => ({ id, severity: DOC_RULE_SEVERITY[id] }))
+    .sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
+}
 
 /** La severidad por defecto de cada regla (ADR 0105, punto 4). */
 export const DOC_RULE_SEVERITY: Record<DocRule, LintSeverity> = {
