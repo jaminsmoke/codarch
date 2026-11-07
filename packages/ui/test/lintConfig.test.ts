@@ -159,17 +159,11 @@ function catalog(name: string, rule: string): LintArtifact {
   };
 }
 
-function sheet(input: {
-  rest: boolean;
-  codeLint: LintArtifact | null;
-  docsLint: LintArtifact | null;
-}): string {
+function sheet(rest: boolean): string {
   return renderToStaticMarkup(
     createElement(DocsToolSheet, {
-      hasRest: input.rest,
-      restModel: null,
-      codeLint: input.codeLint,
-      docsLint: input.docsLint
+      hasRest: rest,
+      restModel: null
     })
   );
 }
@@ -197,16 +191,16 @@ describe("la entrada Docs y config", () => {
   const code = catalog("eslint", "eqeqeq");
   const docs = catalog("rest-rules", "frontmatter");
 
-  it("solo resto: el botón se enciende y el catálogo es el del resto", () => {
+  it("solo resto: el botón se enciende y la hoja no lleva catálogo de lint", () => {
     expect(docsConfigAccess({ rest: true, codeLint: null, docsLint: docs })).toEqual({
       enabled: true,
       code: false,
-      docs: true
+      docs: false
     });
     expect(planDocsTool({ rest: true, codeLint: null, docsLint: docs })).toBe("rest-map");
-    const markup = sheet({ rest: true, codeLint: null, docsLint: docs });
-    expect(markup).toContain("Reglas del resto");
-    expect(markup).toContain("frontmatter");
+    const markup = sheet(true);
+    expect(markup).not.toContain("Reglas del resto");
+    expect(markup).not.toContain("frontmatter");
     expect(markup).not.toContain("Lint del código");
     expect(markup).not.toContain("eqeqeq");
     expect(docsButton({ rest: true, codeLint: null, docsLint: docs })).not.toContain(
@@ -214,32 +208,29 @@ describe("la entrada Docs y config", () => {
     );
   });
 
-  it("solo código: el botón se enciende sin mapa del resto y enseña ese catálogo", () => {
+  it("solo código: sin mapa del resto el botón no abre un catálogo en la barra", () => {
     expect(docsConfigAccess({ rest: false, codeLint: code, docsLint: null })).toEqual({
-      enabled: true,
+      enabled: false,
       code: true,
       docs: false
     });
-    expect(planDocsTool({ rest: false, codeLint: code, docsLint: null })).toBe(
-      "catalog-only"
-    );
-    const markup = sheet({ rest: false, codeLint: code, docsLint: null });
-    expect(markup).toContain("Lint del código");
-    expect(markup).toContain("eqeqeq");
-    expect(markup).not.toContain("Reglas del resto");
+    expect(planDocsTool({ rest: false, codeLint: code, docsLint: null })).toBe("disabled");
+    const markup = sheet(false);
+    expect(markup).not.toContain("Lint del código");
+    expect(markup).not.toContain("eqeqeq");
     expect(markup).not.toContain("Estratos");
     const button = docsButton({ rest: false, codeLint: code, docsLint: null });
     expect(button).toContain("Docs y config");
-    expect(button).not.toContain("disabled");
+    expect(button).toContain("disabled");
   });
 
-  it("los dos catálogos se ven separados", () => {
+  it("la hoja del resto no mezcla catálogos", () => {
     expect(planDocsTool({ rest: true, codeLint: code, docsLint: docs })).toBe("rest-map");
-    const markup = sheet({ rest: true, codeLint: code, docsLint: docs });
-    expect(markup.indexOf("Lint del código")).toBeGreaterThan(-1);
-    expect(markup.indexOf("Reglas del resto")).toBeGreaterThan(markup.indexOf("Lint del código"));
-    expect(markup).toContain("eqeqeq");
-    expect(markup).toContain("frontmatter");
+    const markup = sheet(true);
+    expect(markup).not.toContain("Lint del código");
+    expect(markup).not.toContain("Reglas del resto");
+    expect(markup).not.toContain("eqeqeq");
+    expect(markup).not.toContain("frontmatter");
   });
 
   it("sin artefactos ni mapa del resto, la entrada está apagada", () => {
@@ -261,13 +252,19 @@ describe("la entrada Docs y config", () => {
       summary: { files: 0, errors: 0, warnings: 0, messages: 0, measured: 0 }
     };
     expect(docsConfigAccess({ rest: false, codeLint: stale, docsLint: null }).enabled).toBe(
-      true
+      false
     );
-    expect(planDocsTool({ rest: false, codeLint: stale, docsLint: null })).toBe(
-      "catalog-only"
+    expect(planDocsTool({ rest: false, codeLint: stale, docsLint: null })).toBe("disabled");
+    const markup = renderToStaticMarkup(
+      createElement(LintConfigSection, {
+        id: "code-cat",
+        domain: "code",
+        artifact: stale,
+        title: "Lint"
+      })
     );
-    const markup = sheet({ rest: false, codeLint: stale, docsLint: null });
     expect(markup).toContain("eqeqeq");
+    expect(markup).toContain(">Lint<");
     expect(markup).not.toContain("lint-count-error");
     expect(markup).not.toContain("1 error");
     expect(markup).not.toContain("Medido y limpio");
@@ -299,48 +296,28 @@ describe("la entrada Docs y config", () => {
       },
       summary: { files: 1, errors: 1, warnings: 0, messages: 1 }
     };
-    const docs: LintArtifact = {
-      schemaVersion: "1.3",
-      domain: "docs",
-      meta: {
-        checksum: "def",
-        tools: ["codarch"],
-        systems: [{ name: "codarch", config: null }]
-      },
-      files: {
-        "docs/nota.md": {
-          errors: 1,
-          warnings: 0,
-          messages: [
-            {
-              rule: "doc/broken-link",
-              severity: "error",
-              message: "el enlace no llega"
-            }
-          ]
-        }
-      },
-      summary: { files: 1, errors: 1, warnings: 0, messages: 1 }
-    };
-    const markup = sheet({ rest: true, codeLint: oxlint, docsLint: docs });
+    const sidebar = sheet(true);
+    expect(sidebar).not.toContain("doc/broken-link");
+    expect(sidebar).not.toContain("el enlace no llega");
+    expect(sidebar).not.toContain("Unexpected var");
+    expect(sidebar).not.toContain("Lint del código");
 
+    const markup = renderToStaticMarkup(
+      createElement(LintConfigSection, {
+        id: "code-cat",
+        domain: "code",
+        artifact: oxlint,
+        title: "Lint"
+      })
+    );
     expect(markup).toContain("No se sabe cuántas reglas hay activas.");
     expect(markup).toContain("no se enumeran");
     expect(markup).not.toContain("0 reglas");
-    expect(markup).toContain("doc/broken-link");
-    expect(markup).toContain("doc/orphan");
+    expect(markup).not.toContain("doc/broken-link");
     expect(markup).not.toContain("el enlace no llega");
-    expect(markup).not.toContain("docs/nota.md");
     expect(markup).not.toContain("Unexpected var");
     expect(markup).not.toContain("src/a.ts");
-    const codeAt = markup.indexOf("section-lint-config-code");
-    const docsAt = markup.indexOf("section-lint-config-docs");
-    const codeHtml = markup.slice(codeAt, docsAt);
-    const docsHtml = markup.slice(docsAt);
-    expect(codeHtml).toContain('data-count-state="unknown"');
-    expect(codeHtml).not.toContain("collapsible-count");
-    expect(codeHtml).not.toContain("0 reglas");
-    expect(docsHtml).toContain('collapsible-count">4');
-    expect(docsHtml).toContain("4 reglas activas");
+    expect(markup).toContain('data-count-state="unknown"');
+    expect(markup).not.toContain("collapsible-count");
   });
 });

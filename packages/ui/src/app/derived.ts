@@ -31,12 +31,12 @@ export interface DerivedMapInput {
 }
 
 export function useDerivedMap(input: DerivedMapInput) {
-  const { cc, rest, lint, restLint, map, areaMetric, colorMode, focusPath } =
-    input;
+  const { cc, rest, lint, map, areaMetric, colorMode, focusPath } = input;
 
   const activeCc = map === "rest" && rest ? rest : cc;
-  // Código → lint; resto → reglas. Cada mapa con su artefacto (ADR 0105).
-  const activeLint = map === "rest" ? restLint : lint;
+  // El riesgo y el color solo leen el lint de código. El artefacto de
+  // documentos sigue cargado en el estado y esta vista no lo usa.
+  const activeLint = map === "code" ? lint : null;
   const stats = useMemo(() => (activeCc ? getStats(activeCc) : null), [activeCc]);
   const migration = useMemo(() => readMigration(activeCc), [activeCc]);
   const hasChurn = useMemo(
@@ -62,8 +62,7 @@ export function useDerivedMap(input: DerivedMapInput) {
               ? "risk"
               : colorMode,
           title: activeCc.meta.projectName,
-          // En el mapa de código esto es solo el artefacto de código: el
-          // riesgo no suma los documentos. La ficha los junta aparte.
+          // Solo el lint de código. En el mapa de documentos no hay término de lint.
           lint: activeLint
         }),
         error: null

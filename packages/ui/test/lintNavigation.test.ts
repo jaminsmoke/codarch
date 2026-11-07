@@ -87,21 +87,17 @@ function dock(lint: LintArtifact | null): { app: CodarchApp; setMap: ReturnType<
 }
 
 describe("la hoja de configuración se abre con un clic", () => {
-  it("sin rest.cc.json, Docs y config abre el catálogo de código", () => {
+  it("sin mapa del resto, Docs y config no abre un catálogo en la barra", () => {
     const { app, setMap } = dock(codeCatalog);
     render(createElement(ToolDock, { app }));
 
-    expect(screen.queryByText("eslint.config.js")).toBeNull();
-    expect(screen.queryByText("eqeqeq")).toBeNull();
-
     const entry = screen.getByRole("button", { name: /Docs y config/ });
-    expect((entry as HTMLButtonElement).disabled).toBe(false);
+    expect((entry as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(entry);
 
-    expect(screen.getByText("Lint del código")).toBeTruthy();
-    expect(screen.getByText("eslint.config.js")).toBeTruthy();
-    expect(screen.getByText("eqeqeq")).toBeTruthy();
-    expect(screen.queryByText("Estratos")).toBeNull();
+    expect(screen.queryByText("Lint del código")).toBeNull();
+    expect(screen.queryByText("eslint.config.js")).toBeNull();
+    expect(screen.queryByText("eqeqeq")).toBeNull();
     expect(setMap).not.toHaveBeenCalled();
     expect(app.state.rest).toBeNull();
   });

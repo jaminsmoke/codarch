@@ -2,7 +2,6 @@ import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
 import {
-  docsConfigAccess,
   readLintConfig,
   type LintConfigSystem,
   type LintConfigView
@@ -117,12 +116,15 @@ function ConfigBody({ config }: { config: LintConfigView }) {
 export function LintConfigSection({
   id,
   domain,
-  artifact
+  artifact,
+  title
 }: {
   /** Identificador único: puede haber un catálogo por dominio. */
   id: string;
   domain: LintConfigDomain;
   artifact: LintArtifact | null;
+  /** En la ficha derecha el título es Lint, el mismo hueco que los hallazgos. */
+  title?: string;
 }) {
   const config = readLintConfig(artifact);
   const badge = catalogBadge(config?.systems ?? []);
@@ -131,7 +133,7 @@ export function LintConfigSection({
   return (
     <CollapsibleSection
       id={id}
-      title={DOMAIN_TITLE[domain]}
+      title={title ?? DOMAIN_TITLE[domain]}
       className={`panel-block section-lint-config section-lint-config-${domain}`}
       count={badge.count}
       summary={summary}
@@ -149,40 +151,18 @@ export function LintConfigSection({
 }
 
 /**
- * La hoja Docs y config: estratos del resto si hay snapshot, y los catálogos
- * que existan, cada uno en su dominio.
+ * La hoja Docs y config: solo los estratos del resto.
  *
- * Sin snapshot del resto no se pintan estratos ni se finge un mapa.
+ * El catálogo del lint de código vive en la ficha derecha de ese mapa. Aquí
+ * no hay lista de hallazgos ni de reglas.
  */
 export function DocsToolSheet({
   hasRest,
-  restModel,
-  codeLint,
-  docsLint
+  restModel
 }: {
   hasRest: boolean;
   restModel: RenderModel | null;
-  codeLint: LintArtifact | null;
-  docsLint: LintArtifact | null;
 }) {
-  const access = docsConfigAccess({ rest: hasRest, codeLint, docsLint });
-  return (
-    <>
-      {hasRest ? <RestKinds model={restModel} /> : null}
-      {access.code ? (
-        <LintConfigSection
-          id="rail-lint-config-code"
-          domain="code"
-          artifact={codeLint}
-        />
-      ) : null}
-      {access.docs ? (
-        <LintConfigSection
-          id="rail-lint-config-docs"
-          domain="docs"
-          artifact={docsLint}
-        />
-      ) : null}
-    </>
-  );
+  if (!hasRest) return null;
+  return <RestKinds model={restModel} />;
 }

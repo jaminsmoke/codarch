@@ -1,8 +1,9 @@
-import type { FindingAnchor, LintArtifact } from "@codarch/lint/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { LintSection } from "../LintSection";
 import { healthSnapshot } from "../lintHealth";
 import { DuplicationSection } from "./DuplicationSection";
+import { LintConfigSection } from "./LintConfigSection";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -20,30 +21,27 @@ import { MetricsRollup } from "./MetricsRollup";
 export function ProjectPanel({
   model,
   lint,
-  docsLint,
   rulesMode = false,
+  lintView = "findings",
   metricTitle,
   colorMode,
   onColorMode,
   onSelectPath,
-  onSelectFolder,
-  onOpenFinding
+  onSelectFolder
 }: {
   model: RenderModel | null;
-  /** El lint del código, o las reglas del resto en ese mapa (ADR 0105). */
+  /** El lint de código. El de documentos no se pinta aquí. */
   lint: LintArtifact | null;
-  /** El lint de documentos, para juntarlo en la vista de código. */
-  docsLint?: LintArtifact | null;
-  /** En el resto, las métricas no cuentan el lint del código como «sin medir». */
+  /** En el mapa de documentos, las métricas no cuentan el lint como «sin medir». */
   rulesMode?: boolean;
+  /** Hallazgos en el mapa de código; catálogo de esas reglas en el otro mapa. */
+  lintView?: "findings" | "catalog";
   metricTitle: (key: string) => string;
   colorMode: string;
   onColorMode: (mode: string) => void;
   /** Abre la ficha de un fichero de la lista de pares (M70). */
   onSelectPath: (path: string) => void;
   onSelectFolder: (path: string) => void;
-  /** El ancla dice el mapa. La ficha no abre un documento en el mapa de código. */
-  onOpenFinding?: (anchor: FindingAnchor) => void;
 }) {
   if (!model) return <EmptyProject />;
 
@@ -82,17 +80,24 @@ export function ProjectPanel({
         onSelectPath={onSelectPath}
       />
 
-      <LintSection
-        id="project-lint"
-        artifact={lint}
-        artifacts={docsLint !== undefined ? [lint, docsLint] : undefined}
-        folder=""
-        title="Lint"
-        kind="lint"
-        snapshot={healthSnapshot(model)}
-        onSelectPath={onSelectPath}
-        onOpenFinding={onOpenFinding}
-      />
+      {lintView === "catalog" ? (
+        <LintConfigSection
+          id="project-lint"
+          domain="code"
+          artifact={lint}
+          title="Lint"
+        />
+      ) : (
+        <LintSection
+          id="project-lint"
+          artifact={lint}
+          folder=""
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
+          onSelectPath={onSelectPath}
+        />
+      )}
     </section>
   );
 }

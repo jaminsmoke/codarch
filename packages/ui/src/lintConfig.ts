@@ -84,8 +84,9 @@ export function docsConfigAccess(input: {
   docsLint: LintArtifact | null;
 }): DocsConfigAccess {
   const code = lintCatalogPresent(input.codeLint);
-  const docs = lintCatalogPresent(input.docsLint);
-  return { enabled: input.rest || code || docs, code, docs };
+  // El catálogo de código se lee en la ficha del mapa de documentos, no aquí.
+  // El artefacto de documentos no enciende esta hoja.
+  return { enabled: input.rest, code, docs: false };
 }
 
 /**
@@ -103,6 +104,6 @@ export function planDocsTool(input: {
   docsLint: LintArtifact | null;
 }): DocsToolPlan {
   const access = docsConfigAccess(input);
-  if (!access.enabled) return "disabled";
-  return input.rest ? "rest-map" : "catalog-only";
+  if (!access.enabled || !input.rest) return "disabled";
+  return "rest-map";
 }

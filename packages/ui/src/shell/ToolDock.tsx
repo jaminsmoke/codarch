@@ -100,26 +100,14 @@ export function ToolDock({ app }: { app: CodarchApp }) {
         aria-hidden={toolsClosed}
         inert={toolsClosed}
       >
-        {catalogOnly ? (
-          <DocsToolSheet
-            hasRest={false}
-            restModel={null}
-            codeLint={state.lint}
-            docsLint={state.restLint}
-          />
-        ) : (
+        {catalogOnly ? null : (
           <>
             <ViewControls app={app} />
 
             {state.map === "code" ? (
               <LanguageSample model={app.view.model} migration={app.migration} />
             ) : (
-              <DocsToolSheet
-                hasRest
-                restModel={app.view.model}
-                codeLint={state.lint}
-                docsLint={state.restLint}
-              />
+              <DocsToolSheet hasRest restModel={app.view.model} />
             )}
 
             <Legend

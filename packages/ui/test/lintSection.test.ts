@@ -238,66 +238,24 @@ describe("la sección Lint de la vista de código", () => {
   });
 });
 
-describe("la vista de código junta los dos dominios", () => {
-  it("un fichero de documentos dice dominio, herramienta y el mapa del nodo", () => {
-    const docs: LintArtifact = {
-      schemaVersion: "1.3",
-      domain: "docs",
-      meta: { checksum: "def", tools: ["codarch"], systems: [], tree: "docs" },
-      files: {
-        "apps/site/docs/nota.md": {
-          errors: 1,
-          warnings: 0,
-          messages: [
-            {
-              rule: "doc/broken-link",
-              severity: "error",
-              message: "el enlace no llega",
-              line: 3
-            }
-          ]
-        }
-      },
-      summary: { files: 1, errors: 1, warnings: 0, messages: 1 },
-      coverage: {
-        tools: {
-          codarch: {
-            outcome: "enumerated",
-            measuredPaths: ["apps/site/docs/nota.md"],
-            eligiblePaths: ["apps/site/docs/nota.md"]
-          }
-        }
-      }
-    };
-    const fileMarkup = renderToStaticMarkup(
-      createElement(LintSection, {
-        id: "lint",
-        artifact,
-        artifacts: [artifact, docs],
-        folder: "apps/site/docs/nota.md",
-        filePath: "apps/site/docs/nota.md",
-        snapshot: { treeHash: "code", paths: ["apps/web/src/a.ts"] }
-      })
-    );
-    const projectMarkup = renderToStaticMarkup(
-      createElement(LintSection, {
-        id: "lint",
-        artifact,
-        artifacts: [artifact, docs],
-        folder: "",
-        snapshot: { treeHash: "code", paths: ["apps/web/src/a.ts"] }
-      })
-    );
+describe("la ficha solo cuenta el lint de código", () => {
+  it("un hallazgo enseña fichero, regla y mensaje, y no entra un documento", () => {
+    const project = section({ artifact, folder: "" });
+    const file = section({
+      artifact,
+      folder: "apps/web/src/a.ts",
+      filePath: "apps/web/src/a.ts"
+    });
 
-    expect(fileMarkup).toContain("documentos · codarch");
-    expect(fileMarkup).toContain("doc/broken-link");
-    expect(fileMarkup).toContain("el enlace no llega");
-    expect(fileMarkup).toContain('data-lint-map="rest"');
-    expect(fileMarkup).toContain('data-lint-path="apps/site/docs/nota.md"');
-    expect(projectMarkup).toContain("Medido con una versión anterior.");
-    expect(projectMarkup).toContain("apps/site/docs/nota.md");
-    expect(projectMarkup).toContain("documentos · codarch");
-    expect(projectMarkup).not.toContain("Limpio y al día");
+    expect(project).toContain("apps/web/src/a.ts");
+    expect(project).toContain("no-console");
+    expect(project).toContain("Unexpected console");
+    expect(file).toContain("no-console");
+    expect(file).toContain("7:4");
+    expect(file).toContain("Unexpected console");
+    expect(project).not.toContain("doc/broken-link");
+    expect(file).not.toContain("doc/broken-link");
+    expect(project).not.toContain("eslint.config.js");
   });
 });
 

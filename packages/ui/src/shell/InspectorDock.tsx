@@ -1,5 +1,4 @@
 import { useId, useState } from "react";
-import type { FindingAnchor } from "@codarch/lint/browser";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp } from "../app/types";
 import { Inspector } from "../panels";
@@ -11,17 +10,10 @@ import {
   inspectorLabel,
   type InspectorLintMarks
 } from "../InspectorBar";
-import { scopeHealthMerged } from "@codarch/lint/browser";
-import { healthSnapshot } from "../lintHealth";
-import { lintBarMark } from "../lintRollup";
+import { lintBarMark, lintTotals } from "../lintRollup";
 import { toggleInspector, type InspectorTab } from "../viewState";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
-
-/** El cambio de mapa borra la ruta recordada; aquí se vuelve a dejar la del fichero. */
-function rememberSelection(ref: { current: string | null }, path: string): void {
-  ref.current = path;
-}
 
 /**
  * El dock del inspector: la ficha del fichero, la de la carpeta, la del
@@ -79,48 +71,23 @@ export function InspectorDock({
     closeFile();
   };
 
-  // El ancla dice el mapa. Si es el otro, se cambia primero y luego se
-  // selecciona: un .md no se abre en el árbol de código.
-  const openFinding = (anchor: FindingAnchor) => {
-    if (anchor.map !== state.map) {
-      actions.setMap(anchor.map);
-      rememberSelection(app.selectedPathRef, anchor.path);
-      actions.setTab("file");
-      closeFile();
-      return;
-    }
-    selectInPlace(anchor.path);
-  };
-
-  // Los dos árboles se leen en las dos vistas. El catálogo, sin hallazgos,
-  // sigue en la hoja de herramientas.
+  // En el mapa de código, la ficha lista hallazgos. En el de documentos,
+  // el mismo hueco enseña el catálogo de reglas activas del código.
   const rulesMode = state.map === "rest";
+  const lintView = rulesMode ? "catalog" : "findings";
   const sectionLint = state.lint;
-  const docsLint = state.restLint;
-  const snapshot = healthSnapshot(view.model);
-  const markOf = (kind: "file" | "folder" | "project", path: string) => {
-    const health = scopeHealthMerged(
-      [state.lint, state.restLint],
-      { kind, path },
-      snapshot
-    );
-    if (health.counts.findings === 0) return null;
-    return lintBarMark({
-      errors: health.counts.errors,
-      warnings: health.counts.warnings,
-      info: health.counts.info,
-      findings: health.counts.findings,
-      files: health.counts.filesWithFindings
-    });
+  const markOf = (path: string) => {
+    if (rulesMode) return null;
+    const totals = lintTotals(sectionLint, path);
+    if (!totals || totals.findings === 0) return null;
+    return lintBarMark(totals);
   };
   const lintMarks: InspectorLintMarks = {};
-  const fileMark = selectedFile ? markOf("file", selectedFile.path) : null;
+  const fileMark = selectedFile ? markOf(selectedFile.path) : null;
   if (fileMark) lintMarks.file = fileMark;
-  const folderMark = selectedFolderNode
-    ? markOf("folder", selectedFolderNode.path)
-    : null;
+  const folderMark = selectedFolderNode ? markOf(selectedFolderNode.path) : null;
   if (folderMark) lintMarks.folder = folderMark;
-  const projectMark = markOf("project", "");
+  const projectMark = markOf("");
   if (projectMark) lintMarks.project = projectMark;
 
   return (
@@ -144,17 +111,15 @@ export function InspectorDock({
             structure={selectedStructure}
             chain={state.chain}
             lint={sectionLint}
-            docsLint={docsLint}
+            lintView={lintView}
             migration={migration}
             showCode={state.map === "code"}
-            rulesMode={rulesMode}
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}
             onLoadCode={actions.readCode}
             onOpenEditor={actions.openInEditor}
             onSelectPath={selectInPlace}
-            onOpenFinding={openFinding}
             onColorMode={actions.setColorMode}
           />
         ) : state.tab === "folder" ? (
@@ -162,14 +127,13 @@ export function InspectorDock({
             folder={selectedFolderNode}
             model={view.model}
             lint={sectionLint}
-            docsLint={docsLint}
+            lintView={lintView}
             rulesMode={rulesMode}
             changes={report?.files ?? null}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
-            onOpenFinding={openFinding}
             onSelectFolder={actions.selectFolder}
             onScopeChanges={actions.scopeChanges}
           />
@@ -177,13 +141,12 @@ export function InspectorDock({
           <ProjectPanel
             model={view.model}
             lint={sectionLint}
-            docsLint={docsLint}
+            lintView={lintView}
             rulesMode={rulesMode}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
-            onOpenFinding={openFinding}
             onSelectFolder={actions.selectFolder}
           />
         ) : (
