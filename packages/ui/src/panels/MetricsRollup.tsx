@@ -1,4 +1,5 @@
 import type { LintArtifact } from "@codarch/lint/browser";
+import { lintScore } from "@codarch/metrics/browser";
 import {
   formatCompact,
   type RenderFile,
@@ -41,6 +42,7 @@ export function MetricsRollup({
   files,
   folders,
   lint,
+  docsLint = null,
   folder,
   metricTitle,
   colorMode,
@@ -55,6 +57,8 @@ export function MetricsRollup({
   /** Las carpetas que cuelgan directamente del sujeto. */
   folders: readonly TreeNode[];
   lint: LintArtifact | null;
+  /** Mensajes de docs en las mismas carpetas. Se suman las cuentas, no las coberturas. */
+  docsLint?: LintArtifact | null;
   /** La carpeta de la que se habla; `""` es el proyecto entero. */
   folder: string;
   /** Cómo se llama cada métrica en el snapshot. */
@@ -64,7 +68,21 @@ export function MetricsRollup({
   onColorMode: (mode: string) => void;
   onSelectFolder?: (path: string) => void;
 }) {
-  const measured = lintTotals(lint, folder) !== null;
+  const codeTotals = lintTotals(lint, folder);
+  const docsTotals = lintTotals(docsLint, folder);
+  const measured = codeTotals !== null || docsTotals !== null;
+  const totalsOf = (path: string) => {
+    const code = lintTotals(lint, path);
+    const docs = lintTotals(docsLint, path);
+    const errors = (code?.errors ?? 0) + (docs?.errors ?? 0);
+    const warnings = (code?.warnings ?? 0) + (docs?.warnings ?? 0);
+    return {
+      errors,
+      warnings,
+      info: (code?.info ?? 0) + (docs?.info ?? 0),
+      score: lintScore(errors, warnings)
+    };
+  };
   const rows = rollupMetricRows(model, files, metricTitle);
   const heaviest = rows.find((row) => row.key === "maxComplexity" && row.owner);
   const riskiest = rows.find((row) => row.key === "risk" && row.owner);
@@ -163,7 +181,7 @@ export function MetricsRollup({
                 <span>Score</span>
               </div>
               {folders.map((child) => {
-                const childTotals = lintTotals(lint, child.path);
+                const childTotals = totalsOf(child.path);
                 return (
                   <button
                     key={child.path}
@@ -187,7 +205,7 @@ export function MetricsRollup({
                       {formatCompact(childTotals?.info ?? 0)}
                     </span>
                     <span className="mono">
-                      {scoreFormat.format(childTotals?.score ?? 0)}
+                      {scoreFormat.format(childTotals.score)}
                     </span>
                   </button>
                 );

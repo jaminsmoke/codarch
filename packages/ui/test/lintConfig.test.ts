@@ -91,7 +91,17 @@ describe("la configuración del lint", () => {
             { id: "eqeqeq", severity: "error" },
             { id: "no-var", severity: "warn" }
           ],
-          note: "resuelto con --print-config"
+          note: "resuelto con --print-config",
+          countState: "unknown",
+          activeCount: null,
+          activeRules: {
+            countState: "unknown",
+            count: null,
+            rules: [
+              { id: "eqeqeq", severity: "error" },
+              { id: "no-var", severity: "warn" }
+            ]
+          }
         }
       ]
     });

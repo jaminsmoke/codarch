@@ -328,7 +328,8 @@ describe("la ficha del proyecto", () => {
     expect(markup.slice(0, lintAt)).not.toContain("Sin medir");
     expect(markup.slice(lintAt)).not.toContain("sin medir");
     expect(markup.slice(lintAt)).toContain("3 errores");
-    expect(markup).toContain(">Reglas<");
+    expect(markup).toContain(">Lint<");
+    expect(markup).not.toContain(">Reglas<");
   });
 });
 

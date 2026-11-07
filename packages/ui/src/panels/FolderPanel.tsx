@@ -1,4 +1,4 @@
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { HealthSnapshot, LintArtifact } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import {
@@ -40,6 +40,9 @@ export function FolderPanel({
   folder,
   model,
   lint,
+  docsLint = null,
+  codeSnapshot,
+  docsSnapshot,
   rulesMode = false,
   changes,
   metricTitle,
@@ -51,9 +54,13 @@ export function FolderPanel({
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
-  /** El lint del código, o las reglas del resto en ese mapa (ADR 0094 · ADR 0105). */
+  /** El lint del código. */
   lint: LintArtifact | null;
-  /** En el resto: sección Reglas y sin bloque de lint en métricas (ADR 0105). */
+  /** Las reglas de docs, listadas en la misma sección. */
+  docsLint?: LintArtifact | null;
+  codeSnapshot?: HealthSnapshot;
+  docsSnapshot?: HealthSnapshot;
+  /** En el resto, el bloque de métricas no cuenta el lint del código como «sin medir». */
   rulesMode?: boolean;
   /** Los ficheros del cambio, para contar los de esta carpeta (ADR 0092). */
   changes: DiffReport["files"] | null;
@@ -101,6 +108,7 @@ export function FolderPanel({
           files={subtree}
           folders={childFolderNodes(folder)}
           lint={rulesMode ? null : lint}
+          docsLint={docsLint}
           folder={folder.path}
           metricTitle={metricTitle}
           colorMode={colorMode}
@@ -217,11 +225,11 @@ export function FolderPanel({
       {model ? (
         <LintSection
           id="folder-lint"
-          artifact={lint}
+          code={lint}
+          docs={docsLint}
           folder={folder.path}
-          title={rulesMode ? "Reglas" : "Lint"}
-          kind={rulesMode ? "rules" : "lint"}
-          snapshot={healthSnapshot(model)}
+          codeSnapshot={codeSnapshot ?? healthSnapshot(model)}
+          docsSnapshot={docsSnapshot}
           onSelectPath={onSelectPath}
         />
       ) : null}

@@ -61,12 +61,19 @@ function reasonSentence(reasons: readonly Reason[]): string {
 }
 
 /**
- * Qué se puede afirmar del ámbito.
+ * La frase de un origen.
  *
+ * Si otro origen aplicable es heredado o desconocido, ni este se dice limpio.
  * `fresh === false` es un árbol viejo: no entra en «al día». `fresh === null`
- * con cobertura completa y cero hallazgos es actualidad no verificada, que
- * no es lo mismo.
+ * con cobertura completa y cero hallazgos es actualidad no verificada.
  */
+export function originHealthCopy(health: ScopeHealth, allowClean: boolean): string {
+  if (isCurrentClean(health) && !allowClean) {
+    return "Cobertura completa y sin hallazgos. No se da por limpio: otro origen aplicable no lo está.";
+  }
+  return healthCopy(health);
+}
+
 export function healthCopy(health: ScopeHealth): string {
   if (isCurrentClean(health)) return "Limpio y al día.";
 

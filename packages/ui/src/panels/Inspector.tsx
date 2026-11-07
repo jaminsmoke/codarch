@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { HealthSnapshot, LintArtifact } from "@codarch/lint/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type {
   CcMigrationLens,
@@ -51,9 +51,11 @@ export function Inspector({
   structure,
   chain,
   lint,
+  docsLint = null,
+  codeSnapshot,
+  docsSnapshot,
   migration,
   showCode = true,
-  rulesMode = false,
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
@@ -71,8 +73,12 @@ export function Inspector({
   /** Miembros, imports y exports del fichero (ADR 0064). */
   structure: CcStructureNode | null;
   chain: SymbolChain | null;
-  /** El lint del proyecto, que se lee por hallazgos (ADR 0104). */
+  /** El lint del código, que se lee por hallazgos (ADR 0104). */
   lint: LintArtifact | null;
+  /** Las reglas de docs del mismo fichero, si las hay. */
+  docsLint?: LintArtifact | null;
+  codeSnapshot?: HealthSnapshot;
+  docsSnapshot?: HealthSnapshot;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
   /**
@@ -80,11 +86,6 @@ export function Inspector({
    * miembros ni cadena, y su ficha no finge que los tenga (ADR 0093).
    */
   showCode?: boolean;
-  /**
-   * En el mapa del resto la sección se llama Reglas y no pesa en el riesgo
-   * (ADR 0105).
-   */
-  rulesMode?: boolean;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -167,12 +168,12 @@ export function Inspector({
       ) : null}
       <LintSection
         id="file-lint"
-        artifact={lint}
+        code={lint}
+        docs={docsLint}
         folder={file.path}
         filePath={file.path}
-        title={rulesMode ? "Reglas" : "Lint"}
-        kind={rulesMode ? "rules" : "lint"}
-        snapshot={healthSnapshot(model)}
+        codeSnapshot={codeSnapshot ?? healthSnapshot(model)}
+        docsSnapshot={docsSnapshot}
       />
       {showCode ? (
         <>

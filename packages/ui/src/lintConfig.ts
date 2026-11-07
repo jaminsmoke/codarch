@@ -1,4 +1,9 @@
 import { lintConfig, type LintArtifact, type LintRule } from "@codarch/lint/browser";
+import {
+  readActiveRules,
+  type ActiveRuleCountState,
+  type ActiveRulesDeclaration
+} from "./lintAdapter";
 
 /**
  * La configuración del lint, leída con `lintConfig` del contrato.
@@ -18,6 +23,10 @@ export interface LintConfigSystem {
   config: string | null;
   rules: readonly LintConfigRule[];
   note?: string;
+  /** El recuento que declara el sistema. Sin el campo, es `unknown` y `count` es `null`. */
+  countState: ActiveRuleCountState;
+  activeCount: number | null;
+  activeRules: ActiveRulesDeclaration;
 }
 
 export interface LintConfigView {
@@ -31,15 +40,21 @@ export function readLintConfig(artifact: LintArtifact | null): LintConfigView | 
   const config = lintConfig(artifact);
   return {
     tools: config.tools,
-    systems: config.systems.map((system) => ({
-      name: system.name,
-      config: system.config,
-      rules: (system.rules ?? []).map((rule) => ({
-        id: rule.id,
-        severity: rule.severity
-      })),
-      ...(system.note ? { note: system.note } : {})
-    }))
+    systems: config.systems.map((system) => {
+      const activeRules = readActiveRules(system);
+      return {
+        name: system.name,
+        config: system.config,
+        rules: activeRules.rules.map((rule) => ({
+          id: rule.id,
+          severity: rule.severity
+        })),
+        countState: activeRules.countState,
+        activeCount: activeRules.count,
+        activeRules,
+        ...(system.note ? { note: system.note } : {})
+      };
+    })
   };
 }
 

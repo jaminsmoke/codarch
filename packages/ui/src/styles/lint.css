@@ -400,6 +400,34 @@ button.lint-file-row:hover {
   background: color-mix(in srgb, var(--cobalt) 6%, transparent);
 }
 
+.lint-file-main {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  align-items: baseline;
+}
+
+.lint-origin {
+  flex: none;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-origins {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.lint-rule-count {
+  margin: 0;
+}
+
 .lint-file-path {
   overflow: hidden;
   font-size: 10.5px;

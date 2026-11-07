@@ -1,6 +1,7 @@
 import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
+import { catalogBadge, countStateText } from "../lintAdapter";
 import { docsConfigAccess, readLintConfig, type LintConfigView } from "../lintConfig";
 import { RestKinds } from "./RestKinds";
 
@@ -51,6 +52,9 @@ function ConfigBody({ config }: { config: LintConfigView }) {
               {system.note ? (
                 <p className="muted tiny lint-system-note">{system.note}</p>
               ) : null}
+              <p className="muted tiny lint-rule-count">
+                {countStateText(system.countState, system.activeCount)}
+              </p>
               {system.rules.length > 0 ? (
                 <ul className="lint-config-rules">
                   {system.rules.map((rule) => (
@@ -80,20 +84,17 @@ export function LintConfigSection({
   artifact: LintArtifact | null;
 }) {
   const config = readLintConfig(artifact);
+  const badge = catalogBadge(config?.systems ?? []);
   const summary = !config
     ? "sin artefacto"
-    : config.systems.length === 0
-      ? "sin sistemas"
-      : `${config.systems.length} ${
-          config.systems.length === 1 ? "sistema" : "sistemas"
-        }`;
+    : countStateText(badge.state, badge.count ?? null);
 
   return (
     <CollapsibleSection
       id={id}
       title={DOMAIN_TITLE[domain]}
       className={`panel-block section-lint-config section-lint-config-${domain}`}
-      count={config?.systems.length ?? 0}
+      count={badge.count}
       summary={summary}
     >
       {config ? (
