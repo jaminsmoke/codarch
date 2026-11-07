@@ -58,6 +58,8 @@ export type { LintAdvice } from "./advice";
 export {
   DOC_RULES,
   DOC_RULE_SEVERITY,
+  codarchActiveRules,
+  codarchRuleCatalog,
   docsFindings,
   matchesGlob,
   readFrontmatter,
@@ -82,3 +84,17 @@ export {
 } from "./rollup";
 export type { LintFileCount, LintRuleCount, LintTotals } from "./rollup";
 export { parseDocsConfig, parseDocsYaml } from "./docs-config";
+export { systemActivity } from "./catalog";
+export type { RuleCountState, SystemActivity } from "./catalog";
+export { scopeHealthMerged } from "./merged";
+export type {
+  DomainApplicability,
+  DomainPathCoverage,
+  FindingAnchor,
+  MergedAffectedFile,
+  MergedScopeHealth,
+  OriginHealth,
+  PathCoverageKind,
+  ScopedFinding,
+  SelectionDomain
+} from "./merged";

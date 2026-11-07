@@ -1,5 +1,5 @@
-import { useId, useMemo, useState } from "react";
-import { lintScopePath } from "@codarch/lint/browser";
+import { useId, useState } from "react";
+import type { FindingAnchor } from "@codarch/lint/browser";
 import type { HistoryEntry } from "@codarch/schema/browser";
 import type { CodarchApp } from "../app/types";
 import { Inspector } from "../panels";
@@ -11,21 +11,15 @@ import {
   inspectorLabel,
   type InspectorLintMarks
 } from "../InspectorBar";
-import {
-  healthSnapshotFromCc,
-  planFindingOpen,
-  readSelection
-} from "../lintAdapter";
+import { scopeHealthMerged } from "@codarch/lint/browser";
+import { healthSnapshot } from "../lintHealth";
 import { lintBarMark } from "../lintRollup";
 import { toggleInspector, type InspectorTab } from "../viewState";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
 /** El cambio de mapa borra la ruta recordada; aquí se vuelve a dejar la del fichero. */
-function rememberSelection(
-  ref: { current: string | null },
-  path: string
-): void {
+function rememberSelection(ref: { current: string | null }, path: string): void {
   ref.current = path;
 }
 
@@ -78,68 +72,46 @@ export function InspectorDock({
     }
   };
 
-  const codeSnapshot = useMemo(
-    () => healthSnapshotFromCc(state.cc),
-    [state.cc]
-  );
-  const docsSnapshot = useMemo(
-    () => healthSnapshotFromCc(state.rest),
-    [state.rest]
-  );
-  const codePaths = useMemo(() => {
-    const paths = new Set<string>();
-    for (const path of codeSnapshot?.paths ?? []) paths.add(lintScopePath(path));
-    return paths;
-  }, [codeSnapshot]);
-  const restPaths = useMemo(() => {
-    const paths = new Set<string>();
-    for (const path of docsSnapshot?.paths ?? []) paths.add(lintScopePath(path));
-    return paths;
-  }, [docsSnapshot]);
-
-  // Un .md del código abre el mapa del resto, y al revés. Si el mapa actual
-  // ya contiene la ruta, se queda. Si ninguno la tiene, no se cambia de mapa.
   const selectInPlace = (path: string) => {
-    const plan = planFindingOpen({
-      path: lintScopePath(path),
-      map: state.map,
-      inCode: codePaths.has(lintScopePath(path)),
-      inRest: restPaths.has(lintScopePath(path))
-    });
-    if (!plan) return;
-    if (plan.map !== state.map) {
-      actions.setMap(plan.map);
-      rememberSelection(app.selectedPathRef, path);
-      actions.setTab("file");
-      closeFile();
-      return;
-    }
     const index =
       view.model?.files.findIndex((file) => file.path === path) ?? -1;
     if (index >= 0) actions.selectIndex(index);
     closeFile();
   };
 
+  // El ancla dice el mapa. Si es el otro, se cambia primero y luego se
+  // selecciona: un .md no se abre en el árbol de código.
+  const openFinding = (anchor: FindingAnchor) => {
+    if (anchor.map !== state.map) {
+      actions.setMap(anchor.map);
+      rememberSelection(app.selectedPathRef, anchor.path);
+      actions.setTab("file");
+      closeFile();
+      return;
+    }
+    selectInPlace(anchor.path);
+  };
+
+  // Los dos árboles se leen en las dos vistas. El catálogo, sin hallazgos,
+  // sigue en la hoja de herramientas.
   const rulesMode = state.map === "rest";
+  const sectionLint = state.lint;
+  const docsLint = state.restLint;
+  const snapshot = healthSnapshot(view.model);
   const markOf = (kind: "file" | "folder" | "project", path: string) => {
-    const health = readSelection({
-      code: state.lint,
-      docs: state.restLint,
-      scope: { kind, path },
-      codeSnapshot,
-      docsSnapshot
-    });
-    if (health.counts.findings === 0) return null;
-    return lintBarMark(
-      {
-        errors: health.counts.errors,
-        warnings: health.counts.warnings,
-        info: health.counts.info,
-        findings: health.counts.findings,
-        files: health.counts.files
-      },
-      "lint"
+    const health = scopeHealthMerged(
+      [state.lint, state.restLint],
+      { kind, path },
+      snapshot
     );
+    if (health.counts.findings === 0) return null;
+    return lintBarMark({
+      errors: health.counts.errors,
+      warnings: health.counts.warnings,
+      info: health.counts.info,
+      findings: health.counts.findings,
+      files: health.counts.filesWithFindings
+    });
   };
   const lintMarks: InspectorLintMarks = {};
   const fileMark = selectedFile ? markOf("file", selectedFile.path) : null;
@@ -171,49 +143,47 @@ export function InspectorDock({
             symbols={selectedSymbols}
             structure={selectedStructure}
             chain={state.chain}
-            lint={state.lint}
-            docsLint={state.restLint}
-            codeSnapshot={codeSnapshot}
-            docsSnapshot={docsSnapshot}
+            lint={sectionLint}
+            docsLint={docsLint}
             migration={migration}
             showCode={state.map === "code"}
+            rulesMode={rulesMode}
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}
             onLoadCode={actions.readCode}
             onOpenEditor={actions.openInEditor}
             onSelectPath={selectInPlace}
+            onOpenFinding={openFinding}
             onColorMode={actions.setColorMode}
           />
         ) : state.tab === "folder" ? (
           <FolderPanel
             folder={selectedFolderNode}
             model={view.model}
-            lint={state.lint}
-            docsLint={state.restLint}
-            codeSnapshot={codeSnapshot}
-            docsSnapshot={docsSnapshot}
+            lint={sectionLint}
+            docsLint={docsLint}
             rulesMode={rulesMode}
             changes={report?.files ?? null}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
+            onOpenFinding={openFinding}
             onSelectFolder={actions.selectFolder}
             onScopeChanges={actions.scopeChanges}
           />
         ) : state.tab === "project" ? (
           <ProjectPanel
             model={view.model}
-            lint={state.lint}
-            docsLint={state.restLint}
-            codeSnapshot={codeSnapshot}
-            docsSnapshot={docsSnapshot}
+            lint={sectionLint}
+            docsLint={docsLint}
             rulesMode={rulesMode}
             metricTitle={metricTitle}
             colorMode={state.colorMode}
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
+            onOpenFinding={openFinding}
             onSelectFolder={actions.selectFolder}
           />
         ) : (

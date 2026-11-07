@@ -1,12 +1,12 @@
 /**
  * @vitest-environment jsdom
  *
- * Raíz → un documento → otra vez la raíz, con el catálogo al lado.
+ * Raíz → un documento, por el ancla del resto → otra vez la raíz.
  */
 import { createElement, useState } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { FindingAnchor, LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { LintSection } from "../src/LintSection";
 import { LintConfigSection } from "../src/panels/LintConfigSection";
@@ -66,18 +66,18 @@ function code(): LintArtifact {
           config: "eslint.config.js",
           rules: [{ id: "eqeqeq", severity: "error" }]
         },
-        { name: "oxlint", config: null, note: "no se enumeran" }
+        {
+          name: "oxlint",
+          config: null,
+          note: "corre sus correcciones por defecto; no se enumeran"
+        }
       ],
       tree: "code-tree"
     },
     files: {},
     coverage: {
       tools: {
-        eslint: {
-          outcome: "enumerated",
-          measuredPaths: [ANALYZE],
-          eligiblePaths: null
-        },
+        eslint: { outcome: "enumerated", measuredPaths: [ANALYZE], eligiblePaths: null },
         oxlint: {
           outcome: "unknown",
           eligiblePaths: null,
@@ -99,7 +99,7 @@ const model = {
     apiVersion: "cc.json 2.x",
     rootName: "codarch"
   },
-  files: [],
+  files: [{ path: ANALYZE }],
   sections: [],
   metrics: [],
   edges: [],
@@ -125,14 +125,28 @@ const model = {
   },
   lintMax: 0,
   warnings: []
-} as RenderModel;
+} as unknown as RenderModel;
+
+const restModel = {
+  ...model,
+  meta: { ...model.meta, checksum: "docs-tree" },
+  files: [{ path: ROADMAP }, { path: INDEX }],
+  fileCount: 733
+} as unknown as RenderModel;
 
 function Flow() {
+  const [map, setMap] = useState<"code" | "rest">("code");
   const [path, setPath] = useState<string | null>(null);
   const codeLint = code();
   const docsLint = docs();
-  const codeSnapshot = { treeHash: "code-tree", paths: [ANALYZE] };
-  const docsSnapshot = { treeHash: "docs-tree", paths: [ROADMAP, INDEX] };
+  const open = (anchor: FindingAnchor) => {
+    setMap(anchor.map);
+    setPath(anchor.path);
+  };
+  const snapshot =
+    map === "code"
+      ? { treeHash: "code-tree", paths: [ANALYZE] }
+      : { treeHash: "docs-tree", paths: [ROADMAP, INDEX] };
   return createElement(
     "div",
     null,
@@ -152,7 +166,13 @@ function Flow() {
     ),
     createElement(
       "button",
-      { type: "button", onClick: () => setPath(null) },
+      {
+        type: "button",
+        onClick: () => {
+          setMap("code");
+          setPath(null);
+        }
+      },
       "Volver al proyecto"
     ),
     createElement(
@@ -160,25 +180,23 @@ function Flow() {
       { "data-testid": "card" },
       path === null
         ? createElement(ProjectPanel, {
-            model,
+            model: map === "code" ? model : restModel,
             lint: codeLint,
             docsLint,
-            codeSnapshot,
-            docsSnapshot,
             metricTitle: (key: string) => key,
             colorMode: "",
             onColorMode: () => {},
-            onSelectPath: setPath,
-            onSelectFolder: () => {}
+            onSelectPath: () => {},
+            onSelectFolder: () => {},
+            onOpenFinding: open
           })
         : createElement(LintSection, {
             id: "file-lint",
-            code: codeLint,
-            docs: docsLint,
+            artifact: codeLint,
+            artifacts: [codeLint, docsLint],
             folder: "",
             filePath: path,
-            codeSnapshot,
-            docsSnapshot
+            snapshot
           })
     )
   );
@@ -190,38 +208,35 @@ afterEach(() => {
 });
 
 describe("el flujo de la ficha", () => {
-  it("la raíz enseña 307, el documento 69, y el catálogo no enseña 307", () => {
+  it("la raíz enseña 307, el .md abre el resto con 69, y el catálogo no enseña 307", () => {
     render(createElement(Flow));
-
-    const card = within(screen.getByTestId("card"));
+    const card = () => within(screen.getByTestId("card"));
     const catalog = within(screen.getByTestId("catalog"));
 
-    expect(card.getByRole("button", { name: /Lint/ })).toBeTruthy();
-    expect(card.queryByRole("button", { name: /Reglas/ })).toBeNull();
-    expect(card.getAllByText("307 errores").length).toBeGreaterThan(0);
-    expect(card.getByRole("button", { name: new RegExp(ROADMAP.replaceAll(".", "\\.")) })).toBeTruthy();
-    expect(card.getAllByText("docs · codarch").length).toBeGreaterThan(0);
-    expect(card.queryByText("Limpio")).toBeNull();
+    expect(card().getByRole("button", { name: /Lint/ })).toBeTruthy();
+    expect(card().queryByRole("button", { name: /Reglas/ })).toBeNull();
+    expect(card().getAllByText("307 errores").length).toBeGreaterThan(0);
+    expect(card().getByText(/Actualidad no verificada/)).toBeTruthy();
+    expect(card().getByText(/Árbol al día/)).toBeTruthy();
 
     expect(catalog.getByText("eqeqeq")).toBeTruthy();
-    expect(catalog.getAllByText("Recuento desconocido.").length).toBeGreaterThan(0);
+    expect(catalog.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    expect(catalog.getByText("doc/broken-link")).toBeTruthy();
+    expect(catalog.getByText("4 reglas activas")).toBeTruthy();
     expect(catalog.queryByText("307")).toBeNull();
     expect(catalog.queryByText(MESSAGE)).toBeNull();
-    expect(catalog.queryByText("doc/broken-link")).toBeNull();
+    expect(catalog.queryByText("0 reglas")).toBeNull();
 
-    fireEvent.click(card.getByRole("button", { name: new RegExp(ROADMAP.replaceAll(".", "\\.")) }));
+    fireEvent.click(card().getByRole("button", { name: new RegExp(ROADMAP.replaceAll(".", "\\.")) }));
 
-    const open = within(screen.getByTestId("card"));
+    const open = card();
     expect(open.getAllByText("69 errores").length).toBeGreaterThan(0);
-    expect(open.getAllByText(MESSAGE).length).toBeGreaterThan(0);
     expect(open.getAllByText("doc/broken-link").length).toBeGreaterThan(0);
+    expect(open.getAllByText(MESSAGE).length).toBeGreaterThan(0);
     expect(open.queryByText("307 errores")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Volver al proyecto" }));
-
-    expect(
-      within(screen.getByTestId("card")).getAllByText("307 errores").length
-    ).toBeGreaterThan(0);
+    expect(card().getAllByText("307 errores").length).toBeGreaterThan(0);
     expect(catalog.queryByText("307")).toBeNull();
   });
 });

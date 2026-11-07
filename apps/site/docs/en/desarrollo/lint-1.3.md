@@ -7,7 +7,7 @@ sidebar:
   order: 4
 ---
 
-The schema is **1.3**. The names do not change: `lint.repmod.json` for code and `lint-rest.repmod.json` for documents. There is no separate stored state, no per-folder health in the file, and no new adapter process.
+The schema is **1.3**. The names do not change: `lint.repmod.json` for code and `lint-rest.repmod.json` for documents. There is no separate stored state and no per-folder health in the file. The view that joins the two is computed on read, with `scopeHealthMerged` ([ADR 0109](adr/0101-0110/0109-la-salud-del-lint-se-lee-junta.md)): it is not written and it is not part of the checksum.
 
 Coverage is the only truth of **what was looked at**. `files` holds findings only. Config stays in `meta.tools` and `meta.systems`; a consumer derives a `config` block and does not duplicate it in the file.
 
@@ -238,6 +238,7 @@ That, with `eligible > 0` and `fresh === true`, is clean and current. If `fresh`
 | Code | When |
 |---|---|
 | `legacy-global` | A 1.0–1.2 artifact. `measured` is null. |
+| `legacy-version` | Added by `scopeHealthMerged` for a legacy artifact. It is not in the file. It does not become `complete`. |
 | `tool-failed` | The process wrote something that could not be read. |
 | `tool-missing` | The command is not there. |
 | `unknown-eligibility` | It is not known who should have been looked at. oxlint, Biome, Ruff, go vet, dotnet, and ESLint or Checkstyle with `eligiblePaths: null`. |

@@ -7,7 +7,7 @@ sidebar:
   order: 4
 ---
 
-El esquema es **1.3**. Los nombres no cambian: `lint.repmod.json` para el código y `lint-rest.repmod.json` para los documentos. No hay estado guardado aparte, ni salud por carpeta en el fichero, ni un proceso nuevo de adaptador.
+El esquema es **1.3**. Los nombres no cambian: `lint.repmod.json` para el código y `lint-rest.repmod.json` para los documentos. No hay estado guardado aparte ni salud por carpeta en el fichero. La vista que junta los dos se calcula al leer, con `scopeHealthMerged` ([ADR 0109](adr/0101-0110/0109-la-salud-del-lint-se-lee-junta.md)): no se escribe y no entra en el checksum.
 
 La cobertura es la única verdad de **qué se miró**. `files` solo guarda hallazgos. La config sigue en `meta.tools` y `meta.systems`; quien consume deriva un bloque `config` y no lo duplica en el fichero.
 
@@ -238,6 +238,7 @@ Eso, con `eligible > 0` y `fresh === true`, es limpio y al día. Si `fresh` es `
 | Código | Cuándo |
 |---|---|
 | `legacy-global` | Artefacto 1.0–1.2. `measured` null. |
+| `legacy-version` | Lo añade `scopeHealthMerged` a un legado. No está en el fichero. No pasa a `complete`. |
 | `tool-failed` | El proceso escribió algo que no se pudo leer. |
 | `tool-missing` | El comando no está. |
 | `unknown-eligibility` | No se sabe a quién debía mirar. oxlint, Biome, Ruff, go vet, dotnet, y ESLint o Checkstyle con `eligiblePaths: null`. |

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { HealthSnapshot, LintArtifact } from "@codarch/lint/browser";
+import type { FindingAnchor, LintArtifact } from "@codarch/lint/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type {
   CcMigrationLens,
@@ -51,16 +51,16 @@ export function Inspector({
   structure,
   chain,
   lint,
-  docsLint = null,
-  codeSnapshot,
-  docsSnapshot,
+  docsLint,
   migration,
   showCode = true,
+  rulesMode: _rulesMode = false,
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
   onSelectPath,
-  onColorMode
+  onColorMode,
+  onOpenFinding
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
@@ -73,12 +73,13 @@ export function Inspector({
   /** Miembros, imports y exports del fichero (ADR 0064). */
   structure: CcStructureNode | null;
   chain: SymbolChain | null;
-  /** El lint del código, que se lee por hallazgos (ADR 0104). */
+  /** El lint del proyecto, que se lee por hallazgos (ADR 0104). */
   lint: LintArtifact | null;
-  /** Las reglas de docs del mismo fichero, si las hay. */
+  /**
+   * El lint de documentos. Si viene —aunque sea `null`—, la ficha de código
+   * junta los dos orígenes. En el mapa del resto no se pintan hallazgos.
+   */
   docsLint?: LintArtifact | null;
-  codeSnapshot?: HealthSnapshot;
-  docsSnapshot?: HealthSnapshot;
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
   /**
@@ -86,6 +87,11 @@ export function Inspector({
    * miembros ni cadena, y su ficha no finge que los tenga (ADR 0093).
    */
   showCode?: boolean;
+  /**
+   * En el mapa del resto no se pintan símbolos. La sección de hallazgos sigue
+   * y no cambia de título.
+   */
+  rulesMode?: boolean;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -93,6 +99,7 @@ export function Inspector({
   onOpenEditor: (request: EditorRequest) => Promise<boolean>;
   /** Abre otro fichero del grafo desde Dependencias. */
   onSelectPath: (path: string) => void;
+  onOpenFinding?: (anchor: FindingAnchor) => void;
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
 }) {
@@ -168,12 +175,14 @@ export function Inspector({
       ) : null}
       <LintSection
         id="file-lint"
-        code={lint}
-        docs={docsLint}
+        artifact={lint}
+        artifacts={docsLint !== undefined ? [lint, docsLint] : undefined}
         folder={file.path}
         filePath={file.path}
-        codeSnapshot={codeSnapshot ?? healthSnapshot(model)}
-        docsSnapshot={docsSnapshot}
+        title="Lint"
+        kind="lint"
+        snapshot={healthSnapshot(model)}
+        onOpenFinding={onOpenFinding}
       />
       {showCode ? (
         <>

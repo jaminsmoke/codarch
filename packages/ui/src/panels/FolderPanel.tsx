@@ -1,4 +1,4 @@
-import type { HealthSnapshot, LintArtifact } from "@codarch/lint/browser";
+import type { FindingAnchor, LintArtifact } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import {
@@ -40,9 +40,7 @@ export function FolderPanel({
   folder,
   model,
   lint,
-  docsLint = null,
-  codeSnapshot,
-  docsSnapshot,
+  docsLint,
   rulesMode = false,
   changes,
   metricTitle,
@@ -50,17 +48,16 @@ export function FolderPanel({
   onColorMode,
   onSelectPath,
   onSelectFolder,
-  onScopeChanges
+  onScopeChanges,
+  onOpenFinding
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
-  /** El lint del código. */
+  /** El lint del código, o las reglas del resto en ese mapa (ADR 0094 · ADR 0105). */
   lint: LintArtifact | null;
-  /** Las reglas de docs, listadas en la misma sección. */
+  /** El lint de documentos, para juntarlo en la vista de código. */
   docsLint?: LintArtifact | null;
-  codeSnapshot?: HealthSnapshot;
-  docsSnapshot?: HealthSnapshot;
-  /** En el resto, el bloque de métricas no cuenta el lint del código como «sin medir». */
+  /** En el resto: sección Reglas y sin bloque de lint en métricas (ADR 0105). */
   rulesMode?: boolean;
   /** Los ficheros del cambio, para contar los de esta carpeta (ADR 0092). */
   changes: DiffReport["files"] | null;
@@ -70,6 +67,7 @@ export function FolderPanel({
   onColorMode: (mode: string) => void;
   /** Selecciona un fichero del contenido. */
   onSelectPath: (path: string) => void;
+  onOpenFinding?: (anchor: FindingAnchor) => void;
   /** Selecciona una carpeta del contenido. */
   onSelectFolder: (path: string) => void;
   /** Acota la pestaña de cambios a esta carpeta y la abre. */
@@ -108,7 +106,6 @@ export function FolderPanel({
           files={subtree}
           folders={childFolderNodes(folder)}
           lint={rulesMode ? null : lint}
-          docsLint={docsLint}
           folder={folder.path}
           metricTitle={metricTitle}
           colorMode={colorMode}
@@ -225,12 +222,14 @@ export function FolderPanel({
       {model ? (
         <LintSection
           id="folder-lint"
-          code={lint}
-          docs={docsLint}
+          artifact={lint}
+          artifacts={docsLint !== undefined ? [lint, docsLint] : undefined}
           folder={folder.path}
-          codeSnapshot={codeSnapshot ?? healthSnapshot(model)}
-          docsSnapshot={docsSnapshot}
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
           onSelectPath={onSelectPath}
+          onOpenFinding={onOpenFinding}
         />
       ) : null}
 

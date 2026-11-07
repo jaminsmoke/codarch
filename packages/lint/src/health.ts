@@ -25,6 +25,12 @@ export type CoverageState = "unmeasured" | "unknown" | "partial" | "complete";
 
 export const REASON_CODES = [
   "legacy-global",
+  /**
+   * La vista combinada: el artefacto es 1.0–1.2. No está en el fichero;
+   * `scopeHealthMerged` lo añade para que la UI pueda decir «medido con una
+   * versión anterior». Un legado no pasa a `complete`.
+   */
+  "legacy-version",
   "tool-failed",
   "tool-missing",
   "unknown-eligibility",

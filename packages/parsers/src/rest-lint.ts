@@ -1,5 +1,6 @@
 import {
   canonicalLintPath,
+  codarchActiveRules,
   createLintArtifact,
   docsFindings,
   type DocsRulesConfig,
@@ -47,8 +48,17 @@ export function buildRestLint(input: {
   return createLintArtifact({
     domain: "docs",
     // Estas reglas las pone el producto, no un linter instalado: el artefacto lo
-    // dice, para que nadie busque su configuración en el repo.
+    // dice, para que nadie busque su configuración en el repo. La lista sale
+    // del productor, no de los hallazgos de esta pasada.
     tools: ["codarch"],
+    systems: [
+      {
+        name: "codarch",
+        config: input.config ? ".codarch.yml" : null,
+        rules: codarchActiveRules(input.config),
+        note: "reglas internas del producto; no salen de un linter instalado"
+      }
+    ],
     ...(input.tree ? { tree: input.tree } : {}),
     files: findings,
     coverage: {

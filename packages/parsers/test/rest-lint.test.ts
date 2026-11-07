@@ -26,6 +26,9 @@ describe("el lint del resto (ADR 0105)", () => {
     const artifact = buildRestLint({ files, tree: "abc123" });
 
     expect(artifact.meta).toMatchObject({ tools: ["codarch"], tree: "abc123" });
+    expect(artifact.meta.systems[0]?.rules?.map((rule) => rule.id)).toEqual([
+      "doc/broken-link"
+    ]);
     expect(artifact.files["docs/a.md"]?.messages[0]?.rule).toBe(
       "doc/broken-link"
     );

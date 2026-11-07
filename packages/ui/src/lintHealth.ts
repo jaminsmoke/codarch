@@ -23,6 +23,7 @@ import { formatCompact, type RenderModel } from "@codarch/render/browser";
 const REASON_TEXT: Record<ReasonCode, string> = {
   "legacy-global":
     "El artefacto es anterior a la cobertura por herramienta: no se sabe qué se midió.",
+  "legacy-version": "Medido con una versión anterior.",
   "tool-failed": "Una herramienta falló y no llegó a medir.",
   "tool-missing": "Falta una herramienta declarada: no se midió.",
   "unknown-eligibility": "No se sabe qué ficheros eran elegibles.",
@@ -121,6 +122,65 @@ export function healthCopy(health: ScopeHealth): string {
 function unmeasuredCopy(health: ScopeHealth): string {
   const reasons = reasonSentence(health.coverage.reasons);
   return reasons ? `Sin medir. ${reasons}` : "Sin medir.";
+}
+
+/**
+ * La frescura, en tres frases que no se sustituyen.
+ *
+ * `true` es el árbol de este origen. `false` es otro árbol. `null` es que no
+ * se pudo comparar —el snapshot es el del otro origen, o falta un checksum—
+ * y no se dice que esté desfasado.
+ */
+export function freshStateCopy(fresh: boolean | null): string {
+  switch (fresh) {
+    case true:
+      return "Árbol al día.";
+    case false:
+      return "Árbol de otra pasada.";
+    case null:
+      return "Actualidad no verificada.";
+    default: {
+      const unexpected: never = fresh;
+      return unexpected;
+    }
+  }
+}
+
+/**
+ * La cobertura de un origen, sin la frase de frescura.
+ *
+ * `freshness-unverified` sale en `freshStateCopy`, no aquí: si no, un `null`
+ * y un `false` dirían lo mismo.
+ */
+export function coverageStateCopy(
+  state: CoverageState,
+  reasons: readonly Reason[],
+  findings: number
+): string {
+  const sentence = reasons
+    .filter((item) => item.code !== "freshness-unverified")
+    .map(reasonText)
+    .join(" ");
+  switch (state) {
+    case "unmeasured":
+      return sentence ? `Sin medir. ${sentence}` : "Sin medir.";
+    case "partial":
+      return findings === 0
+        ? `Cobertura parcial: sin hallazgos observados en lo medido. ${sentence}`.trim()
+        : `Cobertura parcial: se muestran los hallazgos observados. ${sentence}`.trim();
+    case "unknown":
+      return findings === 0
+        ? `Cobertura no verificada. ${sentence}`.trim()
+        : `Cobertura no verificada: se muestran los hallazgos observados. ${sentence}`.trim();
+    case "complete":
+      return findings === 0
+        ? `Cobertura completa, sin hallazgos. ${sentence}`.trim()
+        : `Cobertura completa. ${sentence}`.trim();
+    default: {
+      const unexpected: never = state;
+      return unexpected;
+    }
+  }
 }
 
 /** El resumen de la sección cerrada. Nunca «limpio» si el contrato no lo es. */
