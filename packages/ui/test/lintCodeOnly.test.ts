@@ -5,12 +5,14 @@
  */
 import { readFileSync, existsSync } from "node:fs";
 import { createElement } from "react";
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { readLintArtifact, scopeHealth, type LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
+import type { CodarchApp } from "../src/app/types";
 import { DocsToolSheet } from "../src/panels/LintConfigSection";
 import { ProjectPanel } from "../src/panels/ProjectPanel";
+import { InspectorDock } from "../src/shell/InspectorDock";
 
 const CODE_FILE = "packages/ui/src/a.ts";
 const DOC_FILE = "apps/site/docs/en/desarrollo/roadmap.md";
@@ -203,6 +205,130 @@ describe("los dos mapas comparten el hueco y la barra no lleva catálogo", () =>
     expect(screen.queryByText("309")).toBeNull();
     expect(screen.queryByText("doc/broken-link")).toBeNull();
     expect(screen.queryByText("el enlace no llega")).toBeNull();
+  });
+});
+
+function dock(map: "code" | "rest"): CodarchApp {
+  return {
+    state: {
+      map,
+      tab: "project",
+      lint: codeArtifact(true),
+      restLint: docsArtifact(309),
+      rest: { meta: { checksum: "docs-tree" } },
+      report: null,
+      areaMetric: "rloc",
+      colorMode: "risk",
+      source: "test",
+      settingsOpen: false,
+      query: ""
+    },
+    actions: {
+      setTab: vi.fn(),
+      setColorMode: vi.fn(),
+      selectIndex: vi.fn(),
+      selectFolder: vi.fn(),
+      scopeChanges: vi.fn(),
+      selectPath: vi.fn(),
+      readCode: async () => null,
+      openInEditor: async () => false,
+      openSymbolChain: vi.fn(),
+      clearChangesScope: vi.fn()
+    },
+    view: { model, error: null },
+    selectedFile: null,
+    selectedFolderNode: null,
+    selectedMigration: null,
+    selectedSymbols: [],
+    selectedStructure: null,
+    metricTitle: (key: string) => key,
+    closeFile: vi.fn(),
+    migration: null
+  } as unknown as CodarchApp;
+}
+
+function lintSection() {
+  const section = screen.getByRole("button", { name: /^Lint/ }).closest("section");
+  if (!section) throw new Error("falta la sección Lint");
+  return within(section);
+}
+
+describe("hallazgo de código, catálogo y artefacto de documentos cargado", () => {
+  it("en el mapa de código el hallazgo muestra severidad, mensaje, fichero y regla", () => {
+    render(
+      createElement(InspectorDock, {
+        app: dock("code"),
+        onOpenHistory: () => {},
+        onLoadReport: () => {}
+      })
+    );
+    const lint = lintSection();
+    expect(lint.getByText(CODE_FILE)).toBeTruthy();
+    expect(lint.getByText("no-console")).toBeTruthy();
+    expect(lint.getByText("Unexpected console")).toBeTruthy();
+    expect(lint.getAllByText("1 error").length).toBeGreaterThan(0);
+    expect(lint.queryByText("doc/broken-link")).toBeNull();
+    expect(lint.queryByText("309 errores")).toBeNull();
+    expect(screen.getByRole("button", { name: /1 error de lint/ })).toBeTruthy();
+  });
+
+  it("en Docs y config la misma sección es solo el catálogo y no está el hallazgo", () => {
+    render(
+      createElement(InspectorDock, {
+        app: dock("rest"),
+        onOpenHistory: () => {},
+        onLoadReport: () => {}
+      })
+    );
+    const lint = lintSection();
+    expect(lint.getByText("eslint.config.js")).toBeTruthy();
+    expect(lint.getByText("1 regla activa")).toBeTruthy();
+    expect(lint.getByText("no-console")).toBeTruthy();
+    expect(lint.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    expect(lint.queryByText(CODE_FILE)).toBeNull();
+    expect(lint.queryByText("Unexpected console")).toBeNull();
+    expect(lint.queryByText("1 error")).toBeNull();
+    expect(lint.queryByText("doc/broken-link")).toBeNull();
+    expect(screen.queryByRole("button", { name: /de lint/ })).toBeNull();
+  });
+
+  it("doc/broken-link cargado en el estado no entra en la salud, la cuenta ni el catálogo", () => {
+    const loaded = dock("code");
+    expect(loaded.state.restLint).not.toBeNull();
+    expect(
+      scopeHealth(loaded.state.restLint, { kind: "project", path: "" }).counts.findings
+    ).toBe(309);
+    expect(scopeHealth(loaded.state.lint, { kind: "project", path: "" }).counts.findings).toBe(
+      1
+    );
+
+    const { unmount } = render(
+      createElement(InspectorDock, {
+        app: loaded,
+        onOpenHistory: () => {},
+        onLoadReport: () => {}
+      })
+    );
+    const findings = lintSection();
+    expect(findings.getAllByText("1 error").length).toBeGreaterThan(0);
+    expect(findings.queryByText("doc/broken-link")).toBeNull();
+    expect(findings.queryByText("el enlace no llega")).toBeNull();
+    expect(findings.queryByText("309 errores")).toBeNull();
+    expect(document.body.textContent).not.toContain("309");
+    unmount();
+
+    render(
+      createElement(InspectorDock, {
+        app: dock("rest"),
+        onOpenHistory: () => {},
+        onLoadReport: () => {}
+      })
+    );
+    const catalog = lintSection();
+    expect(catalog.queryByText("doc/broken-link")).toBeNull();
+    expect(catalog.queryByText("el enlace no llega")).toBeNull();
+    expect(catalog.queryByText("309")).toBeNull();
+    expect(catalog.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
   });
 });
 
