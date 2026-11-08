@@ -222,10 +222,10 @@ colores: lo que cambia es el papel.
 ## Ajustes › Plugins y Ajustes › Addons
 
 No hay una tienda ni un catálogo de plugins. **Ajustes › Plugins** lista los plugins instalados y
-permite activarlos o desactivarlos (por ejemplo, «Vista 3D»). Los addons que declara el
+permite activarlos o desactivarlos (por ejemplo, «Atlas»). Los addons que declara el
 `.codarch.yml` del repo están en la sección aparte **Ajustes › Addons**. Ver [Reglas](reglas.md).
 
-![Ajustes › Plugins con «Vista 3D 0.2.0» desactivado](../images/webapp-plugins.png)
+![Ajustes › Plugins con «Atlas» activo](../images/webapp-plugins.png)
 
 ## Qué guarda
 

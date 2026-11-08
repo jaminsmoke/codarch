@@ -230,10 +230,10 @@ their colours: what changes is the paper.
 ## Ajustes › Plugins and Ajustes › Addons
 
 There is no plugin store or catalogue. **Ajustes › Plugins** lists the installed plugins and lets you
-turn them on or off (for example, «Vista 3D»). The addons declared by the repo's `.codarch.yml` are in
+turn them on or off (for example, «Atlas»). The addons declared by the repo's `.codarch.yml` are in
 the separate **Ajustes › Addons** section. See [Rules](reglas.md).
 
-![Ajustes › Plugins with «Vista 3D 0.2.0» turned off](../../images/webapp-plugins.png)
+![Ajustes › Plugins with «Atlas» enabled](../../images/webapp-plugins.png)
 
 ## What it stores
 

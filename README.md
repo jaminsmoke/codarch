@@ -457,17 +457,18 @@ La app ocupa la ventana: el raíl y el inspector scrollean solos y el mapa se aj
 queda (nada crece la página). El mapa se acerca con `+`, `−`, `Ajustar` o la rueda
 — la distribución no se recalcula, solo el rectángulo visible, así que acercar es gratis.
 
-### 🧊 La vista 3D
+### 🧊 El Atlas 3D
 
-El primer plugin: el mapa en tres dimensiones. Cada fichero es una caja —la base es su
-rectángulo del treemap y la altura su riesgo— y el color es el del mapa. Se orbita con el
-ratón y al pulsar una caja se selecciona el fichero.
+El plugin Atlas: un mapa en tres dimensiones para recorrer la arquitectura en profundidad. Las
+carpetas son contenedores con aristas; los ficheros, cubos con el color del mapa. Se orbita con el
+ratón, la rueda acerca y al pulsar una carpeta o un fichero se sincroniza la selección con la app.
 
-Va en **su propio chunk** (495 KB), así que el bundle principal no crece y solo se descarga si
-alguien abre la vista. Necesita WebGL2: si no lo hay, el store lo dice.
+Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
+la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el
+de documentos y configuración.
 
-Su hoja de ruta propia (el octree, el nivel de detalle, las carpetas como contenedores) está
-en `plugins/vista-3d/ROADMAP.md`.
+Su hoja de ruta propia (entrar en carpetas, etiquetas, detalle de fichero y corredores) está en
+`plugins/atlas/ROADMAP.md`.
 
 ### 🔌 Los plugins
 
@@ -475,7 +476,7 @@ Un plugin es una pieza **del repo**, en `plugins/`, que se activa desde los ajus
 puede añadir una vista al mapa central.
 
 ```
-plugins/vista-3d/
+plugins/atlas/
   plugin.json     ← el manifiesto: nombre, versión, qué aporta y qué necesita
   index.tsx       ← el punto de entrada
 ```

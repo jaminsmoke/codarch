@@ -12,7 +12,7 @@ Monorepo core-first:
 ```
 packages/   schema · parsers · metrics · lint · layouts · render · plugin-api · addons · ui
 apps/       cli · mcp · github-action · web · desktop · site
-plugins/    vista-3d                    # plugins del repo: código (ADR 0028)
+plugins/    atlas                       # plugins del repo: código (ADR 0028)
 apps/site/docs/   adr/ (carpetas de diez: 0001-0010 … 0061-0070, con roadmap.md dentro) · model.md ·
                   usar/ · rules.md · mcp.md · migration.md · guideline/
 scripts/    bench-* · build-cli · pack-cli · desktop-release · auto-release · check-action

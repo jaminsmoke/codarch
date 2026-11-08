@@ -11,6 +11,9 @@ sidebar:
 
 **Status:** accepted · **Date:** 2026-11-08
 
+**Note:** [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md) removes `vista-3d`; Atlas is the only
+3D view in the product.
+
 **Frames** a second view inside the contract of [ADR 0028](0021-0030/0028-los-plugins.md) and follows
 the line of [ADR 0055](0051-0060/0055-el-3d-se-dibuja-con-webgl2.md): custom WebGL2, no `three`.
 
@@ -39,7 +42,8 @@ core.
 - When inactive, or when the machine has no WebGL2, the classic map remains.
 - Activation is local, like the other plugins; it does not change the analysis.
 
-`vista-3d` stays as it is. They are two different concepts and must be able to evolve separately.
+`vista-3d` is removed in [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md); two competing 3D views
+are not kept. Atlas takes its place.
 
 ### 2. It fills the whole map stage
 
