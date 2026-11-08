@@ -11,9 +11,9 @@ verdict: "adr"
 
 **Por qué así**: la config del proyecto es la única fuente de verdad. `.codarch/` sigue siendo el informe de la última ejecución, no una lista de reglas. El bloque se lee en el mismo sitio y no añade una indirección que el usuario no pidió.
 
-**Verificado**: el catálogo enumera 292 reglas del núcleo y 136 de `@typescript-eslint`; el escritor inserta el bloque en `tseslint.config(...)` y lo actualiza sin duplicarlo; `eslint` sigue cargando la config; activar y desactivar desde la ruta escribe y re-lintá; tests de catálogo, escritor y menú.
+**Verificado**: el catálogo enumera 292 reglas del núcleo y 136 de `@typescript-eslint`; el escritor inserta el bloque en `tseslint.config(...)` y lo actualiza sin duplicarlo; una regla explícita se quita de su `rules` y se cubre con `off` en el bloque; `eslint` sigue cargando la config; activar y desactivar desde la ruta escribe y re-lintá; tests de catálogo, escritor y menú.
 
-**Qué falta**: `meta.config` 1.4 con la huella de la config; quitar la línea explícita cuando el AST la localice con seguridad; Biome, Ruff y Checkstyle.
+**Qué falta**: `meta.config` 1.4 con la huella de la config; Biome, Ruff y Checkstyle.
 
 **Tamaño**: el catálogo y el escritor en `@codarch/lint`; la ruta y el live en `serve`; la acción de plataforma; la ficha y el menú en `packages/ui`.
 
