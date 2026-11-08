@@ -116,6 +116,97 @@ describe("runLint", () => {
     });
   });
 
+  it("un ESLint exhaustivo declara como universo lo que devolvió", async () => {
+    const exhaustiveEslint: LintTool = { ...eslint, exhaustive: true };
+    const result = await runLint({
+      root,
+      tools: [exhaustiveEslint],
+      run: runner({
+        [exhaustiveEslint.command]: {
+          stdout: JSON.stringify([
+            { filePath: "/repo/src/a.ts", messages: [] },
+            { filePath: "/repo/src/b.ts", messages: [] }
+          ])
+        }
+      })
+    });
+
+    expect(result.artifact?.coverage?.tools.eslint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: ["src/a.ts", "src/b.ts"]
+    });
+  });
+
+  it("un comando de listado da el universo aunque el JSON solo traiga hallazgos", async () => {
+    const listedOxlint: LintTool = {
+      ...oxlint,
+      listCommand: "npx oxlint --debug=files ."
+    };
+    const result = await runLint({
+      root,
+      tools: [listedOxlint],
+      run: runner({
+        [listedOxlint.command]: {
+          stdout: JSON.stringify({
+            diagnostics: [
+              {
+                message: "Unexpected any",
+                code: "typescript(no-explicit-any)",
+                severity: "error",
+                filename: "src/b.ts"
+              }
+            ]
+          })
+        },
+        [listedOxlint.listCommand ?? ""]: {
+          stdout: "src/a.ts\r\nsrc/b.ts\n"
+        }
+      })
+    });
+
+    expect(result.artifact?.files["src/b.ts"]).toBeDefined();
+    expect(result.artifact?.summary.measured).toBe(2);
+    expect(result.artifact?.coverage?.tools.oxlint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: ["src/a.ts", "src/b.ts"]
+    });
+  });
+
+  it("si el listado falla, el hallazgo se conserva y la cobertura lo dice", async () => {
+    const listedOxlint: LintTool = {
+      ...oxlint,
+      listCommand: "npx oxlint --debug=files ."
+    };
+    const result = await runLint({
+      root,
+      tools: [listedOxlint],
+      run: runner({
+        [listedOxlint.command]: {
+          stdout: JSON.stringify({
+            diagnostics: [
+              {
+                message: "Unexpected any",
+                code: "typescript(no-explicit-any)",
+                severity: "error",
+                filename: "src/b.ts"
+              }
+            ]
+          })
+        },
+        [listedOxlint.listCommand ?? ""]: new Error("listado roto")
+      })
+    });
+
+    expect(result.artifact?.files["src/b.ts"]).toBeDefined();
+    expect(result.artifact?.coverage?.tools.oxlint).toEqual({
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [{ code: "unknown-eligibility", text: "no se pudo listar los ficheros: listado roto" }]
+    });
+  });
+
   it("una herramienta que revienta no impide medir las demás", async () => {
     const result = await runLint({
       root,

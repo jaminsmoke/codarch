@@ -21,7 +21,7 @@ sidebar:
 | **go vet** | `go.mod` | `go vet ./...`, with the `go vet` on the PATH. |
 | **.NET** | `*.csproj`, `*.sln` | `dotnet format <solution|project> analyzers --verify-no-changes --severity info`, with the SDK on the PATH; the solution wins over a single project. |
 
-A system enters if it has its own configuration **or** if its tool is installed. If there is configuration and no binary, the command says so: **it is not completed with `npx`**, because downloading a version the repo did not choose would be making the measurement up. Tools run with the project's binary (`node_modules/…`) —Ruff and Checkstyle, which do not live there, with the ones the project has on the PATH— and its own configuration.
+A system enters if it has its own configuration **or** if its tool is installed. If there is configuration and no binary, the command says so: **it is not completed with `npx`**, because downloading a version the repo did not choose would be making the measurement up. If there is a binary and no config file, it says that too, and its default rules are not enumerated. Tools run with the project's binary (`node_modules/…`) —Ruff and Checkstyle, which do not live there, with the ones the project has on the PATH— and its own configuration.
 
 Biome gives no line or column in its JSON —its `span` is byte offsets—, so its messages enter without a position instead of computing one by hand. Ruff gives no severity: all its findings count as errors, which is how it treats them when it exits non-zero.
 
@@ -30,7 +30,7 @@ ESLint and oxlint yield the same normalised message: rule, severity, line, colum
 ## Active rules
 
 - **ESLint** is resolved with `eslint --print-config <file>`, which reads the real configuration —flat config, plugins and overrides— instead of interpreting the file by hand.
-- **oxlint** is read from its JSON; without configuration it runs its default correctness rules and the artifact says they are not enumerated.
+- **oxlint** is read from its JSON; without a config file it runs its default rules, and the system's note says so: there is no configuration and its rules are not enumerated.
 - **Biome** reads the rules its config writes, with their group and level (`style/useConst`). The `recommended` ones depend on the Biome version and are not enumerated: the system's note says so.
 - **Ruff** enumerates its rules, not its selectors: it reads `select` and `extend-select` (minus `ignore` and `extend-ignore`), asks its own version for the catalogue with `ruff rule --all --output-format=json` and expands by prefix with Ruff's specificity: the most specific selector wins and, on a tie, the ignored one. Without `select`, the defaults run and are not enumerated; without a catalogue, the selectors are listed and it says so. The catalogue is stored in `.codarch/lint-cache.json` with the Ruff version that produced it: it is only requested again when you upgrade Ruff. It is not part of the artifact or the checksum, and `.codarch/` is not created just to write it.
 - **Checkstyle** reads the `<module name="…">` entries of its XML, without containers (`Checker`, `TreeWalker`) or suppression filters. Its config gives no severity per module: each finding brings it.
@@ -45,9 +45,13 @@ lint:
   - name: eslint
     command: node node_modules/eslint/bin/eslint.js . --format json
     format: eslint-json
+  - name: oxlint
+    command: node node_modules/oxlint/bin/oxlint --format json .
+    format: oxlint-json
+    list: node node_modules/oxlint/bin/oxlint --debug=files .
 ```
 
-Each entry carries `name`, `command` and `format` (`eslint-json`, `oxlint-json`, `biome-json`, `ruff-json`, `checkstyle-xml`, `govet-text` or `dotnet-text`). A malformed block is an error instead of a guess.
+Each entry carries `name`, `command` and `format` (`eslint-json`, `oxlint-json`, `biome-json`, `ruff-json`, `checkstyle-xml`, `govet-text` or `dotnet-text`). `list` is optional: a command that prints one path per line, the universe the tool looks at, clean files included; without it no universe is assumed. A malformed block is an error instead of a guess.
 
 ## Usage
 
@@ -110,11 +114,11 @@ It writes `lint.repmod.json` in the output directory. If it creates `.codarch/` 
 
 `meta.systems` says which lint the project **has** —with its configuration and active rules— and `meta.tools` which ones actually measured. A `1.0`–`1.2` artifact is still read: coverage becomes `unknown` with `legacy-global`, and `measured` is not invented.
 
-`summary.measured` is how many files **coverage derived**, clean ones included, which do not appear in `files`. It is a **global** figure for the pass. It is written only when it can be derived: a zero that does not come from a valid enumeration is not stored. ESLint and Checkstyle know who they looked at and not the universe (`eligiblePaths: null`), so code is never `complete`. `meta.tree` is the checksum of the snapshot that was measured; whoever analyses fills it —`codarch analyze` and, in live, `serve`—. This standalone command does not analyse the repo, so on its own it writes no `tree`: the app cannot compare and does not pretend to.
+`summary.measured` is how many files **coverage derived**, clean ones included, which do not appear in `files`. It is a **global** figure for the pass. It is written only when it can be derived: a zero that does not come from a valid enumeration is not stored. ESLint declares the universe with what it returned —clean files included— and oxlint with `--debug=files`, so code can be `complete` ([ADR 0110](../desarrollo/adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md)); Checkstyle and the rest stay `unknown` if they do not list clean files. `meta.tree` is the checksum of the snapshot that was measured; whoever analyses fills it —`codarch analyze` and, in live, `serve`—. This standalone command does not analyse the repo, so on its own it writes no `tree`: the app cannot compare and does not pretend to.
 
 `summary.files`, `summary.errors`, `summary.warnings`, `summary.messages` and each file's `errors` and `warnings` are **regenerated on read** from the messages. `summary.files` is the number of files with at least one finding. An `info` counts as a message and as a file, and not as an error or a warning. Paths are canonicalized on read —NFC per segment, with `/`, without `./` or repeated slashes— and are not lowercased. If two distinct keys fall on the same path, they are not merged silently: the read records it in `diagnostics`. The schema is **1.3**. The names stay `lint.repmod.json` and `lint-rest.repmod.json`.
 
-Files by relative path, messages sorted by line and column, and a checksum that does not change when the tools' output does not change. **Zero findings is not “clean”**: that needs `complete` coverage, a fresh tree, and something eligible to measure. No artifact means nobody measured.
+Files by relative path, messages sorted by line and column, and a checksum that does not change when the tools' output does not change. **Zero findings is not “clean”**: that needs `complete` coverage, a fresh tree, and something eligible to measure. When it holds, the card says **“Clean and up to date”**; otherwise it shows the counts and the reason. No artifact means nobody measured.
 
 The summary shows the root, the source, the artifact, what each tool did and each system with its configuration. The **files with findings** are those with at least one message, and they are shown **out of those measured** —`3 files with findings out of 494 measured`—: that is what tells a clean repo from an unmeasured one. The rule and finding count is the same one the app and the MCP read, and `--fail-on` decides with that same count, not with the summary the file declares.
 

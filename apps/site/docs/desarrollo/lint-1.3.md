@@ -72,7 +72,16 @@ type AdapterEnumeration =
   | { ok: false; reason: Reason }
 ```
 
-ESLint y Checkstyle enumeran y dejan `eligiblePaths: null`. El código no llega a `complete`. oxlint, Biome, Ruff, go vet y dotnet quedan en `unknown` + `unknown-eligibility`; sus hallazgos se conservan.
+ESLint enumera y, en una pasada sobre la raíz, su resultado es también el universo: un fichero limpio
+entra en `measuredPaths` y en `eligiblePaths`. oxlint no lista los limpios en su JSON, así que el
+detector añade un comando de listado, `--debug=files`, con la misma lista para los dos campos
+([ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md)). Checkstyle, Biome, Ruff, go vet y
+dotnet quedan en `unknown` + `unknown-eligibility` si no listan los limpios; sus hallazgos se conservan.
+
+Un bloque `lint:` de `.codarch.yml` puede declarar `list`, un comando que imprime una ruta por línea.
+Sin `list` no se supone universo. Una herramienta instalada **sin archivo de configuración** lo dice en
+`meta.systems[].note` —«sin archivo de configuración: corre sus reglas por defecto y no se enumeran»—;
+esa nota no bloquea `complete`: la config cambia qué reglas corren, no qué ficheros se midieron.
 
 ## scopeHealth
 
@@ -146,7 +155,7 @@ No hubo medida. Sin artefacto, o la herramienta falló o no está, o el universo
 
 ### unknown
 
-Algo se midió, o el artefacto es viejo, pero la cobertura no se puede cerrar. Siempre en 1.0–1.2 (`legacy-global`) y en un adaptador que no enumera (`unknown-eligibility`). ESLint con `eligiblePaths: null` también es `unknown`: hay `measured`, no hay universo, y no es `complete`.
+Algo se midió, o el artefacto es viejo, pero la cobertura no se puede cerrar. Siempre en 1.0–1.2 (`legacy-global`) y en un adaptador que no enumera (`unknown-eligibility`). ESLint con `eligiblePaths: null` —un artefacto anterior al [ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md) o un comando de `.codarch.yml` sin `list`— también es `unknown`: hay `measured`, no hay universo, y no es `complete`.
 
 ```json
 {
@@ -207,7 +216,7 @@ Hay una enumeración válida y otra herramienta falló, no está o no se sabe. L
 
 ### complete
 
-Todas las herramientas aplicables terminaron y el universo se conoce. En documentos, `eligiblePaths` y `measuredPaths` son los mismos documentos. En el código de esta entrega no se da: ESLint y Checkstyle no dicen el universo.
+Todas las herramientas aplicables terminaron y el universo se conoce. En documentos, `eligiblePaths` y `measuredPaths` son los mismos documentos. En código también puede darse desde el [ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md): ESLint declara el universo con lo que devolvió y oxlint con `--debug=files`.
 
 ```json
 {
@@ -241,7 +250,7 @@ Eso, con `eligible > 0` y `fresh === true`, es limpio y al día. Si `fresh` es `
 | `legacy-version` | Lo añade `scopeHealthMerged` a un legado. No está en el fichero. No pasa a `complete`. |
 | `tool-failed` | El proceso escribió algo que no se pudo leer. |
 | `tool-missing` | El comando no está. |
-| `unknown-eligibility` | No se sabe a quién debía mirar. oxlint, Biome, Ruff, go vet, dotnet, y ESLint o Checkstyle con `eligiblePaths: null`. |
+| `unknown-eligibility` | No se sabe a quién debía mirar. oxlint, Biome, Ruff, go vet, dotnet, y ESLint o Checkstyle con `eligiblePaths: null`. El `text` dice si falta el archivo de configuración o el listado. |
 | `unknown-paths` | No hay snapshot, así que no se puede decir que el fichero no está. |
 | `not-eligible` | El universo está probado y el fichero no entra. Estado `unmeasured`. |
 | `not-found` | El snapshot prueba que el fichero no está. Estado `unmeasured`. |

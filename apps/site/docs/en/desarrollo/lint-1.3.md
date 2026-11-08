@@ -72,7 +72,16 @@ type AdapterEnumeration =
   | { ok: false; reason: Reason }
 ```
 
-ESLint and Checkstyle enumerate and leave `eligiblePaths: null`. Code does not reach `complete`. oxlint, Biome, Ruff, go vet, and dotnet stay `unknown` + `unknown-eligibility`; their findings are kept.
+ESLint enumerates and, in a run over the root, its result is also the universe: a clean file goes into
+`measuredPaths` and `eligiblePaths`. oxlint does not list clean files in its JSON, so the detector adds
+a listing command, `--debug=files`, with the same list for both fields
+([ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md)). Checkstyle, Biome, Ruff, go vet and
+dotnet stay `unknown` + `unknown-eligibility` if they do not list clean files; their findings are kept.
+
+A `lint:` block in `.codarch.yml` may declare `list`, a command that prints one path per line. Without
+`list`, no universe is assumed. An installed tool **without a config file** says so in
+`meta.systems[].note` —“no config file: it runs its default rules and they are not enumerated”—; that
+note does not block `complete`: config changes which rules run, not which files were measured.
 
 ## scopeHealth
 
@@ -146,7 +155,7 @@ Nothing was measured. No artifact, or the tool failed or is missing, or the vali
 
 ### unknown
 
-Something was measured, or the artifact is old, but coverage cannot be closed. Always for 1.0–1.2 (`legacy-global`) and for an adapter that does not enumerate (`unknown-eligibility`). ESLint with `eligiblePaths: null` is also `unknown`: `measured` is known, the universe is not, and the state is not `complete`.
+Something was measured, or the artifact is old, but coverage cannot be closed. Always for 1.0–1.2 (`legacy-global`) and for an adapter that does not enumerate (`unknown-eligibility`). ESLint with `eligiblePaths: null` —an artifact from before [ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md) or a `.codarch.yml` command without `list`— is also `unknown`: `measured` is known, the universe is not, and the state is not `complete`.
 
 ```json
 {
@@ -207,7 +216,7 @@ There is a valid enumeration and another tool failed, is missing, or is unknown.
 
 ### complete
 
-Every applicable tool finished and the universe is known. For documents, `eligiblePaths` and `measuredPaths` are the same documents. Code in this delivery does not reach it: ESLint and Checkstyle do not name the universe.
+Every applicable tool finished and the universe is known. For documents, `eligiblePaths` and `measuredPaths` are the same documents. Code can reach it too since [ADR 0110](adr/0101-0110/0110-el-lint-limpio-se-llama-limpio.md): ESLint declares the universe with what it returned and oxlint with `--debug=files`.
 
 ```json
 {
@@ -241,7 +250,7 @@ That, with `eligible > 0` and `fresh === true`, is clean and current. If `fresh`
 | `legacy-version` | Added by `scopeHealthMerged` for a legacy artifact. It is not in the file. It does not become `complete`. |
 | `tool-failed` | The process wrote something that could not be read. |
 | `tool-missing` | The command is not there. |
-| `unknown-eligibility` | It is not known who should have been looked at. oxlint, Biome, Ruff, go vet, dotnet, and ESLint or Checkstyle with `eligiblePaths: null`. |
+| `unknown-eligibility` | It is not known who should have been looked at. oxlint, Biome, Ruff, go vet, dotnet, and ESLint or Checkstyle with `eligiblePaths: null`. The `text` says whether the config file or the listing is missing. |
 | `unknown-paths` | There is no snapshot, so the file cannot be said to be absent. |
 | `not-eligible` | The universe is proven and the file is outside it. State `unmeasured`. |
 | `not-found` | The snapshot proves the file is absent. State `unmeasured`. |

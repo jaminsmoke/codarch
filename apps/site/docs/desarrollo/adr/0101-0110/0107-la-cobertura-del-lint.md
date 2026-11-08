@@ -2,14 +2,14 @@
 title: "ADR 0107 — La cobertura del lint es 1.3"
 description: "El artefacto sube a 1.3. coverage dice qué se miró, files solo guarda hallazgos, y scopeHealth interpreta un fichero, una carpeta o el proyecto sin un estado guardado aparte."
 section: desarrollo
-status: aceptado
+status: enmendado por 0110
 date: "2026-11-06"
 sidebar:
   label: La cobertura del lint
   order: 107
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-11-06
+**Estado:** enmendado por [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) en el punto 5 · **Fecha:** 2026-11-06
 
 ## Contexto
 
@@ -42,5 +42,7 @@ Sin fase nueva.
 
 - ✅ Tipos, `scopeHealth` y lectura 1.3.
 - ✅ CLI, MCP y el formato. La UI no entra aquí.
+- ✅ El punto 5 queda enmendado por el [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md): el universo
+  se escribe cuando la herramienta lo declara, y el código puede quedar `complete`.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

@@ -13,6 +13,10 @@ sidebar:
 
 **Enmienda** el punto de la hoja de ruta del [ADR 0105](0105-las-reglas-de-doc-y-config.md) que pintaba los hallazgos del resto en las hojas de Docs y config. La cobertura de cada artefacto sigue siendo la del [ADR 0107](0107-la-cobertura-del-lint.md). El riesgo no cambia: sigue leyendo `scopeHealth` de cada fichero de código ([ADR 0108](0108-el-lint-suma-al-riesgo.md)).
 
+El [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) enmienda la decisión 3: el código puede quedar
+`complete` cuando cada herramienta declara su universo, sin esperar a que el artefacto traiga una
+enumeración que nunca se escribía.
+
 ## Contexto
 
 El código se guarda en `lint.repmod.json` y los documentos en `lint-rest.repmod.json`. Cada uno tiene su `meta.tree`. La ficha de Código leía solo el primero, así que un legado 1.2 vacío salía como cobertura desconocida y los `doc/broken-link` acababan en Docs y config, mezclados con el catálogo.
@@ -57,7 +61,9 @@ Escribir `rules` en el sistema `codarch` sí cambia el checksum de un `lint-rest
 - **Reescribir los dos artefactos en uno.** Un `meta.tree` no puede firmar dos árboles.
 - **Sumar en cada panel.** La segunda suma no cuadra con la primera.
 - **Tratar el legado con `measured > 0` como verificado.** El número no dice qué rutas se miraron.
-- **Forzar el código 1.3 a `complete`.** ESLint deja el universo en `null` y oxlint no enumera: es `partial` a propósito.
+- **Forzar el código 1.3 a `complete`.** ESLint deja el universo en `null` y oxlint no enumera: era
+  `partial` a propósito. El [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) cambia la premisa:
+  ahora las dos herramientas pueden declarar su universo.
 - **Guardar `countState` en el fichero.** Obligaría a un campo nuevo en el checksum para un dato que sale de la nota y de `rules`.
 
 ## Hoja de ruta

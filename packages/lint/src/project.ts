@@ -36,6 +36,10 @@ export interface DetectedLintSystem {
   rulesCommand?: string;
   /** El comando que dice la versión de la herramienta, para cachear su catálogo. */
   versionCommand?: string;
+  /** Un comando que imprime una ruta por línea: el universo que mira (ADR 0110). */
+  listCommand?: string;
+  /** La medida ya lista todos los ficheros, limpios incluidos. */
+  exhaustive?: boolean;
 }
 
 const ESLINT_CONFIGS = [
@@ -97,6 +101,9 @@ export function detectLintSystems(root: string): DetectedLintSystem[] {
       ...(installed
         ? {
             sample,
+            // Su JSON devuelve también los ficheros limpios: en una pasada a la
+            // raíz, lo devuelto es el universo (ADR 0110).
+            exhaustive: true,
             ...(sample
               ? { rulesCommand: `node ${eslintBin} --print-config ${sample}` }
               : {})
@@ -116,6 +123,11 @@ export function detectLintSystems(root: string): DetectedLintSystem[] {
       config: oxlintConfig,
       format: "oxlint-json",
       command: installed ? `node ${oxlintBin} --format json .` : null,
+      // `--debug=files` imprime la lista exacta de ficheros que va a lintar.
+      // Es el universo que su JSON de diagnósticos no dice (ADR 0110).
+      ...(installed
+        ? { listCommand: `node ${oxlintBin} --debug=files .` }
+        : {}),
       ...(installed
         ? {}
         : {
@@ -283,6 +295,12 @@ async function describeEslint(
   run: LintProcessRunner,
   timeoutMs: number
 ): Promise<LintSystem> {
+  if (!system.config) {
+    return {
+      ...base,
+      note: base.note ?? "sin archivo de configuración: no se pueden resolver sus reglas"
+    };
+  }
   if (!system.rulesCommand || !system.sample) {
     return {
       ...base,
@@ -315,7 +333,7 @@ function describeOxlint(
   if (!system.config) {
     return {
       ...base,
-      note: base.note ?? "corre sus correcciones por defecto; no se enumeran"
+      note: base.note ?? "sin archivo de configuración: corre sus reglas por defecto y no se enumeran"
     };
   }
   const config = readJson(path.join(root, system.config));
@@ -340,7 +358,7 @@ function describeBiome(
       ...base,
       note: joinNote(
         base.note,
-        "corre las recomendadas por defecto; no se enumeran"
+        "sin archivo de configuración: corre las reglas recomendadas por defecto y no se enumeran"
       )
     };
   }

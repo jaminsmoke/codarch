@@ -65,8 +65,8 @@ A su lado está el botón **Docs y config**: el mapa de lo que no es código —
 y assets—, que tiene su propio snapshot y su propio checksum. Pulsar el botón de un mapa lo abre;
 pulsar el del que ya está abierto, pliega el panel. Si el repo no trae `rest.cc.json`, el botón se ve
 apagado. En ese mapa el área es el tamaño del fichero y el color es su tipo —Documentos,
-Configuración, Assets u Otros—; la leyenda cuenta cuántos hay de cada uno. Lo que solo habla de
-código —los lenguajes, los símbolos y el calor— desaparece del panel.
+Configuración, Assets u Otros—, y el bloque **Estratos** cuenta cuántos hay de cada uno. Lo que solo
+habla de código —los lenguajes, los símbolos y el calor— desaparece del panel.
 
 ![El panel VISTA con los selectores ÁREA y COLOR y el mapa pintado con la lente elegida](../images/webapp-mapa-lentes.png)
 
@@ -153,7 +153,9 @@ de dar la cifra por buena.
 
 ![La sección Métricas de la hoja Proyecto: una fila por métrica con su cobertura y su valor, la complejidad más alta con su fichero y el lint con sus tres cuentas y su desglose por carpeta](../images/webapp-inspector-metricas.png)
 
-**Docs y config** enseña el catálogo, no los hallazgos. Cada dominio lista sus sistemas: la configuración y las reglas activas cuando se conocen. Si no se pudieron enumerar —oxlint sin config, por ejemplo— se dice que no se sabe cuántas hay; no se pinta un cero. Una regla activa está **configurada**, no ha saltado, y por eso no lleva la tinta de la deuda. Los hallazgos de los dos dominios se leen en la vista de código, en **Fichero**, **Carpeta** y **Proyecto**, filtrados por la selección. Un artefacto anterior a la cobertura por herramienta dice que está medido con una versión anterior: no es un ámbito limpio.
+**Docs y config** enseña el catálogo, no los hallazgos. Cada dominio lista sus sistemas: la configuración y las reglas activas cuando se conocen. Si no se pudieron enumerar —oxlint sin archivo de configuración, por ejemplo— se dice que no se sabe cuántas hay; no se pinta un cero. Una regla activa está **configurada**, no ha saltado, y por eso no lleva la tinta de la deuda. Los hallazgos de los dos dominios se leen en la vista de código, en **Fichero**, **Carpeta** y **Proyecto**, filtrados por la selección. Un artefacto anterior a la cobertura por herramienta dice que está medido con una versión anterior: no es un ámbito limpio.
+
+Cuando la cobertura es **completa** y el árbol está al día, el bloque de lint dice **«Limpio y al día»** en proyecto, carpeta y fichero, sin la tira de ceros; si no, enseña los errores, avisos e info y el motivo. La falta de archivo de configuración de una herramienta se dice como nota al pie —«sin archivo de configuración: corre sus reglas por defecto y no se enumeran»— y no impide llamar limpio a lo que se midió entero.
 
 ![La hoja Proyecto: sus métricas con el lint y el lint por carpeta, y el catálogo de sistemas del repo —eslint con su configuración y sus reglas activas, oxlint sin config—](../images/webapp-inspector-proyecto.png)
 

@@ -2,6 +2,7 @@ import { exec } from "node:child_process";
 import type { LintTool } from "./config";
 import {
   LintError,
+  canonicalLintPath,
   createLintArtifact,
   type LintArtifact,
   type LintFileResult,
@@ -145,6 +146,20 @@ async function runTool(
     return failed((error as Error).message);
   }
 
+  // El universo, si la herramienta sabe listarlo. Se pide antes de contar los
+  // hallazgos para que un fallo del listado no invente una cobertura completa
+  // (ADR 0110).
+  let listed: string[] | null = null;
+  let listFailure: string | null = null;
+  if (tool.listCommand) {
+    try {
+      const listing = await run(tool.listCommand, root, timeoutMs);
+      listed = parsePathList(listing.stdout);
+    } catch (error) {
+      listFailure = firstLine((error as Error).message) || "no se pudo lanzar el listado";
+    }
+  }
+
   // Un linter con hallazgos sale con código distinto de cero: eso no es un
   // fallo si dejó su JSON. Solo importa si no hay JSON que leer.
   let files: LintFileResult[];
@@ -162,6 +177,36 @@ async function runTool(
     paths: files.map((file) => file.path)
   });
 
+  let coverage: ToolCoverage;
+  if (listed !== null) {
+    // La lista es el universo y lo medido: el diagnóstico corre sobre ella.
+    coverage = {
+      outcome: "enumerated",
+      measuredPaths: listed,
+      eligiblePaths: listed
+    };
+  } else if (tool.exhaustive) {
+    // Su salida ya trae los limpios: en una pasada a la raíz, lo devuelto es
+    // el universo (ADR 0110).
+    coverage = coverageFromEnumeration(
+      enumeration,
+      files.map((file) => file.path)
+    );
+  } else if (listFailure !== null) {
+    coverage = {
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [
+        {
+          code: "unknown-eligibility",
+          text: `no se pudo listar los ficheros: ${listFailure}`
+        }
+      ]
+    };
+  } else {
+    coverage = coverageFromEnumeration(enumeration, null);
+  }
+
   return {
     run: {
       name: tool.name,
@@ -171,8 +216,22 @@ async function runTool(
       messages: files.reduce((total, file) => total + file.messages.length, 0)
     },
     files,
-    coverage: coverageFromEnumeration(enumeration, null)
+    coverage
   };
+}
+
+/** Una ruta por línea, canónica. Lo que no sea una ruta se ignora. */
+function parsePathList(stdout: string): string[] {
+  const paths: string[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    if (line.trim() === "") continue;
+    try {
+      paths.push(canonicalLintPath(line));
+    } catch {
+      // Un aviso de la herramienta en la lista no es una ruta.
+    }
+  }
+  return paths;
 }
 
 function failureReason(error: string): Reason {

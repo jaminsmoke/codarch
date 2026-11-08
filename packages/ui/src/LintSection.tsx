@@ -6,7 +6,7 @@ import type {
 import type { HealthScope, HealthSnapshot } from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
-import { healthCopy, healthOf, healthSummary } from "./lintHealth";
+import { healthCopy, healthOf, healthSummary, isClean, systemNotes } from "./lintHealth";
 import { SEVERITIES, severityCount, severityText } from "./lintRollup";
 
 /**
@@ -220,6 +220,24 @@ function NotMeasured({
   );
 }
 
+/** Las notas que cualifican la medida; no el catálogo de reglas. */
+function SystemNotes({
+  notes
+}: {
+  notes: ReadonlyArray<{ name: string; note: string }>;
+}) {
+  if (notes.length === 0) return null;
+  return (
+    <ul className="muted tiny lint-system-notes">
+      {notes.map((item) => (
+        <li key={item.name}>
+          <span className="mono">{item.name}</span> · {item.note}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /**
  * La sección Lint de las fichas del mapa de código.
  *
@@ -258,8 +276,10 @@ export function LintSection({
       : { kind: "folder", path: folder };
   const health = healthOf(artifact, scope, snapshot);
   const findings = health.counts.findings;
+  const clean = isClean(health);
   const summary = healthSummary(health) || countsSummary(health.counts);
   const showCounts = health.coverage.state !== "unmeasured" || findings > 0;
+  const notes = scope.kind === "project" ? systemNotes(artifact) : [];
   const files = health.affectedFiles.map((file) => {
     const messages = artifact?.files[file.path]?.messages ?? [];
     const rules = [...new Set(messages.map((message) => message.rule))];
@@ -279,15 +299,24 @@ export function LintSection({
       count={findings}
       summary={summary}
     >
-      {showCounts ? (
+      {clean ? (
+        <div className="lint-health">
+          <p className="lint-health-clean">{healthCopy(health)}</p>
+          <SystemNotes notes={notes} />
+        </div>
+      ) : showCounts ? (
         <div className="lint-health">
           <p className="lint-health-counts">
             <SeverityCounts counts={health.counts} />
           </p>
           <p className="muted tiny lint-scope-note">{healthCopy(health)}</p>
+          <SystemNotes notes={notes} />
         </div>
       ) : (
-        <NotMeasured kind={kind} detail={healthCopy(health)} />
+        <>
+          <NotMeasured kind={kind} detail={healthCopy(health)} />
+          <SystemNotes notes={notes} />
+        </>
       )}
       {health.fresh === false ? (
         <p className="muted tiny lint-stale">

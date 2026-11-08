@@ -374,6 +374,22 @@
   font-family: var(--mono);
 }
 
+/* Limpio y al día: sin la tira de ceros (ADR 0110). */
+.lint-health-clean {
+  margin: 0;
+}
+
+/* Las notas que cualifican la medida, no el catálogo. */
+.lint-system-notes {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lint-system-notes li {
+  margin: 2px 0 0;
+}
+
 .lint-scope-note {
   margin: 4px 0 0;
 }

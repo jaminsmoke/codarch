@@ -31,6 +31,17 @@ export interface LintTool {
   /** El comando completo, tal y como se lanza en la raíz del repo. */
   command: string;
   format: LintFormat;
+  /**
+   * Un comando que imprime una ruta por línea: el universo que la herramienta
+   * mira, limpios incluidos. Sin él no se supone (ADR 0110).
+   */
+  listCommand?: string;
+  /**
+   * La medida ya lista todos los ficheros, limpios incluidos. Solo lo pone la
+   * detección de una herramienta que sabemos que lo hace (ESLint); un comando
+   * de `.codarch.yml` no lo supone.
+   */
+  exhaustive?: boolean;
 }
 
 /**
@@ -78,7 +89,13 @@ export function parseLintConfig(input: unknown): LintTool[] {
       );
     }
     names.add(name);
-    tools.push({ name, command, format });
+    const listCommand = text(entry.list);
+    tools.push({
+      name,
+      command,
+      format,
+      ...(listCommand ? { listCommand } : {})
+    });
   });
   return tools;
 }

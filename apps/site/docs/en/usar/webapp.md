@@ -71,8 +71,8 @@ Next to it is the **Docs y config** button: the map of what is not code —docum
 assets—, which has its own snapshot and its own checksum. Clicking a map's button opens that map;
 clicking the button of the map already open folds the panel. If the repo has no `rest.cc.json`, the button is shown greyed
 out. In that map the area is the file size and the colour is its kind —documents, configuration,
-assets or other—; the legend counts how many there are of each. Whatever only speaks about code
-—languages, symbols and heat— disappears from the panel.
+assets or other—, and the **Estratos** block counts how many there are of each. Whatever only speaks
+about code —languages, symbols and heat— disappears from the panel.
 
 ![The VISTA panel with the ÁREA and COLOR selectors and the map painted with the chosen lens](../../images/webapp-mapa-lentes.png)
 
@@ -159,7 +159,9 @@ tree —the repo changed afterwards—, the sheet says so instead of trusting th
 
 ![The Métricas section of the Proyecto sheet: one row per metric with its coverage and value, the highest complexity with its file, and lint with its three counts and its per-folder breakdown](../../images/webapp-inspector-metricas.png)
 
-**Docs y config** shows the catalog, not the findings. Each domain lists its systems: the configuration and the active rules when they are known. If they could not be enumerated —oxlint with no config, for example— it says the count is unknown; a zero is not painted. An active rule is **configured**, it has not fired, which is why it carries no debt ink. Findings from both domains are read on the code view, in **Fichero**, **Carpeta** and **Proyecto**, filtered by the selection. An artifact from before per-tool coverage says it was measured with an earlier version: it is not a clean scope.
+**Docs y config** shows the catalog, not the findings. Each domain lists its systems: the configuration and the active rules when they are known. If they could not be enumerated —oxlint with no config file, for example— it says the count is unknown; a zero is not painted. An active rule is **configured**, it has not fired, which is why it carries no debt ink. Findings from both domains are read on the code view, in **Fichero**, **Carpeta** and **Proyecto**, filtered by the selection. An artifact from before per-tool coverage says it was measured with an earlier version: it is not a clean scope.
+
+When coverage is **complete** and the tree is up to date, the lint block says **“Clean and up to date”** in the project, folder and file cards, without the row of zeros; otherwise it shows errors, warnings and info and the reason. A tool's missing config file is stated as a footnote —“no config file: it runs its default rules and they are not enumerated”— and it does not stop calling clean what was measured whole.
 
 ![The Proyecto sheet: its metrics with lint and lint per folder, and the catalog of the repo's systems —eslint with its configuration and active rules, oxlint with no config—](../../images/webapp-inspector-proyecto.png)
 

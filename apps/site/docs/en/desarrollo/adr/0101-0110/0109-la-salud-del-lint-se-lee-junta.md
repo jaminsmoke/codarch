@@ -13,6 +13,8 @@ sidebar:
 
 This **amends** the roadmap point of [ADR 0105](0105-las-reglas-de-doc-y-config.md) that painted rest findings on the Docs and config sheets. Each artifact's coverage stays the one in [ADR 0107](0107-la-cobertura-del-lint.md). Risk does not change: it still reads `scopeHealth` for each code file ([ADR 0108](0108-el-lint-suma-al-riesgo.md)).
 
+[ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) amends decision 3: code can be `complete` when each tool declares its universe, without waiting for the artifact to carry an enumeration that was never written.
+
 ## Context
 
 Code is stored in `lint.repmod.json` and documents in `lint-rest.repmod.json`. Each has its own `meta.tree`. The Code card read only the first, so an empty 1.2 legacy file came out as unknown coverage and the `doc/broken-link` findings ended up in Docs and config, mixed with the catalog.
@@ -57,7 +59,7 @@ Writing `rules` on the `codarch` system does change the checksum of a newly buil
 - **Rewrite both artifacts into one.** One `meta.tree` cannot sign two trees.
 - **Add them in each panel.** The second sum does not match the first.
 - **Treat a legacy file with `measured > 0` as verified.** The number does not say which paths were looked at.
-- **Force 1.3 code to `complete`.** ESLint leaves the universe `null` and oxlint does not enumerate: `partial` is on purpose.
+- **Force 1.3 code to `complete`.** ESLint leaves the universe `null` and oxlint did not enumerate: it was `partial` on purpose. [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) changes the premise: both tools can now declare their universe.
 - **Store `countState` in the file.** That would add a new checksum field for a fact that comes from the note and from `rules`.
 
 ## Roadmap

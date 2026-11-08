@@ -52,6 +52,26 @@ export function healthOf(
   return scopeHealth(artifact, scope, snapshot);
 }
 
+/** El ámbito está limpio y al día: cobertura completa, fresco y sin hallazgos. */
+export function isClean(health: ScopeHealth): boolean {
+  return isCurrentClean(health);
+}
+
+/**
+ * Las notas de los sistemas que corrieron. No es el catálogo: es lo que
+ * cualifica la medida —una config que falta, una herramienta que se lanza del
+ * PATH—, y la ficha la enseña al pie (ADR 0110).
+ */
+export function systemNotes(
+  artifact: LintArtifact | null
+): Array<{ name: string; note: string }> {
+  if (!artifact) return [];
+  const ran = new Set(artifact.meta.tools);
+  return artifact.meta.systems
+    .filter((system) => ran.has(system.name) && Boolean(system.note))
+    .map((system) => ({ name: system.name, note: system.note ?? "" }));
+}
+
 export function reasonText(reason: Reason): string {
   const base = REASON_TEXT[reason.code];
   return reason.text ? `${base} (${reason.text})` : base;

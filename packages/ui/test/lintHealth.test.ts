@@ -225,6 +225,50 @@ describe("la ficha sigue a scopeHealth", () => {
     expect(none).not.toContain("Limpio y al día");
   });
 
+  it("proyecto, carpeta y fichero completos y limpios se dicen limpios", () => {
+    const files = ["src/a.ts", "src/b.ts"];
+    const lint = withCoverage(
+      {
+        eslint: enumerated(files, files),
+        oxlint: enumerated(files, files)
+      },
+      {},
+      {
+        meta: {
+          checksum: "abc",
+          tools: ["eslint", "oxlint"],
+          systems: [
+            { name: "eslint", config: "eslint.config.js" },
+            {
+              name: "oxlint",
+              config: null,
+              note: "sin archivo de configuración: corre sus reglas por defecto y no se enumeran"
+            }
+          ],
+          tree: "tree-1"
+        }
+      }
+    );
+    const snap = { treeHash: "tree-1", paths: files };
+
+    for (const scope of [
+      { folder: "" },
+      { folder: "src" },
+      { folder: "src/a.ts", filePath: "src/a.ts" }
+    ]) {
+      const html = markup(lint, scope, snap);
+      expect(html).toContain("Limpio y al día");
+      expect(html).not.toContain("0 errores");
+    }
+
+    const project = markup(lint, { folder: "" }, snap);
+    expect(project).toContain("oxlint");
+    expect(project).toContain("sin archivo de configuración");
+
+    const file = markup(lint, { folder: "src/a.ts", filePath: "src/a.ts" }, snap);
+    expect(file).not.toContain("sin archivo de configuración");
+  });
+
   it("sin artefacto traduce freshness-unverified y no enseña ceros como limpio", () => {
     const health = scopeHealth(null, { kind: "project", path: "" }, current);
     expect(health.coverage.state).toBe("unmeasured");
