@@ -71,6 +71,8 @@ const SHEET_ROW_HEIGHT = 2.2;
 const SHEET_BASE_Y = 2.2;
 const SHELF_DEPTH = 1.8;
 const SHELF_THICKNESS = 0.16;
+/** La estantería empieza junto a la boca de la sala y crece hacia dentro. */
+const SHELF_FRONT_Z = 1.4;
 
 const FLOOR_HEIGHT = 0.35;
 
@@ -220,12 +222,10 @@ export function buildRoom(input: RoomInput): Room {
   );
   const depth = Math.max(
     16,
-    CONTAINER_START_Z + containerGridDepth + 5
+    CONTAINER_START_Z + containerGridDepth + 5,
+    fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 3 : 0
   );
-  const shelfZ = Math.max(
-    CONTAINER_START_Z + CONTAINER_DEPTH + 2.5,
-    depth * 0.55
-  );
+  const shelfCenterZ = SHELF_FRONT_Z + sideShelfWidth / 2;
 
   const boxes: AtlasBox[] = [];
   let containers = 0;
@@ -339,6 +339,20 @@ export function buildRoom(input: RoomInput): Room {
     color: input.lightColor,
     selectable: false
   });
+  for (const side of [-1, 1]) {
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: side * (width / 2 + 0.2),
+      y: roomHeight - 2.8,
+      z: fileNodes.length ? shelfCenterZ : depth / 2,
+      width: 0.12,
+      depth: Math.max(2.5, sideShelfWidth),
+      height: 0.12,
+      color: input.lightColor,
+      selectable: false
+    });
+  }
   // La viga es la única pieza que cruza el frente: cierra la sala sin tapar
   // la vista y sostiene el letrero con el nombre de la escala.
   boxes.push({
@@ -405,40 +419,27 @@ export function buildRoom(input: RoomInput): Room {
       const shelfWidth = sideShelfWidth + 1;
       const sheetX = side * (width / 2 - 0.65);
 
-      // Listón que ata la estantería a la pared lateral.
+      // Listón de pared: la estantería se apoya en él y queda abierta por los
+      // dos lados, sin tapas que oculten las hojas.
       boxes.push({
         path: null,
         role: "furniture",
         x: side * (width / 2 + 0.1),
         y: 0,
-        z: shelfZ,
+        z: shelfCenterZ,
         width: 0.1,
         depth: shelfWidth,
         height: fileWallHeight,
         color: input.trimColor,
         selectable: false
       });
-      for (const edge of [-1, 1]) {
-        boxes.push({
-          path: null,
-          role: "furniture",
-          x: shelfX,
-          y: 0,
-          z: shelfZ + edge * (sideShelfWidth / 2 + 0.35),
-          width: SHELF_DEPTH,
-          depth: 0.3,
-          height: fileWallHeight,
-          color: input.furnitureColor,
-          selectable: false
-        });
-      }
       for (let row = 0; row < sideFileRows; row++) {
         boxes.push({
           path: null,
           role: "furniture",
           x: shelfX,
           y: SHEET_BASE_Y + row * SHEET_ROW_HEIGHT - 0.35,
-          z: shelfZ,
+          z: shelfCenterZ,
           width: SHELF_DEPTH,
           depth: shelfWidth,
           height: SHELF_THICKNESS,
@@ -446,8 +447,23 @@ export function buildRoom(input: RoomInput): Room {
           selectable: false
         });
       }
+      // Tira de luz sobre la estantería: ayuda a leer los cantos y separa la
+      // estantería de la pared.
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: shelfX,
+        y: fileWallHeight - 0.5,
+        z: shelfCenterZ,
+        width: SHELF_DEPTH,
+        depth: shelfWidth,
+        height: 0.08,
+        color: input.lightColor,
+        selectable: false
+      });
 
-      const startZ = shelfZ - sideShelfWidth / 2 + SHEET_WIDTH / 2;
+      // La estantería se llena desde la boca de la sala hacia dentro.
+      const startZ = SHELF_FRONT_Z + SHEET_WIDTH / 2;
       for (let index = 0; index < nodes.length; index++) {
         const node = nodes[index] as TreeNode;
         const fileIndex = node.fileIndex;

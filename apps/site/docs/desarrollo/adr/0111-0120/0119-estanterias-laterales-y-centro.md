@@ -2,14 +2,17 @@
 title: "ADR 0119 — Estanterías laterales y archivadores al centro"
 description: "Las estanterías de los ficheros se pegan a las paredes laterales y las hojas van de pie, con la cara al pasillo central. Los archivadores se ordenan en el centro y ganan tapa, zócalo, marco y tirador."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: Estanterías laterales y centro
   order: 119
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-11-08
+**Estado:** enmendado por [ADR 0120](0120-estanterias-abiertas-al-frente.md) (estanterías abiertas y
+ordenadas desde el frente) · **Fecha:** 2026-11-08
+
+Los montantes laterales de este ADR se retiran en el 0120.
 
 **Enmienda** el [ADR 0117](0117-salas-recursivas-y-estanterias.md) y el
 [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md): las estanterías dejan el fondo y se reparten por

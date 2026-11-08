@@ -53,6 +53,7 @@ const SELECTION_MIX = 0.6;
 const EDGE_COLOR = "#8fe7ff";
 const GRID_COLOR = "#6b7e8d";
 const MAX_PIXELS = 8_000_000;
+const MAX_LABELS = 64;
 const CUBE_VERTICES = 36;
 /** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
 const STRIDE = 10;
@@ -135,6 +136,7 @@ uniform vec3 uEdge;
 uniform vec3 uGrid;
 uniform float uFogNear;
 uniform float uFogFar;
+uniform float uRoomHeight;
 
 out vec4 outColor;
 
@@ -148,7 +150,8 @@ void main() {
   vec3 normal = normalize(vNormal);
   float key = max(dot(normal, uLight), 0.0);
   float fill = max(dot(normal, uFill), 0.0);
-  float shade = 0.58 + key * 0.38 + fill * 0.14;
+  float ceiling = smoothstep(0.55, 1.0, vWorld.y / max(1.0, uRoomHeight));
+  float shade = 0.6 + key * 0.36 + fill * 0.14 + ceiling * 0.06;
   vec3 color = vColor * shade;
 
   if (vKind > 1.5 && vKind < 2.5) {
@@ -374,6 +377,7 @@ export function mountScene(
     grid: WebGLUniformLocation | null;
     fogNear: WebGLUniformLocation | null;
     fogFar: WebGLUniformLocation | null;
+    roomHeight: WebGLUniformLocation | null;
   } = {
     view: null,
     projection: null,
@@ -383,7 +387,8 @@ export function mountScene(
     edge: null,
     grid: null,
     fogNear: null,
-    fogFar: null
+    fogFar: null,
+    roomHeight: null
   };
 
   const setup = (): boolean => {
@@ -421,7 +426,8 @@ export function mountScene(
         edge: gl.getUniformLocation(program, "uEdge"),
         grid: gl.getUniformLocation(program, "uGrid"),
         fogNear: gl.getUniformLocation(program, "uFogNear"),
-        fogFar: gl.getUniformLocation(program, "uFogFar")
+        fogFar: gl.getUniformLocation(program, "uFogFar"),
+        roomHeight: gl.getUniformLocation(program, "uRoomHeight")
       };
 
       gl.enable(gl.DEPTH_TEST);
@@ -660,7 +666,7 @@ export function mountScene(
         const rightFocus = focus(right.box);
         return leftFocus - rightFocus || left.point.depth - right.point.depth;
       })
-      .slice(0, 80);
+      .slice(0, MAX_LABELS);
 
     for (const { box, point } of candidates) {
       const text =
@@ -710,6 +716,7 @@ export function mountScene(
     gl.uniform3f(uniforms.grid, grid[0], grid[1], grid[2]);
     gl.uniform1f(uniforms.fogNear, fit * 1.6);
     gl.uniform1f(uniforms.fogFar, fit * 6);
+    gl.uniform1f(uniforms.roomHeight, room.height);
     gl.bindVertexArray(vao);
     gl.drawArraysInstanced(gl.TRIANGLES, 0, CUBE_VERTICES, instanceCount);
     gl.bindVertexArray(null);

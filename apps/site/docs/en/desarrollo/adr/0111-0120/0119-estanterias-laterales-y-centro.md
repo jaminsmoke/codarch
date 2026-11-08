@@ -2,14 +2,17 @@
 title: "ADR 0119 — Side shelves and central cabinets"
 description: "File shelves hug the side walls and sheets stand upright, facing the central aisle. Cabinets are ordered in the middle and gain a top, plinth, frame and handle."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: Side shelves and centre
   order: 119
 ---
 
-**Status:** accepted · **Date:** 2026-11-08
+**Status:** amended by [ADR 0120](0120-estanterias-abiertas-al-frente.md) (open shelves ordered
+from the front) · **Date:** 2026-11-08
+
+The side uprights in this ADR are removed by 0120.
 
 **Amends** [ADR 0117](0117-salas-recursivas-y-estanterias.md) and
 [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md): shelves leave the back wall and move to the side

@@ -9,6 +9,8 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ El proyecto como primera sala, sin overview plano (ADR 0118).
 - ✅ La viga frontal y el letrero con el nombre de la sala.
 - ✅ Las estanterías laterales y las hojas de pie (ADR 0119).
+- ✅ Las estanterías abiertas, ordenadas desde el frente (ADR 0120).
+- ✅ Luces laterales, luz de estantería y LOD de etiquetas.
 - ✅ Los archivadores centrados con tapa, zócalo, marco y tirador.
 - ✅ La transición de cámara al entrar y salir.
 - ✅ Etiquetas legibles por nivel.
