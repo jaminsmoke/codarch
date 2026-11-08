@@ -37,6 +37,7 @@ export function writeLintRule(
   }
   if (change.system === "oxlint") return writeOxlintRule(root, change);
   if (change.system === "eslint") return writeEslintRule(root, change);
+  if (change.system === "biome") return writeBiomeRule(root, change);
   throw new LintError(
     `la escritura de reglas todavía no soporta "${change.system}"`
   );
@@ -261,6 +262,71 @@ function skipSpaceAndComments(text: string, start: number): number {
 
 function isWord(char: string | undefined): boolean {
   return typeof char === "string" && /[A-Za-z0-9_$]/.test(char);
+}
+
+/**
+ * Activa o desactiva una regla de Biome en su JSON.
+ *
+ * Las reglas viven en `linter.rules.<grupo>.<regla>`. Si las recomendadas
+ * siguen encendidas, desactivar escribe `off`; si no, quita la entrada.
+ */
+function writeBiomeRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  const system = detectLintSystems(root).find((item) => item.name === "biome");
+  if (!system?.config) {
+    throw new LintError("Biome no declara archivo de configuración");
+  }
+  if (!/\.json$/i.test(system.config)) {
+    throw new LintError(
+      `la config de Biome (${system.config}) no es JSON editable; jsonc conserva comentarios y no se reescribe`
+    );
+  }
+
+  const slash = change.rule.indexOf("/");
+  if (slash <= 0 || slash === change.rule.length - 1) {
+    throw new LintError(
+      `la regla de Biome tiene que ser "grupo/regla": "${change.rule}"`
+    );
+  }
+  const group = change.rule.slice(0, slash);
+  const rule = change.rule.slice(slash + 1);
+
+  const file = path.join(root, system.config);
+  const before = readConfig(file, system.config);
+  let document: Record<string, unknown>;
+  try {
+    const parsed: unknown = JSON.parse(before);
+    if (!isRecord(parsed)) throw new Error("no es un objeto");
+    document = parsed;
+  } catch (error) {
+    throw new LintError(
+      `${system.config} no es un JSON válido: ${(error as Error).message}`
+    );
+  }
+
+  const linter = isRecord(document.linter) ? { ...document.linter } : {};
+  const rules = isRecord(linter.rules) ? { ...linter.rules } : {};
+  const groupRules = isRecord(rules[group]) ? { ...rules[group] } : {};
+  const recommended = rules.recommended !== false || rules.all === true;
+
+  if (change.severity === null) {
+    if (recommended) groupRules[rule] = "off";
+    else delete groupRules[rule];
+  } else {
+    linter.enabled = true;
+    groupRules[rule] = change.severity;
+  }
+
+  if (Object.keys(groupRules).length > 0) rules[group] = groupRules;
+  else delete rules[group];
+  linter.rules = rules;
+  document.linter = linter;
+
+  const after = `${JSON.stringify(document, null, 2)}\n`;
+  writeAtomic(file, after);
+  return { path: system.config, before, after };
 }
 
 /** El JSON de ESLint (`eslintrc.json`) o de oxlint. */

@@ -88,6 +88,7 @@ No new phase.
 - ✅ The add menu with search, severity and confirmation.
 - ✅ Re-measuring when the lint config changes.
 - ✅ `meta.config` as an optional fingerprint inside 1.3.
-- ⬜ The Biome, Ruff and Checkstyle writers.
+- ✅ The Biome writer in JSON.
+- ⬜ The Ruff and Checkstyle writers.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).

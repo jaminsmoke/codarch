@@ -31,9 +31,18 @@ const OXLINT: readonly RecommendedRule[] = [
   { id: "no-var", severity: "error" }
 ];
 
+const BIOME: readonly RecommendedRule[] = [
+  { id: "correctness/noUnusedVariables", severity: "warn" },
+  { id: "suspicious/noDebugger", severity: "error" },
+  { id: "suspicious/noDoubleEquals", severity: "error" },
+  { id: "style/useConst", severity: "error" },
+  { id: "style/useTemplate", severity: "warn" }
+];
+
 const BY_SYSTEM: Record<string, readonly RecommendedRule[]> = {
   eslint: ESLINT,
-  oxlint: OXLINT
+  oxlint: OXLINT,
+  biome: BIOME
 };
 
 /** Las recomendadas de un sistema; vacío si no hay un set para él. */
