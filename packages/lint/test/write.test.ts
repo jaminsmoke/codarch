@@ -177,4 +177,26 @@ describe("escribir una regla de ESLint", () => {
       writeLintRule(root, { system: "eslint", rule: "no-var", severity: "error" })
     ).toThrow(/exporta un objeto/);
   });
+
+  it("quita una regla explícita y la cubre con el bloque", () => {
+    const root = eslintRepo(
+      [
+        "export default [",
+        "  { rules: { \"no-explicit-any\": \"warn\", \"no-var\": \"error\" } }",
+        "];",
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "eslint",
+      rule: "no-explicit-any",
+      severity: null
+    });
+
+    const config = fs.readFileSync(path.join(root, "eslint.config.js"), "utf8");
+    expect(config).not.toContain('"no-explicit-any": "warn"');
+    expect(config).toContain('"no-var": "error"');
+    expect(config).toContain('"no-explicit-any": "off"');
+  });
 });
