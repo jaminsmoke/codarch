@@ -4,9 +4,9 @@ El Atlas es una vista 3D frontal para recorrer la arquitectura en profundidad. S
 el escenario central del mapa, no el marco de la app: la cabecera y las barras
 laterales siguen siendo de CodArch.
 
-- **Vista general**: contenedores de carpeta en el suelo y hojas de fichero en estanterías.
-- **Sala**: al entrar en una carpeta, sus subcarpetas siguen siendo contenedores y sus ficheros van a
-  las estanterías.
+- **Vista general**: el mapa plano 3D del primer nivel: contenedores de carpeta y las hojas de la raíz.
+- **Sala**: cada carpeta abre una sala. Las subcarpetas son archivadores que abren otra sala; los
+  ficheros, hojas frontales en estanterías de fondo.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la
   rueda acerca.
 - **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
