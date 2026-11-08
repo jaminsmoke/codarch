@@ -1,11 +1,9 @@
-import {
-  adviceForExtensions,
-  extensionOf,
-  type LintArtifact
-} from "@codarch/lint/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { LintSection } from "../LintSection";
+import { healthSnapshot } from "../lintHealth";
 import { DuplicationSection } from "./DuplicationSection";
+import { LintConfigSection } from "./LintConfigSection";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -13,9 +11,8 @@ import { MetricsRollup } from "./MetricsRollup";
  *
  * Es la cuarta entrada del dock porque la raíz no es una carpeta seleccionable:
  * sin ella, el total del repo no tenía dónde contarse. Enseña las métricas del
- * subárbol en la misma tabla que la ficha del fichero —con los totales del lint
- * dentro, en su bloque— y la tabla de carpetas para empezar a bajar: proyecto,
- * carpeta, subcarpeta, fichero.
+ * subárbol en la misma tabla que la ficha del fichero, la tabla de carpetas
+ * para empezar a bajar y, aparte, un solo bloque de salud del lint.
  *
  * No lleva símbolos, miembros ni código: un proyecto no tiene cuerpo. Tampoco
  * inventa un «riesgo del proyecto»: el riesgo está normalizado por el p95 del
@@ -25,6 +22,7 @@ export function ProjectPanel({
   model,
   lint,
   rulesMode = false,
+  lintView = "findings",
   metricTitle,
   colorMode,
   onColorMode,
@@ -32,10 +30,12 @@ export function ProjectPanel({
   onSelectFolder
 }: {
   model: RenderModel | null;
-  /** El lint del código, o las reglas del resto en ese mapa (ADR 0105). */
+  /** El lint de código. El de documentos no se pinta aquí. */
   lint: LintArtifact | null;
-  /** En el resto: sección Reglas y sin bloque de lint en métricas. */
+  /** En el mapa de documentos, las métricas no cuentan el lint como «sin medir». */
   rulesMode?: boolean;
+  /** Hallazgos en el mapa de código; catálogo de esas reglas en el otro mapa. */
+  lintView?: "findings" | "catalog";
   metricTitle: (key: string) => string;
   colorMode: string;
   onColorMode: (mode: string) => void;
@@ -80,20 +80,24 @@ export function ProjectPanel({
         onSelectPath={onSelectPath}
       />
 
-      <LintSection
-        id="project-lint"
-        artifact={lint}
-        folder=""
-        advice={
-          rulesMode
-            ? []
-            : adviceForExtensions(
-                model.files.map((file) => extensionOf(file.name))
-              )
-        }
-        title={rulesMode ? "Reglas" : "Lint"}
-        kind={rulesMode ? "rules" : "lint"}
-      />
+      {lintView === "catalog" ? (
+        <LintConfigSection
+          id="project-lint"
+          domain="code"
+          artifact={lint}
+          title="Lint"
+        />
+      ) : (
+        <LintSection
+          id="project-lint"
+          artifact={lint}
+          folder=""
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
+          onSelectPath={onSelectPath}
+        />
+      )}
     </section>
   );
 }

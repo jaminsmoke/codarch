@@ -36,6 +36,28 @@ describe("el bloque lint de .codarch.yml", () => {
     ]);
   });
 
+  it("una herramienta puede declarar el comando que lista su universo", () => {
+    const tools = parseLintConfig({
+      lint: [
+        {
+          name: "oxlint",
+          command: "npx oxlint --format json .",
+          format: "oxlint-json",
+          list: "npx oxlint --debug=files ."
+        }
+      ]
+    });
+
+    expect(tools).toEqual([
+      {
+        name: "oxlint",
+        command: "npx oxlint --format json .",
+        format: "oxlint-json",
+        listCommand: "npx oxlint --debug=files ."
+      }
+    ]);
+  });
+
   it("sin bloque lint no hay herramientas, y no es un error", () => {
     expect(parseLintConfig({ version: 1 })).toEqual([]);
     expect(parseLintConfig(null)).toEqual([]);

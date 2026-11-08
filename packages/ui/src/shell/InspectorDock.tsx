@@ -64,9 +64,6 @@ export function InspectorDock({
     }
   };
 
-  // En Reglas se salta de un fichero a otro sin salir de la pestaña. Si el
-  // escenario estaba enseñando un código, vuelve al mapa: la vista no se queda
-  // con un fichero que ya no es el seleccionado (ADR 0087).
   const selectInPlace = (path: string) => {
     const index =
       view.model?.files.findIndex((file) => file.path === path) ?? -1;
@@ -74,21 +71,23 @@ export function InspectorDock({
     closeFile();
   };
 
-  // En el mapa del resto el punto lee las reglas (ADR 0105); en el del código,
-  // el lint. Sin medir o limpio: sin punto.
+  // En el mapa de código, la ficha lista hallazgos. En el de documentos,
+  // el mismo hueco enseña el catálogo de reglas activas del código.
   const rulesMode = state.map === "rest";
-  const sectionLint = rulesMode ? state.restLint : state.lint;
-  const markKind = rulesMode ? "reglas" : "lint";
+  const lintView = rulesMode ? "catalog" : "findings";
+  const sectionLint = state.lint;
+  const markOf = (path: string) => {
+    if (rulesMode) return null;
+    const totals = lintTotals(sectionLint, path);
+    if (!totals || totals.findings === 0) return null;
+    return lintBarMark(totals);
+  };
   const lintMarks: InspectorLintMarks = {};
-  const fileMark = selectedFile
-    ? lintBarMark(lintTotals(sectionLint, selectedFile.path), markKind)
-    : null;
+  const fileMark = selectedFile ? markOf(selectedFile.path) : null;
   if (fileMark) lintMarks.file = fileMark;
-  const folderMark = selectedFolderNode
-    ? lintBarMark(lintTotals(sectionLint, selectedFolderNode.path), markKind)
-    : null;
+  const folderMark = selectedFolderNode ? markOf(selectedFolderNode.path) : null;
   if (folderMark) lintMarks.folder = folderMark;
-  const projectMark = lintBarMark(lintTotals(sectionLint, ""), markKind);
+  const projectMark = markOf("");
   if (projectMark) lintMarks.project = projectMark;
 
   return (
@@ -112,9 +111,9 @@ export function InspectorDock({
             structure={selectedStructure}
             chain={state.chain}
             lint={sectionLint}
+            lintView={lintView}
             migration={migration}
             showCode={state.map === "code"}
-            rulesMode={rulesMode}
             onSelectSymbol={(name) => {
               void actions.openSymbolChain(name, selectedFile?.path ?? "");
             }}
@@ -128,6 +127,7 @@ export function InspectorDock({
             folder={selectedFolderNode}
             model={view.model}
             lint={sectionLint}
+            lintView={lintView}
             rulesMode={rulesMode}
             changes={report?.files ?? null}
             metricTitle={metricTitle}
@@ -141,6 +141,7 @@ export function InspectorDock({
           <ProjectPanel
             model={view.model}
             lint={sectionLint}
+            lintView={lintView}
             rulesMode={rulesMode}
             metricTitle={metricTitle}
             colorMode={state.colorMode}

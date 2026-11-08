@@ -1,13 +1,15 @@
 // Las entradas y salidas de las herramientas del MCP. Un solo sitio para
 // saber qué pide cada una y qué devuelve, sin abrir su implementación.
 
-import type { LayerConfig, RuleConfigEntry } from "@codarch/metrics";
+import type { LayerConfig, RiskBreakdown, RuleConfigEntry } from "@codarch/metrics";
 import type { RepoAddon } from "@codarch/addons";
 import type {
+  AffectedFile,
   LintSeverity,
   LintSummary,
   LintSystem,
-  LintTotals
+  LintTotals,
+  ScopeHealth
 } from "@codarch/lint/browser";
 import {
   CcMigrationLanguage,
@@ -426,6 +428,11 @@ export interface ExplainModuleResult {
   sizeMetric: string | null;
   metrics: Record<string, number>;
   risk: number;
+  /**
+   * Desglose del motor. En un fichero, el suyo. En una carpeta, el del
+   * fichero con más riesgo. `null` si no hay métricas.
+   */
+  riskBreakdown: RiskBreakdown | null;
   complexity: number;
   riskRank?: number;
   cycle?:
@@ -442,7 +449,12 @@ export interface ExplainModuleResult {
     truncated: number;
   };
   childFolders?: string[];
-  topFiles?: Array<{ path: string; risk: number; size: number }>;
+  topFiles?: Array<{
+    path: string;
+    risk: number;
+    size: number;
+    riskBreakdown: RiskBreakdown | null;
+  }>;
   /** Los símbolos del fichero, de la función más compleja a la más simple. */
   symbols?: SymbolView[];
   diff:
@@ -460,6 +472,8 @@ export interface ExplainModuleResult {
       };
   /** Totales de lint del ámbito; `null` si no se ha medido. */
   lint: LintTotals | null;
+  /** Salud del mismo ámbito. `null` si no hay artefacto. */
+  scopeHealth: ScopeHealth | null;
   violations: StatusViolation[];
 }
 
@@ -504,6 +518,15 @@ export interface LintReportResult {
   /** Los sistemas que el proyecto declara, con su config, sus reglas y su nota. */
   systems: LintSystem[];
   summary: LintSummary;
+  /**
+   * La config que ya está en `meta`, derivada. `null` si no hay artefacto.
+   * No es un campo nuevo del fichero.
+   */
+  config: { tools: string[]; systems: LintSystem[] } | null;
+  /** Salud del ámbito pedido. `null` si no hay artefacto: no es un cero. */
+  health: ScopeHealth | null;
+  /** Ficheros con hallazgos en ese ámbito, con sus cuentas. */
+  affectedFiles: AffectedFile[];
   /** La carpeta o el fichero pedido; vacío es todo el proyecto. */
   scope: string;
   /** Ficheros con hallazgos dentro del ámbito y los filtros. */

@@ -77,8 +77,133 @@ describe("runLint", () => {
       errors: 2,
       warnings: 1,
       messages: 3,
-      // Dos ficheros vistos entre las dos herramientas (ADR 0098).
-      measured: 2
+      // Solo ESLint enumera. oxlint guarda el hallazgo y no aporta medidos.
+      measured: 1
+    });
+    expect(result.artifact?.coverage?.tools.eslint).toMatchObject({
+      outcome: "enumerated",
+      eligiblePaths: null
+    });
+    expect(result.artifact?.coverage?.tools.oxlint?.outcome).toBe("unknown");
+  });
+
+  it("ESLint guarda el fichero limpio en la cobertura y no en files", async () => {
+    const result = await runLint({
+      root,
+      tools: [eslint],
+      run: runner({
+        [eslint.command]: {
+          stdout: JSON.stringify([
+            { filePath: "/repo/src/a.ts", messages: [] },
+            {
+              filePath: "/repo/src/b.ts",
+              messages: [
+                { ruleId: "no-var", severity: 2, message: "Unexpected var", line: 1, column: 1 }
+              ]
+            }
+          ]),
+          code: 1
+        }
+      })
+    });
+
+    expect(Object.keys(result.artifact?.files ?? {})).toEqual(["src/b.ts"]);
+    expect(result.artifact?.summary.measured).toBe(2);
+    expect(result.artifact?.coverage?.tools.eslint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: null
+    });
+  });
+
+  it("un ESLint exhaustivo declara como universo lo que devolvió", async () => {
+    const exhaustiveEslint: LintTool = { ...eslint, exhaustive: true };
+    const result = await runLint({
+      root,
+      tools: [exhaustiveEslint],
+      run: runner({
+        [exhaustiveEslint.command]: {
+          stdout: JSON.stringify([
+            { filePath: "/repo/src/a.ts", messages: [] },
+            { filePath: "/repo/src/b.ts", messages: [] }
+          ])
+        }
+      })
+    });
+
+    expect(result.artifact?.coverage?.tools.eslint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: ["src/a.ts", "src/b.ts"]
+    });
+  });
+
+  it("un comando de listado da el universo aunque el JSON solo traiga hallazgos", async () => {
+    const listedOxlint: LintTool = {
+      ...oxlint,
+      listCommand: "npx oxlint --debug=files ."
+    };
+    const result = await runLint({
+      root,
+      tools: [listedOxlint],
+      run: runner({
+        [listedOxlint.command]: {
+          stdout: JSON.stringify({
+            diagnostics: [
+              {
+                message: "Unexpected any",
+                code: "typescript(no-explicit-any)",
+                severity: "error",
+                filename: "src/b.ts"
+              }
+            ]
+          })
+        },
+        [listedOxlint.listCommand ?? ""]: {
+          stdout: "src/a.ts\r\nsrc/b.ts\n"
+        }
+      })
+    });
+
+    expect(result.artifact?.files["src/b.ts"]).toBeDefined();
+    expect(result.artifact?.summary.measured).toBe(2);
+    expect(result.artifact?.coverage?.tools.oxlint).toEqual({
+      outcome: "enumerated",
+      measuredPaths: ["src/a.ts", "src/b.ts"],
+      eligiblePaths: ["src/a.ts", "src/b.ts"]
+    });
+  });
+
+  it("si el listado falla, el hallazgo se conserva y la cobertura lo dice", async () => {
+    const listedOxlint: LintTool = {
+      ...oxlint,
+      listCommand: "npx oxlint --debug=files ."
+    };
+    const result = await runLint({
+      root,
+      tools: [listedOxlint],
+      run: runner({
+        [listedOxlint.command]: {
+          stdout: JSON.stringify({
+            diagnostics: [
+              {
+                message: "Unexpected any",
+                code: "typescript(no-explicit-any)",
+                severity: "error",
+                filename: "src/b.ts"
+              }
+            ]
+          })
+        },
+        [listedOxlint.listCommand ?? ""]: new Error("listado roto")
+      })
+    });
+
+    expect(result.artifact?.files["src/b.ts"]).toBeDefined();
+    expect(result.artifact?.coverage?.tools.oxlint).toEqual({
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [{ code: "unknown-eligibility", text: "no se pudo listar los ficheros: listado roto" }]
     });
   });
 
@@ -100,6 +225,10 @@ describe("runLint", () => {
       error: "no se encontró oxlint"
     });
     expect(result.artifact?.meta.tools).toEqual(["eslint"]);
+    expect(result.artifact?.coverage?.tools.oxlint).toMatchObject({
+      outcome: "missing"
+    });
+    expect(result.artifact?.coverage?.tools.eslint?.outcome).toBe("enumerated");
   });
 
   it("un JSON ilegible no entra en el artefacto, pero el código de salida se cuenta", async () => {
@@ -205,9 +334,11 @@ describe("runLint", () => {
       files: 2,
       errors: 2,
       warnings: 0,
-      messages: 2,
-      measured: 2
+      messages: 2
     });
+    expect(result.artifact?.summary.measured).toBeUndefined();
+    expect(result.artifact?.coverage?.tools.biome?.outcome).toBe("unknown");
+    expect(result.artifact?.coverage?.tools.ruff?.outcome).toBe("unknown");
   });
 
   it("lee el XML de Checkstyle", async () => {
@@ -236,6 +367,11 @@ describe("runLint", () => {
     expect(result.artifact?.files["src/A.java"]?.messages).toEqual([
       { rule: "LineLength", severity: "error", line: 2, column: 1, message: "Mal formato." }
     ]);
+    expect(result.artifact?.coverage?.tools.checkstyle).toMatchObject({
+      outcome: "enumerated",
+      measuredPaths: ["src/A.java"],
+      eligiblePaths: null
+    });
     expect(result.artifact?.summary).toEqual({
       files: 1,
       errors: 1,

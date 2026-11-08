@@ -1,4 +1,8 @@
-import { aggregateFolder, MAX_METRICS } from "@codarch/metrics/browser";
+import {
+  aggregateFolder,
+  MAX_METRICS,
+  type RiskBreakdown as IndexBreakdown
+} from "@codarch/metrics/browser";
 import type { RenderFile, RenderMetric, RenderModel } from "@codarch/render/browser";
 import { formatCompact } from "@codarch/render/browser";
 
@@ -386,27 +390,29 @@ export function fileMetricRows(
   model: RenderModel | null,
   file: RenderFile,
   areaMetric: string | null,
-  metricTitle: (key: string) => string
+  metricTitle: (key: string) => string,
+  breakdown?: IndexBreakdown | null
 ): FileMetricRow[] {
   const places = file.riskParts;
+  const index = breakdown?.score;
   const risk: FileMetricRow = {
     key: "risk",
     title: "Riesgo",
-    value: Math.round(file.risk * 100),
+    value: index === undefined ? Math.round(file.risk * 100) : Math.round(index),
     share: Math.max(0, Math.min(1, file.risk)),
     state: riskState(file.risk),
     area: false,
     risk: true,
     description:
-      "Combinación de complejidad, churn, tamaño y lint —cuando se mide—, normalizada por el p95 del proyecto.",
+      index === undefined
+        ? "Riesgo histórico del mapa, de 0 a 1."
+        : "Puntos del índice, de 0 a 100. No es una probabilidad.",
     hint:
-      `${Math.round(file.risk * 100)} de 100 · ` +
+      `${index === undefined ? Math.round(file.risk * 100) : formatCompact(index)}` +
+      `${index === undefined ? " en la escala del mapa" : " puntos del índice"} · ` +
       `complejidad ${formatCompact(places.complexity.value)} (p95 ${formatCompact(places.complexity.p95)}) · ` +
       `churn ${formatCompact(places.churn.value)} (p95 ${formatCompact(places.churn.p95)}) · ` +
-      `tamaño ${formatCompact(places.size.value)} (p95 ${formatCompact(places.size.p95)}) · ` +
-      (places.lint.weight > 0
-        ? `lint ${formatCompact(places.lint.value)} (p95 ${formatCompact(places.lint.p95)})`
-        : "lint sin medir")
+      `tamaño ${formatCompact(places.size.value)} (p95 ${formatCompact(places.size.p95)})`
   };
 
   if (!model) return [risk];

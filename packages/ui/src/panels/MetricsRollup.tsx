@@ -5,13 +5,8 @@ import {
   type RenderModel,
   type TreeNode
 } from "@codarch/render/browser";
-import { CollapsibleSection, GroupHead } from "../CollapsibleSection";
-import {
-  SEVERITIES,
-  lintTotals,
-  severityCount,
-  severityText
-} from "../lintRollup";
+import { CollapsibleSection } from "../CollapsibleSection";
+import { lintTotals } from "../lintRollup";
 import { rollupMetricRows } from "../metrics";
 
 /**
@@ -24,12 +19,11 @@ import { rollupMetricRows } from "../metrics";
  * fichero llega al p95, aquí es la **cobertura**: la parte de los ficheros que
  * declara la métrica.
  *
- * El lint vive aquí dentro como un bloque, no como una fila más: los totales
- * son de esta hoja —errores, avisos e info, ficheros con hallazgos y score— y
- * Reglas cuenta las reglas que los producen, sin repetirlos (ADR 0096).
+ * La salud del lint —errores, avisos e info— no vive aquí: es un bloque de la
+ * ficha. Esta tabla, si hay artefacto, solo baja a las carpetas hijas.
  *
- * La tabla de carpetas del lint es el descenso: cada fila abre la ficha de esa
- * carpeta, que cuenta lo mismo de su subárbol.
+ * `lint` nulo no dice «sin medir»: puede ser que no haya artefacto, y eso lo
+ * dice la sección Lint, o que el mapa del resto apague este bloque a propósito.
  */
 
 const scoreFormat = new Intl.NumberFormat("es-ES", {
@@ -39,33 +33,6 @@ const scoreFormat = new Intl.NumberFormat("es-ES", {
 /** La cuenta con su palabra: «1 fichero», «3 ficheros». */
 function pluralFiles(value: number): string {
   return `${formatCompact(value)} ${value === 1 ? "fichero" : "ficheros"}`;
-}
-
-/** Las tres cuentas del lint, cada una con su tinta: nunca sumadas en gris. */
-function SeverityCounts({
-  counts
-}: {
-  counts: { errors: number; warnings: number; info: number };
-}) {
-  return (
-    <span className="lint-counts">
-      {SEVERITIES.map((severity, index) => {
-        const value = severityCount(counts, severity);
-        return (
-          <span key={severity}>
-            {index > 0 ? <span className="lint-counts-sep"> · </span> : null}
-            <span
-              className={`lint-count${
-                value > 0 ? ` lint-count-${severity}` : " is-zero"
-              }`}
-            >
-              {severityText(value, severity)}
-            </span>
-          </span>
-        );
-      })}
-    </span>
-  );
 }
 
 export function MetricsRollup({
@@ -97,16 +64,16 @@ export function MetricsRollup({
   onColorMode: (mode: string) => void;
   onSelectFolder?: (path: string) => void;
 }) {
-  const totals = lintTotals(lint, folder);
-  const measured = totals !== null;
-  // La cobertura y el árbol son de la pasada entera, no de la carpeta: el
-  // artefacto no guarda qué fichero limpio miró cada herramienta (ADR 0098).
-  const coverage = lint?.summary.measured;
-  const stale = Boolean(
-    lint?.meta.tree &&
-      model.meta.checksum &&
-      lint.meta.tree !== model.meta.checksum
-  );
+  const measured = lintTotals(lint, folder) !== null;
+  const totalsOf = (path: string) => {
+    const code = lintTotals(lint, path);
+    return {
+      errors: code?.errors ?? 0,
+      warnings: code?.warnings ?? 0,
+      info: code?.info ?? 0,
+      score: code?.score ?? 0
+    };
+  };
   const rows = rollupMetricRows(model, files, metricTitle);
   const heaviest = rows.find((row) => row.key === "maxComplexity" && row.owner);
   const riskiest = rows.find((row) => row.key === "risk" && row.owner);
@@ -189,40 +156,8 @@ export function MetricsRollup({
         ) : null}
       </div>
 
-      <div className="rollup-lint">
-        <GroupHead
-          label="Lint"
-          summary={
-            totals
-              ? `${pluralFiles(totals.files)} con hallazgos${
-                  coverage === undefined
-                    ? ""
-                    : ` de ${formatCompact(coverage)} medidos`
-                } · score ${scoreFormat.format(totals.score)}`
-              : "sin medir"
-          }
-        />
-        {totals ? (
-          <p className="rollup-lint-counts">
-            <SeverityCounts counts={totals} />
-          </p>
-        ) : null}
-        {totals && totals.findings === 0 ? (
-          <p className="lint-clean">
-            {coverage === undefined
-              ? "Sin hallazgos en el proyecto."
-              : `Medido y limpio: ${formatCompact(coverage)} ficheros mirados, ninguno con hallazgos.`}
-          </p>
-        ) : null}
-        {stale ? (
-          <p className="muted tiny lint-stale">
-            Este lint es de otro árbol: se midió antes del último análisis. Se
-            vuelve a medir al guardar con el live; si no, con <code>codarch analyze</code>.
-          </p>
-        ) : null}
-
-        {measured && folders.length > 0 ? (
-          <>
+      {measured && folders.length > 0 ? (
+        <div className="rollup-lint">
             <div className="rollup-head">Lint por carpeta</div>
             <div
               className="rollup-table"
@@ -237,7 +172,7 @@ export function MetricsRollup({
                 <span>Score</span>
               </div>
               {folders.map((child) => {
-                const childTotals = lintTotals(lint, child.path);
+                const childTotals = totalsOf(child.path);
                 return (
                   <button
                     key={child.path}
@@ -261,22 +196,14 @@ export function MetricsRollup({
                       {formatCompact(childTotals?.info ?? 0)}
                     </span>
                     <span className="mono">
-                      {scoreFormat.format(childTotals?.score ?? 0)}
+                      {scoreFormat.format(childTotals.score)}
                     </span>
                   </button>
                 );
               })}
             </div>
-          </>
-        ) : null}
-
-        {measured ? null : (
-          <p className="muted tiny card-note">
-            El lint no se midió: ejecuta <code>codarch analyze</code> y sus
-            errores, avisos e info entran en cada carpeta.
-          </p>
-        )}
-      </div>
+        </div>
+      ) : null}
     </CollapsibleSection>
   );
 }

@@ -33,6 +33,7 @@ function file(path: string, complexity: number, loc: number): RenderFile {
       size: zeroPart(),
       lint: zeroPart()
     },
+    riskBreakdown: null,
     complexity,
     churn: 0,
     lint: 0,
@@ -196,23 +197,27 @@ describe("la ficha del proyecto", () => {
     expect(markup).toContain("packages/ui/src/panel.ts");
   });
 
-  it("lleva el lint dentro de Métricas y lo desglosa por carpeta", () => {
+  it("tiene un solo bloque de salud y baja por carpeta", () => {
     const markup = projectMarkup(lint);
 
-    expect(markup).toContain("Lint");
-    // Las tres cuentas, cada una con su palabra: también la de los info.
+    expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
     expect(markup).toContain("3 errores");
     expect(markup).toContain("5 avisos");
     expect(markup).toContain("0 info");
-    // Con la cobertura: cuántos se miraron, no solo cuántos fallaron (ADR 0098).
-    expect(markup).toContain("3 ficheros con hallazgos de 4 medidos");
-    expect(markup).toContain("score 4,3");
-    // El lint no tiene botón propio: su lente se elige en COLOR, como las demás.
+    expect(markup).toContain(">3 ficheros<");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).not.toContain("La pasada miró");
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
+    expect(markup).not.toContain("de 4 medidos");
+    expect(markup).not.toContain("Hallazgos por regla");
+    expect(markup).not.toContain("reglas con hallazgos");
+    expect(markup).toContain("apps/web/src/main.ts");
+    expect(markup).toContain("packages/ui/src/panel.ts");
     expect(markup).not.toContain("Pintar el mapa");
     expect(markup).toContain("Lint por carpeta");
     expect(markup).toContain("apps/");
     expect(markup).toContain("packages/");
-    // La tabla por carpeta lleva las tres severidades, no el recuento de ficheros.
     expect(markup).toContain(">Info<");
   });
 
@@ -222,7 +227,7 @@ describe("la ficha del proyecto", () => {
       meta: { ...lint.meta, tree: "otro-arbol" }
     });
 
-    expect(markup).toContain("Este lint es de otro árbol");
+    expect(markup).toContain("Este análisis es de otro árbol");
   });
 
   it("no avisa cuando el lint es del árbol que se está mirando", () => {
@@ -231,18 +236,18 @@ describe("la ficha del proyecto", () => {
       meta: { ...lint.meta, tree: "abc" }
     });
 
-    expect(markup).not.toContain("Este lint es de otro árbol");
+    expect(markup).not.toContain("Este análisis es de otro árbol");
   });
 
   it("sin artefacto dice «sin medir» y no inventa la tabla", () => {
     const markup = projectMarkup(null);
 
-    expect(markup).toContain("sin medir");
-    expect(markup).toContain("El lint no se midió");
+    expect(markup).toContain("Sin medir");
+    expect(markup).toContain("codarch analyze");
     expect(markup).not.toContain("Lint por carpeta");
   });
 
-  it("la sección Lint no enseña sistemas ni el catálogo de reglas activas", () => {
+  it("la sección Lint enseña la herramienta, no el catálogo de reglas activas", () => {
     const markup = projectMarkup({
       ...lint,
       meta: {
@@ -258,10 +263,12 @@ describe("la ficha del proyecto", () => {
       }
     });
 
-    expect(markup).not.toContain("eslint.config.js");
+    expect(markup).toContain("Herramientas");
+    expect(markup).toContain("eslint.config.js");
     expect(markup).not.toContain("regla activa");
-    expect(markup).toContain("Hallazgos por regla");
-    expect(markup).toContain("no-console");
+    expect(markup).not.toContain("Hallazgos por regla");
+    expect(markup).toContain("Ficheros con hallazgos");
+    expect(markup).toContain("apps/web/src/main.ts");
   });
 
   it("un proyecto medido y limpio dice que se miró, no solo que hay cero", () => {
@@ -285,24 +292,43 @@ describe("la ficha del proyecto", () => {
     });
 
     expect(markup).toContain('collapsible-count">0');
-    expect(markup).toContain(
-      "Medido y limpio: 4 ficheros mirados, ninguno con hallazgos."
-    );
-    expect(markup).toContain(
-      "Sin hallazgos en el proyecto: se midieron 4 ficheros."
-    );
-    // El catálogo de reglas activas ya no está en la ficha de código.
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).toContain("anterior a la cobertura");
+    expect(markup).not.toContain("La pasada miró");
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
     expect(markup).not.toContain("Configuración ·");
     expect(markup).not.toContain("regla activa");
+    expect(markup).toContain("eslint.config.js");
   });
 
-  it("sin artefacto, Reglas recomienda el mínimo del stack", () => {
+  it("sin artefacto no recomienda configuración dentro de los hallazgos", () => {
     const markup = projectMarkup(null);
 
-    expect(markup).toContain("El lint no se midió");
-    expect(markup).toContain("Mínimo recomendable");
-    expect(markup).toContain("TypeScript y JavaScript");
-    expect(markup).toContain("ESLint + typescript-eslint");
+    expect(markup).toContain("Sin medir");
+    expect(markup).toContain("codarch analyze");
+    expect(markup).not.toContain("Mínimo recomendable");
+    expect(markup).not.toContain("ESLint + typescript-eslint");
+  });
+
+  it("en docs no dice que el lint está sin medir si el bloque de métricas se apaga", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ProjectPanel, {
+        model,
+        lint,
+        rulesMode: true,
+        metricTitle: (key: string) => key,
+        colorMode: "",
+        onColorMode: () => {},
+        onSelectPath: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+    const lintAt = markup.indexOf("section-lint");
+    expect(lintAt).toBeGreaterThan(0);
+    expect(markup.slice(0, lintAt)).not.toContain("Sin medir");
+    expect(markup).toContain(">Lint<");
+    expect(markup).not.toContain(">Reglas<");
   });
 });
 
@@ -334,6 +360,61 @@ describe("la ficha de carpeta", () => {
     expect(markup).toContain("60");
     expect(markup).toContain("Lint por carpeta");
     expect(markup).toContain("ui/");
+    expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
+    expect(markup).toContain("packages/ui/src/panel.ts");
+    expect(markup).toContain("packages/ui2/src/other.ts");
+    expect(markup).not.toContain("apps/web/src/main.ts");
+    expect(markup).not.toContain("de 4 medidos");
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
+    expect(markup).toContain("Cobertura no verificada");
+  });
+
+  it("la carpeta casa rutas NFC y no se lleva el prefijo de al lado", () => {
+    const composed = "caf\u00e9";
+    const decomposed = "cafe\u0301";
+    const cafe = folder(decomposed, 1);
+    const cafeLint: LintArtifact = {
+      ...lint,
+      files: {
+        [`${composed}/a.ts`]: {
+          errors: 9,
+          warnings: 0,
+          messages: [{ rule: "no-var", severity: "error", message: "var", line: 3, column: 2 }]
+        },
+        [`${composed}2/b.ts`]: {
+          errors: 1,
+          warnings: 0,
+          messages: [{ rule: "no-console", severity: "error", message: "console" }]
+        }
+      },
+      summary: { files: 2, errors: 9, warnings: 0, messages: 2, measured: 80 }
+    };
+    const markup = renderToStaticMarkup(
+      createElement(FolderPanel, {
+        folder: cafe,
+        model,
+        lint: cafeLint,
+        changes: null,
+        onScopeChanges: () => {},
+        metricTitle: (key: string) => key,
+        colorMode: "",
+        onColorMode: () => {},
+        onSelectPath: () => {},
+        onSelectFolder: () => {}
+      })
+    );
+
+    expect(markup).toContain(`${composed}/a.ts`);
+    expect(markup).not.toContain(`${composed}2/b.ts`);
+    expect(markup).toContain("1 error");
+    expect(markup).not.toContain("9 errores");
+    expect(markup).not.toContain("de 80 medidos");
+    expect(markup).not.toContain("Medido y limpio");
+    expect(markup).not.toContain("Limpio y al día");
+    expect(markup).toContain("Cobertura no verificada");
+    expect(markup).toContain("se muestran los hallazgos observados");
+    expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
   });
 });
 

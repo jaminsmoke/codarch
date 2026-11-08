@@ -2,7 +2,9 @@ import { useId, useState, type KeyboardEvent } from "react";
 import type { CodarchApp, MapId } from "../app/types";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { ToolBar, toolLabel } from "../ToolBar";
-import { HeatList, LanguageSample, Legend, RestKinds } from "../panels";
+import { docsConfigAccess, planDocsTool } from "../lintConfig";
+import { HeatList, LanguageSample, Legend } from "../panels";
+import { DocsToolSheet } from "../panels/LintConfigSection";
 import { localStore } from "../storage-local";
 import { readSectionClosed, writeSectionClosed } from "../sections";
 
@@ -26,12 +28,50 @@ export function ToolDock({ app }: { app: CodarchApp }) {
     });
 
   const { state, actions } = app;
+  const sources = {
+    rest: state.rest !== null,
+    codeLint: state.lint,
+    docsLint: state.restLint
+  };
+  const access = docsConfigAccess(sources);
+  /**
+   * Hoja de configuración sin mapa del resto.
+   *
+   * El escenario sigue siendo el código: no se fabrica un `rest.cc.json` y el
+   * catálogo no entra en los paneles del mapa de código.
+   */
+  const [catalogOnly, setCatalogOnly] = useState(false);
+  const docsSheet = state.map === "rest" || catalogOnly;
 
   /**
    * El botón del mapa activo pliega la hoja; el del otro mapa la cambia y la
    * deja abierta. Es el mismo gesto que la barra del inspector (ADR 0079).
+   *
+   * Docs y config, sin resto, abre solo el catálogo.
    */
   const chooseMap = (id: MapId) => {
+    if (id === "rest") {
+      const plan = planDocsTool(sources);
+      if (plan === "disabled") return;
+      if (plan === "catalog-only") {
+        if (catalogOnly) {
+          toggleTools();
+          return;
+        }
+        setCatalogOnly(true);
+        if (toolsClosed) toggleTools();
+        return;
+      }
+      if (catalogOnly) setCatalogOnly(false);
+      if (id === state.map) {
+        toggleTools();
+        return;
+      }
+      actions.setMap("rest");
+      if (toolsClosed) toggleTools();
+      return;
+    }
+    if (catalogOnly) setCatalogOnly(false);
     if (id === state.map) {
       toggleTools();
       return;
@@ -45,8 +85,8 @@ export function ToolDock({ app }: { app: CodarchApp }) {
       <ToolBar
         open={!toolsClosed}
         settingsOpen={state.settingsOpen}
-        map={state.map}
-        restAvailable={state.rest !== null}
+        map={docsSheet ? "rest" : state.map}
+        docsAvailable={access.enabled}
         panelId={toolsId}
         onSelectMap={chooseMap}
         onOpenSettings={() => actions.setSettingsOpen(true)}
@@ -56,29 +96,33 @@ export function ToolDock({ app }: { app: CodarchApp }) {
       <aside
         className="toolbar"
         id={toolsId}
-        aria-label={toolLabel(state.map)}
+        aria-label={toolLabel(docsSheet ? "rest" : state.map)}
         aria-hidden={toolsClosed}
         inert={toolsClosed}
       >
-        <ViewControls app={app} />
+        {catalogOnly ? null : (
+          <>
+            <ViewControls app={app} />
 
-        {state.map === "code" ? (
-          <LanguageSample model={app.view.model} migration={app.migration} />
-        ) : (
-          <RestKinds model={app.view.model} />
+            {state.map === "code" ? (
+              <LanguageSample model={app.view.model} migration={app.migration} />
+            ) : (
+              <DocsToolSheet hasRest restModel={app.view.model} />
+            )}
+
+            <Legend
+              colorMode={state.colorMode}
+              migration={app.migration}
+              model={app.view.model}
+              hasLint={state.lint !== null}
+            />
+          </>
         )}
-
-        <Legend
-          colorMode={state.colorMode}
-          migration={app.migration}
-          model={app.view.model}
-          hasLint={state.lint !== null}
-        />
 
         {/* El calor es del código del repo abierto: en el mapa del resto no
             hay símbolos que calentar. La lista se carga al montarse, así que
             al cambiar de proyecto se remonta (ADR 0072). */}
-        {state.map === "code" ? (
+        {state.map === "code" && !catalogOnly ? (
           <HeatList
             key={`heat:${state.source}`}
             load={app.loadHeat}

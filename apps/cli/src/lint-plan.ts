@@ -51,7 +51,9 @@ export function planProjectLint(
     tools: runnable.map((system) => ({
       name: system.name,
       command: system.command,
-      format: system.format
+      format: system.format,
+      ...(system.listCommand ? { listCommand: system.listCommand } : {}),
+      ...(system.exhaustive ? { exhaustive: true } : {})
     })),
     detected
   };

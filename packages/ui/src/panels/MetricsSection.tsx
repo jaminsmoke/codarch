@@ -1,3 +1,4 @@
+import type { RiskBreakdown as IndexBreakdown } from "@codarch/metrics/browser";
 import { formatCompact, type RenderFile, type RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { RiskBreakdown } from "../FileSections";
@@ -17,6 +18,7 @@ export function MetricsSection({
   colorMode,
   metricTitle,
   showRisk = true,
+  breakdown = null,
   onColorMode
 }: {
   model: RenderModel | null;
@@ -26,11 +28,20 @@ export function MetricsSection({
   metricTitle: (key: string) => string;
   /** `false` en el mapa del resto: no hay riesgo ni desglose. */
   showRisk?: boolean;
+  /**
+   * El desglose que ya trae el motor. `null` si el render no lo entrega:
+   * la ficha no lo recalcula.
+   */
+  breakdown?: IndexBreakdown | null;
   onColorMode: (mode: string) => void;
 }) {
-  const rows = fileMetricRows(model, file, areaMetric, metricTitle).filter(
-    (row) => showRisk || !row.risk
-  );
+  const rows = fileMetricRows(
+    model,
+    file,
+    areaMetric,
+    metricTitle,
+    breakdown
+  ).filter((row) => showRisk || !row.risk);
 
   return (
     <CollapsibleSection
@@ -69,7 +80,7 @@ export function MetricsSection({
             ? "La barra llega al p95 del proyecto; el riesgo, a 100. Pulsa una fila para pintar el mapa."
             : "La barra llega al p95 del proyecto. Pulsa una fila para pintar el mapa."}
         </p>
-        {showRisk ? <RiskBreakdown file={file} /> : null}
+        {showRisk ? <RiskBreakdown breakdown={breakdown} /> : null}
       </div>
     </CollapsibleSection>
   );

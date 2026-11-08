@@ -2,11 +2,18 @@ import { exec } from "node:child_process";
 import type { LintTool } from "./config";
 import {
   LintError,
+  canonicalLintPath,
   createLintArtifact,
   type LintArtifact,
   type LintFileResult,
   type LintSystem
 } from "./format";
+import {
+  adoptEnumeration,
+  coverageFromEnumeration,
+  type Reason,
+  type ToolCoverage
+} from "./health";
 import {
   normalizeBiomeJson,
   normalizeCheckstyleXml,
@@ -98,7 +105,14 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
           tools: measured.map((result) => result.run.name),
           ...(options.systems ? { systems: options.systems } : {}),
           ...(options.tree ? { tree: options.tree } : {}),
-          files: measured.flatMap((result) => result.files)
+          files: measured.flatMap((result) => result.files),
+          // También las que fallaron: si no, un éxito y un fallo parecerían
+          // una medida completa. `meta.tools` sigue siendo solo las que midieron.
+          coverage: {
+            tools: Object.fromEntries(
+              results.map((result) => [result.run.name, result.coverage])
+            )
+          }
         });
 
   return {
@@ -110,6 +124,7 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
 interface ToolResult {
   run: LintToolRun;
   files: LintFileResult[];
+  coverage: ToolCoverage;
 }
 
 async function runTool(
@@ -120,7 +135,8 @@ async function runTool(
 ): Promise<ToolResult> {
   const failed = (error: string, code?: number): ToolResult => ({
     run: { name: tool.name, ok: false, ...(code !== undefined ? { code } : {}), files: 0, messages: 0, error },
-    files: []
+    files: [],
+    coverage: coverageFromEnumeration({ ok: false, reason: failureReason(error) })
   });
 
   let output: LintProcessOutput;
@@ -128,6 +144,20 @@ async function runTool(
     output = await run(tool.command, root, timeoutMs);
   } catch (error) {
     return failed((error as Error).message);
+  }
+
+  // El universo, si la herramienta sabe listarlo. Se pide antes de contar los
+  // hallazgos para que un fallo del listado no invente una cobertura completa
+  // (ADR 0110).
+  let listed: string[] | null = null;
+  let listFailure: string | null = null;
+  if (tool.listCommand) {
+    try {
+      const listing = await run(tool.listCommand, root, timeoutMs);
+      listed = parsePathList(listing.stdout);
+    } catch (error) {
+      listFailure = firstLine((error as Error).message) || "no se pudo lanzar el listado";
+    }
   }
 
   // Un linter con hallazgos sale con código distinto de cero: eso no es un
@@ -141,6 +171,42 @@ async function runTool(
     return failed(hint ? `${reason} (${hint})` : reason, output.code);
   }
 
+  const enumerates = tool.format === "eslint-json" || tool.format === "checkstyle-xml";
+  const enumeration = adoptEnumeration(enumerates ? tool.format : tool.name, {
+    ok: true,
+    paths: files.map((file) => file.path)
+  });
+
+  let coverage: ToolCoverage;
+  if (listed !== null) {
+    // La lista es el universo y lo medido: el diagnóstico corre sobre ella.
+    coverage = {
+      outcome: "enumerated",
+      measuredPaths: listed,
+      eligiblePaths: listed
+    };
+  } else if (tool.exhaustive) {
+    // Su salida ya trae los limpios: en una pasada a la raíz, lo devuelto es
+    // el universo (ADR 0110).
+    coverage = coverageFromEnumeration(
+      enumeration,
+      files.map((file) => file.path)
+    );
+  } else if (listFailure !== null) {
+    coverage = {
+      outcome: "unknown",
+      eligiblePaths: null,
+      reasons: [
+        {
+          code: "unknown-eligibility",
+          text: `no se pudo listar los ficheros: ${listFailure}`
+        }
+      ]
+    };
+  } else {
+    coverage = coverageFromEnumeration(enumeration, null);
+  }
+
   return {
     run: {
       name: tool.name,
@@ -149,8 +215,28 @@ async function runTool(
       files: files.filter((file) => file.messages.length > 0).length,
       messages: files.reduce((total, file) => total + file.messages.length, 0)
     },
-    files
+    files,
+    coverage
   };
+}
+
+/** Una ruta por línea, canónica. Lo que no sea una ruta se ignora. */
+function parsePathList(stdout: string): string[] {
+  const paths: string[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    if (line.trim() === "") continue;
+    try {
+      paths.push(canonicalLintPath(line));
+    } catch {
+      // Un aviso de la herramienta en la lista no es una ruta.
+    }
+  }
+  return paths;
+}
+
+function failureReason(error: string): Reason {
+  const missing = /enoent|not found|no se encontró|no se encontro/i.test(error);
+  return { code: missing ? "tool-missing" : "tool-failed", text: error };
 }
 
 /** El dialecto que declaró la herramienta, aplicado a lo que escribió. */

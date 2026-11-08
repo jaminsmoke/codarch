@@ -30,15 +30,15 @@ export interface LintFileCount {
  * Las cuentas por fichero, tomadas de los mensajes.
  *
  * Es la misma fuente que `lintTotals` y `lintRules`: el riesgo de un fichero y
- * los totales de la hoja no pueden leer cifras distintas. Los campos `errors`
- * y `warnings` del artefacto son un resumen que se puede desincronizar con sus
- * mensajes —lo trae así una herramienta de fuera—, y entonces el mapa y la
- * ficha dirían números diferentes.
+ * los totales de la hoja no pueden leer cifras distintas. `readLintArtifact`
+ * ya reescribe `errors` y `warnings` desde los mensajes (ADR 0106); aquí se
+ * vuelve a contar para un artefacto que no pasó por el lector y para que el
+ * mapa no dependa del resumen declarado.
  */
 export function lintFileCounts(
   files: Readonly<Record<string, LintFile>>
 ): Record<string, LintFileCount> {
-  const counts: Record<string, LintFileCount> = {};
+  const counts: Record<string, LintFileCount> = Object.create(null);
   for (const [path, file] of Object.entries(files)) {
     let errors = 0;
     let warnings = 0;
@@ -60,16 +60,29 @@ export interface LintRuleCount {
 }
 
 /**
+ * Una ruta en NFC.
+ *
+ * El ámbito compara las dos partes ya normalizadas: un acento descompuesto y
+ * el mismo acento compuesto son la misma carpeta. Es el único sitio que
+ * normaliza; quien filtre un ámbito pasa por aquí.
+ */
+export function lintScopePath(path: string): string {
+  return path.normalize("NFC");
+}
+
+/**
  * Si una ruta del artefacto cuelga de una carpeta.
  *
  * Con `""` cuelga todo (el proyecto entero). La barra cuenta: `packages/ui`
  * no contiene `packages/ui2`, que es el error clásico de comparar prefijos a
  * secas. Una ruta igual a la carpeta también entra: en un fichero, su ruta es
- * el ámbito.
+ * el ámbito. Las dos rutas se normalizan a NFC antes de comparar.
  */
 export function withinLintFolder(folder: string, path: string): boolean {
-  if (folder === "") return true;
-  return path === folder || path.startsWith(`${folder}/`);
+  const scope = lintScopePath(folder);
+  const file = lintScopePath(path);
+  if (scope === "") return true;
+  return file === scope || file.startsWith(`${scope}/`);
 }
 
 /**

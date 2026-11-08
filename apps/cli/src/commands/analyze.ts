@@ -24,6 +24,8 @@ import {
 import type { CcJson } from "@codarch/schema";
 import {
   lintTotals,
+  scopeHealth,
+  scopeHealthNote,
   type LintArtifact,
   type LintProcessRunner
 } from "@codarch/lint";
@@ -387,7 +389,7 @@ function collectReport(input: ReportInput): ReportFacts {
       bytes: fileBytes(input.snapshotPath)
     },
     rest: restFacts(input.restPath, result),
-    lint: lintFacts(input.lint),
+    lint: lintFacts(input.lint, input.cc.meta.checksum ?? null),
     structure: {
       files: result.files,
       folders: result.folders,
@@ -443,11 +445,15 @@ function restFacts(
   };
 }
 
-/** El lint, con su cobertura si la herramienta la dio (ADR 0098). */
-function lintFacts(lint: LintMeasure): LintLine {
+/** El lint, con su cobertura si la herramienta la dio (ADR 0098 · ADR 0110). */
+function lintFacts(lint: LintMeasure, treeHash: string | null): LintLine {
   if (lint.kind !== "measured") return lint;
   const totals = lintTotals(lint.artifact);
-  const measured = lint.artifact.summary.measured;
+  const health = scopeHealth(lint.artifact, { kind: "project", path: "" }, {
+    treeHash,
+    paths: []
+  });
+  const note = scopeHealthNote(health);
   return {
     kind: "measured",
     path: lint.path,
@@ -460,7 +466,8 @@ function lintFacts(lint: LintMeasure): LintLine {
           files: totals.files
         }
       : null,
-    ...(measured === undefined ? {} : { measured })
+    ...(health.coverage.measured === null ? {} : { measured: health.coverage.measured }),
+    ...(note ? { note } : {})
   };
 }
 

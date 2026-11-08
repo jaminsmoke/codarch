@@ -273,7 +273,7 @@ lint:
     const artifact = JSON.parse(
       fs.readFileSync(path.join(root, ".codarch", "lint.repmod.json"), "utf8")
     ) as { schemaVersion: string; meta: { tree: string }; summary: object };
-    expect(artifact.schemaVersion).toBe("1.2");
+    expect(artifact.schemaVersion).toBe("1.3");
     expect(artifact.meta.tree).toBe(
       readSnapshot(path.join(root, ".codarch")).meta.checksum
     );

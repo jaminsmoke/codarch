@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { createLintArtifact } from "@codarch/lint";
+import { createLintArtifact, readLintArtifact } from "@codarch/lint";
 import { RISK_GAMMA } from "@codarch/metrics";
 import { parseCcJson } from "@codarch/schema";
 import { buildRenderModel, RenderError, type RenderOptions } from "../src/index";
@@ -154,21 +154,19 @@ describe("buildRenderModel", () => {
     expect(file!.lint).toBe(0);
   });
 
-  it("lleva el lint del proyecto al riesgo de cada fichero", () => {
+  it("lleva el lint del mismo árbol al riesgo, y sin árbol no lo mueve", () => {
     const plain = model();
+    const messages = [
+      { rule: "no-any", severity: "error" as const, message: "un `any`" },
+      { rule: "no-any", severity: "error" as const, message: "otro `any`" },
+      { rule: "no-any", severity: "error" as const, message: "y otro" }
+    ];
+    // El fixture trae este checksum. Sin él, fresh es null y la deuda no entra.
     const withLint = model({
       lint: createLintArtifact({
         tools: ["eslint"],
-        files: [
-          {
-            path: "src/only/b.ts",
-            messages: [
-              { rule: "no-any", severity: "error", message: "un `any`" },
-              { rule: "no-any", severity: "error", message: "otro `any`" },
-              { rule: "no-any", severity: "error", message: "y otro" }
-            ]
-          }
-        ]
+        tree: "0123456789abcdef0123456789abcdef",
+        files: [{ path: "src/only/b.ts", messages }]
       })
     });
     const b = withLint.files.find((entry) => entry.name === "b.ts");
@@ -178,20 +176,37 @@ describe("buildRenderModel", () => {
     expect(before?.lint).toBe(0);
     expect(b?.riskParts.lint.value).toBe(3);
     expect(b!.risk).toBeGreaterThan(before!.risk);
+
+    const unverified = model({
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        files: [{ path: "src/only/b.ts", messages }]
+      })
+    });
+    const stale = unverified.files.find((entry) => entry.name === "b.ts");
+    // La lente sigue viendo la deuda. El índice no: no hubo comparación de árbol.
+    expect(stale?.lint).toBe(3);
+    expect(stale?.riskParts.lint.value).toBe(0);
+    expect(stale!.risk).toBeCloseTo(before!.risk);
   });
 
-  it("un artefacto sin hallazgos ya cuenta: el lint pesa 20 % y a cero", () => {
+  it("un artefacto sin hallazgos no reescala la base", () => {
     const plain = model();
     const withLint = model({
-      lint: createLintArtifact({ tools: ["eslint"], files: [] })
+      lint: createLintArtifact({
+        tools: ["eslint"],
+        tree: "0123456789abcdef0123456789abcdef",
+        files: []
+      })
     });
     const file = withLint.files.find((entry) => entry.name === "a.ts");
     const before = plain.files.find((entry) => entry.name === "a.ts");
 
     expect(file?.lint).toBe(0);
-    expect(file?.riskParts.lint.weight).toBeCloseTo(0.2);
+    // El término aditivo no ocupa el 20 % de la base. Cero deuda suma cero.
+    expect(file?.riskParts.lint.weight).toBe(0);
     expect(file?.riskParts.lint.share).toBe(0);
-    expect(file!.risk).toBeLessThan(before!.risk);
+    expect(file!.risk).toBeCloseTo(before!.risk);
   });
 
   it("la deuda de cada fichero sale de sus mensajes, no de sus cuentas", () => {
@@ -211,6 +226,26 @@ describe("buildRenderModel", () => {
 
     const result = model({ lint: tampered });
     expect(result.files.find((file) => file.name === "b.ts")?.lint).toBe(1);
+  });
+
+  it("pinta la deuda en la ruta canónica, no en la clave cruda", () => {
+    const lint = readLintArtifact({
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        ".\\src\\only\\b.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [{ rule: "no-any", severity: "error", message: "un any" }]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    });
+
+    expect(lint?.files["src/only/b.ts"]?.errors).toBe(1);
+    const result = model({ lint: lint ?? undefined });
+    expect(result.files.find((file) => file.name === "b.ts")?.lint).toBe(1);
+    expect(result.files.find((file) => file.name === "a.ts")?.lint).toBe(0);
   });
 
   it("la lente del lint abre con su deuda y su escala es el máximo del mapa", () => {

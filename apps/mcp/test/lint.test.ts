@@ -2,7 +2,6 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createLintArtifact } from "@codarch/lint";
-import { lintScore, riskScores } from "@codarch/metrics";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   ArchitectureStore,
@@ -77,6 +76,55 @@ describe("el lint del proyecto", () => {
     return loadArchitectureStore({ root });
   }
 
+  it("ve los hallazgos en la ruta canónica", () => {
+    const nfd = "src/Cafe\u0301.ts";
+    const nfc = "src/Caf\u00e9.ts";
+    const store = lintStore({
+      schemaVersion: "1.2",
+      meta: { checksum: "abc", tools: ["eslint"], systems: [] },
+      files: {
+        "./src/a.ts": {
+          errors: 9,
+          warnings: 9,
+          messages: [
+            { rule: "no-console", severity: "warn", line: 3, message: "no console" }
+          ]
+        },
+        [nfd]: {
+          errors: 0,
+          warnings: 0,
+          messages: [{ rule: "no-var", severity: "info", message: "cafe" }]
+        },
+        "src/A.ts": {
+          errors: 1,
+          warnings: 0,
+          messages: [{ rule: "no-var", severity: "error", message: "mayuscula" }]
+        }
+      },
+      summary: { files: 9, errors: 9, warnings: 9, messages: 9 }
+    });
+
+    const report = getLintReport(store);
+    expect(report.findings.map((finding) => finding.path).sort()).toEqual(
+      [nfc, "src/A.ts", "src/a.ts"].sort()
+    );
+    expect(
+      report.findings.every(
+        (finding) =>
+          finding.path === finding.path.normalize("NFC") &&
+          !finding.path.includes("\\") &&
+          !finding.path.startsWith("./")
+      )
+    ).toBe(true);
+    // `./src/a.ts` es `src/a.ts`. `src/A.ts` es otro fichero.
+    expect(explainModule(store, { path: "src/a.ts" }).lint).toMatchObject({
+      errors: 0,
+      warnings: 1,
+      findings: 1,
+      files: 1
+    });
+  });
+
   it("explain_module trae lint del ámbito; null si no se midió", () => {
     const withLint = lintStore();
     const file = explainModule(withLint, { path: "src/a.ts" });
@@ -106,7 +154,15 @@ describe("el lint del proyecto", () => {
 
     const without = lintStore(null);
     expect(explainModule(without, { path: "src/a.ts" }).lint).toBeNull();
+    expect(explainModule(without, { path: "src/a.ts" }).scopeHealth).toBeNull();
     expect(explainModule(without, { path: "src" }).lint).toBeNull();
+    expect(file.scopeHealth?.counts).toMatchObject({
+      errors: 1,
+      warnings: 1,
+      findings: 2,
+      filesWithFindings: 1
+    });
+    expect(file.scopeHealth?.messages).toHaveLength(2);
   });
 
   it("lee los sistemas, sus reglas activas y los hallazgos", () => {
@@ -135,9 +191,19 @@ describe("el lint del proyecto", () => {
       files: 2,
       errors: 1,
       warnings: 2,
-      messages: 3,
-      measured: 2
+      messages: 3
     });
+    expect(report.config?.tools).toEqual(["eslint", "ruff"]);
+    expect(report.health?.counts).toMatchObject({
+      errors: 1,
+      warnings: 2,
+      findings: 3,
+      filesWithFindings: 2
+    });
+    expect(report.affectedFiles.map((file) => file.path)).toEqual([
+      "src/a.ts",
+      "src/domain/c.ts"
+    ]);
     expect(report.scope).toBe("");
     expect(report.total).toBe(3);
     expect(report.files).toBe(2);
@@ -184,8 +250,21 @@ describe("el lint del proyecto", () => {
       errors: 99,
       warnings: 0,
       messages: 99,
-      // La cobertura sí se conserva: no se puede recontar desde los mensajes.
-      measured: 2
+      measured: 99
+    };
+    broken.coverage = {
+      tools: {
+        eslint: {
+          outcome: "enumerated",
+          measuredPaths: ["src/a.ts", "src/domain/c.ts"],
+          eligiblePaths: null
+        },
+        ruff: {
+          outcome: "unknown",
+          eligiblePaths: null,
+          reasons: [{ code: "unknown-eligibility" }]
+        }
+      }
     };
 
     const report = getLintReport(lintStore(broken));
@@ -194,8 +273,10 @@ describe("el lint del proyecto", () => {
       errors: 1,
       warnings: 2,
       messages: 3,
+      // Sale de la enumeración de ESLint, no del 99 declarado.
       measured: 2
     });
+    expect(report.health?.coverage.state).toBe("partial");
   });
 
   it("recorta los hallazgos sin perder el total", () => {
@@ -217,30 +298,14 @@ describe("el lint del proyecto", () => {
     expect(missing.reason).toContain("codarch analyze");
   });
 
-  it("el riesgo cuenta el lint cuando hay artefacto", () => {
+  it("sin árbol el lint no mueve el riesgo y no rellena con cero", () => {
     const withLint = lintStore();
     const without = lintStore(null);
-    // a.ts sigue en 1 (tope), pero el resto se renormaliza al entrar la cuarta señal.
-    expect(withLint.files.map((file) => file.risk)).not.toEqual(
+    // El artefacto de la prueba no trae meta.tree. fresh es null: la deuda no
+    // entra, y un fichero ausente del mapa de hallazgos no pasa a valer 0.
+    expect(withLint.files.map((file) => file.risk)).toEqual(
       without.files.map((file) => file.risk)
     );
-
-    const lintByPath: Record<string, number> = {
-      "src/a.ts": lintScore(1, 1),
-      "src/domain/c.ts": lintScore(0, 1)
-    };
-    const expected = riskScores(
-      without.files.map((file) => ({
-        complexity: file.complexity,
-        churn: file.churn,
-        size: file.size,
-        lint: lintByPath[file.path] ?? 0
-      })),
-      { lint: true }
-    );
-    for (const [index, file] of without.files.entries()) {
-      expect(withLint.filesByPath.get(file.path)?.risk).toBe(expected[index]);
-    }
   });
 
 });

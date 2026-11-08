@@ -311,6 +311,16 @@
   font-size: 10px;
 }
 
+.lint-message-origin {
+  flex: none;
+  max-width: 42%;
+  overflow: hidden;
+  font: 9px/1.3 var(--mono);
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .lint-message-rule {
   flex: none;
   max-width: 46%;
@@ -355,6 +365,167 @@
 }
 
 .lint-counts-sep {
+  color: var(--muted);
+}
+
+/* La salud del ámbito: las tres cuentas, una sola vez por ficha. */
+.lint-health-counts {
+  margin: 0;
+  font-family: var(--mono);
+}
+
+/* Limpio y al día: sin la tira de ceros (ADR 0110). */
+.lint-health-clean {
+  margin: 0;
+}
+
+/* Una fila por herramienta: nombre, estado, config y reglas. */
+.lint-tools {
+  margin-top: 10px;
+}
+
+.lint-tool-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.lint-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.lint-tool-name {
+  font-weight: 600;
+}
+
+.lint-tool-ok {
+  color: var(--patina);
+}
+
+.lint-tool-detail,
+.lint-tool-note {
+  flex-basis: 100%;
+}
+
+.lint-tool-note {
+  margin-top: -2px;
+}
+
+.lint-scope-note {
+  margin: 4px 0 0;
+}
+
+.section-lint .lint-stale {
+  margin: 4px 0 0;
+}
+
+/* Ficheros con mensajes en el ámbito. El botón abre la ficha. */
+.lint-file-list {
+  display: grid;
+  gap: 1px;
+}
+
+.lint-file-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+button.lint-file-row {
+  cursor: pointer;
+}
+
+button.lint-file-row:hover {
+  background: color-mix(in srgb, var(--cobalt) 6%, transparent);
+}
+
+.lint-file-main {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  align-items: baseline;
+}
+
+.lint-origin {
+  flex: none;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 8px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-origins {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.lint-rule-count {
+  margin: 0;
+}
+
+.lint-file-path {
+  overflow: hidden;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Catálogo de config: tinta neutra. Una regla activa no es un hallazgo. */
+.lint-config-view {
+  display: grid;
+  gap: 6px;
+}
+
+.lint-config-lead,
+.lint-config-tools {
+  margin: 0;
+}
+
+.lint-config-rules {
+  display: grid;
+  gap: 1px;
+  max-height: 180px;
+  margin: 2px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.lint-config-rule {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font: 9.5px/1.4 var(--mono);
+  color: var(--muted);
+}
+
+.lint-config-id {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lint-config-sev {
+  margin-left: auto;
   color: var(--muted);
 }
 

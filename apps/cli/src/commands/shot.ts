@@ -76,6 +76,7 @@ export function runShot(options: ShotCommandOptions): number {
       width: options.width,
       height: options.height,
       out: options.out,
+      // El modelo pide la salud de cada fichero. Aquí solo viaja el artefacto.
       lint: readLintBeside(options.file)
     });
   } catch (error) {

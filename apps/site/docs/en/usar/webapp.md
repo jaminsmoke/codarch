@@ -71,8 +71,8 @@ Next to it is the **Docs y config** button: the map of what is not code —docum
 assets—, which has its own snapshot and its own checksum. Clicking a map's button opens that map;
 clicking the button of the map already open folds the panel. If the repo has no `rest.cc.json`, the button is shown greyed
 out. In that map the area is the file size and the colour is its kind —documents, configuration,
-assets or other—; the legend counts how many there are of each. Whatever only speaks about code
-—languages, symbols and heat— disappears from the panel.
+assets or other—, and the **Estratos** block counts how many there are of each. Whatever only speaks
+about code —languages, symbols and heat— disappears from the panel.
 
 ![The VISTA panel with the ÁREA and COLOR selectors and the map painted with the chosen lens](../../images/webapp-mapa-lentes.png)
 
@@ -123,7 +123,7 @@ pass the path as an argument on start (see [Desktop app](escritorio.md#elige-la-
 
 The inspector is the right-hand panel and has four entries in its activity bar: **Fichero** (file),
 **Carpeta** (folder), **Proyecto** (project) and **Cambios** (changes). Clicking a file, **Fichero** shows its metrics, its
-symbols, its incoming and outgoing dependencies and, under **Reglas**, its lint rules with findings. Clicking a folder, **Carpeta** shows how many
+symbols, its incoming and outgoing dependencies and the **lint**: the health and the findings of code and of documents that fall on that path. Each finding says which domain and which tool it comes from. Clicking a folder, **Carpeta** shows how many
 files it holds, at what depth it sits and what share of its area each child takes, in the map's own
 order; selecting a file goes back to **Fichero**.
 
@@ -137,8 +137,7 @@ a file, it moves to **Fichero**. Its **Métricas** section adds up the subtree �
 the maximum complexity with the file that has it, and the lint debt— and ends with **Lint por
 carpeta**, one row per child folder that opens its sheet. The table is the file's, with the same
 section frame and the same ink: the debt red and the warning ochre come from the worst file in the
-subtree, and the row's icon names it. **Reglas** adds the lint rules with findings
-in the folder. The dependency frontier and the cycles are still on this phase's roadmap.
+subtree, and the row's icon names it. The folder's **lint** adds the code and document findings whose path hangs from it. The dependency frontier and the cycles are still on this phase's roadmap.
 
 ![The Carpeta sheet open on packages/ui: its path, its counts and the folder's content with the share of the area each child takes](../../images/webapp-inspector-carpeta.png)
 
@@ -160,21 +159,11 @@ tree —the repo changed afterwards—, the sheet says so instead of trusting th
 
 ![The Métricas section of the Proyecto sheet: one row per metric with its coverage and value, the highest complexity with its file, and lint with its three counts and its per-folder breakdown](../../images/webapp-inspector-metricas.png)
 
-**Reglas** shows the detail of the lint the project already has: the detected systems —with their
-configuration and active rules— and the rules with findings, sorted by what they weigh. Each system
-carries its rule —green when it measured—, the pill of its state and its configuration in words
-(«396 reglas activas · 372 como error · 24 como aviso»): an active rule is **configured** that way, it
-has not fired, which is why that line carries no debt ink. Findings go in a table with the columns **Err.**, **Avis.** and
-**Info**: every number carries the ink of what it measures —the red of debt, the ochre of a warning—
-and a zero reads as a dash, not as a gap. The totals of errors, warnings and info belong to Métricas:
-here the rules that produce them are counted, and when there are none the table says so with the
-coverage («Sin hallazgos en el proyecto: se midieron 496 ficheros»). The folder and file sheets show
-the ones in their scope, without repeating the systems. The number in the header counts the **active rules** in the
-project —not the findings— and the rules with findings in folder and file; it is the same count the
-CLI and the MCP read, and an `info` counts as a finding even though it is neither an error nor a
-warning.
+**Docs y config** shows the catalog, not the findings. Each domain lists its systems: the configuration and the active rules when they are known. If they could not be enumerated —oxlint with no config file, for example— it says the count is unknown; a zero is not painted. An active rule is **configured**, it has not fired, which is why it carries no debt ink. Findings from both domains are read on the code view, in **Fichero**, **Carpeta** and **Proyecto**, filtered by the selection. An artifact from before per-tool coverage says it was measured with an earlier version: it is not a clean scope.
 
-![The Proyecto sheet: its metrics with lint and lint per folder, and Reglas with the repo's systems —eslint with its configuration and active rules, oxlint with no config—](../../images/webapp-inspector-proyecto.png)
+When coverage is **complete** and the tree is up to date, the lint block says **“Clean and up to date”** in the project, folder and file cards, without the row of zeros; otherwise it shows errors, warnings and info and the reason. In the project card, below, there is one row per tool with its state —`ok`, `measured`, `partial coverage` or `unmeasured`—, its config file, its active rules and its measured files. A tool's missing config file is stated in its row —“no config file: it runs its default rules and they are not enumerated”— and it does not stop calling clean what was measured whole.
+
+![The Proyecto sheet: its metrics with lint and lint per folder, and the catalog of the repo's systems —eslint with its configuration and active rules, oxlint with no config—](../../images/webapp-inspector-proyecto.png)
 
 Without `.codarch/lint.repmod.json` there are no zeros: the lint block says **sin medir** (unmeasured) and
 what it will weigh once [`codarch analyze`](cli/analyze.md) runs, which measures it with the project's

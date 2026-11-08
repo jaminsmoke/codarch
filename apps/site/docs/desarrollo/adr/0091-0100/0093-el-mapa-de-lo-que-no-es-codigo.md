@@ -110,8 +110,8 @@ raíl—. Por eso no compite con las pestañas del escenario, que son de las vis
 configuración y assets viven juntos en el mismo mapa.
 
 El raíl izquierdo no se mueve: sigue siendo el dock de bloques del mapa activo, y para el resto
-enseña **Vista** —área por bytes o por líneas y color por tipo—, **Estratos** y **Leyenda**,
-agrupados por `kind`. Lo que solo tiene sentido en código —los lenguajes y el calor de los
+enseña **Vista** —área por bytes o por líneas y color por tipo— y **Estratos**, que reparte los
+ficheros por `kind`. Lo que solo tiene sentido en código —los lenguajes y el calor de los
 símbolos— no se enseña en este mapa.
 
 La ficha de un fichero que no es código enseña su tipo, su tamaño, sus líneas y sus enlaces; la de
@@ -136,7 +136,7 @@ llegue, no se adivina por el nombre de una carpeta, igual que el alcance
   tamaño: no hay una segunda verdad que inventar.
 - El escritorio y la web ganan un segundo archivo que cargar, y el `serve` una ruta más que servir.
 - Los bloques del raíl dejan de ser «del mapa» y pasan a ser «del mapa activo»; la leyenda necesita
-  su versión por tipo.
+  su versión por tipo —retirada el 2026-11-08, porque **Estratos** ya lo cuenta—.
 - El tamaño de un asset sale del puerto de ficheros: quien no sepa `stat` —el navegador— lo mide a 0
   hasta que decida cómo dar tamaños al cargar el resto. Los ficheros de texto no tienen ese problema:
   sus bytes salen del contenido.
@@ -166,9 +166,9 @@ Fase **M64 — El mapa de lo que no es código**.
 - ✅ `codarch analyze` y `serve` escriben `.codarch/rest.cc.json`; el diff, las reglas y la acción no
   lo miran.
 - ✅ La web y el escritorio cargan el resto; la barra de actividad gana el botón `Docs y config`.
-- ✅ Vista y Leyenda por tipo en el raíl del resto: cuatro tonos —documento, configuración, asset y
-  otro— y el reparto de ficheros por tipo.
-- ✅ Estratos agrupados por `kind` en el raíl del resto.
+- ✅ Vista por tipo en el raíl del resto: cuatro tonos —documento, configuración, asset y otro— y el
+  reparto de ficheros por tipo en **Estratos**. La leyenda por tipo se retiró el 2026-11-08 porque
+  repetía ese reparto (feed de la guía).
 - ✗ La ficha de un fichero que no es código y la de carpeta con el resto dentro: **cancelada**
   (2026-10-31). El fichero del resto ya se lee con la ficha comçn —métricas sin riesgo y sus enlaces—,
   y una hoja propia era un malentendido: no hay símbolos, miembros ni código que enseñar. Lo que falta

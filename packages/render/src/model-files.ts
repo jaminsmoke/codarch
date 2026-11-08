@@ -1,6 +1,6 @@
 import type { CcJson, CcRestNode } from "@codarch/schema/browser";
 import { walkFiles } from "@codarch/schema/browser";
-import { riskBreakdown } from "@codarch/metrics/browser";
+import { riskBreakdown, type RiskLintInput } from "@codarch/metrics/browser";
 import { valueOf } from "./model-metrics";
 import type {
   MetricAttributes,
@@ -43,8 +43,6 @@ export function collectFiles(
     warnings: string[];
     /** El tipo de cada fichero del resto, por id (ADR 0093). */
     restKinds: Record<string, CcRestNode>;
-    /** La deuda del lint por ruta, si el proyecto tiene artefacto (ADR 0094). */
-    lintByPath: Readonly<Record<string, number>>;
   }
 ): RenderFile[] {
   const files: RenderFile[] = [];
@@ -68,10 +66,11 @@ export function collectFiles(
       actualArea: rawArea ?? 0,
       risk: 0,
       riskParts: NO_RISK_PARTS,
+      riskBreakdown: null,
       complexity: valueOf(values, context.complexityKey) ?? 0,
       churn: valueOf(values, context.churnKey) ?? 0,
-      // Con carpeta raíz el snapshot lleva su nombre delante; el lint, no.
-      lint: context.lintByPath[fullPath] ?? context.lintByPath[path] ?? 0,
+      // La lente de deuda la rellena el modelo desde scopeHealth. Sin artefacto, cero.
+      lint: 0,
       values: [],
       kind: context.restKinds[entry.node.id]?.kind ?? null
     });
@@ -101,21 +100,28 @@ export function warnAboutArea(
 }
 
 /**
- * Riesgo compuesto: complejidad, churn y tamaño, más el lint cuando lo hay.
+ * Riesgo compuesto: complejidad, churn y tamaño, más el lint por fichero.
  *
- * Si falta una señal, los pesos se renormalizan: un proyecto sin historial
- * git no debe quedar con un máximo artificial de 68/100, y un proyecto sin
- * lint se queda con la cuenta de siempre (ADR 0094).
+ * Si falta una señal de la base, los pesos se renormalizan. La vista de lint
+ * es la de ese fichero: no hay número legado ni un cero por ausencia
+ * (ADR 0108). Sin vista, el riesgo es el de la base.
  */
-export function applyRisk(files: RenderFile[], hasLint: boolean): void {
+export function applyRisk(
+  files: RenderFile[],
+  lintViews: ReadonlyMap<string, RiskLintInput> | null,
+  hasMetrics: boolean
+): void {
+  if (!hasMetrics) return;
   const risks = riskBreakdown(
-    files.map((file) => ({
-      complexity: file.complexity,
-      churn: file.churn,
-      size: file.actualArea,
-      lint: file.lint
-    })),
-    { lint: hasLint }
+    files.map((file) => {
+      const lintView = lintViews?.get(file.path);
+      return {
+        complexity: file.complexity,
+        churn: file.churn,
+        size: file.actualArea,
+        ...(lintView ? { lintView } : {})
+      };
+    })
   );
 
   for (const [index, file] of files.entries()) {
@@ -123,5 +129,6 @@ export function applyRisk(files: RenderFile[], hasLint: boolean): void {
     if (!breakdown) continue;
     file.risk = breakdown.risk;
     file.riskParts = breakdown.parts;
+    file.riskBreakdown = breakdown;
   }
 }

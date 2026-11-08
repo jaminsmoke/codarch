@@ -1,13 +1,18 @@
-import { RISK_WEIGHTS_WITH_LINT } from "@codarch/metrics/browser";
-import { formatCompact } from "@codarch/render/browser";
-import type { RenderFile } from "@codarch/render/browser";
+import {
+  RISK_LINT_ALPHA,
+  RISK_LINT_DSAT,
+  type RiskBreakdown as IndexBreakdown,
+  type RiskContribution,
+  type RiskLintApplicability,
+  type RiskLintAssessment,
+  type RiskLintCoverage
+} from "@codarch/metrics/browser";
 
 /**
- * El desglose del riesgo del fichero, dentro de Métricas.
+ * El desglose del índice, dentro de Métricas.
  *
- * Las reglas y la deuda de migración ya no viven aquí: la vista de código no
- * tiene sección **Reglas** (ADR 0104), y los cruces FFI se leen en
- * Dependencias.
+ * Lee `breakdown.lint` y `breakdown.contributions`. No usa `parts.lint.weight`
+ * ni vuelve a calcular el índice.
  */
 
 type Signal = "complexity" | "churn" | "size" | "lint";
@@ -21,119 +26,164 @@ const SIGNAL_LABEL: Record<Signal, string> = {
 
 const SIGNALS = Object.keys(SIGNAL_LABEL) as Signal[];
 
-const weightFormat = new Intl.NumberFormat("es-ES", {
+const pointsFormat = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 1
 });
 
-/** Un peso de la composición, con su decimal cuando lo tiene (25,6 %). */
-function formatWeight(weight: number): string {
-  return `${weightFormat.format(weight * 100)} %`;
+function formatPoints(value: number): string {
+  return pointsFormat.format(value);
 }
 
-/**
- * El porqué del riesgo, en palabras.
- *
- * Los pesos se leen del propio modelo: con lint son otros, y no conviene
- * repetirlos aquí. Sin artefacto, se dice que el lint no se midió y lo que
- * pesará cuando lo haya, para que el 20 % no aparezca de la nada. Si falta
- * alguna de las otras señales, se dice cuál: su peso se reparte entre las
- * demás, y un snapshot sin ninguna no trae riesgo que explicar.
- */
-export function riskNote(
-  parts: RenderFile["riskParts"],
-  measured: boolean,
-  missing: readonly Signal[]
-): string {
-  const names = missing
-    .map((signal) => SIGNAL_LABEL[signal].toLowerCase())
-    .join(" ni ");
-
-  if (missing.length === 3) {
-    return measured
-      ? "Este snapshot no trae complejidad, churn ni tamaño: el riesgo es solo el lint."
-      : "Este snapshot no trae las señales del riesgo, y el lint no se midió.";
+function coverageLabel(coverage: RiskLintCoverage): string {
+  switch (coverage) {
+    case "unmeasured":
+      return "sin medir";
+    case "unknown":
+      return "desconocida";
+    case "partial":
+      return "parcial";
+    case "complete":
+      return "completa";
+    default: {
+      const unexpected: never = coverage;
+      return unexpected;
+    }
   }
-
-  if (!measured) {
-    const three =
-      missing.length === 0
-        ? `${SIGNAL_LABEL.complexity} ${formatWeight(parts.complexity.weight)} · churn ${formatWeight(
-            parts.churn.weight
-          )} · tamaño ${formatWeight(parts.size.weight)}`
-        : `Sin ${names}, el peso se reparte entre las demás señales`;
-    const lint = RISK_WEIGHTS_WITH_LINT;
-    return `${three}. El lint no se midió: con artefacto pesa ${formatWeight(
-      lint.lint
-    )} y los demás bajan a ${formatWeight(lint.complexity)} · ${formatWeight(
-      lint.churn
-    )} · ${formatWeight(lint.size)}.`;
-  }
-  if (missing.length > 0) {
-    return `Sin ${names}: su peso se reparte entre las demás señales.`;
-  }
-  const weights = SIGNALS.map(
-    (signal) => `${SIGNAL_LABEL[signal].toLowerCase()} ${formatWeight(parts[signal].weight)}`
-  ).join(" · ");
-  return `${weights}, normalizado por el p95 de cada señal.`;
 }
 
-/**
- * De dónde sale el riesgo, dentro de Métricas.
- *
- * El valor y la barra ya están en la primera fila de la tabla; esto solo
- * separa las señales que lo componen, con su peso y el p95 del proyecto. El
- * lint es siempre la cuarta: si el proyecto no lo midió, la fila lo dice —sin
- * medir— en vez de desaparecer (ADR 0094).
- */
-export function RiskBreakdown({ file }: { file: RenderFile }) {
-  const parts = file.riskParts;
-  const measured = parts.lint.weight > 0;
-  const missing = SIGNALS.filter(
-    (signal) => signal !== "lint" && parts[signal].weight === 0
+function freshLabel(fresh: boolean | null): string {
+  if (fresh === true) return "Frescura: al día.";
+  if (fresh === false) return "Frescura: de otro árbol; no penaliza.";
+  return "Frescura: no verificada; no penaliza.";
+}
+
+/** La penalización observada, la frescura y, si aplica, la saturación. */
+export function lintExplanation(lint: RiskLintAssessment): string {
+  const sentences: string[] = [];
+  if (lint.applicability === "na") {
+    sentences.push("No aplicable: no entra en el índice y no es un cero.");
+  } else if (lint.applicability === "not-found") {
+    sentences.push("No está en el árbol: no es no aplicable ni un cero.");
+  } else if (lint.normalized === null) {
+    sentences.push("Sin penalización en el índice.");
+  } else {
+    sentences.push(
+      `Penalización observada: deuda ${lint.debt === null ? "—" : formatPoints(lint.debt)}, nL ${formatPoints(lint.normalized)}.`
+    );
+    if (lint.applied !== null) {
+      sentences.push(`Aplicada: ${formatPoints(lint.applied)}.`);
+    }
+    if (lint.clipped !== null && lint.clipped > 0) {
+      sentences.push(
+        `Saturación: el tope deja fuera ${formatPoints(lint.clipped)}. α ${formatPoints(RISK_LINT_ALPHA)} y el tope de deuda ${formatPoints(RISK_LINT_DSAT)} son provisionales.`
+      );
+    }
+  }
+  sentences.push(`Cobertura ${coverageLabel(lint.coverage)}.`);
+  sentences.push(freshLabel(lint.fresh));
+  if (lint.clean) sentences.push("Ámbito limpio según el índice.");
+  if (lint.reason) sentences.push(lint.reason);
+  return sentences.join(" ");
+}
+
+function cell(value: number | null): string {
+  return value === null ? "—" : formatPoints(value);
+}
+
+function ContributionRow({
+  signal,
+  contribution
+}: {
+  signal: Signal;
+  contribution: RiskContribution;
+}) {
+  const absent = contribution.points === null;
+  return (
+    <div className={absent ? "risk-bar-row is-absent" : "risk-bar-row"}>
+      <span>{SIGNAL_LABEL[signal]}</span>
+      {contribution.percent === null ? (
+        <span className="risk-bar is-absent" aria-label="sin porcentaje" />
+      ) : (
+        <span className="risk-bar" aria-hidden="true">
+          <i style={{ width: `${Math.max(0, Math.min(100, contribution.percent))}%` }} />
+        </span>
+      )}
+      <span className="mono">{cell(contribution.points)}</span>
+      <span className="mono">{cell(contribution.percent)}</span>
+      <span className="mono">{cell(contribution.weight)}</span>
+    </div>
   );
+}
+
+/**
+ * Puntos, porcentaje y peso nominal de cada señal.
+ *
+ * Un null se enseña como raya. Una barra vacía no significa limpio.
+ */
+export function RiskBreakdown({
+  breakdown
+}: {
+  breakdown: IndexBreakdown | null;
+}) {
+  if (!breakdown) {
+    return (
+      <div className="risk-breakdown">
+        <div className="risk-head">Índice</div>
+        <p className="muted tiny">
+          Esta ficha no trae el desglose del índice. No se recalcula aquí.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="risk-breakdown">
-      <div className="risk-head">De dónde sale el riesgo</div>
+      <div className="risk-head">Índice</div>
+      <p className="risk-score">
+        <span className="mono">{formatPoints(breakdown.score)}</span> puntos del
+        índice
+      </p>
+      <p className="muted tiny">
+        Riesgo histórico {formatPoints(breakdown.risk)} (0–1). Los puntos suman
+        el índice. El porcentaje es aparte del peso nominal.
+      </p>
       <div className="risk-bars">
-        {SIGNALS.map((signal) => {
-          const part = parts[signal];
-          const unmeasured = signal === "lint" && !measured;
-          return (
-            <div
-              key={signal}
-              className={unmeasured ? "risk-bar-row unmeasured" : "risk-bar-row"}
-              title={
-                unmeasured
-                  ? "El lint no se midió: ejecuta `codarch lint` y el riesgo le dará un 20 %"
-                  : `${formatCompact(part.value)} de p95 ${formatCompact(
-                      part.p95
-                    )} · peso ${formatWeight(part.weight)}`
-              }
-            >
-              <span>{SIGNAL_LABEL[signal]}</span>
-              <span className="risk-bar">
-                <i style={{ width: `${Math.round(part.norm * 100)}%` }} />
-              </span>
-              <span className="mono">
-                {unmeasured ? "—" : formatCompact(part.value)}
-              </span>
-              <span className="risk-weight">
-                {unmeasured ? "sin medir" : `${Math.round(part.weight * 100)} %`}
-              </span>
-            </div>
-          );
-        })}
+        <div className="risk-bar-row risk-bar-head" aria-hidden="true">
+          <span>Señal</span>
+          <span />
+          <span>Puntos</span>
+          <span>%</span>
+          <span>Nominal</span>
+        </div>
+        {SIGNALS.map((signal) => (
+          <ContributionRow
+            key={signal}
+            signal={signal}
+            contribution={breakdown.contributions[signal]}
+          />
+        ))}
       </div>
-      <p className="muted tiny risk-note">
-        {riskNote(parts, measured, missing)}
-      </p>
-      <p className="muted tiny mono risk-p95">
-        p95 del proyecto · complejidad {formatCompact(parts.complexity.p95)} ·
-        churn {formatCompact(parts.churn.p95)} · tamaño{" "}
-        {formatCompact(parts.size.p95)}
-        {measured ? ` · lint ${formatCompact(parts.lint.p95)}` : ""}
-      </p>
+      <p className="muted tiny risk-note">{lintExplanation(breakdown.lint)}</p>
     </div>
   );
+}
+
+/** Para no dejar un `na` sin frase si alguien lee solo la aplicabilidad. */
+export function applicabilityLabel(
+  applicability: RiskLintApplicability | null
+): string {
+  switch (applicability) {
+    case "applicable":
+      return "aplicable";
+    case "na":
+      return "no aplicable";
+    case "not-found":
+      return "no está en el árbol";
+    case null:
+      return "sin clasificar";
+    default: {
+      const unexpected: never = applicability;
+      return unexpected;
+    }
+  }
 }

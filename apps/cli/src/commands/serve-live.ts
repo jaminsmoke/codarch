@@ -10,6 +10,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import { lintTotals, type LintArtifact } from "@codarch/lint";
 import {
   analyzeRepo,
   watchRepository,
@@ -132,17 +133,15 @@ export function startLive(
         console.warn("  lint: ninguna herramienta midió; se sirve el artefacto anterior");
         return;
       }
-      const { summary } = result.artifact;
+      // La misma agregación que la app y el MCP: los mensajes, no el
+      // `summary` declarado. `messages` del aviso es `findings` (incluye
+      // info). `summary.measured` no viaja aquí: es la cobertura global.
+      const payload = lintLivePayload(result.artifact);
       if (state.root === root) {
-        broadcast(clients, "lint", {
-          files: summary.files,
-          errors: summary.errors,
-          warnings: summary.warnings,
-          messages: summary.messages
-        });
+        broadcast(clients, "lint", payload);
       }
       console.log(
-        `  ⚙ lint · ${summary.errors} errores · ${summary.warnings} avisos`
+        `  ⚙ lint · ${payload.errors} errores · ${payload.warnings} avisos`
       );
     } catch (error) {
       lintQueued = "";
@@ -348,6 +347,30 @@ function stateFrom(
     warnings: result.warnings.slice(0, 5),
     updatedAt: new Date().toISOString(),
     watch
+  };
+}
+
+/**
+ * Lo que el live anuncia cuando el lint termina.
+ *
+ * Sale de `lintTotals`, no de `artifact.summary`: un artefacto con cuentas
+ * declaradas que no cuadran con sus mensajes anunciaría otra cifra que la
+ * que la app enseña al releer el fichero. `messages` es el total de
+ * hallazgos, info incluido. La cobertura (`summary.measured`) no va en el
+ * aviso: es global y el evento no la parte por carpeta.
+ */
+export function lintLivePayload(artifact: LintArtifact): {
+  files: number;
+  errors: number;
+  warnings: number;
+  messages: number;
+} {
+  const totals = lintTotals(artifact);
+  return {
+    files: totals?.files ?? 0,
+    errors: totals?.errors ?? 0,
+    warnings: totals?.warnings ?? 0,
+    messages: totals?.findings ?? 0
   };
 }
 

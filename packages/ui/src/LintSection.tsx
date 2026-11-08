@@ -1,105 +1,94 @@
 import type {
-  LintAdvice,
   LintArtifact,
+  LintMessage,
   LintSeverity
 } from "@codarch/lint/browser";
-import type { RiskParts } from "@codarch/render/browser";
+import type { HealthScope, HealthSnapshot } from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
 import {
-  lintRules,
-  lintTotals,
-  severityText
-} from "./lintRollup";
+  healthCopy,
+  healthOf,
+  healthSummary,
+  isClean,
+  toolHealthRows,
+  type ToolRow
+} from "./lintHealth";
+import { SEVERITIES, severityCount, severityText } from "./lintRollup";
 
 /**
- * El lint de una ficha de código (ADR 0104).
+ * El lint de una ficha (ADR 0104).
  *
- * La sección habla de lo que **falló** y de lo que pesa en el riesgo: la deuda
- * —errores + ¼ avisos—, su peso, y los mensajes que la producen. No enseña el
- * catálogo de reglas activas ni los sistemas del proyecto: eso es configuración
- * y no una ficha de código.
+ * Un solo bloque de salud por ámbito. Errores, avisos e info, contados desde
+ * los mensajes. En el fichero, los mensajes con regla y línea:columna. En
+ * carpeta y proyecto, el resumen y los ficheros que el artefacto lista en ese
+ * ámbito. No enseña el catálogo de reglas activas ni los sistemas: eso es
+ * configuración y vive en la hoja de docs y config.
  *
- * En el fichero se leen sus mensajes, con línea y texto, porque es donde se
- * arregla. En carpeta y proyecto, los hallazgos se agrupan por regla: la lista
- * de mensajes de un subárbol entero no se lee, pero la regla que más pesa sí.
- *
- * Sin artefacto no se enseñan ceros: se dice que no se midió y, si se conoce
- * el stack, cuál sería el lint mínimo recomendable. Nunca se escribe config.
+ * Sin artefacto no se enseñan ceros: se dice que no se midió. Cero hallazgos
+ * no es un ámbito limpio: no hay dato de cobertura completa. `measured`, si
+ * viene, se cita como el total de la pasada.
  */
-
-/** Cuántas reglas con hallazgos se listan antes de cortar. */
-const RULE_ROWS = 12;
 
 /** Cuántos mensajes de un fichero se listan antes de cortar. */
 const FINDING_ROWS = 10;
-
-const weightFormat = new Intl.NumberFormat("es-ES", {
-  maximumFractionDigits: 1
-});
-
-function formatWeight(weight: number): string {
-  return `${weightFormat.format(weight * 100)} %`;
-}
 
 function plural(value: number, one: string, many: string): string {
   return `${formatCompact(value)} ${value === 1 ? one : many}`;
 }
 
-/** La tinta de la severidad, solo para un hallazgo; la configuración va en gris. */
+/** La tinta de la severidad, solo para un hallazgo. */
 function SeverityDot({ severity }: { severity: LintSeverity }) {
-  return (
-    <span
-      className={`lint-dot lint-dot-${severity}`}
-      aria-hidden="true"
-    />
-  );
+  return <span className={`lint-dot lint-dot-${severity}`} aria-hidden="true" />;
 }
 
-/**
- * La deuda y su parte del riesgo.
- *
- * `weight` es 0 cuando el lint no se midió: entonces no hay un 0 % que leer,
- * sino una señal apagada (ADR 0094). El p95 es el del proyecto, el mismo que
- * normaliza la señal.
- */
-function RiskLine({ risk }: { risk: RiskParts }) {
-  const measured = risk.lint.weight > 0;
-
-  return (
-    <div className="lint-risk">
-      <div className="lint-risk-head">
-        <span className="lint-risk-label">Peso en el riesgo</span>
-        <span className="mono lint-risk-value">
-          {measured ? formatWeight(risk.lint.weight) : "—"}
-        </span>
-        <span className={`lint-risk-weight${measured ? "" : " is-off"}`}>
-          {measured ? "del riesgo total" : "sin medir"}
-        </span>
-      </div>
-      <p className="muted tiny lint-risk-note">
-        {measured
-          ? `La deuda es errores + ¼ avisos, con el p95 del proyecto en ${formatCompact(
-              risk.lint.p95
-            )}. Las cuentas están en Métricas.`
-          : "El lint no se midió: no suma al riesgo."}
-      </p>
-    </div>
-  );
-}
-
-/** Los mensajes de un fichero, con su regla y su línea. */
-function FileFindings({
-  artifact,
-  path
+/** Las tres cuentas del ámbito, cada una con su tinta. */
+function SeverityCounts({
+  counts
 }: {
-  artifact: LintArtifact;
-  path: string;
+  counts: { errors: number; warnings: number; info: number };
 }) {
-  const messages = artifact.files[path]?.messages ?? [];
-  if (messages.length === 0) {
-    return <p className="muted tiny">Sin hallazgos en este fichero.</p>;
-  }
+  return (
+    <span className="lint-counts">
+      {SEVERITIES.map((severity, index) => {
+        const value = severityCount(counts, severity);
+        return (
+          <span key={severity}>
+            {index > 0 ? <span className="lint-counts-sep"> · </span> : null}
+            <span
+              className={`lint-count${
+                value > 0 ? ` lint-count-${severity}` : " is-zero"
+              }`}
+            >
+              {severityText(value, severity)}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+function countsSummary(totals: {
+  errors: number;
+  warnings: number;
+  info: number;
+}): string {
+  return SEVERITIES.map((severity) =>
+    severityText(severityCount(totals, severity), severity)
+  ).join(" · ");
+}
+
+/** Dónde está un mensaje, visible: línea o línea:columna. */
+function messageWhere(line: number | undefined, column: number | undefined): string {
+  if (line == null) return "sin línea";
+  if (column == null) return String(line);
+  return `${line}:${column}`;
+}
+
+/** Los mensajes de un fichero, con su regla y su posición. */
+function FileFindings({ messages }: { messages: readonly LintMessage[] }) {
+  if (messages.length === 0) return null;
 
   const shown = messages.slice(0, FINDING_ROWS);
   return (
@@ -114,12 +103,10 @@ function FileFindings({
         aria-label="Hallazgos de lint"
       >
         {shown.map((message, index) => {
-          const where = message.line
-            ? `línea ${message.line}${message.column ? `:${message.column}` : ""}`
-            : "sin línea";
+          const where = messageWhere(message.line, message.column);
           return (
             <div
-              key={`${message.rule}-${message.line ?? 0}-${index}`}
+              key={`${message.rule}-${message.line ?? 0}-${message.column ?? 0}-${index}`}
               className="lint-message"
               title={`${message.rule} · ${where} · ${message.message}`}
             >
@@ -127,9 +114,7 @@ function FileFindings({
               <span className="lint-message-rule" title={message.rule}>
                 {message.rule}
               </span>
-              {message.line ? (
-                <span className="mono lint-message-line">{message.line}</span>
-              ) : null}
+              <span className="mono lint-message-line">{where}</span>
               <span className="lint-message-text">{message.message}</span>
             </div>
           );
@@ -144,181 +129,222 @@ function FileFindings({
   );
 }
 
-/** La fila de una regla con hallazgos: la cuenta con tinta, el cero con raya. */
-function FindingRow({ entry }: { entry: ReturnType<typeof lintRules>[number] }) {
-  const info = entry.findings - entry.errors - entry.warnings;
-  const cells: Array<[number, LintSeverity]> = [
-    [entry.errors, "error"],
-    [entry.warnings, "warn"],
-    [info, "info"]
-  ];
-  const spoken = cells
-    .filter(([value]) => value > 0)
-    .map(([value, severity]) => severityText(value, severity))
-    .join(" · ");
-
-  return (
-    <div
-      className="lint-rule-row"
-      title={`${entry.rule}${spoken ? ` · ${spoken}` : ""}`}
-    >
-      <span className="lint-rule-id">{entry.rule}</span>
-      {cells.map(([value, severity]) => (
-        <span
-          key={severity}
-          className={`mono lint-count${
-            value > 0 ? ` lint-count-${severity}` : " is-zero"
-          }`}
-        >
-          {value > 0 ? formatCompact(value) : "—"}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/** Las reglas con hallazgos en el ámbito, cortadas a las más pesadas. */
-function RulesWithFindings({
-  artifact,
-  folder
+/** Los ficheros del ámbito que el artefacto lista con mensajes. */
+function AffectedFiles({
+  files,
+  onSelectPath
 }: {
-  artifact: LintArtifact;
-  folder: string;
+  files: ReadonlyArray<{
+    path: string;
+    counts: { errors: number; warnings: number; info: number };
+    rules?: readonly string[];
+    preview?: string;
+  }>;
+  onSelectPath?: (path: string) => void;
 }) {
-  const rules = lintRules(artifact, folder);
-  if (rules.length === 0) {
-    // «Cero» sin decir cuántos se miraron es lo que hacía dudar de la medida
-    // (ADR 0098): con la cobertura, el mismo cero es un dato.
-    const measured = artifact.summary.measured;
-    const scope = folder === "" ? "el proyecto" : "este subárbol";
+  if (files.length === 0) return null;
 
-    return (
-      <p className="muted tiny">
-        {folder === "" && measured !== undefined
-          ? `Sin hallazgos en ${scope}: se midieron ${formatCompact(measured)} ficheros.`
-          : `Sin hallazgos en ${scope}.`}
-      </p>
-    );
-  }
-
-  const shown = rules.slice(0, RULE_ROWS);
   return (
     <div className="lint-findings">
       <GroupHead
-        label="Hallazgos por regla"
-        summary={plural(rules.length, "regla", "reglas")}
+        label="Ficheros con hallazgos"
+        summary={plural(files.length, "fichero", "ficheros")}
       />
-      <div className="lint-rule-head" aria-hidden="true">
-        <span>Regla</span>
-        <span>Err.</span>
-        <span>Avis.</span>
-        <span>Info</span>
-      </div>
       <div
-        className="lint-rule-list"
+        className="lint-file-list"
         role="group"
-        aria-label="Hallazgos por regla"
+        aria-label="Ficheros con hallazgos"
       >
-        {shown.map((entry) => (
-          <FindingRow key={entry.rule} entry={entry} />
-        ))}
+        {files.map((file) => {
+          const spoken = SEVERITIES.map((severity) =>
+            severityText(severityCount(file.counts, severity), severity)
+          ).join(" · ");
+          const body = (
+            <>
+              <span className="lint-file-main">
+                <span className="mono lint-file-path" title={file.path}>
+                  {file.path}
+                </span>
+                {file.rules?.map((rule) => (
+                  <span key={rule} className="lint-message-rule" title={rule}>
+                    {rule}
+                  </span>
+                ))}
+                {file.preview ? (
+                  <span className="lint-message-text">{file.preview}</span>
+                ) : null}
+              </span>
+              <SeverityCounts counts={file.counts} />
+            </>
+          );
+          if (!onSelectPath) {
+            return (
+              <div key={file.path} className="lint-file-row" title={spoken}>
+                {body}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={file.path}
+              type="button"
+              className="lint-file-row"
+              title={`${file.path} · ${spoken} · pulsa para abrir el fichero`}
+              onClick={() => onSelectPath(file.path)}
+            >
+              {body}
+            </button>
+          );
+        })}
       </div>
-      {rules.length > shown.length ? (
-        <p className="muted tiny">
-          y {plural(rules.length - shown.length, "regla", "reglas")} más.
-        </p>
-      ) : null}
     </div>
   );
 }
 
-/** Lo que hay que hacer cuando no se midió, con el mínimo por lenguaje. */
+/** Lo que hay que decir cuando no se midió. Sin consejo de configuración. */
 function NotMeasured({
-  advice,
-  kind
+  kind,
+  detail
 }: {
-  advice: readonly LintAdvice[];
   kind: "lint" | "rules";
+  detail: string;
 }) {
-  if (kind === "rules") {
-    return (
-      <div className="lint-advice">
-        <p className="muted small">
-          Las reglas del resto no se midieron. Ejecuta{" "}
-          <code>codarch analyze</code> —las mide en la misma pasada que el mapa
-          del resto—.
-        </p>
-      </div>
-    );
-  }
   return (
     <div className="lint-advice">
-      <p className="muted small">
-        El lint no se midió. Ejecuta <code>codarch analyze</code> —lo mide con
-        el linter que el repo ya tiene, en la misma pasada que el resto de
-        lentes— o <code>codarch lint</code> para medirlo suelto.
-      </p>
-      {advice.length > 0 ? (
-        <>
-          <GroupHead label="Mínimo recomendable" />
-          <ul>
-            {advice.map((entry) => (
-              <li key={entry.language}>
-                <div className="lint-advice-head">
-                  <span>{entry.language}</span>
-                  <span className="mono">{entry.tool}</span>
-                </div>
-                <p className="muted tiny">{entry.config}</p>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
+      <p className="muted small">{detail}</p>
+      {kind === "rules" ? (
+        <p className="muted small">
+          Ejecuta <code>codarch analyze</code> —mide las reglas del resto en la
+          misma pasada que el mapa—.
+        </p>
+      ) : (
+        <p className="muted small">
+          Ejecuta <code>codarch analyze</code> —lo mide con el linter que el
+          repo ya tiene— o <code>codarch lint</code> para medirlo suelto.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** El estado de una herramienta en el ámbito, sin atribuirle hallazgos ajenos. */
+function toolStatus(row: ToolRow, findings: number): string {
+  if (row.state === "complete") return findings === 0 ? "ok" : "medido";
+  if (row.state === "partial") return "cobertura parcial";
+  if (row.state === "unknown") return "cobertura sin verificar";
+  return "sin medir";
+}
+
+/** Lo que aporta la herramienta: config, reglas y ficheros medidos. */
+function toolDetail(row: ToolRow): string {
+  const parts = [row.config ?? "sin archivo de configuración"];
+  parts.push(
+    row.rules === null
+      ? "reglas no enumeradas"
+      : `${formatCompact(row.rules)} ${row.rules === 1 ? "regla" : "reglas"}`
+  );
+  if (row.measured !== null) {
+    parts.push(`${formatCompact(row.measured)} medidos`);
+  }
+  return parts.join(" · ");
+}
+
+/** Una fila por herramienta: la cobertura y la config que la cualifica. */
+function ToolRows({
+  rows,
+  findings
+}: {
+  rows: readonly ToolRow[];
+  findings: number;
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="lint-tools">
+      <GroupHead
+        label="Herramientas"
+        summary={plural(rows.length, "herramienta", "herramientas")}
+      />
+      <ul className="lint-tool-list">
+        {rows.map((row) => {
+          const status = toolStatus(row, findings);
+          return (
+            <li key={row.name} className="lint-tool-row">
+              <span className="mono lint-tool-name">{row.name}</span>
+              <span
+                className={`lint-tool-status${
+                  status === "ok" ? " lint-tool-ok" : ""
+                }`}
+              >
+                {status}
+              </span>
+              <span className="muted tiny lint-tool-detail">
+                {toolDetail(row)}
+              </span>
+              {row.note || row.reason ? (
+                <span className="muted tiny lint-tool-note">
+                  {row.note ?? row.reason}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
 /**
- * La sección **Lint** de las fichas de código, o **Reglas** en el mapa del
- * resto (ADR 0104 · ADR 0105).
+ * La sección Lint de las fichas del mapa de código.
  *
- * El fichero pasa `filePath` y, en código, su `risk`; carpeta y proyecto, solo
- * el ámbito. El catálogo de reglas activas no se enseña: es configuración.
- * En el resto no hay peso en el riesgo: las reglas no lo miran.
+ * El fichero pasa `filePath` y enseña sus mensajes. Carpeta y proyecto pasan
+ * el ámbito y, si hay navegación, `onSelectPath` para abrir un fichero de la
+ * lista.
  */
 export function LintSection({
   id,
   artifact,
   folder,
-  advice = [],
   filePath,
-  risk,
+  snapshot,
   title = "Lint",
-  kind = "lint"
+  kind = "lint",
+  onSelectPath
 }: {
   id: string;
+  /** Solo el lint de código. El artefacto de documentos no entra aquí. */
   artifact: LintArtifact | null;
   folder: string;
-  advice?: readonly LintAdvice[];
   /** El fichero, cuando la ficha es de uno: enseña sus mensajes. */
   filePath?: string;
-  /** La composición del riesgo, cuando la ficha es de un fichero de código. */
-  risk?: RiskParts;
-  /** «Lint» en el código; «Reglas» en el mapa del resto (ADR 0105). */
+  /** El árbol del mapa abierto, para saber si la pasada está al día. */
+  snapshot?: HealthSnapshot;
   title?: string;
-  /** `rules` omite el peso en el riesgo y cambia el texto sin medir. */
+  /** `rules` cambia el texto sin medir. */
   kind?: "lint" | "rules";
+  /** Abre la ficha de un fichero de la lista. */
+  onSelectPath?: (path: string) => void;
 }) {
-  const totals = artifact ? lintTotals(artifact, folder) : null;
-  const findings = totals?.findings ?? 0;
-  const rules = artifact ? lintRules(artifact, folder).length : 0;
-  const summary = !totals
-    ? "sin medir"
-    : findings === 0
-      ? "sin hallazgos"
-      : kind === "lint" && risk && risk.lint.weight > 0
-        ? `${formatWeight(risk.lint.weight)} del riesgo`
-        : plural(rules, "regla con hallazgos", "reglas con hallazgos");
+  const scope: HealthScope = filePath
+    ? { kind: "file", path: filePath }
+    : folder === ""
+      ? { kind: "project", path: "" }
+      : { kind: "folder", path: folder };
+  const health = healthOf(artifact, scope, snapshot);
+  const findings = health.counts.findings;
+  const clean = isClean(health);
+  const summary = healthSummary(health) || countsSummary(health.counts);
+  const showCounts = health.coverage.state !== "unmeasured" || findings > 0;
+  const tools = scope.kind === "project" ? toolHealthRows(artifact, health) : [];
+  const files = health.affectedFiles.map((file) => {
+    const messages = artifact?.files[file.path]?.messages ?? [];
+    const rules = [...new Set(messages.map((message) => message.rule))];
+    return {
+      path: file.path,
+      counts: file.counts,
+      rules,
+      ...(messages[0]?.message ? { preview: messages[0].message } : {})
+    };
+  });
 
   return (
     <CollapsibleSection
@@ -328,18 +354,33 @@ export function LintSection({
       count={findings}
       summary={summary}
     >
-      {artifact && totals ? (
-        <>
-          {kind === "lint" && risk ? <RiskLine risk={risk} /> : null}
-          {filePath ? (
-            <FileFindings artifact={artifact} path={filePath} />
-          ) : (
-            <RulesWithFindings artifact={artifact} folder={folder} />
-          )}
-        </>
+      {clean ? (
+        <div className="lint-health">
+          <p className="lint-health-clean">{healthCopy(health)}</p>
+        </div>
+      ) : showCounts ? (
+        <div className="lint-health">
+          <p className="lint-health-counts">
+            <SeverityCounts counts={health.counts} />
+          </p>
+          <p className="muted tiny lint-scope-note">{healthCopy(health)}</p>
+        </div>
       ) : (
-        <NotMeasured advice={advice} kind={kind} />
+        <NotMeasured kind={kind} detail={healthCopy(health)} />
       )}
+      <ToolRows rows={tools} findings={findings} />
+      {health.fresh === false ? (
+        <p className="muted tiny lint-stale">
+          Este análisis es de otro árbol: los hallazgos se conservan y pueden
+          estar desfasados.
+        </p>
+      ) : null}
+      {findings > 0 && scope.kind === "file" ? (
+        <FileFindings messages={health.messages} />
+      ) : null}
+      {findings > 0 && scope.kind !== "file" ? (
+        <AffectedFiles files={files} onSelectPath={onSelectPath} />
+      ) : null}
     </CollapsibleSection>
   );
 }

@@ -5,7 +5,7 @@ import { chainsPayload } from "@codarch/schema";
 import { edgeViews, aggregateEdgeViews, sortMetrics } from "./scope";
 import { clampInteger, compareStrings } from "./helpers";
 import { symbolsOf } from "@codarch/schema";
-import { lintTotals } from "@codarch/lint/browser";
+import { lintTotals, scopeHealth, type HealthSnapshot } from "@codarch/lint/browser";
 import { loadLintArtifact } from "./lint";
 import {
   ArchitectureStore,
@@ -81,6 +81,7 @@ export function explainModule(
       files: 1,
       metrics: sortMetrics(file.metrics),
       risk: file.risk,
+      riskBreakdown: file.riskBreakdown,
       complexity: file.complexity,
       symbols: symbolsOf(store.snapshot, file.id)
         .slice(0, limit)
@@ -131,6 +132,9 @@ export function explainModule(
               "no hay report.json cargado; no sé si este fichero cambió en el PR"
           },
       lint: lintTotals(lintArtifact, file.path),
+      scopeHealth: lintArtifact
+        ? scopeHealth(lintArtifact, { kind: "file", path: file.path }, lintSnapshot(store))
+        : null,
       violations: store.violationsForPaths([file.path], 10)
     };
   }
@@ -156,12 +160,18 @@ export function explainModule(
     .map((file) => ({
       path: file.path,
       risk: file.risk,
-      size: file.size
+      size: file.size,
+      riskBreakdown: file.riskBreakdown
     }));
+  const owner = [...folderFiles].sort(
+    (left, right) =>
+      right.risk - left.risk || compareStrings(left.path, right.path)
+  )[0];
 
   return {
     ...base,
     kind: "folder",
+    riskBreakdown: owner?.riskBreakdown ?? null,
     files: folder.files.length,
     metrics: {
       size: folder.size,
@@ -198,10 +208,25 @@ export function explainModule(
             "no hay report.json cargado; no sé qué cambió bajo esta carpeta"
         },
     lint: lintTotals(lintArtifact, folder.path),
+    scopeHealth: lintArtifact
+      ? scopeHealth(
+          lintArtifact,
+          { kind: "folder", path: folder.path },
+          lintSnapshot(store)
+        )
+      : null,
     violations: store.violationsForPaths(
       folderFiles.map((file) => file.path),
       10
     )
+  };
+}
+
+/** El árbol del código, para saber si el lint está al día y si un fichero existe. */
+function lintSnapshot(store: ArchitectureStore): HealthSnapshot {
+  return {
+    treeHash: store.snapshot.meta.checksum ?? null,
+    paths: store.files.map((file) => file.path)
   };
 }
 

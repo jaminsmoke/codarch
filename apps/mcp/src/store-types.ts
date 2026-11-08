@@ -2,6 +2,7 @@ import type {
   DiffReport,
   Hotspot,
   MetricChange,
+  RiskBreakdown,
   RuleViolation
 } from "@codarch/metrics";
 
@@ -19,6 +20,11 @@ export interface StoreFile {
   metrics: Record<string, number>;
   /** Riesgo compuesto 0..1, calculado en memoria con la fórmula de ADR 0008. */
   risk: number;
+  /**
+   * El objeto que devolvió `riskBreakdown` para este fichero.
+   * `null` si el snapshot no trae métricas. No se escribe en `cc.json`.
+   */
+  riskBreakdown: RiskBreakdown | null;
   complexity: number;
   churn: number;
   /** Valor de la métrica de tamaño elegida (`rloc`, luego `loc`). */

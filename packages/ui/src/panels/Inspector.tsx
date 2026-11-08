@@ -10,6 +10,7 @@ import type {
 } from "@codarch/schema/browser";
 import type { CodeRequest, CodeSnippet, EditorRequest } from "../platform";
 import { LintSection } from "../LintSection";
+import { healthSnapshot } from "../lintHealth";
 import { ffiEdgesForFile } from "../lenses";
 import { maxComplexity, relatedFiles, type CodeState } from "../inspector";
 import {
@@ -22,6 +23,7 @@ import {
   SurfaceSection,
   SymbolsSection
 } from "./InspectorSections";
+import { LintConfigSection } from "./LintConfigSection";
 import type { CodeTarget } from "./CodePeek";
 import { DuplicationSection } from "./DuplicationSection";
 
@@ -52,7 +54,7 @@ export function Inspector({
   lint,
   migration,
   showCode = true,
-  rulesMode = false,
+  lintView = "findings",
   onSelectSymbol,
   onLoadCode,
   onOpenEditor,
@@ -72,6 +74,7 @@ export function Inspector({
   chain: SymbolChain | null;
   /** El lint del proyecto, que se lee por hallazgos (ADR 0104). */
   lint: LintArtifact | null;
+  lintView?: "findings" | "catalog";
   /** La lente de migración del snapshot, para los cruces FFI. */
   migration: CcMigrationLens | null;
   /**
@@ -79,11 +82,6 @@ export function Inspector({
    * miembros ni cadena, y su ficha no finge que los tenga (ADR 0093).
    */
   showCode?: boolean;
-  /**
-   * En el mapa del resto la sección se llama Reglas y no pesa en el riesgo
-   * (ADR 0105).
-   */
-  rulesMode?: boolean;
   onSelectSymbol: (name: string) => void;
   /** El código del símbolo, si la plataforma lo sirve (ADR 0067). */
   onLoadCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
@@ -152,6 +150,7 @@ export function Inspector({
         colorMode={colorMode}
         metricTitle={metricTitle}
         showRisk={showCode}
+        breakdown={file.riskBreakdown}
         onColorMode={onColorMode}
       />
       {showCode && model ? (
@@ -163,15 +162,19 @@ export function Inspector({
           onSelectPath={onSelectPath}
         />
       ) : null}
-      <LintSection
-        id="file-lint"
-        artifact={lint}
-        folder={file.path}
-        filePath={file.path}
-        risk={rulesMode ? undefined : file.riskParts}
-        title={rulesMode ? "Reglas" : "Lint"}
-        kind={rulesMode ? "rules" : "lint"}
-      />
+      {lintView === "catalog" ? (
+        <LintConfigSection id="file-lint" domain="code" artifact={lint} title="Lint" />
+      ) : (
+        <LintSection
+          id="file-lint"
+          artifact={lint}
+          folder={file.path}
+          filePath={file.path}
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
+        />
+      )}
       {showCode ? (
         <>
           <SymbolsSection

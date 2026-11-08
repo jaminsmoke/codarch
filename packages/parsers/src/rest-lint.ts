@@ -1,4 +1,6 @@
 import {
+  canonicalLintPath,
+  codarchActiveRules,
   createLintArtifact,
   docsFindings,
   type DocsRulesConfig,
@@ -36,11 +38,37 @@ export function buildRestLint(input: {
     ...(input.config ? { config: input.config } : {})
   });
 
+  // La cobertura es por documento, no por regla: un frontmatter que no se pudo
+  // leer no saca al documento de lo medido, y tampoco significa que se
+  // revisara cada regla del texto.
+  const paths = [
+    ...new Set(findings.map((file) => canonicalLintPath(file.path)))
+  ].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+
   return createLintArtifact({
+    domain: "docs",
     // Estas reglas las pone el producto, no un linter instalado: el artefacto lo
-    // dice, para que nadie busque su configuración en el repo.
+    // dice, para que nadie busque su configuración en el repo. La lista sale
+    // del productor, no de los hallazgos de esta pasada.
     tools: ["codarch"],
+    systems: [
+      {
+        name: "codarch",
+        config: input.config ? ".codarch.yml" : null,
+        rules: codarchActiveRules(input.config),
+        note: "reglas internas del producto; no salen de un linter instalado"
+      }
+    ],
     ...(input.tree ? { tree: input.tree } : {}),
-    files: findings
+    files: findings,
+    coverage: {
+      tools: {
+        codarch: {
+          outcome: "enumerated",
+          measuredPaths: paths,
+          eligiblePaths: paths
+        }
+      }
+    }
   });
 }

@@ -51,7 +51,8 @@ describe("el lint que tiene el proyecto", () => {
       config: "eslint.config.js",
       format: "eslint-json",
       command: "node node_modules/eslint/bin/eslint.js . --format json",
-      sample: "src/a.ts"
+      sample: "src/a.ts",
+      exhaustive: true
     });
     expect(eslint?.rulesCommand).toBe(
       "node node_modules/eslint/bin/eslint.js --print-config src/a.ts"
@@ -79,7 +80,8 @@ describe("el lint que tiene el proyecto", () => {
       name: "oxlint",
       config: ".oxlintrc.json",
       format: "oxlint-json",
-      command: "node node_modules/oxlint/bin/oxlint --format json ."
+      command: "node node_modules/oxlint/bin/oxlint --format json .",
+      listCommand: "node node_modules/oxlint/bin/oxlint --debug=files ."
     });
   });
 
@@ -546,7 +548,24 @@ extend-ignore = ["E501"]
     expect(ruff?.note).toMatch(/por defecto/);
   });
 
-  it("oxlint sin config no repite «sin config» en la nota", async () => {
+  it("oxlint con categorías avisa de las reglas que no se enumeran", async () => {
+    const root = repo({
+      ".oxlintrc.json": JSON.stringify({
+        categories: { correctness: "warn" },
+        rules: { "no-var": "error" }
+      }),
+      "node_modules/oxlint/bin/oxlint": "// binario"
+    });
+
+    const [oxlint] = await describeLintSystems(root, detectLintSystems(root), {
+      run: vi.fn<LintProcessRunner>()
+    });
+
+    expect(oxlint?.rules).toEqual([{ id: "no-var", severity: "error" }]);
+    expect(oxlint?.note).toMatch(/categorías.*no se enumeran/);
+  });
+
+  it("oxlint sin config dice que no hay archivo de configuración", async () => {
     const root = repo({ "node_modules/oxlint/bin/oxlint": "// binario" });
 
     const [oxlint] = await describeLintSystems(root, detectLintSystems(root), {
@@ -554,7 +573,9 @@ extend-ignore = ["E501"]
     });
 
     expect(oxlint?.config).toBeNull();
-    expect(oxlint?.note).toBe("corre sus correcciones por defecto; no se enumeran");
+    expect(oxlint?.note).toBe(
+      "sin archivo de configuración: corre sus reglas por defecto y no se enumeran"
+    );
   });
 
   it("oxlint lee su JSON sin lanzar un proceso", async () => {

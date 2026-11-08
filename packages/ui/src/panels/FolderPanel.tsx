@@ -1,8 +1,4 @@
-import {
-  adviceForExtensions,
-  extensionOf,
-  type LintArtifact
-} from "@codarch/lint/browser";
+import type { LintArtifact } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import {
@@ -21,9 +17,11 @@ import {
   folderContent,
   folderDepth
 } from "../folder";
+import { healthSnapshot } from "../lintHealth";
 import { withinFolder } from "../lintRollup";
 import { LintSection } from "../LintSection";
 import { DuplicationSection } from "./DuplicationSection";
+import { LintConfigSection } from "./LintConfigSection";
 import { MetricsRollup } from "./MetricsRollup";
 
 /**
@@ -44,6 +42,7 @@ export function FolderPanel({
   model,
   lint,
   rulesMode = false,
+  lintView = "findings",
   changes,
   metricTitle,
   colorMode,
@@ -54,10 +53,11 @@ export function FolderPanel({
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
-  /** El lint del código, o las reglas del resto en ese mapa (ADR 0094 · ADR 0105). */
+  /** El lint de código. */
   lint: LintArtifact | null;
-  /** En el resto: sección Reglas y sin bloque de lint en métricas (ADR 0105). */
+  /** En el mapa de documentos, las métricas no cuentan el lint como «sin medir». */
   rulesMode?: boolean;
+  lintView?: "findings" | "catalog";
   /** Los ficheros del cambio, para contar los de esta carpeta (ADR 0092). */
   changes: DiffReport["files"] | null;
   /** Cómo se llama cada métrica en el snapshot. */
@@ -217,20 +217,23 @@ export function FolderPanel({
         </CollapsibleSection>
       ) : null}
 
-      {model ? (
+      {model && lintView === "catalog" ? (
+        <LintConfigSection
+          id="folder-lint"
+          domain="code"
+          artifact={lint}
+          title="Lint"
+        />
+      ) : null}
+      {model && lintView !== "catalog" ? (
         <LintSection
           id="folder-lint"
           artifact={lint}
           folder={folder.path}
-          advice={
-            rulesMode
-              ? []
-              : adviceForExtensions(
-                  subtree.map((file) => extensionOf(file.name))
-                )
-          }
-          title={rulesMode ? "Reglas" : "Lint"}
-          kind={rulesMode ? "rules" : "lint"}
+          title="Lint"
+          kind="lint"
+          snapshot={healthSnapshot(model)}
+          onSelectPath={onSelectPath}
         />
       ) : null}
 
