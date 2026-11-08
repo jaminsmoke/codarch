@@ -63,7 +63,8 @@ export interface Room {
 const CONTAINER_WIDTH = 5.2;
 const CONTAINER_DEPTH = 5.2;
 const CONTAINER_GAP = 2.4;
-const CONTAINER_START_Z = 4;
+/** Separación entre la espalda del archivador y la pared de fondo. */
+const CONTAINER_BACK_MARGIN = 2.8;
 
 const SHEET_WIDTH = 1.9;
 const SHEET_HEIGHT = 1.3;
@@ -226,12 +227,20 @@ export function buildRoom(input: RoomInput): Room {
     containerGridWidth + 2 * SHELF_DEPTH + 16,
     fileNodes.length ? 24 : 0
   );
+  // La profundidad sigue al ancho: una sala cuadrada se recorre mejor y deja
+  // pasillo entre la estantería delantera y los archivadores del fondo.
   const depth = Math.max(
-    16,
-    CONTAINER_START_Z + containerGridDepth + 6,
-    fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 3 : 0
+    20,
+    width * 0.65,
+    containerGridDepth + 8,
+    fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 4 : 0
   );
   const shelfCenterZ = SHELF_FRONT_Z + sideShelfWidth / 2;
+  const containerStartZ =
+    depth -
+    CONTAINER_BACK_MARGIN -
+    Math.max(0, containerRows - 1) *
+      (CONTAINER_DEPTH + CONTAINER_GAP);
 
   const boxes: AtlasBox[] = [];
   let containers = 0;
@@ -321,30 +330,7 @@ export function buildRoom(input: RoomInput): Room {
       selectable: false
     });
   }
-  boxes.push({
-    path: null,
-    role: "furniture",
-    x: 0,
-    y: roomHeight,
-    z: depth / 2,
-    width: width + 4,
-    depth: depth + 4,
-    height: 0.4,
-    color: input.wallColor,
-    selectable: false
-  });
-  boxes.push({
-    path: null,
-    role: "furniture",
-    x: 0,
-    y: roomHeight - 0.55,
-    z: depth / 2,
-    width: width * 0.7,
-    depth: 0.5,
-    height: 0.12,
-    color: input.lightColor,
-    selectable: false
-  });
+  // Sin techo: la sala se abre por arriba y la profundidad se lee mejor.
   for (const side of [-1, 1]) {
     boxes.push({
       path: null,
@@ -383,7 +369,7 @@ export function buildRoom(input: RoomInput): Room {
     const row = Math.floor(index / containerColumns);
     const x = containerStartX + column * (CONTAINER_WIDTH + CONTAINER_GAP);
     const z =
-      CONTAINER_START_Z + row * (CONTAINER_DEPTH + CONTAINER_GAP);
+      containerStartZ + row * (CONTAINER_DEPTH + CONTAINER_GAP);
     const height = containerHeight(node.fileCount, 6);
     boxes.push({
       path: node.path,

@@ -184,6 +184,23 @@ describe("la geometría frontal del Atlas", () => {
     );
   });
 
+  it("la sala es profunda, sin techo y con los archivadores al fondo", () => {
+    const room = buildRoom(input);
+    const folder = room.boxes.find((box) => box.path === "src");
+    const ceiling = room.boxes.find(
+      (box) =>
+        box.role === "furniture" &&
+        box.y === room.height &&
+        box.width > room.width
+    );
+
+    expect(room.depth).toBeGreaterThan(room.width * 0.6);
+    expect(ceiling).toBeUndefined();
+    expect(
+      room.depth - ((folder?.z ?? 0) + (folder?.depth ?? 0) / 2)
+    ).toBeLessThan(3);
+  });
+
   it("cada sala lleva el nombre en una viga frontal, sin cerrar el frente", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const beam = room.boxes.find((box) => box.role === "beam");

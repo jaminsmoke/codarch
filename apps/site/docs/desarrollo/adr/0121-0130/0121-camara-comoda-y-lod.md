@@ -56,8 +56,11 @@ La rueda, el arrastre y la pinza siguen funcionando.
 Los detalles de los archivadores (tapa, zócalo, marco y tirador) se marcan como `detail`.
 
 Cuando una sala supera las 140 cajas, se dejan de dibujar esos detalles antes que los cuerpos de
-los archivadores, las hojas o el mobiliario principal. Es un LOD por carga de sala, no por distancia:
-la geometría se decide al construir la escena y no se recalcula al orbitar.
+los archivadores, las hojas o el mobiliario principal. Además, si la cámara se aleja más de 1,35
+veces la distancia inicial, los detalles también se retiran; al acercarse vuelven.
+
+Es un LOD de carga y distancia: se recalcula la lista de geometría cuando se cruza un umbral, no en
+cada fotograma.
 
 El LOD de etiquetas del ADR 0120 se mantiene: 64 por sala con prioridad para viga, selección,
 carpetas y hojas.
@@ -72,16 +75,15 @@ checksum no cambia. Funciona igual en el mapa de código y en el de documentos/c
 - La sala es más ancha y más profunda; la cámara puede retroceder sin pegarse a las paredes.
 - Centrar y acercar deja de depender de encontrar la rueda o el punto exacto del arrastre.
 - Las salas muy cargadas pierden detalle decorativo, no contenido.
-- El LOD de geometría aún no depende de la distancia ni del ángulo de cámara; eso queda para una
-  segunda pasada.
+- El LOD de geometría responde a la carga de la sala y a la distancia de cámara; el ángulo todavía no
+  interviene.
 
 ## Alternativas descartadas
 
 - **Solo rueda y arrastre.** Es más lento en pantallas táctiles y en repos grandes.
 - **Añadir más detalle siempre.** Aumenta instancias sin mejorar la lectura de una sala cargada.
 - **Quitar hojas para aligerar.** El contenido no es prescindible; el detalle decorativo sí.
-- **Un LOD por distancia ahora.** Necesita recalcular la escena al orbitar; no es necesario para este
-  corte.
+- **Un LOD por ángulo.** Necesita más cálculo y no aporta tanto como la carga y la distancia.
 
 ## Hoja de ruta
 
@@ -89,8 +91,8 @@ Fase **M77 · El Atlas frontal**.
 
 - ✅ Más aire en la sala.
 - ✅ Botones y atajos de cámara.
-- ✅ LOD por carga de sala para detalles de archivador.
-- 🟡 LOD por distancia y distribución fina.
+- ✅ LOD por carga y distancia para detalles de archivador.
+- 🟡 LOD por ángulo y distribución fina.
 - ⬜ La puerta animada de entrada, si se decide.
 - ⬜ El editor completo.
 

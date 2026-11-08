@@ -14,8 +14,8 @@ room felt tight and cabinet details were always drawn.
 - **−**, **Centrar** and **+** buttons in the stage.
 - `+` / `-` shortcuts to zoom, and `0` or `R` to centre.
 - The initial view starts a little higher.
-- Cabinet details are marked as `detail`: in rooms over 140 boxes they are dropped before bodies,
-  sheets or main furniture.
+- Cabinet details are marked as `detail`: they are dropped in rooms over 140 boxes or when the camera
+  moves away, before bodies, sheets or main furniture.
 
 **Why this way**: centring and zooming must be at hand, including on touch. Air keeps pieces apart and
 load-based LOD lightens large rooms without removing content.
