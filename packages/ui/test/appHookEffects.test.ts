@@ -208,6 +208,21 @@ describe("el lint y el resto del proyecto", () => {
     );
   });
 
+  it("la vista de plugin sigue al cambiar de mapa", () => {
+    const { platform } = makePlatform();
+    const { result } = renderHook(() => useCodarchApp(platform));
+
+    act(() => {
+      result.current.actions.loadSnapshot(snapshot("sum-1", FILES), "demo");
+      result.current.actions.loadRest(restSnapshot());
+      result.current.actions.setPluginView("atlas");
+    });
+    act(() => result.current.actions.setMap("rest"));
+
+    expect(result.current.state.map).toBe("rest");
+    expect(result.current.state.pluginView).toBe("atlas");
+  });
+
   it("el mapa del resto se abre por bytes y vuelve al código con otro proyecto", () => {
     const { platform } = makePlatform();
     const { result } = renderHook(() => useCodarchApp(platform));

@@ -138,10 +138,10 @@ It is not a code editor, it is not a game engine and it does not replace the 2D 
 
 Phase **M77 · Atlas, a plugin view**.
 
-- ⬜ The `atlas` manifest, the view and its registration in the build.
-- ⬜ The full stage and the return to the classic map when WebGL2 is missing.
-- ⬜ The 3D aerial view: plane, folder containers and file cubes.
-- ⬜ Selection and focus synced with the app on both maps.
+- ✅ The `atlas` manifest, the view and its registration in the build.
+- ✅ The full stage and the return to the classic map when WebGL2 is missing.
+- ✅ The 3D aerial view: plane, folder containers and file cubes.
+- ✅ Selection and focus synced with the app on both maps.
 - ⬜ Entering and leaving a folder, with LOD and breadcrumb.
 - ⬜ Readable labels and file detail.
 - ⬜ Corridors and shelves, if the vertical slice justifies them.

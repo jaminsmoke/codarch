@@ -22,7 +22,6 @@ export function useChangeMap(options: {
   setMapView: (map: MapId) => void;
   setAreaMetric: (metric: string | null) => void;
   setColorMode: (mode: string) => void;
-  setPluginView: (view: string | null) => void;
   setSelectedIndex: (index: number | null) => void;
   setSelectedFolder: (path: string | null) => void;
   setFocusPath: (path: string | null) => void;
@@ -38,7 +37,6 @@ export function useChangeMap(options: {
     setMapView,
     setAreaMetric,
     setColorMode,
-    setPluginView,
     setSelectedIndex,
     setSelectedFolder,
     setFocusPath,
@@ -56,7 +54,8 @@ export function useChangeMap(options: {
         preferences: preferencesRef.current
       });
       if (plan.kind !== "switch") return;
-      setPluginView(null);
+      // La vista de plugin se queda: cambia el mapa que hay debajo y el plugin
+      // se reconstruye con el modelo nuevo (ADR 0113).
       setSelectedIndex(null);
       setSelectedFolder(null);
       setFocusPath(null);
@@ -79,7 +78,6 @@ export function useChangeMap(options: {
       setFocusPath,
       setMapView,
       setOpenFile,
-      setPluginView,
       setSelectedFolder,
       setSelectedIndex
     ]

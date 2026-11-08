@@ -36,6 +36,7 @@ rules:
 # Los plugins que entran en el bundle (ADR 0028).
 plugins:
   - vista-3d
+  - atlas
 
 # Los addons que este repo declara (ADR 0029): conocimiento, no código.
 # Ninguno instalado; se añaden con `codarch addons add <carpeta>`.

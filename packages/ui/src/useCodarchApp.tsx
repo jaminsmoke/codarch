@@ -304,7 +304,6 @@ export function useCodarchApp(
     setMapView,
     setAreaMetric,
     setColorMode,
-    setPluginView,
     setSelectedIndex,
     setSelectedFolder,
     setFocusPath,
