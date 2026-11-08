@@ -39,6 +39,7 @@ export interface RoomInput {
   floorColor: string;
   wallColor: string;
   lightColor: string;
+  trimColor: string;
 }
 
 export interface Room {
@@ -235,6 +236,46 @@ export function buildRoom(input: RoomInput): Room {
       color: input.wallColor,
       selectable: false
     });
+    for (const side of [-1, 1]) {
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: side * (width / 2 + 0.35),
+        y: 0.1,
+        z: depth / 2,
+        width: 0.2,
+        depth: depth + 2.2,
+        height: 0.5,
+        color: input.trimColor,
+        selectable: false
+      });
+    }
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: 0.1,
+      z: depth + 0.55,
+      width: width + 4,
+      depth: 0.2,
+      height: 0.5,
+      color: input.trimColor,
+      selectable: false
+    });
+    for (const panelX of [-width / 3, width / 3]) {
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: panelX,
+        y: 0.5,
+        z: depth + 0.55,
+        width: 0.12,
+        depth: 0.1,
+        height: roomHeight,
+        color: input.trimColor,
+        selectable: false
+      });
+    }
     boxes.push({
       path: null,
       role: "furniture",
@@ -253,7 +294,7 @@ export function buildRoom(input: RoomInput): Room {
       x: 0,
       y: roomHeight - 0.55,
       z: depth / 2,
-      width: width * 0.55,
+      width: width * 0.7,
       depth: 0.5,
       height: 0.12,
       color: input.lightColor,

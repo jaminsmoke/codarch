@@ -13,11 +13,12 @@ import { buildRoom } from "./room";
  */
 const ATLAS_BACKGROUND = "#0b1015";
 const ATLAS_FALLBACK = "#5d6b78";
-const ATLAS_FURNITURE = "#26313b";
-const ATLAS_FLOOR = "#0d1217";
-const ATLAS_WALL = "#161d24";
-const ATLAS_LIGHT = "#c9f1ff";
-const ATLAS_LABEL_TEXT = "#dbe7ef";
+const ATLAS_FURNITURE = "#3a4a57";
+const ATLAS_FLOOR = "#151d24";
+const ATLAS_WALL = "#26323d";
+const ATLAS_LIGHT = "#e6f7ff";
+const ATLAS_TRIM = "#5d7485";
+const ATLAS_LABEL_TEXT = "#e7f1f7";
 const ATLAS_LABEL_BACKGROUND = "#111820";
 
 type Runtime = SceneBackend | "pending" | "error";
@@ -124,7 +125,8 @@ export function AtlasView({ context }: { context: PluginContext }) {
       furnitureColor: ATLAS_FURNITURE,
       floorColor: ATLAS_FLOOR,
       wallColor: ATLAS_WALL,
-      lightColor: ATLAS_LIGHT
+      lightColor: ATLAS_LIGHT,
+      trimColor: ATLAS_TRIM
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- colorMode cambia los colores aunque se lea por referencia
   }, [model, colorMode, focusPath]);

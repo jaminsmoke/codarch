@@ -72,7 +72,8 @@ const input: RoomInput = {
   furnitureColor: "#333333",
   floorColor: "#eeeeee",
   wallColor: "#222222",
-  lightColor: "#ffffff"
+  lightColor: "#ffffff",
+  trimColor: "#555555"
 };
 
 describe("la geometría frontal del Atlas", () => {

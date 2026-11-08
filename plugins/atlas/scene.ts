@@ -51,7 +51,7 @@ const FOV = 52;
 const SELECTION_COLOR = "#2f6fed";
 const SELECTION_MIX = 0.6;
 const EDGE_COLOR = "#8fe7ff";
-const GRID_COLOR = "#52606d";
+const GRID_COLOR = "#6b7e8d";
 const MAX_PIXELS = 8_000_000;
 const CUBE_VERTICES = 36;
 /** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
@@ -148,13 +148,23 @@ void main() {
   vec3 normal = normalize(vNormal);
   float key = max(dot(normal, uLight), 0.0);
   float fill = max(dot(normal, uFill), 0.0);
-  float shade = 0.46 + key * 0.46 + fill * 0.18;
+  float shade = 0.58 + key * 0.38 + fill * 0.14;
   vec3 color = vColor * shade;
 
   if (vKind > 1.5 && vKind < 2.5) {
     // El suelo se tiñe con la luz y la rejilla marca la profundidad.
     color = mix(color, uGrid, gridLine(vWorld.xz, 26.0) * 0.72);
-  } else if (vKind > 0.5 && vKind < 1.5) {
+  } else if (vKind > 2.5) {
+    // Paredes y estanterías: aristas suaves para separar planos.
+    vec3 absolute = abs(normal);
+    vec2 face = absolute.y > 0.5
+      ? vLocal.xz
+      : (absolute.x > 0.5 ? vLocal.zy : vLocal.xy);
+    float distanceToEdge = min(0.5 - abs(face.x), 0.5 - abs(face.y));
+    float edge = 1.0 - smoothstep(0.0, 0.04, distanceToEdge);
+    color = mix(color, uGrid, edge * 0.28);
+  } else if (vKind > 0.5) {
+    // Las carpetas se leen como contenedores: sus aristas marcan el volumen.
     vec3 absolute = abs(normal);
     vec2 face = absolute.y > 0.5
       ? vLocal.xz
@@ -162,10 +172,19 @@ void main() {
     float distanceToEdge = min(0.5 - abs(face.x), 0.5 - abs(face.y));
     float edge = 1.0 - smoothstep(0.0, 0.05, distanceToEdge);
     color = mix(color, uEdge, edge * 0.82);
+  } else {
+    // Las hojas tienen un borde fino para no perderse sobre el fondo.
+    vec3 absolute = abs(normal);
+    vec2 face = absolute.y > 0.5
+      ? vLocal.xz
+      : (absolute.x > 0.5 ? vLocal.zy : vLocal.xy);
+    float distanceToEdge = min(0.5 - abs(face.x), 0.5 - abs(face.y));
+    float edge = 1.0 - smoothstep(0.0, 0.035, distanceToEdge);
+    color = mix(color, uEdge, edge * 0.38);
   }
 
   float fog = smoothstep(uFogNear, uFogFar, vDepth);
-  outColor = vec4(mix(color, uFog, fog * 0.9), 1.0);
+  outColor = vec4(mix(color, uFog, fog * 0.75), 1.0);
 }
 `;
 
