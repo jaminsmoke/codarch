@@ -10,6 +10,7 @@ import { useViewOptions } from "./app/viewOptions";
 import { usePluginBindings } from "./app/pluginBindings";
 import { platformBridges } from "./app/bridges";
 import type { Platform, LintRuleChange, LintRuleResult } from "./platform";
+import type { RuleCatalog } from "@codarch/lint/browser";
 import type { ViewPreferences } from "./storage";
 import type { InspectorTab } from "./viewState";
 import type {
@@ -347,6 +348,13 @@ export function useCodarchApp(
     [platform]
   );
 
+  const listLintRules = useCallback(
+    async (system: string): Promise<RuleCatalog | null> => {
+      return platform.listLintRules ? platform.listLintRules(system) : null;
+    },
+    [platform]
+  );
+
   useRestoreProject({
     platform,
     loadSnapshot,
@@ -429,6 +437,7 @@ export function useCodarchApp(
     readCode: bridges.readCode,
     openInEditor: bridges.openInEditor,
     setLintRule,
+    listLintRules,
     zoomAt,
     panMap,
     fitMap,

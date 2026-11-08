@@ -1,6 +1,7 @@
 import type { CcJson, CcMigrationNode, CcStructureNode } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { LintArtifact } from "@codarch/lint/browser";
+import type { RuleCatalog } from "@codarch/lint/browser";
 import type { RepoAddon } from "@codarch/addons";
 import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginContext, PluginView } from "@codarch/plugin-api";
@@ -147,6 +148,8 @@ export interface CodarchAppActions {
   openInEditor: (request: EditorRequest) => Promise<boolean>;
   /** Activa o desactiva una regla en la config del proyecto (ADR 0111). */
   setLintRule: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** El catálogo de reglas de una herramienta (ADR 0112). */
+  listLintRules: (system: string) => Promise<RuleCatalog | null>;
   /**
    * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
    *

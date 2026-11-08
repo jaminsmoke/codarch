@@ -7,6 +7,7 @@ import {
   type LintRuleChange,
   type LintRuleResult,
   type Platform,
+  type RuleCatalog,
   type SavedProject
 } from "@codarch/ui";
 import { sourceFromMemory } from "./analysis/reader";
@@ -113,6 +114,14 @@ export function platformWeb(): Platform {
           error: `no se pudo escribir la configuración: ${(error as Error).message}`
         };
       }
+    },
+    listLintRules: async (system: string): Promise<RuleCatalog | null> => {
+      const raw = await fetchJson(
+        `api/lint-rules?system=${encodeURIComponent(system)}`
+      );
+      if (!raw || typeof raw !== "object") return null;
+      const catalog = raw as RuleCatalog;
+      return Array.isArray(catalog.groups) ? catalog : null;
     },
     history: async () => historyEntries(await fetchJson("data/history.json")),
     heat: async () => symbolHeat(await fetchJson("data/chains.json")),

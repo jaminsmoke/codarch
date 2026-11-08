@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
 import { recommendedRules } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "../CollapsibleSection";
@@ -125,12 +125,14 @@ function ConfigBody({
   config,
   domain,
   canEdit,
-  onRuleChange
+  onRuleChange,
+  onListRules
 }: {
   config: LintConfigView;
   domain: LintConfigDomain;
   canEdit: boolean;
   onRuleChange?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  onListRules?: (system: string) => Promise<RuleCatalog | null>;
 }) {
   const [pending, setPending] = useState<LintRuleChange | null>(null);
   const [busy, setBusy] = useState(false);
@@ -138,6 +140,12 @@ function ConfigBody({
     ok: boolean;
     text: string;
   } | null>(null);
+  const [adding, setAdding] = useState<string | null>(null);
+  const [catalog, setCatalog] = useState<RuleCatalog | null>(null);
+  const [loadingCatalog, setLoadingCatalog] = useState(false);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [severity, setSeverity] = useState<"error" | "warn">("error");
   const tools =
     config.tools.length > 0 ? config.tools.join(" · ") : "ninguna";
 
@@ -161,6 +169,41 @@ function ConfigBody({
     }
   };
 
+  const toggleAdd = async (system: string) => {
+    if (adding === system) {
+      setAdding(null);
+      return;
+    }
+    setAdding(system);
+    setQuery("");
+    setCatalog(null);
+    setCatalogError(null);
+    if (!onListRules) {
+      setCatalogError("Esta plataforma no puede enumerar reglas.");
+      return;
+    }
+    setLoadingCatalog(true);
+    try {
+      const next = await onListRules(system);
+      if (next) setCatalog(next);
+      else setCatalogError("No se pudo leer el catálogo de reglas.");
+    } catch (error) {
+      setCatalogError((error as Error).message);
+    } finally {
+      setLoadingCatalog(false);
+    }
+  };
+
+  const needle = query.trim().toLowerCase();
+  const catalogGroups = (catalog?.groups ?? [])
+    .map((group) => ({
+      ...group,
+      rules: group.rules.filter((rule) =>
+        rule.toLowerCase().includes(needle)
+      )
+    }))
+    .filter((group) => group.rules.length > 0);
+
   return (
     <div className="lint-config-view">
       <p className="muted tiny lint-config-lead">
@@ -175,8 +218,9 @@ function ConfigBody({
             const editable =
               canEdit &&
               Boolean(onRuleChange) &&
-              system.name === "oxlint" &&
-              Boolean(system.config?.endsWith(".json"));
+              ((system.name === "oxlint" &&
+                Boolean(system.config?.endsWith(".json"))) ||
+                (system.name === "eslint" && Boolean(system.config)));
             const active = new Set(system.activeRules.map((rule) => rule.id));
             const missing = editable
               ? recommendedRules(system.name).filter(
@@ -307,6 +351,93 @@ function ConfigBody({
                       </section>
                     ) : null}
                   </div>
+                  {editable ? (
+                    <div className="lint-add-rule">
+                      <button
+                        type="button"
+                        className="lint-add-toggle"
+                        onClick={() => void toggleAdd(system.name)}
+                      >
+                        {adding === system.name ? "Cerrar" : "Añadir regla"}
+                      </button>
+                      {adding === system.name ? (
+                        <div className="lint-add-panel">
+                          <div className="lint-add-controls">
+                            <input
+                              type="search"
+                              aria-label="Buscar regla"
+                              placeholder="Buscar regla…"
+                              value={query}
+                              onChange={(event) =>
+                                setQuery(event.target.value)
+                              }
+                            />
+                            <select
+                              aria-label="Severidad"
+                              value={severity}
+                              onChange={(event) =>
+                                setSeverity(
+                                  event.target.value === "warn"
+                                    ? "warn"
+                                    : "error"
+                                )
+                              }
+                            >
+                              <option value="error">error</option>
+                              <option value="warn">warn</option>
+                            </select>
+                          </div>
+                          {loadingCatalog ? (
+                            <p className="muted tiny">Leyendo el catálogo…</p>
+                          ) : catalogError ? (
+                            <p className="muted tiny">{catalogError}</p>
+                          ) : catalogGroups.length === 0 ? (
+                            <p className="muted tiny">
+                              No hay reglas que coincidan.
+                            </p>
+                          ) : (
+                            <div className="lint-add-list">
+                              {catalogGroups.map((group) => (
+                                <section key={group.plugin}>
+                                  <p className="lint-add-plugin">
+                                    {group.plugin}
+                                  </p>
+                                  {group.rules.map((id) => {
+                                    const isActive = active.has(id);
+                                    return (
+                                      <button
+                                        key={id}
+                                        type="button"
+                                        className="lint-add-option"
+                                        disabled={isActive || busy}
+                                        onClick={() =>
+                                          void apply({
+                                            system: system.name,
+                                            rule: id,
+                                            severity
+                                          })
+                                        }
+                                      >
+                                        <span className="mono">{id}</span>
+                                        {isActive ? (
+                                          <span className="lint-add-state">
+                                            activa
+                                          </span>
+                                        ) : null}
+                                      </button>
+                                    );
+                                  })}
+                                </section>
+                              ))}
+                            </div>
+                          )}
+                          {catalog?.note ? (
+                            <p className="muted tiny">{catalog.note}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {pending && pending.system === system.name ? (
                     <div className="lint-rule-confirm" role="alert">
                       <p>
@@ -362,7 +493,8 @@ export function LintConfigSection({
   artifact,
   title,
   canEdit = false,
-  onRuleChange
+  onRuleChange,
+  onListRules
 }: {
   /** Identificador único: puede haber un catálogo por dominio. */
   id: string;
@@ -374,6 +506,8 @@ export function LintConfigSection({
   canEdit?: boolean;
   /** Activa o desactiva una regla en la config del proyecto. */
   onRuleChange?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** Enumera el catálogo de reglas de una herramienta (ADR 0112). */
+  onListRules?: (system: string) => Promise<RuleCatalog | null>;
 }) {
   const config = readLintConfig(artifact);
   const badge = catalogBadge(config?.systems ?? []);
@@ -393,6 +527,7 @@ export function LintConfigSection({
           domain={domain}
           canEdit={canEdit}
           onRuleChange={onRuleChange}
+          onListRules={onListRules}
         />
       ) : (
         <p className="muted small">

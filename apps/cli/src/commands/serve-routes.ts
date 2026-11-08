@@ -27,7 +27,7 @@ import {
   readHistoryIndex
 } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
-import { LINT_FILE, writeLintRule } from "@codarch/lint";
+import { LINT_FILE, listLintRules, writeLintRule } from "@codarch/lint";
 import { chainsPayload } from "./chains-payload";
 import type { Live } from "./serve-live";
 
@@ -205,6 +205,21 @@ async function postLintRule(context: RouteContext): Promise<void> {
     });
   } catch (error) {
     sendError(context.response, 400, (error as Error).message);
+  }
+}
+
+/** El catálogo de reglas de una herramienta, para el menú de añadir (ADR 0112). */
+async function getLintRules(context: RouteContext): Promise<void> {
+  const system = context.url.searchParams.get("system")?.trim() ?? "";
+  if (!system) {
+    sendError(context.response, 400, "falta el sistema");
+    return;
+  }
+  try {
+    const catalog = await listLintRules(context.live.current().root, system);
+    sendJson(context.response, catalog);
+  } catch (error) {
+    sendError(context.response, 500, (error as Error).message);
   }
 }
 
@@ -415,6 +430,7 @@ const POST_ROUTES: Record<string, Route> = {
 
 const GET_ROUTES: Record<string, Route> = {
   "/api/browse": getBrowse,
+  "/api/lint-rules": getLintRules,
   "/api/source": getSource,
   "/api/diff": getDiff,
   "/data/snapshot.cc.json": getJson((context) => context.live.current().snapshot),
