@@ -60,6 +60,7 @@ const GRID_COLOR = "#6b7e8d";
 const MAX_PIXELS = 8_000_000;
 const MAX_LABELS = 64;
 const DETAIL_LOD_LIMIT = 140;
+const DETAIL_LOD_FACTOR = 1.35;
 const CUBE_VERTICES = 36;
 /** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
 const STRIDE = 10;
@@ -451,6 +452,8 @@ export function mountScene(
   let visible: AtlasBox[] = room.boxes;
   let selected = options.selected;
   let instanceCount = 0;
+  let detailsVisible = room.boxes.length <= DETAIL_LOD_LIMIT;
+  let refreshLod = (): void => undefined;
   let flight: {
     fromTarget: Point;
     toTarget: Point;
@@ -496,7 +499,10 @@ export function mountScene(
     // quedan en las paredes laterales y los contenedores en el centro.
     start,
     target,
-    onChange: () => requestRender(),
+    onChange: () => {
+      refreshLod();
+      requestRender();
+    },
     limits: {
       ...ORBIT_LIMITS,
       minPolar: 1.02,
@@ -581,12 +587,12 @@ export function mountScene(
   };
 
   const draw = (boxes: AtlasBox[]): void => {
-    // LOD de geometría: en salas muy cargadas se retiran los detalles pequeños
-    // (tapas, zócalos, marcos y tiradores) antes que los muebles o las hojas.
-    const rendered =
-      boxes.length > DETAIL_LOD_LIMIT
-        ? boxes.filter((box) => !box.detail)
-        : boxes;
+    // LOD de geometría: los detalles pequeños (tapas, zócalos, marcos y
+    // tiradores) se retiran antes que los muebles o las hojas, por carga de
+    // sala o al alejar la cámara.
+    const rendered = detailsVisible
+      ? boxes
+      : boxes.filter((box) => !box.detail);
     const count = Math.min(rendered.length, capacity);
     for (let index = 0; index < count; index++) {
       writeBox(index, rendered[index] as AtlasBox);
@@ -599,6 +605,21 @@ export function mountScene(
       visible.filter((box) => box.role === "folder").length
     );
     requestRender();
+  };
+
+  refreshLod = (): void => {
+    const pose = controls.pose();
+    const distance = Math.hypot(
+      pose.position.x - pose.target.x,
+      pose.position.y - pose.target.y,
+      pose.position.z - pose.target.z
+    );
+    const next =
+      room.boxes.length <= DETAIL_LOD_LIMIT &&
+      distance <= fit * DETAIL_LOD_FACTOR;
+    if (next === detailsVisible) return;
+    detailsVisible = next;
+    draw(room.boxes);
   };
 
   const repaint = (): void => {
@@ -765,7 +786,10 @@ export function mountScene(
     }
     const moved = controls.update();
     const pose = controls.pose();
-    if (moved) requestRender();
+    if (moved) {
+      refreshLod();
+      requestRender();
+    }
     paint(pose);
     drawLabels(pose);
   };
@@ -838,6 +862,7 @@ export function mountScene(
     },
     resetView(): void {
       controls.setView(start, target);
+      refreshLod();
       requestRender();
     },
     zoom(factor: number): void {
@@ -848,6 +873,7 @@ export function mountScene(
         pose.position.z - pose.target.z
       );
       controls.setTarget(pose.target, distance * factor);
+      refreshLod();
       requestRender();
     },
     flyTo,

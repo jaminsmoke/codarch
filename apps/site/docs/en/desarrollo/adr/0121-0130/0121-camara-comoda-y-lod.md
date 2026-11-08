@@ -56,8 +56,11 @@ Wheel, drag and pinch still work.
 Cabinet details (top, plinth, frame and handle) are marked as `detail`.
 
 When a room exceeds 140 boxes, those details stop being drawn before cabinet bodies, sheets or main
-furniture. It is a room-load LOD, not a distance LOD: geometry is decided when building the scene and
-is not recalculated while orbiting.
+furniture. Also, when the camera moves farther than 1.35 times the initial distance, details are
+dropped too; they return when zooming in.
+
+It is a load and distance LOD: the geometry list is recalculated only when a threshold is crossed,
+not every frame.
 
 The label LOD from ADR 0120 remains: 64 per room with priority for beam, selection, folders and
 sheets.
@@ -73,14 +76,14 @@ documents/config map.
 - The room is wider and deeper; the camera can pull back without hugging walls.
 - Centring and zooming no longer depend on finding the wheel or the exact drag point.
 - Heavily loaded rooms lose decorative detail, not content.
-- Geometry LOD does not yet depend on distance or camera angle; that is a second pass.
+- Geometry LOD responds to room load and camera distance; angle is not involved yet.
 
 ## Discarded alternatives
 
 - **Wheel and drag only.** Slower on touch screens and large repos.
 - **Always adding more detail.** More instances without better reading in a loaded room.
 - **Removing sheets to save weight.** Content is not expendable; decorative detail is.
-- **Distance LOD now.** It needs rebuilding the scene while orbiting; not necessary for this cut.
+- **An angle LOD.** It needs more computation and adds less than load and distance.
 
 ## Roadmap
 
@@ -88,8 +91,8 @@ Phase **M77 · The front-facing Atlas**.
 
 - ✅ More air in the room.
 - ✅ Camera buttons and shortcuts.
-- ✅ Load-based LOD for cabinet details.
-- 🟡 Distance LOD and fine distribution.
+- ✅ Load- and distance-based LOD for cabinet details.
+- 🟡 Angle LOD and fine distribution.
 - ⬜ The animated entrance door, if decided.
 - ⬜ The full editor.
 

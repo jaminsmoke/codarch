@@ -14,8 +14,8 @@ inicial ni atajos. La sala se sentía estrecha y los detalles de los archivadore
 - Botones **−**, **Centrar** y **+** en el escenario.
 - Atajos `+` / `-` para acercar y alejar, y `0` o `R` para centrar.
 - La vista inicial arranca con algo más de altura.
-- Los detalles de los archivadores se marcan como `detail`: en salas de más de 140 cajas se retiran
-  antes que los cuerpos, las hojas o el mobiliario principal.
+- Los detalles de los archivadores se marcan como `detail`: se retiran en salas de más de 140 cajas
+  o cuando la cámara se aleja, antes que los cuerpos, las hojas o el mobiliario principal.
 
 ****Por qué así**: centrar y acercar tiene que estar a mano, también en táctil. El aire evita que los
 muebles se toquen y el LOD por carga aligera las salas grandes sin quitar contenido.
