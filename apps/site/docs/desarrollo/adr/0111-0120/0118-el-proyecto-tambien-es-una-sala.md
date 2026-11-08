@@ -2,14 +2,17 @@
 title: "ADR 0118 — El proyecto también es una sala"
 description: "El primer nivel deja de ser un overview plano: el proyecto abre la primera sala y todas las escalas comparten suelo, paredes, techo, viga y letrero. El frente queda abierto."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: El proyecto también es una sala
   order: 118
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-11-08
+**Estado:** enmendado por [ADR 0119](0119-estanterias-laterales-y-centro.md) (estanterías laterales
+y archivadores al centro) · **Fecha:** 2026-11-08
+
+La colocación de estanterías y hojas de este ADR queda sustituida por el 0119.
 
 **Enmienda** el [ADR 0117](0117-salas-recursivas-y-estanterias.md): el overview plano del primer
 nivel desaparece y se convierte en la sala del proyecto.

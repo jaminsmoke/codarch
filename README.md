@@ -461,9 +461,9 @@ queda (nada crece la página). El mapa se acerca con `+`, `−`, `Ajustar` o la 
 
 El plugin Atlas: un mapa en tres dimensiones para recorrer la arquitectura en profundidad. El proyecto
 es la primera sala; cada carpeta abre otra sala y cada subcarpeta es un archivador que abre la
-siguiente. Las hojas miran a la cámara, en estanterías de fondo. El frente queda abierto y una viga
-lo cruza arriba con el letrero del nombre de la sala. Al pulsar una hoja se abre su código en un
-panel de solo lectura.
+siguiente. Los archivadores se ordenan en el centro y las estanterías de los ficheros se pegan a las
+paredes laterales, con las hojas de pie. El frente queda abierto y una viga lo cruza arriba con el
+letrero del nombre de la sala. Al pulsar una hoja se abre su código en un panel de solo lectura.
 
 Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
 la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el

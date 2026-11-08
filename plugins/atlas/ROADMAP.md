@@ -8,7 +8,8 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ Las salas recursivas y los archivadores.
 - ✅ El proyecto como primera sala, sin overview plano (ADR 0118).
 - ✅ La viga frontal y el letrero con el nombre de la sala.
-- ✅ Las estanterías frontales y las hojas orientadas a cámara.
+- ✅ Las estanterías laterales y las hojas de pie (ADR 0119).
+- ✅ Los archivadores centrados con tapa, zócalo, marco y tirador.
 - ✅ La transición de cámara al entrar y salir.
 - ✅ Etiquetas legibles por nivel.
 - ✅ El visor de fichero de solo lectura.
