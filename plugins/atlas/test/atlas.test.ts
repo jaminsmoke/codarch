@@ -139,6 +139,31 @@ describe("la geometría frontal del Atlas", () => {
     expect(sheetsX).toContain(1);
   });
 
+  it("las estanterías están abiertas y empiezan junto al frente", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const sheets = room.boxes.filter((box) => box.role === "file");
+    const sideCaps = room.boxes.filter(
+      (box) =>
+        box.role === "furniture" &&
+        box.height > 2 &&
+        box.width > 1 &&
+        box.depth < 0.5 &&
+        Math.abs(box.x) > room.width / 4 &&
+        Math.abs(box.x) < room.width / 2
+    );
+
+    expect(sideCaps).toHaveLength(0);
+    expect(Math.min(...sheets.map((box) => box.z))).toBeLessThan(
+      room.depth / 3
+    );
+    for (const side of [-1, 1]) {
+      const sideZ = sheets
+        .filter((box) => Math.sign(box.x) === side)
+        .map((box) => box.z);
+      expect(sideZ).toEqual([...sideZ].sort((left, right) => left - right));
+    }
+  });
+
   it("las hojas van a las estanterías y no al suelo", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
