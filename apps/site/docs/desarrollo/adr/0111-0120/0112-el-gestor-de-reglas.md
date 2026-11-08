@@ -92,6 +92,7 @@ Sin fase nueva.
 - ✅ `meta.config` como huella opcional dentro de 1.3.
 - ✅ El escritor de Biome en JSON.
 - ✅ El escritor de Ruff en TOML, con `ruff rule` para el catálogo.
-- ⬜ El escritor de Checkstyle.
+- ✅ Checkstyle: quitar módulos del XML. Activar espera el contenedor.
+- ⬜ Activar módulos de Checkstyle cuando se sepa su contenedor.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

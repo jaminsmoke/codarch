@@ -224,8 +224,11 @@ function ConfigBody({
                 (system.name === "biome" &&
                   Boolean(system.config?.endsWith(".json"))) ||
                 (system.name === "ruff" &&
-                  Boolean(system.config?.endsWith(".toml"))));
+                  Boolean(system.config?.endsWith(".toml"))) ||
+                (system.name === "checkstyle" &&
+                  Boolean(system.config?.endsWith(".xml"))));
             const active = new Set(system.activeRules.map((rule) => rule.id));
+            const canAdd = editable && system.name !== "checkstyle";
             const missing = editable
               ? recommendedRules(system.name).filter(
                   (rule) => !active.has(rule.id)
@@ -268,6 +271,12 @@ function ConfigBody({
                     <p className="muted tiny lint-system-note">
                       ESLint todavía es de solo lectura: su config es código y
                       necesita un escritor con AST.
+                    </p>
+                  ) : null}
+                  {system.name === "checkstyle" && editable ? (
+                    <p className="muted tiny lint-system-note">
+                      Checkstyle solo se desactiva por ahora: activar necesita
+                      saber el contenedor del módulo.
                     </p>
                   ) : null}
                   {system.countState !== "known-complete" ||
@@ -355,7 +364,7 @@ function ConfigBody({
                       </section>
                     ) : null}
                   </div>
-                  {editable ? (
+                  {canAdd ? (
                     <div className="lint-add-rule">
                       <button
                         type="button"
