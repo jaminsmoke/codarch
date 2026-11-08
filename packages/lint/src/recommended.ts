@@ -39,10 +39,17 @@ const BIOME: readonly RecommendedRule[] = [
   { id: "style/useTemplate", severity: "warn" }
 ];
 
+const CHECKSTYLE: readonly RecommendedRule[] = [
+  { id: "LineLength", severity: "error" },
+  { id: "NeedBraces", severity: "error" },
+  { id: "UnusedImports", severity: "error" }
+];
+
 const BY_SYSTEM: Record<string, readonly RecommendedRule[]> = {
   eslint: ESLINT,
   oxlint: OXLINT,
-  biome: BIOME
+  biome: BIOME,
+  checkstyle: CHECKSTYLE
 };
 
 /** Las recomendadas de un sistema; vacío si no hay un set para él. */

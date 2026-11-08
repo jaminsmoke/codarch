@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { LintError } from "./format";
+import { checkstyleContainer } from "./checkstyle-catalog";
 import { detectLintSystems } from "./project";
 
 /**
@@ -528,14 +529,20 @@ function writeCheckstyleRule(
       `la config de Checkstyle (${system.config}) no es un XML editable`
     );
   }
-  if (change.severity !== null) {
-    throw new LintError(
-      "activar un módulo de Checkstyle necesita su contenedor; por ahora solo se desactiva"
-    );
-  }
-
   const file = path.join(root, system.config);
   const before = readConfig(file, system.config);
+  if (change.severity !== null) {
+    const container = checkstyleContainer(change.rule);
+    if (!container) {
+      throw new LintError(
+        `no se conoce el contenedor de "${change.rule}"; no se inventa`
+      );
+    }
+    const after = insertCheckstyleModule(before, container, change.rule);
+    writeAtomic(file, after);
+    return { path: system.config, before, after };
+  }
+
   const after = removeCheckstyleModule(before, change.rule);
   if (after === before) {
     throw new LintError(
@@ -544,6 +551,49 @@ function writeCheckstyleRule(
   }
   writeAtomic(file, after);
   return { path: system.config, before, after };
+}
+
+/** Mete un módulo conocido en su contenedor, conservando el resto del XML. */
+function insertCheckstyleModule(
+  xml: string,
+  container: "Checker" | "TreeWalker",
+  name: string
+): string {
+  if (new RegExp(`<module\\s+name="${escapeRegExp(name)}"`).test(xml)) {
+    throw new LintError(`Checkstyle ya tiene el módulo "${name}"`);
+  }
+  const open = new RegExp(
+    `<module\\s+name="${container}"[^>]*>`
+  ).exec(xml);
+  if (!open) {
+    throw new LintError(
+      `la config de Checkstyle no tiene el contenedor "${container}"`
+    );
+  }
+  const start = open.index;
+  const openEnd = start + open[0].length - 1;
+  const lineStart = xml.lastIndexOf("\n", start) + 1;
+  const indent = xml.slice(lineStart, start);
+  const module = `<module name="${name}"/>`;
+
+  if (open[0].endsWith("/>")) {
+    const opening = open[0].replace(/\/>$/, ">");
+    return `${xml.slice(0, start)}${opening}\n${indent}  ${module}\n${indent}</module>${xml.slice(
+      openEnd + 1
+    )}`;
+  }
+
+  const close = matchingModuleClose(xml, start);
+  const closeStart = close - "</module>".length;
+  const closeLineStart = xml.lastIndexOf("\n", closeStart) + 1;
+  const closeIndent = xml.slice(closeLineStart, closeStart);
+  return `${xml.slice(0, closeStart)}${closeIndent}  ${module}\n${xml.slice(
+    closeStart
+  )}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function removeCheckstyleModule(xml: string, name: string): string {

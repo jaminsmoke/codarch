@@ -26,10 +26,21 @@ describe("el catálogo de reglas conocidas", () => {
   });
 
   it("una herramienta sin catálogo lo dice y no inventa", async () => {
-    const catalog = await listLintRules(process.cwd(), "checkstyle");
+    const catalog = await listLintRules(process.cwd(), "go-vet");
     expect(catalog.groups).toEqual([]);
     expect(catalog.source).toBe("active");
     expect(catalog.note).toMatch(/No se puede enumerar/);
+  });
+
+  it("Checkstyle usa su catálogo curado por contenedor", async () => {
+    const catalog = await listLintRules(process.cwd(), "checkstyle");
+    expect(catalog.groups.map((group) => group.plugin)).toEqual([
+      "Checker",
+      "TreeWalker"
+    ]);
+    expect(
+      catalog.groups.find((group) => group.plugin === "TreeWalker")?.rules
+    ).toContain("NeedBraces");
   });
 
   it("Ruff sin binario no inventa su catálogo", async () => {
