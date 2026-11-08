@@ -222,6 +222,11 @@
   --section-tint: var(--debt);
 }
 
+/* El catálogo es configuración, no deuda: su sección no lleva el rojo del lint. */
+.section-lint-config {
+  --section-tint: var(--ink-soft);
+}
+
 .section-metrics {
   --section-tint: var(--ink);
 }
@@ -406,8 +411,8 @@
   max-width: 62%;
   min-width: 0;
   overflow: hidden;
-  font: 600 12px/1.2 var(--sans);
-  letter-spacing: -0.01em;
+  font: 650 14px/1.2 var(--sans);
+  letter-spacing: -0.015em;
   color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
