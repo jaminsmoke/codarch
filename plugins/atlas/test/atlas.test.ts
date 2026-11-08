@@ -1,17 +1,12 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@codarch/render/browser";
-import {
-  boundsOf,
-  buildVolumes,
-  findVolume,
-  lodBoxes,
-  SLAB_HEIGHT
-} from "../volumes";
+import { buildRoom, findFolder, type RoomInput } from "../room";
 import {
   canvasPixelScale,
   colorOf,
   instanceLayout,
+  kindOf,
   parseColor
 } from "../scene";
 
@@ -51,80 +46,85 @@ function folder(
 
 const tree = [
   folder("src", [
-    folder("src/a", [file("src/a/uno.ts", 0), file("src/a/dos.ts", 1)]),
-    file("src/index.ts", 2),
-    folder("src/b", [file("src/b/tres.ts", 3)])
+    folder("src/a", [
+      file("src/a/uno.ts", 0),
+      file("src/a/dos.ts", 1),
+      folder("src/a/sub", [file("src/a/sub/tres.ts", 2)])
+    ]),
+    file("src/index.ts", 3),
+    folder("src/b", [file("src/b/cuatro.ts", 4)])
   ])
 ];
 
-const input = {
+const input: RoomInput = {
   roots: tree,
-  files: [{ risk: 0.1 }, { risk: 0.5 }, { risk: 0 }, { risk: 1 }],
+  files: [
+    { risk: 0.1 },
+    { risk: 0.5 },
+    { risk: 0.3 },
+    { risk: 0 },
+    { risk: 1 }
+  ],
+  focusPath: null,
   colorFor,
   fallbackColor: "#cccccc",
-  width: 1000,
-  height: 700
+  furnitureColor: "#333333",
+  floorColor: "#eeeeee"
 };
 
-const far = {
-  camera: { x: 0, y: 20_000, z: 20_000 },
-  viewportHeight: 600,
-  fov: 0.9
-};
-const near = {
-  camera: { x: 500, y: 120, z: 640 },
-  viewportHeight: 600,
-  fov: 0.9
-};
+describe("la geometría frontal del Atlas", () => {
+  it("en la vista general las carpetas son contenedores y los ficheros hojas", () => {
+    const room = buildRoom(input);
+    const src = room.boxes.find((box) => box.path === "src");
 
-describe("la geometría del Atlas", () => {
-  it("usa la misma jerarquía para cualquier mapa", () => {
-    const docs = buildVolumes({
+    expect(src?.role).toBe("folder");
+    expect(src?.selectable).toBe(true);
+    expect(room.containers).toBe(1);
+    expect(room.sheets).toBe(0);
+  });
+
+  it("los ficheros de la raíz también van a la estantería", () => {
+    const room = buildRoom({
       ...input,
-      roots: [
-        folder("docs", [
-          file("docs/guia.md", 0),
-          folder("docs/en", [file("docs/en/guide.md", 1)])
-        ])
-      ]
+      roots: [...tree, file("README.md", 5)],
+      files: [...input.files, { risk: 0.2 }]
     });
+    const readme = room.boxes.find((box) => box.path === "README.md");
+    expect(readme?.role).toBe("file");
+    expect(readme?.y).toBeGreaterThan(1);
+    expect(room.sheets).toBe(1);
+  });
 
-    expect(docs[0]?.kind).toBe("folder");
+  it("dentro de una carpeta las subcarpetas siguen siendo contenedores", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const sub = room.boxes.find((box) => box.path === "src/a/sub");
+    const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
+
+    expect(sub?.role).toBe("folder");
+    expect(sheet?.role).toBe("file");
+    expect(room.containers).toBe(1);
+    expect(room.sheets).toBe(2);
+  });
+
+  it("las hojas van a las estanterías y no al suelo", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
+    expect(sheet?.y).toBeGreaterThan(1);
+    expect(sheet?.height).toBeLessThan(2);
+  });
+
+  it("el mobiliario no se puede seleccionar", () => {
+    const room = buildRoom(input);
+    const furniture = room.boxes.filter((box) => !box.selectable);
+    expect(furniture.length).toBeGreaterThan(0);
     expect(
-      docs[0]?.children.find((child) => child.path === "docs/guia.md")?.kind
-    ).toBe("file");
-    expect(
-      docs[0]?.children.find((child) => child.path === "docs/en")?.kind
-    ).toBe("folder");
+      furniture.every((box) => box.role === "floor" || box.role === "furniture")
+    ).toBe(true);
   });
 
-  it("de lejos, una carpeta es un contenedor", () => {
-    const boxes = lodBoxes(buildVolumes(input), far);
-    expect(boxes).toHaveLength(1);
-    expect(boxes[0]?.kind).toBe("folder");
-    expect(boxes[0]?.collapsed).toBe(true);
-  });
-
-  it("de cerca, la carpeta se abre y enseña sus ficheros", () => {
-    const boxes = lodBoxes(buildVolumes(input), near);
-    const floor = boxes.find((box) => box.path === "src");
-    expect(floor?.kind).toBe("folder");
-    expect(floor?.collapsed).toBe(false);
-    expect(floor?.height).toBe(SLAB_HEIGHT);
-    expect(boxes.some((box) => box.path === "src/index.ts")).toBe(true);
-  });
-
-  it("mide el mapa para encuadrarlo", () => {
-    const bounds = boundsOf(buildVolumes(input));
-    expect(bounds.radius).toBeGreaterThan(0);
-    expect(bounds.cx).toBeGreaterThan(0);
-  });
-
-  it("encuentra una carpeta para entrar en ella", () => {
-    const roots = buildVolumes(input);
-    expect(findVolume(roots, "src/a")?.kind).toBe("folder");
-    expect(findVolume(roots, "src/index.ts")?.kind).toBe("file");
-    expect(findVolume(roots, "no/existe")).toBeNull();
+  it("encuentra una carpeta para entrar", () => {
+    expect(findFolder(tree, "src/a")?.kind).toBe("folder");
+    expect(findFolder(tree, "no/existe")).toBeNull();
   });
 });
 
@@ -137,11 +137,18 @@ describe("la escena del Atlas", () => {
     ]);
   });
 
+  it("distingue contenedores, hojas, suelo y mobiliario", () => {
+    expect(kindOf("folder")).toBe(1);
+    expect(kindOf("file")).toBe(0);
+    expect(kindOf("floor")).toBe(2);
+    expect(kindOf("furniture")).toBe(3);
+  });
+
   it("marca las carpetas para dibujar sus aristas", () => {
-    const folderBox = instanceLayout(
+    const layout = instanceLayout(
       {
         path: "src",
-        kind: "folder",
+        role: "folder",
         x: 0,
         y: 0,
         z: 0,
@@ -149,35 +156,18 @@ describe("la escena del Atlas", () => {
         height: 5,
         depth: 10,
         color: "#ffffff",
-        collapsed: true
+        selectable: true
       },
       null
     );
-    const fileBox = instanceLayout(
-      {
-        path: "src/a.ts",
-        kind: "file",
-        x: 0,
-        y: 0,
-        z: 0,
-        width: 10,
-        height: 5,
-        depth: 10,
-        color: "#ffffff",
-        collapsed: false
-      },
-      null
-    );
-
-    expect(folderBox.kind).toBe(1);
-    expect(fileBox.kind).toBe(0);
+    expect(layout.kind).toBe(1);
   });
 
   it("mezcla el color de selección", () => {
     const color = colorOf(
       {
         path: "src/a.ts",
-        kind: "file",
+        role: "file",
         x: 0,
         y: 0,
         z: 0,
@@ -185,7 +175,7 @@ describe("la escena del Atlas", () => {
         height: 5,
         depth: 10,
         color: "#000000",
-        collapsed: false
+        selectable: true
       },
       "src/a.ts"
     );

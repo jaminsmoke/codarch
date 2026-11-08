@@ -12,7 +12,8 @@ sidebar:
 **Estado:** aceptado · **Fecha:** 2026-11-08
 
 **Nota:** el [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md) retira `vista-3d`; el Atlas es la
-única vista 3D del producto.
+única vista 3D del producto. El [ADR 0115](0115-el-atlas-frontal.md) rehace su layout aéreo por uno
+frontal de contenedores y salas.
 
 **Enmarca** una segunda vista dentro del contrato del [ADR 0028](0021-0030/0028-los-plugins.md)
 y sigue la línea del [ADR 0055](0051-0060/0055-el-3d-se-dibuja-con-webgl2.md): WebGL2 propio, sin

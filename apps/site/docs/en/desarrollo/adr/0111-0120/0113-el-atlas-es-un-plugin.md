@@ -12,7 +12,8 @@ sidebar:
 **Status:** accepted · **Date:** 2026-11-08
 
 **Note:** [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md) removes `vista-3d`; Atlas is the only
-3D view in the product.
+3D view in the product. [ADR 0115](0115-el-atlas-frontal.md) reworks its aerial layout into a
+front-facing one with containers and rooms.
 
 **Frames** a second view inside the contract of [ADR 0028](0021-0030/0028-los-plugins.md) and follows
 the line of [ADR 0055](0051-0060/0055-el-3d-se-dibuja-con-webgl2.md): custom WebGL2, no `three`.

@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { VIEW_HEIGHT, VIEW_WIDTH } from "@codarch/render/browser";
 import type { PluginContext } from "@codarch/plugin-api";
 import { mountScene, type Scene, type SceneBackend } from "./scene";
-import { buildVolumes, type Volume } from "./volumes";
+import { buildRoom } from "./room";
 
 /**
  * La vista Atlas.
  *
- * Usa el `RenderModel` del mapa abierto —código, documentos/configuración o
- * cualquier otro— y levanta su árbol de carpetas y ficheros en 3D. No lee el
- * esquema del código ni guarda una segunda copia de los datos.
+ * No es un plano aéreo: es un zoom frontal. La vista general son contenedores
+ * de carpeta en el suelo y hojas en estanterías. Al entrar en una carpeta, sus
+ * subcarpetas siguen siendo contenedores y sus ficheros pasan a las estanterías
+ * de la sala.
  */
-
 function themeColor(name: string, fallback: string): string {
   if (typeof window === "undefined") return fallback;
   const value = getComputedStyle(document.documentElement)
@@ -33,7 +32,6 @@ export function AtlasView({ context }: { context: PluginContext }) {
   const sceneRef = useRef<Scene | null>(null);
   const [runtime, setRuntime] = useState<Runtime>("pending");
   const [boxes, setBoxes] = useState(0);
-  const [containers, setContainers] = useState(0);
 
   const latest = useRef(context);
   // La escena lee el contexto por referencia: seleccionar no debe remontarla.
@@ -42,39 +40,39 @@ export function AtlasView({ context }: { context: PluginContext }) {
 
   const model = context.model;
   const colorMode = context.preferences.colorMode;
+  const focusPath = context.url.read().focusPath;
 
-  const volumes = useMemo<Volume[]>(() => {
-    if (!model) return [];
+  const room = useMemo(() => {
+    if (!model) return null;
     // eslint-disable-next-line react-hooks/refs -- `colorFor` se lee por referencia a propósito
-    return buildVolumes({
+    return buildRoom({
       roots: model.roots,
       files: model.files,
+      focusPath,
       colorFor: (index) => latest.current.colorFor(index),
       fallbackColor: themeColor("--muted", "#98a2ad"),
-      width: VIEW_WIDTH,
-      height: VIEW_HEIGHT
+      furnitureColor: themeColor("--line", "#3a4652"),
+      floorColor: themeColor("--paper", "#eef1f2")
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- colorMode cambia los colores aunque se lea por referencia
-  }, [model, colorMode]);
+  }, [model, colorMode, focusPath]);
 
   const selection = context.selection;
-  const focusPath = context.url.read().focusPath;
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || volumes.length === 0) return;
+    if (!canvas || !room) return;
 
     setRuntime("pending");
     const scene = mountScene(canvas, {
-      roots: volumes,
+      room,
       selected: latest.current.selection,
       background: themeColor("--paper", "#eef1f2"),
       onSelect: (path) => latest.current.actions.select(path),
       onFocus: (path) => latest.current.actions.focus(path),
       onBackend: (backend) => setRuntime(backend),
       onError: () => setRuntime("error"),
-      onBoxes: (count) => setBoxes(count),
-      onContainers: (count) => setContainers(count)
+      onBoxes: (count) => setBoxes(count)
     });
     sceneRef.current = scene;
 
@@ -82,17 +80,13 @@ export function AtlasView({ context }: { context: PluginContext }) {
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [volumes]);
+  }, [room]);
 
   useEffect(() => {
     sceneRef.current?.setSelected(selection);
   }, [selection]);
 
-  useEffect(() => {
-    sceneRef.current?.focus(focusPath);
-  }, [focusPath, volumes]);
-
-  if (!model) {
+  if (!model || !room) {
     return (
       <div className="atlas atlas-empty">
         <strong>Atlas</strong>
@@ -129,16 +123,18 @@ export function AtlasView({ context }: { context: PluginContext }) {
         </span>
         <span aria-hidden="true">·</span>
         <span>
-          <strong>{containers}</strong> contenedores
+          <strong>{room.containers}</strong> contenedores
         </span>
+        <span aria-hidden="true">·</span>
+        <span>{room.sheets} hojas</span>
         <span aria-hidden="true">·</span>
         <span>{boxes} volúmenes</span>
         <span aria-hidden="true">·</span>
         <span className="atlas-runtime">{runtimeLabel(runtime)}</span>
       </div>
       <div className="atlas-hint">
-        arrastra para orbitar · rueda para acercar · clic en una carpeta para
-        entrar · clic en un fichero para seleccionarlo
+        arrastra para mirar · rueda para acercar · clic en un contenedor para
+        entrar · clic en una hoja para seleccionarla
       </div>
       {runtime === "error" ? (
         <div className="atlas-error" role="alert">
