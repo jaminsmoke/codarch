@@ -123,6 +123,8 @@ export function InspectorDock({
             onColorMode={actions.setColorMode}
             onLintRule={actions.setLintRule}
             onListRules={actions.listLintRules}
+            onUndoRule={actions.undoLintRule}
+            onRecommendations={actions.lintRecommendations}
             canEditLint={app.canEditLint}
           />
         ) : state.tab === "folder" ? (
@@ -141,6 +143,8 @@ export function InspectorDock({
             onScopeChanges={actions.scopeChanges}
             onLintRule={actions.setLintRule}
             onListRules={actions.listLintRules}
+            onUndoRule={actions.undoLintRule}
+            onRecommendations={actions.lintRecommendations}
             canEditLint={app.canEditLint}
           />
         ) : state.tab === "project" ? (
@@ -156,6 +160,8 @@ export function InspectorDock({
             onSelectFolder={actions.selectFolder}
             onLintRule={actions.setLintRule}
             onListRules={actions.listLintRules}
+            onUndoRule={actions.undoLintRule}
+            onRecommendations={actions.lintRecommendations}
             canEditLint={app.canEditLint}
           />
         ) : (

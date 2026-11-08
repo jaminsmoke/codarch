@@ -7,6 +7,7 @@ import {
   type LintRuleChange,
   type LintRuleResult,
   type Platform,
+  type RecommendedRule,
   type RuleCatalog,
   type SavedProject
 } from "@codarch/ui";
@@ -84,16 +85,20 @@ export function platformWeb(): Platform {
       window.location.href = vscodeUri(root, request.path, request.line);
       return true;
     },
-    setLintRule: async (change: LintRuleChange): Promise<LintRuleResult> => {
+    setLintRule: async (
+      change: LintRuleChange,
+      preview = false
+    ): Promise<LintRuleResult> => {
       try {
         const response = await fetch("api/lint-rule", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(change)
+          body: JSON.stringify({ ...change, preview })
         });
         const body = (await response.json().catch(() => null)) as {
           error?: unknown;
           path?: unknown;
+          diff?: unknown;
         } | null;
         if (!response.ok) {
           return {
@@ -106,12 +111,40 @@ export function platformWeb(): Platform {
         }
         return {
           ok: true,
-          ...(typeof body?.path === "string" ? { path: body.path } : {})
+          ...(typeof body?.path === "string" ? { path: body.path } : {}),
+          ...(typeof body?.diff === "string" ? { diff: body.diff } : {})
         };
       } catch (error) {
         return {
           ok: false,
           error: `no se pudo escribir la configuración: ${(error as Error).message}`
+        };
+      }
+    },
+    undoLintRule: async (path: string): Promise<LintRuleResult> => {
+      try {
+        const response = await fetch("api/lint-rule/undo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path })
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: unknown;
+        } | null;
+        if (!response.ok) {
+          return {
+            ok: false,
+            error:
+              typeof body?.error === "string"
+                ? body.error
+                : `el servidor respondió ${response.status}`
+          };
+        }
+        return { ok: true, path };
+      } catch (error) {
+        return {
+          ok: false,
+          error: `no se pudo deshacer: ${(error as Error).message}`
         };
       }
     },
@@ -122,6 +155,14 @@ export function platformWeb(): Platform {
       if (!raw || typeof raw !== "object") return null;
       const catalog = raw as RuleCatalog;
       return Array.isArray(catalog.groups) ? catalog : null;
+    },
+    lintRecommendations: async (): Promise<
+      Record<string, RecommendedRule[]> | null
+    > => {
+      const raw = await fetchJson("api/lint-recommendations");
+      return raw && typeof raw === "object"
+        ? (raw as Record<string, RecommendedRule[]>)
+        : null;
     },
     history: async () => historyEntries(await fetchJson("data/history.json")),
     heat: async () => symbolHeat(await fetchJson("data/chains.json")),

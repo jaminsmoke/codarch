@@ -46,13 +46,20 @@ quedar viejo si la config cambia por fuera, porque el checksum del árbol de có
 3. **Catálogo de reglas conocidas.** Cada adaptador puede listar sus reglas para el menú de añadir:
    - ESLint: las del núcleo y las de los plugins que resuelve la config del proyecto.
    - Oxlint: las del esquema de la versión instalada.
+   - Checkstyle: un catálogo curado de módulos con su contenedor (`Checker` o `TreeWalker`); un
+     módulo desconocido se rechaza porque no se puede adivinar dónde cuelga.
    - Si una herramienta no puede enumerarlas, el menú solo ofrece las activas y las recomendadas y lo
      dice; no se inventa un catálogo.
 
 4. **La UI es un gestor.** Las activas se quitan; las recomendadas y las del catálogo se añaden. El
    menú de añadir es buscable y agrupa por plugin; al añadir se elige la severidad (`error` o `warn`,
-   por defecto `error`). Cada cambio enseña fichero y diff antes de escribir, y después se vuelve a
-   lintar.
+   por defecto `error`). Cada cambio se previsualiza sin tocar el disco y se confirma con fichero y
+   diff; después se vuelve a lintar. La última escritura de cada config se puede deshacer desde el
+   aviso: ese estado vive en memoria del servidor y nunca en `.codarch/`.
+
+   Las recomendadas parten de la base de la herramienta y añaden reglas por señales seguras del
+   proyecto (React, TypeScript, pruebas). Si el catálogo real está disponible, las reglas extra se
+   filtran contra él; no se recomienda una regla que la config no pueda resolver.
 
 5. **El informe no diverge.** El artefacto gana una huella opcional de la config del lint (`meta.config`)
    dentro del contrato **1.3**; un lector anterior la ignora y un artefacto sin ella se lee igual. Un
@@ -93,6 +100,8 @@ Sin fase nueva.
 - ✅ El escritor de Biome en JSON.
 - ✅ El escritor de Ruff en TOML, con `ruff rule` para el catálogo.
 - ✅ Checkstyle: quitar módulos del XML y activar los de su catálogo curado en su contenedor.
-- ⬜ Ampliar el catálogo de Checkstyle a módulos desconocidos.
+- ✅ Previsualizar el cambio sin escribir, con diff, y deshacer la última escritura.
+- ✅ Recomendaciones por señales del proyecto, filtradas contra el catálogo real.
+- ✅ Ampliar el catálogo curado de Checkstyle; los módulos desconocidos siguen rechazándose.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

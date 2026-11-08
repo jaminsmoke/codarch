@@ -43,11 +43,15 @@ const artifact: LintArtifact = {
 };
 
 function section(
-  onRuleChange?: () => Promise<{ ok: boolean; path?: string }>,
+  onRuleChange?: (
+    change?: unknown,
+    preview?: boolean
+  ) => Promise<{ ok: boolean; path?: string; diff?: string }>,
   onListRules?: () => Promise<{
     system: string;
     groups: { plugin: string; rules: string[] }[];
     source: "project";
+    note?: string;
   }>
 ) {
   return createElement(LintConfigSection, {
@@ -72,7 +76,8 @@ describe("editar reglas desde la ficha", () => {
   it("activa una recomendada que no está en la config", async () => {
     const onRuleChange = vi.fn(async () => ({
       ok: true,
-      path: ".oxlintrc.json"
+      path: ".oxlintrc.json",
+      diff: "- old\n+ new"
     }));
     render(section(onRuleChange));
 
@@ -86,18 +91,38 @@ describe("editar reglas desde la ficha", () => {
     );
 
     await waitFor(() =>
-      expect(onRuleChange).toHaveBeenCalledWith({
-        system: "oxlint",
-        rule: "no-eval",
-        severity: "error"
-      })
+      expect(onRuleChange).toHaveBeenCalledWith(
+        {
+          system: "oxlint",
+          rule: "no-eval",
+          severity: "error"
+        },
+        true
+      )
+    );
+    expect(screen.getByText(/\+ new/)).toBeTruthy();
+
+    const confirm = screen.getByRole("alert");
+    fireEvent.click(
+      within(confirm).getByRole("button", { name: "Activar" })
+    );
+    await waitFor(() =>
+      expect(onRuleChange).toHaveBeenCalledWith(
+        {
+          system: "oxlint",
+          rule: "no-eval",
+          severity: "error"
+        },
+        false
+      )
     );
   });
 
   it("desactiva una regla con confirmación y muestra el archivo", async () => {
     const onRuleChange = vi.fn(async () => ({
       ok: true,
-      path: ".oxlintrc.json"
+      path: ".oxlintrc.json",
+      diff: "- old\n+ new"
     }));
     render(section(onRuleChange));
 
@@ -106,17 +131,26 @@ describe("editar reglas desde la ficha", () => {
       screen.getByRole("button", { name: "Desactivar no-var" })
     );
 
+    await waitFor(() =>
+      expect(onRuleChange).toHaveBeenCalledWith(
+        { system: "oxlint", rule: "no-var", severity: null },
+        true
+      )
+    );
     expect(screen.getByText(/¿Desactivar/)).toBeTruthy();
     expect(screen.getAllByText(".oxlintrc.json").length).toBeGreaterThan(0);
+    expect(screen.getByText(/\+ new/)).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("button", { name: "Desactivar" }));
+    const confirm = screen.getByRole("alert");
+    fireEvent.click(
+      within(confirm).getByRole("button", { name: "Desactivar" })
+    );
 
     await waitFor(() =>
-      expect(onRuleChange).toHaveBeenCalledWith({
-        system: "oxlint",
-        rule: "no-var",
-        severity: null
-      })
+      expect(onRuleChange).toHaveBeenCalledWith(
+        { system: "oxlint", rule: "no-var", severity: null },
+        false
+      )
     );
   });
 
@@ -134,7 +168,8 @@ describe("editar reglas desde la ficha", () => {
   it("añade una regla desde el catálogo buscable", async () => {
     const onRuleChange = vi.fn(async () => ({
       ok: true,
-      path: ".oxlintrc.json"
+      path: ".oxlintrc.json",
+      diff: "- old\n+ new"
     }));
     const onListRules = vi.fn(async () => ({
       system: "oxlint",
@@ -152,11 +187,52 @@ describe("editar reglas desde la ficha", () => {
     fireEvent.click(screen.getByRole("button", { name: /no-eval/ }));
 
     await waitFor(() =>
-      expect(onRuleChange).toHaveBeenCalledWith({
-        system: "oxlint",
-        rule: "no-eval",
-        severity: "error"
-      })
+      expect(onRuleChange).toHaveBeenCalledWith(
+        {
+          system: "oxlint",
+          rule: "no-eval",
+          severity: "error"
+        },
+        true
+      )
     );
+    const confirm = screen.getByRole("alert");
+    fireEvent.click(
+      within(confirm).getByRole("button", { name: "Activar" })
+    );
+    await waitFor(() =>
+      expect(onRuleChange).toHaveBeenCalledWith(
+        {
+          system: "oxlint",
+          rule: "no-eval",
+          severity: "error"
+        },
+        false
+      )
+    );
+  });
+
+  it("explica el catálogo vacío en vez de decir que no hay coincidencias", async () => {
+    const onRuleChange = vi.fn(async () => ({
+      ok: true,
+      path: ".oxlintrc.json"
+    }));
+    const onListRules = vi.fn(async () => ({
+      system: "oxlint",
+      groups: [],
+      source: "project" as const,
+      note: "El catálogo curado solo incluye módulos conocidos."
+    }));
+    render(section(onRuleChange, onListRules));
+
+    fireEvent.click(screen.getByRole("button", { name: /^oxlint/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Añadir regla" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("El catálogo curado solo incluye módulos conocidos.")
+      ).toBeTruthy()
+    );
+    expect(screen.queryByText("No hay reglas que coincidan.")).toBeNull();
   });
 });

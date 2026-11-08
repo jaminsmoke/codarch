@@ -1,4 +1,4 @@
-import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
+import type { LintArtifact, RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import type { LintRuleChange, LintRuleResult } from "../platform";
@@ -53,6 +53,8 @@ export function FolderPanel({
   onScopeChanges,
   onLintRule,
   onListRules,
+  onUndoRule,
+  onRecommendations,
   canEditLint = false
 }: {
   folder: TreeNode | null;
@@ -75,9 +77,16 @@ export function FolderPanel({
   /** Acota la pestaña de cambios a esta carpeta y la abre. */
   onScopeChanges: (path: string) => void;
   /** Escribe una regla en la config del proyecto (ADR 0111). */
-  onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  onLintRule?: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
   /** Enumera las reglas conocidas de una herramienta (ADR 0112). */
   onListRules?: (system: string) => Promise<RuleCatalog | null>;
+  /** Deshace la última escritura de una config (ADR 0112). */
+  onUndoRule?: (path: string) => Promise<LintRuleResult>;
+  /** Recomendaciones generales y por proyecto (ADR 0112). */
+  onRecommendations?: () => Promise<Record<string, RecommendedRule[]> | null>;
   /** La plataforma puede escribir la config. */
   canEditLint?: boolean;
 }) {
@@ -235,6 +244,8 @@ export function FolderPanel({
           title="Lint"
           onRuleChange={onLintRule}
           onListRules={onListRules}
+          onUndoRule={onUndoRule}
+          onRecommendations={onRecommendations}
           canEdit={canEditLint}
         />
       ) : null}

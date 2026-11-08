@@ -1,4 +1,4 @@
-import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
+import type { LintArtifact, RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import type { LintRuleChange, LintRuleResult } from "../platform";
 import { LintSection } from "../LintSection";
@@ -31,6 +31,8 @@ export function ProjectPanel({
   onSelectFolder,
   onLintRule,
   onListRules,
+  onUndoRule,
+  onRecommendations,
   canEditLint = false
 }: {
   model: RenderModel | null;
@@ -50,6 +52,10 @@ export function ProjectPanel({
   onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
   /** Enumera las reglas conocidas de una herramienta (ADR 0112). */
   onListRules?: (system: string) => Promise<RuleCatalog | null>;
+  /** Deshace la última escritura de una config (ADR 0112). */
+  onUndoRule?: (path: string) => Promise<LintRuleResult>;
+  /** Recomendaciones generales y por proyecto (ADR 0112). */
+  onRecommendations?: () => Promise<Record<string, RecommendedRule[]> | null>;
   /** La plataforma puede escribir la config. */
   canEditLint?: boolean;
 }) {
@@ -98,6 +104,8 @@ export function ProjectPanel({
           title="Lint"
           onRuleChange={onLintRule}
           onListRules={onListRules}
+          onUndoRule={onUndoRule}
+          onRecommendations={onRecommendations}
           canEdit={canEditLint}
         />
       ) : (
