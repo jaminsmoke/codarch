@@ -17,7 +17,6 @@ const CHECKER: readonly string[] = [
   "LineLength",
   "MultiFileRegexpHeader",
   "NewlineAtEndOfFile",
-  "NoCodeInFile",
   "OrderedProperties",
   "RegexpHeader",
   "RegexpMultiline",
@@ -25,6 +24,7 @@ const CHECKER: readonly string[] = [
   "RegexpSingleline",
   "SeverityMatchFilter",
   "SuppressWithNearbyCommentFilter",
+  "SuppressWithNearbyTextFilter",
   "SuppressWithPlainTextCommentFilter",
   "SuppressWarningsFilter",
   "SuppressionCommentFilter",
@@ -32,6 +32,7 @@ const CHECKER: readonly string[] = [
   "SuppressionSingleFilter",
   "SuppressionXpathFilter",
   "SuppressionXpathSingleFilter",
+  "Translation",
   "UniqueProperties"
 ];
 
@@ -65,7 +66,6 @@ const TREE_WALKER: readonly string[] = [
   "InnerTypeLast",
   "InterfaceIsType",
   "JavadocMethod",
-  "JavadocStyle",
   "JavadocType",
   "JavadocVariable",
   "LeftCurly",
@@ -171,6 +171,7 @@ const TREE_WALKER: readonly string[] = [
   "NestedIfDepth",
   "NestedTryDepth",
   "NoClone",
+  "NoCodeInFile",
   "NoFinalizer",
   "NoWhitespaceBeforeCaseDefaultColon",
   "NonEmptyAtclauseDescription",
