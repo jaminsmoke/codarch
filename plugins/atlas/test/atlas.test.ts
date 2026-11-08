@@ -195,6 +195,14 @@ describe("la geometría frontal del Atlas", () => {
     expect(beam?.width).toBeGreaterThan(room.width);
   });
 
+  it("los detalles del archivador quedan marcados para el LOD", () => {
+    const room = buildRoom(input);
+    const details = room.boxes.filter((box) => box.detail);
+
+    expect(details.length).toBeGreaterThan(0);
+    expect(details.every((box) => !box.selectable)).toBe(true);
+  });
+
   it("el mobiliario no se puede seleccionar", () => {
     const room = buildRoom(input);
     const furniture = room.boxes.filter((box) => !box.selectable);

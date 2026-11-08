@@ -142,6 +142,8 @@ export interface OrbitControls {
   pose(): OrbitPose;
   /** Mueve el objetivo y, si se pide, la distancia. */
   setTarget(target: Point, distance?: number): void;
+  /** Vuelve a una vista concreta (ángulos, objetivo y distancia). */
+  setView(state: OrbitState, target: Point): void;
   /** Suelta los eventos ✓. */
   dispose(): void;
 }
@@ -283,6 +285,13 @@ export function createOrbitControls(
           limits
         ).distance;
       }
+    },
+    setView(state: OrbitState, nextTarget: Point): void {
+      target = { ...nextTarget };
+      Object.assign(
+        desired,
+        clampOrbit({ ...state }, limits)
+      );
     },
     dispose(): void {
       canvas.removeEventListener("pointerdown", onPointerDown);

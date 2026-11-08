@@ -135,6 +135,34 @@
   max-width: min(70%, 620px);
 }
 
+.atlas-camera {
+  position: absolute;
+  right: 16px;
+  bottom: 72px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--atlas-line);
+  border-radius: 5px;
+  background: var(--atlas-panel);
+}
+
+.atlas-camera button {
+  min-width: 22px;
+  padding: 3px 7px;
+  border: 1px solid var(--atlas-line);
+  border-radius: 4px;
+  background: #101820;
+  color: var(--atlas-text);
+  font: 500 10px/1.2 var(--sans);
+  cursor: pointer;
+}
+
+.atlas-camera button:hover {
+  border-color: var(--atlas-accent);
+  color: var(--atlas-accent);
+}
+
 .atlas-error {
   position: absolute;
   inset: 0;

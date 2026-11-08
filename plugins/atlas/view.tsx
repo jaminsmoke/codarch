@@ -174,6 +174,31 @@ export function AtlasView({ context }: { context: PluginContext }) {
     sceneRef.current?.setSelected(selection);
   }, [selection]);
 
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        /^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName ?? "")
+      ) {
+        return;
+      }
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        sceneRef.current?.zoom(0.88);
+      } else if (event.key === "-") {
+        event.preventDefault();
+        sceneRef.current?.zoom(1.14);
+      } else if (event.key === "0" || event.key.toLowerCase() === "r") {
+        event.preventDefault();
+        sceneRef.current?.resetView();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   if (!model || !room) {
     return (
       <div className="atlas atlas-empty">
@@ -226,9 +251,35 @@ export function AtlasView({ context }: { context: PluginContext }) {
         <span aria-hidden="true">·</span>
         <span className="atlas-runtime">{runtimeLabel(runtime)}</span>
       </div>
+      <div className="atlas-camera" role="group" aria-label="Cámara">
+        <button
+          type="button"
+          onClick={() => sceneRef.current?.zoom(1.14)}
+          title="Alejar (−)"
+          aria-label="Alejar la cámara"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={() => sceneRef.current?.resetView()}
+          title="Centrar la vista (0)"
+          aria-label="Centrar la vista"
+        >
+          Centrar
+        </button>
+        <button
+          type="button"
+          onClick={() => sceneRef.current?.zoom(0.88)}
+          title="Acercar (+)"
+          aria-label="Acercar la cámara"
+        >
+          +
+        </button>
+      </div>
       <div className="atlas-hint">
-        arrastra para mirar · rueda para acercar · clic en un contenedor para
-        entrar · clic en una hoja para seleccionarla
+        arrastra para mirar · rueda o +/− para acercar · 0 centrar · clic en
+        un contenedor para entrar · clic en una hoja para seleccionarla
       </div>
       {openFile && openFile.focusPath === focusPath ? (
         <AtlasFileView
