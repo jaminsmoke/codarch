@@ -140,6 +140,8 @@ export interface OrbitControls {
   update(): boolean;
   /** La cámara de ahora ✓: posición y objetivo ✓. */
   pose(): OrbitPose;
+  /** Mueve el objetivo y, si se pide, la distancia. */
+  setTarget(target: Point, distance?: number): void;
   /** Suelta los eventos ✓. */
   dispose(): void;
 }
@@ -159,7 +161,7 @@ export function createOrbitControls(
   canvas: HTMLElement,
   options: OrbitControlsOptions = {}
 ): OrbitControls {
-  const target: Point = options.target ?? { x: 0, y: 0, z: 0 };
+  let target: Point = options.target ?? { x: 0, y: 0, z: 0 };
   const limits = options.limits ?? ORBIT_LIMITS;
   const desired: OrbitState = { ...(options.start ?? ORBIT_START) };
   let current: OrbitState = { ...desired };
@@ -272,6 +274,15 @@ export function createOrbitControls(
     },
     pose(): OrbitPose {
       return { position: orbitPosition(current, target), target: { ...target } };
+    },
+    setTarget(next: Point, distance?: number): void {
+      target = { ...next };
+      if (distance !== undefined) {
+        desired.distance = clampOrbit(
+          { ...desired, distance },
+          limits
+        ).distance;
+      }
     },
     dispose(): void {
       canvas.removeEventListener("pointerdown", onPointerDown);

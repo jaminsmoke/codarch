@@ -6,7 +6,7 @@ import {
   type Point
 } from "./orbit";
 import { lookAt, perspective, pickBox, rayFromNdc } from "./camera";
-import { boundsOf, lodBoxes, type DrawnBox, type Volume } from "./volumes";
+import { boundsOf, findVolume, lodBoxes, type DrawnBox, type Volume } from "./volumes";
 
 /**
  * El escenario del Atlas.
@@ -37,6 +37,8 @@ export interface SceneOptions {
 
 export interface Scene {
   setSelected(path: string | null): void;
+  /** Entra en una carpeta o vuelve al atlas entero. */
+  focus(path: string | null): void;
   dispose(): void;
 }
 
@@ -302,6 +304,7 @@ export function mountScene(
     options.onError?.();
     return {
       setSelected: () => undefined,
+      focus: () => undefined,
       dispose: () => undefined
     };
   }
@@ -607,6 +610,33 @@ export function mountScene(
     requestRender();
   };
 
+  const focus = (path: string | null): void => {
+    const volume = path ? findVolume(options.roots, path) : null;
+    if (!volume) {
+      controls.setTarget(target, fit);
+    } else {
+      const radius = Math.max(
+        8,
+        Math.hypot(volume.width, volume.depth, volume.height) / 2
+      );
+      const distance = Math.max(
+        Math.max(18, fit * 0.04),
+        fitDistance(radius, fov, aspect, 1.35)
+      );
+      controls.setTarget(
+        {
+          x: volume.x + volume.width / 2,
+          y: volume.height * 0.35,
+          z: volume.z + volume.depth / 2
+        },
+        distance
+      );
+    }
+    lastCamera = null;
+    refresh(controls.pose().position, true);
+    requestRender();
+  };
+
   canvas.addEventListener("webglcontextlost", onContextLost);
   canvas.addEventListener("webglcontextrestored", onContextRestored);
   const observer = new ResizeObserver(resize);
@@ -627,6 +657,7 @@ export function mountScene(
       selected = path;
       repaint();
     },
+    focus,
     dispose(): void {
       disposed = true;
       cancelAnimationFrame(frame);

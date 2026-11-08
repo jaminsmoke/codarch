@@ -265,3 +265,16 @@ export function countVolumes(roots: readonly Volume[]): number {
   for (const root of roots) total += 1 + countVolumes(root.children);
   return total;
 }
+
+/** El volumen de una ruta, o `null` si no está en el árbol. */
+export function findVolume(
+  roots: readonly Volume[],
+  path: string
+): Volume | null {
+  for (const root of roots) {
+    if (root.path === path) return root;
+    const child = findVolume(root.children, path);
+    if (child) return child;
+  }
+  return null;
+}

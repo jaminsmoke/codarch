@@ -58,6 +58,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
   }, [model, colorMode]);
 
   const selection = context.selection;
+  const focusPath = context.url.read().focusPath;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -87,6 +88,10 @@ export function AtlasView({ context }: { context: PluginContext }) {
     sceneRef.current?.setSelected(selection);
   }, [selection]);
 
+  useEffect(() => {
+    sceneRef.current?.focus(focusPath);
+  }, [focusPath, volumes]);
+
   if (!model) {
     return (
       <div className="atlas atlas-empty">
@@ -95,8 +100,6 @@ export function AtlasView({ context }: { context: PluginContext }) {
       </div>
     );
   }
-
-  const focusPath = context.url.read().focusPath;
 
   return (
     <div className="atlas">
@@ -110,6 +113,14 @@ export function AtlasView({ context }: { context: PluginContext }) {
           <span>Atlas</span>
           <span aria-hidden="true">/</span>
           <span className="mono">{focusPath}</span>
+          <button
+            type="button"
+            className="atlas-back"
+            onClick={() => context.url.write({ focusPath: null })}
+            title="Volver al atlas entero"
+          >
+            Volver
+          </button>
         </div>
       ) : null}
       <div className="atlas-hud">

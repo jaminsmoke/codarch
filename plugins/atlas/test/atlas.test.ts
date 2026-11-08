@@ -4,6 +4,7 @@ import type { TreeNode } from "@codarch/render/browser";
 import {
   boundsOf,
   buildVolumes,
+  findVolume,
   lodBoxes,
   SLAB_HEIGHT
 } from "../volumes";
@@ -117,6 +118,13 @@ describe("la geometría del Atlas", () => {
     const bounds = boundsOf(buildVolumes(input));
     expect(bounds.radius).toBeGreaterThan(0);
     expect(bounds.cx).toBeGreaterThan(0);
+  });
+
+  it("encuentra una carpeta para entrar en ella", () => {
+    const roots = buildVolumes(input);
+    expect(findVolume(roots, "src/a")?.kind).toBe("folder");
+    expect(findVolume(roots, "src/index.ts")?.kind).toBe("file");
+    expect(findVolume(roots, "no/existe")).toBeNull();
   });
 });
 

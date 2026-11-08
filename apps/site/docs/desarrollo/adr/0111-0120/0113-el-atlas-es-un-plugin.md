@@ -146,7 +146,8 @@ Fase **M77 · El Atlas, un plugin de vista**.
 - ✅ El escenario completo y la vuelta al mapa clásico si no hay WebGL2.
 - ✅ La vista aérea 3D: plano, contenedores de carpeta y cubos de fichero.
 - ✅ La selección y el foco sincronizados con la app en los dos mapas.
-- ⬜ Entrar y salir de una carpeta, con LOD y breadcrumb.
+- ✅ Entrar y salir de una carpeta con foco de cámara y breadcrumb.
+- ⬜ La transición animada entre el atlas y la carpeta.
 - ⬜ Etiquetas legibles y detalle de fichero.
 - ⬜ Corredores y estanterías, si el corte vertical los justifica.
 - ⬜ Rendimiento, movimiento reducido y caída al mapa clásico.
