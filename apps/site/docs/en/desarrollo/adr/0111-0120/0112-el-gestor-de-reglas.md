@@ -90,7 +90,7 @@ No new phase.
 - ✅ `meta.config` as an optional fingerprint inside 1.3.
 - ✅ The Biome writer in JSON.
 - ✅ The Ruff writer in TOML, with `ruff rule` for the catalog.
-- ✅ Checkstyle: removing modules from XML. Enabling waits for the container.
-- ⬜ Enabling Checkstyle modules once their container is known.
+- ✅ Checkstyle: removing modules from XML and enabling the ones in its curated catalog in their container.
+- ⬜ Expanding the Checkstyle catalog to unknown modules.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).

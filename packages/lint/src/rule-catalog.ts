@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { createRequire } from "node:module";
 import path from "node:path";
 import type { RuleCatalog, RuleCatalogGroup } from "./shared";
+import { checkstyleGroups } from "./checkstyle-catalog";
 import { detectLintSystems, parseRuffRuleCatalog } from "./project";
 
 const execFileAsync = promisify(execFile);
@@ -23,6 +24,14 @@ export async function listLintRules(
   if (system === "oxlint") return listOxlintRules(root);
   if (system === "biome") return listBiomeRules(root);
   if (system === "ruff") return listRuffRules(root);
+  if (system === "checkstyle") {
+    return {
+      system,
+      groups: checkstyleGroups(),
+      source: "project",
+      note: "catálogo curado de módulos frecuentes; el resto no se inventa"
+    };
+  }
   return {
     system,
     groups: [],

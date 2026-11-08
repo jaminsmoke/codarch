@@ -228,7 +228,7 @@ function ConfigBody({
                 (system.name === "checkstyle" &&
                   Boolean(system.config?.endsWith(".xml"))));
             const active = new Set(system.activeRules.map((rule) => rule.id));
-            const canAdd = editable && system.name !== "checkstyle";
+            const canAdd = editable;
             const missing = editable
               ? recommendedRules(system.name).filter(
                   (rule) => !active.has(rule.id)
@@ -275,8 +275,8 @@ function ConfigBody({
                   ) : null}
                   {system.name === "checkstyle" && editable ? (
                     <p className="muted tiny lint-system-note">
-                      Checkstyle solo se desactiva por ahora: activar necesita
-                      saber el contenedor del módulo.
+                      Catálogo curado de módulos frecuentes: el resto no se
+                      inventa.
                     </p>
                   ) : null}
                   {system.countState !== "known-complete" ||
@@ -395,6 +395,7 @@ function ConfigBody({
                                     : "error"
                                 )
                               }
+                              hidden={system.name === "checkstyle"}
                             >
                               <option value="error">error</option>
                               <option value="warn">warn</option>

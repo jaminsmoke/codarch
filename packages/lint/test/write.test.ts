@@ -439,15 +439,51 @@ describe("escribir una regla de Checkstyle", () => {
     expect(xml).toContain("FileLength");
   });
 
-  it("no inventa el contenedor para activar", () => {
-    const root = checkstyleRepo('<module name="Checker"/>\n');
+  it("activa un módulo conocido en su contenedor", () => {
+    const root = checkstyleRepo(
+      [
+        '<module name="Checker">',
+        '  <module name="TreeWalker">',
+        '    <module name="UnusedImports"/>',
+        "  </module>",
+        "</module>",
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "checkstyle",
+      rule: "LineLength",
+      severity: "error"
+    });
+    writeLintRule(root, {
+      system: "checkstyle",
+      rule: "NeedBraces",
+      severity: "error"
+    });
+
+    const xml = fs.readFileSync(path.join(root, "checkstyle.xml"), "utf8");
+    expect(xml).toMatch(/Checker[^]*LineLength/);
+    expect(xml).toMatch(/TreeWalker[^]*NeedBraces/);
+    expect(xml).toContain("UnusedImports");
+  });
+
+  it("no inventa el contenedor de un módulo desconocido", () => {
+    const root = checkstyleRepo(
+      [
+        '<module name="Checker">',
+        '  <module name="TreeWalker"/>',
+        "</module>",
+        ""
+      ].join("\n")
+    );
     expect(() =>
       writeLintRule(root, {
         system: "checkstyle",
-        rule: "LineLength",
+        rule: "MysteryCheck",
         severity: "error"
       })
-    ).toThrow(/contenedor/);
+    ).toThrow(/no se conoce el contenedor/);
   });
 
   it("falla si el módulo no está en la config", () => {
