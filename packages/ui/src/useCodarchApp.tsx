@@ -9,7 +9,7 @@ import { useRestoreSelection, useSelection } from "./app/useSelection";
 import { useViewOptions } from "./app/viewOptions";
 import { usePluginBindings } from "./app/pluginBindings";
 import { platformBridges } from "./app/bridges";
-import type { Platform } from "./platform";
+import type { Platform, LintRuleChange, LintRuleResult } from "./platform";
 import type { ViewPreferences } from "./storage";
 import type { InspectorTab } from "./viewState";
 import type {
@@ -334,6 +334,19 @@ export function useCodarchApp(
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });
 
+  const setLintRule = useCallback(
+    async (change: LintRuleChange): Promise<LintRuleResult> => {
+      if (!platform.setLintRule) {
+        return {
+          ok: false,
+          error: "Esta plataforma no puede escribir la configuración del proyecto."
+        };
+      }
+      return platform.setLintRule(change);
+    },
+    [platform]
+  );
+
   useRestoreProject({
     platform,
     loadSnapshot,
@@ -415,6 +428,7 @@ export function useCodarchApp(
     openSymbolChain,
     readCode: bridges.readCode,
     openInEditor: bridges.openInEditor,
+    setLintRule,
     zoomAt,
     panMap,
     fitMap,
@@ -444,6 +458,7 @@ export function useCodarchApp(
   return {
     state,
     actions,
+    canEditLint: Boolean(platform.setLintRule),
     view,
     detail,
     stats,

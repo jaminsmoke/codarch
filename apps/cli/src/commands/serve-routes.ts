@@ -27,7 +27,7 @@ import {
   readHistoryIndex
 } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
-import { LINT_FILE } from "@codarch/lint";
+import { LINT_FILE, writeLintRule } from "@codarch/lint";
 import { chainsPayload } from "./chains-payload";
 import type { Live } from "./serve-live";
 
@@ -175,6 +175,39 @@ async function postRoot(context: RouteContext): Promise<void> {
 }
 
 /** Encender o apagar el live sin reiniciar. */
+/** Activa o desactiva una regla de oxlint en la config del proyecto (ADR 0111). */
+async function postLintRule(context: RouteContext): Promise<void> {
+  const body = await readBody(context.request);
+  const system = readField(body, "system");
+  const rule = readField(body, "rule");
+  const severity = readField(body, "severity");
+  if (
+    typeof system !== "string" ||
+    typeof rule !== "string" ||
+    (severity !== null && severity !== "error" && severity !== "warn")
+  ) {
+    sendError(context.response, 400, "cambio de regla inválido");
+    return;
+  }
+
+  try {
+    const result = writeLintRule(context.live.current().root, {
+      system,
+      rule,
+      severity
+    });
+    context.live.refresh();
+    sendJson(context.response, {
+      ok: true,
+      path: result.path,
+      rule,
+      severity
+    });
+  } catch (error) {
+    sendError(context.response, 400, (error as Error).message);
+  }
+}
+
 async function postWatch(context: RouteContext): Promise<void> {
   const body = await readBody(context.request);
   try {
@@ -376,6 +409,7 @@ function sendEmpty(response: http.ServerResponse): void {
 
 const POST_ROUTES: Record<string, Route> = {
   "/api/root": postRoot,
+  "/api/lint-rule": postLintRule,
   "/api/watch": postWatch
 };
 

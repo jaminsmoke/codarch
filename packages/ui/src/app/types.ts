@@ -13,7 +13,9 @@ import type {
   CodeRequest,
   CodeSnippet,
   EditorRequest,
-  FileDiffView
+  FileDiffView,
+  LintRuleChange,
+  LintRuleResult
 } from "../platform";
 import type { ViewPreferences } from "../storage";
 import type { InspectorTab, ViewState as AppViewState } from "../viewState";
@@ -143,6 +145,8 @@ export interface CodarchAppActions {
   readCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** Abre un fichero en el editor del usuario (ADR 0068). */
   openInEditor: (request: EditorRequest) => Promise<boolean>;
+  /** Activa o desactiva una regla en la config del proyecto (ADR 0111). */
+  setLintRule: (change: LintRuleChange) => Promise<LintRuleResult>;
   /**
    * Carga un snapshot de un fichero o una URL y lo guarda como proyecto.
    *
@@ -190,6 +194,8 @@ export interface CodarchAppActions {
 export interface CodarchApp {
   state: CodarchAppState;
   actions: CodarchAppActions;
+  /** La plataforma puede escribir reglas en la config del proyecto (ADR 0111). */
+  canEditLint: boolean;
   view: { model: RenderModel | null; error: string | null };
   detail: DetailResult | null;
   stats: ReturnType<typeof getStats> | null;

@@ -49,6 +49,19 @@ export interface EditorRequest {
   line: number;
 }
 
+/** Un cambio de regla en la config del proyecto (ADR 0111). */
+export interface LintRuleChange {
+  system: string;
+  rule: string;
+  severity: "error" | "warn" | null;
+}
+
+export interface LintRuleResult {
+  ok: boolean;
+  error?: string;
+  path?: string;
+}
+
 /** Una línea de la vista de diferencias. */
 export interface FileDiffRow {
   type: "same" | "add" | "del" | "gap";
@@ -108,6 +121,8 @@ export interface Platform {
   code?: (request: CodeRequest) => Promise<CodeSnippet | null>;
   /** Abre un fichero en el editor del usuario, si la plataforma puede (ADR 0068). */
   openInEditor?: (request: EditorRequest) => Promise<boolean>;
+  /** Activa o desactiva una regla en la config del proyecto (ADR 0111). */
+  setLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
   /** El diff de un fichero contra el último commit, si lo puede leer (ADR 0077). */
   diff?: (path: string) => Promise<FileDiffView | null>;
   /** La línea del tiempo del repo, si la plataforma la sirve. */
