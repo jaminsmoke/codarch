@@ -82,10 +82,12 @@ outside CodArch, because the code tree checksum does not change.
 No new phase.
 
 - ✅ The decision: managed block and searchable catalog.
-- ⬜ The ESLint AST writer with the managed block and explicit rules.
-- ⬜ The rule catalog per tool (ESLint core and plugins; oxlint).
-- ⬜ The add menu with search and the diff confirmation.
-- ⬜ `meta.config` 1.4 and re-measuring when the config changes.
+- ✅ The ESLint writer with the managed block; explicit rules are covered by an override.
+- ✅ The rule catalog per tool (ESLint core and plugins; oxlint).
+- ✅ The add menu with search, severity and confirmation.
+- ✅ Re-measuring when the lint config changes.
+- ⬜ `meta.config` 1.4 and the config fingerprint in the artifact.
+- ⬜ Removing the explicit line when the AST can locate it safely.
 - ⬜ The Biome, Ruff and Checkstyle writers.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).
