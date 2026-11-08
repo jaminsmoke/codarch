@@ -38,6 +38,7 @@ export interface RoomInput {
   furnitureColor: string;
   floorColor: string;
   wallColor: string;
+  lightColor: string;
 }
 
 export interface Room {
@@ -126,7 +127,7 @@ export function buildRoom(input: RoomInput): Room {
     0
   );
   const sheetBaseY = overview
-    ? SHEET_BASE_Y
+    ? 1.2
     : Math.max(SHEET_BASE_Y, maxFolderHeight + 1.5);
   const fileWallWidth =
     fileColumns * SHEET_WIDTH +
@@ -159,29 +160,41 @@ export function buildRoom(input: RoomInput): Room {
     CONTAINER_START_Z + containerGridDepth + 5,
     fileWallHeight > 0 ? 14 : 0
   );
-  const wallZ = depth - 1.6;
+  const wallZ = overview ? 1.2 : depth - 1.6;
 
   const boxes: AtlasBox[] = [];
   let containers = 0;
   let sheets = 0;
 
-  // Plataforma bajo los contenedores en el overview.
-  if (folders.length > 0 && overview) {
+  // Suelo del overview; la sala añade paredes y techo.
+  if (overview) {
     boxes.push({
       path: null,
       role: "floor",
       x: 0,
       y: -FLOOR_HEIGHT,
-      z: CONTAINER_START_Z + containerGridDepth / 2,
-      width: Math.max(12, containerGridWidth + 5),
-      depth: Math.max(10, containerGridDepth + 5),
+      z: depth / 2,
+      width: width + 6,
+      depth: depth + 6,
       height: FLOOR_HEIGHT,
       color: input.floorColor,
       selectable: false
     });
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: 0,
+      z: depth + 0.8,
+      width: width + 6,
+      depth: 0.4,
+      height: 16,
+      color: input.wallColor,
+      selectable: false
+    });
   }
 
-  // Sala: suelo, paredes y estanterías forman un espacio cerrado.
+  // Sala: suelo, paredes, techo y estanterías forman un espacio cerrado.
   if (!overview) {
     const roomHeight = Math.max(14, fileWallHeight + 3);
     boxes.push({
@@ -220,6 +233,30 @@ export function buildRoom(input: RoomInput): Room {
       depth: 0.4,
       height: roomHeight,
       color: input.wallColor,
+      selectable: false
+    });
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: roomHeight,
+      z: depth / 2,
+      width: width + 4,
+      depth: depth + 4,
+      height: 0.4,
+      color: input.wallColor,
+      selectable: false
+    });
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: roomHeight - 0.55,
+      z: depth / 2,
+      width: width * 0.55,
+      depth: 0.5,
+      height: 0.12,
+      color: input.lightColor,
       selectable: false
     });
   }
