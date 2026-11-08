@@ -11,6 +11,9 @@ sidebar:
 
 **Estado:** aceptado · **Fecha:** 2026-11-08
 
+**Nota:** el [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md) retira `vista-3d`; el Atlas es la
+única vista 3D del producto.
+
 **Enmarca** una segunda vista dentro del contrato del [ADR 0028](0021-0030/0028-los-plugins.md)
 y sigue la línea del [ADR 0055](0051-0060/0055-el-3d-se-dibuja-con-webgl2.md): WebGL2 propio, sin
 `three`.
@@ -39,7 +42,8 @@ El Atlas vive en `plugins/atlas` y se activa desde los ajustes, como cualquier p
 - Si no está activo, o la máquina no tiene WebGL2, se sigue viendo el mapa clásico.
 - La activación es local, como la de los demás plugins; no cambia el análisis.
 
-`vista-3d` se queda como está. Son dos conceptos distintos y deben poder evolucionar por separado.
+`vista-3d` se retira en el [ADR 0114](0114-el-atlas-sustituye-a-la-vista-3d.md); no se mantienen dos
+vistas 3D que compitan. El Atlas ocupa su lugar.
 
 ### 2. Ocupa todo el escenario del mapa
 

@@ -16,9 +16,9 @@ import { boundsOf, lodBoxes, type DrawnBox, type Volume } from "./volumes";
  * se leen como contenedores: cuando están plegadas son un volumen; al acercarse
  * se abren en una losa y sus hijos. Los ficheros son cubos dentro de ellas.
  *
- * La diferencia con `vista-3d` no es solo estética: el Atlas usa una cámara más
- * aérea, una rejilla de referencia y aristas en los contenedores para que la
- * profundidad se lea como un atlas y no como un histograma.
+ * La diferencia con un histograma de cajas no es solo estética: el Atlas usa
+ * una cámara más aérea, una rejilla de referencia y aristas en los contenedores
+ * para que la profundidad se lea como un atlas y no como un gráfico.
  */
 
 export type SceneBackend = "webgl2";

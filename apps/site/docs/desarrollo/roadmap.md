@@ -155,7 +155,7 @@ flowchart TD
 | M12 | La vida de un símbolo | cerrada | [ADR 0026](adr/0021-0030/0026-la-vida-de-un-simbolo.md) |
 | M13 | Los ajustes | cerrada | [ADR 0027](adr/0021-0030/0027-los-ajustes.md) |
 | M14 | Los plugins | cerrada | [ADR 0028](adr/0021-0030/0028-los-plugins.md) |
-| M15 | La vista 3D | cerrada | [ADR 0028](adr/0021-0030/0028-los-plugins.md) |
+| M15 | La vista 3D, retirada en el [ADR 0114](adr/0111-0120/0114-el-atlas-sustituye-a-la-vista-3d.md) | cerrada | [ADR 0028](adr/0021-0030/0028-los-plugins.md) |
 | M16 | Los addons | cerrada | [ADR 0029](adr/0021-0030/0029-los-addons.md) |
 | M17 | Instalar y quitar plugins y addons | cerrada | [ADR 0030](adr/0021-0030/0030-instalar-y-quitar.md) |
 | M18 | Los documentos ordenados | cerrada | [ADR 0031](adr/0031-0040/0031-los-documentos.md) |
