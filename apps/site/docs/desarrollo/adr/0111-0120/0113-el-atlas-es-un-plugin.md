@@ -138,10 +138,10 @@ No es un editor de código, no es un motor de juego y no sustituye al mapa 2D ni
 
 Fase **M77 · El Atlas, un plugin de vista**.
 
-- ⬜ El manifiesto `atlas`, la vista y el registro en el build.
-- ⬜ El escenario completo y la vuelta al mapa clásico si no hay WebGL2.
-- ⬜ La vista aérea 3D: plano, contenedores de carpeta y cubos de fichero.
-- ⬜ La selección y el foco sincronizados con la app en los dos mapas.
+- ✅ El manifiesto `atlas`, la vista y el registro en el build.
+- ✅ El escenario completo y la vuelta al mapa clásico si no hay WebGL2.
+- ✅ La vista aérea 3D: plano, contenedores de carpeta y cubos de fichero.
+- ✅ La selección y el foco sincronizados con la app en los dos mapas.
 - ⬜ Entrar y salir de una carpeta, con LOD y breadcrumb.
 - ⬜ Etiquetas legibles y detalle de fichero.
 - ⬜ Corredores y estanterías, si el corte vertical los justifica.

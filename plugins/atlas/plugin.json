@@ -1,0 +1,13 @@
+{
+  "name": "atlas",
+  "version": "0.1.0",
+  "title": "Atlas",
+  "description": "Un mapa 3D para recorrer la arquitectura en profundidad: carpetas como contenedores y ficheros como objetos.",
+  "icon": "globe",
+  "contributes": {
+    "views": ["atlas"]
+  },
+  "requires": {
+    "webgl2": true
+  }
+}
