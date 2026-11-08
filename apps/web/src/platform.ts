@@ -4,6 +4,8 @@ import {
   type CodeSnippet,
   type EditorRequest,
   type FileDiffView,
+  type LintRuleChange,
+  type LintRuleResult,
   type Platform,
   type SavedProject
 } from "@codarch/ui";
@@ -80,6 +82,37 @@ export function platformWeb(): Platform {
       if (typeof root !== "string" || !root) return false;
       window.location.href = vscodeUri(root, request.path, request.line);
       return true;
+    },
+    setLintRule: async (change: LintRuleChange): Promise<LintRuleResult> => {
+      try {
+        const response = await fetch("api/lint-rule", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(change)
+        });
+        const body = (await response.json().catch(() => null)) as {
+          error?: unknown;
+          path?: unknown;
+        } | null;
+        if (!response.ok) {
+          return {
+            ok: false,
+            error:
+              typeof body?.error === "string"
+                ? body.error
+                : `el servidor respondió ${response.status}`
+          };
+        }
+        return {
+          ok: true,
+          ...(typeof body?.path === "string" ? { path: body.path } : {})
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          error: `no se pudo escribir la configuración: ${(error as Error).message}`
+        };
+      }
     },
     history: async () => historyEntries(await fetchJson("data/history.json")),
     heat: async () => symbolHeat(await fetchJson("data/chains.json")),

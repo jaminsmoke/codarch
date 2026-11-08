@@ -1,5 +1,6 @@
 import type { LintArtifact } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
+import type { LintRuleChange, LintRuleResult } from "../platform";
 import { LintSection } from "../LintSection";
 import { healthSnapshot } from "../lintHealth";
 import { DuplicationSection } from "./DuplicationSection";
@@ -27,7 +28,9 @@ export function ProjectPanel({
   colorMode,
   onColorMode,
   onSelectPath,
-  onSelectFolder
+  onSelectFolder,
+  onLintRule,
+  canEditLint = false
 }: {
   model: RenderModel | null;
   /** El lint de código. El de documentos no se pinta aquí. */
@@ -42,6 +45,10 @@ export function ProjectPanel({
   /** Abre la ficha de un fichero de la lista de pares (M70). */
   onSelectPath: (path: string) => void;
   onSelectFolder: (path: string) => void;
+  /** Escribe una regla en la config del proyecto (ADR 0111). */
+  onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** La plataforma puede escribir la config. */
+  canEditLint?: boolean;
 }) {
   if (!model) return <EmptyProject />;
 
@@ -86,6 +93,8 @@ export function ProjectPanel({
           domain="code"
           artifact={lint}
           title="Lint"
+          onRuleChange={onLintRule}
+          canEdit={canEditLint}
         />
       ) : (
         <LintSection

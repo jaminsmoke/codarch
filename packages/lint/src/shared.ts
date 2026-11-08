@@ -55,6 +55,8 @@ export type {
 } from "./health";
 export { MINIMAL_LINT, adviceForExtensions, extensionOf } from "./advice";
 export type { LintAdvice } from "./advice";
+export { recommendedRules } from "./recommended";
+export type { RecommendedRule } from "./recommended";
 export {
   DOC_RULES,
   DOC_RULE_SEVERITY,

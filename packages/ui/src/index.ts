@@ -14,7 +14,9 @@ export type {
   CodeSnippet,
   EditorRequest,
   FileDiffRow,
-  FileDiffView
+  FileDiffView,
+  LintRuleChange,
+  LintRuleResult
 } from "./platform";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export { historyEntries, symbolHeat } from "./platform";

@@ -9,7 +9,7 @@ sidebar:
   order: 96
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-10-30
+**Estado:** aceptado · **Fecha:** 2026-10-30 · **Enmendado por** el [ADR 0111](../0111-0120/0111-codarch-es-panel-de-control-del-lint.md): la config se puede editar desde la ficha, siempre como única fuente de verdad.
 
 ## Contexto
 

@@ -148,6 +148,8 @@ export function InspectorDock({
             onColorMode={actions.setColorMode}
             onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
+            onLintRule={actions.setLintRule}
+            canEditLint={app.canEditLint}
           />
         ) : (
           <ChangesPanel

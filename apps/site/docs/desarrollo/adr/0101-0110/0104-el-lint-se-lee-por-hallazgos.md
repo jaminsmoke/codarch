@@ -9,7 +9,7 @@ sidebar:
   order: 104
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-10-31
+**Estado:** aceptado · **Fecha:** 2026-10-31 · **Enmendado por** el [ADR 0111](0111-0120/0111-codarch-es-panel-de-control-del-lint.md) en lo que respecta a la escritura de la config.
 
 ## Contexto
 
