@@ -196,7 +196,7 @@ async function postLintRule(context: RouteContext): Promise<void> {
       rule,
       severity
     });
-    context.live.refresh();
+    context.live.lint();
     sendJson(context.response, {
       ok: true,
       path: result.path,

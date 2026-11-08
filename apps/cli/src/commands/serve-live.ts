@@ -66,6 +66,8 @@ export interface Live {
    * aquí: la sesión los reconoce y contesta sin analizar.
    */
   refresh(hints?: readonly string[]): void;
+  /** Vuelve a lintar el árbol actual, aunque su checksum no cambie (ADR 0111). */
+  lint(): void;
   /** Enciende o apaga el live. Lanza si el vigilante no está disponible. */
   setWatch(enabled: boolean): void;
   /** Sirve otra carpeta. Lanza si no es un directorio. */
@@ -148,11 +150,11 @@ export function startLive(
       console.warn(`  lint: no se pudo lintar: ${(error as Error).message}`);
     }
   });
-  const refreshLint = (root: string, tree: string): void => {
-    if (tree !== "" && tree === lintQueued) return;
+  const refreshLint = (root: string, tree: string, force = false): void => {
+    if (!force && tree !== "" && tree === lintQueued) return;
     // El artefacto puede ser ya de este árbol —lo acaba de escribir `codarch
     // analyze` (ADR 0099)—: entonces no se vuelve a lanzar el linter.
-    if (tree !== "" && readProjectLint(root)?.meta.tree === tree) {
+    if (!force && tree !== "" && readProjectLint(root)?.meta.tree === tree) {
       lintQueued = tree;
       return;
     }
@@ -265,6 +267,10 @@ export function startLive(
       current: () => state,
       meta,
       refresh,
+      lint: () => {
+        if (!state.watch) return;
+        refreshLint(state.root, state.checksum, true);
+      },
       setWatch,
       switchRoot,
       close: () => {
