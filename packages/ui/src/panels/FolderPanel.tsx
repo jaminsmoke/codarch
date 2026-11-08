@@ -1,6 +1,7 @@
 import type { LintArtifact } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
+import type { LintRuleChange, LintRuleResult } from "../platform";
 import {
   boundarySummary,
   cyclesSummary,
@@ -49,7 +50,9 @@ export function FolderPanel({
   onColorMode,
   onSelectPath,
   onSelectFolder,
-  onScopeChanges
+  onScopeChanges,
+  onLintRule,
+  canEditLint = false
 }: {
   folder: TreeNode | null;
   model: RenderModel | null;
@@ -70,6 +73,10 @@ export function FolderPanel({
   onSelectFolder: (path: string) => void;
   /** Acota la pestaña de cambios a esta carpeta y la abre. */
   onScopeChanges: (path: string) => void;
+  /** Escribe una regla en la config del proyecto (ADR 0111). */
+  onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** La plataforma puede escribir la config. */
+  canEditLint?: boolean;
 }) {
   if (!folder) return <EmptyFolder model={model} />;
 
@@ -223,6 +230,8 @@ export function FolderPanel({
           domain="code"
           artifact={lint}
           title="Lint"
+          onRuleChange={onLintRule}
+          canEdit={canEditLint}
         />
       ) : null}
       {model && lintView !== "catalog" ? (

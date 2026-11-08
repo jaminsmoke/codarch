@@ -216,6 +216,12 @@ function ConfigBody({
                       {system.note}
                     </p>
                   ) : null}
+                  {system.name === "eslint" && !editable ? (
+                    <p className="muted tiny lint-system-note">
+                      ESLint todavía es de solo lectura: su config es código y
+                      necesita un escritor con AST.
+                    </p>
+                  ) : null}
                   {system.countState !== "known-complete" ||
                   system.activeRules.length === 0 ? (
                     <p

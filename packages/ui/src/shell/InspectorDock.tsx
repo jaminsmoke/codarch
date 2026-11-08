@@ -121,6 +121,8 @@ export function InspectorDock({
             onOpenEditor={actions.openInEditor}
             onSelectPath={selectInPlace}
             onColorMode={actions.setColorMode}
+            onLintRule={actions.setLintRule}
+            canEditLint={app.canEditLint}
           />
         ) : state.tab === "folder" ? (
           <FolderPanel
@@ -136,6 +138,8 @@ export function InspectorDock({
             onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
             onScopeChanges={actions.scopeChanges}
+            onLintRule={actions.setLintRule}
+            canEditLint={app.canEditLint}
           />
         ) : state.tab === "project" ? (
           <ProjectPanel
