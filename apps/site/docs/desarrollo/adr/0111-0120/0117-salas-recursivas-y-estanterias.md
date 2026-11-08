@@ -10,7 +10,9 @@ sidebar:
 ---
 
 **Estado:** enmendado por [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md) (el proyecto también
-es una sala y la viga frontal es el único cierre) · **Fecha:** 2026-11-08
+es una sala y la viga frontal es el único cierre) y por
+[ADR 0119](0119-estanterias-laterales-y-centro.md) (estanterías laterales y hojas de pie) ·
+**Fecha:** 2026-11-08
 
 **Precisa** el [ADR 0115](0115-el-atlas-frontal.md): las salas se abren en sub-salas y las
 estanterías se colocan de frente, no en las paredes laterales.

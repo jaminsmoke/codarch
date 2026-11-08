@@ -6,8 +6,8 @@ laterales siguen siendo de CodArch.
 
 - **Proyecto**: la raíz es la primera sala. Sus contenedores son las carpetas de primer nivel y sus
   hojas, los ficheros de la raíz.
-- **Sala**: cada carpeta abre otra sala con la misma geometría. Las subcarpetas son archivadores que
-  abren otra sala; los ficheros, hojas frontales en estanterías de fondo.
+- **Sala**: cada carpeta abre otra sala con la misma geometría. Los archivadores se ordenan en el
+  centro; los ficheros van de pie en dos estanterías pegadas a las paredes laterales.
 - **Viga**: el frente queda abierto. Una viga lo cruza arriba con el letrero del nombre de la sala;
   no hay pared frontal completa.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la

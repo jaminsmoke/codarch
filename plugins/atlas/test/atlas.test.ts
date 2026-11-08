@@ -119,11 +119,24 @@ describe("la geometría frontal del Atlas", () => {
     expect(room.sheets).toBe(1);
   });
 
-  it("las hojas miran a la cámara, no se ven de canto", () => {
+  it("las hojas van de pie en las estanterías laterales", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
-    expect(sheet?.width).toBeGreaterThan(sheet?.depth ?? 0);
-    expect(sheet?.height).toBeGreaterThan(sheet?.depth ?? 0);
+    expect(sheet?.height).toBeGreaterThan(sheet?.width ?? 0);
+    expect(sheet?.depth).toBeGreaterThan(sheet?.width ?? 0);
+    expect(Math.abs(sheet?.x ?? 0)).toBeGreaterThan(room.width / 4);
+  });
+
+  it("los archivadores quedan centrados y las hojas a los lados", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const sub = room.boxes.find((box) => box.path === "src/a/sub");
+    const sheetsX = room.boxes
+      .filter((box) => box.role === "file")
+      .map((box) => Math.sign(box.x));
+
+    expect(Math.abs(sub?.x ?? 0)).toBeLessThan(room.width / 3);
+    expect(sheetsX).toContain(-1);
+    expect(sheetsX).toContain(1);
   });
 
   it("las hojas van a las estanterías y no al suelo", () => {

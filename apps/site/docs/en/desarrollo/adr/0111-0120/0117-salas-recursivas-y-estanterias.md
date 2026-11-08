@@ -10,7 +10,9 @@ sidebar:
 ---
 
 **Status:** amended by [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md) (the project is also a
-room and the front beam is the only closure) · **Date:** 2026-11-08
+room and the front beam is the only closure) and by
+[ADR 0119](0119-estanterias-laterales-y-centro.md) (side shelves and upright sheets) ·
+**Date:** 2026-11-08
 
 **Refines** [ADR 0115](0115-el-atlas-frontal.md): rooms open into subrooms and shelves face the
 camera instead of sitting on side walls.

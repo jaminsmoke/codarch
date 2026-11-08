@@ -2,14 +2,17 @@
 title: "ADR 0118 — The project is also a room"
 description: "The first level is no longer a flat overview: the project opens the first room, and every scale shares floor, walls, ceiling, beam and sign. The front stays open."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: The project is also a room
   order: 118
 ---
 
-**Status:** accepted · **Date:** 2026-11-08
+**Status:** amended by [ADR 0119](0119-estanterias-laterales-y-centro.md) (side shelves and central
+cabinets) · **Date:** 2026-11-08
+
+The shelf and sheet placement in this ADR is replaced by 0119.
 
 **Amends** [ADR 0117](0117-salas-recursivas-y-estanterias.md): the flat first-level overview is
 removed and becomes the project room.

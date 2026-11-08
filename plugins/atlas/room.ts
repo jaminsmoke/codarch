@@ -4,10 +4,10 @@ import type { TreeNode } from "@codarch/render/browser";
  * La geometría frontal del Atlas.
  *
  * Todas las escalas son la misma sala: el proyecto es la primera y cada carpeta
- * abre otra. Sus subcarpetas son archivadores en el suelo y sus ficheros son
- * hojas frontales en estanterías de fondo. Las hojas miran a la cámara; no se
- * ven de canto. El frente queda abierto y solo lo cruza una viga con el nombre
- * de la sala.
+ * abre otra. Los archivadores se ordenan en el centro y las estanterías de los
+ * ficheros se pegan a las paredes laterales. Las hojas van de pie en la
+ * estantería, con su cara mirando al centro de la sala. El frente queda abierto
+ * y solo lo cruza una viga con el nombre de la escala.
  */
 
 export type AtlasRole = "folder" | "file" | "floor" | "furniture" | "beam";
@@ -108,6 +108,69 @@ function containerHeight(fileCount: number, max = 9): number {
   return Math.min(max, Math.max(3, 2.8 + Math.log2(fileCount + 1) * 1.1));
 }
 
+/** Tapa, zócalo y tirador: el archivador deja de ser un cubo liso. */
+function addCabinetDetails(
+  boxes: AtlasBox[],
+  input: RoomInput,
+  x: number,
+  z: number,
+  width: number,
+  depth: number,
+  height: number
+): void {
+  const front = z - depth / 2 - 0.05;
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x,
+    y: height,
+    z,
+    width: width + 0.24,
+    depth: depth + 0.24,
+    height: 0.16,
+    color: input.trimColor,
+    selectable: false
+  });
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x,
+    y: 0,
+    z,
+    width: width + 0.24,
+    depth: depth + 0.24,
+    height: 0.14,
+    color: input.trimColor,
+    selectable: false
+  });
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x,
+    y: height * 0.56,
+    z: front,
+    width: width * 0.42,
+    depth: 0.08,
+    height: 0.16,
+    color: input.trimColor,
+    selectable: false
+  });
+  for (const edge of [-1, 1]) {
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: x + edge * (width / 2 - 0.1),
+      y: height * 0.12,
+      z: front,
+      width: 0.1,
+      depth: 0.06,
+      height: height * 0.76,
+      color: input.trimColor,
+      selectable: false
+    });
+  }
+}
+
 /** Construye la sala recursiva del proyecto o de la carpeta enfocada. */
 export function buildRoom(input: RoomInput): Room {
   const current = input.focusPath
@@ -118,51 +181,62 @@ export function buildRoom(input: RoomInput): Room {
   const fileNodes = children.filter((child) => child.kind === "file");
   const title = current?.name ?? "Proyecto";
 
-  const fileColumns = Math.max(
-    1,
-    Math.ceil(Math.sqrt(Math.max(1, fileNodes.length) * 1.5))
-  );
-  const fileRows = Math.max(
-    1,
-    Math.ceil(fileNodes.length / fileColumns)
-  );
+  const filesPerSide = Math.ceil(fileNodes.length / 2);
+  const sideFileColumns = fileNodes.length
+    ? Math.max(
+        1,
+        Math.min(4, Math.ceil(Math.sqrt(Math.max(1, filesPerSide) * 1.3)))
+      )
+    : 0;
+  const sideFileRows = fileNodes.length
+    ? Math.max(1, Math.ceil(filesPerSide / sideFileColumns))
+    : 0;
+  const sideShelfWidth = fileNodes.length
+    ? sideFileColumns * SHEET_WIDTH +
+      Math.max(0, sideFileColumns - 1) * SHEET_GAP_X
+    : 0;
+  const fileWallHeight = fileNodes.length
+    ? SHEET_BASE_Y + sideFileRows * SHEET_ROW_HEIGHT + 1
+    : 0;
+
   const maxFolderHeight = folders.reduce(
     (max, folder) => Math.max(max, containerHeight(folder.fileCount, 6)),
     0
   );
-  const sheetBaseY = Math.max(SHEET_BASE_Y, maxFolderHeight + 1.5);
-  const fileWallWidth =
-    fileColumns * SHEET_WIDTH +
-    Math.max(0, fileColumns - 1) * SHEET_GAP_X;
-  const fileWallHeight =
-    sheetBaseY + fileRows * SHEET_ROW_HEIGHT + 1;
 
-  const containerColumns = Math.max(
-    1,
-    Math.min(4, Math.ceil(Math.sqrt(folders.length * 1.4)))
-  );
+  const containerColumns = folders.length
+    ? folders.length <= 5
+      ? folders.length
+      : Math.min(3, Math.ceil(Math.sqrt(folders.length)))
+    : 1;
   const containerRows = Math.ceil(folders.length / containerColumns);
-  const containerGridWidth =
-    containerColumns * CONTAINER_WIDTH +
-    Math.max(0, containerColumns - 1) * CONTAINER_GAP;
-  const containerGridDepth =
-    containerRows * CONTAINER_DEPTH +
-    Math.max(0, containerRows - 1) * CONTAINER_GAP;
+  const containerGridWidth = gridSpan(containerColumns, folders.length);
+  const containerGridDepth = gridSpan(containerRows, folders.length);
 
-  const width = Math.max(24, containerGridWidth + 14, fileWallWidth + 8);
+  const width = Math.max(
+    24,
+    containerGridWidth + 2 * SHELF_DEPTH + 12,
+    fileNodes.length ? 24 : 0
+  );
   const depth = Math.max(
     16,
-    CONTAINER_START_Z + containerGridDepth + 5,
-    fileWallHeight > 0 ? 14 : 0
+    CONTAINER_START_Z + containerGridDepth + 5
   );
-  const wallZ = depth - 1.6;
+  const shelfZ = Math.max(
+    CONTAINER_START_Z + CONTAINER_DEPTH + 2.5,
+    depth * 0.55
+  );
 
   const boxes: AtlasBox[] = [];
   let containers = 0;
   let sheets = 0;
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
-  const roomHeight = Math.max(14, fileWallHeight + 3);
+  const roomHeight = Math.max(
+    14,
+    fileWallHeight + 3,
+    maxFolderHeight + 7
+  );
   boxes.push({
     path: null,
     role: "floor",
@@ -281,84 +355,122 @@ export function buildRoom(input: RoomInput): Room {
     label: title
   });
 
-  // Los contenedores son archivadores en el suelo, delante de las estanterías.
+  // Los archivadores se ordenan en una retícula centrada en la sala.
   const containerStartX = -containerGridWidth / 2 + CONTAINER_WIDTH / 2;
   for (let index = 0; index < folders.length; index++) {
     const node = folders[index] as TreeNode;
     const column = index % containerColumns;
     const row = Math.floor(index / containerColumns);
     const x = containerStartX + column * (CONTAINER_WIDTH + CONTAINER_GAP);
+    const z =
+      CONTAINER_START_Z + row * (CONTAINER_DEPTH + CONTAINER_GAP);
+    const height = containerHeight(node.fileCount, 6);
     boxes.push({
       path: node.path,
       role: "folder",
       x,
       y: 0,
-      z:
-        CONTAINER_START_Z +
-        row * (CONTAINER_DEPTH + CONTAINER_GAP),
+      z,
       width: CONTAINER_WIDTH,
       depth: CONTAINER_DEPTH,
-      height: containerHeight(node.fileCount, 6),
+      height,
       color: colorOfFolder(node, input),
       selectable: true,
       label: node.name
     });
+    addCabinetDetails(
+      boxes,
+      input,
+      x,
+      z,
+      CONTAINER_WIDTH,
+      CONTAINER_DEPTH,
+      height
+    );
     containers += 1;
   }
 
-  // Estanterías de fondo: tablas horizontales que miran a la cámara.
+  // Estanterías laterales: la tabla entra desde la pared hacia el centro y las
+  // hojas quedan de pie, con la cara hacia el pasillo central.
   if (fileNodes.length > 0) {
-    for (const side of [-1, 1]) {
-      boxes.push({
-        path: null,
-        role: "furniture",
-        x: side * (fileWallWidth / 2 + 0.45),
-        y: 0,
-        z: wallZ,
-        width: 0.35,
-        depth: SHELF_DEPTH,
-        height: fileWallHeight,
-        color: input.furnitureColor,
-        selectable: false
-      });
-    }
-    for (let row = 0; row < fileRows; row++) {
-      boxes.push({
-        path: null,
-        role: "furniture",
-        x: 0,
-        y: sheetBaseY + row * SHEET_ROW_HEIGHT - 0.35,
-        z: wallZ,
-        width: fileWallWidth + 1,
-        depth: SHELF_DEPTH,
-        height: SHELF_THICKNESS,
-        color: input.furnitureColor,
-        selectable: false
-      });
-    }
+    const fileSides = [
+      fileNodes.slice(0, filesPerSide),
+      fileNodes.slice(filesPerSide)
+    ];
+    for (let sideIndex = 0; sideIndex < 2; sideIndex++) {
+      const nodes = fileSides[sideIndex] as TreeNode[];
+      if (nodes.length === 0) continue;
+      const side = sideIndex === 0 ? -1 : 1;
+      const shelfX = side * (width / 2 - SHELF_DEPTH / 2 - 0.4);
+      const shelfWidth = sideShelfWidth + 1;
+      const sheetX = side * (width / 2 - 0.65);
 
-    const fileStartX = -fileWallWidth / 2 + SHEET_WIDTH / 2;
-    for (let index = 0; index < fileNodes.length; index++) {
-      const node = fileNodes[index] as TreeNode;
-      const fileIndex = node.fileIndex;
-      if (fileIndex === undefined) continue;
-      const column = index % fileColumns;
-      const row = Math.floor(index / fileColumns);
+      // Listón que ata la estantería a la pared lateral.
       boxes.push({
-        path: node.path,
-        role: "file",
-        x: fileStartX + column * (SHEET_WIDTH + SHEET_GAP_X),
-        y: sheetBaseY + row * SHEET_ROW_HEIGHT,
-        z: wallZ + SHELF_DEPTH / 2 - 0.1,
-        // La hoja mira a la cámara: ancho y alto grandes, profundidad mínima.
-        width: SHEET_WIDTH,
-        depth: SHEET_THICKNESS,
-        height: SHEET_HEIGHT,
-        color: input.colorFor(fileIndex),
-        selectable: true,
-        label: node.name
+        path: null,
+        role: "furniture",
+        x: side * (width / 2 + 0.1),
+        y: 0,
+        z: shelfZ,
+        width: 0.1,
+        depth: shelfWidth,
+        height: fileWallHeight,
+        color: input.trimColor,
+        selectable: false
       });
-      sheets += 1;
+      for (const edge of [-1, 1]) {
+        boxes.push({
+          path: null,
+          role: "furniture",
+          x: shelfX,
+          y: 0,
+          z: shelfZ + edge * (sideShelfWidth / 2 + 0.35),
+          width: SHELF_DEPTH,
+          depth: 0.3,
+          height: fileWallHeight,
+          color: input.furnitureColor,
+          selectable: false
+        });
+      }
+      for (let row = 0; row < sideFileRows; row++) {
+        boxes.push({
+          path: null,
+          role: "furniture",
+          x: shelfX,
+          y: SHEET_BASE_Y + row * SHEET_ROW_HEIGHT - 0.35,
+          z: shelfZ,
+          width: SHELF_DEPTH,
+          depth: shelfWidth,
+          height: SHELF_THICKNESS,
+          color: input.furnitureColor,
+          selectable: false
+        });
+      }
+
+      const startZ = shelfZ - sideShelfWidth / 2 + SHEET_WIDTH / 2;
+      for (let index = 0; index < nodes.length; index++) {
+        const node = nodes[index] as TreeNode;
+        const fileIndex = node.fileIndex;
+        if (fileIndex === undefined) continue;
+        const column = index % sideFileColumns;
+        const row = Math.floor(index / sideFileColumns);
+        boxes.push({
+          path: node.path,
+          role: "file",
+          x: sheetX,
+          y: SHEET_BASE_Y + row * SHEET_ROW_HEIGHT,
+          z: startZ + column * (SHEET_WIDTH + SHEET_GAP_X),
+          // La hoja está de pie: el ancho va sobre la tabla y la cara mira al
+          // pasillo central, no a la cámara.
+          width: SHEET_THICKNESS,
+          depth: SHEET_WIDTH,
+          height: SHEET_HEIGHT,
+          color: input.colorFor(fileIndex),
+          selectable: true,
+          label: node.name
+        });
+        sheets += 1;
+      }
     }
   }
 
@@ -378,6 +490,14 @@ export function buildRoom(input: RoomInput): Room {
     containers,
     sheets
   };
+}
+
+/** Longitud de una fila o columna de archivadores, o 0 si no hay ninguno. */
+function gridSpan(count: number, total: number): number {
+  if (total === 0 || count === 0) return 0;
+  return (
+    count * CONTAINER_WIDTH + Math.max(0, count - 1) * CONTAINER_GAP
+  );
 }
 
 /** El número de cajas que se pueden seleccionar. */

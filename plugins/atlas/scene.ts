@@ -474,7 +474,7 @@ export function mountScene(
       else if (box.role === "file") options.onSelect(box.path ?? "");
     },
     // La cámara mira de frente desde delante de la sala; las estanterías
-    // quedan al fondo y los contenedores delante.
+    // quedan en las paredes laterales y los contenedores en el centro.
     start: { azimuth: Math.PI, polar: 1.38, distance: fit },
     target,
     onChange: () => requestRender(),
