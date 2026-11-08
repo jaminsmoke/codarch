@@ -338,13 +338,33 @@ function describeOxlint(
   }
   const config = readJson(path.join(root, system.config));
   const rules = parseOxlintConfigRules(config);
-  if (rules.length > 0) return { ...base, rules };
+  const categories = oxlintCategoriesNote(config);
+  if (rules.length > 0) {
+    return {
+      ...base,
+      rules,
+      ...(categories ? { note: joinNote(base.note, categories) } : {})
+    };
+  }
   return {
     ...base,
     note:
       base.note ??
-      "sin reglas en su config: corre sus correcciones por defecto"
+      categories ??
+      "su config no activa ninguna regla"
   };
+}
+
+/** Las categorías que el config enciende, si las hay: suman reglas sin listar. */
+function oxlintCategoriesNote(config: unknown): string | null {
+  if (!isRecord(config) || !isRecord(config.categories)) return null;
+  const active = Object.values(config.categories).some((value) => {
+    const first = Array.isArray(value) ? value[0] : value;
+    return first !== "off" && first !== "allow";
+  });
+  return active
+    ? "corre además las categorías de su config; no se enumeran"
+    : null;
 }
 
 /** Biome se lee de su JSON; lo recomendado se dice, no se enumera. */

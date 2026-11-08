@@ -379,15 +379,41 @@
   margin: 0;
 }
 
-/* Las notas que cualifican la medida, no el catálogo. */
-.lint-system-notes {
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
+/* Una fila por herramienta: nombre, estado, config y reglas. */
+.lint-tools {
+  margin-top: 10px;
 }
 
-.lint-system-notes li {
-  margin: 2px 0 0;
+.lint-tool-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.lint-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+
+.lint-tool-name {
+  font-weight: 600;
+}
+
+.lint-tool-ok {
+  color: var(--patina);
+}
+
+.lint-tool-detail,
+.lint-tool-note {
+  flex-basis: 100%;
+}
+
+.lint-tool-note {
+  margin-top: -2px;
 }
 
 .lint-scope-note {

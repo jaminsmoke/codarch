@@ -358,7 +358,15 @@ describe("el dataset medido de este repo", () => {
 
     render(panel("catalog", code));
     expect(screen.getByText("24 reglas activas")).toBeTruthy();
-    expect(screen.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    const oxlintRules =
+      code.meta.systems.find((system) => system.name === "oxlint")?.rules?.length ?? 0;
+    if (oxlintRules > 0) {
+      expect(
+        screen.getAllByText(`${oxlintRules} reglas activas`).length
+      ).toBeGreaterThan(0);
+    } else {
+      expect(screen.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    }
     expect(screen.queryByText("doc/broken-link")).toBeNull();
   });
 });

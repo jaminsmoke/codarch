@@ -238,7 +238,11 @@ describe("la ficha sigue a scopeHealth", () => {
           checksum: "abc",
           tools: ["eslint", "oxlint"],
           systems: [
-            { name: "eslint", config: "eslint.config.js" },
+            {
+              name: "eslint",
+              config: "eslint.config.js",
+              rules: [{ id: "no-var", severity: "error" }]
+            },
             {
               name: "oxlint",
               config: null,
@@ -262,11 +266,45 @@ describe("la ficha sigue a scopeHealth", () => {
     }
 
     const project = markup(lint, { folder: "" }, snap);
+    expect(project).toContain("Herramientas");
+    expect(project).toContain("eslint");
+    expect(project).toContain("ok");
+    expect(project).toContain("1 regla");
     expect(project).toContain("oxlint");
     expect(project).toContain("sin archivo de configuración");
 
     const file = markup(lint, { folder: "src/a.ts", filePath: "src/a.ts" }, snap);
     expect(file).not.toContain("sin archivo de configuración");
+  });
+
+  it("con hallazgos, la herramienta dice medido y no ok", () => {
+    const lint = withCoverage(
+      {
+        eslint: enumerated(["src/a.ts"], ["src/a.ts"]),
+        oxlint: enumerated(["src/a.ts"], ["src/a.ts"])
+      },
+      { "src/a.ts": { errors: 1, warnings: 0, messages: [message()] } },
+      {
+        meta: {
+          checksum: "abc",
+          tools: ["eslint", "oxlint"],
+          systems: [
+            { name: "eslint", config: "eslint.config.js" },
+            { name: "oxlint", config: ".oxlintrc.json" }
+          ],
+          tree: "tree-1"
+        }
+      }
+    );
+    const html = markup(lint, { folder: "" }, {
+      treeHash: "tree-1",
+      paths: ["src/a.ts"]
+    });
+
+    expect(html).toContain("Herramientas");
+    expect(html).toContain("medido");
+    expect(html).not.toContain("lint-tool-ok");
+    expect(html).toContain("1 error");
   });
 
   it("sin artefacto traduce freshness-unverified y no enseña ceros como limpio", () => {

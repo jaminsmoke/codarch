@@ -548,6 +548,23 @@ extend-ignore = ["E501"]
     expect(ruff?.note).toMatch(/por defecto/);
   });
 
+  it("oxlint con categorías avisa de las reglas que no se enumeran", async () => {
+    const root = repo({
+      ".oxlintrc.json": JSON.stringify({
+        categories: { correctness: "warn" },
+        rules: { "no-var": "error" }
+      }),
+      "node_modules/oxlint/bin/oxlint": "// binario"
+    });
+
+    const [oxlint] = await describeLintSystems(root, detectLintSystems(root), {
+      run: vi.fn<LintProcessRunner>()
+    });
+
+    expect(oxlint?.rules).toEqual([{ id: "no-var", severity: "error" }]);
+    expect(oxlint?.note).toMatch(/categorías.*no se enumeran/);
+  });
+
   it("oxlint sin config dice que no hay archivo de configuración", async () => {
     const root = repo({ "node_modules/oxlint/bin/oxlint": "// binario" });
 

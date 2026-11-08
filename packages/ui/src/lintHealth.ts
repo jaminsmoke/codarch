@@ -57,19 +57,53 @@ export function isClean(health: ScopeHealth): boolean {
   return isCurrentClean(health);
 }
 
+/** Una herramienta de la medida, con lo que la ficha necesita para contarla. */
+export interface ToolRow {
+  name: string;
+  state: CoverageState;
+  measured: number | null;
+  eligible: number | null;
+  /** Reglas activas enumeradas; `null` si no se pudieron enumerar. */
+  rules: number | null;
+  config: string | null;
+  note: string | null;
+  /** El primer motivo de la herramienta, ya traducido. */
+  reason: string | null;
+}
+
 /**
- * Las notas de los sistemas que corrieron. No es el catálogo: es lo que
- * cualifica la medida —una config que falta, una herramienta que se lanza del
- * PATH—, y la ficha la enseña al pie (ADR 0110).
+ * Las herramientas que participaron en la medida del artefacto.
+ *
+ * No es el catálogo: es la fila de cada una con su estado y lo que aportó
+ * —config, reglas y ficheros medidos— para que la ficha pueda decir cuál está
+ * ok y cuál no (ADR 0110). Una herramienta que falló también está: su estado
+ * lo dice.
  */
-export function systemNotes(
-  artifact: LintArtifact | null
-): Array<{ name: string; note: string }> {
+export function toolHealthRows(
+  artifact: LintArtifact | null,
+  health: ScopeHealth
+): ToolRow[] {
   if (!artifact) return [];
-  const ran = new Set(artifact.meta.tools);
-  return artifact.meta.systems
-    .filter((system) => ran.has(system.name) && Boolean(system.note))
-    .map((system) => ({ name: system.name, note: system.note ?? "" }));
+  const systems = new Map(
+    artifact.meta.systems.map((system) => [system.name, system])
+  );
+  return Object.keys(health.coverage.byTool)
+    .sort()
+    .map((name) => {
+      const tool = health.coverage.byTool[name];
+      const system = systems.get(name);
+      const first = tool?.reasons[0];
+      return {
+        name,
+        state: tool?.state ?? "unknown",
+        measured: tool?.measured ?? null,
+        eligible: tool?.eligible ?? null,
+        rules: system?.rules?.length ?? null,
+        config: system?.config ?? null,
+        note: system?.note ?? null,
+        reason: first ? reasonText(first) : null
+      };
+    });
 }
 
 export function reasonText(reason: Reason): string {

@@ -247,7 +247,7 @@ describe("la ficha del proyecto", () => {
     expect(markup).not.toContain("Lint por carpeta");
   });
 
-  it("la sección Lint no enseña sistemas ni el catálogo de reglas activas", () => {
+  it("la sección Lint enseña la herramienta, no el catálogo de reglas activas", () => {
     const markup = projectMarkup({
       ...lint,
       meta: {
@@ -263,7 +263,8 @@ describe("la ficha del proyecto", () => {
       }
     });
 
-    expect(markup).not.toContain("eslint.config.js");
+    expect(markup).toContain("Herramientas");
+    expect(markup).toContain("eslint.config.js");
     expect(markup).not.toContain("regla activa");
     expect(markup).not.toContain("Hallazgos por regla");
     expect(markup).toContain("Ficheros con hallazgos");
@@ -298,7 +299,7 @@ describe("la ficha del proyecto", () => {
     expect(markup).not.toContain("Limpio y al día");
     expect(markup).not.toContain("Configuración ·");
     expect(markup).not.toContain("regla activa");
-    expect(markup).not.toContain("eslint.config.js");
+    expect(markup).toContain("eslint.config.js");
   });
 
   it("sin artefacto no recomienda configuración dentro de los hallazgos", () => {

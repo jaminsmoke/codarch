@@ -48,7 +48,8 @@ dependencia y no tenía archivo de configuración.
 4. Una herramienta instalada **sin archivo de configuración** lo dice con esas palabras en
    `meta.systems[].note`: «sin archivo de configuración: corre sus reglas por defecto y no se
    enumeran». No bloquea `complete`: la config cambia qué reglas corren, no qué ficheros se midieron.
-   La ficha de proyecto enseña esa nota al pie; el catálogo sigue en **Reglas**.
+   La ficha de proyecto enseña una fila por herramienta —estado, config, reglas y medidos— y la nota
+   en su fila; el catálogo sigue en **Reglas**.
 
 5. La ficha de proyecto, carpeta y fichero dice **«Limpio y al día»** cuando `isCurrentClean`. Si no,
    enseña los errores, avisos e info y los motivos. Con cero hallazgos no se pinta la tira de ceros: se
@@ -84,6 +85,7 @@ Sin fase nueva.
 - ✅ El universo por herramienta: ESLint desde sus resultados, oxlint con `--debug=files` y `list` en
   `.codarch.yml`.
 - ✅ La nota de configuración ausente y «Limpio y al día» en las fichas de proyecto, carpeta y fichero.
+- ✅ Una fila por herramienta en la ficha de proyecto: estado, config, reglas y ficheros medidos.
 - ✅ Tests: limpio en los tres ámbitos, oxlint enumerado, config ausente y checksum estable.
 - ✅ La página del artefacto 1.3 y la guía del CLI.
 

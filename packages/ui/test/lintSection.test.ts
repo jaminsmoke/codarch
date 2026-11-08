@@ -140,7 +140,7 @@ describe("la sección Lint de la vista de código", () => {
     expect(markup.match(/class="lint-health"/g)).toHaveLength(1);
   });
 
-  it("carpeta y proyecto listan ficheros, no reglas", () => {
+  it("carpeta y proyecto listan ficheros y herramientas, no el catálogo", () => {
     const folder = section({ artifact, folder: "packages/ui" });
     const project = section({ artifact, folder: "" });
 
@@ -154,7 +154,8 @@ describe("la sección Lint de la vista de código", () => {
     expect(folder).not.toContain("Medido y limpio");
     expect(folder).not.toContain("Limpio y al día");
     expect(project).toContain("apps/web/src/a.ts");
-    expect(project).not.toContain("eslint.config.js");
+    expect(project).toContain("Herramientas");
+    expect(project).toContain("eslint.config.js");
     expect(project).not.toContain("reglas activas");
     expect(project.match(/class="lint-health"/g)).toHaveLength(1);
   });
@@ -255,7 +256,7 @@ describe("la ficha solo cuenta el lint de código", () => {
     expect(file).toContain("Unexpected console");
     expect(project).not.toContain("doc/broken-link");
     expect(file).not.toContain("doc/broken-link");
-    expect(project).not.toContain("eslint.config.js");
+    expect(project).toContain("eslint.config.js");
   });
 });
 

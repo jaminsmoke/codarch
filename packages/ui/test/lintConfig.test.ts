@@ -139,7 +139,7 @@ describe("la configuración del lint", () => {
 
     expect(findings).toContain("src/a.ts");
     expect(findings).toContain("1 error");
-    expect(findings).not.toContain("eslint.config.js");
+    expect(findings).toContain("eslint.config.js");
     expect(findings).not.toContain("eqeqeq");
     expect(findings).not.toContain("Lint del código");
     expect(findings).not.toContain("eqeqeq");

@@ -6,7 +6,14 @@ import type {
 import type { HealthScope, HealthSnapshot } from "@codarch/lint/browser";
 import { formatCompact } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "./CollapsibleSection";
-import { healthCopy, healthOf, healthSummary, isClean, systemNotes } from "./lintHealth";
+import {
+  healthCopy,
+  healthOf,
+  healthSummary,
+  isClean,
+  toolHealthRows,
+  type ToolRow
+} from "./lintHealth";
 import { SEVERITIES, severityCount, severityText } from "./lintRollup";
 
 /**
@@ -220,21 +227,69 @@ function NotMeasured({
   );
 }
 
-/** Las notas que cualifican la medida; no el catálogo de reglas. */
-function SystemNotes({
-  notes
+/** El estado de una herramienta en el ámbito, sin atribuirle hallazgos ajenos. */
+function toolStatus(row: ToolRow, findings: number): string {
+  if (row.state === "complete") return findings === 0 ? "ok" : "medido";
+  if (row.state === "partial") return "cobertura parcial";
+  if (row.state === "unknown") return "cobertura sin verificar";
+  return "sin medir";
+}
+
+/** Lo que aporta la herramienta: config, reglas y ficheros medidos. */
+function toolDetail(row: ToolRow): string {
+  const parts = [row.config ?? "sin archivo de configuración"];
+  parts.push(
+    row.rules === null
+      ? "reglas no enumeradas"
+      : `${formatCompact(row.rules)} ${row.rules === 1 ? "regla" : "reglas"}`
+  );
+  if (row.measured !== null) {
+    parts.push(`${formatCompact(row.measured)} medidos`);
+  }
+  return parts.join(" · ");
+}
+
+/** Una fila por herramienta: la cobertura y la config que la cualifica. */
+function ToolRows({
+  rows,
+  findings
 }: {
-  notes: ReadonlyArray<{ name: string; note: string }>;
+  rows: readonly ToolRow[];
+  findings: number;
 }) {
-  if (notes.length === 0) return null;
+  if (rows.length === 0) return null;
   return (
-    <ul className="muted tiny lint-system-notes">
-      {notes.map((item) => (
-        <li key={item.name}>
-          <span className="mono">{item.name}</span> · {item.note}
-        </li>
-      ))}
-    </ul>
+    <div className="lint-tools">
+      <GroupHead
+        label="Herramientas"
+        summary={plural(rows.length, "herramienta", "herramientas")}
+      />
+      <ul className="lint-tool-list">
+        {rows.map((row) => {
+          const status = toolStatus(row, findings);
+          return (
+            <li key={row.name} className="lint-tool-row">
+              <span className="mono lint-tool-name">{row.name}</span>
+              <span
+                className={`lint-tool-status${
+                  status === "ok" ? " lint-tool-ok" : ""
+                }`}
+              >
+                {status}
+              </span>
+              <span className="muted tiny lint-tool-detail">
+                {toolDetail(row)}
+              </span>
+              {row.note || row.reason ? (
+                <span className="muted tiny lint-tool-note">
+                  {row.note ?? row.reason}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -279,7 +334,7 @@ export function LintSection({
   const clean = isClean(health);
   const summary = healthSummary(health) || countsSummary(health.counts);
   const showCounts = health.coverage.state !== "unmeasured" || findings > 0;
-  const notes = scope.kind === "project" ? systemNotes(artifact) : [];
+  const tools = scope.kind === "project" ? toolHealthRows(artifact, health) : [];
   const files = health.affectedFiles.map((file) => {
     const messages = artifact?.files[file.path]?.messages ?? [];
     const rules = [...new Set(messages.map((message) => message.rule))];
@@ -302,7 +357,6 @@ export function LintSection({
       {clean ? (
         <div className="lint-health">
           <p className="lint-health-clean">{healthCopy(health)}</p>
-          <SystemNotes notes={notes} />
         </div>
       ) : showCounts ? (
         <div className="lint-health">
@@ -310,14 +364,11 @@ export function LintSection({
             <SeverityCounts counts={health.counts} />
           </p>
           <p className="muted tiny lint-scope-note">{healthCopy(health)}</p>
-          <SystemNotes notes={notes} />
         </div>
       ) : (
-        <>
-          <NotMeasured kind={kind} detail={healthCopy(health)} />
-          <SystemNotes notes={notes} />
-        </>
+        <NotMeasured kind={kind} detail={healthCopy(health)} />
       )}
+      <ToolRows rows={tools} findings={findings} />
       {health.fresh === false ? (
         <p className="muted tiny lint-stale">
           Este análisis es de otro árbol: los hallazgos se conservan y pueden

@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "off"
+  },
+  "rules": {
+    "no-constant-binary-expression": "error",
+    "no-debugger": "error",
+    "no-unreachable": "error",
+    "no-unused-vars": "warn",
+    "no-var": "error"
+  }
+}

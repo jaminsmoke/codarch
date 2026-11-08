@@ -48,8 +48,8 @@ dependency and had no config file.
 
 4. An installed tool **without a config file** says so in `meta.systems[].note`: “no config file: it runs
    its default rules and they are not enumerated”. It does not block `complete`: config changes which
-   rules run, not which files were measured. The project card shows that note at the bottom; the
-   catalog stays under **Rules**.
+   rules run, not which files were measured. The project card shows one row per tool —state, config,
+   rules and measured files— with its note; the catalog stays under **Rules**.
 
 5. The project, folder and file cards say **“Clean and up to date”** when `isCurrentClean`. Otherwise
    they show errors, warnings and info and the reasons. With zero findings the row of zeros is not
@@ -84,6 +84,7 @@ No new phase.
 - ✅ The universe per tool: ESLint from its results, oxlint with `--debug=files`, and `list` in
   `.codarch.yml`.
 - ✅ The missing-config note and “Clean and up to date” in the project, folder and file cards.
+- ✅ One row per tool in the project card: state, config, rules and measured files.
 - ✅ Tests: clean in all three scopes, oxlint enumerated, missing config and stable checksum.
 - ✅ The 1.3 artifact page and the CLI guide.
 

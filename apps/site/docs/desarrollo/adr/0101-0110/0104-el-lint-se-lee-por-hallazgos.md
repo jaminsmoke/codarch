@@ -45,8 +45,8 @@ son, cómo se declaran ni cómo se enseña su cumplimiento.
    texto—, cortados a los primeros. En carpeta y proyecto: la deuda del ámbito y
    los hallazgos agrupados por regla, que es lo que se puede leer de un subárbol.
    Sin sistemas, sin reglas activas y sin configuraciones: eso es configuración y
-   no vive en una ficha de código. El [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) añade solo la
-   nota al pie que cualifica la medida —una config ausente o un modo de ejecución—, nunca el catálogo.
+   no vive en una ficha de código. El [ADR 0110](0110-el-lint-limpio-se-llama-limpio.md) añade una fila
+   por herramienta —estado, config, reglas y medidos— y su nota, nunca el catálogo.
 
 3. **Los cruces FFI se mudan a Dependencias.** Ya no son una regla: son una
    arista que cruza la frontera de la migración, y su sitio es la lista de
