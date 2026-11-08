@@ -8,7 +8,7 @@
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 14px;
 }
 
 /* Cada sistema lleva un filete a la izquierda: verde si midió, de la línea si
@@ -16,12 +16,21 @@
 .lint-system {
   display: grid;
   gap: 3px;
+  min-width: 0;
   padding-left: 7px;
   border-left: 2px solid var(--line);
 }
 
 .lint-system.is-on {
   border-left-color: color-mix(in srgb, var(--patina) 60%, transparent);
+}
+
+.lint-system[data-count-state="known-complete"] {
+  border-left-color: color-mix(in srgb, var(--patina) 60%, transparent);
+}
+
+.lint-system[data-count-state="partial"] {
+  border-left-color: color-mix(in srgb, var(--ochre) 60%, transparent);
 }
 
 .lint-system-head {
@@ -34,7 +43,7 @@
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
-  font: 600 11.5px/1.25 var(--sans);
+  font: 600 12.5px/1.25 var(--sans);
   letter-spacing: -0.01em;
   color: var(--ink);
   text-overflow: ellipsis;
@@ -58,6 +67,33 @@
   border-color: color-mix(in srgb, var(--patina) 42%, transparent);
   background: color-mix(in srgb, var(--patina) 10%, transparent);
   color: var(--patina);
+}
+
+/* Cada sistema de lint es una subsección plegable: el nombre, su cuenta y,
+   cerrado, la config y el estado. */
+.lint-system-collapsible {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.lint-system-collapsible > .collapsible-head {
+  padding: 4px 0;
+}
+
+.lint-system-collapsible > .collapsible-head .collapsible-title {
+  font: 600 12.5px/1.25 var(--sans);
+  letter-spacing: -0.01em;
+}
+
+.lint-system-collapsible > .collapsible-body {
+  padding-bottom: 2px;
+}
+
+/* El `display: grid` no puede ganar al atributo `hidden`: sin esto, el cuerpo
+   de una herramienta cerrada seguía pintándose y se salía de su contenedor. */
+.lint-system-collapsible > .collapsible-body:not([hidden]) {
+  display: grid;
+  gap: 3px;
 }
 
 .lint-system-config {
@@ -478,6 +514,9 @@ button.lint-file-row:hover {
 
 .lint-rule-count {
   margin: 0;
+  font: 500 9px/1.4 var(--mono);
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
 }
 
 .lint-file-path {
@@ -487,46 +526,103 @@ button.lint-file-row:hover {
   white-space: nowrap;
 }
 
-/* Catálogo de config: tinta neutra. Una regla activa no es un hallazgo. */
+/* Catálogo de config: la severidad tiñe el filete y la etiqueta, no el
+   identificador. Una regla activa está configurada, no ha fallado. */
 .lint-config-view {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
-.lint-config-lead,
-.lint-config-tools {
+.lint-config-lead {
   margin: 0;
+}
+
+.lint-config-groups {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.lint-config-group {
+  min-width: 0;
+}
+
+.lint-config-group .rule-group-title {
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-transform: none;
 }
 
 .lint-config-rules {
   display: grid;
-  gap: 1px;
-  max-height: 180px;
+  gap: 3px;
+  min-width: 0;
+  max-height: 240px;
   margin: 2px 0 0;
   padding: 0;
   overflow: auto;
   list-style: none;
 }
 
+/* Cada regla: la regla en la línea principal y la severidad a la derecha. El
+   plugin ya está en la cabecera de su grupo. El filete lleva la tinta. */
 .lint-config-rule {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  font: 9.5px/1.4 var(--mono);
-  color: var(--muted);
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr) auto;
+  column-gap: 7px;
+  align-items: center;
+  min-width: 0;
+  padding: 2px 2px 2px 0;
+}
+
+.lint-config-mark {
+  align-self: stretch;
+  min-height: 14px;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.lint-config-rule[data-severity="error"] .lint-config-mark {
+  background: color-mix(in srgb, var(--debt) 55%, transparent);
+}
+
+.lint-config-rule[data-severity="warn"] .lint-config-mark {
+  background: color-mix(in srgb, var(--ochre) 60%, transparent);
+}
+
+.lint-config-rule[data-severity="info"] .lint-config-mark {
+  background: color-mix(in srgb, var(--cobalt) 55%, transparent);
 }
 
 .lint-config-id {
   min-width: 0;
   overflow: hidden;
-  color: var(--ink-soft);
+  font: 10px/1.3 var(--mono);
+  color: var(--ink);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .lint-config-sev {
-  margin-left: auto;
+  font: 8px/1.3 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
+}
+
+.lint-config-rule[data-severity="error"] .lint-config-sev {
+  color: var(--debt);
+}
+
+.lint-config-rule[data-severity="warn"] .lint-config-sev {
+  color: var(--ochre);
+}
+
+.lint-config-rule[data-severity="info"] .lint-config-sev {
+  color: var(--cobalt);
 }
 
 .lint-advice {

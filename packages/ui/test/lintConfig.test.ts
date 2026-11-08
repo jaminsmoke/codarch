@@ -103,6 +103,46 @@ describe("la configuración del lint", () => {
     expect(readLintConfig(null)).toBeNull();
   });
 
+  it("una regla con plugin se parte en plugin y regla, con su severidad", () => {
+    const scoped: LintArtifact = {
+      ...artifact,
+      meta: {
+        ...artifact.meta,
+        systems: [
+          {
+            name: "eslint",
+            config: "eslint.config.js",
+            rules: [
+              {
+                id: "@typescript-eslint/no-unsafe-declaration-merging",
+                severity: "error"
+              },
+              { id: "no-console", severity: "warn" }
+            ]
+          }
+        ]
+      }
+    };
+    const markup = renderToStaticMarkup(
+      createElement(LintConfigSection, {
+        id: "config",
+        domain: "code",
+        artifact: scoped
+      })
+    );
+
+    expect(markup).toContain('data-severity="error"');
+    expect(markup).toContain('data-severity="warn"');
+    expect(markup).toContain("lint-system-collapsible");
+    expect(markup).toContain("lint-config-group");
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain(">no-unsafe-declaration-merging</span>");
+    expect(markup).toContain(">@typescript-eslint</span>");
+    expect(markup).toContain(">core</span>");
+    expect(markup).toContain(">error</span>");
+    expect(markup).toContain(">warn</span>");
+  });
+
   it("se pinta aparte y no cuenta el catálogo como hallazgos", () => {
     const config = renderToStaticMarkup(
       createElement(LintConfigSection, {
@@ -128,7 +168,8 @@ describe("la configuración del lint", () => {
     expect(config).toContain("eslint.config.js");
     expect(config).toContain("eqeqeq");
     expect(config).toContain("resuelto con --print-config");
-    expect(config).toContain("Herramientas que midieron: eslint");
+    expect(config).toContain("Herramientas que midieron");
+    expect(config).toContain("eslint");
     expect(config).not.toContain("lint-count-error");
     expect(config).not.toContain("lint-dot-error");
     expect(config).not.toContain("1 error");

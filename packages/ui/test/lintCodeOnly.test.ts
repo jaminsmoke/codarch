@@ -178,8 +178,8 @@ describe("los dos mapas comparten el hueco y la barra no lleva catálogo", () =>
     render(panel("catalog", lint));
     expect(screen.getByRole("button", { name: /Lint/ })).toBeTruthy();
     expect(screen.getByText("eslint.config.js")).toBeTruthy();
-    expect(screen.getByText("1 regla activa")).toBeTruthy();
-    expect(screen.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    expect(screen.getByText(/1 regla activa/)).toBeTruthy();
+    expect(screen.getAllByText("No se sabe cuántas reglas hay activas.").length).toBeGreaterThan(0);
     expect(screen.queryByText("Unexpected console")).toBeNull();
     expect(screen.queryByText(CODE_FILE)).toBeNull();
     expect(screen.queryByText("doc/broken-link")).toBeNull();
@@ -282,9 +282,9 @@ describe("hallazgo de código, catálogo y artefacto de documentos cargado", () 
     );
     const lint = lintSection();
     expect(lint.getByText("eslint.config.js")).toBeTruthy();
-    expect(lint.getByText("1 regla activa")).toBeTruthy();
+    expect(lint.getByText(/1 regla activa/)).toBeTruthy();
     expect(lint.getByText("no-console")).toBeTruthy();
-    expect(lint.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    expect(lint.getAllByText("No se sabe cuántas reglas hay activas.").length).toBeGreaterThan(0);
     expect(lint.queryByText(CODE_FILE)).toBeNull();
     expect(lint.queryByText("Unexpected console")).toBeNull();
     expect(lint.queryByText("1 error")).toBeNull();
@@ -328,7 +328,9 @@ describe("hallazgo de código, catálogo y artefacto de documentos cargado", () 
     expect(catalog.queryByText("doc/broken-link")).toBeNull();
     expect(catalog.queryByText("el enlace no llega")).toBeNull();
     expect(catalog.queryByText("309")).toBeNull();
-    expect(catalog.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+    expect(
+      catalog.getAllByText("No se sabe cuántas reglas hay activas.").length
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -357,15 +359,17 @@ describe("el dataset medido de este repo", () => {
     unmount();
 
     render(panel("catalog", code));
-    expect(screen.getByText("24 reglas activas")).toBeTruthy();
+    expect(screen.getByText(/24 reglas activas/)).toBeTruthy();
     const oxlintRules =
       code.meta.systems.find((system) => system.name === "oxlint")?.rules?.length ?? 0;
     if (oxlintRules > 0) {
       expect(
-        screen.getAllByText(`${oxlintRules} reglas activas`).length
+        screen.getAllByText(new RegExp(`${oxlintRules} reglas activas`)).length
       ).toBeGreaterThan(0);
     } else {
-      expect(screen.getByText("No se sabe cuántas reglas hay activas.")).toBeTruthy();
+      expect(
+        screen.getAllByText("No se sabe cuántas reglas hay activas.").length
+      ).toBeGreaterThan(0);
     }
     expect(screen.queryByText("doc/broken-link")).toBeNull();
   });
