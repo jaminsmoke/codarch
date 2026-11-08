@@ -39,6 +39,7 @@ export function writeLintRule(
   if (change.system === "eslint") return writeEslintRule(root, change);
   if (change.system === "biome") return writeBiomeRule(root, change);
   if (change.system === "ruff") return writeRuffRule(root, change);
+  if (change.system === "checkstyle") return writeCheckstyleRule(root, change);
   throw new LintError(
     `la escritura de reglas todavía no soporta "${change.system}"`
   );
@@ -504,6 +505,97 @@ function addCode(codes: readonly string[], code: string): string[] {
 
 function removeCode(codes: readonly string[], code: string): string[] {
   return codes.filter((entry) => entry !== code);
+}
+
+/**
+ * Quita un módulo de Checkstyle de su XML.
+ *
+ * Activar un módulo exige saber su contenedor (`TreeWalker`, `Checker` u otro),
+ * y la config no lo dice; no se inventa. Desactivar sí es quitar el `<module>`.
+ */
+function writeCheckstyleRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  const system = detectLintSystems(root).find(
+    (item) => item.name === "checkstyle"
+  );
+  if (!system?.config) {
+    throw new LintError("Checkstyle no declara archivo de configuración");
+  }
+  if (!system.config.endsWith(".xml")) {
+    throw new LintError(
+      `la config de Checkstyle (${system.config}) no es un XML editable`
+    );
+  }
+  if (change.severity !== null) {
+    throw new LintError(
+      "activar un módulo de Checkstyle necesita su contenedor; por ahora solo se desactiva"
+    );
+  }
+
+  const file = path.join(root, system.config);
+  const before = readConfig(file, system.config);
+  const after = removeCheckstyleModule(before, change.rule);
+  if (after === before) {
+    throw new LintError(
+      `Checkstyle no tiene el módulo "${change.rule}" en su config`
+    );
+  }
+  writeAtomic(file, after);
+  return { path: system.config, before, after };
+}
+
+function removeCheckstyleModule(xml: string, name: string): string {
+  let text = xml;
+  let index = 0;
+  while (index < text.length) {
+    const start = text.indexOf("<module", index);
+    if (start === -1) break;
+    const openEnd = text.indexOf(">", start);
+    if (openEnd === -1) break;
+    const open = text.slice(start, openEnd + 1);
+    const moduleName = /name\s*=\s*"([^"]+)"/.exec(open)?.[1];
+    if (moduleName !== name) {
+      index = openEnd + 1;
+      continue;
+    }
+
+    let end = openEnd + 1;
+    if (!open.endsWith("/>")) {
+      end = matchingModuleClose(text, start);
+    }
+    const lineStart = text.lastIndexOf("\n", start) + 1;
+    const indent = text.slice(lineStart, start);
+    const from = /^\s*$/.test(indent) ? lineStart : start;
+    const lineEnd = text.indexOf("\n", end);
+    const rest = lineEnd === -1 ? "" : text.slice(end, lineEnd);
+    const to = /^\s*$/.test(rest) && lineEnd !== -1 ? lineEnd + 1 : end;
+    text = `${text.slice(0, from)}${text.slice(to)}`;
+    index = from;
+  }
+  return text;
+}
+
+function matchingModuleClose(xml: string, start: number): number {
+  let depth = 0;
+  let index = start;
+  while (index < xml.length) {
+    const open = xml.indexOf("<module", index);
+    const close = xml.indexOf("</module>", index);
+    if (close === -1) return xml.length;
+    if (open !== -1 && open < close) {
+      const openEnd = xml.indexOf(">", open);
+      if (openEnd === -1) return xml.length;
+      depth += xml.slice(open, openEnd + 1).endsWith("/>") ? 0 : 1;
+      index = openEnd + 1;
+      continue;
+    }
+    depth -= 1;
+    if (depth === 0) return close + "</module>".length;
+    index = close + "</module>".length;
+  }
+  return xml.length;
 }
 
 /** El JSON de ESLint (`eslintrc.json`) o de oxlint. */

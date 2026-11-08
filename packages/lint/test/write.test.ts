@@ -104,7 +104,7 @@ describe("escribir una regla de oxlint", () => {
       "utf8"
     );
     expect(() =>
-      writeLintRule(other, { system: "checkstyle", rule: "no-var", severity: "error" })
+      writeLintRule(other, { system: "dotnet", rule: "no-var", severity: "error" })
     ).toThrow(/todavía no soporta/);
   });
 
@@ -375,5 +375,89 @@ describe("escribir una regla de Ruff", () => {
         severity: null
       })
     ).toThrow(/comentarios/);
+  });
+});
+
+function checkstyleRepo(xml: string): string {
+  const root = fs.mkdtempSync(
+    path.join(os.tmpdir(), "codarch-checkstyle-write-")
+  );
+  roots.push(root);
+  fs.writeFileSync(path.join(root, "checkstyle.xml"), xml, "utf8");
+  return root;
+}
+
+describe("escribir una regla de Checkstyle", () => {
+  it("quita un módulo anidado y conserva el resto", () => {
+    const root = checkstyleRepo(
+      [
+        '<module name="Checker">',
+        '  <module name="LineLength"/>',
+        '  <module name="TreeWalker">',
+        '    <module name="UnusedImports"/>',
+        '    <module name="NeedBraces">',
+        '      <property name="tokens" value="LITERAL_IF"/>',
+        "    </module>",
+        "  </module>",
+        "</module>",
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "checkstyle",
+      rule: "NeedBraces",
+      severity: null
+    });
+
+    const xml = fs.readFileSync(path.join(root, "checkstyle.xml"), "utf8");
+    expect(xml).not.toContain("NeedBraces");
+    expect(xml).not.toContain("LITERAL_IF");
+    expect(xml).toContain("UnusedImports");
+    expect(xml).toContain("LineLength");
+  });
+
+  it("quita un módulo autocerrado", () => {
+    const root = checkstyleRepo(
+      [
+        '<module name="Checker">',
+        '  <module name="LineLength"/>',
+        '  <module name="FileLength"/>',
+        "</module>",
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "checkstyle",
+      rule: "LineLength",
+      severity: null
+    });
+
+    const xml = fs.readFileSync(path.join(root, "checkstyle.xml"), "utf8");
+    expect(xml).not.toContain("LineLength");
+    expect(xml).toContain("FileLength");
+  });
+
+  it("no inventa el contenedor para activar", () => {
+    const root = checkstyleRepo('<module name="Checker"/>\n');
+    expect(() =>
+      writeLintRule(root, {
+        system: "checkstyle",
+        rule: "LineLength",
+        severity: "error"
+      })
+    ).toThrow(/contenedor/);
+  });
+
+  it("falla si el módulo no está en la config", () => {
+    const root = checkstyleRepo('<module name="Checker"/>\n');
+    expect(() =>
+      writeLintRule(root, {
+        system: "checkstyle",
+        rule: "LineLength",
+        severity: null
+      })
+    ).toThrow(/no tiene el módulo/);
   });
 });
