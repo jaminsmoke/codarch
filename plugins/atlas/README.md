@@ -1,16 +1,16 @@
 # Atlas
 
-El Atlas es una vista 3D para recorrer la arquitectura en profundidad. Sustituye
+El Atlas es una vista 3D frontal para recorrer la arquitectura en profundidad. Sustituye
 el escenario central del mapa, no el marco de la app: la cabecera y las barras
 laterales siguen siendo de CodArch.
 
-- **Carpetas**: contenedores. De lejos son un volumen; al acercarte se abren en
-  una losa y enseñan a sus hijos.
-- **Ficheros**: cubos dentro de su carpeta, con el color del mapa.
-- **Cámara**: órbita con el ratón; rueda para acercar; clic para entrar en una
-  carpeta o seleccionar un fichero.
-- **Mapas**: funciona con el mapa de código y con el de documentos/configuración
-  porque recibe el `RenderModel` que esté abierto.
+- **Vista general**: contenedores de carpeta en el suelo y hojas de fichero en estanterías.
+- **Sala**: al entrar en una carpeta, sus subcarpetas siguen siendo contenedores y sus ficheros van a
+  las estanterías.
+- **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la
+  rueda acerca.
+- **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
+  `RenderModel` que esté abierto.
 
 ## Activación
 

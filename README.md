@@ -460,14 +460,15 @@ queda (nada crece la página). El mapa se acerca con `+`, `−`, `Ajustar` o la 
 ### 🧊 El Atlas 3D
 
 El plugin Atlas: un mapa en tres dimensiones para recorrer la arquitectura en profundidad. Las
-carpetas son contenedores con aristas; los ficheros, cubos con el color del mapa. Se orbita con el
-ratón, la rueda acerca y al pulsar una carpeta o un fichero se sincroniza la selección con la app.
+carpetas son contenedores en el suelo; los ficheros, hojas en estanterías. La cámara mira de frente,
+no desde arriba. Al entrar en una carpeta, sus subcarpetas siguen siendo contenedores y sus ficheros
+pasan a la sala.
 
 Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
 la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el
 de documentos y configuración.
 
-Su hoja de ruta propia (entrar en carpetas, etiquetas, detalle de fichero y corredores) está en
+Su hoja de ruta propia (la transición animada, las etiquetas y el visor de fichero) está en
 `plugins/atlas/ROADMAP.md`.
 
 ### 🔌 Los plugins

@@ -8,6 +8,7 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
   fichero.
 - ✅ La selección y el foco sincronizados con la app en los dos mapas.
 - ✅ Entrar y salir de una carpeta con foco de cámara y breadcrumb.
+- ✅ La vista frontal de contenedores y hojas, y la sala de carpeta.
 - ⬜ La transición animada entre el atlas y la carpeta.
 - ⬜ Etiquetas legibles por nivel de detalle.
 - ⬜ Detalle de fichero dentro del Atlas.

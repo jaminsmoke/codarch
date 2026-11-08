@@ -1,5 +1,5 @@
 import type { Point } from "./orbit";
-import type { DrawnBox } from "./volumes";
+import type { AtlasBox } from "./room";
 
 /**
  * La matemática de la cámara y el picking ✓.
@@ -125,13 +125,17 @@ export function rayFromNdc(
 }
 
 /** Lo que ocupa una caja en el mundo ✓. */
-function boundsOfBox(box: DrawnBox): { min: Point; max: Point } {
+function boundsOfBox(box: AtlasBox): { min: Point; max: Point } {
   return {
-    min: { x: box.x, y: box.y, z: box.z },
+    min: {
+      x: box.x - Math.max(box.width, 0.001) / 2,
+      y: box.y,
+      z: box.z - Math.max(box.depth, 0.001) / 2
+    },
     max: {
-      x: box.x + Math.max(box.width, 0.001),
+      x: box.x + Math.max(box.width, 0.001) / 2,
       y: box.y + Math.max(box.height, 0.001),
-      z: box.z + Math.max(box.depth, 0.001)
+      z: box.z + Math.max(box.depth, 0.001) / 2
     }
   };
 }
@@ -142,7 +146,7 @@ function boundsOfBox(box: DrawnBox): { min: Point; max: Point } {
  * Es el método de las losas ✓ (slab ✓): se recorta el rayo contra los seis
  * planos de la caja ✓ y, si queda un tramo delante ✓, hay choque ✓.
  */
-export function rayBoxDistance(ray: Ray, box: DrawnBox): number | null {
+export function rayBoxDistance(ray: Ray, box: AtlasBox): number | null {
   const { min, max } = boundsOfBox(box);
   let near = -Infinity;
   let far = Infinity;
@@ -169,11 +173,11 @@ export function rayBoxDistance(ray: Ray, box: DrawnBox): number | null {
 }
 
 /** La caja más cercana que toca el rayo ✓ (su índice ✓), o `null` ✓. */
-export function pickBox(ray: Ray, boxes: readonly DrawnBox[]): number | null {
+export function pickBox(ray: Ray, boxes: readonly AtlasBox[]): number | null {
   let best: number | null = null;
   let bestDistance = Infinity;
   for (let index = 0; index < boxes.length; index++) {
-    const distance = rayBoxDistance(ray, boxes[index] as DrawnBox);
+    const distance = rayBoxDistance(ray, boxes[index] as AtlasBox);
     if (distance !== null && distance < bestDistance) {
       bestDistance = distance;
       best = index;

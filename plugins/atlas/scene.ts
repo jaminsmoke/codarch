@@ -1,30 +1,24 @@
 import {
   createOrbitControls,
-  fitDistance,
   ORBIT_LIMITS,
   type OrbitPose,
   type Point
 } from "./orbit";
 import { lookAt, perspective, pickBox, rayFromNdc } from "./camera";
-import { boundsOf, findVolume, lodBoxes, type DrawnBox, type Volume } from "./volumes";
+import type { AtlasBox, AtlasRole, Room } from "./room";
 
 /**
- * El escenario del Atlas.
+ * La escena frontal del Atlas.
  *
- * Es un renderizador propio del plugin: una malla de cubos instanciados para
- * carpetas y ficheros, un plano con rejilla y una cámara orbital. Las carpetas
- * se leen como contenedores: cuando están plegadas son un volumen; al acercarse
- * se abren en una losa y sus hijos. Los ficheros son cubos dentro de ellas.
- *
- * La diferencia con un histograma de cajas no es solo estética: el Atlas usa
- * una cámara más aérea, una rejilla de referencia y aristas en los contenedores
- * para que la profundidad se lea como un atlas y no como un gráfico.
+ * El suelo, las estanterías y las paredes son mobiliario; las carpetas son
+ * contenedores en el suelo y los ficheros son hojas en las estanterías. La
+ * cámara mira de frente y no puede volver al plano cenital.
  */
 
 export type SceneBackend = "webgl2";
 
 export interface SceneOptions {
-  roots: Volume[];
+  room: Room;
   background: string;
   selected: string | null;
   onSelect: (path: string) => void;
@@ -37,23 +31,17 @@ export interface SceneOptions {
 
 export interface Scene {
   setSelected(path: string | null): void;
-  /** Entra en una carpeta o vuelve al atlas entero. */
-  focus(path: string | null): void;
   dispose(): void;
 }
 
-const FOV = 48;
-const BUDGET = 3000;
-const MIN_PIXELS = 24;
-const REFRESH_MS = 120;
+const FOV = 52;
 const SELECTION_COLOR = "#2f6fed";
 const SELECTION_MIX = 0.6;
 const EDGE_COLOR = "#8fe7ff";
 const GRID_COLOR = "#52606d";
-const SLACK = 256;
 const MAX_PIXELS = 8_000_000;
 const CUBE_VERTICES = 36;
-/** Posición, tamaño, color y tipo (0 fichero, 1 carpeta, 2 suelo). */
+/** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
 const STRIDE = 10;
 
 const VERTEX_SHADER = `#version 300 es
@@ -150,11 +138,10 @@ void main() {
   float shade = 0.46 + key * 0.46 + fill * 0.18;
   vec3 color = vColor * shade;
 
-  if (vKind > 1.5) {
-    // El suelo: una rejilla tenue da la referencia de profundidad.
-    color = mix(color, uGrid, gridLine(vWorld.xz, 36.0) * 0.42);
-  } else if (vKind > 0.5) {
-    // Las carpetas se leen como contenedores: sus aristas marcan el volumen.
+  if (vKind > 1.5 && vKind < 2.5) {
+    // El suelo se tiñe con la luz y la rejilla marca la profundidad.
+    color = mix(color, uGrid, gridLine(vWorld.xz, 26.0) * 0.72);
+  } else if (vKind > 0.5 && vKind < 1.5) {
     vec3 absolute = abs(normal);
     vec2 face = absolute.y > 0.5
       ? vLocal.xz
@@ -237,7 +224,7 @@ export function parseColor(
 }
 
 export function colorOf(
-  box: DrawnBox,
+  box: AtlasBox,
   selected: string | null
 ): [number, number, number] {
   const color = parseColor(box.color);
@@ -258,23 +245,30 @@ export interface InstanceLayout {
   height: number;
   depth: number;
   color: [number, number, number];
-  kind: 0 | 1;
+  kind: 0 | 1 | 2 | 3;
+}
+
+export function kindOf(role: AtlasRole): 0 | 1 | 2 | 3 {
+  if (role === "folder") return 1;
+  if (role === "floor") return 2;
+  if (role === "furniture") return 3;
+  return 0;
 }
 
 export function instanceLayout(
-  box: DrawnBox,
+  box: AtlasBox,
   selected: string | null
 ): InstanceLayout {
-  const height = Math.max(1, box.height);
+  const height = Math.max(0.05, box.height);
   return {
-    x: box.x + box.width / 2,
+    x: box.x,
     y: box.y + height / 2,
-    z: box.z + box.depth / 2,
-    width: Math.max(1, box.width - 1),
+    z: box.z,
+    width: Math.max(0.05, box.width),
     height,
-    depth: Math.max(1, box.depth - 1),
+    depth: Math.max(0.05, box.depth),
     color: colorOf(box, selected),
-    kind: box.kind === "folder" ? 1 : 0
+    kind: kindOf(box.role)
   };
 }
 
@@ -302,26 +296,22 @@ export function mountScene(
 
   if (!gl) {
     options.onError?.();
-    return {
-      setSelected: () => undefined,
-      focus: () => undefined,
-      dispose: () => undefined
-    };
+    return { setSelected: () => undefined, dispose: () => undefined };
   }
 
-  const bounds = boundsOf(options.roots);
+  const room = options.room;
   const fov = (FOV * Math.PI) / 180;
   const aspect = (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
-  const fit = fitDistance(bounds.radius, fov, aspect);
-  const target: Point = { x: bounds.cx, y: 0, z: bounds.cz };
+  const fit = Math.max(room.depth * 0.95, room.width * 1.0, 24);
+  const target: Point = room.target;
   const near = Math.max(1, fit * 0.01);
   const far = fit * 5 + 2000;
   const background = parseColor(options.background, [0.93, 0.94, 0.95]);
   const edge = parseColor(EDGE_COLOR);
   const grid = parseColor(GRID_COLOR);
 
-  const capacity = BUDGET + SLACK;
-  const data = new Float32Array((capacity + 1) * STRIDE);
+  const capacity = Math.max(1, room.boxes.length);
+  const data = new Float32Array(capacity * STRIDE);
 
   let program: WebGLProgram | null = null;
   let vao: WebGLVertexArrayObject | null = null;
@@ -386,20 +376,6 @@ export function mountScene(
         fogFar: gl.getUniformLocation(program, "uFogFar")
       };
 
-      // La primera instancia es el suelo, fuera del picking.
-      const ground = Math.max(220, bounds.radius * 4);
-      data[0] = bounds.cx;
-      data[1] = -0.18;
-      data[2] = bounds.cz;
-      data[3] = ground;
-      data[4] = 0.34;
-      data[5] = ground;
-      data[6] = background[0] * 0.92;
-      data[7] = background[1] * 0.92;
-      data[8] = background[2] * 0.92;
-      data[9] = 2;
-      gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, STRIDE);
-
       gl.enable(gl.DEPTH_TEST);
       gl.depthFunc(gl.LEQUAL);
       gl.disable(gl.CULL_FACE);
@@ -410,16 +386,13 @@ export function mountScene(
     }
   };
 
-  let visible: DrawnBox[] = [];
+  let visible: AtlasBox[] = room.boxes;
   let selected = options.selected;
-  let signature = "";
-  let instanceCount = 1;
+  let instanceCount = 0;
   let disposed = false;
   let ready = false;
   let lost = false;
   let frame = 0;
-  let lastRefresh = 0;
-  let lastCamera: Point | null = null;
   let projection = perspective(fov, aspect, near, far);
 
   const controls = createOrbitControls(canvas, {
@@ -436,36 +409,27 @@ export function mountScene(
         fov,
         rect.width / Math.max(1, rect.height)
       );
-      const index = pickBox(ray, visible);
-      const box = index === null ? undefined : visible[index];
+      const index = pickBox(ray, visible.filter((box) => box.selectable));
+      if (index === null) return;
+      const box = visible.filter((box) => box.selectable)[index];
       if (!box) return;
-      if (box.kind === "folder") options.onFocus?.(box.path);
-      else options.onSelect(box.path);
+      if (box.role === "folder") options.onFocus?.(box.path ?? "");
+      else if (box.role === "file") options.onSelect(box.path ?? "");
     },
-    // La vista inicial es más aérea que la de barras: primero se lee el atlas.
-    start: { azimuth: -0.58, polar: 0.9, distance: fit },
+    // La cámara mira de frente, a la altura de la sala, no desde el cenit.
+    start: { azimuth: 0, polar: 1.38, distance: fit },
     target,
     onChange: () => requestRender(),
     limits: {
       ...ORBIT_LIMITS,
-      minDistance: Math.max(18, fit * 0.04),
-      maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 2.8)
+      minPolar: 1.02,
+      maxPolar: 1.55,
+      minDistance: Math.max(8, fit * 0.04),
+      maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 2.2)
     }
   });
 
-  const upload = (): void => {
-    if (!gl || !buffer) return;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferSubData(
-      gl.ARRAY_BUFFER,
-      STRIDE * 4,
-      data,
-      STRIDE,
-      Math.max(0, instanceCount - 1) * STRIDE
-    );
-  };
-
-  const writeBox = (slot: number, box: DrawnBox): void => {
+  const writeBox = (slot: number, box: AtlasBox): void => {
     const base = slot * STRIDE;
     const layout = instanceLayout(box, selected);
     data[base] = layout.x;
@@ -480,53 +444,33 @@ export function mountScene(
     data[base + 9] = layout.kind;
   };
 
-  const draw = (boxes: DrawnBox[]): void => {
+  const upload = (): void => {
+    if (!gl || !buffer) return;
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, data, 0, instanceCount * STRIDE);
+  };
+
+  const draw = (boxes: AtlasBox[]): void => {
     const count = Math.min(boxes.length, capacity);
     for (let index = 0; index < count; index++) {
-      writeBox(index + 1, boxes[index] as DrawnBox);
+      writeBox(index, boxes[index] as AtlasBox);
     }
     visible = boxes.slice(0, count);
-    instanceCount = count + 1;
+    instanceCount = count;
     upload();
     options.onBoxes?.(count);
     options.onContainers?.(
-      visible.filter((box) => box.kind === "folder").length
+      visible.filter((box) => box.role === "folder").length
     );
     requestRender();
   };
 
   const repaint = (): void => {
     for (let index = 0; index < visible.length; index++) {
-      writeBox(index + 1, visible[index] as DrawnBox);
+      writeBox(index, visible[index] as AtlasBox);
     }
     upload();
     requestRender();
-  };
-
-  const refresh = (camera: Point, force = false): void => {
-    if (!force && lastCamera) {
-      const moved = Math.hypot(
-        camera.x - lastCamera.x,
-        camera.y - lastCamera.y,
-        camera.z - lastCamera.z
-      );
-      if (moved < Math.hypot(camera.x, camera.y, camera.z) * 0.005) return;
-    }
-    lastCamera = { ...camera };
-
-    const boxes = lodBoxes(options.roots, {
-      camera,
-      viewportHeight: canvas.clientHeight || 1,
-      fov,
-      minPixels: MIN_PIXELS,
-      budget: BUDGET
-    });
-    const next = boxes
-      .map((box) => `${box.kind}:${box.collapsed ? "+" : ""}${box.path}`)
-      .join("|");
-    if (!force && next === signature) return;
-    signature = next;
-    draw(boxes);
   };
 
   function requestRender(): void {
@@ -557,15 +501,8 @@ export function mountScene(
     frame = 0;
     if (disposed || lost || !gl) return;
     const moved = controls.update();
-    const now = performance.now();
     const pose = controls.pose();
-    if (moved) {
-      if (now - lastRefresh >= REFRESH_MS) {
-        lastRefresh = now;
-        refresh(pose.position);
-      }
-      requestRender();
-    }
+    if (moved) requestRender();
     paint(pose);
   };
 
@@ -587,7 +524,6 @@ export function mountScene(
     }
     projection = perspective(fov, width / height, near, far);
     gl.viewport(0, 0, canvas.width, canvas.height);
-    refresh(controls.pose().position, true);
     requestRender();
   };
 
@@ -606,34 +542,8 @@ export function mountScene(
       return;
     }
     resize();
+    draw(room.boxes);
     options.onBackend?.("webgl2");
-    requestRender();
-  };
-
-  const focus = (path: string | null): void => {
-    const volume = path ? findVolume(options.roots, path) : null;
-    if (!volume) {
-      controls.setTarget(target, fit);
-    } else {
-      const radius = Math.max(
-        8,
-        Math.hypot(volume.width, volume.depth, volume.height) / 2
-      );
-      const distance = Math.max(
-        Math.max(18, fit * 0.04),
-        fitDistance(radius, fov, aspect, 1.35)
-      );
-      controls.setTarget(
-        {
-          x: volume.x + volume.width / 2,
-          y: volume.height * 0.35,
-          z: volume.z + volume.depth / 2
-        },
-        distance
-      );
-    }
-    lastCamera = null;
-    refresh(controls.pose().position, true);
     requestRender();
   };
 
@@ -649,6 +559,7 @@ export function mountScene(
     ready = true;
     options.onBackend?.("webgl2");
     resize();
+    draw(room.boxes);
   }
 
   return {
@@ -657,7 +568,6 @@ export function mountScene(
       selected = path;
       repaint();
     },
-    focus,
     dispose(): void {
       disposed = true;
       cancelAnimationFrame(frame);
