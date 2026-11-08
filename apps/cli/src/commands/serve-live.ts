@@ -25,6 +25,10 @@ import { createLintQueue } from "../lint-queue";
 import { readProjectLint, runProjectLint } from "../lint-store";
 import { VERSION } from "../version";
 
+/** Los ficheros que cambian lo que el lint mide, no el árbol (ADR 0112). */
+const LINT_CONFIG =
+  /(^|\/)(eslint\.config\.[cm]?[jt]s|\.eslintrc(\.[^/]+)?|oxlint\.json|\.oxlintrc(\.[^/]+)?|\.codarch\.yml)$/;
+
 export interface AnalysisState {
   root: string;
   snapshot: CcJson;
@@ -164,11 +168,21 @@ export function startLive(
 
   const refresh = (hints: readonly string[] = []): void => {
     if (!state.watch) return;
+    const lintConfigChanged = hints.some((hint) =>
+      LINT_CONFIG.test(hint.replaceAll("\\", "/"))
+    );
     try {
       // El alcance se relee en cada análisis y el reporte HEAD viejo se tira:
       // las dos cosas las hace el flujo compartido (ADR 0074).
       const result = analyzeRepo(state.root, { hints });
-      if (result.kind === "unchanged") return;
+      if (result.kind === "unchanged") {
+        // La config del lint no entra en el checksum del código: si cambió,
+        // hay que volver a medir aunque el árbol sea el mismo (ADR 0112).
+        if (lintConfigChanged) {
+          refreshLint(state.root, state.checksum, true);
+        }
+        return;
+      }
       storeParseCache(state.root, result);
       storeRest(state.root, result);
       state = stateFrom(state.root, result, state.watch);
@@ -257,8 +271,10 @@ export function startLive(
     if (watchWarning) state = { ...state, watch: false };
     // Recién arrancado, el lint que hay puede ser de otro árbol —o no haber—:
     // se mide una vez, en segundo plano, y la app deja de enseñar cifras de
-    // ayer (ADR 0098). Sin live no se lanzan linters: el servidor solo sirve.
-    else refreshLint(state.root, state.checksum);
+    // ayer (ADR 0098). La config también pudo cambiar con el servidor parado,
+    // así que la primera pasada es forzada (ADR 0112). Sin live no se lanzan
+    // linters: el servidor solo sirve.
+    else refreshLint(state.root, state.checksum, true);
   }
 
   return {

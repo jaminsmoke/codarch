@@ -4,10 +4,11 @@ import { LintError } from "./format";
 import { detectLintSystems } from "./project";
 
 /**
- * La escritura de una regla en la config del proyecto (ADR 0111).
+ * La escritura de una regla en la config del proyecto (ADR 0111 · ADR 0112).
  *
- * Solo formatos que se pueden leer y validar. La primera herramienta es oxlint
- * en JSON: no se toca un `eslint.config.js` que es código.
+ * La config del proyecto es la fuente de verdad. Oxlint es JSON; ESLint es
+ * código y se toca con un bloque gestionado entre marcas, sin reescribir el
+ * resto del fichero.
  */
 export interface LintRuleChange {
   system: string;
@@ -24,26 +25,28 @@ export interface LintRuleWrite {
 }
 
 const RULE = /^[A-Za-z0-9@/._-]+$/;
+const START = "// codarch:lint-rules:start";
+const END = "// codarch:lint-rules:end";
 
-/**
- * Activa o desactiva una regla de oxlint en el JSON del proyecto.
- *
- * Desactivar una regla explícita la quita; si puede venir de una categoría,
- * se escribe `off` para no depender de lo que la categoría encienda.
- */
 export function writeLintRule(
   root: string,
   change: LintRuleChange
 ): LintRuleWrite {
-  if (change.system !== "oxlint") {
-    throw new LintError(
-      `la escritura de reglas todavía no soporta "${change.system}"; solo oxlint en JSON`
-    );
-  }
   if (!RULE.test(change.rule)) {
     throw new LintError(`regla inválida: "${change.rule}"`);
   }
+  if (change.system === "oxlint") return writeOxlintRule(root, change);
+  if (change.system === "eslint") return writeEslintRule(root, change);
+  throw new LintError(
+    `la escritura de reglas todavía no soporta "${change.system}"`
+  );
+}
 
+/** Activa o desactiva una regla de oxlint en el JSON del proyecto. */
+function writeOxlintRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
   const system = detectLintSystems(root).find((item) => item.name === "oxlint");
   if (!system?.config) {
     throw new LintError("oxlint no declara archivo de configuración");
@@ -53,17 +56,49 @@ export function writeLintRule(
       `la config de oxlint (${system.config}) no es JSON editable`
     );
   }
+  return writeJsonRule(root, system.config, change);
+}
 
-  const file = path.join(root, system.config);
-  let before: string;
-  try {
-    before = fs.readFileSync(file, "utf8");
-  } catch (error) {
-    throw new LintError(
-      `no se pudo leer ${system.config}: ${(error as Error).message}`
-    );
+/**
+ * Activa o desactiva una regla de ESLint.
+ *
+ * Un `.eslintrc.json` se edita como JSON. Un flat config de JS recibe un bloque
+ * gestionado con las marcas de CodArch; si no existe, se inserta una vez.
+ */
+function writeEslintRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  const system = detectLintSystems(root).find((item) => item.name === "eslint");
+  if (!system?.config) {
+    throw new LintError("ESLint no declara archivo de configuración");
+  }
+  if (/\.json$/i.test(system.config)) {
+    return writeJsonRule(root, system.config, change);
   }
 
+  const file = path.join(root, system.config);
+  const before = readConfig(file, system.config);
+  const overrides = readManagedRules(before);
+  if (change.severity === null) overrides.set(change.rule, "off");
+  else overrides.set(change.rule, change.severity);
+
+  const block = renderManagedBlock(overrides);
+  const after = hasManagedBlock(before)
+    ? replaceManagedBlock(before, block)
+    : insertManagedBlock(before, block);
+  writeAtomic(file, after);
+  return { path: system.config, before, after };
+}
+
+/** El JSON de ESLint (`eslintrc.json`) o de oxlint. */
+function writeJsonRule(
+  root: string,
+  relative: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  const file = path.join(root, relative);
+  const before = readConfig(file, relative);
   let document: Record<string, unknown>;
   try {
     const parsed: unknown = JSON.parse(before);
@@ -71,25 +106,179 @@ export function writeLintRule(
     document = parsed;
   } catch (error) {
     throw new LintError(
-      `${system.config} no es un JSON válido: ${(error as Error).message}`
+      `${relative} no es un JSON válido: ${(error as Error).message}`
     );
   }
 
   const rules = isRecord(document.rules) ? { ...document.rules } : {};
   if (change.severity === null) {
     const explicit = Object.prototype.hasOwnProperty.call(rules, change.rule);
-    if (explicit && !categoriesOn(document.categories)) {
-      delete rules[change.rule];
-    } else {
-      rules[change.rule] = "off";
-    }
+    if (explicit && !categoriesOn(document.categories)) delete rules[change.rule];
+    else rules[change.rule] = "off";
   } else {
     rules[change.rule] = change.severity;
   }
 
   const after = `${JSON.stringify({ ...document, rules }, null, 2)}\n`;
   writeAtomic(file, after);
-  return { path: system.config, before, after };
+  return { path: relative, before, after };
+}
+
+function readConfig(file: string, relative: string): string {
+  try {
+    return fs.readFileSync(file, "utf8");
+  } catch (error) {
+    throw new LintError(
+      `no se pudo leer ${relative}: ${(error as Error).message}`
+    );
+  }
+}
+
+/** Las reglas que ya gestiona CodArch dentro del bloque. */
+function readManagedRules(text: string): Map<string, string> {
+  const rules = new Map<string, string>();
+  const block = managedBlock(text);
+  if (!block) return rules;
+  const inner = text.slice(block.start, block.end);
+  for (const match of inner.matchAll(
+    /["']([^"']+)["']\s*:\s*["'](off|warn|error)["']/g
+  )) {
+    rules.set(match[1] as string, match[2] as string);
+  }
+  return rules;
+}
+
+function managedBlock(text: string): { start: number; end: number } | null {
+  const start = text.indexOf(START);
+  const end = text.indexOf(END);
+  if (start === -1 || end === -1 || end < start) return null;
+  return { start, end };
+}
+
+function hasManagedBlock(text: string): boolean {
+  return managedBlock(text) !== null;
+}
+
+function renderManagedBlock(rules: Map<string, string>): string {
+  const entries = [...rules.entries()]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([id, severity]) => `"${id}": "${severity}"`)
+    .join(", ");
+  return [
+    START,
+    "// Gestionado por CodArch. No editar a mano.",
+    `{ rules: { ${entries} } },`,
+    END
+  ].join("\n");
+}
+
+/** Sustituye el bloque entero, conservando la sangría de sus marcas. */
+function replaceManagedBlock(text: string, block: string): string {
+  const found = managedBlock(text);
+  if (!found) return text;
+  const lineStart = text.lastIndexOf("\n", found.start) + 1;
+  const lineEnd = text.indexOf("\n", found.end + END.length);
+  const indent = text.slice(lineStart, found.start);
+  const rendered = block
+    .split("\n")
+    .map((line) => (line ? `${indent}${line}` : line))
+    .join("\n");
+  return `${text.slice(0, lineStart)}${rendered}${
+    lineEnd === -1 ? "\n" : text.slice(lineEnd)
+  }`;
+}
+
+/**
+ * Inserta el bloque en el array exportado o como un argumento más de la
+ * llamada que construye la config. No entiende un `export default { … }`.
+ */
+function insertManagedBlock(text: string, block: string): string {
+  const exported = /export\s+default\s+/.exec(text);
+  if (!exported) {
+    throw new LintError("no se encontró `export default` en la config de ESLint");
+  }
+
+  let index = exported.index + exported[0].length;
+  while (index < text.length && /\s/.test(text[index] as string)) index += 1;
+  const rest = text.slice(index);
+
+  let close: number;
+  if (rest.startsWith("[")) {
+    close = matchingClose(text, index, "[", "]");
+  } else if (rest.startsWith("{")) {
+    throw new LintError(
+      "la config de ESLint exporta un objeto; no se puede añadir el bloque sin reescribirla"
+    );
+  } else {
+    const open = text.indexOf("(", index);
+    if (open === -1) {
+      throw new LintError("no se encontró la llamada de la config de ESLint");
+    }
+    close = matchingClose(text, open, "(", ")");
+  }
+
+  const before = text.slice(0, close).trimEnd();
+  const comma = before.endsWith("[") || before.endsWith("(") ? "" : ",";
+  const rendered = block
+    .split("\n")
+    .map((line) => (line ? `  ${line}` : line))
+    .join("\n");
+  const head = text.slice(0, close);
+  const trailing = head.match(/\s*$/)?.[0] ?? "";
+  const body = head.slice(0, head.length - trailing.length);
+  return `${body}${comma}\n${rendered}\n${text.slice(close)}`;
+}
+
+/** El cierre del corchete o paréntesis, saltando cadenas y comentarios. */
+function matchingClose(
+  text: string,
+  openIndex: number,
+  open: string,
+  close: string
+): number {
+  let depth = 0;
+  for (let index = openIndex; index < text.length; index += 1) {
+    const char = text[index] as string;
+    if (char === '"' || char === "'" || char === "`") {
+      index = skipString(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "/") {
+      index = skipLineComment(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "*") {
+      index = skipBlockComment(text, index);
+      continue;
+    }
+    if (char === open) depth += 1;
+    else if (char === close) {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  throw new LintError("la config de ESLint tiene los corchetes sin cerrar");
+}
+
+function skipString(text: string, start: number): number {
+  const quote = text[start] as string;
+  for (let index = start + 1; index < text.length; index += 1) {
+    const char = text[index] as string;
+    if (char === "\\") index += 1;
+    else if (char === quote) return index;
+  }
+  throw new LintError("la config de ESLint tiene una cadena sin cerrar");
+}
+
+function skipLineComment(text: string, start: number): number {
+  const end = text.indexOf("\n", start);
+  return end === -1 ? text.length : end;
+}
+
+function skipBlockComment(text: string, start: number): number {
+  const end = text.indexOf("*/", start + 2);
+  if (end === -1) throw new LintError("la config de ESLint tiene un comentario sin cerrar");
+  return end + 1;
 }
 
 /** Restaura el contenido anterior de una escritura, si se conserva. */

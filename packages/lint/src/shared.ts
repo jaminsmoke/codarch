@@ -88,6 +88,21 @@ export type { LintFileCount, LintRuleCount, LintTotals } from "./rollup";
 export { parseDocsConfig, parseDocsYaml } from "./docs-config";
 export { systemActivity } from "./catalog";
 export type { RuleCountState, SystemActivity } from "./catalog";
+export interface RuleCatalogGroup {
+  /** `core` para las reglas del núcleo; si no, el plugin. */
+  plugin: string;
+  /** Identificadores completos, listos para escribir en la config. */
+  rules: string[];
+}
+
+export interface RuleCatalog {
+  system: string;
+  groups: RuleCatalogGroup[];
+  /** `project`: enumerado del proyecto; `active`: no se pudo enumerar. */
+  source: "project" | "active";
+  note?: string;
+}
+
 export { scopeHealthMerged } from "./merged";
 export type {
   DomainApplicability,

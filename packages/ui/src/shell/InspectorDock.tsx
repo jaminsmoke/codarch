@@ -122,6 +122,7 @@ export function InspectorDock({
             onSelectPath={selectInPlace}
             onColorMode={actions.setColorMode}
             onLintRule={actions.setLintRule}
+            onListRules={actions.listLintRules}
             canEditLint={app.canEditLint}
           />
         ) : state.tab === "folder" ? (
@@ -139,6 +140,7 @@ export function InspectorDock({
             onSelectFolder={actions.selectFolder}
             onScopeChanges={actions.scopeChanges}
             onLintRule={actions.setLintRule}
+            onListRules={actions.listLintRules}
             canEditLint={app.canEditLint}
           />
         ) : state.tab === "project" ? (
@@ -153,6 +155,7 @@ export function InspectorDock({
             onSelectPath={selectInPlace}
             onSelectFolder={actions.selectFolder}
             onLintRule={actions.setLintRule}
+            onListRules={actions.listLintRules}
             canEditLint={app.canEditLint}
           />
         ) : (

@@ -694,6 +694,101 @@ button.lint-file-row:hover {
   color: var(--debt);
 }
 
+/* Añadir una regla: el menú se abre en la fila de la herramienta. */
+.lint-add-rule {
+  margin-top: 4px;
+}
+
+.lint-add-toggle {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 500 8px/1.6 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.lint-add-toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.lint-add-panel {
+  display: grid;
+  gap: 5px;
+  margin-top: 4px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  background: var(--sheet-soft);
+}
+
+.lint-add-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.lint-add-controls input,
+.lint-add-controls select {
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--ink);
+  font: 9.5px/1.4 var(--mono);
+}
+
+.lint-add-controls input {
+  flex: 1;
+}
+
+.lint-add-list {
+  display: grid;
+  gap: 6px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.lint-add-plugin {
+  margin: 0;
+  font: 500 8px/1.2 var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.lint-add-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 9.5px/1.4 var(--mono);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lint-add-option:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cobalt) 8%, transparent);
+  color: var(--ink);
+}
+
+.lint-add-option:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.lint-add-state {
+  color: var(--patina);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
 .lint-advice {
   display: grid;
   gap: 6px;

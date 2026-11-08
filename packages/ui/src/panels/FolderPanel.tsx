@@ -1,4 +1,4 @@
-import type { LintArtifact } from "@codarch/lint/browser";
+import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
 import type { RenderModel, TreeNode } from "@codarch/render/browser";
 import type { LintRuleChange, LintRuleResult } from "../platform";
@@ -52,6 +52,7 @@ export function FolderPanel({
   onSelectFolder,
   onScopeChanges,
   onLintRule,
+  onListRules,
   canEditLint = false
 }: {
   folder: TreeNode | null;
@@ -75,6 +76,8 @@ export function FolderPanel({
   onScopeChanges: (path: string) => void;
   /** Escribe una regla en la config del proyecto (ADR 0111). */
   onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** Enumera las reglas conocidas de una herramienta (ADR 0112). */
+  onListRules?: (system: string) => Promise<RuleCatalog | null>;
   /** La plataforma puede escribir la config. */
   canEditLint?: boolean;
 }) {
@@ -231,6 +234,7 @@ export function FolderPanel({
           artifact={lint}
           title="Lint"
           onRuleChange={onLintRule}
+          onListRules={onListRules}
           canEdit={canEditLint}
         />
       ) : null}

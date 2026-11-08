@@ -42,13 +42,21 @@ const artifact: LintArtifact = {
   }
 };
 
-function section(onRuleChange?: () => Promise<{ ok: boolean; path?: string }>) {
+function section(
+  onRuleChange?: () => Promise<{ ok: boolean; path?: string }>,
+  onListRules?: () => Promise<{
+    system: string;
+    groups: { plugin: string; rules: string[] }[];
+    source: "project";
+  }>
+) {
   return createElement(LintConfigSection, {
     id: "config",
     domain: "code" as const,
     artifact,
     canEdit: Boolean(onRuleChange),
-    onRuleChange
+    onRuleChange,
+    onListRules
   });
 }
 
@@ -121,5 +129,34 @@ describe("editar reglas desde la ficha", () => {
     expect(
       screen.queryByRole("button", { name: "Desactivar no-var" })
     ).toBeNull();
+  });
+
+  it("añade una regla desde el catálogo buscable", async () => {
+    const onRuleChange = vi.fn(async () => ({
+      ok: true,
+      path: ".oxlintrc.json"
+    }));
+    const onListRules = vi.fn(async () => ({
+      system: "oxlint",
+      groups: [{ plugin: "core", rules: ["no-eval", "no-var"] }],
+      source: "project" as const
+    }));
+    render(section(onRuleChange, onListRules));
+
+    fireEvent.click(screen.getByRole("button", { name: /^oxlint/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Añadir regla" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /no-eval/ })).toBeTruthy()
+    );
+    fireEvent.click(screen.getByRole("button", { name: /no-eval/ }));
+
+    await waitFor(() =>
+      expect(onRuleChange).toHaveBeenCalledWith({
+        system: "oxlint",
+        rule: "no-eval",
+        severity: "error"
+      })
+    );
   });
 });

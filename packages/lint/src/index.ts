@@ -14,6 +14,7 @@ export type { LintFormat, LintTool } from "./config";
 export { defaultLintRunner, runLint } from "./run";
 export { writeLintRule, restoreLintRule } from "./write";
 export type { LintRuleChange, LintRuleWrite } from "./write";
+export { listLintRules } from "./rule-catalog";
 export type {
   LintProcessOutput,
   LintProcessRunner,

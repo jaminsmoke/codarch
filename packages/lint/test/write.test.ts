@@ -97,15 +97,15 @@ describe("escribir una regla de oxlint", () => {
       writeLintRule(broken, { system: "oxlint", rule: "no-var", severity: "error" })
     ).toThrow(LintError);
 
-    const eslint = repo({ rules: {} });
+    const other = repo({ rules: {} });
     fs.writeFileSync(
-      path.join(eslint, "eslint.config.js"),
+      path.join(other, "eslint.config.js"),
       "export default [];",
       "utf8"
     );
     expect(() =>
-      writeLintRule(eslint, { system: "eslint", rule: "no-var", severity: "error" })
-    ).toThrow(/solo oxlint/);
+      writeLintRule(other, { system: "biome", rule: "no-var", severity: "error" })
+    ).toThrow(/todavía no soporta/);
   });
 
   it("rechaza una regla con espacios o un sistema sin config", () => {
@@ -118,5 +118,63 @@ describe("escribir una regla de oxlint", () => {
     expect(() =>
       writeLintRule(empty, { system: "oxlint", rule: "no-var", severity: "error" })
     ).toThrow(/no declara archivo/);
+  });
+});
+
+function eslintRepo(config: string): string {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-eslint-write-"));
+  roots.push(root);
+  fs.writeFileSync(path.join(root, "eslint.config.js"), config, "utf8");
+  return root;
+}
+
+describe("escribir una regla de ESLint", () => {
+  it("inserta el bloque gestionado en la llamada de la config", () => {
+    const root = eslintRepo(
+      [
+        'import tseslint from "typescript-eslint";',
+        "",
+        "export default tseslint.config(",
+        "  { rules: { \"no-console\": \"error\" } }",
+        ");",
+        ""
+      ].join("\n")
+    );
+
+    const result = writeLintRule(root, {
+      system: "eslint",
+      rule: "no-eval",
+      severity: "error"
+    });
+
+    expect(result.after).toContain("// codarch:lint-rules:start");
+    expect(result.after).toContain('"no-eval": "error"');
+    expect(result.after).toContain('"no-console": "error"');
+    expect(result.after).toMatch(/tseslint\.config\([\s\S]*codarch:lint-rules:start/);
+  });
+
+  it("actualiza el bloque en vez de duplicarlo", () => {
+    const root = eslintRepo(
+      [
+        "export default [",
+        "  { rules: { \"no-console\": \"error\" } }",
+        "];",
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, { system: "eslint", rule: "no-eval", severity: "error" });
+    writeLintRule(root, { system: "eslint", rule: "no-eval", severity: null });
+
+    const config = fs.readFileSync(path.join(root, "eslint.config.js"), "utf8");
+    expect(config.match(/codarch:lint-rules:start/g)).toHaveLength(1);
+    expect(config).toContain('"no-eval": "off"');
+  });
+
+  it("se niega a tocar un export que es un objeto", () => {
+    const root = eslintRepo("export default { rules: {} };\n");
+    expect(() =>
+      writeLintRule(root, { system: "eslint", rule: "no-var", severity: "error" })
+    ).toThrow(/exporta un objeto/);
   });
 });

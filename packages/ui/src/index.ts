@@ -18,6 +18,7 @@ export type {
   LintRuleChange,
   LintRuleResult
 } from "./platform";
+export type { RuleCatalog, RuleCatalogGroup } from "@codarch/lint/browser";
 export { localStore, parsePreferences, type ViewPreferences, type SavedProject } from "./storage";
 export { historyEntries, symbolHeat } from "./platform";
 export {
