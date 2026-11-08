@@ -25,7 +25,7 @@ Hoy CodArch tiene:
 - **App de escritorio**: Electron con su propia interfaz, análisis nativo con git, menú del sistema
   e instaladores sin firmar.
 
-Las fases M0–M64 están cerradas (M24 descartada). M65–M76 están cerradas.
+Las fases M0–M64 están cerradas (M24 descartada). M65–M76 están cerradas. M77 está abierta.
 
 ## Las fases
 
@@ -217,6 +217,7 @@ flowchart TD
 | M74 | La app compara código e historial | cerrada | [ADR 0103](adr/0101-0110/0103-el-checksum-es-del-codigo.md#hoja-de-ruta) |
 | M75 | El lint se lee por hallazgos | cerrada | [ADR 0104](adr/0101-0110/0104-el-lint-se-lee-por-hallazgos.md#hoja-de-ruta) |
 | M76 | Las reglas del resto | cerrada | [ADR 0105](adr/0101-0110/0105-las-reglas-de-doc-y-config.md#hoja-de-ruta) |
+| M77 | El Atlas, un plugin de vista | abierta | [ADR 0113](adr/0111-0120/0113-el-atlas-es-un-plugin.md#hoja-de-ruta) |
 
 ## Backlog
 
