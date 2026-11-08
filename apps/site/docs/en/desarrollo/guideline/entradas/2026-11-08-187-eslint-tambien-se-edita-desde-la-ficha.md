@@ -11,9 +11,9 @@ verdict: "adr"
 
 **Why this way**: the project config is the only source of truth. `.codarch/` remains the report of the last run, not a list of rules. The block is read in the same place and adds no indirection the user did not ask for.
 
-**Verified**: the catalog lists 292 core rules and 136 from `@typescript-eslint`; the writer inserts the block in `tseslint.config(...)` and updates it without duplicating it; `eslint` still loads the config; enabling and disabling from the route writes and re-lints; catalog, writer and menu tests.
+**Verified**: the catalog lists 292 core rules and 136 from `@typescript-eslint`; the writer inserts the block in `tseslint.config(...)` and updates it without duplicating it; an explicit rule is removed from its `rules` and covered with `off` in the block; `eslint` still loads the config; enabling and disabling from the route writes and re-lints; catalog, writer and menu tests.
 
-**What is missing**: `meta.config` 1.4 with the config fingerprint; removing the explicit line when the AST can locate it safely; Biome, Ruff and Checkstyle.
+**What is missing**: `meta.config` 1.4 with the config fingerprint; Biome, Ruff and Checkstyle.
 
 **Size**: the catalog and writer in `@codarch/lint`; the route and live in `serve`; the platform action; the card and menu in `packages/ui`.
 
