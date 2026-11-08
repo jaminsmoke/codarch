@@ -10,11 +10,12 @@ laterales siguen siendo de CodArch.
   centro; los ficheros van de pie en dos estanterías laterales, abiertas y ordenadas desde la boca
   de la sala hacia dentro.
 - **Luz y etiquetas**: las paredes y estanterías tienen tiras de luz; el presupuesto de etiquetas
-  prioriza viga, selección, carpetas y hojas.
+  prioriza viga, selección, carpetas y hojas. En salas muy cargadas se retiran primero los detalles
+  pequeños de los archivadores.
 - **Viga**: el frente queda abierto. Una viga lo cruza arriba con el letrero del nombre de la sala;
   no hay pared frontal completa.
-- **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la
-  rueda acerca. El encuadre incluye la viga y su letrero.
+- **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón, la
+  rueda acerca y hay botones **−**, **Centrar** y **+**, con los atajos `+`, `-` y `0`/`R`.
 - **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
 - **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
   `RenderModel` que esté abierto.

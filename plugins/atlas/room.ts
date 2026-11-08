@@ -27,6 +27,8 @@ export interface AtlasBox {
   selectable: boolean;
   /** Nombre legible que se pinta encima. */
   label?: string;
+  /** Detalle pequeño que se puede retirar cuando la sala tiene muchas cajas. */
+  detail?: boolean;
 }
 
 export interface RoomInput {
@@ -131,7 +133,8 @@ function addCabinetDetails(
     depth: depth + 0.24,
     height: 0.16,
     color: input.trimColor,
-    selectable: false
+    selectable: false,
+    detail: true
   });
   boxes.push({
     path: null,
@@ -143,7 +146,8 @@ function addCabinetDetails(
     depth: depth + 0.24,
     height: 0.14,
     color: input.trimColor,
-    selectable: false
+    selectable: false,
+    detail: true
   });
   boxes.push({
     path: null,
@@ -155,7 +159,8 @@ function addCabinetDetails(
     depth: 0.08,
     height: 0.16,
     color: input.trimColor,
-    selectable: false
+    selectable: false,
+    detail: true
   });
   for (const edge of [-1, 1]) {
     boxes.push({
@@ -168,7 +173,8 @@ function addCabinetDetails(
       depth: 0.06,
       height: height * 0.76,
       color: input.trimColor,
-      selectable: false
+      selectable: false,
+      detail: true
     });
   }
 }
@@ -217,12 +223,12 @@ export function buildRoom(input: RoomInput): Room {
 
   const width = Math.max(
     24,
-    containerGridWidth + 2 * SHELF_DEPTH + 12,
+    containerGridWidth + 2 * SHELF_DEPTH + 16,
     fileNodes.length ? 24 : 0
   );
   const depth = Math.max(
     16,
-    CONTAINER_START_Z + containerGridDepth + 5,
+    CONTAINER_START_Z + containerGridDepth + 6,
     fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 3 : 0
   );
   const shelfCenterZ = SHELF_FRONT_Z + sideShelfWidth / 2;
@@ -233,9 +239,9 @@ export function buildRoom(input: RoomInput): Room {
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
   const roomHeight = Math.max(
-    14,
-    fileWallHeight + 3,
-    maxFolderHeight + 7
+    15,
+    fileWallHeight + 4,
+    maxFolderHeight + 8
   );
   boxes.push({
     path: null,

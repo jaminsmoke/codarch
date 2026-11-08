@@ -3,6 +3,7 @@ import {
   fitDistance,
   ORBIT_LIMITS,
   type OrbitPose,
+  type OrbitState,
   type Point
 } from "./orbit";
 import {
@@ -42,6 +43,10 @@ export interface SceneOptions {
 
 export interface Scene {
   setSelected(path: string | null): void;
+  /** Vuelve a la vista inicial de la sala. */
+  resetView(): void;
+  /** Acerca o aleja la cámara conservando el objetivo. */
+  zoom(factor: number): void;
   /** Vuela hasta una carpeta, o al atlas entero con `null`. */
   flyTo(path: string | null, duration: number, onDone: () => void): void;
   dispose(): void;
@@ -54,6 +59,7 @@ const EDGE_COLOR = "#8fe7ff";
 const GRID_COLOR = "#6b7e8d";
 const MAX_PIXELS = 8_000_000;
 const MAX_LABELS = 64;
+const DETAIL_LOD_LIMIT = 140;
 const CUBE_VERTICES = 36;
 /** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
 const STRIDE = 10;
@@ -333,6 +339,8 @@ export function mountScene(
     options.onError?.();
     return {
       setSelected: () => undefined,
+      resetView: () => undefined,
+      zoom: () => undefined,
       flyTo: (_path, _duration, onDone) => onDone(),
       dispose: () => undefined
     };
@@ -342,9 +350,9 @@ export function mountScene(
   const fov = (FOV * Math.PI) / 180;
   const aspect = (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
   const fit = Math.max(
-    room.depth * 1.1,
-    room.width * 1.15,
-    room.radius * 1.3,
+    room.depth * 1.08,
+    room.width * 1.1,
+    room.radius * 1.25,
     // La viga y su letrero viven por encima de las estanterías: el encuadre
     // deja aire suficiente para que se lean también en salas altas.
     (room.height - room.target.y + 6) / Math.tan(fov / 2),
@@ -458,6 +466,11 @@ export function mountScene(
   let frame = 0;
   let projection = perspective(fov, aspect, near, far);
 
+  const start: OrbitState = {
+    azimuth: Math.PI,
+    polar: 1.32,
+    distance: fit
+  };
   const controls = createOrbitControls(canvas, {
     onTap: (clientX, clientY) => {
       const rect = canvas.getBoundingClientRect();
@@ -481,7 +494,7 @@ export function mountScene(
     },
     // La cámara mira de frente desde delante de la sala; las estanterías
     // quedan en las paredes laterales y los contenedores en el centro.
-    start: { azimuth: Math.PI, polar: 1.38, distance: fit },
+    start,
     target,
     onChange: () => requestRender(),
     limits: {
@@ -568,11 +581,17 @@ export function mountScene(
   };
 
   const draw = (boxes: AtlasBox[]): void => {
-    const count = Math.min(boxes.length, capacity);
+    // LOD de geometría: en salas muy cargadas se retiran los detalles pequeños
+    // (tapas, zócalos, marcos y tiradores) antes que los muebles o las hojas.
+    const rendered =
+      boxes.length > DETAIL_LOD_LIMIT
+        ? boxes.filter((box) => !box.detail)
+        : boxes;
+    const count = Math.min(rendered.length, capacity);
     for (let index = 0; index < count; index++) {
-      writeBox(index, boxes[index] as AtlasBox);
+      writeBox(index, rendered[index] as AtlasBox);
     }
-    visible = boxes.slice(0, count);
+    visible = rendered.slice(0, count);
     instanceCount = count;
     upload();
     options.onBoxes?.(count);
@@ -816,6 +835,20 @@ export function mountScene(
       if (path === selected) return;
       selected = path;
       repaint();
+    },
+    resetView(): void {
+      controls.setView(start, target);
+      requestRender();
+    },
+    zoom(factor: number): void {
+      const pose = controls.pose();
+      const distance = Math.hypot(
+        pose.position.x - pose.target.x,
+        pose.position.y - pose.target.y,
+        pose.position.z - pose.target.z
+      );
+      controls.setTarget(pose.target, distance * factor);
+      requestRender();
     },
     flyTo,
     dispose(): void {

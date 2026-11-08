@@ -141,6 +141,7 @@ flowchart TD
 | [0118](0111-0120/0118-el-proyecto-tambien-es-una-sala.md) | El proyecto también es una sala | 2026-11-08 | enmendado por 0119 | M77 |
 | [0119](0111-0120/0119-estanterias-laterales-y-centro.md) | Estanterías laterales y archivadores al centro | 2026-11-08 | enmendado por 0120 | M77 |
 | [0120](0111-0120/0120-estanterias-abiertas-al-frente.md) | Estanterías abiertas y ordenadas desde el frente | 2026-11-08 | aceptado | M77 |
+| [0121](0121-0130/0121-camara-comoda-y-lod.md) | Cámara cómoda y LOD de geometría | 2026-11-09 | aceptado | M77 |
 
 ## Las carpetas
 
@@ -158,5 +159,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100
 - **0101-0110**: 0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110
 - **0111-0120**: 0111, 0112, 0113, 0114, 0115, 0116, 0117, 0118, 0119, 0120
+- **0121-0130**: 0121
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
