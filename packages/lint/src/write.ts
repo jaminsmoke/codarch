@@ -79,16 +79,188 @@ function writeEslintRule(
 
   const file = path.join(root, system.config);
   const before = readConfig(file, system.config);
-  const overrides = readManagedRules(before);
+  const cleaned =
+    change.severity === null
+      ? removeExplicitRule(before, change.rule)
+      : { text: before, removed: false };
+  const overrides = readManagedRules(cleaned.text);
   if (change.severity === null) overrides.set(change.rule, "off");
   else overrides.set(change.rule, change.severity);
 
   const block = renderManagedBlock(overrides);
-  const after = hasManagedBlock(before)
-    ? replaceManagedBlock(before, block)
-    : insertManagedBlock(before, block);
+  const after = hasManagedBlock(cleaned.text)
+    ? replaceManagedBlock(cleaned.text, block)
+    : insertManagedBlock(cleaned.text, block);
   writeAtomic(file, after);
   return { path: system.config, before, after };
+}
+
+/**
+ * Quita una regla escrita explícitamente en un `rules: { … }` del fichero.
+ *
+ * Es una retirada de texto conservadora: solo toca objetos literales y claves
+ * simples. Si la regla viene de un preset o de un valor calculado no aparece
+ * aquí y se cubre con el bloque.
+ */
+function removeExplicitRule(
+  text: string,
+  rule: string
+): { text: string; removed: boolean } {
+  let removed = false;
+  let result = "";
+  let last = 0;
+  for (const object of rulesObjects(text)) {
+    const property = findRuleProperty(text, object.open, object.close, rule);
+    if (!property) continue;
+    result += text.slice(last, property.start);
+    last = property.end;
+    removed = true;
+  }
+  if (!removed) return { text, removed: false };
+  result += text.slice(last);
+  return { text: result, removed: true };
+}
+
+interface RulesObject {
+  open: number;
+  close: number;
+}
+
+function rulesObjects(text: string): RulesObject[] {
+  const objects: RulesObject[] = [];
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index] as string;
+    if (char === '"' || char === "'" || char === "`") {
+      index = skipString(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "/") {
+      index = skipLineComment(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "*") {
+      index = skipBlockComment(text, index);
+      continue;
+    }
+    if (
+      text.startsWith("rules", index) &&
+      !isWord(text[index - 1]) &&
+      !isWord(text[index + 5])
+    ) {
+      let cursor = skipSpaceAndComments(text, index + 5);
+      if (text[cursor] !== ":") continue;
+      cursor = skipSpaceAndComments(text, cursor + 1);
+      if (text[cursor] !== "{") continue;
+      const close = matchingClose(text, cursor, "{", "}");
+      objects.push({ open: cursor, close });
+      index = close;
+    }
+  }
+  return objects;
+}
+
+function findRuleProperty(
+  text: string,
+  open: number,
+  close: number,
+  rule: string
+): { start: number; end: number } | null {
+  let index = open + 1;
+  while (index < close) {
+    index = skipSpaceAndComments(text, index);
+    if (text[index] === ",") {
+      index += 1;
+      continue;
+    }
+    if (text.startsWith("...", index)) {
+      index = skipPropertyValue(text, index + 3, close);
+      continue;
+    }
+
+    const start = index;
+    let key: string | null = null;
+    const char = text[index] as string;
+    if (char === '"' || char === "'") {
+      const end = skipString(text, index);
+      key = text.slice(index + 1, end);
+      index = end + 1;
+    } else if (isWord(char) || char === "@") {
+      while (index < close && (isWord(text[index]) || text[index] === "@")) {
+        index += 1;
+      }
+      key = text.slice(start, index);
+    }
+    if (!key) {
+      index = skipPropertyValue(text, index, close);
+      continue;
+    }
+
+    index = skipSpaceAndComments(text, index);
+    if (text[index] !== ":") {
+      index = skipPropertyValue(text, index, close);
+      continue;
+    }
+    index = skipSpaceAndComments(text, index + 1);
+    const valueEnd = skipPropertyValue(text, index, close);
+    if (key === rule) {
+      const end =
+        text[valueEnd] === "," ? valueEnd + 1 : valueEnd;
+      return { start, end };
+    }
+    index = valueEnd;
+  }
+  return null;
+}
+
+/** Índice del final del valor: la coma de su nivel o el cierre del objeto. */
+function skipPropertyValue(text: string, start: number, close: number): number {
+  let depth = 0;
+  for (let index = start; index < close; index += 1) {
+    const char = text[index] as string;
+    if (char === '"' || char === "'" || char === "`") {
+      index = skipString(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "/") {
+      index = skipLineComment(text, index);
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "*") {
+      index = skipBlockComment(text, index);
+      continue;
+    }
+    if (char === "{" || char === "[" || char === "(") depth += 1;
+    else if (char === "}" || char === "]" || char === ")") {
+      if (depth === 0) return index;
+      depth -= 1;
+    } else if (char === "," && depth === 0) return index;
+  }
+  return close;
+}
+
+function skipSpaceAndComments(text: string, start: number): number {
+  let index = start;
+  while (index < text.length) {
+    const char = text[index] as string;
+    if (/\s/.test(char)) {
+      index += 1;
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "/") {
+      index = skipLineComment(text, index) + 1;
+      continue;
+    }
+    if (char === "/" && text[index + 1] === "*") {
+      index = skipBlockComment(text, index) + 1;
+      continue;
+    }
+    break;
+  }
+  return index;
+}
+
+function isWord(char: string | undefined): boolean {
+  return typeof char === "string" && /[A-Za-z0-9_$]/.test(char);
 }
 
 /** El JSON de ESLint (`eslintrc.json`) o de oxlint. */
