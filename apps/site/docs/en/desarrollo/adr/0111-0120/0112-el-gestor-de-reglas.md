@@ -89,6 +89,7 @@ No new phase.
 - ✅ Re-measuring when the lint config changes.
 - ✅ `meta.config` as an optional fingerprint inside 1.3.
 - ✅ The Biome writer in JSON.
-- ⬜ The Ruff and Checkstyle writers.
+- ✅ The Ruff writer in TOML, with `ruff rule` for the catalog.
+- ⬜ The Checkstyle writer.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).
