@@ -4,8 +4,9 @@ import { checkstyleContainer, checkstyleGroups } from "../src/checkstyle-catalog
 describe("el catálogo curado de Checkstyle", () => {
   it("coloca los módulos nuevos en su contenedor", () => {
     expect(checkstyleContainer("AbbreviationAsWordInName")).toBe("TreeWalker");
+    expect(checkstyleContainer("NoCodeInFile")).toBe("TreeWalker");
     expect(checkstyleContainer("RegexpOnFilename")).toBe("Checker");
-    expect(checkstyleContainer("NoCodeInFile")).toBe("Checker");
+    expect(checkstyleContainer("Translation")).toBe("Checker");
   });
 
   it("no adivina un módulo desconocido", () => {
