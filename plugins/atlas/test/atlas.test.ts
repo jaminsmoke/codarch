@@ -107,6 +107,22 @@ describe("la geometría frontal del Atlas", () => {
     expect(room.sheets).toBe(2);
   });
 
+  it("una subcarpeta abre su propia sala recursiva", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a/sub" });
+    const sheet = room.boxes.find((box) => box.path === "src/a/sub/tres.ts");
+
+    expect(sheet?.role).toBe("file");
+    expect(room.containers).toBe(0);
+    expect(room.sheets).toBe(1);
+  });
+
+  it("las hojas miran a la cámara, no se ven de canto", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
+    expect(sheet?.width).toBeGreaterThan(sheet?.depth ?? 0);
+    expect(sheet?.height).toBeGreaterThan(sheet?.depth ?? 0);
+  });
+
   it("las hojas van a las estanterías y no al suelo", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sheet = room.boxes.find((box) => box.path === "src/a/uno.ts");
