@@ -11,13 +11,13 @@ import { buildRoom } from "./room";
  * subcarpetas siguen siendo contenedores y sus ficheros pasan a las estanterías
  * de la sala.
  */
-function themeColor(name: string, fallback: string): string {
-  if (typeof window === "undefined") return fallback;
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue(name)
-    .trim();
-  return value === "" ? fallback : value;
-}
+const ATLAS_BACKGROUND = "#0b1015";
+const ATLAS_FALLBACK = "#5d6b78";
+const ATLAS_FURNITURE = "#26313b";
+const ATLAS_FLOOR = "#0d1217";
+const ATLAS_WALL = "#161d24";
+const ATLAS_LABEL_TEXT = "#dbe7ef";
+const ATLAS_LABEL_BACKGROUND = "#111820";
 
 type Runtime = SceneBackend | "pending" | "error";
 
@@ -119,9 +119,10 @@ export function AtlasView({ context }: { context: PluginContext }) {
       files: model.files,
       focusPath,
       colorFor: (index) => latest.current.colorFor(index),
-      fallbackColor: themeColor("--muted", "#98a2ad"),
-      furnitureColor: themeColor("--line", "#3a4652"),
-      floorColor: themeColor("--paper", "#eef1f2")
+      fallbackColor: ATLAS_FALLBACK,
+      furnitureColor: ATLAS_FURNITURE,
+      floorColor: ATLAS_FLOOR,
+      wallColor: ATLAS_WALL
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- colorMode cambia los colores aunque se lea por referencia
   }, [model, colorMode, focusPath]);
@@ -136,7 +137,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
     const scene = mountScene(canvas, {
       room,
       selected: latest.current.selection,
-      background: themeColor("--paper", "#eef1f2"),
+      background: ATLAS_BACKGROUND,
       onSelect: (path) => {
         latest.current.actions.select(path);
         setOpenFile({
@@ -154,8 +155,8 @@ export function AtlasView({ context }: { context: PluginContext }) {
       onError: () => setRuntime("error"),
       onBoxes: (count) => setBoxes(count),
       labelCanvas: labelsRef.current,
-      labelTextColor: themeColor("--ink", "#1d232a"),
-      labelBackground: themeColor("--panel", "#ffffff")
+      labelTextColor: ATLAS_LABEL_TEXT,
+      labelBackground: ATLAS_LABEL_BACKGROUND
     });
     sceneRef.current = scene;
 

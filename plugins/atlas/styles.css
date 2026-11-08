@@ -1,11 +1,16 @@
 /* El Atlas: ocupa todo el escenario central del mapa. */
 .atlas {
+  --atlas-line: #26323d;
+  --atlas-panel: rgba(10, 16, 22, 0.84);
+  --atlas-text: #dbe7ef;
+  --atlas-muted: #8fa0af;
+  --atlas-accent: #8fe7ff;
   position: relative;
   width: 100%;
   height: 100%;
   min-height: 420px;
   overflow: hidden;
-  background: var(--paper);
+  background: #0b1015;
 }
 
 .atlas-canvas {
@@ -36,15 +41,15 @@
   flex-direction: column;
   gap: 2px;
   padding: 7px 10px;
-  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border: 1px solid var(--atlas-line);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
-  color: var(--ink);
+  background: var(--atlas-panel);
+  color: var(--atlas-text);
   pointer-events: none;
 }
 
 .atlas-brand-mark {
-  color: var(--muted);
+  color: var(--atlas-muted);
   font: 600 8px/1.2 var(--mono);
   letter-spacing: 0.12em;
 }
@@ -64,10 +69,10 @@
   max-width: min(52%, 520px);
   padding: 6px 9px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border: 1px solid var(--atlas-line);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
-  color: var(--muted);
+  background: var(--atlas-panel);
+  color: var(--atlas-muted);
   font: 400 10px/1.3 var(--sans);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -76,7 +81,7 @@
 
 .atlas-breadcrumb .mono {
   overflow: hidden;
-  color: var(--ink);
+  color: var(--atlas-text);
   text-overflow: ellipsis;
 }
 
@@ -84,17 +89,17 @@
   flex: none;
   margin-left: 4px;
   padding: 2px 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--atlas-line);
   border-radius: 4px;
-  background: var(--panel);
-  color: var(--ink);
+  background: #101820;
+  color: var(--atlas-text);
   font: 400 10px/1.2 var(--sans);
   cursor: pointer;
   pointer-events: auto;
 }
 
 .atlas-back:hover {
-  border-color: var(--muted);
+  border-color: var(--atlas-muted);
 }
 
 .atlas-hud,
@@ -102,10 +107,10 @@
   position: absolute;
   left: 16px;
   padding: 5px 8px;
-  border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  border: 1px solid var(--atlas-line);
   border-radius: 5px;
-  background: color-mix(in srgb, var(--panel) 82%, transparent);
-  color: var(--muted);
+  background: var(--atlas-panel);
+  color: var(--atlas-muted);
   font: 400 10px/1.35 var(--sans);
   pointer-events: none;
 }
@@ -117,12 +122,12 @@
 }
 
 .atlas-hud strong {
-  color: var(--ink);
+  color: var(--atlas-text);
   font-weight: 600;
 }
 
 .atlas-runtime {
-  color: var(--ink);
+  color: var(--atlas-accent);
 }
 
 .atlas-hint {
@@ -137,8 +142,8 @@
   place-content: center;
   gap: 4px;
   padding: 24px;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  color: var(--ink);
+  background: rgba(11, 16, 21, 0.94);
+  color: var(--atlas-text);
   text-align: center;
 }
 
@@ -152,10 +157,10 @@
   flex-direction: column;
   width: min(440px, 48%);
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1px solid var(--atlas-line);
   border-radius: 7px;
-  background: var(--panel);
-  box-shadow: 0 18px 48px color-mix(in srgb, var(--ink) 18%, transparent);
+  background: rgba(12, 18, 24, 0.97);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
 }
 
 .atlas-file-head {
@@ -164,8 +169,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
+  border-bottom: 1px solid var(--atlas-line);
+  color: var(--atlas-text);
   font: 500 10px/1.3 var(--sans);
 }
 
@@ -178,10 +183,10 @@
 .atlas-file-close {
   flex: none;
   padding: 2px 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--atlas-line);
   border-radius: 4px;
-  background: var(--paper);
-  color: var(--ink);
+  background: #101820;
+  color: var(--atlas-text);
   font: 400 10px/1.2 var(--sans);
   cursor: pointer;
 }
@@ -195,20 +200,20 @@
 
 .atlas-file-code {
   margin: 0;
-  color: var(--ink-soft);
+  color: #c6d5e1;
   font: 9px/1.45 var(--mono);
   white-space: pre;
 }
 
 .atlas-file-foot {
   padding: 5px 10px;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
+  border-top: 1px solid var(--atlas-line);
+  color: var(--atlas-muted);
   font: 400 9px/1.3 var(--mono);
 }
 
 .atlas-error span {
-  color: var(--muted);
+  color: var(--atlas-muted);
   font-size: 12px;
 }
 
@@ -216,6 +221,6 @@
   display: grid;
   place-content: center;
   gap: 4px;
-  color: var(--muted);
+  color: var(--atlas-muted);
   text-align: center;
 }
