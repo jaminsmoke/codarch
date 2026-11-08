@@ -8,7 +8,13 @@ import type {
   CcSymbol,
   SymbolChain
 } from "@codarch/schema/browser";
-import type { CodeRequest, CodeSnippet, EditorRequest } from "../platform";
+import type {
+  CodeRequest,
+  CodeSnippet,
+  EditorRequest,
+  LintRuleChange,
+  LintRuleResult
+} from "../platform";
 import { LintSection } from "../LintSection";
 import { healthSnapshot } from "../lintHealth";
 import { ffiEdgesForFile } from "../lenses";
@@ -59,7 +65,9 @@ export function Inspector({
   onLoadCode,
   onOpenEditor,
   onSelectPath,
-  onColorMode
+  onColorMode,
+  onLintRule,
+  canEditLint = false
 }: {
   model: RenderModel | null;
   file: RenderFile | null;
@@ -91,6 +99,10 @@ export function Inspector({
   onSelectPath: (path: string) => void;
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
+  /** Escribe una regla en la config del proyecto (ADR 0111). */
+  onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  /** La plataforma puede escribir la config. */
+  canEditLint?: boolean;
 }) {
   /**
    * El código del símbolo elegido (ADR 0067). Vive en el inspector y no en el
@@ -163,7 +175,14 @@ export function Inspector({
         />
       ) : null}
       {lintView === "catalog" ? (
-        <LintConfigSection id="file-lint" domain="code" artifact={lint} title="Lint" />
+        <LintConfigSection
+          id="file-lint"
+          domain="code"
+          artifact={lint}
+          title="Lint"
+          onRuleChange={onLintRule}
+          canEdit={canEditLint}
+        />
       ) : (
         <LintSection
           id="file-lint"
