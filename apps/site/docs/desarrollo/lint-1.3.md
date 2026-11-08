@@ -24,6 +24,7 @@ type LintArtifact = {
     tools: string[]
     systems: { name: string; config: string | null; rules?: unknown[]; note?: string }[]
     tree?: string
+    config?: string
   }
   files: Record<string, { errors: number; warnings: number; messages: LintMessage[] }>
   summary: {
@@ -38,6 +39,8 @@ type LintArtifact = {
 ```
 
 `summary` es el ámbito de **proyecto** contado otra vez. `measured` solo aparece si la cobertura lo deriva. Un cero que no sale de una enumeración válida no se escribe.
+
+`meta.config` es opcional: una huella de los ficheros de configuración del lint que produjeron la medida ([ADR 0112](adr/0111-0120/0112-el-gestor-de-reglas.md)). No decide reglas; sirve para auditar qué config produjo la foto. Un lector anterior la ignora y un artefacto sin ella se lee igual. `meta.tree` sigue siendo el checksum del código.
 
 Un 1.0, 1.1 o 1.2 se lee. En memoria queda en 1.3 con `coverage.legacy: true` y cada herramienta en `unknown` + `legacy-global`. `measured` no se hereda.
 

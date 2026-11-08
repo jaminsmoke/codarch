@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   LINT_FILE,
+  lintConfigFingerprint,
   readLintArtifact,
   runLint,
   type LintArtifact,
@@ -128,6 +129,7 @@ export async function runProjectLint(
     root,
     tools: plan.tools,
     systems,
+    config: lintConfigFingerprint(root, systems, plan.tools),
     ...(options.run ? { run: options.run } : {}),
     ...(options.tree ? { tree: options.tree } : {})
   });

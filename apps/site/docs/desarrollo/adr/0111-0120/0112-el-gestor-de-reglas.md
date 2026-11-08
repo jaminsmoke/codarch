@@ -54,10 +54,11 @@ quedar viejo si la config cambia por fuera, porque el checksum del árbol de có
    por defecto `error`). Cada cambio enseña fichero y diff antes de escribir, y después se vuelve a
    lintar.
 
-5. **El informe no diverge.** El artefacto gana una huella de la config del lint (`meta.config`, contrato
-   **1.4**). Un cambio en un fichero de config fuerza una re-medida aunque el checksum del código no
-   cambie; un artefacto con otra huella no se presenta como al día. Los artefactos 1.3 se siguen
-   leyendo como hoy.
+5. **El informe no diverge.** El artefacto gana una huella opcional de la config del lint (`meta.config`)
+   dentro del contrato **1.3**; un lector anterior la ignora y un artefacto sin ella se lee igual. Un
+   cambio en un fichero de config fuerza una re-medida aunque el checksum del código no cambie, y al
+   arrancar el live la primera pasada también es forzada. La huella sirve para auditar qué config
+   produjo la foto, no para decidir qué reglas están activas.
 
 6. **Una herramienta, un escritor.** El contrato `LintRuleWriter` recibe el sistema, la regla y la
    severidad, y devuelve la ruta y el diff. Oxlint JSON ya lo cumple; ESLint AST es el siguiente;
@@ -88,7 +89,7 @@ Sin fase nueva.
 - ✅ El catálogo de reglas por herramienta (ESLint núcleo y plugins; oxlint).
 - ✅ El menú de añadir con búsqueda, severidad y confirmación.
 - ✅ Re-medida al cambiar la config del lint.
-- ⬜ `meta.config` 1.4 y la huella de la config en el artefacto.
+- ✅ `meta.config` como huella opcional dentro de 1.3.
 - ⬜ Los escritores de Biome, Ruff y Checkstyle.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

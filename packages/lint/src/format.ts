@@ -171,6 +171,13 @@ export interface LintArtifact {
      * hay árbol con el que comparar y la app no puede decir si está al día.
      */
     tree?: string;
+    /**
+     * Huella de los ficheros de configuración del lint que produjeron esta
+     * medida (ADR 0112). Es opcional y no cambia el contrato: un lector 1.3
+     * anterior la ignora. Sirve para auditar y para no confundir una foto de
+     * otra config con la actual.
+     */
+    config?: string;
   };
   /**
    * Por ruta canónica (`/`, NFC por segmento). Los ficheros limpios no aparecen.
@@ -262,6 +269,7 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
   }
   if (summary.measured !== undefined && !isCount(summary.measured)) return null;
   if (meta.tree !== undefined && !isText(meta.tree)) return null;
+  if (meta.config !== undefined && !isText(meta.config)) return null;
 
   const regenerated = withRegeneratedCounts(parsedFiles.files);
   const diagnostics = combineDiagnostics(
@@ -279,7 +287,8 @@ export function readLintArtifact(input: unknown): LintArtifact | null {
       checksum: meta.checksum,
       tools: [...meta.tools],
       systems,
-      ...(meta.tree === undefined ? {} : { tree: meta.tree })
+      ...(meta.tree === undefined ? {} : { tree: meta.tree }),
+      ...(meta.config === undefined ? {} : { config: meta.config })
     },
     files: regenerated,
     coverage,
@@ -429,6 +438,8 @@ export function createLintArtifact(input: {
   systems?: readonly LintSystem[];
   /** El checksum del snapshot medido, cuando se sabe (ADR 0098). */
   tree?: string;
+  /** Huella de los ficheros de configuración del lint (ADR 0112). */
+  config?: string;
   /** `code` por defecto. El resto pasa `docs`. */
   domain?: LintDomain;
   files: readonly LintFileResult[];
@@ -478,7 +489,8 @@ export function createLintArtifact(input: {
       checksum: "",
       tools,
       systems,
-      ...(input.tree ? { tree: input.tree } : {})
+      ...(input.tree ? { tree: input.tree } : {}),
+      ...(input.config ? { config: input.config } : {})
     },
     files,
     coverage,
@@ -489,7 +501,16 @@ export function createLintArtifact(input: {
     ...draft,
     meta: {
       ...draft.meta,
-      checksum: md5Hex(stableStringify({ domain, tools, systems, files, coverage }))
+      checksum: md5Hex(
+        stableStringify({
+          domain,
+          tools,
+          systems,
+          files,
+          coverage,
+          ...(input.config ? { config: input.config } : {})
+        })
+      )
     },
     // `measured` solo si la cobertura lo deriva. Los limpios no están en `files`.
     summary: summaryFromHealth(scopeHealth(draft, { kind: "project", path: "" }))

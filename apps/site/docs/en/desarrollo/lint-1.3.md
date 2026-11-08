@@ -24,6 +24,7 @@ type LintArtifact = {
     tools: string[]
     systems: { name: string; config: string | null; rules?: unknown[]; note?: string }[]
     tree?: string
+    config?: string
   }
   files: Record<string, { errors: number; warnings: number; messages: LintMessage[] }>
   summary: {
@@ -38,6 +39,8 @@ type LintArtifact = {
 ```
 
 `summary` is the **project** scope counted again. `measured` is present only when coverage can derive it. A zero that does not come from a valid enumeration is not written.
+
+`meta.config` is optional: a fingerprint of the lint config files that produced the measurement ([ADR 0112](adr/0111-0120/0112-el-gestor-de-reglas.md)). It does not decide rules; it is for auditing which config produced the photo. An older reader ignores it and an artifact without it is read the same. `meta.tree` is still the code checksum.
 
 A 1.0, 1.1, or 1.2 file is still read. In memory it becomes 1.3 with `coverage.legacy: true` and every tool `unknown` + `legacy-global`. `measured` is not carried over.
 

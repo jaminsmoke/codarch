@@ -52,10 +52,11 @@ outside CodArch, because the code tree checksum does not change.
    menu is searchable and grouped by plugin; when adding, the severity is chosen (`error` or `warn`,
    default `error`). Every change shows the file and the diff before writing, then lints again.
 
-5. **The report does not diverge.** The artifact gains a lint config fingerprint (`meta.config`,
-   contract **1.4**). A change in a config file forces a re-measure even if the code checksum does not
-   change; an artifact with a different fingerprint is not presented as up to date. 1.3 artifacts are
-   still read as today.
+5. **The report does not diverge.** The artifact gains an optional lint config fingerprint (`meta.config`)
+   inside contract **1.3**; an older reader ignores it and an artifact without it is read the same. A
+   change in a config file forces a re-measure even if the code checksum does not change, and the first
+   pass after live starts is forced too. The fingerprint is for auditing which config produced the
+   photo, not for deciding which rules are active.
 
 6. **One tool, one writer.** The `LintRuleWriter` contract receives the system, the rule and the
    severity, and returns the path and the diff. Oxlint JSON already meets it; ESLint AST is next; Biome,
@@ -86,7 +87,7 @@ No new phase.
 - ✅ The rule catalog per tool (ESLint core and plugins; oxlint).
 - ✅ The add menu with search, severity and confirmation.
 - ✅ Re-measuring when the lint config changes.
-- ⬜ `meta.config` 1.4 and the config fingerprint in the artifact.
+- ✅ `meta.config` as an optional fingerprint inside 1.3.
 - ⬜ The Biome, Ruff and Checkstyle writers.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).

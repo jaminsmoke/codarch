@@ -83,6 +83,8 @@ export interface LintRunOptions {
    * árbol habla el lint. El comando suelto no lo pasa: no analiza.
    */
   tree?: string;
+  /** Huella de los ficheros de configuración del lint (ADR 0112). */
+  config?: string;
   /** Por defecto, un proceso por herramienta. */
   run?: LintProcessRunner;
   /** Tope por herramienta; por defecto, dos minutos. */
@@ -105,6 +107,7 @@ export async function runLint(options: LintRunOptions): Promise<LintRunResult> {
           tools: measured.map((result) => result.run.name),
           ...(options.systems ? { systems: options.systems } : {}),
           ...(options.tree ? { tree: options.tree } : {}),
+          ...(options.config ? { config: options.config } : {}),
           files: measured.flatMap((result) => result.files),
           // También las que fallaron: si no, un éxito y un fallo parecerían
           // una medida completa. `meta.tools` sigue siendo solo las que midieron.

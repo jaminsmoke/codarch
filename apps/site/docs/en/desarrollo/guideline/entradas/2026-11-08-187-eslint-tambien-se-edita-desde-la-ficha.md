@@ -13,7 +13,7 @@ verdict: "adr"
 
 **Verified**: the catalog lists 292 core rules and 136 from `@typescript-eslint`; the writer inserts the block in `tseslint.config(...)` and updates it without duplicating it; an explicit rule is removed from its `rules` and covered with `off` in the block; `eslint` still loads the config; enabling and disabling from the route writes and re-lints; catalog, writer and menu tests.
 
-**What is missing**: `meta.config` 1.4 with the config fingerprint; Biome, Ruff and Checkstyle.
+**What is missing**: the Biome, Ruff and Checkstyle writers. `meta.config` now stores the config fingerprint in the artifact (optional field in 1.3).
 
 **Size**: the catalog and writer in `@codarch/lint`; the route and live in `serve`; the platform action; the card and menu in `packages/ui`.
 
