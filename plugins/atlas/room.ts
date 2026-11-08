@@ -37,6 +37,7 @@ export interface RoomInput {
   fallbackColor: string;
   furnitureColor: string;
   floorColor: string;
+  wallColor: string;
 }
 
 export interface Room {
@@ -164,8 +165,8 @@ export function buildRoom(input: RoomInput): Room {
   let containers = 0;
   let sheets = 0;
 
-  // Plataforma bajo los contenedores; no es un plano infinito.
-  if (folders.length > 0) {
+  // Plataforma bajo los contenedores en el overview.
+  if (folders.length > 0 && overview) {
     boxes.push({
       path: null,
       role: "floor",
@@ -176,6 +177,49 @@ export function buildRoom(input: RoomInput): Room {
       depth: Math.max(10, containerGridDepth + 5),
       height: FLOOR_HEIGHT,
       color: input.floorColor,
+      selectable: false
+    });
+  }
+
+  // Sala: suelo, paredes y estanterías forman un espacio cerrado.
+  if (!overview) {
+    const roomHeight = Math.max(14, fileWallHeight + 3);
+    boxes.push({
+      path: null,
+      role: "floor",
+      x: 0,
+      y: -FLOOR_HEIGHT,
+      z: depth / 2,
+      width: width + 4,
+      depth: depth + 4,
+      height: FLOOR_HEIGHT,
+      color: input.floorColor,
+      selectable: false
+    });
+    for (const side of [-1, 1]) {
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: side * (width / 2 + 0.6),
+        y: 0,
+        z: depth / 2,
+        width: 0.4,
+        depth: depth + 2,
+        height: roomHeight,
+        color: input.wallColor,
+        selectable: false
+      });
+    }
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: 0,
+      z: depth + 0.8,
+      width: width + 4,
+      depth: 0.4,
+      height: roomHeight,
+      color: input.wallColor,
       selectable: false
     });
   }
@@ -208,6 +252,22 @@ export function buildRoom(input: RoomInput): Room {
 
   // Estanterías de fondo: tablas horizontales que miran a la cámara.
   if (fileNodes.length > 0) {
+    if (!overview) {
+      for (const side of [-1, 1]) {
+        boxes.push({
+          path: null,
+          role: "furniture",
+          x: side * (fileWallWidth / 2 + 0.45),
+          y: 0,
+          z: wallZ,
+          width: 0.35,
+          depth: SHELF_DEPTH,
+          height: fileWallHeight,
+          color: input.furnitureColor,
+          selectable: false
+        });
+      }
+    }
     for (let row = 0; row < fileRows; row++) {
       boxes.push({
         path: null,
@@ -252,7 +312,7 @@ export function buildRoom(input: RoomInput): Room {
     boxes,
     target: {
       x: 0,
-      y: Math.max(4.5, fileWallHeight / 2),
+      y: Math.max(4.5, fileWallHeight * 0.38),
       z: depth / 2
     },
     width,

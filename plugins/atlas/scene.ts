@@ -319,7 +319,12 @@ export function mountScene(
   const room = options.room;
   const fov = (FOV * Math.PI) / 180;
   const aspect = (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
-  const fit = Math.max(room.depth * 0.95, room.width * 1.0, 24);
+  const fit = Math.max(
+    room.depth * 1.1,
+    room.width * 1.15,
+    room.radius * 1.3,
+    24
+  );
   const target: Point = room.target;
   const near = Math.max(1, fit * 0.01);
   const far = fit * 5 + 2000;
@@ -446,8 +451,9 @@ export function mountScene(
       if (box.role === "folder") options.onFocus?.(box.path ?? "");
       else if (box.role === "file") options.onSelect(box.path ?? "");
     },
-    // La cámara mira de frente, a la altura de la sala, no desde el cenit.
-    start: { azimuth: 0, polar: 1.38, distance: fit },
+    // La cámara mira de frente desde delante de la sala; las estanterías
+    // quedan al fondo y los contenedores delante.
+    start: { azimuth: Math.PI, polar: 1.38, distance: fit },
     target,
     onChange: () => requestRender(),
     limits: {
@@ -598,12 +604,26 @@ export function mountScene(
         ): entry is {
           box: AtlasBox;
           point: { x: number; y: number; depth: number };
-        } =>
-          entry.point !== null &&
-          entry.point.x > -80 &&
-          entry.point.x < width + 80 &&
-          entry.point.y > -20 &&
-          entry.point.y < height + 20
+        } => {
+          const point = entry.point;
+          if (!point) return false;
+          const screenHeight =
+            (entry.box.height * height) /
+            (2 * Math.max(0.01, point.depth) * Math.tan(fov / 2));
+          if (
+            entry.box.role === "file" &&
+            entry.box.path !== selected &&
+            screenHeight < 9
+          ) {
+            return false;
+          }
+          return (
+            point.x > -80 &&
+            point.x < width + 80 &&
+            point.y > -20 &&
+            point.y < height + 20
+          );
+        }
       )
       .sort((left, right) => {
         const leftFocus =
