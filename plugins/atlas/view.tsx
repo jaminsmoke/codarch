@@ -29,6 +29,7 @@ function runtimeLabel(runtime: Runtime): string {
 
 export function AtlasView({ context }: { context: PluginContext }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const labelsRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const [runtime, setRuntime] = useState<Runtime>("pending");
   const [boxes, setBoxes] = useState(0);
@@ -69,10 +70,17 @@ export function AtlasView({ context }: { context: PluginContext }) {
       selected: latest.current.selection,
       background: themeColor("--paper", "#eef1f2"),
       onSelect: (path) => latest.current.actions.select(path),
-      onFocus: (path) => latest.current.actions.focus(path),
+      onFocus: (path) => {
+        sceneRef.current?.flyTo(path, 420, () => {
+          latest.current.actions.focus(path);
+        });
+      },
       onBackend: (backend) => setRuntime(backend),
       onError: () => setRuntime("error"),
-      onBoxes: (count) => setBoxes(count)
+      onBoxes: (count) => setBoxes(count),
+      labelCanvas: labelsRef.current,
+      labelTextColor: themeColor("--ink", "#1d232a"),
+      labelBackground: themeColor("--panel", "#ffffff")
     });
     sceneRef.current = scene;
 
@@ -98,6 +106,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
   return (
     <div className="atlas">
       <canvas ref={canvasRef} className="atlas-canvas" />
+      <canvas ref={labelsRef} className="atlas-labels" aria-hidden="true" />
       <div className="atlas-brand" aria-hidden="true">
         <span className="atlas-brand-mark">CODARCH</span>
         <strong>ATLAS DE ARQUITECTURA</strong>
@@ -110,7 +119,11 @@ export function AtlasView({ context }: { context: PluginContext }) {
           <button
             type="button"
             className="atlas-back"
-            onClick={() => context.url.write({ focusPath: null })}
+            onClick={() => {
+              const leave = () => context.url.write({ focusPath: null });
+              if (sceneRef.current) sceneRef.current.flyTo(null, 360, leave);
+              else leave();
+            }}
             title="Volver al atlas entero"
           >
             Volver

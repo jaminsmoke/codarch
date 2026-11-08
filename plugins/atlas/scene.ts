@@ -1,10 +1,17 @@
 import {
   createOrbitControls,
+  fitDistance,
   ORBIT_LIMITS,
   type OrbitPose,
   type Point
 } from "./orbit";
-import { lookAt, perspective, pickBox, rayFromNdc } from "./camera";
+import {
+  lookAt,
+  perspective,
+  pickBox,
+  projectPoint,
+  rayFromNdc
+} from "./camera";
 import type { AtlasBox, AtlasRole, Room } from "./room";
 
 /**
@@ -27,10 +34,16 @@ export interface SceneOptions {
   onError?: () => void;
   onBoxes?: (count: number) => void;
   onContainers?: (count: number) => void;
+  /** Lienzo transparente encima del WebGL para las etiquetas. */
+  labelCanvas?: HTMLCanvasElement | null;
+  labelTextColor?: string;
+  labelBackground?: string;
 }
 
 export interface Scene {
   setSelected(path: string | null): void;
+  /** Vuela hasta una carpeta, o al atlas entero con `null`. */
+  flyTo(path: string | null, duration: number, onDone: () => void): void;
   dispose(): void;
 }
 
@@ -296,7 +309,11 @@ export function mountScene(
 
   if (!gl) {
     options.onError?.();
-    return { setSelected: () => undefined, dispose: () => undefined };
+    return {
+      setSelected: () => undefined,
+      flyTo: (_path, _duration, onDone) => onDone(),
+      dispose: () => undefined
+    };
   }
 
   const room = options.room;
@@ -309,6 +326,10 @@ export function mountScene(
   const background = parseColor(options.background, [0.93, 0.94, 0.95]);
   const edge = parseColor(EDGE_COLOR);
   const grid = parseColor(GRID_COLOR);
+  const labelCanvas = options.labelCanvas ?? null;
+  const labels = labelCanvas?.getContext("2d") ?? null;
+  const labelText = options.labelTextColor ?? "#1d232a";
+  const labelBackground = options.labelBackground ?? "#ffffff";
 
   const capacity = Math.max(1, room.boxes.length);
   const data = new Float32Array(capacity * STRIDE);
@@ -389,6 +410,15 @@ export function mountScene(
   let visible: AtlasBox[] = room.boxes;
   let selected = options.selected;
   let instanceCount = 0;
+  let flight: {
+    fromTarget: Point;
+    toTarget: Point;
+    fromDistance: number;
+    toDistance: number;
+    start: number;
+    duration: number;
+    onDone: () => void;
+  } | null = null;
   let disposed = false;
   let ready = false;
   let lost = false;
@@ -428,6 +458,59 @@ export function mountScene(
       maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 2.2)
     }
   });
+
+  const focusFor = (
+    path: string | null
+  ): { target: Point; distance: number } => {
+    if (!path) return { target, distance: fit };
+    const box = room.boxes.find(
+      (item) => item.role === "folder" && item.path === path
+    );
+    if (!box) return { target, distance: fit };
+    const radius = Math.max(
+      6,
+      Math.hypot(box.width, box.depth, box.height) / 2
+    );
+    return {
+      target: {
+        x: box.x,
+        y: box.y + box.height * 0.45,
+        z: box.z
+      },
+      distance: Math.max(8, fitDistance(radius, fov, aspect, 1.45))
+    };
+  };
+
+  const flyTo = (
+    path: string | null,
+    duration: number,
+    onDone: () => void
+  ): void => {
+    if (flight || disposed) return;
+    const pose = controls.pose();
+    const end = focusFor(path);
+    const fromDistance = Math.hypot(
+      pose.position.x - pose.target.x,
+      pose.position.y - pose.target.y,
+      pose.position.z - pose.target.z
+    );
+    if (duration <= 0) {
+      controls.setTarget(end.target, end.distance);
+      onDone();
+      requestRender();
+      return;
+    }
+    flight = {
+      fromTarget: pose.target,
+      toTarget: end.target,
+      fromDistance,
+      toDistance: end.distance,
+      start: performance.now(),
+      duration,
+      onDone
+    };
+    requestRender();
+  };
 
   const writeBox = (slot: number, box: AtlasBox): void => {
     const base = slot * STRIDE;
@@ -478,6 +561,93 @@ export function mountScene(
     frame = requestAnimationFrame(render);
   }
 
+  const drawLabels = (pose: OrbitPose): void => {
+    if (!labelCanvas || !labels) return;
+    const width = labelCanvas.clientWidth || 1;
+    const height = labelCanvas.clientHeight || 1;
+    labels.clearRect(0, 0, width, height);
+    if (width < 2 || height < 2) return;
+    labels.font = '600 10px "Inter", system-ui, sans-serif';
+    labels.textBaseline = "middle";
+    const occupied: Array<{ x: number; y: number; w: number; h: number }> =
+      [];
+    const candidates = visible
+      .filter((box) => box.label && box.selectable)
+      .map((box) => {
+        const point = projectPoint(
+          pose.position,
+          pose.target,
+          fov,
+          aspect,
+          width,
+          height,
+          {
+            x: box.x,
+            y:
+              box.y +
+              box.height +
+              (box.role === "folder" ? 0.8 : 0.35),
+            z: box.z
+          }
+        );
+        return { box, point };
+      })
+      .filter(
+        (
+          entry
+        ): entry is {
+          box: AtlasBox;
+          point: { x: number; y: number; depth: number };
+        } =>
+          entry.point !== null &&
+          entry.point.x > -80 &&
+          entry.point.x < width + 80 &&
+          entry.point.y > -20 &&
+          entry.point.y < height + 20
+      )
+      .sort((left, right) => {
+        const leftFocus =
+          left.box.path === selected ? -1 : left.box.role === "folder" ? 0 : 1;
+        const rightFocus =
+          right.box.path === selected ? -1 : right.box.role === "folder" ? 0 : 1;
+        return leftFocus - rightFocus || left.point.depth - right.point.depth;
+      })
+      .slice(0, 80);
+
+    for (const { box, point } of candidates) {
+      const text =
+        (box.label as string).length > 28
+          ? `${(box.label as string).slice(0, 27)}…`
+          : (box.label as string);
+      const textWidth = labels.measureText(text).width;
+      const rect = {
+        x: point.x - textWidth / 2 - 4,
+        y: point.y - 7,
+        w: textWidth + 8,
+        h: 14
+      };
+      if (
+        occupied.some(
+          (other) =>
+            rect.x < other.x + other.w + 3 &&
+            rect.x + rect.w + 3 > other.x &&
+            rect.y < other.y + other.h + 2 &&
+            rect.y + rect.h + 2 > other.y
+        )
+      ) {
+        continue;
+      }
+      occupied.push(rect);
+      labels.globalAlpha = 0.9;
+      labels.fillStyle =
+        box.path === selected ? "#2f6fed" : labelBackground;
+      labels.fillRect(rect.x, rect.y, rect.w, rect.h);
+      labels.globalAlpha = 1;
+      labels.fillStyle = box.path === selected ? "#ffffff" : labelText;
+      labels.fillText(text, rect.x + 4, rect.y + rect.h / 2 + 0.5);
+    }
+  };
+
   const paint = (pose: OrbitPose): void => {
     if (!gl || !program) return;
     gl.clearColor(background[0], background[1], background[2], 1);
@@ -500,10 +670,30 @@ export function mountScene(
   const render = (): void => {
     frame = 0;
     if (disposed || lost || !gl) return;
+    const now = performance.now();
+    if (flight) {
+      const raw = Math.min(1, (now - flight.start) / flight.duration);
+      const t = raw * raw * (3 - 2 * raw);
+      controls.setTarget(
+        {
+          x: flight.fromTarget.x + (flight.toTarget.x - flight.fromTarget.x) * t,
+          y: flight.fromTarget.y + (flight.toTarget.y - flight.fromTarget.y) * t,
+          z: flight.fromTarget.z + (flight.toTarget.z - flight.fromTarget.z) * t
+        },
+        flight.fromDistance + (flight.toDistance - flight.fromDistance) * t
+      );
+      if (raw >= 1) {
+        const done = flight.onDone;
+        flight = null;
+        done();
+      }
+      requestRender();
+    }
     const moved = controls.update();
     const pose = controls.pose();
     if (moved) requestRender();
     paint(pose);
+    drawLabels(pose);
   };
 
   const resize = (): void => {
@@ -524,6 +714,10 @@ export function mountScene(
     }
     projection = perspective(fov, width / height, near, far);
     gl.viewport(0, 0, canvas.width, canvas.height);
+    if (labelCanvas) {
+      labelCanvas.width = Math.max(1, Math.round(width));
+      labelCanvas.height = Math.max(1, Math.round(height));
+    }
     requestRender();
   };
 
@@ -568,6 +762,7 @@ export function mountScene(
       selected = path;
       repaint();
     },
+    flyTo,
     dispose(): void {
       disposed = true;
       cancelAnimationFrame(frame);

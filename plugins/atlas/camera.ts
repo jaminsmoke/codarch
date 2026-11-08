@@ -124,7 +124,34 @@ export function rayFromNdc(
   return { origin: { ...eye }, direction };
 }
 
-/** Lo que ocupa una caja en el mundo ✓. */
+/** Proyecta un punto del mundo a píxeles; `null` si queda detrás de la cámara. */
+export function projectPoint(
+  eye: Point,
+  target: Point,
+  fovY: number,
+  aspect: number,
+  width: number,
+  height: number,
+  point: Point
+): { x: number; y: number; depth: number } | null {
+  const forward = normalize(sub(target, eye));
+  const right = normalize(cross(forward, { x: 0, y: 1, z: 0 }));
+  const up = cross(right, forward);
+  const relative = sub(point, eye);
+  const depth = dot(relative, forward);
+  if (depth <= 0.01) return null;
+  const tan = Math.tan(Math.max(0.01, fovY) / 2);
+  const ndcX = dot(relative, right) / (depth * tan * Math.max(0.01, aspect));
+  const ndcY = dot(relative, up) / (depth * tan);
+  if (!Number.isFinite(ndcX) || !Number.isFinite(ndcY)) return null;
+  return {
+    x: (ndcX * 0.5 + 0.5) * width,
+    y: (-ndcY * 0.5 + 0.5) * height,
+    depth
+  };
+}
+
+/** Lo que ocupa una caja en el mundo. */
 function boundsOfBox(box: AtlasBox): { min: Point; max: Point } {
   return {
     min: {
