@@ -13,9 +13,9 @@ const KINDS: CcRestKind[] = ["doc", "config", "asset", "other"];
 /**
  * El reparto del resto por tipo (M64).
  *
- * La leyenda ya decía cuántos ficheros hay de cada tipo cuando el color es
- * `kind`; el raíl lo dice siempre, sin cambiar de color: una barra, su leyenda y
- * la cuenta. Es la lectura de qué hay en el mapa de lo que no es código.
+ * La única lectura del tipo en el raíl: una barra, su leyenda y la cuenta.
+ * La leyenda del mapa ya no lleva su versión por tipo porque repetía este
+ * bloque con las mismas cifras, justo debajo (2026-11-08).
  */
 export function RestKinds({ model }: { model: RenderModel | null }) {
   const files = model?.files ?? [];
