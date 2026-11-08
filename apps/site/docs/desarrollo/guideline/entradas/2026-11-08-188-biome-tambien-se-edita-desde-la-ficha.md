@@ -13,7 +13,7 @@ verdict: "adr"
 
 **Verificado**: activar `suspicious/noDoubleEquals` en un `biome.json` apagado enciende el linter y escribe la regla; desactivar con recomendadas encendidas deja `off`; con recomendadas apagadas quita la entrada; un `biome.jsonc` se rechaza con un motivo.
 
-**Qué falta**: Ruff (TOML) y Checkstyle (XML).
+**Qué falta**: Checkstyle (XML).
 
 **Tamaño**: el escritor y las recomendadas en `@codarch/lint`; la condición editable en la ficha.
 

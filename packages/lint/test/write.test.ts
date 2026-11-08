@@ -104,7 +104,7 @@ describe("escribir una regla de oxlint", () => {
       "utf8"
     );
     expect(() =>
-      writeLintRule(other, { system: "ruff", rule: "no-var", severity: "error" })
+      writeLintRule(other, { system: "checkstyle", rule: "no-var", severity: "error" })
     ).toThrow(/todavía no soporta/);
   });
 
@@ -295,5 +295,85 @@ describe("escribir una regla de Biome", () => {
         severity: "error"
       })
     ).toThrow(/jsonc/);
+  });
+});
+
+function ruffRepo(relative: string, content: string): string {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-ruff-write-"));
+  roots.push(root);
+  const file = path.join(root, relative);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, content, "utf8");
+  return root;
+}
+
+describe("escribir una regla de Ruff", () => {
+  it("añade el código a extend-select sin reescribir el resto", () => {
+    const root = ruffRepo(
+      "ruff.toml",
+      [
+        "[lint]",
+        'select = ["E", "F"]',
+        'ignore = ["E501"]',
+        "",
+        "[format]",
+        'quote-style = "double"',
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "ruff",
+      rule: "F401",
+      severity: "error"
+    });
+
+    const config = fs.readFileSync(path.join(root, "ruff.toml"), "utf8");
+    expect(config).toContain('select = ["E", "F"]');
+    expect(config).toContain('extend-select = ["F401"]');
+    expect(config).toContain("[format]");
+  });
+
+  it("desactiva con extend-ignore y quita el código de los select", () => {
+    const root = ruffRepo(
+      "pyproject.toml",
+      [
+        "[project]",
+        'name = "demo"',
+        "",
+        "[tool.ruff]",
+        "",
+        "[tool.ruff.lint]",
+        'select = ["E", "E501"]',
+        'ignore = ["E501"]',
+        ""
+      ].join("\n")
+    );
+
+    writeLintRule(root, {
+      system: "ruff",
+      rule: "E501",
+      severity: null
+    });
+
+    const config = fs.readFileSync(path.join(root, "pyproject.toml"), "utf8");
+    expect(config).toContain('select = ["E"]');
+    expect(config).toContain('ignore = []');
+    expect(config).toContain('extend-ignore = ["E501"]');
+  });
+
+  it("rechaza un array con comentarios para no perderlos", () => {
+    const root = ruffRepo(
+      "ruff.toml",
+      ["[lint]", 'select = ["E501", # errores', '  "F"]', ""].join("\n")
+    );
+
+    expect(() =>
+      writeLintRule(root, {
+        system: "ruff",
+        rule: "E501",
+        severity: null
+      })
+    ).toThrow(/comentarios/);
   });
 });

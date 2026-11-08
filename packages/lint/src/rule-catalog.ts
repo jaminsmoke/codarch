@@ -1,8 +1,12 @@
 import fs from "node:fs";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { createRequire } from "node:module";
 import path from "node:path";
 import type { RuleCatalog, RuleCatalogGroup } from "./shared";
-import { detectLintSystems } from "./project";
+import { detectLintSystems, parseRuffRuleCatalog } from "./project";
+
+const execFileAsync = promisify(execFile);
 
 /**
  * El catálogo de reglas conocidas de una herramienta (ADR 0112).
@@ -18,6 +22,7 @@ export async function listLintRules(
   if (system === "eslint") return listEslintRules(root);
   if (system === "oxlint") return listOxlintRules(root);
   if (system === "biome") return listBiomeRules(root);
+  if (system === "ruff") return listRuffRules(root);
   return {
     system,
     groups: [],
@@ -199,6 +204,43 @@ function readBiomeSchema(root: string): BiomeSchema | null {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+async function listRuffRules(root: string): Promise<RuleCatalog> {
+  try {
+    const { stdout } = await execFileAsync(
+      "ruff",
+      ["rule", "--all", "--output-format=json"],
+      { cwd: root, timeout: 30_000, maxBuffer: 8 * 1024 * 1024 }
+    );
+    const rules = parseRuffRuleCatalog(JSON.parse(stdout));
+    const byGroup = new Map<string, string[]>();
+    for (const rule of rules) {
+      const code = rule.code;
+      const group = /^[A-Z]+/.exec(code)?.[0] ?? "core";
+      const list = byGroup.get(group) ?? [];
+      list.push(code);
+      byGroup.set(group, list);
+    }
+    const groups = [...byGroup.entries()]
+      .sort(([left], [right]) => compare(left, right))
+      .map(([plugin, codes]) => ({ plugin, rules: codes.sort(compare) }));
+    return groups.length > 0
+      ? { system: "ruff", groups, source: "project" }
+      : {
+          system: "ruff",
+          groups: [],
+          source: "active",
+          note: "Ruff no devolvió reglas."
+        };
+  } catch {
+    return {
+      system: "ruff",
+      groups: [],
+      source: "active",
+      note: "No se pudo ejecutar `ruff rule` en este proyecto."
+    };
+  }
 }
 
 function readOxlintSchema(root: string): OxlintSchema | null {

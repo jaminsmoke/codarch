@@ -26,10 +26,17 @@ describe("el catálogo de reglas conocidas", () => {
   });
 
   it("una herramienta sin catálogo lo dice y no inventa", async () => {
-    const catalog = await listLintRules(process.cwd(), "ruff");
+    const catalog = await listLintRules(process.cwd(), "checkstyle");
     expect(catalog.groups).toEqual([]);
     expect(catalog.source).toBe("active");
     expect(catalog.note).toMatch(/No se puede enumerar/);
+  });
+
+  it("Ruff sin binario no inventa su catálogo", async () => {
+    const catalog = await listLintRules(process.cwd(), "ruff");
+    if (catalog.source === "project") return;
+    expect(catalog.groups).toEqual([]);
+    expect(catalog.note).toMatch(/ruff/);
   });
 
   it("Biome sin esquema instalado no inventa su catálogo", async () => {

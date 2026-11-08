@@ -222,7 +222,9 @@ function ConfigBody({
                 Boolean(system.config?.endsWith(".json"))) ||
                 (system.name === "eslint" && Boolean(system.config)) ||
                 (system.name === "biome" &&
-                  Boolean(system.config?.endsWith(".json"))));
+                  Boolean(system.config?.endsWith(".json"))) ||
+                (system.name === "ruff" &&
+                  Boolean(system.config?.endsWith(".toml"))));
             const active = new Set(system.activeRules.map((rule) => rule.id));
             const missing = editable
               ? recommendedRules(system.name).filter(

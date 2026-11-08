@@ -38,6 +38,7 @@ export function writeLintRule(
   if (change.system === "oxlint") return writeOxlintRule(root, change);
   if (change.system === "eslint") return writeEslintRule(root, change);
   if (change.system === "biome") return writeBiomeRule(root, change);
+  if (change.system === "ruff") return writeRuffRule(root, change);
   throw new LintError(
     `la escritura de reglas todavía no soporta "${change.system}"`
   );
@@ -327,6 +328,182 @@ function writeBiomeRule(
   const after = `${JSON.stringify(document, null, 2)}\n`;
   writeAtomic(file, after);
   return { path: system.config, before, after };
+}
+
+/**
+ * Activa o desactiva una regla de Ruff en su TOML.
+ *
+ * No se reescribe el TOML entero: se toca el array de `select`/`extend-select`
+ * o el de `ignore`/`extend-ignore` de la tabla del lint. Los arrays con
+ * comentarios se rechazan para no perderlos.
+ */
+function writeRuffRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  const system = detectLintSystems(root).find((item) => item.name === "ruff");
+  if (!system?.config) {
+    throw new LintError("Ruff no declara archivo de configuración");
+  }
+  if (!system.config.endsWith(".toml")) {
+    throw new LintError(
+      `la config de Ruff (${system.config}) no es TOML editable`
+    );
+  }
+  if (!/^[A-Za-z]+[0-9]+$/.test(change.rule)) {
+    throw new LintError(`código de regla de Ruff inválido: "${change.rule}"`);
+  }
+
+  const file = path.join(root, system.config);
+  const before = readConfig(file, system.config);
+  const pyproject = system.config.endsWith("pyproject.toml");
+  const table = pyproject ? "tool.ruff.lint" : "lint";
+  let after = before;
+
+  if (change.severity === null) {
+    after = editTomlArray(after, table, "extend-ignore", (codes) =>
+      addCode(codes, change.rule)
+    );
+    after = editTomlArray(
+      after,
+      table,
+      "ignore",
+      (codes) => removeCode(codes, change.rule),
+      false
+    );
+    after = editTomlArray(
+      after,
+      table,
+      "select",
+      (codes) => removeCode(codes, change.rule),
+      false
+    );
+    after = editTomlArray(
+      after,
+      table,
+      "extend-select",
+      (codes) => removeCode(codes, change.rule),
+      false
+    );
+  } else {
+    after = editTomlArray(
+      after,
+      table,
+      "ignore",
+      (codes) => removeCode(codes, change.rule),
+      false
+    );
+    after = editTomlArray(
+      after,
+      table,
+      "extend-ignore",
+      (codes) => removeCode(codes, change.rule),
+      false
+    );
+    after = editTomlArray(after, table, "extend-select", (codes) =>
+      addCode(codes, change.rule)
+    );
+  }
+
+  writeAtomic(file, after);
+  return { path: system.config, before, after };
+}
+
+/**
+ * Edita un array TOML de una tabla concreta.
+ *
+ * `create` añade la clave si no existe; sin él, un array ausente no se toca.
+ */
+function editTomlArray(
+  text: string,
+  table: string,
+  key: string,
+  mutate: (codes: string[]) => string[],
+  create = true
+): string {
+  const lines = text.split("\n");
+  const header = `[${table}]`;
+  const headerIndex = lines.findIndex((line) => line.trim() === header);
+  if (headerIndex === -1) {
+    if (!create) return text;
+    const block = ["", header, `${key} = ${renderTomlCodes(mutate([]))}`];
+    return `${text.replace(/\s*$/, "")}\n${block.join("\n")}\n`;
+  }
+
+  let tableEnd = lines.length;
+  for (let index = headerIndex + 1; index < lines.length; index += 1) {
+    if (/^\s*\[/.test(lines[index] as string)) {
+      tableEnd = index;
+      break;
+    }
+  }
+
+  const assignment = new RegExp(`^\\s*${key}\\s*=`);
+  const lineIndex = lines
+    .slice(headerIndex + 1, tableEnd)
+    .findIndex((line) => assignment.test(line));
+  if (lineIndex === -1) {
+    if (!create) return text;
+    lines.splice(
+      headerIndex + 1,
+      0,
+      `${key} = ${renderTomlCodes(mutate([]))}`
+    );
+    return lines.join("\n");
+  }
+
+  const absolute = headerIndex + 1 + lineIndex;
+  const start = text.indexOf("[", lines.slice(0, absolute).join("\n").length);
+  if (start === -1) {
+    throw new LintError(`no se pudo leer el array ${key} de Ruff`);
+  }
+  const end = tomlArrayEnd(text, start);
+  const current = parseTomlCodes(text.slice(start, end + 1));
+  const next = renderTomlCodes(mutate(current));
+  return `${text.slice(0, start)}${next}${text.slice(end + 1)}`;
+}
+
+function tomlArrayEnd(text: string, start: number): number {
+  let depth = 0;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index] as string;
+    if (char === '"' || char === "'") {
+      index = skipString(text, index);
+      continue;
+    }
+    if (char === "#") {
+      throw new LintError(
+        "el array de Ruff tiene comentarios; no se reescribe para no perderlos"
+      );
+    }
+    if (char === "[") depth += 1;
+    else if (char === "]") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  throw new LintError("el array de Ruff no está cerrado");
+}
+
+function parseTomlCodes(arrayText: string): string[] {
+  return arrayText
+    .replace(/^\[/, "")
+    .replace(/\]$/, "")
+    .split(",")
+    .map((code) => code.trim().replace(/^["']|["']$/g, ""))
+    .filter(Boolean);
+}
+
+function renderTomlCodes(codes: readonly string[]): string {
+  return `[${codes.map((code) => `"${code}"`).join(", ")}]`;
+}
+
+function addCode(codes: readonly string[], code: string): string[] {
+  return [...new Set([...codes, code])].sort();
+}
+
+function removeCode(codes: readonly string[], code: string): string[] {
+  return codes.filter((entry) => entry !== code);
 }
 
 /** El JSON de ESLint (`eslintrc.json`) o de oxlint. */

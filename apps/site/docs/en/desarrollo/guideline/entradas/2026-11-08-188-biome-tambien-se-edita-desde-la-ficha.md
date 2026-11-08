@@ -13,7 +13,7 @@ verdict: "adr"
 
 **Verified**: enabling `suspicious/noDoubleEquals` on an off `biome.json` turns the linter on and writes the rule; disabling with recommended rules on leaves `off`; with recommended rules off it removes the entry; a `biome.jsonc` is rejected with a reason.
 
-**What is missing**: Ruff (TOML) and Checkstyle (XML).
+**What is missing**: Checkstyle (XML).
 
 **Size**: the writer and recommendations in `@codarch/lint`; the editable condition in the card.
 
