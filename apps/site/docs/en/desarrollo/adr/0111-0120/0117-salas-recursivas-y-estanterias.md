@@ -2,14 +2,15 @@
 title: "ADR 0117 — Recursive rooms and front-facing shelves"
 description: "The overview is only the flat first-level map. Every folder opens a room, and every subfolder is a cabinet that opens another room. Sheets face the camera: side shelves are removed."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: Recursive rooms and shelves
   order: 117
 ---
 
-**Status:** accepted · **Date:** 2026-11-08
+**Status:** amended by [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md) (the project is also a
+room and the front beam is the only closure) · **Date:** 2026-11-08
 
 **Refines** [ADR 0115](0115-el-atlas-frontal.md): rooms open into subrooms and shelves face the
 camera instead of sitting on side walls.

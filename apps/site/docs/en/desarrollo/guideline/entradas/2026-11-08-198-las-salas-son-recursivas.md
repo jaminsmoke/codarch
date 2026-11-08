@@ -28,4 +28,7 @@ sheets; labels read correctly and there are no console errors.
 
 **Size**: `room.ts` and the room arrangement; the overview is unchanged.
 
+**Updated**: the project also becomes a room; see entry 200 and
+[ADR 0118](../../adr/0111-0120/0118-el-proyecto-tambien-es-una-sala.md).
+
 **Verdict**: done.

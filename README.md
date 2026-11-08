@@ -18,7 +18,7 @@ addons extienden el producto, y los ajustes traen la sección de actualizaciones
 
 ![El atlas de CodArch sobre su propio repositorio: cada bloque es una carpeta o un fichero, el color es el riesgo y el inspector cuenta los símbolos del fichero](apps/site/docs/images/atlas.png)
 
-*CodArch analizando su propio repo: 210 ficheros, 59 carpetas, el riesgo por bloque y el
+*CodArch analizando su propio repo: 704 ficheros, 73 carpetas, el riesgo por bloque y el
 inspector con los símbolos del fichero.*
 
 ```mermaid
@@ -459,17 +459,18 @@ queda (nada crece la página). El mapa se acerca con `+`, `−`, `Ajustar` o la 
 
 ### 🧊 El Atlas 3D
 
-El plugin Atlas: un mapa en tres dimensiones para recorrer la arquitectura en profundidad. El overview
-es el mapa plano del primer nivel; cada carpeta abre una sala y cada subcarpeta es un archivador que
-abre otra sala. Las hojas miran a la cámara, en estanterías de fondo. Al pulsar una hoja se abre su
-código en un panel de solo lectura.
+El plugin Atlas: un mapa en tres dimensiones para recorrer la arquitectura en profundidad. El proyecto
+es la primera sala; cada carpeta abre otra sala y cada subcarpeta es un archivador que abre la
+siguiente. Las hojas miran a la cámara, en estanterías de fondo. El frente queda abierto y una viga
+lo cruza arriba con el letrero del nombre de la sala. Al pulsar una hoja se abre su código en un
+panel de solo lectura.
 
 Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
 la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el
 de documentos y configuración.
 
-Su hoja de ruta propia (el editor completo, las etiquetas y el pulido de la hoja) está en
-`plugins/atlas/ROADMAP.md`.
+Su hoja de ruta propia (el pulido de distribución y luces, el LOD, la puerta animada y el editor
+completo) está en `plugins/atlas/ROADMAP.md`.
 
 ### 🔌 Los plugins
 

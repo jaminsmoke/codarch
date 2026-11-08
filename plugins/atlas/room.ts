@@ -3,13 +3,14 @@ import type { TreeNode } from "@codarch/render/browser";
 /**
  * La geometría frontal del Atlas.
  *
- * El overview es un mapa plano con los contenedores del primer nivel. Cada
- * carpeta abre una sala recursiva: sus subcarpetas son archivadores en el suelo
- * y sus ficheros son hojas frontales en estanterías de fondo. Las hojas miran a
- * la cámara; no se ven de canto.
+ * Todas las escalas son la misma sala: el proyecto es la primera y cada carpeta
+ * abre otra. Sus subcarpetas son archivadores en el suelo y sus ficheros son
+ * hojas frontales en estanterías de fondo. Las hojas miran a la cámara; no se
+ * ven de canto. El frente queda abierto y solo lo cruza una viga con el nombre
+ * de la sala.
  */
 
-export type AtlasRole = "folder" | "file" | "floor" | "furniture";
+export type AtlasRole = "folder" | "file" | "floor" | "furniture" | "beam";
 
 export interface AtlasBox {
   path: string | null;
@@ -31,7 +32,7 @@ export interface AtlasBox {
 export interface RoomInput {
   roots: readonly TreeNode[];
   files: readonly { risk: number }[];
-  /** La carpeta abierta; `null` es el overview. */
+  /** La carpeta abierta; `null` es la sala del proyecto. */
   focusPath: string | null;
   colorFor: (fileIndex: number) => string;
   fallbackColor: string;
@@ -48,8 +49,11 @@ export interface Room {
   target: { x: number; y: number; z: number };
   width: number;
   depth: number;
+  height: number;
   radius: number;
   focusPath: string | null;
+  /** Nombre que va en el letrero de la viga. */
+  title: string;
   containers: number;
   sheets: number;
 }
@@ -104,7 +108,7 @@ function containerHeight(fileCount: number, max = 9): number {
   return Math.min(max, Math.max(3, 2.8 + Math.log2(fileCount + 1) * 1.1));
 }
 
-/** Construye el overview o la sala recursiva de la carpeta enfocada. */
+/** Construye la sala recursiva del proyecto o de la carpeta enfocada. */
 export function buildRoom(input: RoomInput): Room {
   const current = input.focusPath
     ? findFolder(input.roots, input.focusPath)
@@ -112,7 +116,7 @@ export function buildRoom(input: RoomInput): Room {
   const children = current?.children ?? input.roots;
   const folders = children.filter((child) => child.kind === "folder");
   const fileNodes = children.filter((child) => child.kind === "file");
-  const overview = input.focusPath === null;
+  const title = current?.name ?? "Proyecto";
 
   const fileColumns = Math.max(
     1,
@@ -123,13 +127,10 @@ export function buildRoom(input: RoomInput): Room {
     Math.ceil(fileNodes.length / fileColumns)
   );
   const maxFolderHeight = folders.reduce(
-    (max, folder) =>
-      Math.max(max, containerHeight(folder.fileCount, overview ? 9 : 6)),
+    (max, folder) => Math.max(max, containerHeight(folder.fileCount, 6)),
     0
   );
-  const sheetBaseY = overview
-    ? 1.2
-    : Math.max(SHEET_BASE_Y, maxFolderHeight + 1.5);
+  const sheetBaseY = Math.max(SHEET_BASE_Y, maxFolderHeight + 1.5);
   const fileWallWidth =
     fileColumns * SHEET_WIDTH +
     Math.max(0, fileColumns - 1) * SHEET_GAP_X;
@@ -138,10 +139,7 @@ export function buildRoom(input: RoomInput): Room {
 
   const containerColumns = Math.max(
     1,
-    Math.min(
-      overview ? 6 : 4,
-      Math.ceil(Math.sqrt(folders.length * 1.4))
-    )
+    Math.min(4, Math.ceil(Math.sqrt(folders.length * 1.4)))
   );
   const containerRows = Math.ceil(folders.length / containerColumns);
   const containerGridWidth =
@@ -151,159 +149,139 @@ export function buildRoom(input: RoomInput): Room {
     containerRows * CONTAINER_DEPTH +
     Math.max(0, containerRows - 1) * CONTAINER_GAP;
 
-  const width = Math.max(
-    24,
-    containerGridWidth + (overview ? 8 : 14),
-    fileWallWidth + 8
-  );
+  const width = Math.max(24, containerGridWidth + 14, fileWallWidth + 8);
   const depth = Math.max(
     16,
     CONTAINER_START_Z + containerGridDepth + 5,
     fileWallHeight > 0 ? 14 : 0
   );
-  const wallZ = overview ? 1.2 : depth - 1.6;
+  const wallZ = depth - 1.6;
 
   const boxes: AtlasBox[] = [];
   let containers = 0;
   let sheets = 0;
 
-  // Suelo del overview; la sala añade paredes y techo.
-  if (overview) {
-    boxes.push({
-      path: null,
-      role: "floor",
-      x: 0,
-      y: -FLOOR_HEIGHT,
-      z: depth / 2,
-      width: width + 6,
-      depth: depth + 6,
-      height: FLOOR_HEIGHT,
-      color: input.floorColor,
-      selectable: false
-    });
-    boxes.push({
-      path: null,
-      role: "furniture",
-      x: 0,
-      y: 0,
-      z: depth + 0.8,
-      width: width + 6,
-      depth: 0.4,
-      height: 16,
-      color: input.wallColor,
-      selectable: false
-    });
-  }
-
-  // Sala: suelo, paredes, techo y estanterías forman un espacio cerrado.
-  if (!overview) {
-    const roomHeight = Math.max(14, fileWallHeight + 3);
-    boxes.push({
-      path: null,
-      role: "floor",
-      x: 0,
-      y: -FLOOR_HEIGHT,
-      z: depth / 2,
-      width: width + 4,
-      depth: depth + 4,
-      height: FLOOR_HEIGHT,
-      color: input.floorColor,
-      selectable: false
-    });
-    for (const side of [-1, 1]) {
-      boxes.push({
-        path: null,
-        role: "furniture",
-        x: side * (width / 2 + 0.6),
-        y: 0,
-        z: depth / 2,
-        width: 0.4,
-        depth: depth + 2,
-        height: roomHeight,
-        color: input.wallColor,
-        selectable: false
-      });
-    }
+  // Suelo, paredes y techo: todas las escalas comparten la misma sala.
+  const roomHeight = Math.max(14, fileWallHeight + 3);
+  boxes.push({
+    path: null,
+    role: "floor",
+    x: 0,
+    y: -FLOOR_HEIGHT,
+    z: depth / 2,
+    width: width + 4,
+    depth: depth + 4,
+    height: FLOOR_HEIGHT,
+    color: input.floorColor,
+    selectable: false
+  });
+  for (const side of [-1, 1]) {
     boxes.push({
       path: null,
       role: "furniture",
-      x: 0,
+      x: side * (width / 2 + 0.6),
       y: 0,
-      z: depth + 0.8,
-      width: width + 4,
-      depth: 0.4,
+      z: depth / 2,
+      width: 0.4,
+      depth: depth + 2,
       height: roomHeight,
       color: input.wallColor,
       selectable: false
     });
-    for (const side of [-1, 1]) {
-      boxes.push({
-        path: null,
-        role: "furniture",
-        x: side * (width / 2 + 0.35),
-        y: 0.1,
-        z: depth / 2,
-        width: 0.2,
-        depth: depth + 2.2,
-        height: 0.5,
-        color: input.trimColor,
-        selectable: false
-      });
-    }
+  }
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: 0,
+    z: depth + 0.8,
+    width: width + 4,
+    depth: 0.4,
+    height: roomHeight,
+    color: input.wallColor,
+    selectable: false
+  });
+  for (const side of [-1, 1]) {
     boxes.push({
       path: null,
       role: "furniture",
-      x: 0,
+      x: side * (width / 2 + 0.35),
       y: 0.1,
-      z: depth + 0.55,
-      width: width + 4,
-      depth: 0.2,
+      z: depth / 2,
+      width: 0.2,
+      depth: depth + 2.2,
       height: 0.5,
       color: input.trimColor,
       selectable: false
     });
-    for (const panelX of [-width / 3, width / 3]) {
-      boxes.push({
-        path: null,
-        role: "furniture",
-        x: panelX,
-        y: 0.5,
-        z: depth + 0.55,
-        width: 0.12,
-        depth: 0.1,
-        height: roomHeight,
-        color: input.trimColor,
-        selectable: false
-      });
-    }
+  }
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: 0.1,
+    z: depth + 0.55,
+    width: width + 4,
+    depth: 0.2,
+    height: 0.5,
+    color: input.trimColor,
+    selectable: false
+  });
+  for (const panelX of [-width / 3, width / 3]) {
     boxes.push({
       path: null,
       role: "furniture",
-      x: 0,
-      y: roomHeight,
-      z: depth / 2,
-      width: width + 4,
-      depth: depth + 4,
-      height: 0.4,
-      color: input.wallColor,
-      selectable: false
-    });
-    boxes.push({
-      path: null,
-      role: "furniture",
-      x: 0,
-      y: roomHeight - 0.55,
-      z: depth / 2,
-      width: width * 0.7,
-      depth: 0.5,
-      height: 0.12,
-      color: input.lightColor,
+      x: panelX,
+      y: 0.5,
+      z: depth + 0.55,
+      width: 0.12,
+      depth: 0.1,
+      height: roomHeight,
+      color: input.trimColor,
       selectable: false
     });
   }
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: roomHeight,
+    z: depth / 2,
+    width: width + 4,
+    depth: depth + 4,
+    height: 0.4,
+    color: input.wallColor,
+    selectable: false
+  });
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: roomHeight - 0.55,
+    z: depth / 2,
+    width: width * 0.7,
+    depth: 0.5,
+    height: 0.12,
+    color: input.lightColor,
+    selectable: false
+  });
+  // La viga es la única pieza que cruza el frente: cierra la sala sin tapar
+  // la vista y sostiene el letrero con el nombre de la escala.
+  boxes.push({
+    path: null,
+    role: "beam",
+    x: 0,
+    y: roomHeight - 2.2,
+    z: -1.2,
+    width: width + 4,
+    depth: 0.5,
+    height: 0.8,
+    color: input.trimColor,
+    selectable: false,
+    label: title
+  });
 
-  // Contenedores: en el overview forman el mapa plano; en una sala son
-  // archivadores en el suelo, delante de las estanterías.
+  // Los contenedores son archivadores en el suelo, delante de las estanterías.
   const containerStartX = -containerGridWidth / 2 + CONTAINER_WIDTH / 2;
   for (let index = 0; index < folders.length; index++) {
     const node = folders[index] as TreeNode;
@@ -320,7 +298,7 @@ export function buildRoom(input: RoomInput): Room {
         row * (CONTAINER_DEPTH + CONTAINER_GAP),
       width: CONTAINER_WIDTH,
       depth: CONTAINER_DEPTH,
-      height: containerHeight(node.fileCount, overview ? 9 : 6),
+      height: containerHeight(node.fileCount, 6),
       color: colorOfFolder(node, input),
       selectable: true,
       label: node.name
@@ -330,21 +308,19 @@ export function buildRoom(input: RoomInput): Room {
 
   // Estanterías de fondo: tablas horizontales que miran a la cámara.
   if (fileNodes.length > 0) {
-    if (!overview) {
-      for (const side of [-1, 1]) {
-        boxes.push({
-          path: null,
-          role: "furniture",
-          x: side * (fileWallWidth / 2 + 0.45),
-          y: 0,
-          z: wallZ,
-          width: 0.35,
-          depth: SHELF_DEPTH,
-          height: fileWallHeight,
-          color: input.furnitureColor,
-          selectable: false
-        });
-      }
+    for (const side of [-1, 1]) {
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: side * (fileWallWidth / 2 + 0.45),
+        y: 0,
+        z: wallZ,
+        width: 0.35,
+        depth: SHELF_DEPTH,
+        height: fileWallHeight,
+        color: input.furnitureColor,
+        selectable: false
+      });
     }
     for (let row = 0; row < fileRows; row++) {
       boxes.push({
@@ -395,8 +371,10 @@ export function buildRoom(input: RoomInput): Room {
     },
     width,
     depth,
+    height: roomHeight,
     radius: Math.hypot(width, depth, Math.max(14, fileWallHeight)) / 2,
     focusPath: input.focusPath,
+    title,
     containers,
     sheets
   };
