@@ -283,7 +283,7 @@ export interface InstanceLayout {
 export function kindOf(role: AtlasRole): 0 | 1 | 2 | 3 {
   if (role === "folder") return 1;
   if (role === "floor") return 2;
-  if (role === "furniture") return 3;
+  if (role === "furniture" || role === "beam") return 3;
   return 0;
 }
 
@@ -342,6 +342,9 @@ export function mountScene(
     room.depth * 1.1,
     room.width * 1.15,
     room.radius * 1.3,
+    // La viga y su letrero viven por encima de las estanterías: el encuadre
+    // deja aire suficiente para que se lean también en salas altas.
+    (room.height - room.target.y + 6) / Math.tan(fov / 2),
     24
   );
   const target: Point = room.target;
@@ -597,7 +600,7 @@ export function mountScene(
     const occupied: Array<{ x: number; y: number; w: number; h: number }> =
       [];
     const candidates = visible
-      .filter((box) => box.label && box.selectable)
+      .filter((box) => box.label)
       .map((box) => {
         const point = projectPoint(
           pose.position,
@@ -645,10 +648,16 @@ export function mountScene(
         }
       )
       .sort((left, right) => {
-        const leftFocus =
-          left.box.path === selected ? -1 : left.box.role === "folder" ? 0 : 1;
-        const rightFocus =
-          right.box.path === selected ? -1 : right.box.role === "folder" ? 0 : 1;
+        const focus = (box: AtlasBox): number =>
+          box.role === "beam"
+            ? -2
+            : box.path === selected
+              ? -1
+              : box.role === "folder"
+                ? 0
+                : 1;
+        const leftFocus = focus(left.box);
+        const rightFocus = focus(right.box);
         return leftFocus - rightFocus || left.point.depth - right.point.depth;
       })
       .slice(0, 80);

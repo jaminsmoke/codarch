@@ -77,7 +77,7 @@ const input: RoomInput = {
 };
 
 describe("la geometría frontal del Atlas", () => {
-  it("en la vista general las carpetas son contenedores y los ficheros hojas", () => {
+  it("en la sala del proyecto las carpetas son contenedores y los ficheros hojas", () => {
     const room = buildRoom(input);
     const src = room.boxes.find((box) => box.path === "src");
 
@@ -133,12 +133,41 @@ describe("la geometría frontal del Atlas", () => {
     expect(sheet?.height).toBeLessThan(2);
   });
 
+  it("el proyecto también es una sala completa", () => {
+    const room = buildRoom(input);
+
+    expect(room.title).toBe("Proyecto");
+    expect(room.boxes.some((box) => box.role === "floor")).toBe(true);
+    expect(
+      room.boxes.filter((box) => box.role === "furniture").length
+    ).toBeGreaterThan(4);
+    expect(room.boxes.find((box) => box.role === "beam")?.label).toBe(
+      "Proyecto"
+    );
+  });
+
+  it("cada sala lleva el nombre en una viga frontal, sin cerrar el frente", () => {
+    const room = buildRoom({ ...input, focusPath: "src/a" });
+    const beam = room.boxes.find((box) => box.role === "beam");
+
+    expect(room.title).toBe("src/a");
+    expect(beam?.label).toBe("src/a");
+    expect(beam?.selectable).toBe(false);
+    expect(beam?.z).toBeLessThan(0);
+    expect(beam?.width).toBeGreaterThan(room.width);
+  });
+
   it("el mobiliario no se puede seleccionar", () => {
     const room = buildRoom(input);
     const furniture = room.boxes.filter((box) => !box.selectable);
     expect(furniture.length).toBeGreaterThan(0);
     expect(
-      furniture.every((box) => box.role === "floor" || box.role === "furniture")
+      furniture.every(
+        (box) =>
+          box.role === "floor" ||
+          box.role === "furniture" ||
+          box.role === "beam"
+      )
     ).toBe(true);
   });
 
@@ -162,6 +191,7 @@ describe("la escena del Atlas", () => {
     expect(kindOf("file")).toBe(0);
     expect(kindOf("floor")).toBe(2);
     expect(kindOf("furniture")).toBe(3);
+    expect(kindOf("beam")).toBe(3);
   });
 
   it("marca las carpetas para dibujar sus aristas", () => {

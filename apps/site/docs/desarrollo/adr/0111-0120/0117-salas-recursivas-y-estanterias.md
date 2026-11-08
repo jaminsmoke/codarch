@@ -2,14 +2,15 @@
 title: "ADR 0117 — Salas recursivas y estanterías frontales"
 description: "El overview es solo el mapa plano del primer nivel. Cada carpeta abre una sala, y cada subcarpeta es un archivador que abre otra sala. Las hojas miran a la cámara: las estanterías de perfil se retiran."
 section: desarrollo
-status: aceptado
+status: enmendado
 date: "2026-11-08"
 sidebar:
   label: Salas recursivas y estanterías
   order: 117
 ---
 
-**Estado:** aceptado · **Fecha:** 2026-11-08
+**Estado:** enmendado por [ADR 0118](0118-el-proyecto-tambien-es-una-sala.md) (el proyecto también
+es una sala y la viga frontal es el único cierre) · **Fecha:** 2026-11-08
 
 **Precisa** el [ADR 0115](0115-el-atlas-frontal.md): las salas se abren en sub-salas y las
 estanterías se colocan de frente, no en las paredes laterales.

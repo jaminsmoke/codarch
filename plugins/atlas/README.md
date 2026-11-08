@@ -4,11 +4,14 @@ El Atlas es una vista 3D frontal para recorrer la arquitectura en profundidad. S
 el escenario central del mapa, no el marco de la app: la cabecera y las barras
 laterales siguen siendo de CodArch.
 
-- **Vista general**: el mapa plano 3D del primer nivel: contenedores de carpeta y las hojas de la raíz.
-- **Sala**: cada carpeta abre una sala. Las subcarpetas son archivadores que abren otra sala; los
-  ficheros, hojas frontales en estanterías de fondo.
+- **Proyecto**: la raíz es la primera sala. Sus contenedores son las carpetas de primer nivel y sus
+  hojas, los ficheros de la raíz.
+- **Sala**: cada carpeta abre otra sala con la misma geometría. Las subcarpetas son archivadores que
+  abren otra sala; los ficheros, hojas frontales en estanterías de fondo.
+- **Viga**: el frente queda abierto. Una viga lo cruza arriba con el letrero del nombre de la sala;
+  no hay pared frontal completa.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la
-  rueda acerca.
+  rueda acerca. El encuadre incluye la viga y su letrero.
 - **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
 - **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
   `RenderModel` que esté abierto.
@@ -21,8 +24,10 @@ viendo el mapa clásico.
 
 ## Límites de esta primera versión
 
-Es el corte vertical de M77: la vista aérea 3D, la selección y el foco ya
-funcionan. Los corredores, las estanterías, las etiquetas y el vuelo llegan
-después; no se prometen aquí.
+Es el corte vertical de M77: las salas recursivas, la selección, el foco y el
+visor ya funcionan. Quedan el pulido de distribución, luces y LOD, y la puerta
+animada de entrada, que no se promete aquí.
 
-La decisión está en el [ADR 0113](../../apps/site/docs/desarrollo/adr/0111-0120/0113-el-atlas-es-un-plugin.md).
+La decisión está en el [ADR 0113](../../apps/site/docs/desarrollo/adr/0111-0120/0113-el-atlas-es-un-plugin.md);
+el proyecto como primera sala y su viga, en el
+[ADR 0118](../../apps/site/docs/desarrollo/adr/0111-0120/0118-el-proyecto-tambien-es-una-sala.md).

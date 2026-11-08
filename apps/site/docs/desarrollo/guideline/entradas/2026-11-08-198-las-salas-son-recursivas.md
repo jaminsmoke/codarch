@@ -28,4 +28,7 @@ niveles. Ahora el mapa plano es solo el overview y el resto es un árbol de sala
 
 **Tamaño**: `room.ts` y la disposición de las salas; el overview se mantiene.
 
+**Actualizado**: el proyecto también pasa a ser una sala; ver la entrada 200 y el
+[ADR 0118](../../adr/0111-0120/0118-el-proyecto-tambien-es-una-sala.md).
+
 **Veredicto**: hecho.
