@@ -114,6 +114,7 @@ Phase **M77 · The front-facing Atlas** (continues the phase from [ADR 0113](011
 - ✅ The front camera and its limits.
 - ✅ The camera flight in and out.
 - ✅ Labels by level.
-- ⬜ The file viewer.
+- ✅ The read-only file viewer.
+- ⬜ The full editor, if decided.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).

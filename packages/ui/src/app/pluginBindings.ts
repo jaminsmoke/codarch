@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { PluginContext } from "@codarch/plugin-api";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type { readMigration } from "../data";
+import type { CodeRequest, CodeSnippet } from "../platform";
 import { localStore } from "../storage-local";
 import type { PluginRuntime } from "../plugins";
 import type { InspectorTab } from "../viewState";
@@ -35,6 +36,7 @@ export interface PluginBindingsInput {
   setTab: (tab: InspectorTab) => void;
   setAreaMetric: (metric: string | null) => void;
   setColorMode: (mode: string) => void;
+  readCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
 }
 
 export function usePluginBindings(input: PluginBindingsInput) {
@@ -52,7 +54,8 @@ export function usePluginBindings(input: PluginBindingsInput) {
     setFocusPath,
     setTab,
     setAreaMetric,
-    setColorMode
+    setColorMode,
+    readCode
   } = input;
 
   const pluginViews = useMemo(() => pluginViewsOf(plugins), [plugins]);
@@ -73,6 +76,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
         setTab,
         setAreaMetric,
         setColorMode,
+        readCode,
         storage: localStore()
       }),
     [
@@ -87,7 +91,8 @@ export function usePluginBindings(input: PluginBindingsInput) {
       setFocusPath,
       setTab,
       setAreaMetric,
-      setColorMode
+      setColorMode,
+      readCode
     ]
   );
 

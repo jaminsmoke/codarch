@@ -99,6 +99,14 @@ export interface PluginUrlState {
   tab: "file" | "folder" | "project" | "changes" | null;
 }
 
+/** Un trozo de código leído por la app, para el visor de un plugin. */
+export interface PluginCode {
+  lines: string[];
+  start: number;
+  end: number;
+  total: number;
+}
+
 /**
  * Lo que recibe un plugin.
  *
@@ -121,6 +129,8 @@ export interface PluginContext {
    * del modo de color de la app ✓ y ese criterio es de la app ✓.
    */
   colorFor(fileIndex: number): string;
+  /** Lee el código con el mismo lector que la ficha (ADR 0116). */
+  readCode(path: string): Promise<PluginCode | null>;
   /** El estado de la URL. */
   url: PluginUrl;
   /** El almacenamiento local, si lo hay. */

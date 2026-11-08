@@ -101,6 +101,7 @@ function input(extra: Partial<PluginContextInput> = {}): PluginContextInput {
     setTab: () => {},
     setAreaMetric: () => {},
     setColorMode: () => {},
+    readCode: async () => null,
     storage: null,
     ...extra
   };
@@ -156,6 +157,27 @@ describe("el contexto de un plugin", () => {
 
     context.url.write({ colorMode: "loc" });
     expect(escrituras).toEqual(["color:loc"]);
+  });
+
+  it("lee código con el mismo lector que la ficha", async () => {
+    const context = buildPluginContext(
+      input({
+        readCode: async (request) => ({
+          path: request.path,
+          start: 1,
+          end: 2,
+          total: 10,
+          lines: ["uno", "dos"]
+        })
+      })
+    );
+
+    await expect(context.readCode("src/a.ts")).resolves.toEqual({
+      lines: ["uno", "dos"],
+      start: 1,
+      end: 2,
+      total: 10
+    });
   });
 
   it("pasa el foco y la hoja a la app", () => {

@@ -136,6 +136,7 @@ flowchart TD
 | [0113](0111-0120/0113-el-atlas-es-un-plugin.md) | El Atlas es un plugin, no la vista 3D | 2026-11-08 | aceptado | M77 |
 | [0114](0111-0120/0114-el-atlas-sustituye-a-la-vista-3d.md) | El Atlas sustituye a la vista 3D de barras | 2026-11-08 | aceptado | M77 |
 | [0115](0111-0120/0115-el-atlas-frontal.md) | El Atlas se mira de frente: contenedores y salas | 2026-11-08 | aceptado | M77 |
+| [0116](0111-0120/0116-el-visor-de-fichero.md) | El visor de fichero lee por la app | 2026-11-08 | aceptado | M77 |
 
 ## Las carpetas
 
@@ -152,6 +153,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0081-0090**: 0081, 0082, 0083, 0084, 0085, 0086, 0087, 0088, 0089, 0090
 - **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100
 - **0101-0110**: 0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110
-- **0111-0120**: 0111, 0112, 0113, 0114, 0115
+- **0111-0120**: 0111, 0112, 0113, 0114, 0115, 0116
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).
