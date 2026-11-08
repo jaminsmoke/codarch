@@ -25,6 +25,8 @@ export interface AtlasBox {
   color: string;
   /** Un clic puede seleccionar esta caja. */
   selectable: boolean;
+  /** Nombre legible que se pinta encima. */
+  label?: string;
 }
 
 export interface RoomInput {
@@ -182,7 +184,8 @@ export function buildRoom(input: RoomInput): Room {
       depth: CONTAINER_DEPTH,
       height: containerHeight(node.fileCount),
       color: colorOfFolder(node, input),
-      selectable: true
+      selectable: true,
+      label: node.name
     });
     containers += 1;
   }
@@ -226,7 +229,8 @@ export function buildRoom(input: RoomInput): Room {
       depth: SHEET_DEPTH,
       height: SHEET_HEIGHT,
       color: input.colorFor(fileIndex),
-      selectable: true
+      selectable: true,
+      label: node.name
     });
     sheets += 1;
   }

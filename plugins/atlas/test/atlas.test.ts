@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@codarch/render/browser";
 import { buildRoom, findFolder, type RoomInput } from "../room";
+import { projectPoint } from "../camera";
 import {
   canvasPixelScale,
   colorOf,
@@ -180,6 +181,35 @@ describe("la escena del Atlas", () => {
       "src/a.ts"
     );
     expect(color[2]).toBeGreaterThan(color[0] ?? 0);
+  });
+
+  it("proyecta el centro del objetivo en el centro de la pantalla", () => {
+    const projected = projectPoint(
+      { x: 0, y: 0, z: 10 },
+      { x: 0, y: 0, z: 0 },
+      Math.PI / 2,
+      1,
+      200,
+      100,
+      { x: 0, y: 0, z: 0 }
+    );
+    expect(projected?.x).toBeCloseTo(100, 6);
+    expect(projected?.y).toBeCloseTo(50, 6);
+    expect(projected?.depth).toBeCloseTo(10, 6);
+  });
+
+  it("descarta un punto detrás de la cámara", () => {
+    expect(
+      projectPoint(
+        { x: 0, y: 0, z: 10 },
+        { x: 0, y: 0, z: 0 },
+        Math.PI / 2,
+        1,
+        200,
+        100,
+        { x: 0, y: 0, z: 20 }
+      )
+    ).toBeNull();
   });
 
   it("limita la resolución del lienzo", () => {

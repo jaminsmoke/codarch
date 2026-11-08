@@ -112,8 +112,8 @@ Fase **M77 · El Atlas frontal** (continúa la fase del [ADR 0113](0113-el-atlas
 - ✅ Sustituir el layout aéreo por contenedores y hojas.
 - ✅ La sala de carpeta con subcarpetas en el suelo y ficheros en estanterías.
 - ✅ La cámara frontal y sus límites.
-- ⬜ La transición animada de entrada y salida.
-- ⬜ Etiquetas por nivel.
+- ✅ El vuelo de cámara al entrar y salir.
+- ✅ Etiquetas por nivel.
 - ⬜ El visor de fichero.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

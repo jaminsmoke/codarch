@@ -112,8 +112,8 @@ Phase **M77 · The front-facing Atlas** (continues the phase from [ADR 0113](011
 - ✅ Replace the aerial layout with containers and sheets.
 - ✅ The folder room with subfolders on the floor and files on shelves.
 - ✅ The front camera and its limits.
-- ⬜ The animated transition in and out.
-- ⬜ Labels by level.
+- ✅ The camera flight in and out.
+- ✅ Labels by level.
 - ⬜ The file viewer.
 
 The record of what is done lives in the [guide feed](/en/desarrollo/guia/).
