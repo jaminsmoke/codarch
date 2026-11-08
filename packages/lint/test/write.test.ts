@@ -104,7 +104,7 @@ describe("escribir una regla de oxlint", () => {
       "utf8"
     );
     expect(() =>
-      writeLintRule(other, { system: "biome", rule: "no-var", severity: "error" })
+      writeLintRule(other, { system: "ruff", rule: "no-var", severity: "error" })
     ).toThrow(/todavía no soporta/);
   });
 
@@ -198,5 +198,102 @@ describe("escribir una regla de ESLint", () => {
     expect(config).not.toContain('"no-explicit-any": "warn"');
     expect(config).toContain('"no-var": "error"');
     expect(config).toContain('"no-explicit-any": "off"');
+  });
+});
+
+function biomeRepo(config: unknown): string {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codarch-biome-write-"));
+  roots.push(root);
+  fs.writeFileSync(
+    path.join(root, "biome.json"),
+    JSON.stringify(config, null, 2),
+    "utf8"
+  );
+  return root;
+}
+
+function readBiome(root: string): {
+  linter?: { enabled?: boolean; rules?: Record<string, unknown> };
+} {
+  return JSON.parse(
+    fs.readFileSync(path.join(root, "biome.json"), "utf8")
+  ) as { linter?: { enabled?: boolean; rules?: Record<string, unknown> } };
+}
+
+describe("escribir una regla de Biome", () => {
+  it("activa una regla en su grupo", () => {
+    const root = biomeRepo({
+      linter: { enabled: false, rules: { recommended: false } }
+    });
+
+    writeLintRule(root, {
+      system: "biome",
+      rule: "suspicious/noDoubleEquals",
+      severity: "error"
+    });
+
+    const config = readBiome(root);
+    expect(config.linter?.enabled).toBe(true);
+    expect(config.linter?.rules).toEqual({
+      recommended: false,
+      suspicious: { noDoubleEquals: "error" }
+    });
+  });
+
+  it("desactiva con off mientras las recomendadas sigan encendidas", () => {
+    const root = biomeRepo({
+      linter: {
+        rules: {
+          recommended: true,
+          suspicious: { noDoubleEquals: "error", noDebugger: "warn" }
+        }
+      }
+    });
+
+    writeLintRule(root, {
+      system: "biome",
+      rule: "suspicious/noDoubleEquals",
+      severity: null
+    });
+
+    expect(readBiome(root).linter?.rules).toEqual({
+      recommended: true,
+      suspicious: { noDoubleEquals: "off", noDebugger: "warn" }
+    });
+  });
+
+  it("quita la entrada si no hay recomendadas", () => {
+    const root = biomeRepo({
+      linter: {
+        rules: {
+          recommended: false,
+          suspicious: { noDoubleEquals: "error" }
+        }
+      }
+    });
+
+    writeLintRule(root, {
+      system: "biome",
+      rule: "suspicious/noDoubleEquals",
+      severity: null
+    });
+
+    expect(readBiome(root).linter?.rules).toEqual({ recommended: false });
+  });
+
+  it("se niega a reescribir un jsonc", () => {
+    const root = biomeRepo({ linter: { rules: {} } });
+    fs.renameSync(
+      path.join(root, "biome.json"),
+      path.join(root, "biome.jsonc")
+    );
+
+    expect(() =>
+      writeLintRule(root, {
+        system: "biome",
+        rule: "suspicious/noDoubleEquals",
+        severity: "error"
+      })
+    ).toThrow(/jsonc/);
   });
 });

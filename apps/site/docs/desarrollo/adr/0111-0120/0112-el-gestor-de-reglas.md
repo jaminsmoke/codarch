@@ -90,6 +90,7 @@ Sin fase nueva.
 - ✅ El menú de añadir con búsqueda, severidad y confirmación.
 - ✅ Re-medida al cambiar la config del lint.
 - ✅ `meta.config` como huella opcional dentro de 1.3.
-- ⬜ Los escritores de Biome, Ruff y Checkstyle.
+- ✅ El escritor de Biome en JSON.
+- ⬜ Los escritores de Ruff y Checkstyle.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

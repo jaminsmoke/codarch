@@ -17,6 +17,7 @@ export async function listLintRules(
 ): Promise<RuleCatalog> {
   if (system === "eslint") return listEslintRules(root);
   if (system === "oxlint") return listOxlintRules(root);
+  if (system === "biome") return listBiomeRules(root);
   return {
     system,
     groups: [],
@@ -132,6 +133,72 @@ interface OxlintSchema {
   definitions?: {
     DummyRuleMap?: { properties?: Record<string, unknown> };
   };
+}
+
+interface BiomeSchema {
+  definitions?: {
+    Rules?: { properties?: Record<string, unknown> };
+  };
+}
+
+function listBiomeRules(root: string): RuleCatalog {
+  const schema = readBiomeSchema(root);
+  const properties = schema?.definitions?.Rules?.properties;
+  if (!properties) {
+    return {
+      system: "biome",
+      groups: [],
+      source: "active",
+      note: "No se pudo leer el esquema de Biome del proyecto."
+    };
+  }
+  const groups: RuleCatalogGroup[] = [];
+  for (const [group, value] of Object.entries(properties)) {
+    if (group === "recommended" || group === "all") continue;
+    if (!isRecord(value) || !isRecord(value.properties)) continue;
+    const rules = Object.keys(value.properties)
+      .map((rule) => `${group}/${rule}`)
+      .sort(compare);
+    if (rules.length > 0) groups.push({ plugin: group, rules });
+  }
+  return groups.length > 0
+    ? { system: "biome", groups, source: "project" }
+    : {
+        system: "biome",
+        groups: [],
+        source: "active",
+        note: "El esquema de Biome no declara reglas."
+      };
+}
+
+function readBiomeSchema(root: string): BiomeSchema | null {
+  const candidates: string[] = [];
+  try {
+    const project = createRequire(path.join(root, "package.json"));
+    candidates.push(
+      path.join(
+        path.dirname(project.resolve("@biomejs/biome/package.json")),
+        "configuration_schema.json"
+      )
+    );
+  } catch {
+    // Sin paquete instalado, queda la ruta directa de node_modules.
+  }
+  candidates.push(
+    path.join(root, "node_modules/@biomejs/biome/configuration_schema.json")
+  );
+  for (const file of candidates) {
+    try {
+      return JSON.parse(fs.readFileSync(file, "utf8")) as BiomeSchema;
+    } catch {
+      // Se prueba la siguiente.
+    }
+  }
+  return null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readOxlintSchema(root: string): OxlintSchema | null {
