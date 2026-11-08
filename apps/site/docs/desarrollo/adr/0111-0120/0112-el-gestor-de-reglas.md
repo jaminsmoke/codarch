@@ -84,10 +84,12 @@ quedar viejo si la config cambia por fuera, porque el checksum del árbol de có
 Sin fase nueva.
 
 - ✅ La decisión: bloque gestionado y catálogo buscable.
-- ⬜ El escritor AST de ESLint con bloque gestionado y reglas explícitas.
-- ⬜ El catálogo de reglas por herramienta (ESLint núcleo y plugins; oxlint).
-- ⬜ El menú de añadir con búsqueda y la confirmación con diff.
-- ⬜ `meta.config` 1.4 y la re-medida al cambiar la config.
+- ✅ El escritor de ESLint con bloque gestionado; las reglas explícitas se cubren con un override.
+- ✅ El catálogo de reglas por herramienta (ESLint núcleo y plugins; oxlint).
+- ✅ El menú de añadir con búsqueda, severidad y confirmación.
+- ✅ Re-medida al cambiar la config del lint.
+- ⬜ `meta.config` 1.4 y la huella de la config en el artefacto.
+- ⬜ Quitar la línea explícita cuando el AST la localice con seguridad.
 - ⬜ Los escritores de Biome, Ruff y Checkstyle.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).
