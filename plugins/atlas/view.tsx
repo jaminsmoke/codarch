@@ -16,6 +16,7 @@ const ATLAS_FALLBACK = "#5d6b78";
 const ATLAS_FURNITURE = "#26313b";
 const ATLAS_FLOOR = "#0d1217";
 const ATLAS_WALL = "#161d24";
+const ATLAS_LIGHT = "#c9f1ff";
 const ATLAS_LABEL_TEXT = "#dbe7ef";
 const ATLAS_LABEL_BACKGROUND = "#111820";
 
@@ -122,7 +123,8 @@ export function AtlasView({ context }: { context: PluginContext }) {
       fallbackColor: ATLAS_FALLBACK,
       furnitureColor: ATLAS_FURNITURE,
       floorColor: ATLAS_FLOOR,
-      wallColor: ATLAS_WALL
+      wallColor: ATLAS_WALL,
+      lightColor: ATLAS_LIGHT
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- colorMode cambia los colores aunque se lea por referencia
   }, [model, colorMode, focusPath]);
