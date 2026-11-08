@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   LintError,
+  lintConfigFingerprint,
   lintTotals,
   scopeHealth,
   scopeHealthNote,
@@ -97,6 +98,7 @@ export async function runLintCommand(
     root: rootPath,
     tools: plan.tools,
     systems,
+    config: lintConfigFingerprint(rootPath, systems, plan.tools),
     ...(options.run ? { run: options.run } : {})
   });
 

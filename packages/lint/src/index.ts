@@ -15,6 +15,7 @@ export { defaultLintRunner, runLint } from "./run";
 export { writeLintRule, restoreLintRule } from "./write";
 export type { LintRuleChange, LintRuleWrite } from "./write";
 export { listLintRules } from "./rule-catalog";
+export { lintConfigFingerprint } from "./fingerprint";
 export type {
   LintProcessOutput,
   LintProcessRunner,

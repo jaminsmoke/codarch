@@ -13,7 +13,7 @@ verdict: "adr"
 
 **Verificado**: el catálogo enumera 292 reglas del núcleo y 136 de `@typescript-eslint`; el escritor inserta el bloque en `tseslint.config(...)` y lo actualiza sin duplicarlo; una regla explícita se quita de su `rules` y se cubre con `off` en el bloque; `eslint` sigue cargando la config; activar y desactivar desde la ruta escribe y re-lintá; tests de catálogo, escritor y menú.
 
-**Qué falta**: `meta.config` 1.4 con la huella de la config; Biome, Ruff y Checkstyle.
+**Qué falta**: los escritores de Biome, Ruff y Checkstyle. `meta.config` ya guarda la huella de la config en el artefacto (campo opcional de 1.3).
 
 **Tamaño**: el catálogo y el escritor en `@codarch/lint`; la ruta y el live en `serve`; la acción de plataforma; la ficha y el menú en `packages/ui`.
 
