@@ -7,7 +7,8 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ La vista aérea 3D: plano con rejilla, contenedores de carpeta y cubos de
   fichero.
 - ✅ La selección y el foco sincronizados con la app en los dos mapas.
-- ⬜ Entrar y salir de una carpeta con una transición de cámara propia.
+- ✅ Entrar y salir de una carpeta con foco de cámara y breadcrumb.
+- ⬜ La transición animada entre el atlas y la carpeta.
 - ⬜ Etiquetas legibles por nivel de detalle.
 - ⬜ Detalle de fichero dentro del Atlas.
 - ⬜ Corredores y estanterías, si el corte vertical los justifica.

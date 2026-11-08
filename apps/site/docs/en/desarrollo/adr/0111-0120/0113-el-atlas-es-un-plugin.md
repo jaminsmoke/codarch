@@ -146,7 +146,8 @@ Phase **M77 · Atlas, a plugin view**.
 - ✅ The full stage and the return to the classic map when WebGL2 is missing.
 - ✅ The 3D aerial view: plane, folder containers and file cubes.
 - ✅ Selection and focus synced with the app on both maps.
-- ⬜ Entering and leaving a folder, with LOD and breadcrumb.
+- ✅ Entering and leaving a folder with camera focus and breadcrumb.
+- ⬜ The animated transition between atlas and folder.
 - ⬜ Readable labels and file detail.
 - ⬜ Corridors and shelves, if the vertical slice justifies them.
 - ⬜ Performance, reduced motion and fallback to the classic map.
