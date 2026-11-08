@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
+import type { LintArtifact, RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type {
   CcMigrationLens,
@@ -68,6 +68,8 @@ export function Inspector({
   onColorMode,
   onLintRule,
   onListRules,
+  onUndoRule,
+  onRecommendations,
   canEditLint = false
 }: {
   model: RenderModel | null;
@@ -101,9 +103,16 @@ export function Inspector({
   /** Pinta el mapa por una métrica (o por el riesgo). */
   onColorMode: (mode: string) => void;
   /** Escribe una regla en la config del proyecto (ADR 0111). */
-  onLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  onLintRule?: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
   /** Enumera las reglas conocidas de una herramienta (ADR 0112). */
   onListRules?: (system: string) => Promise<RuleCatalog | null>;
+  /** Deshace la última escritura de una config (ADR 0112). */
+  onUndoRule?: (path: string) => Promise<LintRuleResult>;
+  /** Recomendaciones generales y por proyecto (ADR 0112). */
+  onRecommendations?: () => Promise<Record<string, RecommendedRule[]> | null>;
   /** La plataforma puede escribir la config. */
   canEditLint?: boolean;
 }) {
@@ -185,6 +194,8 @@ export function Inspector({
           title="Lint"
           onRuleChange={onLintRule}
           onListRules={onListRules}
+          onUndoRule={onUndoRule}
+          onRecommendations={onRecommendations}
           canEdit={canEditLint}
         />
       ) : (

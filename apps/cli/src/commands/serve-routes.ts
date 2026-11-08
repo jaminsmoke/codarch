@@ -27,7 +27,16 @@ import {
   readHistoryIndex
 } from "@codarch/schema";
 import { repoAddons } from "@codarch/addons/node";
-import { LINT_FILE, listLintRules, writeLintRule } from "@codarch/lint";
+import {
+  LINT_FILE,
+  detectLintSystems,
+  listLintRules,
+  lintRuleDiff,
+  previewLintRule,
+  recommendationsForProject,
+  restoreLintRule,
+  writeLintRule
+} from "@codarch/lint";
 import { chainsPayload } from "./chains-payload";
 import type { Live } from "./serve-live";
 
@@ -175,12 +184,13 @@ async function postRoot(context: RouteContext): Promise<void> {
 }
 
 /** Encender o apagar el live sin reiniciar. */
-/** Activa o desactiva una regla de oxlint en la config del proyecto (ADR 0111). */
+/** Activa o desactiva una regla en la config del proyecto (ADR 0111 · 0112). */
 async function postLintRule(context: RouteContext): Promise<void> {
   const body = await readBody(context.request);
   const system = readField(body, "system");
   const rule = readField(body, "rule");
   const severity = readField(body, "severity");
+  const preview = readField(body, "preview") === true;
   if (
     typeof system !== "string" ||
     typeof rule !== "string" ||
@@ -190,21 +200,78 @@ async function postLintRule(context: RouteContext): Promise<void> {
     return;
   }
 
+  const root = context.live.current().root;
   try {
-    const result = writeLintRule(context.live.current().root, {
+    const change = {
       system,
       rule,
-      severity
-    });
-    context.live.lint();
+      severity: severity as "error" | "warn" | null
+    };
+    const result = preview
+      ? previewLintRule(root, change)
+      : writeLintRule(root, change);
+    if (!preview) {
+      rememberUndo(root, result.path, result.before);
+      context.live.lint();
+    }
     sendJson(context.response, {
       ok: true,
       path: result.path,
       rule,
-      severity
+      severity,
+      diff: lintRuleDiff(result.before, result.after)
     });
   } catch (error) {
     sendError(context.response, 400, (error as Error).message);
+  }
+}
+
+/** Deshace la última escritura de una regla en este servidor. */
+async function postLintUndo(context: RouteContext): Promise<void> {
+  const body = await readBody(context.request);
+  const path = readField(body, "path");
+  if (typeof path !== "string" || !path) {
+    sendError(context.response, 400, "falta la ruta de la config");
+    return;
+  }
+  const root = context.live.current().root;
+  const entry = undoByConfig.get(undoKey(root, path))?.pop();
+  if (!entry) {
+    sendError(context.response, 409, "no hay nada que deshacer");
+    return;
+  }
+  try {
+    restoreLintRule(root, path, entry);
+    context.live.lint();
+    sendJson(context.response, { ok: true, path });
+  } catch (error) {
+    sendError(context.response, 400, (error as Error).message);
+  }
+}
+
+const undoByConfig = new Map<string, string[]>();
+
+function undoKey(root: string, path: string): string {
+  return `${root}\0${path}`;
+}
+
+function rememberUndo(root: string, path: string, before: string): void {
+  const key = undoKey(root, path);
+  const stack = undoByConfig.get(key) ?? [];
+  stack.push(before);
+  if (stack.length > 10) stack.shift();
+  undoByConfig.set(key, stack);
+}
+
+/** Las recomendaciones generales y por señales del proyecto (ADR 0112). */
+async function getLintRecommendations(context: RouteContext): Promise<void> {
+  const root = context.live.current().root;
+  const systems = detectLintSystems(root).map((system) => system.name);
+  try {
+    const recommendations = await recommendationsForProject(root, systems);
+    sendJson(context.response, recommendations);
+  } catch (error) {
+    sendError(context.response, 500, (error as Error).message);
   }
 }
 
@@ -425,12 +492,14 @@ function sendEmpty(response: http.ServerResponse): void {
 const POST_ROUTES: Record<string, Route> = {
   "/api/root": postRoot,
   "/api/lint-rule": postLintRule,
+  "/api/lint-rule/undo": postLintUndo,
   "/api/watch": postWatch
 };
 
 const GET_ROUTES: Record<string, Route> = {
   "/api/browse": getBrowse,
   "/api/lint-rules": getLintRules,
+  "/api/lint-recommendations": getLintRecommendations,
   "/api/source": getSource,
   "/api/diff": getDiff,
   "/data/snapshot.cc.json": getJson((context) => context.live.current().snapshot),

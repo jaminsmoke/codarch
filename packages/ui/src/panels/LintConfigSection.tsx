@@ -1,5 +1,5 @@
-import { useState } from "react";
-import type { LintArtifact, RuleCatalog } from "@codarch/lint/browser";
+import { useEffect, useState } from "react";
+import type { LintArtifact, RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import { recommendedRules } from "@codarch/lint/browser";
 import type { RenderModel } from "@codarch/render/browser";
 import { CollapsibleSection, GroupHead } from "../CollapsibleSection";
@@ -126,19 +126,34 @@ function ConfigBody({
   domain,
   canEdit,
   onRuleChange,
-  onListRules
+  onListRules,
+  onUndoRule,
+  onRecommendations
 }: {
   config: LintConfigView;
   domain: LintConfigDomain;
   canEdit: boolean;
-  onRuleChange?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  onRuleChange?: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
   onListRules?: (system: string) => Promise<RuleCatalog | null>;
+  onUndoRule?: (path: string) => Promise<LintRuleResult>;
+  onRecommendations?: () => Promise<Record<
+    string,
+    RecommendedRule[]
+  > | null>;
 }) {
-  const [pending, setPending] = useState<LintRuleChange | null>(null);
+  const [pending, setPending] = useState<{
+    change: LintRuleChange;
+    diff: string | null;
+    loading: boolean;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<{
     ok: boolean;
     text: string;
+    path?: string;
   } | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<RuleCatalog | null>(null);
@@ -146,20 +161,56 @@ function ConfigBody({
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [severity, setSeverity] = useState<"error" | "warn">("error");
+  const [projectRecommendations, setProjectRecommendations] = useState<
+    Record<string, RecommendedRule[]> | null
+  >(null);
+
+  useEffect(() => {
+    if (!onRecommendations) return;
+    let active = true;
+    void onRecommendations().then((next) => {
+      if (active) setProjectRecommendations(next);
+    });
+    return () => {
+      active = false;
+    };
+  }, [onRecommendations]);
+
   const tools =
     config.tools.length > 0 ? config.tools.join(" · ") : "ninguna";
+
+  const openPending = async (change: LintRuleChange) => {
+    if (!onRuleChange) return;
+    setPending({ change, diff: null, loading: true });
+    setFeedback(null);
+    const preview = await onRuleChange(change, true);
+    if (preview.ok) {
+      setPending({
+        change,
+        diff: preview.diff ?? "",
+        loading: false
+      });
+    } else {
+      setPending(null);
+      setFeedback({
+        ok: false,
+        text: preview.error ?? "No se pudo preparar el cambio."
+      });
+    }
+  };
 
   const apply = async (change: LintRuleChange) => {
     if (!onRuleChange) return;
     setBusy(true);
     setFeedback(null);
-    const result = await onRuleChange(change);
+    const result = await onRuleChange(change, false);
     setBusy(false);
     if (result.ok) {
       setPending(null);
       setFeedback({
         ok: true,
-        text: `Guardado en ${result.path ?? "la configuración"}. El live actualizará la ficha.`
+        text: `Guardado en ${result.path ?? "la configuración"}. El live actualizará la ficha.`,
+        ...(result.path ? { path: result.path } : {})
       });
     } else {
       setFeedback({
@@ -167,6 +218,18 @@ function ConfigBody({
         text: result.error ?? "No se pudo guardar el cambio."
       });
     }
+  };
+
+  const undo = async (path: string) => {
+    if (!onUndoRule) return;
+    setBusy(true);
+    const result = await onUndoRule(path);
+    setBusy(false);
+    setFeedback(
+      result.ok
+        ? { ok: true, text: "Deshecho. El live actualizará la ficha." }
+        : { ok: false, text: result.error ?? "No se pudo deshacer." }
+    );
   };
 
   const toggleAdd = async (system: string) => {
@@ -229,10 +292,11 @@ function ConfigBody({
                   Boolean(system.config?.endsWith(".xml"))));
             const active = new Set(system.activeRules.map((rule) => rule.id));
             const canAdd = editable;
+            const recommended =
+              projectRecommendations?.[system.name] ??
+              recommendedRules(system.name);
             const missing = editable
-              ? recommendedRules(system.name).filter(
-                  (rule) => !active.has(rule.id)
-                )
+              ? recommended.filter((rule) => !active.has(rule.id))
               : [];
             return (
               <li
@@ -307,7 +371,7 @@ function ConfigBody({
                               rule={rule}
                               editable={editable}
                               onDisable={() =>
-                                setPending({
+                                void openPending({
                                   system: system.name,
                                   rule: rule.id,
                                   severity: null
@@ -349,7 +413,7 @@ function ConfigBody({
                                 className="lint-rule-action lint-rule-enable"
                                 disabled={busy}
                                 onClick={() =>
-                                  void apply({
+                                  void openPending({
                                     system: system.name,
                                     rule: rule.id,
                                     severity: rule.severity
@@ -407,7 +471,10 @@ function ConfigBody({
                             <p className="muted tiny">{catalogError}</p>
                           ) : catalogGroups.length === 0 ? (
                             <p className="muted tiny">
-                              No hay reglas que coincidan.
+                              {query.trim()
+                                ? `No hay reglas que coincidan con “${query.trim()}”.`
+                                : (catalog?.note ??
+                                  "Esta herramienta no expone un catálogo de reglas para añadir.")}
                             </p>
                           ) : (
                             <div className="lint-add-list">
@@ -425,7 +492,7 @@ function ConfigBody({
                                         className="lint-add-option"
                                         disabled={isActive || busy}
                                         onClick={() =>
-                                          void apply({
+                                          void openPending({
                                             system: system.name,
                                             rule: id,
                                             severity
@@ -445,22 +512,28 @@ function ConfigBody({
                               ))}
                             </div>
                           )}
-                          {catalog?.note ? (
+                          {catalogGroups.length > 0 && catalog?.note ? (
                             <p className="muted tiny">{catalog.note}</p>
                           ) : null}
                         </div>
                       ) : null}
                     </div>
                   ) : null}
-                  {pending && pending.system === system.name ? (
+                  {pending && pending.change.system === system.name ? (
                     <div className="lint-rule-confirm" role="alert">
                       <p>
-                        ¿Desactivar <b>{ruleParts(pending.rule).rule}</b> en{" "}
+                        ¿{pending.change.severity === null ? "Desactivar" : "Activar"}{" "}
+                        <b>{ruleParts(pending.change.rule).rule}</b> en{" "}
                         <span className="mono">
                           {system.config ?? "la configuración"}
                         </span>
                         ?
                       </p>
+                      {pending.loading ? (
+                        <p className="muted tiny">Calculando el cambio…</p>
+                      ) : pending.diff ? (
+                        <pre className="lint-rule-diff">{pending.diff}</pre>
+                      ) : null}
                       <div className="lint-rule-confirm-actions">
                         <button
                           type="button"
@@ -472,11 +545,17 @@ function ConfigBody({
                         </button>
                         <button
                           type="button"
-                          className="button small lint-confirm-danger"
-                          disabled={busy}
-                          onClick={() => void apply(pending)}
+                          className={`button small${
+                            pending.change.severity === null
+                              ? " lint-confirm-danger"
+                              : ""
+                          }`}
+                          disabled={busy || pending.loading}
+                          onClick={() => void apply(pending.change)}
                         >
-                          Desactivar
+                          {pending.change.severity === null
+                            ? "Desactivar"
+                            : "Activar"}
                         </button>
                       </div>
                     </div>
@@ -495,6 +574,15 @@ function ConfigBody({
           role="status"
         >
           {feedback.text}
+          {feedback.ok && feedback.path && onUndoRule ? (
+            <button
+              type="button"
+              className="lint-rule-undo"
+              onClick={() => void undo(feedback.path as string)}
+            >
+              Deshacer
+            </button>
+          ) : null}
         </p>
       ) : null}
     </div>
@@ -508,7 +596,9 @@ export function LintConfigSection({
   title,
   canEdit = false,
   onRuleChange,
-  onListRules
+  onListRules,
+  onUndoRule,
+  onRecommendations
 }: {
   /** Identificador único: puede haber un catálogo por dominio. */
   id: string;
@@ -519,9 +609,19 @@ export function LintConfigSection({
   /** La plataforma puede escribir en la config del proyecto (ADR 0111). */
   canEdit?: boolean;
   /** Activa o desactiva una regla en la config del proyecto. */
-  onRuleChange?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  onRuleChange?: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
   /** Enumera el catálogo de reglas de una herramienta (ADR 0112). */
   onListRules?: (system: string) => Promise<RuleCatalog | null>;
+  /** Deshace la última escritura de una config (ADR 0112). */
+  onUndoRule?: (path: string) => Promise<LintRuleResult>;
+  /** Recomendaciones generales y por proyecto (ADR 0112). */
+  onRecommendations?: () => Promise<Record<
+    string,
+    RecommendedRule[]
+  > | null>;
 }) {
   const config = readLintConfig(artifact);
   const badge = catalogBadge(config?.systems ?? []);
@@ -542,6 +642,8 @@ export function LintConfigSection({
           canEdit={canEdit}
           onRuleChange={onRuleChange}
           onListRules={onListRules}
+          onUndoRule={onUndoRule}
+          onRecommendations={onRecommendations}
         />
       ) : (
         <p className="muted small">

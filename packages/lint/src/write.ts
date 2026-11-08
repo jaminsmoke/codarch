@@ -33,6 +33,20 @@ export function writeLintRule(
   root: string,
   change: LintRuleChange
 ): LintRuleWrite {
+  const result = planLintRule(root, change);
+  writeAtomic(path.join(root, result.path), result.after);
+  return result;
+}
+
+/** Calcula el cambio sin tocar el disco; lo usa la previsualización. */
+export function previewLintRule(
+  root: string,
+  change: LintRuleChange
+): LintRuleWrite {
+  return planLintRule(root, change);
+}
+
+function planLintRule(root: string, change: LintRuleChange): LintRuleWrite {
   if (!RULE.test(change.rule)) {
     throw new LintError(`regla inválida: "${change.rule}"`);
   }
@@ -95,7 +109,6 @@ function writeEslintRule(
   const after = hasManagedBlock(cleaned.text)
     ? replaceManagedBlock(cleaned.text, block)
     : insertManagedBlock(cleaned.text, block);
-  writeAtomic(file, after);
   return { path: system.config, before, after };
 }
 
@@ -328,7 +341,6 @@ function writeBiomeRule(
   document.linter = linter;
 
   const after = `${JSON.stringify(document, null, 2)}\n`;
-  writeAtomic(file, after);
   return { path: system.config, before, after };
 }
 
@@ -407,7 +419,6 @@ function writeRuffRule(
     );
   }
 
-  writeAtomic(file, after);
   return { path: system.config, before, after };
 }
 
@@ -539,7 +550,6 @@ function writeCheckstyleRule(
       );
     }
     const after = insertCheckstyleModule(before, container, change.rule);
-    writeAtomic(file, after);
     return { path: system.config, before, after };
   }
 
@@ -549,7 +559,6 @@ function writeCheckstyleRule(
       `Checkstyle no tiene el módulo "${change.rule}" en su config`
     );
   }
-  writeAtomic(file, after);
   return { path: system.config, before, after };
 }
 
@@ -677,7 +686,6 @@ function writeJsonRule(
   }
 
   const after = `${JSON.stringify({ ...document, rules }, null, 2)}\n`;
-  writeAtomic(file, after);
   return { path: relative, before, after };
 }
 

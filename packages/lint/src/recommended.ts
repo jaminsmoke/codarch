@@ -5,8 +5,8 @@ import type { LintSeverity } from "./format";
  *
  * Es un set pequeño y mantenido, no el catálogo entero de la herramienta: una
  * lista de miles envejece con cada versión y no cabe en una ficha. Las
- * recomendaciones específicas de un proyecto llegarán cuando haya señales que
- * las justifiquen (ADR 0111).
+ * recomendaciones específicas de un proyecto se calculan aparte con señales
+ * seguras (ADR 0112).
  */
 export interface RecommendedRule {
   id: string;

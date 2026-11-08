@@ -1,5 +1,5 @@
 import type { RepoAddons } from "@codarch/addons";
-import type { RuleCatalog } from "@codarch/lint/browser";
+import type { RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import type { HistoryEntry, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginStore } from "./plugins";
 import type { ViewPreferences, SavedProject } from "./storage";
@@ -61,6 +61,8 @@ export interface LintRuleResult {
   ok: boolean;
   error?: string;
   path?: string;
+  /** Diff de líneas del cambio, para la confirmación o el aviso. */
+  diff?: string;
 }
 
 /** Una línea de la vista de diferencias. */
@@ -123,9 +125,18 @@ export interface Platform {
   /** Abre un fichero en el editor del usuario, si la plataforma puede (ADR 0068). */
   openInEditor?: (request: EditorRequest) => Promise<boolean>;
   /** Activa o desactiva una regla en la config del proyecto (ADR 0111). */
-  setLintRule?: (change: LintRuleChange) => Promise<LintRuleResult>;
+  setLintRule?: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
+  /** Deshace la última escritura de esta config (ADR 0112). */
+  undoLintRule?: (path: string) => Promise<LintRuleResult>;
   /** El catálogo de reglas de una herramienta para el menú de añadir (ADR 0112). */
   listLintRules?: (system: string) => Promise<RuleCatalog | null>;
+  /** Las recomendaciones generales y por proyecto (ADR 0112). */
+  lintRecommendations?: () => Promise<
+    Record<string, RecommendedRule[]> | null
+  >;
   /** El diff de un fichero contra el último commit, si lo puede leer (ADR 0077). */
   diff?: (path: string) => Promise<FileDiffView | null>;
   /** La línea del tiempo del repo, si la plataforma la sirve. */

@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { LintError, writeLintRule } from "../src/index";
+import { LintError, writeLintRule, previewLintRule, lintRuleDiff } from "../src/index";
 
 const roots: string[] = [];
 
@@ -88,6 +88,25 @@ describe("escribir una regla de oxlint", () => {
     writeLintRule(root, { system: "oxlint", rule: "no-eval", severity: null });
 
     expect(read(root).rules).toEqual({ "no-eval": "off" });
+  });
+
+  it("la previsualización calcula el cambio sin escribir", () => {
+    const root = repo({ categories: { correctness: "off" }, rules: {} });
+    const before = fs.readFileSync(path.join(root, ".oxlintrc.json"), "utf8");
+
+    const result = previewLintRule(root, {
+      system: "oxlint",
+      rule: "no-eval",
+      severity: "error"
+    });
+
+    expect(result.after).toContain('"no-eval": "error"');
+    expect(fs.readFileSync(path.join(root, ".oxlintrc.json"), "utf8")).toBe(
+      before
+    );
+    expect(lintRuleDiff(result.before, result.after)).toContain(
+      '+     "no-eval": "error"'
+    );
   });
 
   it("rechaza una config que no es JSON o un sistema que no se escribe", () => {

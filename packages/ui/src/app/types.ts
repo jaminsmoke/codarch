@@ -1,7 +1,6 @@
 import type { CcJson, CcMigrationNode, CcStructureNode } from "@codarch/schema/browser";
 import type { DiffReport } from "@codarch/metrics/browser";
-import type { LintArtifact } from "@codarch/lint/browser";
-import type { RuleCatalog } from "@codarch/lint/browser";
+import type { LintArtifact, RecommendedRule, RuleCatalog } from "@codarch/lint/browser";
 import type { RepoAddon } from "@codarch/addons";
 import type { HistoryEntry, SymbolChain, SymbolHeat } from "@codarch/schema/browser";
 import type { PluginContext, PluginView } from "@codarch/plugin-api";
@@ -147,7 +146,14 @@ export interface CodarchAppActions {
   /** Abre un fichero en el editor del usuario (ADR 0068). */
   openInEditor: (request: EditorRequest) => Promise<boolean>;
   /** Activa o desactiva una regla en la config del proyecto (ADR 0111). */
-  setLintRule: (change: LintRuleChange) => Promise<LintRuleResult>;
+  setLintRule: (
+    change: LintRuleChange,
+    preview?: boolean
+  ) => Promise<LintRuleResult>;
+  /** Deshace la última escritura de una config (ADR 0112). */
+  undoLintRule: (path: string) => Promise<LintRuleResult>;
+  /** Las recomendaciones por proyecto (ADR 0112). */
+  lintRecommendations: () => Promise<Record<string, RecommendedRule[]> | null>;
   /** El catálogo de reglas de una herramienta (ADR 0112). */
   listLintRules: (system: string) => Promise<RuleCatalog | null>;
   /**

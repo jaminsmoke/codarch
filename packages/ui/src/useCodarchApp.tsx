@@ -10,7 +10,7 @@ import { useViewOptions } from "./app/viewOptions";
 import { usePluginBindings } from "./app/pluginBindings";
 import { platformBridges } from "./app/bridges";
 import type { Platform, LintRuleChange, LintRuleResult } from "./platform";
-import type { RuleCatalog } from "@codarch/lint/browser";
+import type { RuleCatalog, RecommendedRule } from "@codarch/lint/browser";
 import type { ViewPreferences } from "./storage";
 import type { InspectorTab } from "./viewState";
 import type {
@@ -336,14 +336,27 @@ export function useCodarchApp(
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });
 
   const setLintRule = useCallback(
-    async (change: LintRuleChange): Promise<LintRuleResult> => {
+    async (
+      change: LintRuleChange,
+      preview = false
+    ): Promise<LintRuleResult> => {
       if (!platform.setLintRule) {
         return {
           ok: false,
           error: "Esta plataforma no puede escribir la configuración del proyecto."
         };
       }
-      return platform.setLintRule(change);
+      return platform.setLintRule(change, preview);
+    },
+    [platform]
+  );
+
+  const undoLintRule = useCallback(
+    async (path: string): Promise<LintRuleResult> => {
+      if (!platform.undoLintRule) {
+        return { ok: false, error: "Esta plataforma no puede deshacer." };
+      }
+      return platform.undoLintRule(path);
     },
     [platform]
   );
@@ -351,6 +364,15 @@ export function useCodarchApp(
   const listLintRules = useCallback(
     async (system: string): Promise<RuleCatalog | null> => {
       return platform.listLintRules ? platform.listLintRules(system) : null;
+    },
+    [platform]
+  );
+
+  const lintRecommendations = useCallback(
+    async (): Promise<Record<string, RecommendedRule[]> | null> => {
+      return platform.lintRecommendations
+        ? platform.lintRecommendations()
+        : null;
     },
     [platform]
   );
@@ -437,7 +459,9 @@ export function useCodarchApp(
     readCode: bridges.readCode,
     openInEditor: bridges.openInEditor,
     setLintRule,
+    undoLintRule,
     listLintRules,
+    lintRecommendations,
     zoomAt,
     panMap,
     fitMap,

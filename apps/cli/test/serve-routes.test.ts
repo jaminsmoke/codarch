@@ -179,6 +179,63 @@ describe("las rutas del servidor", () => {
     expect(await sinRuta.json()).toEqual({ error: "falta path" });
   });
 
+  it("prevé el cambio, lo escribe y lo deshace (ADR 0112)", async () => {
+    const original = '{\n  "rules": {}\n}\n';
+    const root = tempRepo({
+      ".oxlintrc.json": original,
+      "src/a.ts": "export const a = 1;\n"
+    });
+    const base = await serve(root);
+    const headers = {
+      origin: "http://127.0.0.1",
+      "content-type": "application/json"
+    };
+    const change = {
+      system: "oxlint",
+      rule: "no-eval",
+      severity: "error"
+    };
+
+    const preview = await fetch(`${base}/api/lint-rule`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ ...change, preview: true })
+    });
+    expect(preview.status).toBe(200);
+    const previewBody = (await preview.json()) as { diff?: string };
+    expect(previewBody.diff).toContain('+     "no-eval": "error"');
+    expect(fs.readFileSync(path.join(root, ".oxlintrc.json"), "utf8")).toBe(
+      original
+    );
+
+    const write = await fetch(`${base}/api/lint-rule`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(change)
+    });
+    expect(write.status).toBe(200);
+    expect(
+      fs.readFileSync(path.join(root, ".oxlintrc.json"), "utf8")
+    ).toContain('"no-eval": "error"');
+
+    const undo = await fetch(`${base}/api/lint-rule/undo`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ path: ".oxlintrc.json" })
+    });
+    expect(undo.status).toBe(200);
+    expect(fs.readFileSync(path.join(root, ".oxlintrc.json"), "utf8")).toBe(
+      original
+    );
+
+    const again = await fetch(`${base}/api/lint-rule/undo`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ path: ".oxlintrc.json" })
+    });
+    expect(again.status).toBe(409);
+  });
+
   it("no deja que otra pestaña cambie la carpeta", async () => {
     const root = tempRepo({ "src/a.ts": "export const a = 1;\n" });
     const base = await serve(root);
