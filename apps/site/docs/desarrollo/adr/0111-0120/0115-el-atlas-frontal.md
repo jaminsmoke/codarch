@@ -114,6 +114,7 @@ Fase **M77 · El Atlas frontal** (continúa la fase del [ADR 0113](0113-el-atlas
 - ✅ La cámara frontal y sus límites.
 - ✅ El vuelo de cámara al entrar y salir.
 - ✅ Etiquetas por nivel.
-- ⬜ El visor de fichero.
+- ✅ El visor de fichero de solo lectura.
+- ⬜ El editor completo, si se decide.
 
 El registro de lo hecho vive en el [feed de la guía](/desarrollo/guia/).

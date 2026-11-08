@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PluginContext } from "@codarch/plugin-api";
+import type { PluginCode, PluginContext } from "@codarch/plugin-api";
 import { mountScene, type Scene, type SceneBackend } from "./scene";
 import { buildRoom } from "./room";
 
@@ -27,12 +27,80 @@ function runtimeLabel(runtime: Runtime): string {
   return "arrancando";
 }
 
+function AtlasFileView({
+  path,
+  load,
+  onClose
+}: {
+  path: string;
+  load: (path: string) => Promise<PluginCode | null>;
+  onClose: () => void;
+}) {
+  const [code, setCode] = useState<PluginCode | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void load(path).then((next) => {
+      if (!live) return;
+      if (next) setCode(next);
+      else setError("No se pudo leer el código de este fichero.");
+    });
+    return () => {
+      live = false;
+    };
+  }, [path, load]);
+
+  return (
+    <aside className="atlas-file" aria-label={`Visor de ${path}`}>
+      <header className="atlas-file-head">
+        <span className="mono">{path}</span>
+        <button
+          type="button"
+          className="atlas-file-close"
+          onClick={onClose}
+          aria-label="Cerrar el visor"
+        >
+          Cerrar
+        </button>
+      </header>
+      <div className="atlas-file-body">
+        {error ? (
+          <p className="muted small">{error}</p>
+        ) : !code ? (
+          <p className="muted small">Cargando el código…</p>
+        ) : (
+          <pre className="atlas-file-code">
+            {code.lines
+              .map(
+                (line, index) =>
+                  `${String(code.start + index).padStart(5)}  ${line}`
+              )
+              .join("\n")}
+          </pre>
+        )}
+      </div>
+      {code ? (
+        <footer className="atlas-file-foot">
+          {code.end < code.total
+            ? `líneas ${code.start}–${code.end} de ${code.total}`
+            : `${code.total} líneas`}
+        </footer>
+      ) : null}
+    </aside>
+  );
+}
+
 export function AtlasView({ context }: { context: PluginContext }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelsRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<Scene | null>(null);
   const [runtime, setRuntime] = useState<Runtime>("pending");
   const [boxes, setBoxes] = useState(0);
+  const [openFile, setOpenFile] = useState<{
+    path: string;
+    focusPath: string | null;
+  } | null>(null);
 
   const latest = useRef(context);
   // La escena lee el contexto por referencia: seleccionar no debe remontarla.
@@ -69,8 +137,15 @@ export function AtlasView({ context }: { context: PluginContext }) {
       room,
       selected: latest.current.selection,
       background: themeColor("--paper", "#eef1f2"),
-      onSelect: (path) => latest.current.actions.select(path),
+      onSelect: (path) => {
+        latest.current.actions.select(path);
+        setOpenFile({
+          path,
+          focusPath: latest.current.url.read().focusPath
+        });
+      },
       onFocus: (path) => {
+        setOpenFile(null);
         sceneRef.current?.flyTo(path, 420, () => {
           latest.current.actions.focus(path);
         });
@@ -120,6 +195,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
             type="button"
             className="atlas-back"
             onClick={() => {
+              setOpenFile(null);
               const leave = () => context.url.write({ focusPath: null });
               if (sceneRef.current) sceneRef.current.flyTo(null, 360, leave);
               else leave();
@@ -149,6 +225,14 @@ export function AtlasView({ context }: { context: PluginContext }) {
         arrastra para mirar · rueda para acercar · clic en un contenedor para
         entrar · clic en una hoja para seleccionarla
       </div>
+      {openFile && openFile.focusPath === focusPath ? (
+        <AtlasFileView
+          key={openFile.path}
+          path={openFile.path}
+          load={context.readCode}
+          onClose={() => setOpenFile(null)}
+        />
+      ) : null}
       {runtime === "error" ? (
         <div className="atlas-error" role="alert">
           <strong>Atlas necesita WebGL2.</strong>

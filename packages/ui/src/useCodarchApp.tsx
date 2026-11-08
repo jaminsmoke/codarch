@@ -259,6 +259,9 @@ export function useCodarchApp(
     | Record<string, { title?: string }>
     | undefined;
 
+  /** Las puertas opcionales de la plataforma, con las que faltan apagadas. */
+  const bridges = useMemo(() => platformBridges(platform), [platform]);
+
   /** Las métricas que se ofrecen, sus títulos y los colores que se pueden pintar. */
   const { metricOptions, metricTitle, areaOptions, colorOptions } =
     useViewOptions({ stats, descriptors, map, lint, hasChurn, migration });
@@ -278,7 +281,8 @@ export function useCodarchApp(
     setFocusPath,
     setTab,
     setAreaMetric,
-    setColorMode
+    setColorMode,
+    readCode: bridges.readCode
   });
 
   const matches = useMemo(() => {
@@ -327,9 +331,6 @@ export function useCodarchApp(
     openFileAt,
     openSymbolChain
   });
-
-  /** Las puertas opcionales de la plataforma, con las que faltan apagadas. */
-  const bridges = useMemo(() => platformBridges(platform), [platform]);
 
   const openSettings = useCallback(() => setSettingsOpen(true), []);
   useShortcuts({ search: searchRef, openSettings, clear: clearSelection });

@@ -1,6 +1,7 @@
 import type { PluginContext, PluginView } from "@codarch/plugin-api";
 import type { RenderFile, RenderModel } from "@codarch/render/browser";
 import type { CcMigrationLens } from "@codarch/schema/browser";
+import type { CodeRequest, CodeSnippet } from "../platform";
 import { mapColorFor, metricIndexOf } from "../map";
 import type { PluginRuntime } from "../plugins";
 import type { InspectorTab } from "../viewState";
@@ -50,6 +51,7 @@ export interface PluginContextInput {
   setTab: (tab: InspectorTab) => void;
   setAreaMetric: (metric: string | null) => void;
   setColorMode: (mode: string) => void;
+  readCode: (request: CodeRequest) => Promise<CodeSnippet | null>;
   storage: PluginContext["storage"];
 }
 
@@ -83,6 +85,22 @@ export function buildPluginContext(input: PluginContextInput): PluginContext {
         input.migration,
         metricIndexOf(model)
       );
+    },
+    readCode: async (sourcePath: string) => {
+      const snippet = await input.readCode({
+        path: sourcePath,
+        start: 1,
+        end: Number.MAX_SAFE_INTEGER,
+        whole: true
+      });
+      return snippet
+        ? {
+            lines: snippet.lines,
+            start: snippet.start,
+            end: snippet.end,
+            total: snippet.total
+          }
+        : null;
     },
     url: {
       read: () => ({

@@ -9,6 +9,7 @@ laterales siguen siendo de CodArch.
   las estanterías.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón y la
   rueda acerca.
+- **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
 - **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
   `RenderModel` que esté abierto.
 

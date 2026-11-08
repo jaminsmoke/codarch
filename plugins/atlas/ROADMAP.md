@@ -11,6 +11,7 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ La vista frontal de contenedores y hojas, y la sala de carpeta.
 - ✅ La transición de cámara al entrar y salir.
 - ✅ Etiquetas legibles por nivel.
-- ⬜ Detalle de fichero dentro del Atlas.
+- ✅ El visor de fichero de solo lectura.
+- ⬜ El editor completo, si se decide.
 - ⬜ Corredores y estanterías, si el corte vertical los justifica.
 - ⬜ Rendimiento, movimiento reducido y caída al mapa clásico.
