@@ -6,7 +6,8 @@ laterales siguen siendo de CodArch.
 
 - **Proyecto**: la raíz es la primera sala y lleva el nombre del proyecto analizado. Sus contenedores
   son las carpetas de primer nivel y sus hojas, los ficheros de la raíz.
-- **Sala**: cada carpeta abre otra sala con la misma geometría. Son salas profundas y sin techo; los
+- **Sala**: cada carpeta abre otra sala con la misma geometría. Son salas profundas y sin techo, con
+  esquinas cerradas por columnas y suelo contenido; los
   archivadores se pegan a la pared de fondo y los ficheros van de pie en dos estanterías laterales,
   abiertas, con tablas finas y llenadas desde el fondo hacia el frente.
 - **Luz y etiquetas**: las paredes y estanterías tienen tiras de luz; el presupuesto de etiquetas
