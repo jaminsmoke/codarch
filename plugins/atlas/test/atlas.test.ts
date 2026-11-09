@@ -234,6 +234,23 @@ describe("la geometría frontal del Atlas", () => {
     expect(details.every((box) => !box.selectable)).toBe(true);
   });
 
+  it("la tabla de métricas se cuelga en la pared de fondo", () => {
+    const room = buildRoom({
+      ...input,
+      metrics: [
+        { label: "Ficheros", value: "704" },
+        { label: "Carpetas", value: "73" },
+        { label: "Riesgo", value: "96 / 100" }
+      ]
+    });
+    const panels = room.boxes.filter((box) => box.role === "metric");
+
+    expect(panels).toHaveLength(1);
+    expect(panels[0]?.label).toContain("Ficheros");
+    expect(panels[0]?.label).toContain("\n");
+    expect(panels[0]?.z).toBeGreaterThan(room.depth);
+  });
+
   it("el mobiliario no se puede seleccionar", () => {
     const room = buildRoom(input);
     const furniture = room.boxes.filter((box) => !box.selectable);
@@ -243,7 +260,8 @@ describe("la geometría frontal del Atlas", () => {
         (box) =>
           box.role === "floor" ||
           box.role === "furniture" ||
-          box.role === "sign"
+          box.role === "sign" ||
+          box.role === "metric"
       )
     ).toBe(true);
   });
@@ -269,6 +287,7 @@ describe("la escena del Atlas", () => {
     expect(kindOf("floor")).toBe(2);
     expect(kindOf("furniture")).toBe(3);
     expect(kindOf("sign")).toBe(3);
+    expect(kindOf("metric")).toBe(3);
   });
 
   it("marca las carpetas para dibujar sus aristas", () => {

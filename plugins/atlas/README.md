@@ -12,8 +12,9 @@ laterales siguen siendo de CodArch.
 - **Luz y etiquetas**: las paredes y estanterías tienen tiras de luz; el presupuesto de etiquetas
   prioriza cartel, selección, carpetas y hojas. Los detalles de los archivadores se retiran por carga,
   distancia o ángulo de cámara. El pasillo central lleva dos guías de suelo.
-- **Cartel**: el frente queda abierto. El nombre de la sala vive en un cartel centrado en la pared de
-  fondo; la raíz usa el nombre del proyecto analizado.
+- **Cartel y métricas**: el frente queda abierto. El nombre de la sala vive en un cartel centrado en
+  la pared de fondo, con una pantalla de métricas del ámbito encima; la raíz usa el nombre del
+  proyecto analizado.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón, la
   rueda acerca y hay botones **−**, **Centrar** y **+**, con los atajos `+`, `-` y `0`/`R`.
 - **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { PluginCode, PluginContext } from "@codarch/plugin-api";
 import { mountScene, type Scene, type SceneBackend } from "./scene";
 import { buildRoom } from "./room";
+import { roomMetrics } from "./metrics";
 
 /**
  * La vista Atlas.
@@ -121,6 +122,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
       files: model.files,
       focusPath,
       projectName: model.meta.project,
+      metrics: roomMetrics(model, focusPath),
       colorFor: (index) => latest.current.colorFor(index),
       fallbackColor: ATLAS_FALLBACK,
       furnitureColor: ATLAS_FURNITURE,

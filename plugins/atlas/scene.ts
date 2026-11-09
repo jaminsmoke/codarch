@@ -294,7 +294,7 @@ export interface InstanceLayout {
 export function kindOf(role: AtlasRole): 0 | 1 | 2 | 3 {
   if (role === "folder") return 1;
   if (role === "floor") return 2;
-  if (role === "furniture" || role === "sign") return 3;
+  if (role === "furniture" || role === "sign" || role === "metric") return 3;
   return 0;
 }
 
@@ -669,7 +669,7 @@ export function mountScene(
           {
             x: box.x,
             y:
-              box.role === "sign"
+              box.role === "sign" || box.role === "metric"
                 ? box.y + box.height / 2
                 : box.y +
                   box.height +
@@ -709,12 +709,14 @@ export function mountScene(
       .sort((left, right) => {
         const focus = (box: AtlasBox): number =>
           box.role === "sign"
-            ? -2
-            : box.path === selected
-              ? -1
-              : box.role === "folder"
-                ? 0
-                : 1;
+            ? -3
+            : box.role === "metric"
+              ? -2
+              : box.path === selected
+                ? -1
+                : box.role === "folder"
+                  ? 0
+                  : 1;
         const leftFocus = focus(left.box);
         const rightFocus = focus(right.box);
         return leftFocus - rightFocus || left.point.depth - right.point.depth;
@@ -723,20 +725,37 @@ export function mountScene(
 
     for (const { box, point } of candidates) {
       const isSign = box.role === "sign";
+      const isMetric = box.role === "metric";
+      const isPanel = isSign || isMetric;
       labels.font = isSign
         ? '600 12px "Inter", system-ui, sans-serif'
-        : '600 10px "Inter", system-ui, sans-serif';
-      const limit = isSign ? 32 : 28;
-      const text =
-        (box.label as string).length > limit
-          ? `${(box.label as string).slice(0, limit - 1)}…`
-          : (box.label as string);
-      const textWidth = labels.measureText(text).width;
+        : isMetric
+          ? '500 9px "Inter", system-ui, sans-serif'
+          : '600 10px "Inter", system-ui, sans-serif';
+      const limit = isSign ? 32 : isMetric ? 26 : 28;
+      const lines = isMetric
+        ? (box.label as string).split("\n").map((line) =>
+            line.length > limit ? `${line.slice(0, limit - 1)}…` : line
+          )
+        : [
+            (box.label as string).length > limit
+              ? `${(box.label as string).slice(0, limit - 1)}…`
+              : (box.label as string)
+          ];
+      const lineHeight = isMetric ? 11 : 16;
+      const textWidth = Math.max(
+        ...lines.map((line) => labels.measureText(line).width)
+      );
+      const rectHeight = isMetric
+        ? lines.length * lineHeight + 6
+        : isSign
+          ? 18
+          : 14;
       const rect = {
-        x: point.x - textWidth / 2 - (isSign ? 6 : 4),
-        y: point.y - (isSign ? 9 : 7),
-        w: textWidth + (isSign ? 12 : 8),
-        h: isSign ? 18 : 14
+        x: point.x - textWidth / 2 - (isPanel ? 6 : 4),
+        y: point.y - rectHeight / 2,
+        w: textWidth + (isPanel ? 12 : 8),
+        h: rectHeight
       };
       if (
         occupied.some(
@@ -750,20 +769,22 @@ export function mountScene(
         continue;
       }
       occupied.push(rect);
-      labels.textAlign = isSign ? "center" : "left";
-      labels.globalAlpha = isSign ? 1 : 0.9;
-      if (!isSign) {
+      labels.textAlign = isPanel ? "center" : "left";
+      labels.globalAlpha = isPanel ? 1 : 0.9;
+      if (!isPanel) {
         labels.fillStyle =
           box.path === selected ? "#2f6fed" : labelBackground;
         labels.fillRect(rect.x, rect.y, rect.w, rect.h);
       }
       labels.globalAlpha = 1;
       labels.fillStyle = box.path === selected ? "#ffffff" : labelText;
-      labels.fillText(
-        text,
-        isSign ? point.x : rect.x + 4,
-        rect.y + rect.h / 2 + 0.5
-      );
+      for (let index = 0; index < lines.length; index++) {
+        labels.fillText(
+          lines[index] as string,
+          isPanel ? point.x : rect.x + 4,
+          rect.y + (isMetric ? 9 : rect.h / 2) + index * lineHeight + 0.5
+        );
+      }
       labels.textAlign = "left";
     }
   };
