@@ -269,14 +269,18 @@ export function buildRoom(input: RoomInput): Room {
     fileWallHeight + 4,
     maxFolderHeight + 9
   );
+  const wallThickness = 0.4;
+  const sideWallX = width / 2 + 0.6;
+  const backWallZ = depth + 0.8;
+  const backWallWidth = width + 1.6;
   boxes.push({
     path: null,
     role: "floor",
     x: 0,
     y: -FLOOR_HEIGHT,
     z: depth / 2,
-    width: width + 4,
-    depth: depth + 4,
+    width: width + 2.4,
+    depth: depth + 2.4,
     height: FLOOR_HEIGHT,
     color: input.floorColor,
     selectable: false
@@ -285,10 +289,10 @@ export function buildRoom(input: RoomInput): Room {
     boxes.push({
       path: null,
       role: "furniture",
-      x: side * (width / 2 + 0.6),
+      x: side * sideWallX,
       y: 0,
       z: depth / 2,
-      width: 0.4,
+      width: wallThickness,
       depth: depth + 2,
       height: roomHeight,
       color: input.wallColor,
@@ -300,14 +304,27 @@ export function buildRoom(input: RoomInput): Room {
     role: "furniture",
     x: 0,
     y: 0,
-    z: depth + 0.8,
-    width: width + 4,
-    depth: 0.4,
+    z: backWallZ,
+    width: backWallWidth,
+    depth: wallThickness,
     height: roomHeight,
     color: input.wallColor,
     selectable: false
   });
+  // Columnas de esquina: tapan la junta entre la pared lateral y la de fondo.
   for (const side of [-1, 1]) {
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: side * sideWallX,
+      y: 0,
+      z: backWallZ,
+      width: wallThickness + 0.2,
+      depth: wallThickness + 0.2,
+      height: roomHeight,
+      color: input.trimColor,
+      selectable: false
+    });
     boxes.push({
       path: null,
       role: "furniture",
@@ -327,7 +344,7 @@ export function buildRoom(input: RoomInput): Room {
     x: 0,
     y: 0.1,
     z: depth + 0.55,
-    width: width + 4,
+    width: backWallWidth,
     depth: 0.2,
     height: 0.5,
     color: input.trimColor,
