@@ -32,6 +32,7 @@ export interface PluginBindingsInput {
   tab: InspectorTab;
   migration: ReturnType<typeof readMigration>;
   select: (index: number) => void;
+  selectFolder: (path: string | null) => void;
   setFocusPath: (path: string | null) => void;
   setTab: (tab: InspectorTab) => void;
   setAreaMetric: (metric: string | null) => void;
@@ -51,6 +52,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
     tab,
     migration,
     select,
+    selectFolder,
     setFocusPath,
     setTab,
     setAreaMetric,
@@ -72,6 +74,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
         tab,
         migration,
         select,
+        selectFolder,
         setFocusPath,
         setTab,
         setAreaMetric,
@@ -88,6 +91,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
       tab,
       migration,
       select,
+      selectFolder,
       setFocusPath,
       setTab,
       setAreaMetric,

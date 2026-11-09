@@ -76,6 +76,8 @@ export interface PluginPreferences {
 export interface PluginActions {
   /** Selecciona un fichero por su ruta. */
   select(path: string): void;
+  /** Selecciona una carpeta por su ruta, sin entrar en ella. */
+  selectFolder(path: string): void;
   /** Enfoca una carpeta por su ruta. */
   focus(path: string): void;
   /** Cambia la hoja del panel derecho (`file`, `folder`, `project` o `changes`). */

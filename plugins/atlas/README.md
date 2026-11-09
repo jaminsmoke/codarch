@@ -18,7 +18,8 @@ laterales siguen siendo de CodArch.
   vuela hasta encuadrarla; `Centrar` vuelve a la sala.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón, la
   rueda acerca y hay botones **−**, **Centrar** y **+**, con los atajos `+`, `-` y `0`/`R`.
-- **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
+- **Selección**: un clic selecciona; doble clic entra en la carpeta o abre la hoja en el visor. La
+  pantalla de métricas conserva su clic directo para enfocarla.
 - **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
   `RenderModel` que esté abierto.
 

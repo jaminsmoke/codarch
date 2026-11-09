@@ -278,6 +278,7 @@ export function useCodarchApp(
     tab,
     migration,
     select: selectIndex,
+    selectFolder,
     setFocusPath,
     setTab,
     setAreaMetric,

@@ -466,8 +466,8 @@ de fondo y las estanterías laterales, abiertas y ordenadas desde el frente, dej
 El pasillo central lleva dos guías de suelo. El frente queda abierto y el nombre de la sala vive en
 un cartel centrado en la pared de fondo; la raíz lleva el nombre del proyecto analizado y, sobre el
 cartel, una pantalla con las métricas del ámbito. La pantalla se puede pulsar para que la cámara la
-encuadre; `Centrar` vuelve a la sala. La cámara se centra y se acerca con botones o con `+`, `-` y
-`0`. Al pulsar una hoja se abre su código en un panel de solo lectura.
+encuadre; `Centrar` vuelve a la sala. Un clic selecciona; con doble clic se entra en una carpeta o se
+abre una hoja. La cámara se centra y se acerca con botones o con `+`, `-` y `0`.
 
 Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
 la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el

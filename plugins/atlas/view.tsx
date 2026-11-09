@@ -147,6 +147,14 @@ export function AtlasView({ context }: { context: PluginContext }) {
       background: ATLAS_BACKGROUND,
       onSelect: (path) => {
         latest.current.actions.select(path);
+        setOpenFile(null);
+      },
+      onSelectFolder: (path) => {
+        latest.current.actions.selectFolder(path);
+        setOpenFile(null);
+      },
+      onOpen: (path) => {
+        latest.current.actions.select(path);
         setOpenFile({
           path,
           focusPath: latest.current.url.read().focusPath
@@ -281,8 +289,8 @@ export function AtlasView({ context }: { context: PluginContext }) {
         </button>
       </div>
       <div className="atlas-hint">
-        arrastra para mirar · rueda o +/− para acercar · 0 centrar · clic en
-        un contenedor para entrar · clic en una hoja para seleccionarla
+        arrastra para mirar · rueda o +/− para acercar · 0 centrar · clic
+        selecciona · doble clic entra en una carpeta o abre una hoja
       </div>
       {openFile && openFile.focusPath === focusPath ? (
         <AtlasFileView
