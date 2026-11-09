@@ -248,6 +248,7 @@ describe("la geometría frontal del Atlas", () => {
     expect(panels).toHaveLength(1);
     expect(panels[0]?.metricRows?.[0]?.label).toBe("Ficheros");
     expect(panels[0]?.metricRows).toHaveLength(3);
+    expect(panels[0]?.selectable).toBe(true);
     expect(panels[0]?.z).toBeGreaterThan(room.depth);
   });
 

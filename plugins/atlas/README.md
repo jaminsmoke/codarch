@@ -14,7 +14,8 @@ laterales siguen siendo de CodArch.
   distancia o ángulo de cámara. El pasillo central lleva dos guías de suelo.
 - **Cartel y métricas**: el frente queda abierto. El nombre de la sala vive en un cartel centrado en
   la pared de fondo, con una pantalla de métricas del ámbito encima; la raíz usa el nombre del
-  proyecto analizado.
+  proyecto analizado. El texto queda recortado dentro del panel y, al pulsar la pantalla, la cámara
+  vuela hasta encuadrarla; `Centrar` vuelve a la sala.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón, la
   rueda acerca y hay botones **−**, **Centrar** y **+**, con los atajos `+`, `-` y `0`/`R`.
 - **Fichero**: al pulsar una hoja se abre un panel de solo lectura con su código.
