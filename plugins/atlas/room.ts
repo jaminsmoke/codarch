@@ -1,4 +1,5 @@
 import type { TreeNode } from "@codarch/render/browser";
+import type { RoomMetric } from "./metrics";
 
 /**
  * La geometría frontal del Atlas.
@@ -15,7 +16,8 @@ export type AtlasRole =
   | "file"
   | "floor"
   | "furniture"
-  | "sign";
+  | "sign"
+  | "metric";
 
 export interface AtlasBox {
   path: string | null;
@@ -43,6 +45,8 @@ export interface RoomInput {
   focusPath: string | null;
   /** Nombre del proyecto analizado, para el cartel de la sala raíz. */
   projectName: string;
+  /** Cifras del ámbito abierto, para los paneles de la pared de fondo. */
+  metrics?: readonly RoomMetric[];
   colorFor: (fileIndex: number) => string;
   fallbackColor: string;
   furnitureColor: string;
@@ -259,9 +263,9 @@ export function buildRoom(input: RoomInput): Room {
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
   const roomHeight = Math.max(
-    15,
+    16,
     fileWallHeight + 4,
-    maxFolderHeight + 8
+    maxFolderHeight + 9
   );
   boxes.push({
     path: null,
@@ -385,6 +389,45 @@ export function buildRoom(input: RoomInput): Room {
     selectable: false,
     label: title
   });
+
+  // Pantalla de métricas: una tabla alargada sobre el cartel, en la pared de
+  // fondo. Son cifras del ámbito abierto, no del HUD.
+  const metricRows = input.metrics ?? [];
+  if (metricRows.length > 0) {
+    const tableWidth = Math.min(24, width * 0.62);
+    const tableHeight = 1.1 + metricRows.length * 0.8;
+    const tableY = Math.min(
+      roomHeight - tableHeight - 0.6,
+      signY + signHeight + 1.5
+    );
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: 0,
+      y: tableY - 0.08,
+      z: depth + 0.49,
+      width: tableWidth + 0.16,
+      depth: 0.07,
+      height: tableHeight + 0.16,
+      color: input.trimColor,
+      selectable: false
+    });
+    boxes.push({
+      path: null,
+      role: "metric",
+      x: 0,
+      y: tableY,
+      z: depth + 0.41,
+      width: tableWidth,
+      depth: 0.1,
+      height: tableHeight,
+      color: input.furnitureColor,
+      selectable: false,
+      label: metricRows
+        .map((metric) => `${metric.label} · ${metric.value}`)
+        .join("\n")
+    });
+  }
 
   // Pasillo central: una guía de suelo entre la estantería delantera y los
   // archivadores del fondo.
