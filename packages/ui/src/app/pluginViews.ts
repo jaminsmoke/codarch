@@ -40,6 +40,8 @@ export interface PluginContextInput {
   model: RenderModel | null;
   /** La ruta del fichero elegido, si hay uno. */
   selection: string | null;
+  /** La ruta de la carpeta elegida, si la hay. */
+  selectedFolder: string | null;
   areaMetric: string | null;
   colorMode: string;
   focusPath: string | null;
@@ -66,6 +68,7 @@ export function buildPluginContext(input: PluginContextInput): PluginContext {
   return {
     model,
     selection: input.selection,
+    selectedFolder: input.selectedFolder,
     actions: {
       select: (path: string) => {
         const index = model

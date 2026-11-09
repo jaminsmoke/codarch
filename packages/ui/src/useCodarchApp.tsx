@@ -272,6 +272,7 @@ export function useCodarchApp(
     pluginView,
     model: view.model,
     selectedFile,
+    selectedFolder: selectedFolderNode?.path ?? null,
     areaMetric,
     colorMode,
     focusPath,

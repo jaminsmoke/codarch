@@ -26,6 +26,7 @@ export interface PluginBindingsInput {
   pluginView: string | null;
   model: RenderModel | null;
   selectedFile: RenderFile | null;
+  selectedFolder: string | null;
   areaMetric: string | null;
   colorMode: string;
   focusPath: string | null;
@@ -46,6 +47,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
     pluginView,
     model,
     selectedFile,
+    selectedFolder,
     areaMetric,
     colorMode,
     focusPath,
@@ -68,6 +70,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
       buildPluginContext({
         model,
         selection: selectedFile?.path ?? null,
+        selectedFolder,
         areaMetric,
         colorMode,
         focusPath,
@@ -85,6 +88,7 @@ export function usePluginBindings(input: PluginBindingsInput) {
     [
       model,
       selectedFile,
+      selectedFolder,
       areaMetric,
       colorMode,
       focusPath,

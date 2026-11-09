@@ -216,6 +216,33 @@ describe("la geometría frontal del Atlas", () => {
     ).toBeLessThan(3);
   });
 
+  it("las paredes laterales cierran con la de fondo y el suelo queda dentro", () => {
+    const room = buildRoom(input);
+    const walls = room.boxes.filter(
+      (box) => box.role === "furniture" && box.height === room.height
+    );
+    const sideWalls = walls.filter(
+      (box) => Math.abs(box.x) > room.width / 2 && box.depth > room.depth
+    );
+    const backWall = walls.find(
+      (box) => box.x === 0 && box.width > room.width
+    );
+    const floor = room.boxes.find((box) => box.role === "floor");
+    const sideWallX = Math.abs(sideWalls[0]!.x);
+    const cornerPosts = walls.filter(
+      (box) =>
+        Math.abs(box.x) > room.width / 2 &&
+        box.z > room.depth &&
+        box.depth < 1
+    );
+
+    expect(sideWalls).toHaveLength(2);
+    expect(backWall?.width).toBeCloseTo((sideWallX + 0.2) * 2);
+    expect(backWall?.z).toBeCloseTo(room.depth + 0.8);
+    expect(floor?.width).toBeCloseTo(room.width + 2.4);
+    expect(cornerPosts.length).toBeGreaterThanOrEqual(2);
+  });
+
   it("cada sala lleva el nombre en un cartel de la pared de fondo", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sign = room.boxes.find((box) => box.role === "sign");
@@ -328,6 +355,24 @@ describe("la escena del Atlas", () => {
       "src/a.ts"
     );
     expect(color[2]).toBeGreaterThan(color[0] ?? 0);
+  });
+
+  it("también resalta la carpeta seleccionada", () => {
+    const folderBox = {
+      path: "src",
+      role: "folder" as const,
+      x: 0,
+      y: 0,
+      z: 0,
+      width: 10,
+      height: 5,
+      depth: 10,
+      color: "#000000",
+      selectable: true
+    };
+    expect(colorOf(folderBox, null, "src")).not.toEqual(
+      colorOf(folderBox, null)
+    );
   });
 
   it("proyecta el centro del objetivo en el centro de la pantalla", () => {

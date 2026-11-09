@@ -29,6 +29,7 @@ export interface SceneOptions {
   room: Room;
   background: string;
   selected: string | null;
+  selectedFolder?: string | null;
   onSelect: (path: string) => void;
   onSelectFolder?: (path: string) => void;
   onFocus?: (path: string) => void;
@@ -45,6 +46,7 @@ export interface SceneOptions {
 
 export interface Scene {
   setSelected(path: string | null): void;
+  setSelectedFolder(path: string | null): void;
   /** Vuelve a la vista inicial de la sala. */
   resetView(): void;
   /** Acerca o aleja la cámara conservando el objetivo. */
@@ -270,10 +272,11 @@ export function parseColor(
 
 export function colorOf(
   box: AtlasBox,
-  selected: string | null
+  selected: string | null,
+  selectedFolder: string | null = null
 ): [number, number, number] {
   const color = parseColor(box.color);
-  if (box.path !== selected) return color;
+  if (box.path !== selected && box.path !== selectedFolder) return color;
   const highlight = parseColor(SELECTION_COLOR);
   return [
     color[0] + (highlight[0] - color[0]) * SELECTION_MIX,
@@ -302,7 +305,8 @@ export function kindOf(role: AtlasRole): 0 | 1 | 2 | 3 {
 
 export function instanceLayout(
   box: AtlasBox,
-  selected: string | null
+  selected: string | null,
+  selectedFolder: string | null = null
 ): InstanceLayout {
   const height = Math.max(0.05, box.height);
   return {
@@ -312,7 +316,7 @@ export function instanceLayout(
     width: Math.max(0.05, box.width),
     height,
     depth: Math.max(0.05, box.depth),
-    color: colorOf(box, selected),
+    color: colorOf(box, selected, selectedFolder),
     kind: kindOf(box.role)
   };
 }
@@ -343,6 +347,7 @@ export function mountScene(
     options.onError?.();
     return {
       setSelected: () => undefined,
+      setSelectedFolder: () => undefined,
       resetView: () => undefined,
       zoom: () => undefined,
       flyTo: (_path, _duration, onDone) => onDone(),
@@ -454,6 +459,7 @@ export function mountScene(
 
   let visible: AtlasBox[] = room.boxes;
   let selected = options.selected;
+  let selectedFolder = options.selectedFolder ?? null;
   let instanceCount = 0;
   let detailsVisible = room.boxes.length <= DETAIL_LOD_LIMIT;
   let refreshLod = (): void => undefined;
@@ -537,7 +543,7 @@ export function mountScene(
   ): { target: Point; distance: number } => {
     if (!path) return { target, distance: fit };
     const box = room.boxes.find(
-      (item) => item.role === "folder" && item.path === path
+      (item) => item.path === path && (item.role === "folder" || item.role === "file")
     );
     if (!box) return { target, distance: fit };
     const radius = Math.max(
@@ -546,11 +552,16 @@ export function mountScene(
     );
     return {
       target: {
-        x: box.x,
-        y: box.y + box.height * 0.45,
+        // La hoja queda a un lado y la sala sigue en el encuadre: no se
+        // enfoca pegada a la pared lateral.
+        x: box.role === "file" ? box.x * 0.55 : box.x,
+        y: box.y + box.height * (box.role === "file" ? 0.5 : 0.45),
         z: box.z
       },
-      distance: Math.max(8, fitDistance(radius, fov, aspect, 1.45))
+      distance: Math.max(
+        box.role === "file" ? 14 : 8,
+        fitDistance(radius, fov, aspect, box.role === "file" ? 1.5 : 1.45)
+      )
     };
   };
 
@@ -613,7 +624,7 @@ export function mountScene(
 
   const writeBox = (slot: number, box: AtlasBox): void => {
     const base = slot * STRIDE;
-    const layout = instanceLayout(box, selected);
+    const layout = instanceLayout(box, selected, selectedFolder);
     data[base] = layout.x;
     data[base + 1] = layout.y;
     data[base + 2] = layout.z;
@@ -701,6 +712,9 @@ export function mountScene(
     labels.textBaseline = "middle";
     const occupied: Array<{ x: number; y: number; w: number; h: number }> =
       [];
+    const isSelected = (box: AtlasBox): boolean =>
+      box.path !== null &&
+      (box.path === selected || box.path === selectedFolder);
     const panelBounds = (
       box: AtlasBox
     ): { x: number; y: number; w: number; h: number } | null => {
@@ -787,7 +801,7 @@ export function mountScene(
             ? -3
             : box.role === "metric"
               ? -2
-              : box.path === selected
+              : isSelected(box)
                 ? -1
                 : box.role === "folder"
                   ? 0
@@ -900,12 +914,11 @@ export function mountScene(
       labels.textAlign = isPanel ? "center" : "left";
       labels.globalAlpha = isPanel ? 1 : 0.9;
       if (!isPanel) {
-        labels.fillStyle =
-          box.path === selected ? "#2f6fed" : labelBackground;
+        labels.fillStyle = isSelected(box) ? "#2f6fed" : labelBackground;
         labels.fillRect(rect.x, rect.y, rect.w, rect.h);
       }
       labels.globalAlpha = 1;
-      labels.fillStyle = box.path === selected ? "#ffffff" : labelText;
+      labels.fillStyle = isSelected(box) ? "#ffffff" : labelText;
       for (let index = 0; index < lines.length; index++) {
         labels.fillText(
           lines[index] as string,
@@ -1034,6 +1047,11 @@ export function mountScene(
     setSelected(path: string | null): void {
       if (path === selected) return;
       selected = path;
+      repaint();
+    },
+    setSelectedFolder(path: string | null): void {
+      if (path === selectedFolder) return;
+      selectedFolder = path;
       repaint();
     },
     resetView(): void {

@@ -91,6 +91,7 @@ function input(extra: Partial<PluginContextInput> = {}): PluginContextInput {
   return {
     model,
     selection: "src/a.ts",
+    selectedFolder: null,
     areaMetric: "rloc",
     colorMode: "risk",
     focusPath: "src",
@@ -118,6 +119,15 @@ describe("el contexto de un plugin", () => {
     context.actions.select("src/b.ts");
     context.actions.select("no-existe.ts");
     expect(elegidos).toEqual([1]);
+  });
+
+  it("publica la carpeta seleccionada sin confundirla con el fichero", () => {
+    const context = buildPluginContext(
+      input({ selection: null, selectedFolder: "src" })
+    );
+
+    expect(context.selection).toBeNull();
+    expect(context.selectedFolder).toBe("src");
   });
 
   it("pinta un fichero con el color del mapa y el ausente en gris", () => {
