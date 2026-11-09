@@ -36,6 +36,8 @@ export interface AtlasBox {
   label?: string;
   /** Detalle pequeño que se puede retirar cuando la sala tiene muchas cajas. */
   detail?: boolean;
+  /** Filas de una pantalla de métricas. */
+  metricRows?: readonly RoomMetric[];
 }
 
 export interface RoomInput {
@@ -263,7 +265,7 @@ export function buildRoom(input: RoomInput): Room {
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
   const roomHeight = Math.max(
-    16,
+    17,
     fileWallHeight + 4,
     maxFolderHeight + 9
   );
@@ -423,9 +425,8 @@ export function buildRoom(input: RoomInput): Room {
       height: tableHeight,
       color: input.furnitureColor,
       selectable: false,
-      label: metricRows
-        .map((metric) => `${metric.label} · ${metric.value}`)
-        .join("\n")
+      label: "Métricas",
+      metricRows
     });
   }
 

@@ -26,8 +26,9 @@ and cabinets. Users had to leave the room to know how many files or what risk th
 The back wall gets a horizontal screen centred above the sign:
 
 - a trim frame;
-- a four-row table;
-- centred text, readable on the dark background;
+- a `MÉTRICAS` header;
+- rows with the label on the left and the value on the right;
+- readable text on the dark background;
 - not selectable.
 
 It is not a HUD panel: it is mounted on the wall, like the sign.
