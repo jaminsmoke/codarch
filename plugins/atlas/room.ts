@@ -361,6 +361,29 @@ export function buildRoom(input: RoomInput): Room {
     label: title
   });
 
+  // Pasillo central: una guía de suelo entre la estantería delantera y los
+  // archivadores del fondo.
+  const aisleFront = SHELF_FRONT_Z + sideShelfWidth + 1.5;
+  const aisleBack = containerStartZ - CONTAINER_DEPTH / 2 - 1.5;
+  const aisleDepth = Math.max(4, aisleBack - aisleFront);
+  const aisleWidth = Math.min(8, Math.max(4, width * 0.12));
+  const aisleZ = (aisleFront + aisleBack) / 2;
+  // Dos filetes de suelo, no una losa: guían el pasillo sin tapar la baldosa.
+  for (const side of [-1, 1]) {
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: side * (aisleWidth / 2),
+      y: 0.015,
+      z: aisleZ,
+      width: 0.14,
+      depth: aisleDepth,
+      height: 0.06,
+      color: input.trimColor,
+      selectable: false
+    });
+  }
+
   // Los archivadores se ordenan en una retícula centrada en la sala.
   const containerStartX = -containerGridWidth / 2 + CONTAINER_WIDTH / 2;
   for (let index = 0; index < folders.length; index++) {

@@ -13,7 +13,8 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ Luces laterales, luz de estantería y LOD de etiquetas.
 - ✅ Botones y atajos de cámara; más aire en la sala (ADR 0121).
 - ✅ Salas profundas y sin techo, con archivadores al fondo (ADR 0122).
-- ✅ LOD por carga y distancia para los detalles de los archivadores.
+- ✅ Pasillo central con guía de suelo (ADR 0123).
+- ✅ LOD por carga, distancia y ángulo para los detalles de los archivadores.
 - ✅ Los archivadores centrados con tapa, zócalo, marco y tirador.
 - ✅ La transición de cámara al entrar y salir.
 - ✅ Etiquetas legibles por nivel.

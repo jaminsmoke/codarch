@@ -56,11 +56,11 @@ La rueda, el arrastre y la pinza siguen funcionando.
 Los detalles de los archivadores (tapa, zócalo, marco y tirador) se marcan como `detail`.
 
 Cuando una sala supera las 140 cajas, se dejan de dibujar esos detalles antes que los cuerpos de
-los archivadores, las hojas o el mobiliario principal. Además, si la cámara se aleja más de 1,35
-veces la distancia inicial, los detalles también se retiran; al acercarse vuelven.
+los archivadores, las hojas o el mobiliario principal. Además, se retiran si la cámara se aleja más
+de 1,35 veces la distancia inicial o si se aparta más de 0,65 radianes del frente; al volver, vuelven.
 
-Es un LOD de carga y distancia: se recalcula la lista de geometría cuando se cruza un umbral, no en
-cada fotograma.
+Es un LOD de carga, distancia y ángulo: se recalcula la lista de geometría cuando se cruza un umbral,
+no en cada fotograma.
 
 El LOD de etiquetas del ADR 0120 se mantiene: 64 por sala con prioridad para viga, selección,
 carpetas y hojas.
@@ -75,8 +75,7 @@ checksum no cambia. Funciona igual en el mapa de código y en el de documentos/c
 - La sala es más ancha y más profunda; la cámara puede retroceder sin pegarse a las paredes.
 - Centrar y acercar deja de depender de encontrar la rueda o el punto exacto del arrastre.
 - Las salas muy cargadas pierden detalle decorativo, no contenido.
-- El LOD de geometría responde a la carga de la sala y a la distancia de cámara; el ángulo todavía no
-  interviene.
+- El LOD de geometría responde a la carga de la sala, a la distancia y al ángulo de cámara.
 
 ## Alternativas descartadas
 
@@ -91,8 +90,8 @@ Fase **M77 · El Atlas frontal**.
 
 - ✅ Más aire en la sala.
 - ✅ Botones y atajos de cámara.
-- ✅ LOD por carga y distancia para detalles de archivador.
-- 🟡 LOD por ángulo y distribución fina.
+- ✅ LOD por carga, distancia y ángulo para detalles de archivador.
+- 🟡 Distribución fina del pasillo.
 - ⬜ La puerta animada de entrada, si se decide.
 - ⬜ El editor completo.
 
