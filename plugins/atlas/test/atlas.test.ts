@@ -246,8 +246,8 @@ describe("la geometría frontal del Atlas", () => {
     const panels = room.boxes.filter((box) => box.role === "metric");
 
     expect(panels).toHaveLength(1);
-    expect(panels[0]?.label).toContain("Ficheros");
-    expect(panels[0]?.label).toContain("\n");
+    expect(panels[0]?.metricRows?.[0]?.label).toBe("Ficheros");
+    expect(panels[0]?.metricRows).toHaveLength(3);
     expect(panels[0]?.z).toBeGreaterThan(room.depth);
   });
 

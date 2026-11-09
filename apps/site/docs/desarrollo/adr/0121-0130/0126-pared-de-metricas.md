@@ -27,8 +27,9 @@ ficheros o qué riesgo estaba viendo.
 La pared de fondo lleva una pantalla horizontal centrada sobre el cartel:
 
 - un marco de moldura;
-- una tabla de cuatro filas;
-- texto centrado, legible sobre el fondo oscuro;
+- un encabezado `MÉTRICAS`;
+- filas con la etiqueta a la izquierda y el valor a la derecha;
+- texto legible sobre el fondo oscuro;
 - no seleccionable.
 
 No es un panel del HUD: está montada en la pared, como el cartel.

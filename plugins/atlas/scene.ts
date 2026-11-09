@@ -726,6 +726,58 @@ export function mountScene(
     for (const { box, point } of candidates) {
       const isSign = box.role === "sign";
       const isMetric = box.role === "metric";
+      if (isMetric && box.metricRows) {
+        const rows = box.metricRows;
+        const rowHeight = 11;
+        labels.font = '600 8px "Inter", system-ui, sans-serif';
+        const titleWidth = labels.measureText("MÉTRICAS").width;
+        labels.font = '500 9px "Inter", system-ui, sans-serif';
+        const rowWidth = Math.max(
+          ...rows.map((row) => {
+            const label =
+              row.label.length > 20
+                ? `${row.label.slice(0, 19)}…`
+                : row.label;
+            return (
+              labels.measureText(label).width +
+              labels.measureText(row.value).width +
+              14
+            );
+          })
+        );
+        const maxWidth = Math.max(titleWidth, rowWidth);
+        const rect = {
+          x: point.x - maxWidth / 2 - 8,
+          y: point.y - (rows.length * rowHeight + 18) / 2,
+          w: maxWidth + 16,
+          h: rows.length * rowHeight + 18
+        };
+        occupied.push(rect);
+        labels.textAlign = "center";
+        labels.fillStyle = labelText;
+        labels.font = '600 8px "Inter", system-ui, sans-serif';
+        labels.fillText("MÉTRICAS", point.x, rect.y + 8);
+        labels.strokeStyle = "rgba(231, 241, 247, 0.22)";
+        labels.beginPath();
+        labels.moveTo(rect.x + 6, rect.y + 14);
+        labels.lineTo(rect.x + rect.w - 6, rect.y + 14);
+        labels.stroke();
+        labels.font = '500 9px "Inter", system-ui, sans-serif';
+        for (let index = 0; index < rows.length; index++) {
+          const row = rows[index]!;
+          const label =
+            row.label.length > 20
+              ? `${row.label.slice(0, 19)}…`
+              : row.label;
+          const y = rect.y + 24 + index * rowHeight;
+          labels.textAlign = "left";
+          labels.fillText(label, rect.x + 6, y);
+          labels.textAlign = "right";
+          labels.fillText(row.value, rect.x + rect.w - 6, y);
+        }
+        labels.textAlign = "left";
+        continue;
+      }
       const isPanel = isSign || isMetric;
       labels.font = isSign
         ? '600 12px "Inter", system-ui, sans-serif'
