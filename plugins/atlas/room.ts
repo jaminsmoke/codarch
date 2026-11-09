@@ -424,7 +424,7 @@ export function buildRoom(input: RoomInput): Room {
       depth: 0.1,
       height: tableHeight,
       color: input.furnitureColor,
-      selectable: false,
+      selectable: true,
       label: "Métricas",
       metricRows
     });

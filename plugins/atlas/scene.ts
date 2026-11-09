@@ -493,7 +493,8 @@ export function mountScene(
       if (index === null) return;
       const box = visible.filter((box) => box.selectable)[index];
       if (!box) return;
-      if (box.role === "folder") options.onFocus?.(box.path ?? "");
+      if (box.role === "metric") focusPanel(box);
+      else if (box.role === "folder") options.onFocus?.(box.path ?? "");
       else if (box.role === "file") options.onSelect(box.path ?? "");
     },
     // La cámara mira de frente desde delante de la sala; las estanterías
@@ -535,14 +536,13 @@ export function mountScene(
     };
   };
 
-  const flyTo = (
-    path: string | null,
+  const flyToView = (
+    end: { target: Point; distance: number },
     duration: number,
     onDone: () => void
   ): void => {
     if (flight || disposed) return;
     const pose = controls.pose();
-    const end = focusFor(path);
     const fromDistance = Math.hypot(
       pose.position.x - pose.target.x,
       pose.position.y - pose.target.y,
@@ -564,6 +564,33 @@ export function mountScene(
       onDone
     };
     requestRender();
+  };
+
+  function focusPanel(box: AtlasBox): void {
+    const radius = Math.max(
+      2,
+      Math.hypot(box.width, box.height, box.depth) / 2
+    );
+    flyToView(
+      {
+        target: {
+          x: box.x,
+          y: box.y + box.height / 2,
+          z: box.z
+        },
+        distance: Math.max(8, fitDistance(radius, fov, aspect, 1.0))
+      },
+      440,
+      () => undefined
+    );
+  }
+
+  const flyTo = (
+    path: string | null,
+    duration: number,
+    onDone: () => void
+  ): void => {
+    flyToView(focusFor(path), duration, onDone);
   };
 
   const writeBox = (slot: number, box: AtlasBox): void => {
@@ -656,6 +683,36 @@ export function mountScene(
     labels.textBaseline = "middle";
     const occupied: Array<{ x: number; y: number; w: number; h: number }> =
       [];
+    const panelBounds = (
+      box: AtlasBox
+    ): { x: number; y: number; w: number; h: number } | null => {
+      const corners = [
+        { x: box.x - box.width / 2, y: box.y, z: box.z },
+        { x: box.x + box.width / 2, y: box.y, z: box.z },
+        { x: box.x - box.width / 2, y: box.y + box.height, z: box.z },
+        { x: box.x + box.width / 2, y: box.y + box.height, z: box.z }
+      ].map((corner) =>
+        projectPoint(
+          pose.position,
+          pose.target,
+          fov,
+          aspect,
+          width,
+          height,
+          corner
+        )
+      );
+      if (corners.some((corner) => !corner)) return null;
+      const points = corners as Array<{ x: number; y: number }>;
+      const xs = points.map((corner) => corner.x);
+      const ys = points.map((corner) => corner.y);
+      return {
+        x: Math.min(...xs) - 2,
+        y: Math.min(...ys) - 2,
+        w: Math.max(...xs) - Math.min(...xs) + 4,
+        h: Math.max(...ys) - Math.min(...ys) + 4
+      };
+    };
     const candidates = visible
       .filter((box) => box.label)
       .map((box) => {
@@ -727,54 +784,48 @@ export function mountScene(
       const isSign = box.role === "sign";
       const isMetric = box.role === "metric";
       if (isMetric && box.metricRows) {
+        const bounds = panelBounds(box);
+        if (!bounds) continue;
         const rows = box.metricRows;
-        const rowHeight = 11;
-        labels.font = '600 8px "Inter", system-ui, sans-serif';
-        const titleWidth = labels.measureText("MÉTRICAS").width;
-        labels.font = '500 9px "Inter", system-ui, sans-serif';
-        const rowWidth = Math.max(
-          ...rows.map((row) => {
-            const label =
-              row.label.length > 20
-                ? `${row.label.slice(0, 19)}…`
-                : row.label;
-            return (
-              labels.measureText(label).width +
-              labels.measureText(row.value).width +
-              14
-            );
-          })
+        const rowSize = Math.max(
+          7,
+          Math.min(
+            15,
+            (bounds.w - 12) * 0.055,
+            (bounds.h - 12) / (rows.length + 1.2)
+          )
         );
-        const maxWidth = Math.max(titleWidth, rowWidth);
-        const rect = {
-          x: point.x - maxWidth / 2 - 8,
-          y: point.y - (rows.length * rowHeight + 18) / 2,
-          w: maxWidth + 16,
-          h: rows.length * rowHeight + 18
-        };
+        const titleSize = Math.max(7, rowSize * 0.78);
+        const rowHeight = rowSize + 3;
+        const rect = bounds;
         occupied.push(rect);
+        labels.save();
+        labels.beginPath();
+        labels.rect(bounds.x, bounds.y, bounds.w, bounds.h);
+        labels.clip();
         labels.textAlign = "center";
         labels.fillStyle = labelText;
-        labels.font = '600 8px "Inter", system-ui, sans-serif';
-        labels.fillText("MÉTRICAS", point.x, rect.y + 8);
+        labels.font = `600 ${titleSize}px "Inter", system-ui, sans-serif`;
+        labels.fillText("MÉTRICAS", point.x, bounds.y + titleSize + 4);
         labels.strokeStyle = "rgba(231, 241, 247, 0.22)";
         labels.beginPath();
-        labels.moveTo(rect.x + 6, rect.y + 14);
-        labels.lineTo(rect.x + rect.w - 6, rect.y + 14);
+        labels.moveTo(bounds.x + 8, bounds.y + titleSize * 2);
+        labels.lineTo(bounds.x + bounds.w - 8, bounds.y + titleSize * 2);
         labels.stroke();
-        labels.font = '500 9px "Inter", system-ui, sans-serif';
+        labels.font = `500 ${rowSize}px "Inter", system-ui, sans-serif`;
         for (let index = 0; index < rows.length; index++) {
           const row = rows[index]!;
           const label =
             row.label.length > 20
               ? `${row.label.slice(0, 19)}…`
               : row.label;
-          const y = rect.y + 24 + index * rowHeight;
+          const y = bounds.y + titleSize * 2.5 + index * rowHeight;
           labels.textAlign = "left";
-          labels.fillText(label, rect.x + 6, y);
+          labels.fillText(label, bounds.x + 8, y);
           labels.textAlign = "right";
-          labels.fillText(row.value, rect.x + rect.w - 6, y);
+          labels.fillText(row.value, bounds.x + bounds.w - 8, y);
         }
+        labels.restore();
         labels.textAlign = "left";
         continue;
       }
@@ -821,6 +872,13 @@ export function mountScene(
         continue;
       }
       occupied.push(rect);
+      const bounds = isPanel ? panelBounds(box) : null;
+      if (bounds) {
+        labels.save();
+        labels.beginPath();
+        labels.rect(bounds.x, bounds.y, bounds.w, bounds.h);
+        labels.clip();
+      }
       labels.textAlign = isPanel ? "center" : "left";
       labels.globalAlpha = isPanel ? 1 : 0.9;
       if (!isPanel) {
@@ -837,6 +895,7 @@ export function mountScene(
           rect.y + (isMetric ? 9 : rect.h / 2) + index * lineHeight + 0.5
         );
       }
+      if (bounds) labels.restore();
       labels.textAlign = "left";
     }
   };
