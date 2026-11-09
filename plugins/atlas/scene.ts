@@ -294,7 +294,7 @@ export interface InstanceLayout {
 export function kindOf(role: AtlasRole): 0 | 1 | 2 | 3 {
   if (role === "folder") return 1;
   if (role === "floor") return 2;
-  if (role === "furniture" || role === "beam") return 3;
+  if (role === "furniture" || role === "sign") return 3;
   return 0;
 }
 
@@ -355,8 +355,8 @@ export function mountScene(
     room.depth * 1.08,
     room.width * 1.1,
     room.radius * 1.25,
-    // La viga y su letrero viven por encima de las estanterías: el encuadre
-    // deja aire suficiente para que se lean también en salas altas.
+    // El cartel vive en la pared de fondo: el encuadre deja aire suficiente
+    // para que se lea también en salas altas.
     (room.height - room.target.y + 6) / Math.tan(fov / 2),
     24
   );
@@ -669,9 +669,11 @@ export function mountScene(
           {
             x: box.x,
             y:
-              box.y +
-              box.height +
-              (box.role === "folder" ? 0.8 : 0.35),
+              box.role === "sign"
+                ? box.y + box.height / 2
+                : box.y +
+                  box.height +
+                  (box.role === "folder" ? 0.8 : 0.35),
             z: box.z
           }
         );
@@ -706,7 +708,7 @@ export function mountScene(
       )
       .sort((left, right) => {
         const focus = (box: AtlasBox): number =>
-          box.role === "beam"
+          box.role === "sign"
             ? -2
             : box.path === selected
               ? -1
@@ -720,16 +722,21 @@ export function mountScene(
       .slice(0, MAX_LABELS);
 
     for (const { box, point } of candidates) {
+      const isSign = box.role === "sign";
+      labels.font = isSign
+        ? '600 12px "Inter", system-ui, sans-serif'
+        : '600 10px "Inter", system-ui, sans-serif';
+      const limit = isSign ? 32 : 28;
       const text =
-        (box.label as string).length > 28
-          ? `${(box.label as string).slice(0, 27)}…`
+        (box.label as string).length > limit
+          ? `${(box.label as string).slice(0, limit - 1)}…`
           : (box.label as string);
       const textWidth = labels.measureText(text).width;
       const rect = {
-        x: point.x - textWidth / 2 - 4,
-        y: point.y - 7,
-        w: textWidth + 8,
-        h: 14
+        x: point.x - textWidth / 2 - (isSign ? 6 : 4),
+        y: point.y - (isSign ? 9 : 7),
+        w: textWidth + (isSign ? 12 : 8),
+        h: isSign ? 18 : 14
       };
       if (
         occupied.some(
@@ -743,13 +750,21 @@ export function mountScene(
         continue;
       }
       occupied.push(rect);
-      labels.globalAlpha = 0.9;
-      labels.fillStyle =
-        box.path === selected ? "#2f6fed" : labelBackground;
-      labels.fillRect(rect.x, rect.y, rect.w, rect.h);
+      labels.textAlign = isSign ? "center" : "left";
+      labels.globalAlpha = isSign ? 1 : 0.9;
+      if (!isSign) {
+        labels.fillStyle =
+          box.path === selected ? "#2f6fed" : labelBackground;
+        labels.fillRect(rect.x, rect.y, rect.w, rect.h);
+      }
       labels.globalAlpha = 1;
       labels.fillStyle = box.path === selected ? "#ffffff" : labelText;
-      labels.fillText(text, rect.x + 4, rect.y + rect.h / 2 + 0.5);
+      labels.fillText(
+        text,
+        isSign ? point.x : rect.x + 4,
+        rect.y + rect.h / 2 + 0.5
+      );
+      labels.textAlign = "left";
     }
   };
 

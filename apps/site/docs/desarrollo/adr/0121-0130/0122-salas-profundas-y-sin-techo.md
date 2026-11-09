@@ -27,7 +27,7 @@ Los archivadores estaban delante, en lugar de ocupar la pared de fondo, que es s
 ### 1. Sin techo
 
 La sala se abre por arriba. Las paredes laterales y la de fondo siguen cerrando la escena; el techo
-desaparece. La viga frontal y las tiras de luz laterales se mantienen.
+desaparece. El cartel de fondo y las tiras de luz laterales se mantienen.
 
 Una sala abierta deja respirar la geometría y evita que la cámara choque contra una tapa que no
 aporta información.
