@@ -135,9 +135,28 @@ export interface OrbitControlsOptions {
   target?: Point;
   /** Hasta dónde se puede acercar y alejar ✓. */
   limits?: OrbitLimits;
+  /** Altura mínima de la cámara: no atraviesa el suelo al mirar arriba. */
+  minHeight?: number;
+  /** Distancia del punto de mira en el modo de cámara anclada. */
+  lookDistance?: number;
 }
 
 /** Dónde está la cámara y a qué mira ✓. */
+/** El punto al que mira una cámara anclada, a partir de sus ángulos. */
+export function lookTarget(
+  anchor: Point,
+  state: OrbitState,
+  distance: number
+): Point {
+  const radius = Math.sin(state.polar) * distance;
+  return {
+    x: anchor.x + radius * Math.sin(state.azimuth),
+    // Al subir `polar` se mira hacia arriba, no se baja la cámara.
+    y: anchor.y - Math.cos(state.polar) * distance,
+    z: anchor.z + radius * Math.cos(state.azimuth)
+  };
+}
+
 export interface OrbitPose {
   position: Point;
   target: Point;
@@ -148,6 +167,10 @@ export interface OrbitControls {
   update(): boolean;
   /** La cámara de ahora ✓: posición y objetivo ✓. */
   pose(): OrbitPose;
+  /** Fija la cámara en un punto y gira la mirada sobre su eje. */
+  setAnchor(anchor: Point | null, view?: OrbitState): void;
+  /** Si la cámara está anclada en el centro de la sala. */
+  isAnchored(): boolean;
   /** Mueve el objetivo y, si se pide, la distancia. */
   setTarget(target: Point, distance?: number): void;
   /** Vuelve a una vista concreta (ángulos, objetivo y distancia). */
@@ -172,7 +195,11 @@ export function createOrbitControls(
   options: OrbitControlsOptions = {}
 ): OrbitControls {
   let target: Point = options.target ?? { x: 0, y: 0, z: 0 };
+  let anchor: Point | null = null;
+  let anchorGoal: Point | null = null;
   const limits = options.limits ?? ORBIT_LIMITS;
+  const minHeight = options.minHeight ?? -Infinity;
+  const lookDistance = options.lookDistance ?? 1000;
   const desired: OrbitState = { ...(options.start ?? ORBIT_START) };
   let current: OrbitState = { ...desired };
   const damping = options.damping ?? 0.18;
@@ -294,15 +321,65 @@ export function createOrbitControls(
     update(): boolean {
       const previous = current;
       current = dampOrbit(current, desired, damping);
+      let anchored = false;
+      if (anchor && anchorGoal) {
+        const step = Math.min(Math.max(damping, 0), 1);
+        anchor = {
+          x: anchor.x + (anchorGoal.x - anchor.x) * step,
+          y: anchor.y + (anchorGoal.y - anchor.y) * step,
+          z: anchor.z + (anchorGoal.z - anchor.z) * step
+        };
+        const remaining =
+          Math.abs(anchor.x - anchorGoal.x) +
+          Math.abs(anchor.y - anchorGoal.y) +
+          Math.abs(anchor.z - anchorGoal.z);
+        if (remaining < 0.01) {
+          anchor = { ...anchorGoal };
+          anchorGoal = null;
+        } else {
+          anchored = true;
+        }
+      }
       // Quieto no hay fotograma: solo se sigue dibujando mientras la cámara se mueve.
       return (
+        anchored ||
         Math.abs(current.azimuth - previous.azimuth) > 1e-5 ||
         Math.abs(current.polar - previous.polar) > 1e-5 ||
         Math.abs(current.distance - previous.distance) > 1e-4
       );
     },
     pose(): OrbitPose {
-      return { position: orbitPosition(current, target), target: { ...target } };
+      if (anchor) {
+        return {
+          position: { ...anchor },
+          target: lookTarget(anchor, current, lookDistance)
+        };
+      }
+      const position = orbitPosition(current, target);
+      position.y = Math.max(position.y, minHeight);
+      return { position, target: { ...target } };
+    },
+    setAnchor(next: Point | null, view?: OrbitState): void {
+      if (!next) {
+        anchor = null;
+        anchorGoal = null;
+        return;
+      }
+      // Entra desde la posición actual, no desde otro punto: el cambio de
+      // vista no da un salto.
+      anchor ??= orbitPosition(current, target);
+      anchorGoal = { ...next };
+      if (view) {
+        // La cámara anclada puede girar sobre su eje sin límite horizontal;
+        // el arco frontal solo protege la órbita desde fuera.
+        const clamped = clampOrbit({ ...view }, limits);
+        desired.azimuth = view.azimuth;
+        desired.polar = clamped.polar;
+        desired.distance = clamped.distance;
+      }
+    },
+    isAnchored(): boolean {
+      return anchor !== null;
     },
     setTarget(next: Point, distance?: number): void {
       target = { ...next };

@@ -468,7 +468,8 @@ un cartel centrado en la pared de fondo; la raíz lleva el nombre del proyecto a
 cartel, una pantalla con las métricas del ámbito. La pantalla se puede pulsar para que la cámara la
 encuadre; `Centrar` vuelve a la sala. Un clic selecciona: la carpeta se pinta en la sala y la hoja
 enfoca su estante con contexto; con doble clic se entra en una carpeta o se abre una hoja. La cámara se
-centra y se acerca con botones o con `+`, `-` y `0`.
+centra y se acerca con botones o con `+`, `-` y `0`; `Centro` o `C` entra en la sala y permite girar
+y mirar arriba desde dentro.
 
 Va en **su propio chunk**, así que el bundle principal no crece y solo se descarga si alguien abre
 la vista. Necesita WebGL2: si no lo hay, el store lo dice. Funciona con el mapa de código y con el
