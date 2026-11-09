@@ -120,6 +120,8 @@ export interface PluginContext {
   model: RenderModel | null;
   /** La ruta del fichero seleccionado. */
   selection: string | null;
+  /** La ruta de la carpeta seleccionada, si la hay. */
+  selectedFolder: string | null;
   /** Lo que el plugin puede pedirle a la app. */
   actions: PluginActions;
   /** Las preferencias de la vista. */

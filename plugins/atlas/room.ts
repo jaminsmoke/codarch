@@ -208,7 +208,7 @@ export function buildRoom(input: RoomInput): Room {
   const sideFileColumns = fileNodes.length
     ? Math.max(
         1,
-        Math.min(4, Math.ceil(Math.sqrt(Math.max(1, filesPerSide) * 1.3)))
+        Math.min(3, Math.ceil(Math.sqrt(Math.max(1, filesPerSide) * 1.3)))
       )
     : 0;
   const sideFileRows = fileNodes.length
@@ -265,12 +265,14 @@ export function buildRoom(input: RoomInput): Room {
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
   const roomHeight = Math.max(
-    18,
+    15,
     fileWallHeight + 4,
     maxFolderHeight + 9
   );
   const wallThickness = 0.4;
   const sideWallX = width / 2 + 0.6;
+  const sideWallDepth = depth + 2;
+  const sideWallFrontZ = depth / 2 - sideWallDepth / 2;
   const backWallZ = depth + 0.8;
   const backWallWidth = width + 1.6;
   boxes.push({
@@ -293,9 +295,23 @@ export function buildRoom(input: RoomInput): Room {
       y: 0,
       z: depth / 2,
       width: wallThickness,
-      depth: depth + 2,
+      depth: sideWallDepth,
       height: roomHeight,
       color: input.wallColor,
+      selectable: false
+    });
+    // Remate de la boca: una columna fina marca el final de la pared sin
+    // cerrar el frente de la sala.
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: side * sideWallX,
+      y: 0,
+      z: sideWallFrontZ + 0.3,
+      width: wallThickness + 0.18,
+      depth: wallThickness + 0.18,
+      height: roomHeight,
+      color: input.trimColor,
       selectable: false
     });
   }
@@ -350,6 +366,50 @@ export function buildRoom(input: RoomInput): Room {
     color: input.trimColor,
     selectable: false
   });
+  // Moldura horizontal: da una línea de horizonte a las paredes y separa el
+  // zócalo de la zona alta.
+  for (const side of [-1, 1]) {
+    boxes.push({
+      path: null,
+      role: "furniture",
+      x: side * (width / 2 + 0.34),
+      y: 1.15,
+      z: depth / 2,
+      width: 0.08,
+      depth: sideWallDepth - 0.2,
+      height: 0.1,
+      color: input.trimColor,
+      selectable: false,
+      detail: true
+    });
+  }
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: 1.15,
+    z: depth + 0.56,
+    width: backWallWidth - 0.4,
+    depth: 0.08,
+    height: 0.1,
+    color: input.trimColor,
+    selectable: false,
+    detail: true
+  });
+  // Umbral delantero: el suelo empieza antes que la boca de la sala.
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: 0.02,
+    z: sideWallFrontZ + 0.12,
+    width: width * 0.72,
+    depth: 0.24,
+    height: 0.04,
+    color: input.trimColor,
+    selectable: false,
+    detail: true
+  });
   for (const panelX of [-width / 3, width / 3]) {
     boxes.push({
       path: null,
@@ -382,7 +442,7 @@ export function buildRoom(input: RoomInput): Room {
   // El nombre de la escala vive en un cartel centrado en la pared de fondo.
   const signWidth = Math.min(16, Math.max(8, width * 0.38));
   const signHeight = 1.8;
-  const signY = Math.max(6.5, roomHeight * 0.55);
+  const signY = Math.max(5.8, roomHeight * 0.42);
   boxes.push({
     path: null,
     role: "furniture",
@@ -449,6 +509,21 @@ export function buildRoom(input: RoomInput): Room {
 
   // Pasillo central: una guía de suelo entre la estantería delantera y los
   // archivadores del fondo.
+  // Luz de pared sobre la tabla: cierra la composición del fondo sin techo.
+  boxes.push({
+    path: null,
+    role: "furniture",
+    x: 0,
+    y: roomHeight - 0.45,
+    z: depth + 0.52,
+    width: backWallWidth * 0.5,
+    depth: 0.06,
+    height: 0.1,
+    color: input.lightColor,
+    selectable: false,
+    detail: true
+  });
+
   const aisleFront = SHELF_FRONT_Z + 1.5;
   const aisleBack = containerStartZ - CONTAINER_DEPTH / 2 - 1.5;
   const aisleDepth = Math.max(4, aisleBack - aisleFront);
@@ -561,6 +636,36 @@ export function buildRoom(input: RoomInput): Room {
         height: 0.08,
         color: input.lightColor,
         selectable: false
+      });
+      // Montantes de los extremos y remate superior: la estantería se lee como
+      // mueble abierto, no como una tabla flotante.
+      for (const edge of [-1, 1]) {
+        boxes.push({
+          path: null,
+          role: "furniture",
+          x: shelfX,
+          y: 0,
+          z: shelfCenterZ + edge * (sideShelfWidth / 2 + 0.08),
+          width: 0.8,
+          depth: 0.14,
+          height: fileWallHeight,
+          color: input.trimColor,
+          selectable: false,
+          detail: true
+        });
+      }
+      boxes.push({
+        path: null,
+        role: "furniture",
+        x: shelfX,
+        y: fileWallHeight - 0.82,
+        z: shelfCenterZ,
+        width: 0.9,
+        depth: sideShelfWidth + 0.3,
+        height: 0.12,
+        color: input.trimColor,
+        selectable: false,
+        detail: true
       });
 
       // La estantería se llena desde la boca de la sala hacia dentro.

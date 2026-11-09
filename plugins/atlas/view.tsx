@@ -135,6 +135,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
   }, [model, colorMode, focusPath]);
 
   const selection = context.selection;
+  const selectedFolder = context.selectedFolder;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -144,10 +145,12 @@ export function AtlasView({ context }: { context: PluginContext }) {
     const scene = mountScene(canvas, {
       room,
       selected: latest.current.selection,
+      selectedFolder: latest.current.selectedFolder,
       background: ATLAS_BACKGROUND,
       onSelect: (path) => {
         latest.current.actions.select(path);
         setOpenFile(null);
+        sceneRef.current?.flyTo(path, 300, () => undefined);
       },
       onSelectFolder: (path) => {
         latest.current.actions.selectFolder(path);
@@ -184,6 +187,10 @@ export function AtlasView({ context }: { context: PluginContext }) {
   useEffect(() => {
     sceneRef.current?.setSelected(selection);
   }, [selection]);
+
+  useEffect(() => {
+    sceneRef.current?.setSelectedFolder(selectedFolder);
+  }, [selectedFolder]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
