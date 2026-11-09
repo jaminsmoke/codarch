@@ -153,7 +153,7 @@ describe("la geometría frontal del Atlas", () => {
     expect(guides.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("las estanterías están abiertas y empiezan junto al frente", () => {
+  it("las estanterías están abiertas y se llenan desde dentro hacia el frente", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sheets = room.boxes.filter((box) => box.role === "file");
     const sideCaps = room.boxes.filter(
@@ -167,14 +167,14 @@ describe("la geometría frontal del Atlas", () => {
     );
 
     expect(sideCaps).toHaveLength(0);
-    expect(Math.min(...sheets.map((box) => box.z))).toBeLessThan(
+    expect(Math.max(...sheets.map((box) => box.z))).toBeGreaterThan(
       room.depth / 3
     );
     for (const side of [-1, 1]) {
       const sideZ = sheets
         .filter((box) => Math.sign(box.x) === side)
         .map((box) => box.z);
-      expect(sideZ).toEqual([...sideZ].sort((left, right) => left - right));
+      expect(sideZ).toEqual([...sideZ].sort((left, right) => right - left));
     }
   });
 

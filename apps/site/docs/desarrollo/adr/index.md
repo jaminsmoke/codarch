@@ -145,6 +145,7 @@ flowchart TD
 | [0122](0121-0130/0122-salas-profundas-y-sin-techo.md) | Salas profundas y sin techo | 2026-11-09 | aceptado | M77 |
 | [0123](0121-0130/0123-pasillo-central.md) | El pasillo central | 2026-11-09 | aceptado | M77 |
 | [0124](0121-0130/0124-cartel-de-fondo-y-nombre-del-proyecto.md) | Cartel de fondo y nombre real del proyecto | 2026-11-09 | aceptado | M77 |
+| [0125](0121-0130/0125-estanterias-ligeras-y-orden-interior.md) | Estanterías ligeras y orden interior | 2026-11-09 | aceptado | M77 |
 
 ## Las carpetas
 
@@ -162,6 +163,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0091-0100**: 0091, 0092, 0093, 0094, 0095, 0096, 0097, 0098, 0099, 0100
 - **0101-0110**: 0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110
 - **0111-0120**: 0111, 0112, 0113, 0114, 0115, 0116, 0117, 0118, 0119, 0120
-- **0121-0130**: 0121, 0122, 0123, 0124
+- **0121-0130**: 0121, 0122, 0123, 0124, 0125
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).

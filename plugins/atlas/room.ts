@@ -79,9 +79,9 @@ const SHEET_THICKNESS = 0.16;
 const SHEET_GAP_X = 0.55;
 const SHEET_ROW_HEIGHT = 2.2;
 const SHEET_BASE_Y = 2.2;
-const SHELF_DEPTH = 1.8;
-const SHELF_THICKNESS = 0.16;
-/** La estantería empieza junto a la boca de la sala y crece hacia dentro. */
+const SHELF_DEPTH = 1.25;
+const SHELF_THICKNESS = 0.08;
+/** Referencia de la boca de la sala. */
 const SHELF_FRONT_Z = 1.4;
 
 const FLOOR_HEIGHT = 0.35;
@@ -243,7 +243,10 @@ export function buildRoom(input: RoomInput): Room {
     containerGridDepth + 8,
     fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 4 : 0
   );
-  const shelfCenterZ = SHELF_FRONT_Z + sideShelfWidth / 2;
+  const shelfCenterZ = Math.max(
+    SHELF_FRONT_Z + sideShelfWidth / 2,
+    depth * 0.55
+  );
   const containerStartZ =
     depth -
     CONTAINER_BACK_MARGIN -
@@ -385,7 +388,7 @@ export function buildRoom(input: RoomInput): Room {
 
   // Pasillo central: una guía de suelo entre la estantería delantera y los
   // archivadores del fondo.
-  const aisleFront = SHELF_FRONT_Z + sideShelfWidth + 1.5;
+  const aisleFront = SHELF_FRONT_Z + 1.5;
   const aisleBack = containerStartZ - CONTAINER_DEPTH / 2 - 1.5;
   const aisleDepth = Math.max(4, aisleBack - aisleFront);
   const aisleWidth = Math.min(8, Math.max(4, width * 0.12));
@@ -500,7 +503,9 @@ export function buildRoom(input: RoomInput): Room {
       });
 
       // La estantería se llena desde la boca de la sala hacia dentro.
-      const startZ = SHELF_FRONT_Z + SHEET_WIDTH / 2;
+      // La estantería se llena desde el fondo de la tabla hacia el frente.
+      const startZ =
+        shelfCenterZ + sideShelfWidth / 2 - SHEET_WIDTH / 2;
       for (let index = 0; index < nodes.length; index++) {
         const node = nodes[index] as TreeNode;
         const fileIndex = node.fileIndex;
@@ -512,7 +517,7 @@ export function buildRoom(input: RoomInput): Room {
           role: "file",
           x: sheetX,
           y: SHEET_BASE_Y + row * SHEET_ROW_HEIGHT,
-          z: startZ + column * (SHEET_WIDTH + SHEET_GAP_X),
+          z: startZ - column * (SHEET_WIDTH + SHEET_GAP_X),
           // La hoja está de pie: el ancho va sobre la tabla y la cara mira al
           // pasillo central, no a la cámara.
           width: SHEET_THICKNESS,
