@@ -47,6 +47,8 @@ export interface PluginContextInput {
   migration: CcMigrationLens | null;
   /** Elige un fichero por su índice, como el mapa. */
   select: (index: number) => void;
+  /** Elige una carpeta por su ruta, sin salir de la vista. */
+  selectFolder: (path: string | null) => void;
   setFocusPath: (path: string | null) => void;
   setTab: (tab: InspectorTab) => void;
   setAreaMetric: (metric: string | null) => void;
@@ -71,6 +73,7 @@ export function buildPluginContext(input: PluginContextInput): PluginContext {
           : -1;
         if (index >= 0) input.select(index);
       },
+      selectFolder: (path: string) => input.selectFolder(path),
       focus: (path: string) => input.setFocusPath(path),
       setTab: (tab: InspectorTab) => input.setTab(tab)
     },

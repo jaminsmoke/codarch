@@ -97,6 +97,7 @@ function input(extra: Partial<PluginContextInput> = {}): PluginContextInput {
     tab: "file",
     migration: null,
     select: () => {},
+    selectFolder: () => {},
     setFocusPath: () => {},
     setTab: () => {},
     setAreaMetric: () => {},

@@ -30,7 +30,9 @@ export interface SceneOptions {
   background: string;
   selected: string | null;
   onSelect: (path: string) => void;
+  onSelectFolder?: (path: string) => void;
   onFocus?: (path: string) => void;
+  onOpen?: (path: string) => void;
   onBackend?: (backend: SceneBackend) => void;
   onError?: () => void;
   onBoxes?: (count: number) => void;
@@ -475,27 +477,41 @@ export function mountScene(
     polar: 1.32,
     distance: fit
   };
+  const pickAt = (clientX: number, clientY: number): AtlasBox | null => {
+    const rect = canvas.getBoundingClientRect();
+    const ndcX = ((clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
+    const ndcY = -((clientY - rect.top) / Math.max(1, rect.height)) * 2 + 1;
+    const pose = controls.pose();
+    const ray = rayFromNdc(
+      pose.position,
+      pose.target,
+      ndcX,
+      ndcY,
+      fov,
+      rect.width / Math.max(1, rect.height)
+    );
+    const selectable = visible.filter((box) => box.selectable);
+    const index = pickBox(ray, selectable);
+    return index === null ? null : (selectable[index] ?? null);
+  };
+
   const controls = createOrbitControls(canvas, {
     onTap: (clientX, clientY) => {
-      const rect = canvas.getBoundingClientRect();
-      const ndcX = ((clientX - rect.left) / Math.max(1, rect.width)) * 2 - 1;
-      const ndcY = -((clientY - rect.top) / Math.max(1, rect.height)) * 2 + 1;
-      const pose = controls.pose();
-      const ray = rayFromNdc(
-        pose.position,
-        pose.target,
-        ndcX,
-        ndcY,
-        fov,
-        rect.width / Math.max(1, rect.height)
-      );
-      const index = pickBox(ray, visible.filter((box) => box.selectable));
-      if (index === null) return;
-      const box = visible.filter((box) => box.selectable)[index];
+      const box = pickAt(clientX, clientY);
       if (!box) return;
       if (box.role === "metric") focusPanel(box);
-      else if (box.role === "folder") options.onFocus?.(box.path ?? "");
-      else if (box.role === "file") options.onSelect(box.path ?? "");
+      else if (box.role === "folder") {
+        options.onSelectFolder?.(box.path ?? "");
+      } else if (box.role === "file") {
+        options.onSelect(box.path ?? "");
+      }
+    },
+    onDoubleTap: (clientX, clientY) => {
+      const box = pickAt(clientX, clientY);
+      if (!box) return;
+      if (box.role === "folder") options.onFocus?.(box.path ?? "");
+      else if (box.role === "file") options.onOpen?.(box.path ?? "");
+      else if (box.role === "metric") focusPanel(box);
     },
     // La cámara mira de frente desde delante de la sala; las estanterías
     // quedan en las paredes laterales y los contenedores en el centro.
@@ -509,8 +525,10 @@ export function mountScene(
       ...ORBIT_LIMITS,
       minPolar: 1.02,
       maxPolar: 1.55,
+      minAzimuth: Math.PI - 1.15,
+      maxAzimuth: Math.PI + 1.15,
       minDistance: Math.max(8, fit * 0.04),
-      maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 2.2)
+      maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 1.8)
     }
   });
 

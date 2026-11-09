@@ -11,6 +11,7 @@ Fase **M77 · El Atlas, un plugin de vista** (ADR 0113).
 - ✅ Estanterías ligeras, retrasadas y llenadas de dentro afuera (ADR 0125).
 - ✅ Pantalla de métricas del ámbito en la pared de fondo (ADR 0126).
 - ✅ Texto recortado y pantalla enfocable con vuelo de cámara (ADR 0127).
+- ✅ Un clic selecciona; doble clic entra o abre; cámara limitada al arco frontal (ADR 0128).
 - ✅ Las estanterías laterales y las hojas de pie (ADR 0119).
 - ✅ Las estanterías abiertas, ordenadas desde el frente (ADR 0120).
 - ✅ Luces laterales, luz de estantería y LOD de etiquetas.

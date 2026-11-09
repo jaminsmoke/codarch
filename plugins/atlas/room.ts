@@ -265,7 +265,7 @@ export function buildRoom(input: RoomInput): Room {
 
   // Suelo, paredes y techo: todas las escalas comparten la misma sala.
   const roomHeight = Math.max(
-    17,
+    18,
     fileWallHeight + 4,
     maxFolderHeight + 9
   );
@@ -397,7 +397,7 @@ export function buildRoom(input: RoomInput): Room {
   const metricRows = input.metrics ?? [];
   if (metricRows.length > 0) {
     const tableWidth = Math.min(24, width * 0.62);
-    const tableHeight = 1.1 + metricRows.length * 0.8;
+    const tableHeight = 1.2 + metricRows.length * 1.1;
     const tableY = Math.min(
       roomHeight - tableHeight - 0.6,
       signY + signHeight + 1.5

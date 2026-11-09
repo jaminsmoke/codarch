@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@codarch/render/browser";
 import { buildRoom, findFolder, type RoomInput } from "../room";
 import { projectPoint } from "../camera";
+import { clampOrbit } from "../orbit";
 import {
   canvasPixelScale,
   colorOf,
@@ -342,6 +343,21 @@ describe("la escena del Atlas", () => {
     expect(projected?.x).toBeCloseTo(100, 6);
     expect(projected?.y).toBeCloseTo(50, 6);
     expect(projected?.depth).toBeCloseTo(10, 6);
+  });
+
+  it("mantiene la cámara dentro del arco frontal de la sala", () => {
+    const clamped = clampOrbit(
+      { azimuth: 0, polar: 1.3, distance: 20 },
+      {
+        minDistance: 5,
+        maxDistance: 100,
+        minPolar: 1,
+        maxPolar: 1.6,
+        minAzimuth: 2,
+        maxAzimuth: 4
+      }
+    );
+    expect(clamped.azimuth).toBe(2);
   });
 
   it("descarta un punto detrás de la cámara", () => {

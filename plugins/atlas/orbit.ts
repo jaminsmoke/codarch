@@ -25,6 +25,9 @@ export interface OrbitLimits {
   maxDistance: number;
   minPolar: number;
   maxPolar: number;
+  /** La cámara no gira por detrás de la sala. */
+  minAzimuth?: number;
+  maxAzimuth?: number;
 }
 
 /** Los límites por defecto: ni pegarse a una caja ni salirse del mapa ✓. */
@@ -90,8 +93,11 @@ export function clampOrbit(
   limits: OrbitLimits = ORBIT_LIMITS
 ): OrbitState {
   return {
-    // El ángulo no se recorta ✓: las vueltas enteras son la misma vista ✓.
-    azimuth: state.azimuth,
+    // Si la sala define un arco frontal, la cámara no lo abandona.
+    azimuth: Math.min(
+      Math.max(state.azimuth, limits.minAzimuth ?? -Infinity),
+      limits.maxAzimuth ?? Infinity
+    ),
     polar: Math.min(Math.max(state.polar, limits.minPolar), limits.maxPolar),
     distance: Math.min(
       Math.max(state.distance, limits.minDistance),
@@ -117,6 +123,8 @@ export function dampOrbit(
 export interface OrbitControlsOptions {
   /** Se llama al pulsar sin arrastrar ✓: ahí se selecciona ✓. */
   onTap?: (clientX: number, clientY: number) => void;
+  /** Se llama al segundo clic seguido en el mismo sitio. */
+  onDoubleTap?: (clientX: number, clientY: number) => void;
   /** Se llama cuando la cámara tiene algo nuevo que dibujar ✓. */
   onChange?: () => void;
   /** El amortiguado por fotograma ✓ (0,18 por defecto ✓). */
@@ -172,6 +180,7 @@ export function createOrbitControls(
   const pointers = new Map<number, { x: number; y: number }>();
   let pinchSpan = 0;
   let tap: { x: number; y: number } | null = null;
+  let lastTap: { x: number; y: number; at: number } | null = null;
   let travel = 0;
 
   const span = (): number => {
@@ -232,7 +241,25 @@ export function createOrbitControls(
   const onPointerUp = (event: PointerEvent): void => {
     pointers.delete(event.pointerId);
     if (pointers.size === 0) {
-      if (tap && travel <= TAP_SLOP) options.onTap?.(event.clientX, event.clientY);
+      if (tap && travel <= TAP_SLOP) {
+        const now = performance.now();
+        const double =
+          lastTap !== null &&
+          now - lastTap.at < 320 &&
+          Math.hypot(event.clientX - lastTap.x, event.clientY - lastTap.y) <=
+            TAP_SLOP * 2;
+        if (double) {
+          lastTap = null;
+          options.onDoubleTap?.(event.clientX, event.clientY);
+        } else {
+          lastTap = {
+            x: event.clientX,
+            y: event.clientY,
+            at: now
+          };
+          options.onTap?.(event.clientX, event.clientY);
+        }
+      }
       tap = null;
       pinchSpan = 0;
       return;
