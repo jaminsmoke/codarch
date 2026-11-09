@@ -31,7 +31,7 @@ La sala crece en ancho y fondo, y gana altura mínima:
 
 - más separación entre la fila central y las estanterías laterales;
 - más fondo detrás de los archivadores;
-- un poco más de altura entre la estantería y la viga.
+- un poco más de altura entre la estantería y el cartel de fondo.
 
 El objetivo es que los muebles no se toquen y que la cámara tenga sitio para retroceder sin que la
 sala parezca un pasillo.
@@ -62,8 +62,8 @@ de 1,35 veces la distancia inicial o si se aparta más de 0,65 radianes del fren
 Es un LOD de carga, distancia y ángulo: se recalcula la lista de geometría cuando se cruza un umbral,
 no en cada fotograma.
 
-El LOD de etiquetas del ADR 0120 se mantiene: 64 por sala con prioridad para viga, selección,
-carpetas y hojas.
+El LOD de etiquetas del ADR 0120 se mantiene: 64 por sala con prioridad para el cartel, la selección,
+las carpetas y las hojas.
 
 ### 4. Sin cambios de modelo
 

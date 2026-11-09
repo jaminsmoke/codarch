@@ -67,6 +67,7 @@ const input: RoomInput = {
     { risk: 1 }
   ],
   focusPath: null,
+  projectName: "codarch",
   colorFor,
   fallbackColor: "#cccccc",
   furnitureColor: "#333333",
@@ -187,13 +188,13 @@ describe("la geometría frontal del Atlas", () => {
   it("el proyecto también es una sala completa", () => {
     const room = buildRoom(input);
 
-    expect(room.title).toBe("Proyecto");
+    expect(room.title).toBe("codarch");
     expect(room.boxes.some((box) => box.role === "floor")).toBe(true);
     expect(
       room.boxes.filter((box) => box.role === "furniture").length
     ).toBeGreaterThan(4);
-    expect(room.boxes.find((box) => box.role === "beam")?.label).toBe(
-      "Proyecto"
+    expect(room.boxes.find((box) => box.role === "sign")?.label).toBe(
+      "codarch"
     );
   });
 
@@ -214,15 +215,15 @@ describe("la geometría frontal del Atlas", () => {
     ).toBeLessThan(3);
   });
 
-  it("cada sala lleva el nombre en una viga frontal, sin cerrar el frente", () => {
+  it("cada sala lleva el nombre en un cartel de la pared de fondo", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
-    const beam = room.boxes.find((box) => box.role === "beam");
+    const sign = room.boxes.find((box) => box.role === "sign");
 
     expect(room.title).toBe("src/a");
-    expect(beam?.label).toBe("src/a");
-    expect(beam?.selectable).toBe(false);
-    expect(beam?.z).toBeLessThan(0);
-    expect(beam?.width).toBeGreaterThan(room.width);
+    expect(sign?.label).toBe("src/a");
+    expect(sign?.selectable).toBe(false);
+    expect(sign?.z).toBeGreaterThan(room.depth);
+    expect(sign?.width).toBeLessThan(room.width);
   });
 
   it("los detalles del archivador quedan marcados para el LOD", () => {
@@ -242,7 +243,7 @@ describe("la geometría frontal del Atlas", () => {
         (box) =>
           box.role === "floor" ||
           box.role === "furniture" ||
-          box.role === "beam"
+          box.role === "sign"
       )
     ).toBe(true);
   });
@@ -267,7 +268,7 @@ describe("la escena del Atlas", () => {
     expect(kindOf("file")).toBe(0);
     expect(kindOf("floor")).toBe(2);
     expect(kindOf("furniture")).toBe(3);
-    expect(kindOf("beam")).toBe(3);
+    expect(kindOf("sign")).toBe(3);
   });
 
   it("marca las carpetas para dibujar sus aristas", () => {

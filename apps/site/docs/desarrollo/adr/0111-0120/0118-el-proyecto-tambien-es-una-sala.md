@@ -10,7 +10,8 @@ sidebar:
 ---
 
 **Estado:** enmendado por [ADR 0119](0119-estanterias-laterales-y-centro.md) (estanterías laterales
-y archivadores al centro) · **Fecha:** 2026-11-08
+y archivadores al centro) y por [ADR 0124](../0121-0130/0124-cartel-de-fondo-y-nombre-del-proyecto.md)
+(cartel de fondo) · **Fecha:** 2026-11-08
 
 La colocación de estanterías y hojas de este ADR queda sustituida por el 0119.
 

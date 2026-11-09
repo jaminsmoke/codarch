@@ -26,8 +26,8 @@ Cabinets were in front instead of occupying the back wall, their natural place.
 
 ### 1. No ceiling
 
-The room opens upwards. Side and back walls still close the scene; the ceiling disappears. The front
-beam and side light strips remain.
+The room opens upwards. Side and back walls still close the scene; the ceiling disappears. The back
+sign and side light strips remain.
 
 An open room lets geometry breathe and avoids the camera hitting a lid that adds no information.
 

@@ -120,6 +120,7 @@ export function AtlasView({ context }: { context: PluginContext }) {
       roots: model.roots,
       files: model.files,
       focusPath,
+      projectName: model.meta.project,
       colorFor: (index) => latest.current.colorFor(index),
       fallbackColor: ATLAS_FALLBACK,
       furnitureColor: ATLAS_FURNITURE,

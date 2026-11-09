@@ -10,7 +10,8 @@ sidebar:
 ---
 
 **Status:** amended by [ADR 0119](0119-estanterias-laterales-y-centro.md) (side shelves and central
-cabinets) · **Date:** 2026-11-08
+cabinets) and by [ADR 0124](../0121-0130/0124-cartel-de-fondo-y-nombre-del-proyecto.md) (back-wall
+sign) · **Date:** 2026-11-08
 
 The shelf and sheet placement in this ADR is replaced by 0119.
 

@@ -7,10 +7,15 @@ import type { TreeNode } from "@codarch/render/browser";
  * abre otra. Los archivadores se ordenan en el centro y las estanterías de los
  * ficheros se pegan a las paredes laterales. Las hojas van de pie en la
  * estantería, con su cara mirando al centro de la sala. El frente queda abierto
- * y solo lo cruza una viga con el nombre de la escala.
+ * y el nombre de la escala vive en un cartel de la pared de fondo.
  */
 
-export type AtlasRole = "folder" | "file" | "floor" | "furniture" | "beam";
+export type AtlasRole =
+  | "folder"
+  | "file"
+  | "floor"
+  | "furniture"
+  | "sign";
 
 export interface AtlasBox {
   path: string | null;
@@ -36,6 +41,8 @@ export interface RoomInput {
   files: readonly { risk: number }[];
   /** La carpeta abierta; `null` es la sala del proyecto. */
   focusPath: string | null;
+  /** Nombre del proyecto analizado, para el cartel de la sala raíz. */
+  projectName: string;
   colorFor: (fileIndex: number) => string;
   fallbackColor: string;
   furnitureColor: string;
@@ -54,7 +61,7 @@ export interface Room {
   height: number;
   radius: number;
   focusPath: string | null;
-  /** Nombre que va en el letrero de la viga. */
+  /** Nombre que va en el cartel de la pared de fondo. */
   title: string;
   containers: number;
   sheets: number;
@@ -188,7 +195,8 @@ export function buildRoom(input: RoomInput): Room {
   const children = current?.children ?? input.roots;
   const folders = children.filter((child) => child.kind === "folder");
   const fileNodes = children.filter((child) => child.kind === "file");
-  const title = current?.name ?? "Proyecto";
+  const title =
+    current?.name || input.projectName || "Proyecto";
 
   const filesPerSide = Math.ceil(fileNodes.length / 2);
   const sideFileColumns = fileNodes.length
@@ -345,18 +353,32 @@ export function buildRoom(input: RoomInput): Room {
       selectable: false
     });
   }
-  // La viga es la única pieza que cruza el frente: cierra la sala sin tapar
-  // la vista y sostiene el letrero con el nombre de la escala.
+  // El nombre de la escala vive en un cartel centrado en la pared de fondo.
+  const signWidth = Math.min(16, Math.max(8, width * 0.38));
+  const signHeight = 1.8;
+  const signY = Math.max(6.5, roomHeight * 0.55);
   boxes.push({
     path: null,
-    role: "beam",
+    role: "furniture",
     x: 0,
-    y: roomHeight - 2.2,
-    z: -1.2,
-    width: width + 4,
-    depth: 0.5,
-    height: 0.8,
+    y: signY - 0.15,
+    z: depth + 0.52,
+    width: signWidth + 0.5,
+    depth: 0.08,
+    height: signHeight + 0.3,
     color: input.trimColor,
+    selectable: false
+  });
+  boxes.push({
+    path: null,
+    role: "sign",
+    x: 0,
+    y: signY,
+    z: depth + 0.42,
+    width: signWidth,
+    depth: 0.12,
+    height: signHeight,
+    color: input.furnitureColor,
     selectable: false,
     label: title
   });

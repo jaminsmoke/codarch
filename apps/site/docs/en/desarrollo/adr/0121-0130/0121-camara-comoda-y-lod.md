@@ -31,7 +31,7 @@ The room grows in width and depth, and gains a minimum height:
 
 - more separation between the central row and side shelves;
 - more depth behind cabinets;
-- a little more height between shelf and beam.
+- a little more height between the shelf and the back-wall sign.
 
 The goal is that pieces do not touch and the camera has room to pull back without the room feeling
 like a corridor.
@@ -62,7 +62,7 @@ more than 0.65 radians away from the front; they return when coming back.
 It is a load, distance and angle LOD: the geometry list is recalculated only when a threshold is
 crossed, not every frame.
 
-The label LOD from ADR 0120 remains: 64 per room with priority for beam, selection, folders and
+The label LOD from ADR 0120 remains: 64 per room with priority for the sign, selection, folders and
 sheets.
 
 ### 4. No model changes
