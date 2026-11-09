@@ -10,8 +10,8 @@ laterales siguen siendo de CodArch.
   archivadores se pegan a la pared de fondo y los ficheros van de pie en dos estanterías laterales,
   abiertas y ordenadas desde la boca de la sala hacia dentro.
 - **Luz y etiquetas**: las paredes y estanterías tienen tiras de luz; el presupuesto de etiquetas
-  prioriza viga, selección, carpetas y hojas. En salas muy cargadas se retiran primero los detalles
-  pequeños de los archivadores.
+  prioriza viga, selección, carpetas y hojas. Los detalles de los archivadores se retiran por carga,
+  distancia o ángulo de cámara. El pasillo central lleva dos guías de suelo.
 - **Viga**: el frente queda abierto. Una viga lo cruza arriba con el letrero del nombre de la sala;
   no hay pared frontal completa.
 - **Cámara**: frontal, a la altura de la sala; no es un plano cenital. Se orbita con el ratón, la

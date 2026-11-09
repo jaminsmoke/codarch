@@ -139,6 +139,19 @@ describe("la geometría frontal del Atlas", () => {
     expect(sheetsX).toContain(1);
   });
 
+  it("el pasillo central lleva dos guías de suelo", () => {
+    const room = buildRoom(input);
+    const guides = room.boxes.filter(
+      (box) =>
+        box.role === "furniture" &&
+        box.height < 0.1 &&
+        box.width < 0.2 &&
+        box.depth > 4
+    );
+
+    expect(guides.length).toBeGreaterThanOrEqual(2);
+  });
+
   it("las estanterías están abiertas y empiezan junto al frente", () => {
     const room = buildRoom({ ...input, focusPath: "src/a" });
     const sheets = room.boxes.filter((box) => box.role === "file");

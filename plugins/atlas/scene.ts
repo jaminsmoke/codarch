@@ -61,6 +61,7 @@ const MAX_PIXELS = 8_000_000;
 const MAX_LABELS = 64;
 const DETAIL_LOD_LIMIT = 140;
 const DETAIL_LOD_FACTOR = 1.35;
+const DETAIL_LOD_ANGLE = 0.65;
 const CUBE_VERTICES = 36;
 /** Posición, tamaño, color y tipo (0 hoja, 1 contenedor, 2 suelo, 3 mobiliario). */
 const STRIDE = 10;
@@ -614,9 +615,19 @@ export function mountScene(
       pose.position.y - pose.target.y,
       pose.position.z - pose.target.z
     );
+    const dx = pose.position.x - pose.target.x;
+    const dz = pose.position.z - pose.target.z;
+    const azimuth = Math.atan2(dx, dz);
+    const frontOffset = Math.abs(
+      Math.atan2(
+        Math.sin(azimuth - Math.PI),
+        Math.cos(azimuth - Math.PI)
+      )
+    );
     const next =
       room.boxes.length <= DETAIL_LOD_LIMIT &&
-      distance <= fit * DETAIL_LOD_FACTOR;
+      distance <= fit * DETAIL_LOD_FACTOR &&
+      frontOffset <= DETAIL_LOD_ANGLE;
     if (next === detailsVisible) return;
     detailsVisible = next;
     draw(room.boxes);
