@@ -211,6 +211,9 @@ export function AtlasView({ context }: { context: PluginContext }) {
       } else if (event.key === "0" || event.key.toLowerCase() === "r") {
         event.preventDefault();
         sceneRef.current?.resetView();
+      } else if (event.key.toLowerCase() === "c") {
+        event.preventDefault();
+        sceneRef.current?.centerView();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -280,6 +283,14 @@ export function AtlasView({ context }: { context: PluginContext }) {
         </button>
         <button
           type="button"
+          onClick={() => sceneRef.current?.centerView()}
+          title="Mirar desde el centro de la sala (C)"
+          aria-label="Vista desde el centro de la sala"
+        >
+          Centro
+        </button>
+        <button
+          type="button"
           onClick={() => sceneRef.current?.resetView()}
           title="Centrar la vista (0)"
           aria-label="Centrar la vista"
@@ -296,8 +307,8 @@ export function AtlasView({ context }: { context: PluginContext }) {
         </button>
       </div>
       <div className="atlas-hint">
-        arrastra para mirar · rueda o +/− para acercar · 0 centrar · clic
-        selecciona · doble clic entra en una carpeta o abre una hoja
+        arrastra para mirar · rueda o +/− para acercar · C centro · 0 centrar ·
+        clic selecciona · doble clic entra en una carpeta o abre una hoja
       </div>
       {openFile && openFile.focusPath === focusPath ? (
         <AtlasFileView

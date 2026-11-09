@@ -237,17 +237,17 @@ export function buildRoom(input: RoomInput): Room {
   const containerGridDepth = gridSpan(containerRows, folders.length);
 
   const width = Math.max(
-    24,
-    containerGridWidth + 2 * SHELF_DEPTH + 16,
-    fileNodes.length ? 24 : 0
+    28,
+    containerGridWidth + 2 * SHELF_DEPTH + 18,
+    fileNodes.length ? 28 : 0
   );
   // La profundidad sigue al ancho: una sala cuadrada se recorre mejor y deja
   // pasillo entre la estantería delantera y los archivadores del fondo.
   const depth = Math.max(
-    20,
-    width * 0.65,
-    containerGridDepth + 8,
-    fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 4 : 0
+    22,
+    width * 0.68,
+    containerGridDepth + 9,
+    fileNodes.length ? SHELF_FRONT_Z + sideShelfWidth + 5 : 0
   );
   const shelfCenterZ = Math.max(
     SHELF_FRONT_Z + sideShelfWidth / 2,

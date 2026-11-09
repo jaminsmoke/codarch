@@ -151,6 +151,7 @@ flowchart TD
 | [0128](0121-0130/0128-seleccion-y-camara.md) | Un clic selecciona, dos entran | 2026-11-09 | aceptado | M77 |
 | [0129](0121-0130/0129-esquinas-de-la-sala.md) | Las esquinas de la sala | 2026-11-09 | aceptado | M77 |
 | [0130](0121-0130/0130-composicion-interior.md) | Composición interior y foco de selección | 2026-11-09 | aceptado | M77 |
+| [0131](0131-0140/0131-vista-interior-y-mirada-vertical.md) | Vista interior y mirada vertical | 2026-11-09 | aceptado | M77 |
 
 ## Las carpetas
 
@@ -169,5 +170,6 @@ Van por bloques de diez: el número ya dice cuándo se decidió y el tema lo dic
 - **0101-0110**: 0101, 0102, 0103, 0104, 0105, 0106, 0107, 0108, 0109, 0110
 - **0111-0120**: 0111, 0112, 0113, 0114, 0115, 0116, 0117, 0118, 0119, 0120
 - **0121-0130**: 0121, 0122, 0123, 0124, 0125, 0126, 0127, 0128, 0129, 0130
+- **0131-0140**: 0131
 
 El **roadmap** completo, con una línea por fase, está en [`roadmap.md`](../roadmap.md).

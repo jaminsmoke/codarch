@@ -49,6 +49,8 @@ export interface Scene {
   setSelectedFolder(path: string | null): void;
   /** Vuelve a la vista inicial de la sala. */
   resetView(): void;
+  /** Se mete en el centro de la sala para mirar desde dentro. */
+  centerView(): void;
   /** Acerca o aleja la cámara conservando el objetivo. */
   zoom(factor: number): void;
   /** Vuela hasta una carpeta, o al atlas entero con `null`. */
@@ -349,6 +351,7 @@ export function mountScene(
       setSelected: () => undefined,
       setSelectedFolder: () => undefined,
       resetView: () => undefined,
+      centerView: () => undefined,
       zoom: () => undefined,
       flyTo: (_path, _duration, onDone) => onDone(),
       dispose: () => undefined
@@ -478,6 +481,14 @@ export function mountScene(
   let frame = 0;
   let projection = perspective(fov, aspect, near, far);
 
+  const centerDistance = Math.max(2.5, fit * 0.035);
+  const centerEye = {
+    x: 0,
+    y: Math.max(4.5, room.height * 0.4),
+    // Un tercio dentro de la sala: ya es vista interior, pero deja la pared
+    // de fondo y los archivadores en el encuadre.
+    z: room.depth * 0.32
+  };
   const start: OrbitState = {
     azimuth: Math.PI,
     polar: 1.32,
@@ -527,13 +538,15 @@ export function mountScene(
       refreshLod();
       requestRender();
     },
+    minHeight: 1.1,
     limits: {
       ...ORBIT_LIMITS,
       minPolar: 1.02,
-      maxPolar: 1.55,
+      // Se puede mirar hacia arriba; el suelo frena la cámara.
+      maxPolar: Math.PI - 0.16,
       minAzimuth: Math.PI - 1.15,
       maxAzimuth: Math.PI + 1.15,
-      minDistance: Math.max(8, fit * 0.04),
+      minDistance: centerDistance,
       maxDistance: Math.max(ORBIT_LIMITS.maxDistance, fit * 1.8)
     }
   });
@@ -571,6 +584,10 @@ export function mountScene(
     onDone: () => void
   ): void => {
     if (flight || disposed) return;
+    if (controls.isAnchored()) {
+      controls.setAnchor(null);
+      controls.setView({ ...start, distance: centerDistance }, target);
+    }
     const pose = controls.pose();
     const fromDistance = Math.hypot(
       pose.position.x - pose.target.x,
@@ -666,11 +683,14 @@ export function mountScene(
 
   refreshLod = (): void => {
     const pose = controls.pose();
-    const distance = Math.hypot(
-      pose.position.x - pose.target.x,
-      pose.position.y - pose.target.y,
-      pose.position.z - pose.target.z
-    );
+    const anchored = controls.isAnchored();
+    const distance = anchored
+      ? 0
+      : Math.hypot(
+          pose.position.x - pose.target.x,
+          pose.position.y - pose.target.y,
+          pose.position.z - pose.target.z
+        );
     const dx = pose.position.x - pose.target.x;
     const dz = pose.position.z - pose.target.z;
     const azimuth = Math.atan2(dx, dz);
@@ -1055,7 +1075,17 @@ export function mountScene(
       repaint();
     },
     resetView(): void {
+      controls.setAnchor(null);
       controls.setView(start, target);
+      refreshLod();
+      requestRender();
+    },
+    centerView(): void {
+      controls.setAnchor(centerEye, {
+        azimuth: 0,
+        polar: Math.PI / 2,
+        distance: centerDistance
+      });
       refreshLod();
       requestRender();
     },

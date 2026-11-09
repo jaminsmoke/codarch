@@ -22,6 +22,8 @@ laterales siguen siendo de CodArch.
 - **Selección**: un clic selecciona; una carpeta se pinta en la sala y una hoja enfoca su estante con
   contexto. Doble clic entra en la carpeta o abre la hoja en el visor. La pantalla de métricas conserva
   su clic directo para enfocarla.
+- **Cámara**: `Centro` (o `C`) entra en la sala y gira sobre su eje; se puede mirar arriba. `Centrar`
+  vuelve a la vista general y los focos de selección salen de la vista anclada.
 - **Mapas**: funciona con el mapa de código y con el de documentos/configuración porque recibe el
   `RenderModel` que esté abierto.
 
