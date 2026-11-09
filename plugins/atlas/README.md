@@ -8,7 +8,7 @@ laterales siguen siendo de CodArch.
   son las carpetas de primer nivel y sus hojas, los ficheros de la raíz.
 - **Sala**: cada carpeta abre otra sala con la misma geometría. Son salas profundas y sin techo; los
   archivadores se pegan a la pared de fondo y los ficheros van de pie en dos estanterías laterales,
-  abiertas y ordenadas desde la boca de la sala hacia dentro.
+  abiertas, con tablas finas y llenadas desde el fondo hacia el frente.
 - **Luz y etiquetas**: las paredes y estanterías tienen tiras de luz; el presupuesto de etiquetas
   prioriza cartel, selección, carpetas y hojas. Los detalles de los archivadores se retiran por carga,
   distancia o ángulo de cámara. El pasillo central lleva dos guías de suelo.
